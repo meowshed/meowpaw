@@ -7,9 +7,13 @@ revised: 2026-09-20
 
 # Decisions
 
-No decisions are in force.
+No decisions are in force. One is drafted and waiting on approval.
 
-The design step hasn't run against the requirements as they now stand. It
+|                                                                                | Decision                                                       | Status |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------- | ------ |
+| [ADR-1000](ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md) | The reply shape is a forced output style carried by the kernel | draft  |
+
+The design step has run once against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:
 they addressed a requirement set that has since been merged, split and reduced,
 so we'll write them again from the requirements we have now. The history keeps
