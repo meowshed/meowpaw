@@ -1,0 +1,13 @@
+# MD013 is off: prettier owns wrapping, and the two disagree.
+config:
+  MD013: false
+  MD024:
+    siblings_only: true
+  MD033: false
+globs:
+  - "**/*.md"
+ignores:
+  - node_modules
+
+# Files git ignores are not part of the repository, so the gate skips them.
+gitignore: true

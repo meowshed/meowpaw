@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+      - run: mise run fmt-check
+      - run: mise run lint
+
+  attribution:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: No AI attribution in the commits this adds
+        run: |
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          if [ -z "$base" ]; then exit 0; fi
+          if git log --format=%B "$base..$head" |
+             grep -iE 'co-authored-by.*(claude|anthropic|copilot)|generated with \[|noreply@anthropic'; then
+            echo "::error::a commit carries AI attribution; see CLAUDE.md"
+            exit 1
+          fi
