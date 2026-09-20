@@ -18,16 +18,15 @@ answering a fixed contract.
 
 ## Status
 
-Nothing is written down yet. What's here is the ground the record will stand
-on: the licence, the constitution that governs work inside this repository, and
-a gate that formats and lints prose.
+The vision is written and nothing else is. It says what this is, who it's for,
+what it won't do, and what would count as it having worked - which a method
+that refuses to build unauthorised work has to settle about itself before it
+settles anything else.
 
-The harness is built by its own method, so its artifacts come before its code,
-and they arrive in the method's own order, starting with what already exists.
-
-| Document               | Answers                                            |
-| ---------------------- | -------------------------------------------------- |
-| [CLAUDE.md](CLAUDE.md) | The constitution for working _in this repository_. |
+| Document                               | Answers                                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------ |
+| [project/vision.md](project/vision.md) | What this is, who it's for, what it won't do, and how you'd judge whether it worked. |
+| [CLAUDE.md](CLAUDE.md)                 | The constitution for working _in this repository_.                                   |
 
 ## Licence
 
