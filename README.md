@@ -47,20 +47,21 @@ because a harness that demands nine steps for a typo is one you'd work around.
 
 ## Status
 
-125 research documents cover the six private harnesses, ten public ones, the
-agent platform, eleven toolchains, the runners, the external tools, the
-commands and skills the harness will ship, the design lenses, a template for
-every artifact kind, and the gaps we found by reading the corpus against
-itself.
+125 research documents are written, and 1,037 requirements are drawn from them.
+Each requirement carries one obligation, cites the research it came from, and
+declares what would verify it: a static check, a behavioural fixture, a
+judgement with its judge named, or a measured evaluation. Every research
+document has at least one requirement citing it.
 
-Nothing is required of anyone yet. Requirements come from this research, and
-they're next.
+Nothing is designed. No decision is in force, so nothing here says how any of
+this is built.
 
-| Document                               | Answers                                                                                                                                                                                                                     |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [project/research/](project/research/) | What exists - six private harnesses, ten public ones, the platform, the toolchains, what a skill costs - and what the evidence says a new harness has to do. Indexed by [RES-0001](project/research/RES-0001-synthesis.md). |
-| [project/vision.md](project/vision.md) | What this is, who it's for, what it won't do, and how you'd judge whether it worked.                                                                                                                                        |
-| [CLAUDE.md](CLAUDE.md)                 | The constitution for working _in this repository_.                                                                                                                                                                          |
+| Document                                                | Answers                                                                                                                                                                                                                     |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [project/requirements/](project/requirements/README.md) | What the harness must do: one obligation per file.                                                                                                                                                                          |
+| [project/research/](project/research/)                  | What exists - six private harnesses, ten public ones, the platform, the toolchains, what a skill costs - and what the evidence says a new harness has to do. Indexed by [RES-0001](project/research/RES-0001-synthesis.md). |
+| [project/vision.md](project/vision.md)                  | What this is, who it's for, what it won't do, and how you'd judge whether it worked.                                                                                                                                        |
+| [CLAUDE.md](CLAUDE.md)                                  | The constitution for working _in this repository_.                                                                                                                                                                          |
 
 ## Licence
 
