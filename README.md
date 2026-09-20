@@ -49,19 +49,64 @@ because a harness that demands nine steps for a typo is one you'd work around.
 
 125 research documents are written, and 1,037 requirements are drawn from them.
 Each requirement carries one obligation, cites the research it came from, and
-declares what would verify it: a static check, a behavioural fixture, a
-judgement with its judge named, or a measured evaluation. Every research
-document has at least one requirement citing it.
+declares what would verify it.
 
-Nothing is designed. No decision is in force, so nothing here says how any of
-this is built.
+Nothing is designed and nothing is built. No decision is in force, so nothing
+here says how any of this works, and no plugin exists yet. The harness is built
+by its own method, so its artifacts come before its code, and they're what you
+read and argue with today.
+
+## Read in this order
 
 | Document                                                | Answers                                                                                                                                                                                                                     |
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [project/requirements/](project/requirements/README.md) | What the harness must do: one obligation per file.                                                                                                                                                                          |
-| [project/research/](project/research/)                  | What exists - six private harnesses, ten public ones, the platform, the toolchains, what a skill costs - and what the evidence says a new harness has to do. Indexed by [RES-0001](project/research/RES-0001-synthesis.md). |
 | [project/vision.md](project/vision.md)                  | What this is, who it's for, what it won't do, and how you'd judge whether it worked.                                                                                                                                        |
+| [project/research/](project/research/)                  | What exists - six private harnesses, ten public ones, the platform, the toolchains, what a skill costs - and what the evidence says a new harness has to do. Indexed by [RES-0001](project/research/RES-0001-synthesis.md). |
+| [project/requirements/](project/requirements/README.md) | What the harness must do: one obligation per file, traced to the research behind it.                                                                                                                                        |
+| [project/README.md](project/README.md)                  | The record: which kinds accumulate, where each lives, and what's written so far.                                                                                                                                            |
 | [CLAUDE.md](CLAUDE.md)                                  | The constitution for working _in this repository_.                                                                                                                                                                          |
+
+## The proposed plugins
+
+```text
+packs   language   meow-rust  meow-go  meow-python  meow-typescript
+                   meow-csharp  meow-lua  meow-neovim  meow-godot
+                   meow-starlark  meow-scheme  meow-markdown
+        runner     meow-mise  meow-task
+        tool       meow-git  meow-jj  meow-gh  meow-linear
+                   meow-qmd  meow-repomix  meow-worktrunk
+
+practice           meow-research   meow-memory   meow-loop
+
+method             meow-flow    meow-design   meow-review   meow-scm
+                   meow-prose  meow-editing
+
+kernel             meow-core
+```
+
+Everything above the packs knows nothing about your stack. A language pack
+teaches the kernel five verbs - `fmt`, `lint`, `typecheck`, `test`, `build` -
+authors that tool's configuration, and adds the idioms a reviewer needs. A
+runner pack reads the tasks your project already declares. A tool pack teaches
+the harness an external command-line tool, and every one of those is optional.
+
+Which plugins exist, and how many, comes out of the design, and the design
+hasn't run. What's proposed here is the layering - a kernel, a method layer, a
+practice layer, and packs - so that you install the kernel and the few plugins
+you need instead of the whole catalogue.
+
+## Install
+
+Not yet installable. When the first plugins land:
+
+```text
+/plugin marketplace add meowshed/meowpaw
+/plugin install meow-core@meowpaw
+/plugin install meow-rust@meowpaw
+```
+
+A [dotmeow](https://github.com/meowshed/dotmeow) component will do this on a
+machine it manages. None exists yet.
 
 ## Licence
 
