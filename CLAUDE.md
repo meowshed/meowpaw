@@ -16,9 +16,9 @@ catalogue isn't decided. `docs/plugins.md` proposes one, and you don't repeat
 its count as a fact.
 
 The repository is at M0 and no plugin directory exists yet. The research is
-approved - 125 documents, indexed by `project/research/RES-0001-synthesis.md` -
+approved - 126 documents, indexed by `project/research/RES-0001-synthesis.md` -
 so it's frozen, and a later finding becomes a new document instead of an edit
-to an existing one. The requirements are written: 1,037 obligations, each
+to an existing one. The requirements are written: 1,053 obligations, each
 citing the research behind it. Nothing is designed, so no decision is in force
 and no specification exists.
 

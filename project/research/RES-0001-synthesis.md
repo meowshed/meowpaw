@@ -152,6 +152,7 @@ here or in the sources below.
 | [Measuring the harness](RES-0266-measuring-the-harness.md)                                   | The platform can measure what a plugin contributes, which turns _does this skill earn its cost_ from an argument into a number.                                                                      |
 | [Monorepos and large repositories](RES-0267-monorepos.md)                                    | Several documents in this corpus assume one repository has one answer - one profile, one set of verbs, one record - and a monorepo has several.                                                      |
 | [Licensing and provenance](RES-0268-licensing-and-provenance.md)                             | This repository already declares its licensing in a bulk file and puts identifiers in code, and no decision records why.                                                                             |
+| [Documenting this project](RES-0269-documenting-this-project.md)                             | This repository holds two trees of prose, and only one of them is documentation.                                                                                                                     |
 
 ## The situation
 

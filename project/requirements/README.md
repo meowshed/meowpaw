@@ -7,7 +7,7 @@ revised: 2026-09-20
 
 # Requirements
 
-1037 obligations in 40 topics, one per file. Identifiers are
+1053 obligations in 40 topics, one per file. Identifiers are
 allocated in blocks per topic with gaps, so a later statement joins its
 neighbours rather than landing at the end. Each names the research it was
 drawn from, and 236 are drawn from more than one. The research names no
@@ -15,15 +15,15 @@ requirement back.
 
 | Class          | Count |
 | -------------- | ----- |
-| functional     | 943   |
-| non-functional | 94    |
+| functional     | 958   |
+| non-functional | 95    |
 
 | Verified by | Count |
 | ----------- | ----- |
 | behavioural | 525   |
 | evaluation  | 12    |
-| judgement   | 33    |
-| static      | 467   |
+| judgement   | 36    |
+| static      | 480   |
 
 ## adoption
 
@@ -293,45 +293,61 @@ requirement back.
 
 ## distribution
 
-|                                                                    | Obligation                                                                                                                                                   |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [REQ-1480](REQ-1480-install-through-the-platform.md)               | The harness MUST be installable through the standard plugin mechanism of the agent it targets, with no installer of its own.                                 |
-| [REQ-1481](REQ-1481-a-contract-is-a-file-or-a-command.md)          | Every contract between two units MUST be a file format or a command, because the platform provides no shared runtime and no shared memory between units...   |
-| [REQ-1482](REQ-1482-a-unit-declares-what-it-requires.md)           | Each unit MUST declare the units it requires.                                                                                                                |
-| [REQ-1483](REQ-1483-no-dependence-on-hook-order.md)                | The harness MUST NOT depend on the order in which hooks from different units run, because the platform does not define that order.                           |
-| [REQ-1484](REQ-1484-an-upgrade-keeps-your-configuration.md)        | An upgrade MUST NOT discard a repository's own configuration or artifacts.                                                                                   |
-| [REQ-1486](REQ-1486-provisioning-installs-it-unattended.md)        | The harness MUST be installable and configurable by the machine-provisioning system already in use, with no human step.                                      |
-| [REQ-1488](REQ-1488-secrets-live-outside-the-repository.md)        | Machine-specific or secret configuration MUST be supplied outside the repository and outside the installed harness files.                                    |
-| [REQ-1490](REQ-1490-portable-to-another-agent.md)                  | The harness SHOULD be portable to another agent supporting equivalent primitives.                                                                            |
-| [REQ-1492](REQ-1492-agnostic-material-authored-once.md)            | Material that is agnostic between agents SHOULD be authored once rather than per agent.                                                                      |
-| [REQ-1494](REQ-1494-one-configuration-format.md)                   | Configuration the harness owns MUST be written in one declarative format, and that format MUST be the same across every unit.                                |
-| [REQ-2990](REQ-2990-every-unit-carries-a-version.md)               | Every unit the harness ships MUST carry a version.                                                                                                           |
-| [REQ-2992](REQ-2992-the-public-interface-is-declared.md)           | The harness MUST declare what its public interface is, naming the verbs and their outcomes, the artifact kinds and their front matter, the record's paths... |
-| [REQ-2994](REQ-2994-major-version-zero-until-it-settles.md)        | The harness MUST stay at major version zero until its public interface stops moving, which is the convention's own provision for a design still changing...  |
-| [REQ-2996](REQ-2996-a-released-version-is-never-modified.md)       | A released version MUST NOT be modified; a change MUST be a new version.                                                                                     |
-| [REQ-2998](REQ-2998-a-pack-declares-a-deliberate-range.md)         | A pack MUST declare the range of the kernel's contract version it depends on, and the tightness of that range is a statement about coupling.                 |
-| [REQ-3000](REQ-3000-nothing-durable-lives-under-a-unit-s-root.md)  | The harness MUST NOT store anything that must survive an upgrade under a unit's own installed root, because that path changes on update.                     |
-| [REQ-3002](REQ-3002-a-changelog-is-written-not-generated.md)       | A changelog MUST be written for the person whose repository changes rather than generated from commits.                                                      |
-| [REQ-3004](REQ-3004-a-deprecation-spans-two-releases.md)           | A deprecation MUST be announced in one release and removed in a later one, and a deprecated front-matter field MUST be accepted alongside its replacement... |
-| [REQ-3006](REQ-3006-a-required-dependency-cannot-be-turned-off.md) | The harness MUST account for a required unit being enabled automatically and not disableable while what requires it is enabled, and MUST say so when...      |
+|                                                                      | Obligation                                                                                                                                                    |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [REQ-1480](REQ-1480-install-through-the-platform.md)                 | The harness MUST be installable through the standard plugin mechanism of the agent it targets, with no installer of its own.                                  |
+| [REQ-1481](REQ-1481-a-contract-is-a-file-or-a-command.md)            | Every contract between two units MUST be a file format or a command, because the platform provides no shared runtime and no shared memory between units...    |
+| [REQ-1482](REQ-1482-a-unit-declares-what-it-requires.md)             | Each unit MUST declare the units it requires.                                                                                                                 |
+| [REQ-1483](REQ-1483-no-dependence-on-hook-order.md)                  | The harness MUST NOT depend on the order in which hooks from different units run, because the platform does not define that order.                            |
+| [REQ-1484](REQ-1484-an-upgrade-keeps-your-configuration.md)          | An upgrade MUST NOT discard a repository's own configuration or artifacts.                                                                                    |
+| [REQ-1486](REQ-1486-provisioning-installs-it-unattended.md)          | The harness MUST be installable and configurable by the machine-provisioning system already in use, with no human step.                                       |
+| [REQ-1488](REQ-1488-secrets-live-outside-the-repository.md)          | Machine-specific or secret configuration MUST be supplied outside the repository and outside the installed harness files.                                     |
+| [REQ-1490](REQ-1490-portable-to-another-agent.md)                    | The harness SHOULD be portable to another agent supporting equivalent primitives.                                                                             |
+| [REQ-1492](REQ-1492-agnostic-material-authored-once.md)              | Material that is agnostic between agents SHOULD be authored once rather than per agent.                                                                       |
+| [REQ-1494](REQ-1494-one-configuration-format.md)                     | Configuration the harness owns MUST be written in one declarative format, and that format MUST be the same across every unit.                                 |
+| [REQ-2990](REQ-2990-every-unit-carries-a-version.md)                 | Every unit the harness ships MUST carry a version.                                                                                                            |
+| [REQ-2992](REQ-2992-the-public-interface-is-declared.md)             | The harness MUST declare what its public interface is, naming the verbs and their outcomes, the artifact kinds and their front matter, the record's paths...  |
+| [REQ-2994](REQ-2994-major-version-zero-until-it-settles.md)          | The harness MUST stay at major version zero until its public interface stops moving, which is the convention's own provision for a design still changing...   |
+| [REQ-2996](REQ-2996-a-released-version-is-never-modified.md)         | A released version MUST NOT be modified; a change MUST be a new version.                                                                                      |
+| [REQ-2998](REQ-2998-a-pack-declares-a-deliberate-range.md)           | A pack MUST declare the range of the kernel's contract version it depends on, and the tightness of that range is a statement about coupling.                  |
+| [REQ-3000](REQ-3000-nothing-durable-lives-under-a-unit-s-root.md)    | The harness MUST NOT store anything that must survive an upgrade under a unit's own installed root, because that path changes on update.                      |
+| [REQ-3002](REQ-3002-a-changelog-is-written-not-generated.md)         | A changelog MUST be written for the person whose repository changes rather than generated from commits.                                                       |
+| [REQ-3004](REQ-3004-a-deprecation-spans-two-releases.md)             | A deprecation MUST be announced in one release and removed in a later one, and a deprecated front-matter field MUST be accepted alongside its replacement...  |
+| [REQ-3006](REQ-3006-a-required-dependency-cannot-be-turned-off.md)   | The harness MUST account for a required unit being enabled automatically and not disableable while what requires it is enabled, and MUST say so when...       |
+| [REQ-3160](REQ-3160-a-catalogue-entry-links-to-the-page.md)          | A unit's catalogue entry MUST link to that unit's documentation page.                                                                                         |
+| [REQ-3162](REQ-3162-a-catalogue-entry-carries-the-display-fields.md) | A unit's catalogue entry MUST carry the fields the platform displays before an install: the description, the homepage, the repository, the licence and the... |
+| [REQ-3164](REQ-3164-the-description-states-the-job-and-the-cost.md)  | A unit's catalogue description MUST state what the unit does for the reader and what keeping it installed costs them.                                         |
 
 ## documentation
 
-|                                                                         | Obligation                                                                                                                                                  |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [REQ-0287](REQ-0287-documentation-is-checked-not-only-written.md)       | Documentation MUST be checked rather than only written: its examples run, its links resolve, and its reference agrees with the interface it describes.      |
-| [REQ-0289](REQ-0289-a-documentation-check-is-a-verb.md)                 | A documentation check MUST be one of the five verbs rather than a mechanism of its own, so that documentation fails the same way code does.                 |
-| [REQ-1950](REQ-1950-name-the-kind-before-writing.md)                    | The kind of a document MUST be named before it is written, from a fixed set covering the tutorial, the how-to guide, the reference and the explanation.     |
-| [REQ-1952](REQ-1952-never-two-kinds-in-one-document.md)                 | A document MUST NOT serve two kinds at once, because a reference that editorialises and a tutorial that explains architecture are each unusable for both... |
-| [REQ-1954](REQ-1954-a-how-to-does-not-justify-itself.md)                | A how-to guide MUST NOT carry its own justification. The reason belongs in a linked explanation or in a decision record.                                    |
-| [REQ-1956](REQ-1956-reference-is-generated-from-comments.md)            | Reference material for a public interface MUST be generated from the documentation comments on it rather than written by hand.                              |
-| [REQ-1958](REQ-1958-organise-around-the-reader-task.md)                 | Documentation MUST be organised around what a reader is trying to do rather than around the shape of the source tree.                                       |
-| [REQ-1960](REQ-1960-a-readme-leads-with-a-quick-start.md)               | A repository's introductory document MUST state what the project is first and MUST carry a quick start that works, with no promotional material.            |
-| [REQ-1962](REQ-1962-the-documentation-style-is-declared.md)             | The documentation style MUST be declared once per repository, and the harness MUST apply the declared style rather than a default of its own.               |
-| [REQ-1964](REQ-1964-documentation-touches-user-facing-pages.md)         | The documentation step MUST touch documentation written for the people using the project, and MUST NOT edit the epic's own artifacts.                       |
-| [REQ-2834](REQ-2834-a-quick-start-is-followed-not-read.md)              | A review of a quick start MUST follow it on a clean machine, and where that is impossible MUST report that it was read rather than run.                     |
-| [REQ-2836](REQ-2836-an-example-that-does-not-run-is-worse-than-none.md) | Every example in the documentation MUST run as written.                                                                                                     |
-| [REQ-2838](REQ-2838-a-document-states-the-version-it-describes.md)      | A document MUST state the version of the thing it describes.                                                                                                |
+|                                                                            | Obligation                                                                                                                                                      |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [REQ-0287](REQ-0287-documentation-is-checked-not-only-written.md)          | Documentation MUST be checked rather than only written: its examples run, its links resolve, and its reference agrees with the interface it describes.          |
+| [REQ-0289](REQ-0289-a-documentation-check-is-a-verb.md)                    | A documentation check MUST be one of the five verbs rather than a mechanism of its own, so that documentation fails the same way code does.                     |
+| [REQ-1950](REQ-1950-name-the-kind-before-writing.md)                       | The kind of a document MUST be named before it is written, from a fixed set covering the tutorial, the how-to guide, the reference and the explanation.         |
+| [REQ-1952](REQ-1952-never-two-kinds-in-one-document.md)                    | A document MUST NOT serve two kinds at once, because a reference that editorialises and a tutorial that explains architecture are each unusable for both...     |
+| [REQ-1954](REQ-1954-a-how-to-does-not-justify-itself.md)                   | A how-to guide MUST NOT carry its own justification. The reason belongs in a linked explanation or in a decision record.                                        |
+| [REQ-1956](REQ-1956-reference-is-generated-from-comments.md)               | Reference material for a public interface MUST be generated from the documentation comments on it rather than written by hand.                                  |
+| [REQ-1958](REQ-1958-organise-around-the-reader-task.md)                    | Documentation MUST be organised around what a reader is trying to do rather than around the shape of the source tree.                                           |
+| [REQ-1960](REQ-1960-a-readme-leads-with-a-quick-start.md)                  | A repository's introductory document MUST state what the project is first and MUST carry a quick start that works, with no promotional material.                |
+| [REQ-1962](REQ-1962-the-documentation-style-is-declared.md)                | The documentation style MUST be declared once per repository, and the harness MUST apply the declared style rather than a default of its own.                   |
+| [REQ-1964](REQ-1964-documentation-touches-user-facing-pages.md)            | The documentation step MUST touch documentation written for the people using the project, and MUST NOT edit the epic's own artifacts.                           |
+| [REQ-2834](REQ-2834-a-quick-start-is-followed-not-read.md)                 | A review of a quick start MUST follow it on a clean machine, and where that is impossible MUST report that it was read rather than run.                         |
+| [REQ-2836](REQ-2836-an-example-that-does-not-run-is-worse-than-none.md)    | Every example in the documentation MUST run as written.                                                                                                         |
+| [REQ-2838](REQ-2838-a-document-states-the-version-it-describes.md)         | A document MUST state the version of the thing it describes.                                                                                                    |
+| [REQ-3130](REQ-3130-a-user-facing-page-is-not-a-record.md)                 | A document written for the people using a project MUST NOT carry a record identifier, a record artifact kind or a record's status.                              |
+| [REQ-3132](REQ-3132-document-only-what-ships.md)                           | Documentation MUST NOT describe material that does not exist yet.                                                                                               |
+| [REQ-3134](REQ-3134-unbuilt-material-is-listed-as-unbuilt.md)              | Where part of a project is planned and unbuilt, the documentation index MUST say so, and MUST NOT leave the reader to infer it from a missing page.             |
+| [REQ-3136](REQ-3136-every-unit-has-a-page.md)                              | Every unit the harness ships MUST have a documentation page of its own, stating what it does, what it adds to a session and how to invoke it.                   |
+| [REQ-3138](REQ-3138-a-page-ships-with-its-unit.md)                         | A unit's documentation page MUST ship inside that unit.                                                                                                         |
+| [REQ-3140](REQ-3140-the-documented-set-is-named.md)                        | A project's documentation MUST cover an introduction, a tutorial, the reader's tasks, reference, explanation and troubleshooting, and a kind of document the... |
+| [REQ-3142](REQ-3142-name-the-reader.md)                                    | Every document MUST name the reader it is written for.                                                                                                          |
+| [REQ-3144](REQ-3144-an-agent-route-file.md)                                | The repository MUST carry a route file for agents in the published format for one, listing the documentation as links under a summary, with the links an...     |
+| [REQ-3146](REQ-3146-the-route-file-links-and-does-not-copy.md)             | The route file for agents MUST link to material held elsewhere in the repository and MUST NOT restate it, because a second copy gives the agent two versions... |
+| [REQ-3148](REQ-3148-no-user-facing-page-sends-a-reader-into-the-record.md) | A document written for the people using a project MUST NOT cite the record as its own explanation.                                                              |
+| [REQ-3150](REQ-3150-repetition-is-accepted-between-documents.md)           | A document MAY repeat what another document states, where sending the reader away would cost them the page they are on.                                         |
+| [REQ-3152](REQ-3152-a-change-that-outdates-a-page-settles-it.md)           | A change that outdates a document MUST update that document, and where it cannot, MUST delete the document or mark it stale in the same change.                 |
+| [REQ-3154](REQ-3154-the-index-says-what-each-page-answers.md)              | The documentation index MUST state, for each document it lists, what that document answers and which reader it was written for.                                 |
 
 ## editing
 
