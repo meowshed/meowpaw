@@ -47,7 +47,7 @@ because a harness that demands nine steps for a typo is one you'd work around.
 
 ## Status
 
-125 research documents are written, and 1,037 requirements are drawn from them.
+126 research documents are written, and 1,053 requirements are drawn from them.
 Each requirement carries one obligation, cites the research it came from, and
 declares what would verify it.
 
