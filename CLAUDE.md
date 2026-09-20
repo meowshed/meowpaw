@@ -15,18 +15,17 @@ practice layer, and packs for languages, task runners and external tools. The
 catalogue isn't decided. `docs/plugins.md` proposes one, and you don't repeat
 its count as a fact.
 
-The repository is at M0 and no plugin directory exists yet. The research is
-approved - 126 documents, indexed by `project/research/RES-0001-synthesis.md` -
-so it's frozen, and a later finding becomes a new document instead of an edit
-to an existing one. The requirements are written: 1,053 obligations, each
-citing the research behind it. One decision is in force, ADR-1000, and it puts
-the reply shape in the kernel as a forced output style; SPC-1000 states the
-part it creates, and EPC-1000 realises it in five tasks that haven't started.
+This file carries the rules and never the state. What exists, what's approved,
+what's in force and how many of each there are live in `project/README.md` and
+the three indexes it links. They sit beside the artifacts they describe, and
+the change that moves the work updates them. Read them for the state and don't
+copy an answer back here, because a count written in this file is checked by
+nothing and goes stale the same week.
 
-The earlier decision records and the earlier specification drafts were deleted.
-They addressed a requirement set that has since moved, and what gets written
-next is derived from the requirements in force and never from them. The branch
-`pre-squash-backup` still holds them, and nothing in the tree cites them.
+The approved research is frozen, so a later finding becomes a new document
+instead of an edit to an existing one. Earlier decision records and earlier
+specification drafts were deleted rather than amended, and what gets written
+next is derived from the requirements in force.
 </project>
 
 <layout>
@@ -71,8 +70,8 @@ a file. A decision record is `approved` when someone accepted it and
 | `project/tasks/TSK-NNNN-<slug>.md`        | One task, one branch, one pull request                                                                             |
 | `project/bugs/BUG-NNNN-<slug>.md`         | Evidence that a requirement isn't met                                                                              |
 | `docs/`                                   | Documentation for someone using the harness. A separate hierarchy                                                  |
-| `plugins/<name>/`                         | One directory per plugin. Doesn't exist yet                                                                        |
-| `.claude-plugin/marketplace.json`         | The marketplace index. Doesn't exist yet                                                                           |
+| `plugins/<name>/`                         | One directory per plugin                                                                                           |
+| `.claude-plugin/marketplace.json`         | The marketplace index                                                                                              |
 | `mise.toml`                               | The gate, as tasks                                                                                                 |
 | `.github/`                                | CI                                                                                                                 |
 | `.meowpaw/profile.toml`                   | What this repository declares about itself: how its verbs resolve, where its artifacts live, which tracker it uses |
