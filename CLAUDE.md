@@ -19,8 +19,9 @@ The repository is at M0 and no plugin directory exists yet. The research is
 approved - 126 documents, indexed by `project/research/RES-0001-synthesis.md` -
 so it's frozen, and a later finding becomes a new document instead of an edit
 to an existing one. The requirements are written: 1,053 obligations, each
-citing the research behind it. Nothing is designed, so no decision is in force
-and no specification exists.
+citing the research behind it. One decision is in force, ADR-1000, and it puts
+the reply shape in the kernel as a forced output style; SPC-1000 states the
+part it creates, and EPC-1000 realises it in five tasks that haven't started.
 
 The earlier decision records and the earlier specification drafts were deleted.
 They addressed a requirement set that has since moved, and what gets written

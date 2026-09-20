@@ -49,12 +49,24 @@ measured evaluation.
 
 ## Decisions
 
-None in force, as [adrs/README.md](adrs/README.md) records. The design step
-hasn't run against the requirements as they now stand.
+[ADR-1000](adrs/ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md)
+is approved and in force: the reply shape is a forced output style carried by
+the kernel. It is the first turn the design step has run against the
+requirements as they now stand.
 
-## Specifications and epics
+## Specifications
 
-Not written. Both come from decisions, and there are none.
+[SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape. It
+carries no `checked-at` until the epic that realises it closes with evidence,
+and it says so in its own scope.
+
+## Epics and tasks
+
+[EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) is approved and
+realises ADR-1000 in five tasks, TSK-1010 to TSK-1050, each filed as an issue
+from #5 to #9. TSK-1000 is the planning task that produced all of it.
+`tools/check_coverage.py` reports every requirement the decision addresses
+landing in exactly one task.
 
 ## Defects
 
