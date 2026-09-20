@@ -12,8 +12,7 @@ and you fix the document.
 `meowpaw` is a universal, specification-driven harness for Claude Code,
 distributed as a plugin marketplace in four layers: a kernel, a method layer, a
 practice layer, and packs for languages, task runners and external tools. The
-catalogue isn't decided. `docs/plugins.md` proposes one, and you don't repeat
-its count as a fact.
+catalogue isn't decided, so don't state one as a fact or count its entries.
 
 This file carries the rules and never the state. What exists, what's approved,
 what's in force and how many of each there are live in `project/README.md` and
@@ -301,12 +300,17 @@ The type says what the change means for a release:
 this repository's artifacts are normative, and calling them `docs` would put
 the specification and the README in one bucket.
 
-Every commit is cryptographically signed, and `.github/allowed_signers` names
-the key that verifies it:
+Every commit you write on a branch is cryptographically signed, and
+`.github/allowed_signers` names the key that verifies it:
 
 ```bash
 git log --show-signature -1     # the signature verifies against the named key
 ```
+
+GitHub rebuilds the commit when it squashes a pull request, so the one that
+lands on `main` carries GitHub's own key and not yours. That's accepted: the
+branch commits it was built from verify against the named key, and they're what
+review read.
 
 Every commit also carries the author's sign-off:
 
@@ -379,14 +383,14 @@ gets switched off within a week, and then it catches nothing.
 
 <maintenance>
 
-Keep this file and `docs/` saying what's true. When you change:
+Keep this file and the documentation saying what's true. When you change:
 
 - **a requirement** - allocate a new identifier, tombstone the old one, and
   check the specification that cites it
 - **the layering model, the verb contract or the step chain** - write the
   decision first, then the specification, then anything that cites it
-- **the plugin list** - update `docs/plugins.md`, the specification and the
-  README's plugin diagram, which all list it, and the count in all three
+- **the plugin list** - update the specification that states it, and name the
+  plugins in one place so that nothing has to be counted twice
 - **a research finding** - add it to the right file under `project/research/`,
   index it in `RES-0001-synthesis.md`, and cite it from whatever now depends on
   it
