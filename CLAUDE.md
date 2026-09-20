@@ -22,12 +22,10 @@ to an existing one. The requirements are written: 1,053 obligations, each
 citing the research behind it. Nothing is designed, so no decision is in force
 and no specification exists.
 
-The earlier decision records and the earlier specification drafts live in
-`_archive/`, outside the gates and outside git. That directory is local
-scratch: nobody clones it, nothing in the tree depends on it, and nothing cites
-it. Those three properties are what keep it from being the archive the vision
-forbids, which is one that ships and goes on claiming the material is
-maintained.
+The earlier decision records and the earlier specification drafts were deleted.
+They addressed a requirement set that has since moved, and what gets written
+next is derived from the requirements in force and never from them. The branch
+`pre-squash-backup` still holds them, and nothing in the tree cites them.
 </project>
 
 <layout>
@@ -91,7 +89,7 @@ Templates ship inside the plugin that owns them and are read from
 `${CLAUDE_PLUGIN_ROOT}`, so a repository gets them from the installed harness
 and never from a copy that drifts. A repository that wants one changed puts its
 own in `.meowpaw/templates/`, which overrides. The harness's own templates sit
-in `_archive/templates/` until the plugin that carries them is specified.
+in `templates/` until the plugin that carries them is specified.
 
 One artifact per file, named for its identifier, in a directory named for its
 kind. A directory appears when its first artifact does. Each record names its
@@ -367,11 +365,11 @@ mise run all          # fmt-check and lint
 | `fmt-check` | Markdown isn't in canonical form                    |
 | `lint`      | Markdown breaks a rule in `.markdownlint-cli2.yaml` |
 
-The repository also had six checks of its own over the record - links,
+The repository also has six checks of its own over the record - links,
 identifiers, front matter, the index, prose and research shape - written as
-Python scripts in `tools/`. They're in `_archive/` now, and they come back as
-part of the harness rather than beside it, because a harness checked by a
-mechanism it doesn't ship hasn't been shown to work.
+Python scripts in `tools/`. No task runs them, so they're run by hand. They
+come back as part of the harness rather than beside it, because a harness
+checked by a mechanism it doesn't ship hasn't been shown to work.
 
 A check that reports a false positive is a defect in the check, and never a
 reason to reword the text around it. A check that trips on what it shouldn't
