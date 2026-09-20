@@ -1,10 +1,10 @@
 ---
 id: ADR-NNNN
 artifact: adr
-status: draft            # draft | approved | withdrawn | rejected | superseded
+status: draft # draft | approved | withdrawn | rejected | superseded
 revised: YYYY-MM-DD
-addresses: [R-AREA-nnn]        # required: a decision addressing nothing is a preference
-prompted-by: BUG-NNNN          # omit where nothing prompted it
+addresses: [R-AREA-nnn] # required: a decision addressing nothing is a preference
+prompted-by: BUG-NNNN # omit where nothing prompted it
 elaborates: DSN-NNNN
 supersedes: []
 ---
@@ -22,7 +22,7 @@ The reasoning, including the constraints that made the alternatives lose.
 ## Alternatives
 
 | Option | Better at | Why it lost |
-| --- | --- | --- |
+| ------ | --------- | ----------- |
 
 "Do nothing" is an option and is evaluated, not mentioned.
 

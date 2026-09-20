@@ -1,10 +1,10 @@
 ---
 id: RSH-NNNN
 artifact: research
-status: draft            # draft | approved | superseded
+status: draft # draft | approved | superseded
 revised: YYYY-MM-DD
 unit: U-NNNN
-prompted-by: BUG-NNNN | ADR-NNNN   # omit where nothing prompted it
+prompted-by: BUG-NNNN | ADR-NNNN # omit where nothing prompted it
 ---
 
 # <Question>

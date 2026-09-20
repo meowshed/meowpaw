@@ -1,9 +1,9 @@
 ---
 id: BUG-NNNN
 artifact: bug
-status: draft            # draft | approved | withdrawn — triaged and closed derive
+status: draft # draft | approved | withdrawn — triaged and closed derive
 severity: minor | major | critical
-violates: R-AREA-nnn           # omit where no requirement covers it yet
+violates: R-AREA-nnn # omit where no requirement covers it yet
 found: YYYY-MM-DD
 revised: YYYY-MM-DD
 ---

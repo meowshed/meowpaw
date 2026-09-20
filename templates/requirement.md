@@ -1,11 +1,11 @@
 ---
 id: REQ-NNNN
 artifact: requirement
-status: draft            # draft | approved | withdrawn | superseded
+status: draft # draft | approved | withdrawn | superseded
 revised: YYYY-MM-DD
 unit: U-NNNN
 elaborates: RSH-NNNN
-prompted-by: BUG-NNNN          # where a defect revealed the gap
+prompted-by: BUG-NNNN # where a defect revealed the gap
 ---
 
 # Requirements
@@ -28,6 +28,6 @@ once implemented, the checks that cover it.
 
 ## Withdrawn
 
-**[R-AREA-00n]** *Withdrawn by [ADR-NNNN] — superseded by [R-AREA-0nn].*
+**[R-AREA-00n]** _Withdrawn by [ADR-NNNN] — superseded by [R-AREA-0nn]._
 
 Kept here permanently so that every citation resolves forever ([R-H-308]).

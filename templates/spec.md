@@ -4,7 +4,7 @@ artifact: spec
 status: live
 revised: YYYY-MM-DD
 checked-at: rN
-states: [REQ-NNNN]             # the requirements documents it projects
+states: [REQ-NNNN] # the requirements documents it projects
 ---
 
 # <Component or system>

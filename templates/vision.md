@@ -21,8 +21,8 @@ X" but where they are and what is in their hands. Describe no solution here.
 ## Who it is for
 
 | Audience | Wants | What they do today instead |
-| --- | --- | --- |
-|  |  |  |
+| -------- | ----- | -------------------------- |
+|          |       |                            |
 
 The third column is the one that matters. An audience with no alternative is not
 an audience.

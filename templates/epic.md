@@ -1,10 +1,10 @@
 ---
 id: EPC-NNNN
 artifact: epic
-status: draft            # draft | approved | superseded — in-progress and done derive
+status: draft # draft | approved | superseded — in-progress and done derive
 revised: YYYY-MM-DD
 unit: U-NNNN
-realises: ADR-NNNN | BUG-NNNN  # required: exactly one authorising record
+realises: ADR-NNNN | BUG-NNNN # required: exactly one authorising record
 checked-at: rN
 ---
 
@@ -16,7 +16,7 @@ closed.
 
 ## Marks
 
-```
+```text
 [ ] not started   [>] in progress   [x] done, with evidence
 [~] dropped, with the reason        [+] added after approval, with why
 ```
