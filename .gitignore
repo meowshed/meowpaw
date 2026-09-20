@@ -1,0 +1,8 @@
+target/
+.DS_Store
+node_modules/
+_archive/
+
+# Skills borrowed into this project while it has no plugins of its own.
+# They belong to the repositories that wrote them, and the gate ignores them.
+.claude/skills/
