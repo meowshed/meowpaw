@@ -1,0 +1,19 @@
+version = 1
+SPDX-PackageName = "meowpaw"
+SPDX-PackageSupplier = "Andrew Vasilyev <me@retran.me>"
+SPDX-PackageDownloadLocation = "https://github.com/meowshed/meowpaw"
+
+# The corpus is declared in bulk rather than per file. A requirement is fifteen
+# lines; two more for a licence header would be a seventh of the document, and
+# the header would be the first thing a reader met in every one of six hundred.
+[[annotations]]
+path = ["project/**", "docs/**", "README.md", "CLAUDE.md", "REUSE.toml"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Andrew Vasilyev <me@retran.me>"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["mise.toml", ".markdownlint-cli2.yaml", ".gitignore", ".github/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Andrew Vasilyev <me@retran.me>"
+SPDX-License-Identifier = "Apache-2.0"

@@ -1,0 +1,21 @@
+# The repository's own gate. `meow-mise` reads these tasks to resolve the verbs.
+
+[tools]
+markdownlint-cli2 = "latest"
+"npm:prettier" = "latest"
+
+[tasks.fmt]
+description = "Bring Markdown to canonical form"
+run = "prettier --write '**/*.md'"
+
+[tasks.fmt-check]
+description = "Check Markdown formatting without changing anything"
+run = "prettier --check '**/*.md'"
+
+[tasks.lint]
+description = "Lint Markdown"
+run = "markdownlint-cli2 '**/*.md'"
+
+[tasks.all]
+description = "The full gate, as CI runs it"
+depends = ["fmt-check", "lint"]
