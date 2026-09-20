@@ -1,7 +1,7 @@
 ---
 id: EPC-1000
 artifact: epic
-status: draft
+status: approved
 revised: 2026-09-21
 unit: U-0001
 realises: ADR-1000

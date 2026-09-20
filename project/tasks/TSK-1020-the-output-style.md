@@ -1,7 +1,7 @@
 ---
 id: TSK-1020
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-21
 unit: U-0001
 epic: EPC-1000
@@ -20,7 +20,7 @@ closes:
     REQ-0950,
     REQ-0952,
   ]
-issue:
+issue: 6
 ---
 
 # Write the output style that carries the reply shape

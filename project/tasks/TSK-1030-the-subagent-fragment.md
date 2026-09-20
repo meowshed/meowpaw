@@ -1,12 +1,12 @@
 ---
 id: TSK-1030
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-21
 unit: U-0001
 epic: EPC-1000
 closes: [REQ-0954]
-issue:
+issue: 7
 ---
 
 # Carry the shape into a subordinate agent

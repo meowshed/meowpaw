@@ -1,7 +1,7 @@
 ---
 id: TSK-1000
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-21
 unit: U-0001
 epic:

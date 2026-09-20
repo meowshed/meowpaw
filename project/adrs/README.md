@@ -7,11 +7,11 @@ revised: 2026-09-20
 
 # Decisions
 
-No decisions are in force. One is drafted and waiting on approval.
+One decision is in force.
 
-|                                                                                | Decision                                                       | Status |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------- | ------ |
-| [ADR-1000](ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md) | The reply shape is a forced output style carried by the kernel | draft  |
+|                                                                                | Decision                                                       | Status   |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------- | -------- |
+| [ADR-1000](ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md) | The reply shape is a forced output style carried by the kernel | approved |
 
 The design step has run once against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:

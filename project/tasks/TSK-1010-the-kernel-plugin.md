@@ -1,12 +1,12 @@
 ---
 id: TSK-1010
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-21
 unit: U-0001
 epic: EPC-1000
 closes: [REQ-0932]
-issue:
+issue: 5
 ---
 
 # Create `meow-core` and its marketplace entry
