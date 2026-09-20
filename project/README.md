@@ -70,4 +70,7 @@ landing in exactly one task.
 
 ## Defects
 
-None recorded.
+[BUG-1000](bugs/BUG-1000-the-constitution-records-state.md): `CLAUDE.md`
+recorded the project's state as well as its rules, and one of its statements
+was false. Closed by the change that removed the state and added the rule
+keeping it out.
