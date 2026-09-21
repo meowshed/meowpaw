@@ -79,7 +79,7 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1020 - the shape under measurement is the one the style
       carries
       evidence: `claude plugin eval plugins/meow-core --runs 5 --trust-plugin`
-      at `8f9e8dd`: forty runs, no errors, mean Δ +0.06. One case moved,
+      at `8f9e8dd`: forty runs, no errors, mean delta +0.06. One case moved,
       `error-report` at +0.25, and its arms overlap run by run. The other three
       score 1.00 in both arms and discriminate nothing. TSK-1050 carries the
       table and what it does not support.
