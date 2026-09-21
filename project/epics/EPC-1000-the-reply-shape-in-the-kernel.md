@@ -66,11 +66,13 @@ A task is marked in the commit that advances it, never in a later pass.
       has been observed, and the check is what holds the obligation until one
       does.
 
-- [ ] T-004 [P] TSK-1040 the static check over the style
+- [x] T-004 [P] TSK-1040 the static check over the style
       closes: REQ-0931
       depends: TSK-1020 - the check has nothing to read before the style exists
-      evidence: the check seen failing on a style with
-      `keep-coding-instructions: false`, then passing on the shipped one
+      evidence: `tools/check_style.py`, seen failing on a style with
+      `keep-coding-instructions: false` and on a rule stating no condition
+      under which it yields, then passing on the shipped style, at `a689e20`.
+      It runs in the gate as `mise run style`.
 
 - [ ] T-005 [P] TSK-1050 the evaluation: a case set, a rubric and a blind judge
       closes: REQ-0956
