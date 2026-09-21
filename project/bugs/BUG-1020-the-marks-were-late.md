@@ -13,7 +13,7 @@ issue: 18
 
 ## Reproduction
 
-After `9a35c25` and `4065784` merged, at `f860af4`:
+After #14 and #15 merged:
 
 ```bash
 grep -n "T-001\|T-002" project/epics/EPC-1000-the-reply-shape-in-the-kernel.md

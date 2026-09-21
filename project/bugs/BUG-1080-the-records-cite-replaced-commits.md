@@ -13,7 +13,7 @@ issue: 42
 
 ## Reproduction
 
-After rewriting every commit message on `main`, at `233e109`:
+After rewriting every commit message on `main`, as #41 left the tree:
 
 ```bash
 for h in $(grep -rhoE '`[0-9a-f]{7}`' project/ --include="*.md" | tr -d '`' | sort -u); do
@@ -21,9 +21,9 @@ for h in $(grep -rhoE '`[0-9a-f]{7}`' project/ --include="*.md" | tr -d '`' | so
 done
 ```
 
-Eleven hashes named commits that no longer existed. A twelfth, `fad8d0e` in
-BUG-1000, resolves in this working copy and is unreachable from `main`, so a
-fresh clone would not find it either.
+Eleven hashes named commits that no longer existed. A twelfth, in BUG-1000,
+resolved in this working copy and was unreachable from `main`, so a fresh clone
+would not have found it either.
 
 ## What the system does
 
@@ -53,9 +53,13 @@ underneath them.
 
 ## Closed by
 
-Fifteen files repointed at the commits that now carry the work, checked with
-the loop above, which reports nothing missing. BUG-1000's reference to
-`fad8d0e` names the commit that replaced it.
+Fifteen files repointed at the commits that then carried the work, checked with
+the loop above.
+
+That fixed the symptom and left the cause, which BUG-1090 records: a record
+should cite no hash at all, because the pull request number survives a rewrite
+and the hash does not. REQ-3176 now says so, and the citations are pull
+requests.
 
 What this does not fix: the four merged pull requests whose bodies cite the old
 hashes. GitHub keeps them as text, and rewriting them again for hashes alone

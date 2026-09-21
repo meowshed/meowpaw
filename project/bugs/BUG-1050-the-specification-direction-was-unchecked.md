@@ -18,7 +18,7 @@ outlives the change that closed it.
 
 ## Reproduction
 
-At `367ebea`:
+As #33 left the tree:
 
 ```bash
 comm -23 \
