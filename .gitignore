@@ -6,4 +6,6 @@ __pycache__/
 # Skills borrowed into this project while it has no plugins of its own.
 # They belong to the repositories that wrote them, and the gate ignores them.
 .claude/skills/
-evals/results/
+# The runner writes into the plugin it evaluates, so the pattern has to reach
+# there; `evals/results/` alone is anchored to this file's own directory.
+plugins/*/evals/results/

@@ -70,10 +70,11 @@ every requirement the decision addresses landing in exactly one task.
 
 ## Defects
 
-| Defect                                                                       | What it was                                                            |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [BUG-1000](bugs/BUG-1000-the-constitution-records-state.md)                  | `CLAUDE.md` recorded the project's state, and one claim was false      |
-| [BUG-1010](bugs/BUG-1010-checks-walk-into-plugin-and-documentation-files.md) | Three record checks reported a false positive on a plugin file         |
-| [BUG-1020](bugs/BUG-1020-the-marks-were-late.md)                             | Two closed tasks stayed unmarked and their records carried no evidence |
+| Defect                                                                       | What it was                                                                                 |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [BUG-1000](bugs/BUG-1000-the-constitution-records-state.md)                  | `CLAUDE.md` recorded the project's state, and one claim was false                           |
+| [BUG-1010](bugs/BUG-1010-checks-walk-into-plugin-and-documentation-files.md) | Three record checks reported a false positive on a plugin file                              |
+| [BUG-1020](bugs/BUG-1020-the-marks-were-late.md)                             | Two closed tasks stayed unmarked and their records carried no evidence                      |
+| [BUG-1030](bugs/BUG-1030-eval-results-were-committed.md)                     | A generated eval report reached `main`, because the ignore pattern was anchored at the root |
 
-All three are closed.
+All four are closed.
