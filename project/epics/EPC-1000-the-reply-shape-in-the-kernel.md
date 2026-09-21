@@ -37,19 +37,23 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1010 `plugins/meow-core/`: the manifest, the version and the
+- [x] T-001 TSK-1010 `plugins/meow-core/`: the manifest, the version and the
       marketplace entry
       closes: REQ-0932
-      evidence: the platform lists the plugin and enables it, at a named revision
+      evidence: `claude plugin install meow-core@meowpaw` then
+      `claude plugin list`, which prints the plugin at version 0.1.0 and
+      enabled, at `998117f`. REQ-0932 became true with T-002, which is what
+      put a shape in the kernel, and the review of #14 says so.
 
-- [ ] T-002 TSK-1020 the output style carrying the eight rules and their
+- [x] T-002 TSK-1020 the output style carrying the eight rules and their
       conditions
       closes: REQ-0930, REQ-0933, REQ-0934, REQ-0936, REQ-0938, REQ-0940,
       REQ-0942, REQ-0944, REQ-0946, REQ-0948, REQ-0950, REQ-0952
       depends: TSK-1010 - the style ships inside the plugin and has nowhere to
       live before it
-      evidence: the style in force in a repository with only `meow-core`
-      installed
+      evidence: `/reload-plugins` then `/output-style`, which lists
+      `meow-core:meow` and sets it, at `b228817`. The style has been in force
+      in this session since.
 
 - [ ] T-003 [P] TSK-1030 the shape fragment a subordinate agent's prompt
       carries
