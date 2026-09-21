@@ -4,7 +4,7 @@ artifact: spec
 status: live
 revised: 2026-09-21
 unit: U-0001
-checked-at:
+checked-at: 4e75d4f
 states:
   [
     REQ-0930,
@@ -40,9 +40,9 @@ because the shape governs the terminal and the standard governs the file. Verb
 resolution, the names of the harness's not-working states, and what a status
 command computes are all settled elsewhere and left out here.
 
-The harness does not implement any of this yet. ADR-1000 authorises it, EPC-1000
-realises it, and `checked-at` stays empty until that epic closes with evidence.
-A reader who wants what runs today reads the repository.
+`meow-core` implements this, and EPC-1000 closed at `4e75d4f` with one
+criterion unmet: the style applies when a person selects it and not on its own,
+which BUG-1040 records. REQ-0930 is unmet until that is resolved.
 
 ## Boundary
 

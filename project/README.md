@@ -56,15 +56,16 @@ requirements as they now stand.
 
 ## Specifications
 
-[SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape. It
-carries no `checked-at` until the epic that realises it closes with evidence,
-and it says so in its own scope.
+[SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape, checked
+at `4e75d4f`. It records that REQ-0930 is unmet: the style applies when a
+person selects it, and not on its own.
 
 ## Epics and tasks
 
 [EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) is approved and
 realises ADR-1000 in five tasks, TSK-1010 to TSK-1050, each filed as an issue
-from #5 to #9. Two are closed with evidence and three are open. TSK-1000 is the
+from #5 to #9 and each closed with evidence. The epic closed at `4e75d4f` with
+one acceptance criterion unmet, named in the epic as REQ-3170 requires. TSK-1000 is the
 planning task that produced all of it, and `tools/check_coverage.py` reports
 every requirement the decision addresses landing in exactly one task.
 
