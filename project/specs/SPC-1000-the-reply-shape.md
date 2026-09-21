@@ -52,7 +52,7 @@ What is observable from outside the part:
 | -------------------------------------- | -------------------------------------------------------------------------------- |
 | `plugins/meow-core/output-styles/*.md` | The style file the platform loads, with its YAML front matter                    |
 | `keep-coding-instructions`             | Set to true, so the platform's engineering guidance survives                     |
-| `force-for-plugin`                     | Set to true, so the style holds wherever `meow-core` is enabled                  |
+| `force-for-plugin`                     | Set to true, and not honoured on Claude Code 2.1.278; see BUG-1040               |
 | The shape fragment                     | A file in `meow-core` that any unit includes in a subordinate agent's prompt     |
 | The style check                        | A check that reads the front matter and the rules, and fails with a named reason |
 
@@ -64,6 +64,11 @@ program reads it.
 The kernel carries the shape, so a repository installing any part of the
 harness receives it (REQ-0932), and no plugin, skill or step is exempt
 (REQ-0930).
+
+**That is the obligation and not the present.** On Claude Code 2.1.278 the
+style is applied only when a person selects it, because `force-for-plugin` is
+not honoured, which BUG-1040 records with its reproduction. Until that is
+resolved the shape is opt-in per session, and REQ-0930 is unmet.
 
 A reply leads with the action: the command, the path or the line, and prose
 follows if it is needed at all (REQ-0934). A reply does not open by announcing
@@ -99,11 +104,11 @@ so the prompt a unit sends to one carries the shape itself (REQ-0954).
 
 ## Failure paths
 
-| Condition                                                  | What happens                                                                                |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `keep-coding-instructions` is false or absent              | The style check fails, naming the field and the file, and the gate stops                    |
-| A rule is stated with no condition under which it yields   | The style check fails, naming the rule                                                      |
-| A person has selected their own output style               | `force-for-plugin` overrides it while `meow-core` is enabled, and the person is not asked   |
-| A unit dispatches a subordinate agent without the fragment | The subordinate answers in the platform's default shape, which is a defect against REQ-0954 |
-| A reply has nothing in the record to compute progress from | The reply states that, and states no step count it cannot support                           |
-| The shape would require dropping a verb or a finding       | The shape yields and the item stays (REQ-0952)                                              |
+| Condition                                                  | What happens                                                                                     |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `keep-coding-instructions` is false or absent              | The style check fails, naming the field and the file, and the gate stops                         |
+| A rule is stated with no condition under which it yields   | The style check fails, naming the rule                                                           |
+| A person has selected their own output style               | Nothing overrides it: the style is applied only when somebody selects it, which BUG-1040 records |
+| A unit dispatches a subordinate agent without the fragment | The subordinate answers in the platform's default shape, which is a defect against REQ-0954      |
+| A reply has nothing in the record to compute progress from | The reply states that, and states no step count it cannot support                                |
+| The shape would require dropping a verb or a finding       | The shape yields and the item stays (REQ-0952)                                                   |
