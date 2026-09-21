@@ -78,8 +78,9 @@ every requirement the decision addresses landing in exactly one task.
 | [BUG-1010](bugs/BUG-1010-checks-walk-into-plugin-and-documentation-files.md) | Three record checks reported a false positive on a plugin file                              |
 | [BUG-1020](bugs/BUG-1020-the-marks-were-late.md)                             | Two closed tasks stayed unmarked and their records carried no evidence                      |
 | [BUG-1040](bugs/BUG-1040-the-shape-is-not-unconditional.md)                  | The forced style is not applied, so the reply shape is opt-in                               |
+| [BUG-1050](bugs/BUG-1050-the-specification-direction-was-unchecked.md)       | A requirement the decision addresses was stated in no specification                         |
 | [BUG-1030](bugs/BUG-1030-eval-results-were-committed.md)                     | A generated eval report reached `main`, because the ignore pattern was anchored at the root |
 
-Five are closed. BUG-1040 is open: it routes to design, because the mechanism
+Six are closed. BUG-1040 is open: it routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1005 was written
 after its fix, and says so.
