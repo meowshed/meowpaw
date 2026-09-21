@@ -26,6 +26,8 @@ path = [
   ".gitignore",
   ".github/**",
   "tools/**",
+  "plugins/**",
+  ".claude-plugin/**",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Andrew Vasilyev <me@retran.me>"

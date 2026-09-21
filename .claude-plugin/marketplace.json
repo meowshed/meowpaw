@@ -1,0 +1,16 @@
+{
+  "name": "meowpaw",
+  "owner": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "metadata": {
+    "description": "A specification-driven harness for Claude Code, shipped as small plugins you install one at a time."
+  },
+  "plugins": [
+    {
+      "name": "meow-core",
+      "source": "./plugins/meow-core"
+    }
+  ]
+}
