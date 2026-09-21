@@ -89,23 +89,21 @@ Criterion 1 is not met and this epic is closed anyway, which REQ-3170 permits
 when the epic names the criterion, names the defect and says why closing is
 correct.
 
-**The criterion**: a repository with `meow-core` installed receives the shape
-without the person selecting it.
+The criterion says that a repository with `meow-core` installed receives the
+shape without the person selecting it. BUG-1040 records why it is unmet: the
+platform lists the style and does not apply it, although `force-for-plugin` is
+set and documented to apply it. Before that was recorded we eliminated three
+variables, and the file matches the documented contract.
 
-**The defect**: BUG-1040. The platform lists the style and does not apply it,
-although `force-for-plugin` is set and documented to apply it. Three variables
-were eliminated before that was recorded, and the file matches the documented
-contract.
-
-**Why closing is correct**: the defect is in the platform and not in anything
-this epic produced, no work of ours would resolve it, and the owner has a
-workaround they are willing to use. Holding the epic open would report nothing
-about the five closed tasks and would wait on a release nobody here controls.
+We close the epic because no work of ours would change the outcome. The defect
+sits in the platform, the five tasks closed with evidence of their own, and the
+owner has a workaround they use. Holding the epic open would report nothing
+about those five changes while it waited on a release nobody here controls.
 REQ-0930 stays unmet and `SPC-1000` says so, so nothing claims the shape is
 unconditional today.
 
-The criterion itself was a mistake, which REQ-3172 now forbids: it asked the
-platform to behave, where a criterion states what this project ships.
+Writing that criterion was the mistake, and REQ-3172 now forbids it: it asked
+the platform to behave, where a criterion states what this project ships.
 
 ## Coverage
 

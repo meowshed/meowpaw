@@ -27,10 +27,10 @@ Output style: default
 - meow-core:meow: The reply shape the meowpaw harness imposes on every reply
 ```
 
-Three variables were eliminated before this was recorded: the field's spelling
-and meaning against the platform's own documentation, a competing `outputStyle`
-setting at user or project level, and a mismatch between the installed version
-and the manifest.
+Before recording this we checked the field's spelling and meaning against the
+platform's own documentation, looked for a competing `outputStyle` setting at
+user and project level, and re-synced the installed version with the manifest.
+None of the three explains the behaviour.
 
 ## What the system does
 
@@ -73,8 +73,8 @@ Not closed. One of two things closes it:
 - ADR-1000 is amended, or superseded, by a decision whose mechanism holds. A
   candidate it never considered is a `SessionStart` hook, whose
   `additionalContext` reaches the model at the start of every session and does
-  not depend on the style system. RES-0203 records that mechanism, and no
-  research compares it against a style for this purpose.
+  not depend on the style system. RES-0203 records the hook, and no research
+  compares it against a style for this purpose.
 
 Until then, EPC-1000 is not realised: its first acceptance criterion is that a
 repository installing the kernel receives the shape without selecting it.

@@ -9,6 +9,8 @@ elaborates: DSN-NNNN
 supersedes: []
 ---
 
+<!-- Written to the writing standard in `CLAUDE.md`: lead with the answer, state the reason beside every rule, and show the failing case. No paragraph opens in bold, and a sentence that reads as a proverb is missing its reason. -->
+
 # NNNN. <The decision, as a statement>
 
 ## Decision
