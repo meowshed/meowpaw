@@ -18,7 +18,7 @@ outlives the change that closed it.
 
 ## Reproduction
 
-At `3e8cd03`:
+At `367ebea`:
 
 ```bash
 comm -23 \

@@ -61,7 +61,7 @@ convenience.
 
 ## Evidence
 
-Closed by `b228817`, at that revision:
+Closed by `4065784`, at that revision:
 
 ```text
 $ /reload-plugins

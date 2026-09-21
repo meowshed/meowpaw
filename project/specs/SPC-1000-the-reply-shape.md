@@ -40,7 +40,7 @@ because the shape governs the terminal and the standard governs the file. Verb
 resolution, the names of the harness's not-working states, and what a status
 command computes are all settled elsewhere and left out here.
 
-`meow-core` implements this, and EPC-1000 closed at `4e75d4f` with one
+`meow-core` implements this, and EPC-1000 closed at `9275107` with one
 criterion unmet: the style applies when a person selects it and not on its own,
 which BUG-1040 records. REQ-0930 is unmet until that is resolved.
 

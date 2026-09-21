@@ -13,7 +13,7 @@ issue: 24
 
 ## Reproduction
 
-At `2c43b21`:
+At `926b55d`:
 
 ```bash
 git ls-files plugins/meow-core/evals/results/ | wc -l    # 4
