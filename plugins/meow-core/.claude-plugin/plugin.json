@@ -1,6 +1,6 @@
 {
   "name": "meow-core",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "Shapes every reply Claude Code makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It costs you your own output style, which it replaces while it is enabled.",
   "author": {
     "name": "Andrew Vasilyev",

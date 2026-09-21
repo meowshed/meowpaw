@@ -8,6 +8,8 @@ closes: [R-AREA-nnn]
 issue:
 ---
 
+<!-- Written to the writing standard in `CLAUDE.md`: lead with the answer, state the reason beside every rule, and show the failing case. No paragraph opens in bold, and a sentence that reads as a proverb is missing its reason. -->
+
 # <What this task does>
 
 One task, one branch, one pull request, one review ([R-H-133]).

@@ -59,14 +59,14 @@ Mean delta +0.06.
 
 ### What the numbers do not support
 
-**Three cases discriminate nothing.** The baseline scores 1.00 on them, so an
-unstyled reply already keeps the unresolved verb, already declines to invent a
-progress count, and already opens without a preamble. Those cases measure the
-model's defaults and say nothing about the shape. That is a defect in the case
-set, and the cases are too easy rather than the shape being idle.
+The baseline scores 1.00 on three of the four cases, so an unstyled reply
+already keeps the unresolved verb, already declines to invent a progress count,
+and already opens without a preamble. Those three measure the model's defaults
+and say nothing about the shape, which makes them a defect in the case set: the
+prompts are too easy to tell the two arms apart.
 
-**The one case with a delta does not separate its arms.** Per-run scores, with
-the style and without it:
+The one case with a delta does not separate its arms either. Per-run scores,
+with the style and without it:
 
 ```text
 with:     0.50  0.50  1.00  0.50  1.00     mean 0.70
@@ -77,9 +77,9 @@ Two baseline runs beat three styled runs. Five runs per arm cannot tell +0.25
 from variance at that spread, which is the weakness RES-0266 recorded before
 this suite existed.
 
-**The styled arm is poor in absolute terms.** At 0.70 the style fails
-`cause-location-fix` outright in some runs, with three judge votes of FAIL
-rather than a split, so the gain is measured against a low ceiling.
+The styled arm is also weak in absolute terms. At 0.70 it fails
+`cause-location-fix` outright in some runs, with three judge votes of FAIL and
+not a split, so the gain of +0.25 is measured against a low ceiling.
 
 ### What it means for ADR-1000
 
@@ -88,8 +88,8 @@ progress and error reports. This measurement finds a gain on error reports
 only, and cannot see one anywhere else.
 
 The reversal condition ADR-1000 names is the shape scoring below the unshaped
-baseline on correctness. That did not happen, so the decision stands, on
-thinner evidence than it claims. What would settle it is a harder case set and
+baseline on correctness. The measurement showed no such thing, so the decision
+stands, on thinner evidence than it claims. What would settle it is a harder case set and
 more runs, and that is the next measurement rather than a rerun of this one.
 
 ## The judge is not settled
