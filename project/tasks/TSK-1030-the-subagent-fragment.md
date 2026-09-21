@@ -38,9 +38,21 @@ precede them.
 
 ## Evidence
 
-A subordinate agent dispatched by a shipped unit, and its reply in the shape:
-leading with the action, with no closing offer of help. Recorded with the
-command and the revision.
+Closed by this task's own change, at `a14bcd5`:
+
+```text
+$ python3 tools/check_subagent_shape.py
+1 dispatches a subordinate agent, 0 without the shape
+
+$ printf ... > plugins/meow-core/probe.md   # a dispatch naming no fragment
+2 dispatch a subordinate agent, 1 without the shape
+dispatches without the shape: plugins/meow-core/probe.md
+```
+
+The evidence this task originally named, a dispatched subordinate agent's reply
+in the shape, has not been observed: no unit the harness ships dispatches one
+yet. The check holds the obligation until one does, and it fails the moment a
+unit dispatches without naming the fragment.
 
 ## Left alone
 

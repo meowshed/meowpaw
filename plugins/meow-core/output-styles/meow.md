@@ -84,3 +84,12 @@ do they know what to do next and what just happened? If not, fix those two
 lines.
 
 _Yields_ never. It is the last act before sending.
+
+## Dispatching a subordinate agent
+
+A subordinate agent runs its own system prompt and never sees this file, so the
+prompt that dispatches one carries these rules itself. Read
+`${CLAUDE_PLUGIN_ROOT}/fragments/reply-shape.md` when you write such a prompt,
+and include it verbatim. A fork inherits this style and needs nothing.
+
+_Yields_ never. A dispatch without it is a defect against REQ-0954.

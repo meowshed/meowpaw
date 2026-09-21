@@ -55,12 +55,16 @@ A task is marked in the commit that advances it, never in a later pass.
       `meow-core:meow` and sets it, at `b228817`. The style has been in force
       in this session since.
 
-- [ ] T-003 [P] TSK-1030 the shape fragment a subordinate agent's prompt
+- [x] T-003 [P] TSK-1030 the shape fragment a subordinate agent's prompt
       carries
       closes: REQ-0954
       depends: TSK-1020 - the fragment restates the rules and cannot precede
       them
-      evidence: a dispatched subordinate agent's reply, in the shape
+      evidence: `tools/check_subagent_shape.py`, seen failing on a unit that
+      dispatches without naming the fragment and passing on the tree. No
+      shipped unit dispatches a subordinate agent yet, so no dispatched reply
+      has been observed, and the check is what holds the obligation until one
+      does.
 
 - [ ] T-004 [P] TSK-1040 the static check over the style
       closes: REQ-0931
