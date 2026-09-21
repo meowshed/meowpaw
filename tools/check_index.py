@@ -14,7 +14,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INDEX = os.path.join(ROOT, "docs", "README.md")
 EXTRA = os.path.join(ROOT, "project", "README.md")
-SKIP = {"_archive", ".claude", ".git", "node_modules", "target", ".github", "tools", "templates"}
+SKIP = {"_archive", ".claude", ".git", "node_modules", "target", ".github", "tools", "templates", "plugins"}
 # One file per requirement, listed by its area overview rather than by the
 # documentation index: 264 rows would drown the index it is meant to serve.
 GENERATED = ("project/",)

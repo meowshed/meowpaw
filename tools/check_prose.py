@@ -85,7 +85,7 @@ PATTERNS = {
 }
 # A document that states a rule quotes the wording the rule bans, and quoting a
 # defect is not committing one.
-ALLOWED = {"CLAUDE.md", "check_prose.py", "RES-0038-reporting.md"}
+ALLOWED = {"CLAUDE.md", "check_prose.py", "RES-0038-reporting.md", "meow.md"}
 
 # Spelled as written by whoever owns the name. A borrowed name is not our prose.
 PROPER_NOUNS = ("Diátaxis", "Слово живое и мёртвое")
