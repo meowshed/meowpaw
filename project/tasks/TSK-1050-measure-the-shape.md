@@ -49,14 +49,14 @@ Four cases, five runs per arm, forty agent runs, no run errors, 183 seconds,
 $4.25 at list price. The judge is the runner's default, a small Claude model,
 which REQ-3028 makes a smoke check and not the result.
 
-| Case                      | WITH | W/OUT | Δ     |
+| Case                      | WITH | W/OUT | Delta |
 | ------------------------- | ---- | ----- | ----- |
 | error-report              | 0.70 | 0.45  | +0.25 |
 | completeness-over-brevity | 1.00 | 1.00  | 0.00  |
 | multi-step-progress       | 1.00 | 1.00  | 0.00  |
 | no-preamble-no-recap      | 1.00 | 1.00  | 0.00  |
 
-Mean Δ +0.06.
+Mean delta +0.06.
 
 ### What the numbers do not support
 
