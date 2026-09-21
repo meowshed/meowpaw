@@ -37,8 +37,23 @@ TSK-1020, because the check has nothing to read before the style exists.
 
 ## Evidence
 
-The check failing on a style with `keep-coding-instructions: false`, then
-passing on the shipped one, both with the command, the output and the revision.
+Closed by this task's own change, at `a689e20`:
+
+```text
+$ python3 tools/check_style.py          # keep-coding-instructions: false
+plugins/probe/output-styles/probe.md: keep-coding-instructions is false, so the
+platform's engineering instructions are deleted            exit 1
+
+$ python3 tools/check_style.py          # a rule with no stated exception
+plugins/probe/output-styles/probe.md: the rule 'A rule' states no condition
+under which it yields                                      exit 1
+
+$ mise run style                        # the shipped style
+1 output style, 0 failures                                 exit 0
+```
+
+The check is in the gate: `mise.toml` declares `style` and `all` depends on it,
+and CI runs `mise run all`.
 
 ## Left alone
 

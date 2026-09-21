@@ -16,6 +16,10 @@ run = "prettier --check '**/*.md'"
 description = "Lint Markdown"
 run = "markdownlint-cli2 '**/*.md'"
 
+[tasks.style]
+description = "Check every output style the harness ships"
+run = "python3 tools/check_style.py"
+
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "lint"]
+depends = ["fmt-check", "lint", "style"]
