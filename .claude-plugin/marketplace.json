@@ -10,7 +10,8 @@
   "plugins": [
     {
       "name": "meow-core",
-      "source": "./plugins/meow-core"
+      "source": "./plugins/meow-core",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-core.md"
     }
   ]
 }
