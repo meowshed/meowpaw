@@ -64,13 +64,16 @@ and it says so in its own scope.
 
 [EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) is approved and
 realises ADR-1000 in five tasks, TSK-1010 to TSK-1050, each filed as an issue
-from #5 to #9. TSK-1000 is the planning task that produced all of it.
-`tools/check_coverage.py` reports every requirement the decision addresses
-landing in exactly one task.
+from #5 to #9. Two are closed with evidence and three are open. TSK-1000 is the
+planning task that produced all of it, and `tools/check_coverage.py` reports
+every requirement the decision addresses landing in exactly one task.
 
 ## Defects
 
-[BUG-1000](bugs/BUG-1000-the-constitution-records-state.md): `CLAUDE.md`
-recorded the project's state as well as its rules, and one of its statements
-was false. Closed by the change that removed the state and added the rule
-keeping it out.
+| Defect                                                                       | What it was                                                            |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| [BUG-1000](bugs/BUG-1000-the-constitution-records-state.md)                  | `CLAUDE.md` recorded the project's state, and one claim was false      |
+| [BUG-1010](bugs/BUG-1010-checks-walk-into-plugin-and-documentation-files.md) | Three record checks reported a false positive on a plugin file         |
+| [BUG-1020](bugs/BUG-1020-the-marks-were-late.md)                             | Two closed tasks stayed unmarked and their records carried no evidence |
+
+All three are closed.
