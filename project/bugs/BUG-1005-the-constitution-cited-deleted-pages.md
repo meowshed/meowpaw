@@ -6,7 +6,6 @@ severity: minor
 violates: REQ-0704
 found: 2026-09-21
 revised: 2026-09-21
-unit: U-0001
 issue: 12
 ---
 

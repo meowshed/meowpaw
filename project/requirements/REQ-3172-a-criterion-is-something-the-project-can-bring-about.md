@@ -5,7 +5,6 @@ topic: the-method
 class: functional
 status: approved
 revised: 2026-09-21
-unit: U-0001
 elaborates: RES-0055
 verification: judgement
 ---

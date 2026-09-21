@@ -5,7 +5,6 @@ topic: source-control
 class: non-functional
 status: approved
 revised: 2026-09-20
-unit: U-0001
 elaborates: RES-0014, RES-0066
 verification: static
 ---
