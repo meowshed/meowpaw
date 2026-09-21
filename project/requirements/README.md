@@ -7,7 +7,7 @@ revised: 2026-09-20
 
 # Requirements
 
-1055 obligations in 40 topics, one per file. Identifiers are
+1056 obligations in 40 topics, one per file. Identifiers are
 allocated in blocks per topic with gaps, so a later statement joins its
 neighbours rather than landing at the end. Each names the research it was
 drawn from, and 236 are drawn from more than one. The research names no
@@ -15,14 +15,14 @@ requirement back.
 
 | Class          | Count |
 | -------------- | ----- |
-| functional     | 960   |
+| functional     | 961   |
 | non-functional | 95    |
 
 | Verified by | Count |
 | ----------- | ----- |
 | behavioural | 525   |
 | evaluation  | 12    |
-| judgement   | 38    |
+| judgement   | 39    |
 | static      | 480   |
 
 ## adoption
@@ -734,42 +734,43 @@ requirement back.
 
 ## routing
 
-|                                                                         | Obligation                                                                                                                                                     |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [REQ-0330](REQ-0330-classify-before-working.md)                         | Before work starts, the harness MUST classify the change.                                                                                                      |
-| [REQ-0332](REQ-0332-report-the-class-and-the-reason.md)                 | The harness MUST report the class it chose and the reason it chose it.                                                                                         |
-| [REQ-0334](REQ-0334-three-classes-at-least.md)                          | The classification MUST include at least a class requiring no artifacts, a class requiring a reduced set, and a class requiring the full method.               |
-| [REQ-0336](REQ-0336-one-word-override.md)                               | A person MUST be able to override the classification in one instruction, in either direction.                                                                  |
-| [REQ-0338](REQ-0338-ambiguity-routes-upward.md)                         | Where the evidence is ambiguous, the classification MUST favour the more expensive route.                                                                      |
-| [REQ-0340](REQ-0340-say-when-ambiguity-decided-it.md)                   | Where the classification was made on ambiguous evidence, the harness MUST say so.                                                                              |
-| [REQ-0342](REQ-0342-classify-on-the-repository-not-keywords.md)         | The classification MUST be made on the request and the repository together rather than on keywords in the request.                                             |
-| [REQ-0344](REQ-0344-several-changes-is-an-outcome.md)                   | Classification MUST be able to conclude that the request is several separate changes.                                                                          |
-| [REQ-0346](REQ-0346-classification-writes-nothing.md)                   | Classification MUST write no artifact.                                                                                                                         |
-| [REQ-0348](REQ-0348-defects-start-at-reproduction.md)                   | Defect work MUST have a path distinct from new-behaviour work, beginning with reproduction.                                                                    |
-| [REQ-0350](REQ-0350-a-defect-is-evidence-not-new-work.md)               | A defect MUST be recorded as evidence that a requirement is not met and MUST NOT be treated as new work needing a decision.                                    |
-| [REQ-0352](REQ-0352-a-defect-authorises-like-a-decision.md)             | A defect record MUST authorise work exactly as a decision record does.                                                                                         |
-| [REQ-0354](REQ-0354-a-defect-may-carry-its-own-tasks.md)                | A defect record MAY carry its own tasks directly, so that a one-task fix costs no epic.                                                                        |
-| [REQ-0356](REQ-0356-an-epic-only-for-an-ordered-fix.md)                 | An epic MUST be created for a defect only where the fix needs several tasks with an order between them.                                                        |
-| [REQ-0358](REQ-0358-triage-asks-one-question.md)                        | Triage MUST first answer whether a requirement in force covers the behaviour.                                                                                  |
-| [REQ-0360](REQ-0360-triage-decides-the-entry-step.md)                   | The answer to that question MUST decide which step of the chain the defect enters at.                                                                          |
-| [REQ-0362](REQ-0362-a-defect-can-enter-the-chain.md)                    | A defect MAY produce research, requirements and decisions, and each MUST cite the defect as what prompted it.                                                  |
-| [REQ-0364](REQ-0364-no-triage-without-a-reproduction.md)                | A defect MUST carry a reproduction before it is triaged.                                                                                                       |
-| [REQ-0368](REQ-0368-the-reproduction-stays-as-regression.md)            | The check that closes a defect MUST remain afterwards as a regression check.                                                                                   |
-| [REQ-0370](REQ-0370-not-a-defect-records-its-reasoning.md)              | A defect closed as not a defect MUST record the reasoning, so the same report is not triaged from scratch when it arrives again.                               |
-| [REQ-0372](REQ-0372-severity-is-recorded-on-the-defect.md)              | Severity MUST be recorded on the defect.                                                                                                                       |
-| [REQ-0374](REQ-0374-report-the-defect-authorised-share.md)              | The harness MUST be able to report the proportion of work authorised by defects rather than by decisions.                                                      |
-| [REQ-2940](REQ-2940-the-profile-stops-at-the-repository-root.md)        | The harness MUST NOT look for a profile above the repository root.                                                                                             |
-| [REQ-2942](REQ-2942-an-unknown-profile-key-is-ignored-and-reported.md)  | The harness MUST ignore a profile key it does not know and MUST report it.                                                                                     |
-| [REQ-2944](REQ-2944-the-shared-and-personal-profiles-are-separate.md)   | The shared profile and the personal one MUST be separate files, the first committed and the second excluded, and the harness MUST exclude the personal one...  |
-| [REQ-2946](REQ-2946-a-machine-path-in-a-profile-is-a-symptom.md)        | The harness MUST report a machine-specific tool path in a personal profile as a symptom rather than accept it, because the tool should be found through the... |
-| [REQ-2948](REQ-2948-three-profile-outcomes-stay-distinct.md)            | The harness MUST distinguish an absent profile, an unparseable one and one parsed with unknown keys, and MUST leave verbs unresolved rather than fall back...  |
-| [REQ-2950](REQ-2950-the-profile-carries-only-what-nothing-else-says.md) | The profile MUST NOT carry what the ecosystem already declares, what the platform owns, prose, or anything detection can answer.                               |
-| [REQ-2952](REQ-2952-a-declared-vocabulary-is-what-the-check-uses.md)    | A check over a vocabulary the repository declares MUST validate against that declaration rather than against a list built into the tool.                       |
-| [REQ-2954](REQ-2954-the-profile-format-carries-comments.md)             | The profile's format MUST permit comments and MUST share the record's front matter shape.                                                                      |
-| [REQ-3080](REQ-3080-a-diagnostic-answers-one-question.md)               | The harness MUST answer whether the repository can be worked on as a separate question from where the work stands.                                             |
-| [REQ-3084](REQ-3084-a-machine-finding-is-named-as-one.md)               | The harness MUST name a finding that depends on this machine as such, so that this machine cannot build this is not read as this repository is broken.         |
-| [REQ-3086](REQ-3086-a-diagnostic-repairs-nothing.md)                    | The diagnostic MUST repair nothing and write nothing, including a cache.                                                                                       |
-| [REQ-3090](REQ-3090-detection-is-reported-with-its-markers.md)          | The harness MUST report which packs matched which markers, so a wrong detection is visible rather than inferred later from a wrong command.                    |
+|                                                                             | Obligation                                                                                                                                                     |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [REQ-0330](REQ-0330-classify-before-working.md)                             | Before work starts, the harness MUST classify the change.                                                                                                      |
+| [REQ-0332](REQ-0332-report-the-class-and-the-reason.md)                     | The harness MUST report the class it chose and the reason it chose it.                                                                                         |
+| [REQ-0334](REQ-0334-three-classes-at-least.md)                              | The classification MUST include at least a class requiring no artifacts, a class requiring a reduced set, and a class requiring the full method.               |
+| [REQ-0336](REQ-0336-one-word-override.md)                                   | A person MUST be able to override the classification in one instruction, in either direction.                                                                  |
+| [REQ-0338](REQ-0338-ambiguity-routes-upward.md)                             | Where the evidence is ambiguous, the classification MUST favour the more expensive route.                                                                      |
+| [REQ-0340](REQ-0340-say-when-ambiguity-decided-it.md)                       | Where the classification was made on ambiguous evidence, the harness MUST say so.                                                                              |
+| [REQ-0342](REQ-0342-classify-on-the-repository-not-keywords.md)             | The classification MUST be made on the request and the repository together rather than on keywords in the request.                                             |
+| [REQ-0344](REQ-0344-several-changes-is-an-outcome.md)                       | Classification MUST be able to conclude that the request is several separate changes.                                                                          |
+| [REQ-0346](REQ-0346-classification-writes-nothing.md)                       | Classification MUST write no artifact.                                                                                                                         |
+| [REQ-0348](REQ-0348-defects-start-at-reproduction.md)                       | Defect work MUST have a path distinct from new-behaviour work, beginning with reproduction.                                                                    |
+| [REQ-0350](REQ-0350-a-defect-is-evidence-not-new-work.md)                   | A defect MUST be recorded as evidence that a requirement is not met and MUST NOT be treated as new work needing a decision.                                    |
+| [REQ-0352](REQ-0352-a-defect-authorises-like-a-decision.md)                 | A defect record MUST authorise work exactly as a decision record does.                                                                                         |
+| [REQ-0354](REQ-0354-a-defect-may-carry-its-own-tasks.md)                    | A defect record MAY carry its own tasks directly, so that a one-task fix costs no epic.                                                                        |
+| [REQ-0356](REQ-0356-an-epic-only-for-an-ordered-fix.md)                     | An epic MUST be created for a defect only where the fix needs several tasks with an order between them.                                                        |
+| [REQ-0358](REQ-0358-triage-asks-one-question.md)                            | Triage MUST first answer whether a requirement in force covers the behaviour.                                                                                  |
+| [REQ-0360](REQ-0360-triage-decides-the-entry-step.md)                       | The answer to that question MUST decide which step of the chain the defect enters at.                                                                          |
+| [REQ-0362](REQ-0362-a-defect-can-enter-the-chain.md)                        | A defect MAY produce research, requirements and decisions, and each MUST cite the defect as what prompted it.                                                  |
+| [REQ-0364](REQ-0364-no-triage-without-a-reproduction.md)                    | A defect MUST carry a reproduction before it is triaged.                                                                                                       |
+| [REQ-0368](REQ-0368-the-reproduction-stays-as-regression.md)                | The check that closes a defect MUST remain afterwards as a regression check.                                                                                   |
+| [REQ-0370](REQ-0370-not-a-defect-records-its-reasoning.md)                  | A defect closed as not a defect MUST record the reasoning, so the same report is not triaged from scratch when it arrives again.                               |
+| [REQ-0372](REQ-0372-severity-is-recorded-on-the-defect.md)                  | Severity MUST be recorded on the defect.                                                                                                                       |
+| [REQ-0374](REQ-0374-report-the-defect-authorised-share.md)                  | The harness MUST be able to report the proportion of work authorised by defects rather than by decisions.                                                      |
+| [REQ-2940](REQ-2940-the-profile-stops-at-the-repository-root.md)            | The harness MUST NOT look for a profile above the repository root.                                                                                             |
+| [REQ-2942](REQ-2942-an-unknown-profile-key-is-ignored-and-reported.md)      | The harness MUST ignore a profile key it does not know and MUST report it.                                                                                     |
+| [REQ-2944](REQ-2944-the-shared-and-personal-profiles-are-separate.md)       | The shared profile and the personal one MUST be separate files, the first committed and the second excluded, and the harness MUST exclude the personal one...  |
+| [REQ-2946](REQ-2946-a-machine-path-in-a-profile-is-a-symptom.md)            | The harness MUST report a machine-specific tool path in a personal profile as a symptom rather than accept it, because the tool should be found through the... |
+| [REQ-2948](REQ-2948-three-profile-outcomes-stay-distinct.md)                | The harness MUST distinguish an absent profile, an unparseable one and one parsed with unknown keys, and MUST leave verbs unresolved rather than fall back...  |
+| [REQ-2950](REQ-2950-the-profile-carries-only-what-nothing-else-says.md)     | The profile MUST NOT carry what the ecosystem already declares, what the platform owns, prose, or anything detection can answer.                               |
+| [REQ-2952](REQ-2952-a-declared-vocabulary-is-what-the-check-uses.md)        | A check over a vocabulary the repository declares MUST validate against that declaration rather than against a list built into the tool.                       |
+| [REQ-2954](REQ-2954-the-profile-format-carries-comments.md)                 | The profile's format MUST permit comments and MUST share the record's front matter shape.                                                                      |
+| [REQ-3080](REQ-3080-a-diagnostic-answers-one-question.md)                   | The harness MUST answer whether the repository can be worked on as a separate question from where the work stands.                                             |
+| [REQ-3084](REQ-3084-a-machine-finding-is-named-as-one.md)                   | The harness MUST name a finding that depends on this machine as such, so that this machine cannot build this is not read as this repository is broken.         |
+| [REQ-3086](REQ-3086-a-diagnostic-repairs-nothing.md)                        | The diagnostic MUST repair nothing and write nothing, including a cache.                                                                                       |
+| [REQ-3090](REQ-3090-detection-is-reported-with-its-markers.md)              | The harness MUST report which packs matched which markers, so a wrong detection is visible rather than inferred later from a wrong command.                    |
+| [REQ-3174](REQ-3174-a-defect-carries-a-record-unless-the-gate-closed-it.md) | A defect MUST carry a record of its own, unless a gate caught it and the same change closed it.                                                                |
 
 ## runners
 
