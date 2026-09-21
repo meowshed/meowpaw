@@ -9,7 +9,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKIP = {"_archive", ".claude", ".git", "node_modules", "target", ".github", "templates"}
+SKIP = {"_archive", ".claude", ".git", "node_modules", "target", ".github", "templates", "plugins", "docs"}
 EXEMPT = {"README.md", "CLAUDE.md", "LICENSE"}
 REQUIRED = ("id", "artifact", "status", "revised")
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
