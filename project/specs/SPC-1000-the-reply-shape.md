@@ -22,6 +22,7 @@ states:
     REQ-0950,
     REQ-0952,
     REQ-0954,
+    REQ-0956,
   ]
 ---
 
@@ -101,6 +102,17 @@ happened.
 
 A subordinate agent runs its own system prompt and the style does not reach it,
 so the prompt a unit sends to one carries the shape itself (REQ-0954).
+
+## Changing the shape
+
+A change to any rule here is measured against the shape it replaces before it
+lands: a stated case set, a rubric, several trials, and a judge grading blind
+on labels shuffled per case (REQ-0956). The case set lives in
+`plugins/meow-core/evals/`, and a measurement reports the number of runs it
+used and the judge that graded it.
+
+A result that contradicts the decision is reported as it stands, and the
+measurement is not repeated until it agrees.
 
 ## Failure paths
 

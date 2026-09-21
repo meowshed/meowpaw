@@ -42,10 +42,24 @@ def deferred(body, claimed):
     return named - set(claimed)
 
 
+def stated() -> set:
+    """Every requirement the specifications say they project.
+
+    REQ-0244 wants each requirement in force stated somewhere, and REQ-0246
+    wants both directions checked. The task direction below answers who builds
+    it; this one answers where it is written down.
+    """
+    out = set()
+    for spec in sorted((PROJECT / "specs").glob("SPC-*.md")):
+        out |= set(ID.findall(field(front_matter(spec)[0], "states")))
+    return out
+
+
 def main():
     failures = []
     epics = sorted((PROJECT / "epics").glob("EPC-*.md"))
     tasks = sorted((PROJECT / "tasks").glob("TSK-*.md"))
+    in_a_spec = stated()
 
     if not epics:
         print("no epics, nothing to cover")
@@ -71,6 +85,8 @@ def main():
 
         for req in sorted(addressed - set(claimed) - deferred(body, claimed)):
             failures.append(f"{epic_id}: {req} lands in no task")
+        for req in sorted(addressed - in_a_spec):
+            failures.append(f"{authorising}: {req} is stated in no specification")
         for req in sorted(set(claimed) - addressed):
             failures.append(f"{epic_id}: {req} is closed by a task and addressed by no decision")
         for req, where in sorted(claimed.items()):
