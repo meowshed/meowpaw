@@ -3,7 +3,6 @@ id: TSK-1000
 artifact: task
 status: approved
 revised: 2026-09-21
-unit: U-0001
 epic:
 closes: []
 issue: 3

@@ -8,7 +8,6 @@ revised: 2026-09-20
 elaborates: RES-0027
 source: the repository owner's standing instruction
 verification: static
-unit: U-0001
 ---
 
 # REQ-0995

@@ -3,7 +3,6 @@ id: ADR-1000
 artifact: adr
 status: approved
 revised: 2026-09-21
-unit: U-0001
 addresses:
   [
     REQ-0930,

@@ -3,7 +3,6 @@ id: EPC-NNNN
 artifact: epic
 status: draft # draft | approved | superseded — in-progress and done derive
 revised: YYYY-MM-DD
-unit: U-NNNN
 realises: ADR-NNNN | BUG-NNNN # required: exactly one authorising record
 checked-at: rN
 ---

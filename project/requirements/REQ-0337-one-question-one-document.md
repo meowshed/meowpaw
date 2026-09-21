@@ -8,7 +8,6 @@ revised: 2026-09-20
 elaborates: RES-0071, RES-0153
 verification: judgement
 verifier: agent
-unit: U-0001
 ---
 
 # REQ-0337

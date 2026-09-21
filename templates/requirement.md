@@ -3,7 +3,6 @@ id: REQ-NNNN
 artifact: requirement
 status: draft # draft | approved | withdrawn | superseded
 revised: YYYY-MM-DD
-unit: U-NNNN
 elaborates: RSH-NNNN
 prompted-by: BUG-NNNN # where a defect revealed the gap
 ---

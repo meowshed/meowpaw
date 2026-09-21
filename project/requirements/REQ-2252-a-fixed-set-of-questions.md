@@ -8,7 +8,6 @@ revised: 2026-09-20
 elaborates: RES-0072
 source: ISO/IEC/IEEE 42010 and arc42
 verification: static
-unit: U-0001
 ---
 
 # REQ-2252
