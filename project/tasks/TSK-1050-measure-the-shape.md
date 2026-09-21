@@ -3,7 +3,6 @@ id: TSK-1050
 artifact: task
 status: approved
 revised: 2026-09-21
-unit: U-0001
 epic: EPC-1000
 closes: [REQ-0956]
 issue: 9

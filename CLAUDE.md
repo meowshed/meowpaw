@@ -91,8 +91,9 @@ own in `.meowpaw/templates/`, which overrides. The harness's own templates sit
 in `templates/` until the plugin that carries them is specified.
 
 One artifact per file, named for its identifier, in a directory named for its
-kind. A directory appears when its first artifact does. Each record names its
-unit of work in its front matter as `unit`, and never in its path.
+kind. A directory appears when its first artifact does. A record is found by
+what it says and by the identifiers it cites, never by the week somebody wrote
+it, so nothing in a path or a field records when work happened.
 
 </layout>
 

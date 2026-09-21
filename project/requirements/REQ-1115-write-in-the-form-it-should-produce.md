@@ -5,7 +5,6 @@ topic: prompt-format
 class: functional
 status: approved
 revised: 2026-09-20
-unit: U-0001
 elaborates: RES-0004
 verification: static
 ---

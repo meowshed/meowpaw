@@ -7,7 +7,6 @@ status: approved
 revised: 2026-09-20
 elaborates: RES-0036
 verification: static
-unit: U-0001
 ---
 
 # REQ-0223

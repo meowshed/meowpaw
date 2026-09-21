@@ -6,7 +6,6 @@ severity: major
 violates: REQ-0690
 found: 2026-09-21
 revised: 2026-09-21
-unit: U-0001
 issue: 18
 ---
 

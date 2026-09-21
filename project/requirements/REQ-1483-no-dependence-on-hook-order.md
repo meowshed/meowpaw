@@ -8,7 +8,6 @@ revised: 2026-09-20
 elaborates: RES-0004
 source: the agent platform, which defines no order
 verification: static
-unit: U-0001
 ---
 
 # REQ-1483
