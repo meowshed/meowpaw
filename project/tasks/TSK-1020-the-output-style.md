@@ -62,9 +62,26 @@ convenience.
 
 ## Evidence
 
-The style in force in a repository with only `meow-core` installed, with the
-command that shows it, its output and the revision. A reply produced under it
-that leads with an action and closes without an offer of help.
+Closed by `b228817`, at that revision:
+
+```text
+$ /reload-plugins
+Reloaded: 5 plugins · 3 skills · 6 agents · 0 hooks
+
+$ /output-style
+- meow-core:meow: The reply shape the meowpaw harness imposes on every reply
+  it makes to a person.
+
+$ /output-style meow-core:meow
+Output style set to meow-core:meow
+```
+
+Every reply in this session since has been produced under it, leading with the
+action and closing with the next step rather than an offer of help.
+
+The style was selected by hand here because the session predates the file.
+`force-for-plugin: true` applies it without that step in a session that starts
+after it, which no run has observed yet.
 
 ## Left alone
 

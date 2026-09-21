@@ -44,8 +44,25 @@ inside this directory.
 
 ## Evidence
 
-The platform lists the plugin from this repository's marketplace and enables
-it, recorded with the command, its output and the revision it ran at.
+Closed by `403e823`, at `998117f`:
+
+```text
+$ claude plugin marketplace add $PWD
+✔ Successfully added marketplace: meowpaw
+
+$ claude plugin install meow-core@meowpaw
+✔ Successfully installed plugin: meow-core@meowpaw (scope: user)
+
+$ claude plugin list
+  ❯ meow-core@meowpaw
+    Version: 0.1.0
+    Status: ✔ enabled
+```
+
+REQ-0932 is the requirement this task cites, and this evidence does not close
+it: the kernel exists and carried no shape until TSK-1020. The review of #14
+states that, and offers moving the requirement to TSK-1020 as remediation it
+did not apply.
 
 ## Left alone
 
