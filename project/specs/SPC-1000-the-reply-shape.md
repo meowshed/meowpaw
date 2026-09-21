@@ -65,10 +65,11 @@ The kernel carries the shape, so a repository installing any part of the
 harness receives it (REQ-0932), and no plugin, skill or step is exempt
 (REQ-0930).
 
-**That is the obligation and not the present.** On Claude Code 2.1.278 the
-style is applied only when a person selects it, because `force-for-plugin` is
-not honoured, which BUG-1040 records with its reproduction. Until that is
-resolved the shape is opt-in per session, and REQ-0930 is unmet.
+Those two sentences state the obligation, and the harness does not yet meet
+it. On Claude Code 2.1.278 the style applies only when a person selects it,
+because `force-for-plugin` is not honoured, which BUG-1040 records with its
+reproduction. The shape is therefore opt-in per session and REQ-0930 is unmet,
+until the platform honours the field or a decision replaces the mechanism.
 
 A reply leads with the action: the command, the path or the line, and prose
 follows if it is needed at all (REQ-0934). A reply does not open by announcing

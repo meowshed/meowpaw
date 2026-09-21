@@ -35,9 +35,12 @@ finds as a record.
 
 ## What it should do, and why
 
-A plugin's own file is not a documentation page, and an output style's front
-matter is the platform's: `name`, `description`, `keep-coding-instructions` and
-`force-for-plugin`. A documentation page is not a record either.
+The checks walk into two kinds of file they were never written for. An output
+style carries the platform's front matter, `name`, `description`,
+`keep-coding-instructions` and `force-for-plugin`, so asking it for `id` and
+`status` asks it to be a record. A documentation page carries no front matter
+at all, and listing a plugin's own file in the documentation index would put it
+where no reader of that index is looking.
 
 The two words the prose check flags are quoted as the failing case the rule
 forbids, which REQ-1126 requires of material teaching a judgement. The check

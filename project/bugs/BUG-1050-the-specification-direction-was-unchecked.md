@@ -13,8 +13,8 @@ issue: 34
 
 **Written during the change that closes it, and not before it.** The work
 started as a plain issue because I classified it as too small for a record,
-which was wrong: the defect revealed a missing check, and the reasoning is
-worth having later.
+which was wrong: the defect revealed a missing check, and that reasoning
+outlives the change that closed it.
 
 ## Reproduction
 

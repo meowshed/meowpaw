@@ -7,6 +7,8 @@ realises: ADR-NNNN | BUG-NNNN # required: exactly one authorising record
 checked-at: rN
 ---
 
+<!-- Written to the writing standard in `CLAUDE.md`: lead with the answer, state the reason beside every rule, and show the failing case. No paragraph opens in bold, and a sentence that reads as a proverb is missing its reason. -->
+
 # <What this realises>
 
 Realises exactly one authorising record ([R-H-043a]), which is what gives it an

@@ -41,9 +41,10 @@ Checking the record reports artifacts whose recorded state contradicts the tree
 omits, that nothing defines and that nothing checks, is that contradiction,
 stated as a rule instead of as a state.
 
-A template is how a dead field outlives its own removal: the next author copies
-what is in front of them, which is exactly how sixteen new records acquired it
-after the decision to drop it.
+The templates are why the field survived its own removal. An author writing a
+record copies the template and the files beside it, so sixteen new records
+acquired the field this session, after the decision to drop it and without
+anybody choosing to keep it.
 
 ## Triage
 
