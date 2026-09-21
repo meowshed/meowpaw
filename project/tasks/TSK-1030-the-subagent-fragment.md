@@ -37,7 +37,7 @@ precede them.
 
 ## Evidence
 
-Closed by this task's own change, at `a14bcd5`:
+Closed by this task's own change, at `48623b6`:
 
 ```text
 $ python3 tools/check_subagent_shape.py
