@@ -261,6 +261,22 @@ wrote, which is why a check masks block quotations before it looks. This
 governs documents, specifications, code comments, commit messages, pull request
 bodies and your replies. A commit message is prose and a reply is prose.
 
+Apply the standard while you write, not afterwards. Before a document, name
+the two or three rules its type breaks most often, and re-read each paragraph
+before you write the next one. A sentence comes out shaped like whatever you
+have been reading, so a day spent in specifications produces specifications,
+and the rules only join in when you stop to look.
+
+The review before publishing catches what survived that. It is not where the
+work happens, and a review finding six defects in five short texts is your
+work handed to the next step.
+
+Check the text before it leaves your hands, not after somebody reads it.
+Every document, every commit message, every issue you file and every pull
+request body goes through the standard while it is still an edit. A defect caught here costs one edit. The same
+defect caught after the merge costs an issue, a defect record and a change to
+correct it, and this repository has paid that several times.
+
 The test: a rule whose reason is stated survives contact with a case its author
 never foresaw, because the reader can tell whether the reason applies. A rule
 without one gets applied literally and wrongly.
