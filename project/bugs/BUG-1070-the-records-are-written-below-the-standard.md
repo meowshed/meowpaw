@@ -14,7 +14,7 @@ issue: 40
 ## Reproduction
 
 Over the seven defect records, six tasks, the epic, the decision and the
-specification, 8,202 words, at `b6e3292`:
+specification, 8,202 words, at `d070145`:
 
 ```bash
 grep -rn "^\*\*" project/bugs/*.md project/tasks/*.md project/epics/*.md \

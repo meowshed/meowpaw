@@ -38,7 +38,7 @@ TSK-1020, because the shape under measurement is the one the style carries.
 
 ## Evidence
 
-Run at `8f9e8dd` with the turn cap raised to 10, on 2026-09-21:
+Run at `95fda7d` with the turn cap raised to 10, on 2026-09-21:
 
 ```bash
 claude plugin eval plugins/meow-core --runs 5 --trust-plugin -j 4
