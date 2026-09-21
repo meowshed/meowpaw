@@ -3,7 +3,6 @@ id: SPC-1000
 artifact: spec
 status: live
 revised: 2026-09-21
-unit: U-0001
 checked-at: 4e75d4f
 states:
   [

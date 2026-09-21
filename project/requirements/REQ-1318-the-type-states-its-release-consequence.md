@@ -8,7 +8,6 @@ revised: 2026-09-20
 elaborates: RES-0014, RES-0066
 source: the conventional commits specification
 verification: static
-unit: U-0001
 ---
 
 # REQ-1318

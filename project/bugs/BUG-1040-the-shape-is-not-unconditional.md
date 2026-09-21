@@ -6,7 +6,6 @@ severity: critical
 violates: REQ-0930
 found: 2026-09-21
 revised: 2026-09-21
-unit: U-0001
 issue: 28
 ---
 

@@ -8,7 +8,6 @@ revised: 2026-09-20
 elaborates: RES-0035
 verification: judgement
 verifier: person
-unit: U-0001
 ---
 
 # REQ-0611

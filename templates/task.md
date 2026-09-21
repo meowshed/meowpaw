@@ -3,7 +3,6 @@ id: TSK-NNNN
 artifact: task
 status: draft # draft | approved — in-progress and done derive
 revised: YYYY-MM-DD
-unit: U-NNNN
 epic: EPC-NNNN
 closes: [R-AREA-nnn]
 issue:

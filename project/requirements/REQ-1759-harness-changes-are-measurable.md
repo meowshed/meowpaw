@@ -5,7 +5,6 @@ topic: quality-attributes
 class: non-functional
 status: approved
 revised: 2026-09-20
-unit: U-0001
 elaborates: RES-0004, RES-0070
 verification: evaluation
 ---
