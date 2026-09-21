@@ -8,6 +8,10 @@ globs:
   - "**/*.md"
 ignores:
   - node_modules
+  # An eval prompt is what a model is sent and a grader body is the rubric a
+  # judge reads. Neither is a document with a title, and giving one a heading
+  # would change what is measured.
+  - plugins/*/evals/**
 
 # Files git ignores are not part of the repository, so the gate skips them.
 gitignore: true
