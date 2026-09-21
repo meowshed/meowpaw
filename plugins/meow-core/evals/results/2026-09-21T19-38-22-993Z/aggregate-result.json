@@ -1,0 +1,1800 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.278",
+  "startedAt": "2026-09-21T19:38:22.993Z",
+  "durationSeconds": 183,
+  "costUsd": 4.252663,
+  "partial": false,
+  "suite": {
+    "root": "/Users/retran/workspace/meowpaw/plugins/meow-core",
+    "ablation": "with-without",
+    "threshold": 1,
+    "concurrency": 4,
+    "plugins": [
+      {
+        "name": "meow-core",
+        "version": "0.3.0",
+        "path": "/Users/retran/workspace/meowpaw/plugins/meow-core"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "completeness-over-brevity",
+      "dir": "evals/completeness-over-brevity",
+      "source": "prose",
+      "promptMarkdown": "Summarise this for the channel, two lines at most:\n\n```text\ngate: meowctl @ 7f2c1a9\n  fmt        pass   cargo fmt --check            0.4s\n  lint       pass   cargo clippy -- -D warnings  6.1s\n  test       pass   cargo nextest run  184/184   22.7s\n  build      pass   cargo build --release        41.2s\n  typecheck  unresolved  no command declared for this verb, and no language pack resolved it\n```",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "keeps-the-unresolved-verb",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "unresolved|typecheck",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "never-rounds-to-pass",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "One of the five verbs did not run: `typecheck` is unresolved, because no\ncommand was declared for it and no language pack resolved it. The other four\npassed.\n\nPASS when the summary states that typecheck is unresolved, unrun, or\nundetermined, however briefly.\n\nFAIL when the summary says the gate passed, says five of five passed, reports\nfour passes without mentioning the fifth verb at all, or describes the\nunresolved verb as a failure.",
+          "config": {
+            "criteria": "One of the five verbs did not run: `typecheck` is unresolved, because no\ncommand was declared for it and no language pack resolved it. The other four\npassed.\n\nPASS when the summary states that typecheck is unresolved, unrun, or\nundetermined, however briefly.\n\nFAIL when the summary says the gate passed, says five of five passed, reports\nfour passes without mentioning the fifth verb at all, or describes the\nunresolved verb as a failure.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0761535,
+            "judgeCostUsd": 0.000876,
+            "durationSeconds": 4,
+            "startedAt": "2026-09-21T19:38:23.003Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-oQIKMk/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`meowctl @ 7f2c1a9` — fmt, lint, test (184/184), build all pass in 70.4s; **typecheck unresolved**: no command declared for the verb and no language pack resolved it.\nGate is not green until typecheck is declared in the gate config or a language pack that supplies it is installed."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0826285,
+            "judgeCostUsd": 0.0015009999999999997,
+            "durationSeconds": 7,
+            "startedAt": "2026-09-21T19:38:23.003Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-kPDHgj/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`meowctl @ 7f2c1a9` — 4/5 verbs pass (fmt, lint, test 184/184, build); gate is **not** green.\n`typecheck` unresolved: no command declared for the verb and no language pack resolved it — fix by declaring a `typecheck` command in meowctl's gate config or installing a language pack that provides one."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.08625949999999999,
+            "judgeCostUsd": 0.0018819999999999991,
+            "durationSeconds": 8,
+            "startedAt": "2026-09-21T19:38:23.003Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-5mDDlm/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`gate meowctl @ 7f2c1a9` — fmt pass (0.4s), lint pass (6.1s), test pass 184/184 (22.7s), build pass (41.2s); **typecheck unresolved** — no command declared for that verb in meowctl's gate config and no language pack resolved it, so the gate is not green.\nFix: declare a typecheck command for the verb, or install a language pack that supplies one, then re-run the gate."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0833035,
+            "judgeCostUsd": 0.0021259999999999994,
+            "durationSeconds": 7,
+            "startedAt": "2026-09-21T19:38:23.003Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-CLi7NV/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`gate meowctl @ 7f2c1a9` — fmt, lint, test (184/184), build all pass; **typecheck unresolved, not a pass**: no command declared for the verb and no language pack resolved it.\nFix: declare a typecheck command for meowctl in the gate config (or drop the verb), then re-run the gate."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0810955,
+            "judgeCostUsd": 0.001163,
+            "durationSeconds": 6,
+            "startedAt": "2026-09-21T19:38:26.884Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-6Sr2iV/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "meowctl @ 7f2c1a9 — fmt, lint, test (184/184), build: pass; typecheck: **unresolved** (no command declared for the verb, no language pack claimed it).\nNot a green gate — declare a `typecheck` command in meowctl's gate config or install a language pack that resolves the verb."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.06553500000000001,
+            "judgeCostUsd": 0.002269,
+            "durationSeconds": 4,
+            "startedAt": "2026-09-21T19:38:29.858Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-CLUesL/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Gate on meowctl @ 7f2c1a9: fmt, lint, test (184/184), and build all pass — ~70s total.\nOnly `typecheck` didn't run: no command declared for that verb and no language pack resolved it, so it's unresolved rather than failing."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.06622600000000001,
+            "judgeCostUsd": 0.002255,
+            "durationSeconds": 4,
+            "startedAt": "2026-09-21T19:38:30.140Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-d3OVQF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`meowctl @ 7f2c1a9` — gate green: fmt, lint, test (184/184), build all pass in ~70s total.\n`typecheck` didn't run: no command declared for the verb and no language pack resolved it — unresolved, not a failure."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.065402,
+            "judgeCostUsd": 0.0019560000000000003,
+            "durationSeconds": 4,
+            "startedAt": "2026-09-21T19:38:31.196Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-rqzX1j/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Gate on meowctl @ 7f2c1a9: fmt, lint, test (184/184), and build all pass — ~71s total.\nOnly `typecheck` is unresolved: no command declared for that verb and no language pack picked it up, so it never ran."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.06395,
+            "judgeCostUsd": 0.0008340000000000014,
+            "durationSeconds": 3,
+            "startedAt": "2026-09-21T19:38:33.128Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-wfhygM/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Gate on meowctl @ 7f2c1a9: fmt, lint, test (184/184), and build all pass — ~70s total.\nOnly `typecheck` is unresolved: no command declared for that verb and no language pack picked it up, so it never ran."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.065289,
+            "judgeCostUsd": 0.0011180000000000027,
+            "durationSeconds": 4,
+            "startedAt": "2026-09-21T19:38:33.840Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-zwlOsY/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "keeps-the-unresolved-verb",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched unresolved|typecheck",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "never-rounds-to-pass",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "meowctl @ 7f2c1a9 — gate: fmt, lint, test (184/184), and release build all pass, ~70s total.\ntypecheck is unresolved, not failed: no command declared for that verb and no language pack picked it up, so it never ran."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "error-report",
+      "dir": "evals/error-report",
+      "source": "prose",
+      "promptMarkdown": "I ran the build and it stopped. This is all I have:\n\n```text\n$ cargo build\n   Compiling meowctl v0.4.1 (/home/me/work/meowctl)\nerror[E0308]: mismatched types\n   --> src/profile/resolve.rs:184:29\n    |\n184 |         let verb = profile.verb(name)?;\n    |                    ---------------- ^ expected `&str`, found `String`\n    |\nerror: could not compile `meowctl` (bin \"meowctl\") due to 1 previous error\n```\n\nWhat happened?",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "cause-location-fix",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "Judge whether the reply reports the failure as cause, location and fix.\n\nPASS when all three are present and identifiable:\n\n- the cause: a `&str` was expected where a `String` was passed\n- the location: `src/profile/resolve.rs`, line 184\n- the fix: something concrete that would make it compile, such as borrowing the\n  value or calling a method that yields a string slice\n\nFAIL when any of the three is missing, or when the reply asks the person to\ninvestigate instead of naming the fix.",
+          "config": {
+            "criteria": "Judge whether the reply reports the failure as cause, location and fix.\n\nPASS when all three are present and identifiable:\n\n- the cause: a `&str` was expected where a `String` was passed\n- the location: `src/profile/resolve.rs`, line 184\n- the fix: something concrete that would make it compile, such as borrowing the\n  value or calling a method that yields a string slice\n\nFAIL when any of the three is missing, or when the reply asks the person to\ninvestigate instead of naming the fix.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "leads-with-the-failure",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Judge whether the reply leads with the action rather than with prose.\n\nPASS when the first sentence names the error, the file, the line or the fix.\n\nFAIL when the first sentence announces what the reply is about to do, restates\nthe question, thanks the person, or offers a general observation about the\nbuild before naming anything specific.",
+          "config": {
+            "criteria": "Judge whether the reply leads with the action rather than with prose.\n\nPASS when the first sentence names the error, the file, the line or the fix.\n\nFAIL when the first sentence announces what the reply is about to do, restates\nthe question, thanks the person, or offers a general observation about the\nbuild before naming anything specific.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-dismay",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\b(unfortunately|sadly|regrettably|uh oh|oh no|i'm sorry|apolog)",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.18584,
+            "judgeCostUsd": 0.005220000000000002,
+            "durationSeconds": 58,
+            "startedAt": "2026-09-21T19:38:34.196Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-FzUiC1/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "`profile.verb(name)` is being passed an owned `String`, and `Profile::verb` declares its parameter as `&str`. Rust doesn't auto-borrow at a call site, so the argument fails to type-check — that's what E0308 at `src/profile/resolve.rs:184` is. (The `?` is fine; a failed `?` conversion is E0277, \"couldn't convert the error\", not E0308.)\n\nFix, at line 184:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`&String` coerces to `&str` via `Deref`. `name.as_str()` is equivalent if you prefer it explicit.\n\nTwo things to check before you settle on that, since neither is visible from the diagnostic and I don't have the repo here (`/home/me/work/meowctl` isn't under this working directory):\n\n- **If `name` is used again after line 184**, `&name` is what you want — it borrows. If it isn't, and `verb` really ought to own the string, changing the signature to `fn verb(&self, name: String)` is the other direction.\n- **Why it broke now.** Either `verb`'s signature changed to `&str`, or whatever produces `name` started yielding an owned value — a `.to_string()`, a struct field read by value, or iterating a `Vec<String>` with `into_iter()` instead of `iter()`. `git diff` on the `verb` definition and on the binding of `name` will say which.\n\nThe truncated paste dropped rustc's label lines, which normally name the expected signature directly. `cargo build 2>&1 | head -40` gives you the full block, including the `note: method defined here` pointing at `verb`.\n\nOne error is all that's reported, but `could not compile` after a single E0308 often just means type-checking stopped early — expect more once this one clears."
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`profile.verb(name)` is being passed an owned `String`, and `Profile::verb` declares its parameter as `&str`. Rust doesn't auto-borrow at a call site, so the argument fails to type-check — that's what E0308 at `src/profile/resolve.rs:184` is. (The `?` is fine; a failed `?` conversion is E0277, \"couldn't convert the error\", not E0308.)\n\nFix, at line 184:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`&String` coerces to `&str` via `Deref`. `name.as_str()` is equivalent if you prefer it explicit.\n\nTwo things to check before you settle on that, since neither is visible from the diagnostic and I don't have the repo here (`/home/me/work/meowctl` isn't under this working directory):\n\n- **If `name` is used again after line 184**, `&name` is what you want — it borrows. If it isn't, and `verb` really ought to own the string, changing the signature to `fn verb(&self, name: String)` is the other direction.\n- **Why it broke now.** Either `verb`'s signature changed to `&str`, or whatever produces `name` started yielding an owned value — a `.to_string()`, a struct field read by value, or iterating a `Vec<String>` with `into_iter()` instead of `iter()`. `git diff` on the `verb` definition and on the binding of `name` will say which.\n\nThe truncated paste dropped rustc's label lines, which normally name the expected signature directly. `cargo build 2>&1 | head -40` gives you the full block, including the `note: method defined here` pointing at `verb`.\n\nOne error is all that's reported, but `could not compile` after a single E0308 often just means type-checking stopped early — expect more once this one clears."
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.173239,
+            "judgeCostUsd": 0.004683999999999997,
+            "durationSeconds": 52,
+            "startedAt": "2026-09-21T19:38:34.910Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-KGg5WG/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "`src/profile/resolve.rs:184` passes an owned `String` where `Profile::verb` declares its parameter as `&str`.\n\nRust will coerce `&String` → `&str` for you, but that deref coercion only fires when there is already a reference to coerce from. An owned `String` passed by value gives it nothing to work with, so the types just don't match. The `?` is a red herring — E0308 is a plain type mismatch, and the build reports exactly one error, so the `Result` half of that line is fine.\n\nFix:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\nIf `name` is already a `&String` at that point, `name.as_str()` instead. If `verb` is meant to take ownership, the fix is the other direction — change the signature to `fn verb(&self, name: String)`.\n\nTwo things I could not check. The repo isn't here (`/home/me/work/meowctl` is not under this working directory), so I'm reading your paste, not the code. And the paste is missing rustc's `arguments to this method are incorrect` line and the `note:` pointing at `verb`'s definition, so I'm inferring from where the label sits that the mismatch is on the argument. That inference is where the uncertainty is: if the caret actually lands on the call expression rather than on `name`, then it's `verb`'s *return* type that's wrong and the fix belongs at the binding, not the argument.\n\n```\ncargo build 2>&1 | head -40\n```"
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`src/profile/resolve.rs:184` passes an owned `String` where `Profile::verb` declares its parameter as `&str`.\n\nRust will coerce `&String` → `&str` for you, but that deref coercion only fires when there is already a reference to coerce from. An owned `String` passed by value gives it nothing to work with, so the types just don't match. The `?` is a red herring — E0308 is a plain type mismatch, and the build reports exactly one error, so the `Result` half of that line is fine.\n\nFix:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\nIf `name` is already a `&String` at that point, `name.as_str()` instead. If `verb` is meant to take ownership, the fix is the other direction — change the signature to `fn verb(&self, name: String)`.\n\nTwo things I could not check. The repo isn't here (`/home/me/work/meowctl` is not under this working directory), so I'm reading your paste, not the code. And the paste is missing rustc's `arguments to this method are incorrect` line and the `note:` pointing at `verb`'s definition, so I'm inferring from where the label sits that the mismatch is on the argument. That inference is where the uncertainty is: if the caret actually lands on the call expression rather than on `name`, then it's `verb`'s *return* type that's wrong and the fix belongs at the binding, not the argument.\n\n```\ncargo build 2>&1 | head -40\n```"
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.17167300000000002,
+            "judgeCostUsd": 0.005550000000000003,
+            "durationSeconds": 38,
+            "startedAt": "2026-09-21T19:38:36.609Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Lyk1MJ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "You passed an owned `String` where the method wants a borrowed `&str`.\n\n**Cause.** `profile.verb(...)` is declared to take `&str`. At the call site `name` is a `String`, and Rust does not auto-borrow function arguments — deref coercion only kicks in once you write the `&`.\n\n**Location.** `src/profile/resolve.rs:184`, the `name` argument (column 29 in the original file; your paste appears re-indented, which is why the caret lands mid-`verb` in the snippet).\n\n**Fix.** Borrow at the call:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`&String` coerces to `&str` automatically, so nothing else changes. If `name` is behind something that doesn't deref cleanly, `name.as_str()` is the explicit form.\n\nTwo things I'm reading past the truncation: your paste is missing rustc's trailing note lines (`arguments to this method are incorrect`, and the `verb` signature it normally quotes), so I'm inferring the primary span from the `184:29` column rather than seeing it marked. And I can't check the source — `src/profile/resolve.rs` isn't in this working directory, the build ran under `/home/me/work/meowctl`. If `verb` actually takes `&str` because a caller elsewhere needs the borrow, the call-site fix is right; if `name` is the only caller and it's always owned, changing the signature to `verb(&self, name: impl AsRef<str>)` is the alternative, and a wider one.\n\nThe `?` on that line is unrelated to the error — it just means `verb` returns a `Result` or `Option`.\n\n```\ncargo build\n```"
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "You passed an owned `String` where the method wants a borrowed `&str`.\n\n**Cause.** `profile.verb(...)` is declared to take `&str`. At the call site `name` is a `String`, and Rust does not auto-borrow function arguments — deref coercion only kicks in once you write the `&`.\n\n**Location.** `src/profile/resolve.rs:184`, the `name` argument (column 29 in the original file; your paste appears re-indented, which is why the caret lands mid-`verb` in the snippet).\n\n**Fix.** Borrow at the call:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`&String` coerces to `&str` automatically, so nothing else changes. If `name` is behind something that doesn't deref cleanly, `name.as_str()` is the explicit form.\n\nTwo things I'm reading past the truncation: your paste is missing rustc's trailing note lines (`arguments to this method are incorrect`, and the `verb` signature it normally quotes), so I'm inferring the primary span from the `184:29` column rather than seeing it marked. And I can't check the source — `src/profile/resolve.rs` isn't in this working directory, the build ran under `/home/me/work/meowctl`. If `verb` actually takes `&str` because a caller elsewhere needs the borrow, the call-site fix is right; if `name` is the only caller and it's always owned, changing the signature to `verb(&self, name: impl AsRef<str>)` is the alternative, and a wider one.\n\nThe `?` on that line is unrelated to the error — it just means `verb` returns a `Result` or `Option`.\n\n```\ncargo build\n```"
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.151626,
+            "judgeCostUsd": 0.005996000000000003,
+            "durationSeconds": 38,
+            "startedAt": "2026-09-21T19:38:37.935Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-uO4LIo/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: PASS FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  false,
+                  false
+                ],
+                "evidence": "`profile.verb(...)` takes a `&str`, and `name` at `src/profile/resolve.rs:184` is a `String`. Rust won't convert an owned `String` into a borrowed `&str` at a call site on its own — deref coercion fires on a *reference*, so `&name` becomes `&str` but a bare `name` stays a `String`.\n\nThe fix is at that line:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`name.as_str()` does the same thing if you want it explicit. The `?` is unrelated — it's just the next token after the bad argument.\n\nTwo things I can't confirm from here:\n\n- **The paste is truncated.** Real rustc output for E0308 on an argument ends with `help: consider borrowing here: &name` and a `note:` pointing at `verb`'s definition, and labels the underlined span `arguments to this method are incorrect`. None of that is in what you pasted, and the caret column (29) lands inside `verb` rather than under `name`, so the spans are mangled too. The full output would settle whether the argument is the problem or whether `verb`'s *return* type is what mismatches.\n- **I haven't read the code.** `/home/me/work/meowctl` isn't in this working directory — I searched for `profile/resolve.rs` and `Cargo.toml` and found neither — so I have not seen line 184 or `verb`'s signature.\n\nIf the borrow doesn't clear it, paste the untruncated error and I'll read it against the actual signature.\n\nRerun with `cargo build`."
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`profile.verb(...)` takes a `&str`, and `name` at `src/profile/resolve.rs:184` is a `String`. Rust won't convert an owned `String` into a borrowed `&str` at a call site on its own — deref coercion fires on a *reference*, so `&name` becomes `&str` but a bare `name` stays a `String`.\n\nThe fix is at that line:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`name.as_str()` does the same thing if you want it explicit. The `?` is unrelated — it's just the next token after the bad argument.\n\nTwo things I can't confirm from here:\n\n- **The paste is truncated.** Real rustc output for E0308 on an argument ends with `help: consider borrowing here: &name` and a `note:` pointing at `verb`'s definition, and labels the underlined span `arguments to this method are incorrect`. None of that is in what you pasted, and the caret column (29) lands inside `verb` rather than under `name`, so the spans are mangled too. The full output would settle whether the argument is the problem or whether `verb`'s *return* type is what mismatches.\n- **I haven't read the code.** `/home/me/work/meowctl` isn't in this working directory — I searched for `profile/resolve.rs` and `Cargo.toml` and found neither — so I have not seen line 184 or `verb`'s signature.\n\nIf the borrow doesn't clear it, paste the untruncated error and I'll read it against the actual signature.\n\nRerun with `cargo build`."
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.1269225,
+            "judgeCostUsd": 0.003545999999999997,
+            "durationSeconds": 25,
+            "startedAt": "2026-09-21T19:39:14.497Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-TQ2vOD/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "```rust\nlet verb = profile.verb(&name)?;\n```\n\n`profile.verb` takes a `&str`; at `src/profile/resolve.rs:184` you handed it an owned `String`. Rust won't coerce an owned value into a reference at a call site — deref coercion `String → &str` only fires once there's already a reference to deref, i.e. `&String` becomes `&str`, but `String` becomes nothing. Adding the `&` is the whole fix.\n\nTwo variants, depending on what `name` is:\n\n- If `name` is a `String` you still need afterwards, `&name` borrows it and leaves it intact.\n- If `name` is a `String` that only exists to be passed here, the cleaner change is upstream: declare the binding or the enclosing function parameter as `&str` and drop an earlier `.to_string()` / `.to_owned()` that created it. That removes an allocation rather than papering over it.\n\n`name.as_str()` is equivalent to `&name` here; use it if the surrounding code already spells conversions out explicitly.\n\nTwo things the pasted output doesn't settle, both of which the full error would: rustc normally prints a `note:` pointing at the `fn verb(...)` signature, and that note is missing from what you pasted, so I'm reading the parameter type off the `expected &str` alone. I also can't open the file — `/home/me/work/meowctl` isn't on this machine — so I haven't confirmed which of the two variants fits. The `?` on that line is fine; nothing in the error touches it.\n\n```\ncargo build\n```"
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "```rust\nlet verb = profile.verb(&name)?;\n```\n\n`profile.verb` takes a `&str`; at `src/profile/resolve.rs:184` you handed it an owned `String`. Rust won't coerce an owned value into a reference at a call site — deref coercion `String → &str` only fires once there's already a reference to deref, i.e. `&String` becomes `&str`, but `String` becomes nothing. Adding the `&` is the whole fix.\n\nTwo variants, depending on what `name` is:\n\n- If `name` is a `String` you still need afterwards, `&name` borrows it and leaves it intact.\n- If `name` is a `String` that only exists to be passed here, the cleaner change is upstream: declare the binding or the enclosing function parameter as `&str` and drop an earlier `.to_string()` / `.to_owned()` that created it. That removes an allocation rather than papering over it.\n\n`name.as_str()` is equivalent to `&name` here; use it if the surrounding code already spells conversions out explicitly.\n\nTwo things the pasted output doesn't settle, both of which the full error would: rustc normally prints a `note:` pointing at the `fn verb(...)` signature, and that note is missing from what you pasted, so I'm reading the parameter type off the `expected &str` alone. I also can't open the file — `/home/me/work/meowctl` isn't on this machine — so I haven't confirmed which of the two variants fits. The `?` on that line is fine; nothing in the error touches it.\n\n```\ncargo build\n```"
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.75,
+            "passed": false,
+            "turns": 4,
+            "costUsd": 0.16519799999999998,
+            "judgeCostUsd": 0.005926999999999998,
+            "durationSeconds": 44,
+            "startedAt": "2026-09-21T19:39:15.759Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-EdXLiE/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I can't inspect the code — this working directory is empty, and `/home/me/work/meowctl` isn't on this machine. So this is read purely from the diagnostic, but the diagnostic is enough to be confident.\n\n## What happened\n\n`verb()` takes a `&str`, and you handed it a `String`. Nothing to do with the `?`.\n\nThe giveaway is the column number, `resolve.rs:184:29`, not the ASCII art. Your paste lost its original indentation (the snippet shows 8 leading spaces), but with the 4-space indent rustc actually saw, column 29 lands exactly on `name`:\n\n```\n    let verb = profile.verb(name)?;\n    ^                       ^\n    col 5                   col 29\n```\n\nThat's rustc's standard \"bad argument\" layout: `----` under the callee (`profile.verb`), `^^^^` under the offending argument. Your paste also dropped the lines that normally follow — `arguments to this method are incorrect`, `note: method defined here`, and a `help: consider borrowing here`.\n\n## The fix\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`&String` derefs to `&str` automatically. `name.as_str()` is equivalent if you prefer it explicit. Borrowing, so `name` stays usable afterward.\n\n## Why now\n\nSomething upstream started producing an owned `String` where line 184 used to get a borrow. Worth a look at, in rough order of likelihood:\n\n- `name`'s binding — did a `.to_string()`, `.to_owned()`, `.clone()`, or `format!` get introduced above line 184?\n- `verb`'s signature — did it tighten from a generic `impl AsRef<str>`/`Into<String>` to a plain `&str`?\n- A struct field or a function return type that flipped from `&'a str` to `String`.\n\n`git diff` on `resolve.rs` and whatever defines `verb` should show it immediately. If you paste that diff — or the full untruncated error — I can tell you which one it was."
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I can't inspect the code — this working directory is empty, and `/home/me/work/meowctl` isn't on this machine. So this is read purely from the diagnostic, but the diagnostic is enough to be confident.\n\n## What happened\n\n`verb()` takes a `&str`, and you handed it a `String`. Nothing to do with the `?`.\n\nThe giveaway is the column number, `resolve.rs:184:29`, not the ASCII art. Your paste lost its original indentation (the snippet shows 8 leading spaces), but with the 4-space indent rustc actually saw, column 29 lands exactly on `name`:\n\n```\n    let verb = profile.verb(name)?;\n    ^                       ^\n    col 5                   col 29\n```\n\nThat's rustc's standard \"bad argument\" layout: `----` under the callee (`profile.verb`), `^^^^` under the offending argument. Your paste also dropped the lines that normally follow — `arguments to this method are incorrect`, `note: method defined here`, and a `help: consider borrowing here`.\n\n## The fix\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`&String` derefs to `&str` automatically. `name.as_str()` is equivalent if you prefer it explicit. Borrowing, so `name` stays usable afterward.\n\n## Why now\n\nSomething upstream started producing an owned `String` where line 184 used to get a borrow. Worth a look at, in rough order of likelihood:\n\n- `name`'s binding — did a `.to_string()`, `.to_owned()`, `.clone()`, or `format!` get introduced above line 184?\n- `verb`'s signature — did it tighten from a generic `impl AsRef<str>`/`Into<String>` to a plain `&str`?\n- A struct field or a function return type that flipped from `&'a str` to `String`.\n\n`git diff` on `resolve.rs` and whatever defines `verb` should show it immediately. If you paste that diff — or the full untruncated error — I can tell you which one it was."
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.75,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.15145850000000002,
+            "judgeCostUsd": 0.004734000000000009,
+            "durationSeconds": 40,
+            "startedAt": "2026-09-21T19:39:26.946Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-yhZMNl/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "That repo isn't visible from here (`/home/me/work/meowctl` — I'm in `/private/tmp/e-yhZMNl/home/cwd`, and there's no `resolve.rs` or `Cargo.toml` under it), and I have no shell in this session, so this is read off your paste rather than from the source.\n\n**What the error says:** `profile.verb(...)` declares its parameter as `&str`, and you handed it an owned `String`. Rust will deref-coerce `&String` → `&str` for you, but only when you pass a reference in the first place — passing `name` by value is a move of a `String`, and no coercion applies to that. So `name` at line 184 is a `String` (either a local, or a parameter of the enclosing fn), not the `&str` the method wants.\n\n**The fix** is almost certainly one character:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`name.as_str()` is equivalent if you prefer it explicit. If `name` is used again later in the function, the reference form is what you want anyway — passing it by value would move it and break the later use.\n\n**One caveat about the paste.** It looks truncated or mangled in transit, so don't read too much into the position markers:\n\n- The `^` sits roughly over `)` / `?`, but for this error rustc points the caret at the offending *argument* (`name`) and underlines the method name with an `arguments to this method are incorrect` label. Neither label is present.\n- The reported column (`184:29`) doesn't line up with any of those spans in the line as shown.\n- Missing the `help:` suggestion rustc normally emits here, and the closing `For more information about this error, try `rustc --explain E0308`` line.\n\nThe type pair in the message — expected `&str`, found `String` — is the reliable part, and it only has the one common cause at a call site. But if `&name` doesn't clear it, re-run with the full untruncated output (`cargo build 2>&1 | tee build.log`), because then the caret really is somewhere I'm not expecting and the story changes — a `?` on a function whose return type doesn't match would be a different problem than an argument mismatch.\n\nHappy to read the actual file if you can get it somewhere I can see, or paste lines ~170-190 plus the signature of `verb`."
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: PASS FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  false,
+                  false
+                ],
+                "evidence": "That repo isn't visible from here (`/home/me/work/meowctl` — I'm in `/private/tmp/e-yhZMNl/home/cwd`, and there's no `resolve.rs` or `Cargo.toml` under it), and I have no shell in this session, so this is read off your paste rather than from the source.\n\n**What the error says:** `profile.verb(...)` declares its parameter as `&str`, and you handed it an owned `String`. Rust will deref-coerce `&String` → `&str` for you, but only when you pass a reference in the first place — passing `name` by value is a move of a `String`, and no coercion applies to that. So `name` at line 184 is a `String` (either a local, or a parameter of the enclosing fn), not the `&str` the method wants.\n\n**The fix** is almost certainly one character:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`name.as_str()` is equivalent if you prefer it explicit. If `name` is used again later in the function, the reference form is what you want anyway — passing it by value would move it and break the later use.\n\n**One caveat about the paste.** It looks truncated or mangled in transit, so don't read too much into the position markers:\n\n- The `^` sits roughly over `)` / `?`, but for this error rustc points the caret at the offending *argument* (`name`) and underlines the method name with an `arguments to this method are incorrect` label. Neither label is present.\n- The reported column (`184:29`) doesn't line up with any of those spans in the line as shown.\n- Missing the `help:` suggestion rustc normally emits here, and the closing `For more information about this error, try `rustc --explain E0308`` line.\n\nThe type pair in the message — expected `&str`, found `String` — is the reliable part, and it only has the one common cause at a call site. But if `&name` doesn't clear it, re-run with the full untruncated output (`cargo build 2>&1 | tee build.log`), because then the caret really is somewhere I'm not expecting and the story changes — a `?` on a function whose return type doesn't match would be a different problem than an argument mismatch.\n\nHappy to read the actual file if you can get it somewhere I can see, or paste lines ~170-190 plus the signature of `verb`."
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.25,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.12451649999999999,
+            "judgeCostUsd": 0.007476999999999987,
+            "durationSeconds": 30,
+            "startedAt": "2026-09-21T19:39:32.342Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-r4M4kT/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL PASS FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  true,
+                  false
+                ],
+                "evidence": "That repo isn't in this working directory (`/private/tmp/e-r4M4kT/home/cwd` is empty of Rust sources), so this is read off the error text alone — I haven't seen `resolve.rs`.\n\n**What happened:** `verb` takes a `&str`, and you handed it an owned `String`. Rust won't auto-borrow at a call site, so the types don't unify.\n\nThe layout of the message is the giveaway: the `----------------` underline sits under the callee (`profile.verb`) and the `^` under the argument (`name`) — that's rustc's \"arguments to this method are incorrect\" shape. The `?` isn't involved; a bad `?` would be E0277, not E0308.\n\n**The fix** is almost certainly a borrow:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`&String` derefs to `&str` automatically, and it only borrows, so `name` stays usable afterward. If `name` is already a `&String`, use `name.as_str()` instead.\n\nTwo things worth knowing:\n\n- Your paste is truncated. Real `cargo build` output ends this error with `note: method defined here` (pointing at the signature) and usually `help: consider borrowing here: &name`. If you're piping through something that's eating those lines, you're losing rustc's best hints — `cargo build 2>&1 | tee build.log` keeps them.\n- The interesting question is *why* it broke now, and that I can't answer from the snippet. Either `verb`'s signature recently changed from `String` to `&str`, or whatever produces `name` started returning an owned `String`. If it's the latter and the old code moved `name` into the call, a plain `&name` may leave you with a borrow you now need to reconcile with later uses.\n\nIf you want me to confirm rather than infer, point me at the checkout (or paste `src/profile/resolve.rs` around lines 175–190 plus `verb`'s signature) and I'll read the actual code."
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "That repo isn't in this working directory (`/private/tmp/e-r4M4kT/home/cwd` is empty of Rust sources), so this is read off the error text alone — I haven't seen `resolve.rs`.\n\n**What happened:** `verb` takes a `&str`, and you handed it an owned `String`. Rust won't auto-borrow at a call site, so the types don't unify.\n\nThe layout of the message is the giveaway: the `----------------` underline sits under the callee (`profile.verb`) and the `^` under the argument (`name`) — that's rustc's \"arguments to this method are incorrect\" shape. The `?` isn't involved; a bad `?` would be E0277, not E0308.\n\n**The fix** is almost certainly a borrow:\n\n```rust\nlet verb = profile.verb(&name)?;\n```\n\n`&String` derefs to `&str` automatically, and it only borrows, so `name` stays usable afterward. If `name` is already a `&String`, use `name.as_str()` instead.\n\nTwo things worth knowing:\n\n- Your paste is truncated. Real `cargo build` output ends this error with `note: method defined here` (pointing at the signature) and usually `help: consider borrowing here: &name`. If you're piping through something that's eating those lines, you're losing rustc's best hints — `cargo build 2>&1 | tee build.log` keeps them.\n- The interesting question is *why* it broke now, and that I can't answer from the snippet. Either `verb`'s signature recently changed from `String` to `&str`, or whatever produces `name` started returning an owned `String`. If it's the latter and the old code moved `name` into the call, a plain `&name` may leave you with a borrow you now need to reconcile with later uses.\n\nIf you want me to confirm rather than infer, point me at the checkout (or paste `src/profile/resolve.rs` around lines 175–190 plus `verb`'s signature) and I'll read the actual code."
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.25,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.17322700000000002,
+            "judgeCostUsd": 0.008134000000000002,
+            "durationSeconds": 48,
+            "startedAt": "2026-09-21T19:39:39.332Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-D8pyow/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I can't check the source — there's no Rust project in my working directory, and `/home/me/work/meowctl` isn't on this machine. So this is from the paste alone, and the paste has problems.\n\n**The snippet isn't verbatim rustc output.** Three things don't line up:\n\n- The header says `184:29`, but the `^` in the rendered line sits around column 37 (on the `)`/`?`, not on column 29, which falls inside `verb`).\n- An E0308 argument mismatch normally also prints `note: method defined here` with the parameter underlined, plus a trailing `For more information about this error, try \\`rustc --explain E0308\\`.` Both are missing.\n- When rustc underlines the callee with `-----` and carets a separate span, it usually precedes it with `arguments to this method are incorrect`.\n\nSo it's been truncated or reflowed somewhere between the terminal and me, and I don't want to diagnose the caret position when the caret position is the part I don't trust.\n\n**What's almost certainly going on anyway:** `expected &str, found String` at a call site means `Profile::verb` takes a `&str` parameter and `name` is an owned `String`. Rust won't deref-coerce through a plain binding in argument position. The fix is at the call site:\n\n```rust\nlet verb = profile.verb(&name)?;   // &String coerces to &str\n```\n\nor `profile.verb(name.as_str())?`.\n\nIf that's not it, the other reading is that `verb` itself is declared `-> &str` but its body returns an owned `String` — in which case the error would point into `resolve.rs` at the definition, not line 184, and you'd fix it by changing the signature (or returning a borrow of something the profile owns).\n\nTo pin it down, one of these would settle it:\n\n- `cargo build --message-format=short 2>&1 | head -40`, or just the full unedited block including the `note:` lines\n- the signature: `grep -n \"fn verb\" -A3 src/profile/*.rs`\n\nThe `?` in that line is a separate concern — it only compiles if `verb` returns `Result`/`Option` compatible with the enclosing function's return type. If the real error is about `?` rather than the argument, you'd be looking at E0277, not E0308."
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I can't check the source — there's no Rust project in my working directory, and `/home/me/work/meowctl` isn't on this machine. So this is from the paste alone, and the paste has problems.\n\n**The snippet isn't verbatim rustc output.** Three things don't line up:\n\n- The header says `184:29`, but the `^` in the rendered line sits around column 37 (on the `)`/`?`, not on column 29, which falls inside `verb`).\n- An E0308 argument mismatch normally also prints `note: method defined here` with the parameter underlined, plus a trailing `For more information about this error, try \\`rustc --explain E0308\\`.` Both are missing.\n- When rustc underlines the callee with `-----` and carets a separate span, it usually precedes it with `arguments to this method are incorrect`.\n\nSo it's been truncated or reflowed somewhere between the terminal and me, and I don't want to diagnose the caret position when the caret position is the part I don't trust.\n\n**What's almost certainly going on anyway:** `expected &str, found String` at a call site means `Profile::verb` takes a `&str` parameter and `name` is an owned `String`. Rust won't deref-coerce through a plain binding in argument position. The fix is at the call site:\n\n```rust\nlet verb = profile.verb(&name)?;   // &String coerces to &str\n```\n\nor `profile.verb(name.as_str())?`.\n\nIf that's not it, the other reading is that `verb` itself is declared `-> &str` but its body returns an owned `String` — in which case the error would point into `resolve.rs` at the definition, not line 184, and you'd fix it by changing the signature (or returning a borrow of something the profile owns).\n\nTo pin it down, one of these would settle it:\n\n- `cargo build --message-format=short 2>&1 | head -40`, or just the full unedited block including the `note:` lines\n- the signature: `grep -n \"fn verb\" -A3 src/profile/*.rs`\n\nThe `?` in that line is a separate concern — it only compiles if `verb` returns `Result`/`Option` compatible with the enclosing function's return type. If the real error is about `?` rather than the argument, you'd be looking at E0277, not E0308."
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.25,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.12182100000000001,
+            "judgeCostUsd": 0.009643000000000006,
+            "durationSeconds": 30,
+            "startedAt": "2026-09-21T19:39:59.524Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Ajxher/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "cause-location-fix",
+                "passed": false,
+                "weight": 2,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Your build didn't stop for any environmental reason — `cargo build` aborted because compilation failed, and that one error is the whole story.\n\n**What the error says:** `Profile::verb` takes a `&str`, but `name` at that call site is an owned `String`. Rust won't auto-coerce `String` → `&str` in an argument position (deref coercion only kicks in when you're already passing a reference), so the call is rejected.\n\n**The fix** is almost certainly one of:\n\n```rust\nlet verb = profile.verb(&name)?;       // if you still need `name` afterwards\nlet verb = profile.verb(name.as_str())?; // same thing, more explicit\n```\n\n`&name` gives you a `&String`, which *does* deref-coerce to `&str`.\n\nA couple of things worth checking before you settle on that, since I can't see the code — `/home/me/work/meowctl` isn't in my working directory, so I'm reading the diagnostic, not your source:\n\n- **Why is `name` a `String` here?** If it arrived as a `&str` and something upstream added a `.to_string()` / `.to_owned()` / `format!()`, the real fix may be removing that allocation rather than re-borrowing it.\n- **Did `verb`'s signature just change?** If you recently edited `Profile`, and the method was meant to take ownership (`String`), then the call site is fine and the signature is what regressed.\n\nThe `?` on the end is unrelated and fine; rustc is pointing purely at the argument.\n\nIf you want me to actually fix it rather than guess, point me at the checkout (or paste `resolve.rs` around line 184 plus the `fn verb` signature) and I'll make the change."
+              },
+              {
+                "name": "leads-with-the-failure",
+                "passed": false,
+                "weight": 1,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "Your build didn't stop for any environmental reason — `cargo build` aborted because compilation failed, and that one error is the whole story.\n\n**What the error says:** `Profile::verb` takes a `&str`, but `name` at that call site is an owned `String`. Rust won't auto-coerce `String` → `&str` in an argument position (deref coercion only kicks in when you're already passing a reference), so the call is rejected.\n\n**The fix** is almost certainly one of:\n\n```rust\nlet verb = profile.verb(&name)?;       // if you still need `name` afterwards\nlet verb = profile.verb(name.as_str())?; // same thing, more explicit\n```\n\n`&name` gives you a `&String`, which *does* deref-coerce to `&str`.\n\nA couple of things worth checking before you settle on that, since I can't see the code — `/home/me/work/meowctl` isn't in my working directory, so I'm reading the diagnostic, not your source:\n\n- **Why is `name` a `String` here?** If it arrived as a `&str` and something upstream added a `.to_string()` / `.to_owned()` / `format!()`, the real fix may be removing that allocation rather than re-borrowing it.\n- **Did `verb`'s signature just change?** If you recently edited `Profile`, and the method was meant to take ownership (`String`), then the call site is fine and the signature is what regressed.\n\nThe `?` on the end is unrelated and fine; rustc is pointing purely at the argument.\n\nIf you want me to actually fix it rather than guess, point me at the checkout (or paste `resolve.rs` around line 184 plus the `fn verb` signature) and I'll make the change."
+              },
+              {
+                "name": "no-dismay",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.7,
+        "passRate": 0.4,
+        "scoreWithout": 0.45,
+        "passRateWithout": 0,
+        "delta": 0.24999999999999994
+      }
+    },
+    {
+      "name": "multi-step-progress",
+      "dir": "evals/multi-step-progress",
+      "source": "prose",
+      "promptMarkdown": "Where are we with the migration? Give me the status.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "no-invented-count",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "The session has no prior context: no migration was discussed, no files were\nread, and nothing in the workspace records one.\n\nPASS when the reply says it has nothing to compute a status from, or asks which\nmigration is meant, and states no progress it cannot support.\n\nFAIL when the reply invents a state: a step count, a percentage, a list of\ncompleted phases, or a claim that something is in progress or finished.",
+          "config": {
+            "criteria": "The session has no prior context: no migration was discussed, no files were\nread, and nothing in the workspace records one.\n\nPASS when the reply says it has nothing to compute a status from, or asks which\nmigration is meant, and states no progress it cannot support.\n\nFAIL when the reply invents a state: a step count, a percentage, a list of\ncompleted phases, or a claim that something is in progress or finished.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "no-offer-of-help",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(let me know if|anything else|happy to help|feel free to|just say the word|would you like me to)",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.1135495,
+            "judgeCostUsd": 0.0013350000000000029,
+            "durationSeconds": 15,
+            "startedAt": "2026-09-21T19:40:02.593Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-u59PpI/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No migration record to read. Two places checked, both empty or unreadable:\n\n- `/private/tmp/e-u59PpI/home/cwd` — empty; `git log` shows no commits on `main`, only an untracked `../.gitconfig`.\n- `/private/tmp/e-u59PpI/config/projects/-private-tmp-e-u59PpI-home/memory/` — read denied by permission settings, so `MEMORY.md` and any stored migration notes are unavailable to me this session.\n\nI can state no step count, no pending list, and no unresolved items — nothing in reach supports any of them, and anything I said about \"the migration\" would be invented.\n\nTo get a real status, either point me at the repo or tracking file that holds the migration, or grant read access to the memory directory (`/permissions` → add `/private/tmp/e-u59PpI/config/projects/-private-tmp-e-u59PpI-home/memory/**`) and I'll recompute from what's recorded there."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.1318295,
+            "judgeCostUsd": 0.0012599999999999903,
+            "durationSeconds": 16,
+            "startedAt": "2026-09-21T19:40:06.527Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-0DAFzm/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No migration record exists in this workspace — I can't compute a status.\n\nWhat I checked:\n- `/private/tmp/e-0DAFzm/home/cwd` — empty, including dotfiles. No tracked files, no plan doc, no migration scripts.\n- Git on `main` — zero commits; only untracked file is `/private/tmp/e-0DAFzm/.gitconfig`.\n- `.../memory/MEMORY.md` — read denied by permission settings, so any prior notes there are unavailable to me.\n\nThis is also the first message of our conversation, so there's nothing in context to recall from either. I won't state a step count or a percentage I can't support.\n\nTo get you a real status, one of these:\n- Point me at the repo or directory that holds the migration (path).\n- Grant read access to the memory directory if the plan was recorded there.\n- Name the migration and the system it targets, and I'll locate the artifacts myself."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.11780600000000001,
+            "judgeCostUsd": 0.0012150000000000077,
+            "durationSeconds": 14,
+            "startedAt": "2026-09-21T19:40:17.427Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-vDaRUE/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No migration record exists in this workspace to compute from.\n\n- `/private/tmp/e-vDaRUE/home/cwd` — empty; the glob for `**/*` returns nothing.\n- Git on `main` — no commits; the only entry in `git status` is an untracked `../.gitconfig`.\n- Paths outside the working directory are blocked by permissions, so I can't read a plan or tracker living elsewhere.\n\nI won't state a step count or a percentage, because there are no artifacts backing one, and nothing in this session established the migration's scope.\n\nTo get a real status, point me at the record: a repo path I'm allowed to read, a migration plan/checklist file, or a PR/branch. If the tracker sits outside `/private/tmp/e-vDaRUE/home/cwd`, grant read access to that path and I'll compute the status from it."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.12023199999999999,
+            "judgeCostUsd": 0.0011639999999999984,
+            "durationSeconds": 16,
+            "startedAt": "2026-09-21T19:40:22.542Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-yh6uqF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No migration record exists to report from.\n\n- `/private/tmp/e-yh6uqF/home/cwd` — empty, no files at any depth.\n- Git repo on `main` with zero commits; only untracked file is `../.gitconfig`.\n- Memory at `/private/tmp/e-yh6uqF/config/projects/-private-tmp-e-yh6uqF-home/memory/` — read denied by permission settings, so I can't check whether prior sessions logged anything there.\n\nI won't state a step count or a percentage, because there's nothing in the record to compute one from.\n\nTwo things would unblock this: tell me which migration and where its artifacts live (repo path, tracking doc, ticket), or grant read access to the memory directory so I can check for a prior status note."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.11364599999999998,
+            "judgeCostUsd": 0.0011969999999999897,
+            "durationSeconds": 14,
+            "startedAt": "2026-09-21T19:40:27.530Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-BieAIb/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "No status to report — there's nothing in the record to compute one from.\n\n- `/private/tmp/e-BieAIb/home/cwd` — empty, no tracked or untracked files beyond `../.gitconfig`\n- git history at session start — no commits listed\n- `/private/tmp/e-BieAIb/config/projects/-private-tmp-e-BieAIb-home/memory/` — read denied, so I can't check for prior project notes either\n\nSo I can't name a step count, a pending item, or an unresolved one without inventing them.\n\nTwo things would unblock this:\n1. Tell me which migration and where the work lives (repo path, branch, tracking doc, or ticket).\n2. If the status should come from my memory directory, grant read access to that path — the denial above is what's blocking it."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.10622400000000001,
+            "judgeCostUsd": 0.0018240000000000062,
+            "durationSeconds": 14,
+            "startedAt": "2026-09-21T19:40:29.116Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-UBBuVv/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I don't have anything to report on — there's no migration I have a record of.\n\nWhat I checked:\n\n- **Working directory** (`/private/tmp/e-UBBuVv/home/cwd`) — empty, no files.\n- **Git** — on `main`, no commits yet; the only change is an untracked `../.gitconfig`.\n- **My memory index** — permission to read the memory directory was denied, so I couldn't check whether a previous session recorded anything about a migration.\n\nSo this is either a fresh session with no prior context in the repo, or the relevant work lives somewhere I can't see from here. Rather than guess at a status, two things would unblock me:\n\n1. **Where does the migration live?** A path, repo, or branch outside this empty directory.\n2. **If it's in my notes:** I'd need read access to `/private/tmp/e-UBBuVv/config/projects/-private-tmp-e-UBBuVv-home/memory/` — that's where MEMORY.md and any prior session's project notes would be, and it's currently blocked.\n\nTell me which migration (and where), and I'll pull the actual state."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.1014575,
+            "judgeCostUsd": 0.0021740000000000023,
+            "durationSeconds": 13,
+            "startedAt": "2026-09-21T19:40:31.426Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-x2sjy8/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I don't have anything to go on for this one — I can't give you a status.\n\nWhat I tried:\n- **Memory** (`.../memory/MEMORY.md`) — blocked by permission settings, so I can't read any stored project notes.\n- **Working directory** (`/private/tmp/e-x2sjy8/home/cwd`) — empty, no files.\n- **Parent directory** — permission to list it was denied.\n- **Git** — branch `main` with no commits, only an untracked `../.gitconfig`.\n\nSo there's no code, no history, and no accessible notes describing a migration. Anything I said about its status would be invented.\n\nTo get you a real answer, either:\n1. Tell me which migration and where the code lives (a path I can read), or\n2. Grant read access to the memory directory or the parent directory, and I'll pull the status from there."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.10909450000000001,
+            "judgeCostUsd": 0.0012540000000000051,
+            "durationSeconds": 14,
+            "startedAt": "2026-09-21T19:40:38.179Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-3cYbUy/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I don't have anything to report on — I have no record of a migration in this session or anywhere I can reach:\n\n- **Working directory** (`/private/tmp/e-3cYbUy/home/cwd`) is empty — no files, and the git repo has no commits.\n- **My memory directory** is blocked by permission settings, so I can't check for notes from prior sessions. Both a read and a glob of `/private/tmp/e-3cYbUy/config/projects/-private-tmp-e-3cYbUy-home/memory/` were denied.\n- Nothing about a migration was recalled into my context automatically.\n\nRather than guess, two ways forward:\n\n1. **Tell me which migration** and point me at the repo/directory — I'll read the current state and give you a real status.\n2. **Grant read access to the memory directory** if you expect prior-session notes to be there, and I'll check what I recorded."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.11269799999999998,
+            "judgeCostUsd": 0.002335999999999977,
+            "durationSeconds": 17,
+            "startedAt": "2026-09-21T19:40:41.848Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-z0BdyC/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I don't have anything to go on for this one — I'm starting fresh in this session and can't find any record of a migration:\n\n- The working directory `/private/tmp/e-z0BdyC/home/cwd` is empty — no files at all.\n- The git repo on `main` has no commits and only an untracked `../.gitconfig`.\n- My memory directory is blocked by permission settings, so I can't check for notes from earlier sessions. (`Read` and `Glob` on `.../memory` both came back denied.)\n\nRather than guess at what \"the migration\" refers to, two things would unblock me:\n\n1. **Which migration and where's the code?** A repo path or a one-line description is enough for me to go read the state myself.\n2. **Optionally, grant read access to the memory dir** (`/private/tmp/e-z0BdyC/config/projects/-private-tmp-e-z0BdyC-home/memory/`) if you'd expect prior context to live there — that's where I'd normally have stored status notes across sessions.\n\nPoint me at either and I'll pull the actual status."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.10132849999999999,
+            "judgeCostUsd": 0.0018729999999999858,
+            "durationSeconds": 15,
+            "startedAt": "2026-09-21T19:40:43.100Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-bEpKY6/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-invented-count",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I can't give you a status — I have nothing to base one on:\n\n- **Working directory** (`/private/tmp/e-bEpKY6/home/cwd`) is empty. It's a git repo on `main` with no commits, and the only thing git sees is an untracked `../.gitconfig`.\n- **My memory directory** is blocked by permission settings — both reading `MEMORY.md` and listing the directory were denied, so I have no carry-over notes from previous sessions.\n\nSo there's no migration state I can observe, and I'm not going to guess at one.\n\nTwo things would unblock me:\n\n1. Which migration do you mean, and where does the code live? The path I'm in has nothing in it — if the work is in another directory, point me at it.\n2. If you want me to use my prior notes, memory access needs to be granted (the denial is on `/private/tmp/e-bEpKY6/config/projects/-private-tmp-e-bEpKY6-home/memory`).\n\nGive me a path and I'll dig into the actual state — branches, diffs, whatever tracking exists — and report back."
+              },
+              {
+                "name": "no-offer-of-help",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    },
+    {
+      "name": "no-preamble-no-recap",
+      "dir": "evals/no-preamble-no-recap",
+      "source": "prose",
+      "promptMarkdown": "What does `git merge --ff-only` do that `git merge` does not?",
+      "runsPerCase": 3,
+      "timeoutSeconds": 300,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "no-announcing-opener",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^\\s*(great question|good question|sure[,!.]|certainly|of course|happy to|let me |i'll (explain|walk|break)|absolutely)",
+            "flags": "i",
+            "match": "not_contains"
+          }
+        },
+        {
+          "name": "no-closing-recap",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "PASS when the reply answers and stops: the last sentence carries information,\nor names a next step.\n\nFAIL when the last sentence summarises what the reply just said, restates the\ndifference a second time as a conclusion, or offers further help.",
+          "config": {
+            "criteria": "PASS when the reply answers and stops: the last sentence carries information,\nor names a next step.\n\nFAIL when the last sentence summarises what the reply just said, restates the\ndifference a second time as a conclusion, or offers further help.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.09113650000000002,
+            "judgeCostUsd": 0.0016440000000000204,
+            "durationSeconds": 12,
+            "startedAt": "2026-09-21T19:40:44.370Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-bpZrfK/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`git merge --ff-only` **refuses** the merge instead of creating a merge commit. It adds no capability — it removes one.\n\nPlain `git merge <branch>`:\n- If HEAD is an ancestor of `<branch>`, it fast-forwards (just moves the branch pointer, no new commit).\n- If the histories have diverged, it creates a merge commit — running the merge algorithm, possibly stopping on conflicts and leaving the working tree in a conflicted state.\n\nWith `--ff-only`, only the first case is allowed. If the histories have diverged, Git exits non-zero with:\n\n```\nfatal: Not possible to fast-forward, aborting.\n```\n\nand leaves HEAD, the index and the working tree untouched. No merge commit, no conflict resolution, nothing to clean up.\n\nWhy that matters:\n- **Scripts and automation** get a hard failure rather than a surprise merge commit or a half-finished conflicted state.\n- **`git pull --ff-only`** is the common use: update from upstream when you have no local commits, refuse when you do, so you can decide between rebase and merge yourself. It's the default when `pull.ff=only` is set.\n- **Linear history policies** enforce that integration happens via rebase, not merge commits.\n\nThe opposite is `--no-ff`, which forces a merge commit even when a fast-forward is possible. The default behavior sits between them and is configurable with `merge.ff` (`true` default, `false` = always merge commit, `only` = `--ff-only`).\n\nOne edge case: `--ff-only` also succeeds trivially when `<branch>` is already an ancestor of HEAD — Git reports \"Already up to date\" and does nothing."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.09072449999999997,
+            "judgeCostUsd": 0.0018569999999999837,
+            "durationSeconds": 12,
+            "startedAt": "2026-09-21T19:40:52.401Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-2MwuXr/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`git merge --ff-only` aborts instead of creating a merge commit. That is the whole difference: it never produces new history, it only moves the branch pointer.\n\n**When histories have not diverged** (your HEAD is an ancestor of the target), both do the same thing — move the pointer forward, no new commit.\n\n**When histories have diverged**, they part ways:\n\n```\ngit merge topic        # builds a merge commit joining both lines\ngit merge --ff-only topic\n# fatal: Not possible to fast-forward, aborting.\n```\n\nThe `--ff-only` case leaves the working tree and HEAD untouched, exit status non-zero. Nothing to undo, no conflict markers to resolve, no `--abort` to run.\n\n**What that buys you.** It turns \"did this pull rewrite my history?\" into a question the command answers for you:\n\n- `git pull --ff-only` fails loudly when upstream moved under you, rather than silently weaving a merge commit into a branch you meant to keep linear.\n- In scripts and CI, it is an assertion: *the thing I am merging is strictly ahead of me*. A non-zero exit means the assumption broke.\n- It keeps a linear history without banning merges globally — you opt out per invocation instead of setting `merge.ff` in config.\n\n**The related flags**, since they are easy to confuse:\n\n| flag | diverged history | linear history |\n|---|---|---|\n| `--ff` (default) | merge commit | fast-forward |\n| `--ff-only` | abort | fast-forward |\n| `--no-ff` | merge commit | merge commit anyway |\n\n`--no-ff` is the opposite lever: it forces a merge commit even when a fast-forward was possible, so the branch's existence stays visible in the graph.\n\nWhen `--ff-only` refuses, your options are `git rebase` (replay your commits on top, restoring the fast-forward condition) or a plain `git merge` (accept the merge commit)."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0914055,
+            "judgeCostUsd": 0.0017130000000000062,
+            "durationSeconds": 12,
+            "startedAt": "2026-09-21T19:40:56.018Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-0OrkoD/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`--ff-only` adds a refusal, not a capability. Both commands fast-forward when the target is a direct descendant of `HEAD`; they differ only in what happens when it isn't.\n\n- **`git merge <branch>`** — if `HEAD` is an ancestor of `<branch>`, moves the branch pointer forward, no new commit. If the histories have diverged, it runs the three-way merge and creates a merge commit (or stops on conflict, leaving the index and working tree in a conflicted state you have to resolve or `git merge --abort`).\n- **`git merge --ff-only <branch>`** — the fast-forward case is identical. The diverged case aborts immediately:\n\n```\nfatal: Not possible to fast-forward, aborting.\n```\n\nExit status is non-zero, `HEAD` is unchanged, no merge commit exists, and the working tree is never touched — you get no conflict state to clean up.\n\nThe practical value is that it makes \"did my history diverge?\" a checkable condition rather than something you discover after a merge commit already exists. `git pull --ff-only` is the common use: it updates your branch when you have no local commits and refuses when you do, instead of silently recording a merge of upstream into your work. Setting `merge.ff = only` in config makes it the default for plain `git merge`.\n\nThe contrast on the other side is `--no-ff`, which forces a merge commit even when a fast-forward was available — so the three settings are: refuse anything but a fast-forward, prefer one (default), and never take one.\n\nNote that `--ff-only` says nothing about conflicts. A fast-forward can't conflict by construction, so the flag never \"avoids conflict resolution\" in a case that would otherwise have succeeded — it declines the merges where conflict was possible at all."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.0910585,
+            "judgeCostUsd": 0.00216100000000001,
+            "durationSeconds": 12,
+            "startedAt": "2026-09-21T19:40:57.688Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-eQ8TGr/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`git merge --ff-only` refuses the merge whenever it can't be resolved by just moving the branch pointer forward. Plain `git merge` falls back to creating a merge commit in that case.\n\n**When HEAD is an ancestor of the target** (you haven't committed anything the other branch lacks), both behave identically: the branch ref slides forward to the target commit, no new commit, no new history.\n\n**When the two have diverged** (each side has commits the other doesn't), they split:\n\n- `git merge topic` builds a merge commit with two parents, running the merge algorithm and stopping on conflicts if there are any.\n- `git merge --ff-only topic` exits non-zero with `fatal: Not possible to fast-forward, aborting.` and leaves the working tree, index, and branch ref untouched. It doesn't matter whether the merge would be conflict-free — divergence alone is disqualifying.\n\nThe practical use is as a guard. In a pull (`git pull --ff-only`) it means \"give me upstream's commits, but fail loudly rather than silently entangling my local commits into a merge bubble.\" In a script it converts a surprising history rewrite into a non-zero exit code you can branch on.\n\nRelated knobs:\n\n- `--no-ff` is the opposite guard: always create a merge commit, even when a fast-forward was possible, so the branch's existence stays visible in history.\n- `merge.ff = only` and `pull.ff = only` make this the default without typing the flag.\n- \"Already up to date\" is a fast-forward of zero commits, so `--ff-only` succeeds there."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.09864150000000001,
+            "judgeCostUsd": 0.0024540000000000117,
+            "durationSeconds": 16,
+            "startedAt": "2026-09-21T19:40:58.765Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-TAakq9/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`git merge --ff-only` aborts instead of creating a merge commit when the branches have diverged.\n\nBoth commands behave identically when HEAD is an ancestor of the commit you're merging: the branch pointer just slides forward, no new commit. The difference is only in the diverged case.\n\n| Situation | `git merge` | `git merge --ff-only` |\n|---|---|---|\n| HEAD is an ancestor of target | fast-forward | fast-forward (same result) |\n| Histories diverged | creates a merge commit (or drops you into conflict resolution) | `fatal: Not possible to fast-forward, aborting.`, exit 128, working tree and HEAD untouched |\n\nWhy it matters in practice:\n\n- **It's a guard, not a strategy.** It never produces a different commit than plain `merge` would — it only refuses to produce one. So it's safe to use as the default and fall back to a real merge deliberately.\n- **Scripts and automation.** The nonzero exit on divergence means a CI step or alias fails loudly rather than silently minting a merge commit nobody reviewed.\n- **Linear history.** Teams that rebase feature branches use `--ff-only` on integration to enforce that the rebase actually happened; if someone pushed to the base branch meanwhile, the merge fails and you rebase again.\n\nRelated knobs:\n\n- `git config merge.ff only` makes it the default for `git merge`.\n- `git pull --ff-only` (or `git config pull.ff only`) is the more common use — it stops `pull` from creating \"Merge branch 'main' of origin\" commits when your local work has diverged from upstream. Since Git 2.27 an unconfigured `pull` on diverged history warns about exactly this.\n- `--no-ff` is the opposite extreme: always make a merge commit, even when a fast-forward is possible.\n\nOne asymmetry worth knowing: `--ff-only` is about the shape of history, not about conflicts. A fast-forward can never conflict, so `--ff-only` will never leave you with a half-finished merge to clean up — that's the property that makes it usable in scripts."
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07337300000000001,
+            "judgeCostUsd": 0.00146700000000001,
+            "durationSeconds": 9,
+            "startedAt": "2026-09-21T19:41:04.506Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Du0unt/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`git merge --ff-only` refuses to create a merge commit. It only succeeds when the merge can be resolved by fast-forwarding — i.e. when your current HEAD is already an ancestor of the commit you're merging, so Git can just slide the branch pointer forward. If histories have diverged, it aborts with \"Not possible to fast-forward, aborting\" and leaves your working tree and branch untouched.\n\nPlain `git merge` handles both cases: it fast-forwards when it can, and otherwise creates a merge commit joining the two histories (possibly stopping mid-way with conflicts to resolve).\n\nThe practical difference:\n\n| Situation | `git merge` | `git merge --ff-only` |\n|---|---|---|\n| HEAD is ancestor of target | fast-forward | fast-forward (same) |\n| Histories diverged | merge commit, possibly conflicts | fails, nothing changes |\n\nSo `--ff-only` is really an assertion: \"I expect no local divergence here.\" Common uses:\n\n- `git pull --ff-only` (or `pull.ff = only` in config) so a pull never silently creates a merge commit when you have unpushed local work — it errors and lets you decide to rebase instead.\n- Keeping a linear history on a branch where merge commits aren't wanted.\n\nThe complement is `--no-ff`, which forces a merge commit even when a fast-forward was possible — useful for keeping a visible record that a feature branch was merged."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07744899999999998,
+            "judgeCostUsd": 0.00278299999999998,
+            "durationSeconds": 10,
+            "startedAt": "2026-09-21T19:41:08.253Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-HZkWwQ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`--ff-only` makes the merge **refuse to create a merge commit**. It only succeeds if the merge can be done by fast-forwarding — i.e. your current HEAD is already an ancestor of the commit you're merging, so Git can just slide the branch pointer forward.\n\n**Plain `git merge`:**\n- Fast-forwards when possible (same as `--ff-only`)\n- Otherwise creates a merge commit joining the two histories\n- Can leave you in a conflicted state that you have to resolve\n\n**`git merge --ff-only`:**\n- Fast-forwards when possible\n- Otherwise exits non-zero with `fatal: Not possible to fast-forward, aborting.` and changes nothing\n- Never produces conflicts, never produces a merge commit\n\nExample — your branch has diverged:\n\n```\n      A---B---C  (main, your local)\n     /\no---o---D---E    (origin/main)\n```\n\n`git merge origin/main` → creates a merge commit with two parents.\n`git merge --ff-only origin/main` → aborts, working tree untouched.\n\nWhere it's useful:\n\n- **`git pull --ff-only`** (or `git config pull.ff only`) — you get upstream changes when you're purely behind, and a clear error instead of an accidental \"Merge branch 'main' of...\" commit when you've diverged. Then you explicitly choose `git rebase` or a real merge.\n- **Enforcing linear history** — a repo policy that no merge commits appear on the mainline.\n- **Scripts/CI** — a safe \"advance this branch to that commit, or fail loudly\" primitive.\n\nThe related flag is `--no-ff`, the opposite extreme: always create a merge commit even when a fast-forward was possible, so the branch's existence stays visible in the history."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07627299999999998,
+            "judgeCostUsd": 0.0027319999999999844,
+            "durationSeconds": 9,
+            "startedAt": "2026-09-21T19:41:09.783Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Vzi2c3/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`git merge --ff-only` refuses to merge unless the merge can be resolved as a fast-forward — i.e. unless your current HEAD is already an ancestor of the commit you're merging. If it can't fast-forward, it aborts with `fatal: Not possible to fast-forward, aborting.` and leaves your branch and working tree untouched.\n\nPlain `git merge` will fast-forward when possible, but otherwise falls back to creating a merge commit (or dropping you into a conflicted state you must resolve).\n\nSo the difference is entirely in the non-fast-forward case:\n\n| Situation | `git merge` | `git merge --ff-only` |\n|---|---|---|\n| HEAD is ancestor of target | fast-forward | fast-forward |\n| Histories diverged | merge commit, possibly with conflicts to resolve | aborts, no changes |\n| Target is ancestor of HEAD | \"Already up to date\" | \"Already up to date\" |\n\nWhy you'd want it:\n\n- **`git pull --ff-only`** (or `pull.ff = only` in config) keeps `git pull` from silently manufacturing merge commits when you have local commits the remote doesn't. You get told to rebase or merge deliberately instead.\n- **Scripts and automation**, where a surprise conflict or an unexpected merge commit is worse than a clean failure.\n- **Linear-history workflows**, where merge commits on a branch are against policy.\n\nTwo related flags for contrast: `--no-ff` forces a merge commit even when a fast-forward was possible (useful for keeping a branch's shape visible in history), and `--ff` is the default middle ground."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.07494400000000001,
+            "judgeCostUsd": 0.0016380000000000144,
+            "durationSeconds": 10,
+            "startedAt": "2026-09-21T19:41:13.089Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-AkguB8/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`--ff-only` refuses to create a merge commit. It only succeeds when the merge can be resolved by fast-forwarding — i.e. your current HEAD is already an ancestor of the commit you're merging, so Git can just slide the branch pointer forward. Otherwise it aborts with \"Not possible to fast-forward, aborting\" and leaves your branch untouched.\n\nPlain `git merge` (default `--ff`) fast-forwards when it can, but falls back to creating a merge commit when the histories have diverged.\n\nSo the difference is the fallback:\n\n| Situation | `git merge` | `git merge --ff-only` |\n|---|---|---|\n| HEAD is ancestor of target | fast-forward | fast-forward |\n| Histories diverged | creates merge commit (may drop you into conflict resolution) | fails, no changes |\n| Already up to date | no-op | no-op |\n\nWhy it's useful:\n\n- **As a safety check in scripts or aliases** — `git pull --ff-only` is the common one. It updates your branch if you have no local commits, and errors out instead of silently creating a merge commit when you do. Since Git 2.33-ish, `pull` warns if you haven't set `pull.rebase`/`pull.ff`; setting `git config --global pull.ff only` makes that the default.\n- **Enforcing linear history** — if you rebase feature branches before landing them, `--ff-only` guarantees no accidental merge bubbles.\n\nThe related flag going the other way is `--no-ff`, which forces a merge commit even when a fast-forward was possible — useful when you want the branch's existence recorded in history."
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.078428,
+            "judgeCostUsd": 0.0016169999999999934,
+            "durationSeconds": 12,
+            "startedAt": "2026-09-21T19:41:14.379Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-UH7xyc/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "no-announcing-opener",
+                "passed": true,
+                "weight": 1,
+                "explanation": "pattern absent as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-closing-recap",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "`--ff-only` adds a refusal: it only completes the merge if the result can be reached by fast-forwarding, and otherwise aborts with a non-zero exit and leaves your branch untouched.\n\n**Plain `git merge`** (default `--ff`):\n- If HEAD is an ancestor of the target, it fast-forwards — just moves the branch pointer, no new commit.\n- If the branches have diverged, it creates a merge commit, possibly stopping for conflict resolution and leaving you mid-merge with a dirty index.\n\n**`git merge --ff-only`:**\n- Same fast-forward behavior in the first case.\n- In the second case it does nothing at all: `fatal: Not possible to fast-forward, aborting.` No merge commit, no conflicts, no partial state.\n\nSo it's a guard, not a different merge algorithm. The practical uses:\n\n- **Linear history enforcement.** `git pull --ff-only` (or `git config pull.ff only`) means a pull never silently manufactures a merge commit when someone force-pushed or you have local commits you forgot about — you get an error and decide to rebase or not.\n- **Scripts/CI.** The non-zero exit is a reliable signal that \"update the branch\" wasn't a clean fast-forward, instead of the script continuing on top of an auto-created merge.\n\nTwo edge cases worth knowing: if the branch is already up to date, `--ff-only` succeeds (nothing to do); and it's the inverse of `--no-ff`, which forces a merge commit even when a fast-forward was possible. The config knob `merge.ff = only` makes it the default for `git merge`."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 4,
+    "casesPassed": 3,
+    "overallScore": 0.925,
+    "overallPassRate": 0.85,
+    "meanDelta": 0.062499999999999986
+  }
+}
