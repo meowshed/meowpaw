@@ -16,6 +16,14 @@ verb, a review keeps every finding, a gap list keeps every question, and a
 hedge that carries real uncertainty stays, because deleting it manufactures
 confidence you have not earned.
 
+## Subordinate agents
+
+A subordinate agent runs its own system prompt, and an output style never
+reaches it. If you write a prompt that dispatches one, include
+`${CLAUDE_PLUGIN_ROOT}/fragments/reply-shape.md` in it verbatim, and the
+subordinate answers in the same shape. A fork inherits the style and needs
+nothing.
+
 ## What it costs you
 
 While `meow-core` is enabled, its style replaces the output style you selected
