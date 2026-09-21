@@ -43,7 +43,7 @@ inside this directory.
 
 ## Evidence
 
-Closed by `9a35c25`, at `4f80b15`:
+Closed by #14:
 
 ```text
 $ claude plugin marketplace add $PWD

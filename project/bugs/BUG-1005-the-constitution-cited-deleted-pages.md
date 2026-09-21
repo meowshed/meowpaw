@@ -11,15 +11,15 @@ issue: 12
 
 # The constitution cited deleted pages and overstated what verifies a commit
 
-**This record was written after the work, from #12, its pull request and
-`4f80b15`, and not from the work as it happened.** BUG-1020 says why that is
+**This record was written after the work, from #12 and its pull
+request #13, and not from the work as it happened.** BUG-1020 says why that is
 worse: a record written later is written from memory. It exists because #12
 mapped to no record at all, which REQ-1360 forbids, and the choice was between
 a late record and none.
 
 ## Reproduction
 
-Before `4f80b15`:
+Before #13:
 
 ```bash
 grep -n "docs/plugins.md" CLAUDE.md          # two citations
@@ -57,7 +57,7 @@ Implementation. The requirements were right and the file was wrong.
 
 ## Closed by
 
-`4f80b15`, which removed both citations, replaced the maintenance entry with
+Pull request #13 removed both citations, replaced the maintenance entry with
 one that names the plugins in a single place, and narrowed the signing rule to
 state what holds on a branch and what the forge does on a squash merge. The
 owner accepts the forge signing merges.

@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-21
 realises: ADR-1000
-checked-at: 4e75d4f
+checked-at: "#27"
 ---
 
 # The reply shape, carried by the kernel
@@ -41,7 +41,7 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0932
       evidence: `claude plugin install meow-core@meowpaw` then
       `claude plugin list`, which prints the plugin at version 0.1.0 and
-      enabled, at `4f80b15`. REQ-0932 became true with T-002, which is what
+      enabled, in #14. REQ-0932 became true with T-002, which is what
       put a shape in the kernel, and the review of #14 says so.
 
 - [x] T-002 TSK-1020 the output style carrying the eight rules and their
@@ -51,7 +51,7 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1010 - the style ships inside the plugin and has nowhere to
       live before it
       evidence: `/reload-plugins` then `/output-style`, which lists
-      `meow-core:meow` and sets it, at `4065784`. The style has been in force
+      `meow-core:meow` and sets it, from #15. The style has been in force
       in this session since.
 
 - [x] T-003 [P] TSK-1030 the shape fragment a subordinate agent's prompt
@@ -70,7 +70,7 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1020 - the check has nothing to read before the style exists
       evidence: `tools/check_style.py`, seen failing on a style with
       `keep-coding-instructions: false` and on a rule stating no condition
-      under which it yields, then passing on the shipped style, at `d670a33`.
+      under which it yields, then passing on the shipped style, in #21.
       It runs in the gate as `mise run style`.
 
 - [x] T-005 [P] TSK-1050 the evaluation: a case set, a rubric and a blind judge
@@ -78,7 +78,7 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1020 - the shape under measurement is the one the style
       carries
       evidence: `claude plugin eval plugins/meow-core --runs 5 --trust-plugin`
-      at `95fda7d`: forty runs, no errors, mean delta +0.06. One case moved,
+      from #23: forty runs, no errors, mean delta +0.06. One case moved,
       `error-report` at +0.25, and its arms overlap run by run. The other three
       score 1.00 in both arms and discriminate nothing. TSK-1050 carries the
       table and what it does not support.

@@ -13,7 +13,7 @@ issue: 38
 
 ## Reproduction
 
-At `e0a24ee`:
+As #37 left the tree:
 
 ```bash
 grep -l '^unit:' project/requirements/*.md | wc -l    # 222 of 1056
