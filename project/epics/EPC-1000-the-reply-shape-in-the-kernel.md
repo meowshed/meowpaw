@@ -74,12 +74,14 @@ A task is marked in the commit that advances it, never in a later pass.
       under which it yields, then passing on the shipped style, at `a689e20`.
       It runs in the gate as `mise run style`.
 
-- [ ] T-005 [P] TSK-1050 the evaluation: a case set, a rubric and a blind judge
-      closes: REQ-0956
-      depends: TSK-1020 - the shape under measurement is the one the style
-      carries
-      evidence: a published weighted delta against the unshaped baseline, with
-      the trial count and the judge named
+- [>] T-005 [P] TSK-1050 the evaluation: a case set, a rubric and a blind judge
+  closes: REQ-0956
+  depends: TSK-1020 - the shape under measurement is the one the style
+  carries
+  evidence: the suite is written and unrun. Four cases with eleven graders
+  sit in `plugins/meow-core/evals/`, and no delta exists, because every
+  run bills the owner's account and the owner postponed it. The command
+  that produces the evidence is in TSK-1050.
 
 ## Coverage
 

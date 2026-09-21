@@ -39,9 +39,42 @@ TSK-1020, because the shape under measurement is the one the style carries.
 
 ## Evidence
 
-The published delta, the trial count, the judge, and the case set at the
-revision it ran at. A result that contradicts ADR-1000's claim is evidence too,
-and it is reported and not rerun until it agrees.
+**The suite is written and unrun, and there is no delta.** Four cases with
+eleven graders sit in `plugins/meow-core/evals/`, weighted towards what this
+method produces: an error report, a progress report with nothing to compute
+from, an opener that invites a preamble, and a request for brevity over a
+report whose one unresolved verb is the thing worth keeping.
+
+Every run is a real model call on the owner's account, in both arms, and the
+owner postponed the run rather than spend on it now. The command that produces
+the evidence:
+
+```bash
+claude plugin eval plugins/meow-core --runs 5 --max-cost-usd 2 --trust-plugin
+```
+
+Five runs and not the default three, because RES-0266 records three as a
+starting point and no standard, and the one measured evaluation in this corpus
+reported single-case variance above 0.9 at three.
+
+What closes this task: that delta, per dimension and weighted, the trial count,
+the judge, and the case set at the revision it ran at. A result contradicting
+ADR-1000's claim is evidence too, and it is reported and never rerun until it
+agrees.
+
+## The judge is not settled
+
+The runner's judge is a small Claude model grading Claude, which REQ-3028 says
+is reported as a smoke check and never as the result. `--judge-model` selects
+another model through the same credential, so it cannot reach a judge outside
+that family.
+
+TypeSafe's Jev is one candidate for the cross-family judge, grading the same
+transcripts in a second pass over the runner's JSON: its Score primitive
+returns a position on a described scale with per-level probabilities and a
+confidence, where the platform's grader returns a pass from two votes of three.
+Nothing about it is decided. It needs research and a decision of its own,
+because swapping the judge is the kind of change REQ-3028 governs.
 
 ## Left alone
 
