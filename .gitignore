@@ -6,3 +6,4 @@ __pycache__/
 # Skills borrowed into this project while it has no plugins of its own.
 # They belong to the repositories that wrote them, and the gate ignores them.
 .claude/skills/
+evals/results/
