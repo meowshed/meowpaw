@@ -7,7 +7,7 @@ revised: 2026-09-20
 
 # Requirements
 
-1056 obligations in 40 topics, one per file. Identifiers are
+1057 obligations in 40 topics, one per file. Identifiers are
 allocated in blocks per topic with gaps, so a later statement joins its
 neighbours rather than landing at the end. Each names the research it was
 drawn from, and 236 are drawn from more than one. The research names no
@@ -15,7 +15,7 @@ requirement back.
 
 | Class          | Count |
 | -------------- | ----- |
-| functional     | 961   |
+| functional     | 962   |
 | non-functional | 95    |
 
 | Verified by | Count |
@@ -23,7 +23,7 @@ requirement back.
 | behavioural | 525   |
 | evaluation  | 12    |
 | judgement   | 39    |
-| static      | 480   |
+| static      | 481   |
 
 ## adoption
 
@@ -909,6 +909,7 @@ requirement back.
 | [REQ-2818](REQ-2818-a-branch-name-carries-nothing-the-forge-stores.md)    | A branch name MUST NOT carry information the forge already stores, such as the author or the date.                                                              |
 | [REQ-2820](REQ-2820-a-branch-is-split-rather-than-extended.md)            | A branch that has grown past one reviewable change MUST be split rather than extended.                                                                          |
 | [REQ-2822](REQ-2822-a-force-push-over-a-review-is-disclosed.md)           | A force push over a branch that has been reviewed MUST be disclosed, because it removes the evidence of what was reviewed.                                      |
+| [REQ-3176](REQ-3176-a-record-cites-the-pull-request.md)                   | A record MUST cite the pull request that carried a change, and MUST NOT cite the commit hash, including in a field naming the revision a check ran at.          |
 
 ## stacked-changes
 

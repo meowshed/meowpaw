@@ -13,7 +13,7 @@ issue: 24
 
 ## Reproduction
 
-At `926b55d`:
+As #23 left the tree:
 
 ```bash
 git ls-files plugins/meow-core/evals/results/ | wc -l    # 4

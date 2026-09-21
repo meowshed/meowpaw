@@ -14,7 +14,7 @@ issue: 16
 ## Reproduction
 
 With `plugins/meow-core/output-styles/meow.md` and `docs/meow-core.md` in the
-tree, at `4065784`:
+tree, as #15 left it:
 
 ```bash
 python3 tools/check_index.py

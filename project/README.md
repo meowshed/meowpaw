@@ -57,14 +57,14 @@ requirements as they now stand.
 ## Specifications
 
 [SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape, checked
-at `9275107`. It records that REQ-0930 is unmet: the style applies when a
+at #27. It records that REQ-0930 is unmet: the style applies when a
 person selects it, and not on its own.
 
 ## Epics and tasks
 
 [EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) is approved and
 realises ADR-1000 in five tasks, TSK-1010 to TSK-1050, each filed as an issue
-from #5 to #9 and each closed with evidence. The epic closed at `9275107` with
+from #5 to #9 and each closed with evidence. The epic closed at #27 with
 one acceptance criterion unmet, named in the epic as REQ-3170 requires. TSK-1000 is the
 planning task that produced all of it, and `tools/check_coverage.py` reports
 every requirement the decision addresses landing in exactly one task.
@@ -78,12 +78,13 @@ every requirement the decision addresses landing in exactly one task.
 | [BUG-1010](bugs/BUG-1010-checks-walk-into-plugin-and-documentation-files.md) | Three record checks reported a false positive on a plugin file                              |
 | [BUG-1020](bugs/BUG-1020-the-marks-were-late.md)                             | Two closed tasks stayed unmarked and their records carried no evidence                      |
 | [BUG-1040](bugs/BUG-1040-the-shape-is-not-unconditional.md)                  | The forced style is not applied, so the reply shape is opt-in                               |
+| [BUG-1090](bugs/BUG-1090-the-record-cites-a-hash.md)                         | The record cited a commit hash where the pull request survives                              |
 | [BUG-1080](bugs/BUG-1080-the-records-cite-replaced-commits.md)               | The records cited commits that a message rewrite replaced                                   |
 | [BUG-1070](bugs/BUG-1070-the-records-are-written-below-the-standard.md)      | The records were written below the writing standard the constitution requires               |
 | [BUG-1060](bugs/BUG-1060-the-unit-field-is-dead.md)                          | A field the constitution required was dropped from the record and left in the templates     |
 | [BUG-1050](bugs/BUG-1050-the-specification-direction-was-unchecked.md)       | A requirement the decision addresses was stated in no specification                         |
 | [BUG-1030](bugs/BUG-1030-eval-results-were-committed.md)                     | A generated eval report reached `main`, because the ignore pattern was anchored at the root |
 
-Nine are closed. BUG-1040 is open: it routes to design, because the mechanism
+Ten are closed. BUG-1040 is open: it routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1005 was written
 after its fix, and says so.

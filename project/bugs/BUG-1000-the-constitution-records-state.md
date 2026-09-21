@@ -35,7 +35,7 @@ deleted decision records.
 
 The branch holds no such record. Those records lived in `project/adrs/_archive/`,
 which `.gitignore` matched, so they were never committed and no branch carries
-them. The sentence was written on 2026-09-21 and merged as part of the commit that is now `c01aa93`.
+them. The sentence was written on 2026-09-21 and merged by #2.
 
 `project/README.md`, `project/adrs/README.md` and
 `project/requirements/README.md` carry the same facts, next to the artifacts

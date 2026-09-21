@@ -36,7 +36,7 @@ TSK-1020, because the check has nothing to read before the style exists.
 
 ## Evidence
 
-Closed by this task's own change, at `d670a33`:
+Closed by #21:
 
 ```text
 $ python3 tools/check_style.py          # keep-coding-instructions: false
