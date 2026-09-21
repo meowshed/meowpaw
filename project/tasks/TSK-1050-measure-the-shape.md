@@ -39,28 +39,59 @@ TSK-1020, because the shape under measurement is the one the style carries.
 
 ## Evidence
 
-**The suite is written and unrun, and there is no delta.** Four cases with
-eleven graders sit in `plugins/meow-core/evals/`, weighted towards what this
-method produces: an error report, a progress report with nothing to compute
-from, an opener that invites a preamble, and a request for brevity over a
-report whose one unresolved verb is the thing worth keeping.
-
-Every run is a real model call on the owner's account, in both arms, and the
-owner postponed the run rather than spend on it now. The command that produces
-the evidence:
+Run at `8f9e8dd` with the turn cap raised to 10, on 2026-09-21:
 
 ```bash
-claude plugin eval plugins/meow-core --runs 5 --max-cost-usd 2 --trust-plugin
+claude plugin eval plugins/meow-core --runs 5 --trust-plugin -j 4
 ```
 
-Five runs and not the default three, because RES-0266 records three as a
-starting point and no standard, and the one measured evaluation in this corpus
-reported single-case variance above 0.9 at three.
+Four cases, five runs per arm, forty agent runs, no run errors, 183 seconds,
+$4.25 at list price. The judge is the runner's default, a small Claude model,
+which REQ-3028 makes a smoke check and not the result.
 
-What closes this task: that delta, per dimension and weighted, the trial count,
-the judge, and the case set at the revision it ran at. A result contradicting
-ADR-1000's claim is evidence too, and it is reported and never rerun until it
-agrees.
+| Case                      | WITH | W/OUT | Δ     |
+| ------------------------- | ---- | ----- | ----- |
+| error-report              | 0.70 | 0.45  | +0.25 |
+| completeness-over-brevity | 1.00 | 1.00  | 0.00  |
+| multi-step-progress       | 1.00 | 1.00  | 0.00  |
+| no-preamble-no-recap      | 1.00 | 1.00  | 0.00  |
+
+Mean Δ +0.06.
+
+### What the numbers do not support
+
+**Three cases discriminate nothing.** The baseline scores 1.00 on them, so an
+unstyled reply already keeps the unresolved verb, already declines to invent a
+progress count, and already opens without a preamble. Those cases measure the
+model's defaults and say nothing about the shape. That is a defect in the case
+set, and the cases are too easy rather than the shape being idle.
+
+**The one case with a delta does not separate its arms.** Per-run scores, with
+the style and without it:
+
+```text
+with:     0.50  0.50  1.00  0.50  1.00     mean 0.70
+without:  0.75  0.75  0.25  0.25  0.25     mean 0.45
+```
+
+Two baseline runs beat three styled runs. Five runs per arm cannot tell +0.25
+from variance at that spread, which is the weakness RES-0266 recorded before
+this suite existed.
+
+**The styled arm is poor in absolute terms.** At 0.70 the style fails
+`cause-location-fix` outright in some runs, with three judge votes of FAIL
+rather than a split, so the gain is measured against a low ceiling.
+
+### What it means for ADR-1000
+
+The decision leans on a published suite whose two largest gains were multi-step
+progress and error reports. This measurement finds a gain on error reports
+only, and cannot see one anywhere else.
+
+The reversal condition ADR-1000 names is the shape scoring below the unshaped
+baseline on correctness. That did not happen, so the decision stands, on
+thinner evidence than it claims. What would settle it is a harder case set and
+more runs, and that is the next measurement rather than a rerun of this one.
 
 ## The judge is not settled
 
