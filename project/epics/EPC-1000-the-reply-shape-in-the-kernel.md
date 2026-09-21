@@ -16,6 +16,11 @@ the reply shape, no unit is exempt from it, and a change to it can be measured.
 
 ## Acceptance criteria
 
+**Criterion 1 fails, so this epic is not realised.** Verification at `4e75d4f`
+observed a new session using the platform default with the kernel enabled,
+which BUG-1040 records. The five tasks are closed with evidence and the
+decision they realise does not hold.
+
 Taken from ADR-1000 before the tasks below were written:
 
 1. A repository with `meow-core` installed and no other unit receives the
