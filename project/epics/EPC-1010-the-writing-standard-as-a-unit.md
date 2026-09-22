@@ -113,9 +113,13 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1120, TSK-1140 - a budget covers what a unit loads, and the
       three units have to exist before anything can be measured against one
 
-- [ ] T-007 [P] TSK-1170 replace the `meow-core` case set with one that
+- [x] T-007 [P] TSK-1170 replace the `meow-core` case set with one that
       discriminates, and build the loop every prompt is improved with
       closes: REQ-3024, REQ-3030, REQ-3036
+      evidence: `tools/loop.py` on Sonnet 5 judged by Opus 5.5, five runs per
+      arm: four cases that each separate the arms, the baseline at +0.04, and
+      a deliberately worse candidate losing at -0.31. TSK-1170 carries the
+      tables, in #60.
 
 - [ ] T-008 TSK-1180 measure `meow-prose`: routing first, then what it says,
       then improve the skill through the loop

@@ -1,8 +1,8 @@
 ---
 type: regex
-pattern: "unresolved|typecheck"
+pattern: "skip|audit"
 flags: i
 match: contains
 target: last_message
-weight: 2
+weight: 1
 ---

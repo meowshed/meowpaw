@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What the styled arm must score on each case (REQ-3030). A case where one
+# failure is the whole defect sits at 1.0: a green verdict over a verb that
+# never ran, or a question dropped without a word, is wrong every time it
+# happens. A case measuring a tendency, such as how a reply opens, sits lower.
+
+[cases]
+one-line-keeps-the-gap = 1.0
+gap-list-kept = 1.0
+error-report = 0.75
+no-preamble-no-recap = 0.8
