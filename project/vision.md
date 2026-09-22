@@ -17,10 +17,10 @@ drift.
 
 It exists because six repositories here already run six copies of roughly the
 same harness, and the copies have diverged. `meowctl` and `meowg1k` share a
-specification loop; `vlie` arrived at nearly the same sequence on its own;
-`meowhub` built it a third time under different names; `hephaestus` has
-edit-time quality hooks nobody else has; `meowary` has durable memory nobody
-else has. Fix one of them and you've fixed one of them.
+specification loop, and `vlie` arrived at nearly the same sequence on its own.
+`meowhub` built it a third time under different names. `hephaestus` has
+edit-time quality hooks nobody else has, and `meowary` has durable memory
+nobody else has. Fix one of them and you've fixed one of them.
 
 They diverged because there was nothing to diverge _from_. Each documents its
 process in its own `CLAUDE.md`, and you can't install, version or upgrade a
@@ -28,8 +28,8 @@ document.
 
 ## The problem
 
-Agents are now good enough that the bottleneck moved. The model can write the
-code; what nobody can tell is **whether what came back is true.**
+Agents are now good enough that the bottleneck moved. The model writes the
+code, and nobody can tell **whether what came back is true.**
 
 Seven specific versions of that, each one observed here or in the survey:
 
@@ -47,9 +47,9 @@ Seven specific versions of that, each one observed here or in the survey:
   what proved it.
 - Documentation describes what was proposed, the project shipped something
   else, and a reader cites the documentation anyway.
-- The work was honest and the report wasn't: the one unresolved verb sits in
-  the middle of a paragraph that opens with a pleasantry and closes with an
-  offer to help further, so the reviewer skims it and approves.
+- The work was honest and the report wasn't. The one unresolved verb sits in
+  the middle of a paragraph opening with a pleasantry and closing with an offer
+  to help further, so the reviewer skims it and approves.
 
 All seven are one failure: **an answer that wasn't earned, delivered with the
 confidence of one that was.** The whole design exists to make that failure
@@ -105,29 +105,36 @@ Evidence expires. A claim cites the command, its output and the tree revision
 it ran at, and every edit advances the revision, so evidence gathered before a
 change can't satisfy a claim made after it.
 
-Reports put the failure where you'll see it. The command and the path lead, the
-harness computes the state from the artifacts instead of recalling it, a
+Reports put the failure where you'll see it. The command and the path lead, and
+the harness computes the state from the artifacts instead of recalling it. A
 failure arrives as cause, location and fix with no drama in front of it, and a
-stop names the command that resumes it. We measured this shape against an
-unshaped baseline: it improved correctness as well as brevity, and it gained
-most on progress reports and error reports, which is nearly everything this
-method produces.
+stop names the command that resumes it.
 
-**This one rule is unconditional.** The chain, the record, the packs and the
-tools are all opt-in; the reply shape ships in the kernel, applies to every
-reply of every plugin, and a repository can't turn it off. It's the last stage
-of every honest-failure rule in the harness, and a rule that only some replies
-follow shapes nothing, because the one report that hides the unresolved verb is
+A published suite measured a shape like this one against an unshaped baseline
+and found correctness improving alongside brevity, with the largest gains on
+progress reports and error reports. Our own measurement is thinner: a gain on
+one case of four, with the two arms overlapping run by run. TSK-1050 carries
+both numbers and what neither supports.
+
+The chain, the record, the packs and the tools are all opt-in, and this rule is
+meant to be the exception: the reply shape ships in the kernel and applies to
+every reply of every plugin. The platform does not yet hold it that way, which
+BUG-1040 records, so today somebody selects it by hand.
+
+The rule is the last stage of every honest-failure rule in the harness, and a
+rule that only some replies follow shapes nothing, because the one report that
+hides the unresolved verb is
 the one that gets approved.
 
 ## What it will not do
 
-- **Depend on a program.** No service, no daemon, nothing you install before
-  the chain can run. The artifacts are Markdown and the steps are prose. Tools
-  are welcome and there'll be several - a command-line tool over the record,
-  helpers shipped inside the plugins - and each of them can make work cheaper
-  while none of them can make it possible. Where a tool is missing, the harness
-  says so and does the work the expensive way.
+- **Make you install or run anything yourself.** You install a plugin, and
+  everything it needs arrives with it. A unit may carry a program, a server or
+  a daemon of its own, because that costs you nothing past the install you
+  chose. You never set up a second thing by hand, keep it running, or let it
+  write its configuration into the repository you are working on. Where the harness can use a tool you already have, it uses it,
+  and where that tool is missing it says so and does the work the expensive
+  way.
 - **Demand the full method for a typo.** The harness classifies work first, and
   trivial work skips the chain. A harness that costs nine steps for a one-line
   fix is one you work around, and then it reports a process it never performed.
@@ -150,9 +157,10 @@ the one that gets approved.
   material is maintained.
 - **Ship personas.** A role that changes neither the tool set, the context nor
   the stopping point changes only the prose.
-- **Put a dashboard in the harness.** That would make the harness a program
-  with a server in it, which is what `claude-code-spec-workflow` ships,
-  WebSocket and tunnel included. The artifacts are readable, a status command
+- **Put a dashboard in front of the record.** A dashboard renders what the
+  artifacts already say, and none of it lands in a context window, which is
+  what the harness is for. `claude-code-spec-workflow` ships one, WebSocket and
+  tunnel included. The artifacts are readable, a status command
   prints them, and a separate tool beside the harness can render them as
   elaborately as it likes, because none of that lands in a context window.
 

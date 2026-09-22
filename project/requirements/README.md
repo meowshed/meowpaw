@@ -7,7 +7,7 @@ revised: 2026-09-20
 
 # Requirements
 
-1057 obligations in 40 topics, one per file. Identifiers are
+1063 obligations in 40 topics, one per file. Identifiers are
 allocated in blocks per topic with gaps, so a later statement joins its
 neighbours rather than landing at the end. Each names the research it was
 drawn from, and 236 are drawn from more than one. The research names no
@@ -15,36 +15,38 @@ requirement back.
 
 | Class          | Count |
 | -------------- | ----- |
-| functional     | 962   |
-| non-functional | 95    |
+| functional     | 964   |
+| non-functional | 97    |
 
 | Verified by | Count |
 | ----------- | ----- |
-| behavioural | 525   |
-| evaluation  | 12    |
-| judgement   | 39    |
-| static      | 481   |
+| behavioural | 526   |
+| evaluation  | 14    |
+| judgement   | 41    |
+| static      | 482   |
 
 ## adoption
 
-|                                                                | Obligation                                                                                                                                                    |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [REQ-0010](REQ-0010-install-touches-nothing.md)                | The harness MUST be installable into an existing repository without modifying that repository's build, its dependencies or its directory layout beyond...     |
-| [REQ-0012](REQ-0012-any-subset-adoptable.md)                   | A repository MUST be able to adopt any subset of the harness's disciplines.                                                                                   |
-| [REQ-0014](REQ-0014-smallest-subset-works-alone.md)            | The smallest adoptable subset MUST be a working harness on its own rather than a fragment that only makes sense with more installed.                          |
-| [REQ-0016](REQ-0016-unknown-language-still-works.md)           | The harness MUST work in a repository whose language it has no knowledge of, degrading only in the checks that need that knowledge.                           |
-| [REQ-0018](REQ-0018-artifacts-readable-without-the-harness.md) | Every artifact the harness writes MUST be readable and editable by someone who does not have the harness installed: plain text, in no format that only the... |
-| [REQ-0020](REQ-0020-no-service-no-daemon.md)                   | The harness MUST NOT require a network service, a database, a background daemon or a bespoke command-line tool in order to perform its method. Tools the...   |
-| [REQ-0022](REQ-0022-conventions-are-overridable.md)            | A repository MUST be able to override any harness convention.                                                                                                 |
-| [REQ-0024](REQ-0024-override-is-a-file.md)                     | An override MUST be a file in the repository rather than an edit to an installed harness file, because an edited installation is lost at the next upgrade.    |
-| [REQ-0026](REQ-0026-existing-conventions-win.md)               | Where a repository already has a convention of its own, whether a template, a command, a configuration or a standard, the harness MUST use it and MUST...     |
-| [REQ-0028](REQ-0028-the-record-is-opt-in.md)                   | Installing the harness MUST NOT oblige a repository to keep the record.                                                                                       |
-| [REQ-0030](REQ-0030-kernel-without-the-record.md)              | A repository that keeps no record MUST still receive routing, the verification verbs, the gates, the evidence rules and the source-control conventions.       |
-| [REQ-0032](REQ-0032-three-complete-levels.md)                  | Adoption MUST be complete at each of three levels: the kernel alone, the method with the record kept by hand, and the method with the tool that reads the...  |
-| [REQ-0034](REQ-0034-each-level-stands-alone.md)                | Each adoption level MUST be usable without the one above it. A level that only works as a step toward the next is not a level.                                |
-| [REQ-0036](REQ-0036-absence-is-reported.md)                    | Where the harness cannot do something because a unit, a tool or an artifact is absent, it MUST report the capability as unavailable.                          |
-| [REQ-0038](REQ-0038-say-what-would-resolve-it.md)              | A report of an unavailable capability or an unresolved verb MUST name what would make it available.                                                           |
-| [REQ-0040](REQ-0040-no-weaker-substitute.md)                   | The harness MUST NOT substitute a weaker capability for an unavailable one.                                                                                   |
+|                                                                   | Obligation                                                                                                                                                                                          |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [REQ-0010](REQ-0010-install-touches-nothing.md)                   | The harness MUST be installable into an existing repository without modifying that repository's build, its dependencies or its directory layout beyond...                                           |
+| [REQ-0012](REQ-0012-any-subset-adoptable.md)                      | A repository MUST be able to adopt any subset of the harness's disciplines.                                                                                                                         |
+| [REQ-0014](REQ-0014-smallest-subset-works-alone.md)               | The smallest adoptable subset MUST be a working harness on its own rather than a fragment that only makes sense with more installed.                                                                |
+| [REQ-0016](REQ-0016-unknown-language-still-works.md)              | The harness MUST work in a repository whose language it has no knowledge of, degrading only in the checks that need that knowledge.                                                                 |
+| [REQ-0018](REQ-0018-artifacts-readable-without-the-harness.md)    | Every artifact the harness writes MUST be readable and editable by someone who does not have the harness installed: plain text, in no format that only the...                                       |
+| [REQ-0020](REQ-0020-no-service-no-daemon.md)                      | Withdrawn, replaced by REQ-3178 and REQ-3180.                                                                                                                                                       |
+| [REQ-0022](REQ-0022-conventions-are-overridable.md)               | A repository MUST be able to override any harness convention.                                                                                                                                       |
+| [REQ-0024](REQ-0024-override-is-a-file.md)                        | An override MUST be a file in the repository rather than an edit to an installed harness file, because an edited installation is lost at the next upgrade.                                          |
+| [REQ-0026](REQ-0026-existing-conventions-win.md)                  | Where a repository already has a convention of its own, whether a template, a command, a configuration or a standard, the harness MUST use it and MUST...                                           |
+| [REQ-0028](REQ-0028-the-record-is-opt-in.md)                      | Installing the harness MUST NOT oblige a repository to keep the record.                                                                                                                             |
+| [REQ-0030](REQ-0030-kernel-without-the-record.md)                 | A repository that keeps no record MUST still receive routing, the verification verbs, the gates, the evidence rules and the source-control conventions.                                             |
+| [REQ-0032](REQ-0032-three-complete-levels.md)                     | Adoption MUST be complete at each of three levels: the kernel alone, the method with the record kept by hand, and the method with the tool that reads the...                                        |
+| [REQ-0034](REQ-0034-each-level-stands-alone.md)                   | Each adoption level MUST be usable without the one above it. A level that only works as a step toward the next is not a level.                                                                      |
+| [REQ-0036](REQ-0036-absence-is-reported.md)                       | Where the harness cannot do something because a unit, a tool or an artifact is absent, it MUST report the capability as unavailable.                                                                |
+| [REQ-0038](REQ-0038-say-what-would-resolve-it.md)                 | A report of an unavailable capability or an unresolved verb MUST name what would make it available.                                                                                                 |
+| [REQ-0040](REQ-0040-no-weaker-substitute.md)                      | The harness MUST NOT substitute a weaker capability for an unavailable one.                                                                                                                         |
+| [REQ-3178](REQ-3178-a-unit-may-carry-a-program.md)                | The harness MUST NOT require anything a person installs or operates separately from the units it ships, and a unit MAY carry a program, a server or a daemon of its own.                            |
+| [REQ-3180](REQ-3180-a-unit-writes-nothing-into-the-repository.md) | A unit MUST NOT write into the repository it works on in order to run its own capabilities, and anything it must keep MUST live inside the unit or in the per-unit directory the platform provides. |
 
 ## architecture
 
@@ -624,34 +626,38 @@ requirement back.
 
 ## prose-and-comments
 
-|                                                                  | Obligation                                                                                                                                                       |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [REQ-0990](REQ-0990-one-writing-standard-everywhere.md)          | The harness MUST impose one writing standard on everything it produces, including artifacts, code comments, commit messages, review findings and its replies.    |
-| [REQ-0991](REQ-0991-find-the-actor-use-the-verb.md)              | A sentence MUST name the actor and use the verb, because an agentless sentence hides who must do the thing.                                                      |
-| [REQ-0992](REQ-0992-the-standard-loads-before-writing.md)        | The writing standard MUST be available to the model before anything is written rather than applied as an editing pass afterwards.                                |
-| [REQ-0993](REQ-0993-declare-the-reader.md)                       | A draft MUST declare the reader it is written for, because the level decides what may be assumed.                                                                |
-| [REQ-0994](REQ-0994-a-rule-states-its-reason.md)                 | Every rule the harness states MUST have a stated reason somewhere, because a rule without one is applied literally to cases its author did not foresee....       |
-| [REQ-0995](REQ-0995-british-english.md)                          | The writing standard MUST be British English.                                                                                                                    |
-| [REQ-0996](REQ-0996-one-language-per-repository.md)              | The harness MUST write in one language across a repository, declarable per repository.                                                                           |
-| [REQ-0997](REQ-0997-a-term-of-art-keeps-its-spelling.md)         | A technical term MUST keep the spelling its own domain uses, even where that differs from the standard, because changing the spelling of a term of art...        |
-| [REQ-0998](REQ-0998-the-standard-covers-document-shape.md)       | The standard MUST cover the shape of a document as well as its sentences: which sections each document type has, and in which order.                             |
-| [REQ-0999](REQ-0999-a-quotation-is-not-edited.md)                | A quotation MUST keep the wording and the spelling its author used, and a check MUST NOT be applied to it, because what the harness quotes is not what the...    |
-| [REQ-1000](REQ-1000-the-standard-is-replaceable.md)              | The writing standard MUST be replaceable per repository.                                                                                                         |
-| [REQ-1002](REQ-1002-a-replacement-standard-is-total.md)          | A replacement standard MUST be total rather than merged with the default, because two standards disagreeing about voice produce text that follows neither.       |
-| [REQ-1004](REQ-1004-the-checkable-half-is-a-check.md)            | The mechanically checkable half of the writing standard MUST be a check.                                                                                         |
-| [REQ-1006](REQ-1006-the-judgement-half-is-a-review-criterion.md) | The half of the writing standard that requires judgement MUST be a review criterion and MUST NOT be made into a check.                                           |
-| [REQ-1008](REQ-1008-code-carries-the-licence-header.md)          | Code MUST carry the licence and copyright header the repository declares.                                                                                        |
-| [REQ-1010](REQ-1010-public-declarations-are-documented.md)       | Every publicly reachable declaration MUST carry documentation.                                                                                                   |
-| [REQ-1012](REQ-1012-comments-only-by-exception.md)               | The harness MUST NOT write any other comment unless the code cannot be made to explain itself.                                                                   |
-| [REQ-1013](REQ-1013-the-name-before-the-comment.md)              | Where a name can carry the meaning, the harness MUST improve the name rather than add a comment. Where the name is an interface others depend on, the...         |
-| [REQ-1014](REQ-1014-no-comment-restates-the-code.md)             | The harness MUST NOT add a comment that restates what the code says.                                                                                             |
-| [REQ-1015](REQ-1015-prefer-the-executable-example.md)            | Where a language runs the examples in its documentation, the harness MUST prefer an executable example, because it is the only form of comment a check can fail. |
-| [REQ-1016](REQ-1016-the-header-form-is-declarable.md)            | The licence header's form MUST be declarable per repository.                                                                                                     |
-| [REQ-1018](REQ-1018-apply-the-declared-header-form.md)           | The harness MUST apply the declared licence header form rather than a default of its own.                                                                        |
-| [REQ-1020](REQ-1020-headers-apply-to-documents-too.md)           | Where a repository declares licence headers, the harness MUST be able to apply them to documents as well as to code, using a mechanism the document's format...  |
-| [REQ-1022](REQ-1022-copyright-and-licence-together.md)           | A licence declaration MUST carry both the copyright and the licence identifier, because one without the other is an incomplete statement.                        |
-| [REQ-1024](REQ-1024-no-commented-out-code.md)                    | The harness MUST NOT leave commented-out code.                                                                                                                   |
-| [REQ-1026](REQ-1026-no-marker-without-a-task.md)                 | The harness MUST NOT write a marker for later work without an issue or a task carrying it.                                                                       |
+|                                                                        | Obligation                                                                                                                                                                                   |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [REQ-0990](REQ-0990-one-writing-standard-everywhere.md)                | The harness MUST impose one writing standard on everything it produces, including artifacts, code comments, commit messages, review findings and its replies.                                |
+| [REQ-0991](REQ-0991-find-the-actor-use-the-verb.md)                    | A sentence MUST name the actor and use the verb, because an agentless sentence hides who must do the thing.                                                                                  |
+| [REQ-0992](REQ-0992-the-standard-loads-before-writing.md)              | The writing standard MUST be available to the model before anything is written rather than applied as an editing pass afterwards.                                                            |
+| [REQ-0993](REQ-0993-declare-the-reader.md)                             | A draft MUST declare the reader it is written for, because the level decides what may be assumed.                                                                                            |
+| [REQ-0994](REQ-0994-a-rule-states-its-reason.md)                       | Every rule the harness states MUST have a stated reason somewhere, because a rule without one is applied literally to cases its author did not foresee....                                   |
+| [REQ-0995](REQ-0995-british-english.md)                                | The writing standard MUST be British English.                                                                                                                                                |
+| [REQ-0996](REQ-0996-one-language-per-repository.md)                    | The harness MUST write in one language across a repository, declarable per repository.                                                                                                       |
+| [REQ-0997](REQ-0997-a-term-of-art-keeps-its-spelling.md)               | A technical term MUST keep the spelling its own domain uses, even where that differs from the standard, because changing the spelling of a term of art...                                    |
+| [REQ-0998](REQ-0998-the-standard-covers-document-shape.md)             | The standard MUST cover the shape of a document as well as its sentences: which sections each document type has, and in which order.                                                         |
+| [REQ-0999](REQ-0999-a-quotation-is-not-edited.md)                      | A quotation MUST keep the wording and the spelling its author used, and a check MUST NOT be applied to it, because what the harness quotes is not what the...                                |
+| [REQ-1000](REQ-1000-the-standard-is-replaceable.md)                    | The writing standard MUST be replaceable per repository.                                                                                                                                     |
+| [REQ-1002](REQ-1002-a-replacement-standard-is-total.md)                | A replacement standard MUST be total rather than merged with the default, because two standards disagreeing about voice produce text that follows neither.                                   |
+| [REQ-1004](REQ-1004-the-checkable-half-is-a-check.md)                  | Withdrawn, replaced by REQ-3184.                                                                                                                                                             |
+| [REQ-1006](REQ-1006-the-judgement-half-is-a-review-criterion.md)       | Withdrawn, replaced by REQ-3186.                                                                                                                                                             |
+| [REQ-1008](REQ-1008-code-carries-the-licence-header.md)                | Code MUST carry the licence and copyright header the repository declares.                                                                                                                    |
+| [REQ-1010](REQ-1010-public-declarations-are-documented.md)             | Every publicly reachable declaration MUST carry documentation.                                                                                                                               |
+| [REQ-1012](REQ-1012-comments-only-by-exception.md)                     | The harness MUST NOT write any other comment unless the code cannot be made to explain itself.                                                                                               |
+| [REQ-1013](REQ-1013-the-name-before-the-comment.md)                    | Where a name can carry the meaning, the harness MUST improve the name rather than add a comment. Where the name is an interface others depend on, the...                                     |
+| [REQ-1014](REQ-1014-no-comment-restates-the-code.md)                   | The harness MUST NOT add a comment that restates what the code says.                                                                                                                         |
+| [REQ-1015](REQ-1015-prefer-the-executable-example.md)                  | Where a language runs the examples in its documentation, the harness MUST prefer an executable example, because it is the only form of comment a check can fail.                             |
+| [REQ-1016](REQ-1016-the-header-form-is-declarable.md)                  | The licence header's form MUST be declarable per repository.                                                                                                                                 |
+| [REQ-1018](REQ-1018-apply-the-declared-header-form.md)                 | The harness MUST apply the declared licence header form rather than a default of its own.                                                                                                    |
+| [REQ-1020](REQ-1020-headers-apply-to-documents-too.md)                 | Where a repository declares licence headers, the harness MUST be able to apply them to documents as well as to code, using a mechanism the document's format...                              |
+| [REQ-1022](REQ-1022-copyright-and-licence-together.md)                 | A licence declaration MUST carry both the copyright and the licence identifier, because one without the other is an incomplete statement.                                                    |
+| [REQ-1024](REQ-1024-no-commented-out-code.md)                          | The harness MUST NOT leave commented-out code.                                                                                                                                               |
+| [REQ-1026](REQ-1026-no-marker-without-a-task.md)                       | The harness MUST NOT write a marker for later work without an issue or a task carrying it.                                                                                                   |
+| [REQ-3182](REQ-3182-texts-are-checked-before-they-are-published.md)    | The harness MUST check every text it produces against the writing standard before that text is published, whether it is committed, filed as an issue, posted as a pull request body...       |
+| [REQ-3184](REQ-3184-the-standard-is-held-by-a-line-by-line-review.md)  | The writing standard MUST be held by a line-by-line review of the text by a model, run before the text is published, and that review MUST report what it found rather than editing silently. |
+| [REQ-3186](REQ-3186-the-standard-is-never-a-pattern-check.md)          | The writing standard MUST NOT be enforced by a pattern over the text.                                                                                                                        |
+| [REQ-3188](REQ-3188-prose-carries-its-content-in-the-fewest-tokens.md) | The writing standard MUST produce prose that carries its content in the fewest tokens that content allows, and a text MUST NOT lose content to become shorter.                               |
 
 ## public-repository
 

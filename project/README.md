@@ -2,7 +2,7 @@
 id: index
 artifact: index
 status: live
-revised: 2026-09-20
+revised: 2026-09-22
 ---
 
 # The project
@@ -54,11 +54,21 @@ is approved and in force: the reply shape is a forced output style carried by
 the kernel. It is the first turn the design step has run against the
 requirements as they now stand.
 
+[ADR-1010](adrs/ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md)
+is approved and in force: the writing standard ships as `meow-prose`, held
+by a reviewer inside it and by a separately installed gate, and never by a
+pattern over prose.
+
 ## Specifications
 
 [SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape, checked
 at #27. It records that REQ-0930 is unmet: the style applies when a
 person selects it, and not on its own.
+
+[SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard
+and [SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to
+what the harness says is measured. Nothing implements either yet, so both leave
+`checked-at` empty.
 
 ## Epics and tasks
 
@@ -68,6 +78,12 @@ from #5 to #9 and each closed with evidence. The epic closed at #27 with
 one acceptance criterion unmet, named in the epic as REQ-3170 requires. TSK-1000 is the
 planning task that produced all of it, and `tools/check_coverage.py` reports
 every requirement the decision addresses landing in exactly one task.
+
+[EPC-1010](epics/EPC-1010-the-writing-standard-as-a-unit.md) is approved and
+realises ADR-1010 in eleven tasks, TSK-1110 to TSK-1210, each filed as an issue
+once the epic was approved. TSK-1100 is the planning task, under #46. Every
+requirement ADR-1010 addresses lands in exactly one task except REQ-3034, which
+the epic defers with its reason.
 
 ## Defects
 

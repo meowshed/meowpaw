@@ -2,18 +2,19 @@
 id: index
 artifact: index
 status: live
-revised: 2026-09-20
+revised: 2026-09-22
 ---
 
 # Decisions
 
-One decision is in force.
+Two decisions are in force.
 
-|                                                                                | Decision                                                       | Status   |
-| ------------------------------------------------------------------------------ | -------------------------------------------------------------- | -------- |
-| [ADR-1000](ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md) | The reply shape is a forced output style carried by the kernel | approved |
+|                                                                                  | Decision                                                       | Status   |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------- |
+| [ADR-1000](ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md)   | The reply shape is a forced output style carried by the kernel | approved |
+| [ADR-1010](ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md) | The writing standard ships as a unit that reviews itself       | approved |
 
-The design step has run once against the requirements as they now stand. It
+The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:
 they addressed a requirement set that has since been merged, split and reduced,
 so we'll write them again from the requirements we have now. The history keeps

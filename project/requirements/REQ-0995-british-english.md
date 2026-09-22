@@ -14,5 +14,5 @@ verification: static
 
 The writing standard MUST be British English.
 
-The model's own default is American, so this is a rule that fails silently
-unless it is checked; REQ-1004 is what checks it.
+The model's own default is American, so this rule fails silently unless
+something reads for it. REQ-3184 is what reads for it.
