@@ -35,13 +35,13 @@ it.
 
 ## Research
 
-127 documents, indexed by
+128 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
 ## Requirements
 
-1,069 obligations, indexed by [requirements/README.md](requirements/README.md).
+1,072 obligations, indexed by [requirements/README.md](requirements/README.md).
 Each is one file carrying one obligation, and it declares whether it's
 functional or non-functional and which of the four kinds of check verifies it:
 a static check, a behavioural fixture, a judgement with its judge named, or a
