@@ -1,8 +1,8 @@
 ---
 id: ADR-1010
 artifact: adr
-status: draft
-revised: 2026-09-21
+status: approved
+revised: 2026-09-22
 addresses:
   [
     REQ-0990,
