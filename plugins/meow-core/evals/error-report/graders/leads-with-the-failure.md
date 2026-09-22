@@ -6,8 +6,8 @@ weight: 1
 
 Judge whether the reply leads with the action rather than with prose.
 
-PASS when the first sentence names the error, the file, the line or the fix.
+PASS when the first sentence names the setting, the file, the line or the fix.
 
 FAIL when the first sentence announces what the reply is about to do, restates
-the question, thanks the person, or offers a general observation about the
-build before naming anything specific.
+the question, reassures the person, or says that nothing was applied before
+naming anything specific.

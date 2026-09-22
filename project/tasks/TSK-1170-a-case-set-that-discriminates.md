@@ -77,11 +77,57 @@ so this task can start first.
 
 ## Evidence
 
-Not yet. The task closes on a run of the runner with the current style as the
-baseline and one deliberately worse candidate, which must lose, and on a run of
-the new set with the per-case table published, every case separating the
-arms, each threshold stated, the run count and the judge named, and the delta
-read as the measure of regression.
+Run on 2026-09-22 with `tools/loop.py`, which this task adds:
+
+```bash
+python3 tools/loop.py plugins/meow-core --candidates <dir holding one candidate>
+```
+
+Model `claude-sonnet-5`, judge `claude-opus-5-5`, five runs per arm, no run
+errors, $7.77. Every judged score is a smoke check, because the judge is from
+the model's own family (REQ-3028).
+
+| Candidate | Change                                               | Delta | 2SE  | Tokens | Verdict                             |
+| --------- | ---------------------------------------------------- | ----- | ---- | ------ | ----------------------------------- |
+| baseline  | the style as it stands                               | +0.03 | 0.12 | 1452   | baseline                            |
+| hollow    | replace every rule with the habits the shape forbids | -0.31 | 0.10 | 127    | loses: delta fell by more than 0.16 |
+
+The deliberately worse candidate costs a tenth of the tokens and still loses,
+so the runner refuses a saving that costs the score. The token counts come from
+the model's own tokenizer: the difference in input tokens between a call with
+the text appended and one without it.
+
+That run carried five cases. `no-recap` scored 1.00 in both arms and was
+removed afterwards, so the set that ships is the four below, taken from the
+same run. Their mean delta is +0.04.
+
+| Case                     | With | Without | Delta | Threshold | Meets it |
+| ------------------------ | ---- | ------- | ----- | --------- | -------- |
+| `error-report`           | 0.85 | 0.80    | +0.05 | 0.75      | yes      |
+| `gap-list-kept`          | 0.60 | 1.00    | -0.40 | 1.0       | no       |
+| `no-preamble-no-recap`   | 0.80 | 0.50    | +0.30 | 0.8       | yes      |
+| `one-line-keeps-the-gap` | 1.00 | 0.80    | +0.20 | 1.0       | yes      |
+
+Every case separates the arms. A screen at three runs per arm removed six
+candidates that scored the same in both: `completeness-over-brevity`,
+`multi-step-progress`, `opens-with-the-answer`, `offer-at-the-end`,
+`no-bold-paragraph-openers` and `hedge-kept`. Sonnet 5 already does each of
+those things without the style.
+
+`error-report` was kept by name and rewritten. Its old prompt quoted a
+compiler's type error, and the styled arm failed it on every run by misreading
+which type was expected, so it measured how the model reads that language and
+not the reply shape. The old prompt also put a language name and a build tool
+into the kernel, which the constitution forbids.
+
+`gap-list-kept` is a regression the current style causes. In two runs of five
+the styled reply answered "2 and 4" and folded the other three questions into
+one clause, where the unstyled reply kept all five. Leading with the action
+overrides keeping every question, and TSK-1190 owns the fix.
+
+The baseline gains +0.04 on Sonnet 5, against +0.06 on the old set with the
+runner's default model. The style as it stands barely separates from the model
+it runs on, which is what TSK-1190 starts from.
 
 ## Left alone
 
