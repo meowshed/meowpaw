@@ -9,6 +9,10 @@ supersedes: []
 
 # 1020. Every shipped prompt is tagged, and a rule that must hold is loaded by a hook
 
+**Amended by ADR-1030.** The vocabulary is five top-level tags with Markdown
+inside them: `<rule id>`, `<examples>`, `<before>` and `<after>` are gone, and
+each rule is a list item led by an identifier. The rest stands.
+
 ## Decision
 
 Every prompt the harness ships is written for Claude Sonnet 5 and Claude Opus
