@@ -138,6 +138,23 @@ CET, 1,500 and 1500 ms.</rule>
 between them is where a reader loses the sentence.</rule>
 </rules>
 
+<rules name="code">
+<rule id="comments">Write a comment only where the code cannot explain itself,
+and improve the name first, unless the name is an interface others depend on.
+Keep it short and plain, one line where one line will do, saying why the code
+does what it does, because the reader already has the code and needs the reason
+it doesn't show. Write nothing that restates the line below, because it goes
+wrong the first time that line changes. Delete commented-out code, since version
+control keeps it, and give every marker for later work an issue or a task,
+because a bare marker is a promise nobody owns.</rule>
+<rule id="G">Make an example runnable as pasted, with its prerequisites stated
+before it, keep only what the prose around it explains, comment a line that is
+not obvious, say so where you could not check it, introduce it with a sentence
+ending in a colon, tag its fence, and follow it with prose. A reader copies an
+example before reading the text around it, so it has to be right on its
+own.</rule>
+</rules>
+
 <steps name="read what the work needs">
 1. For a commit message, a pull request or issue body, a review comment or a
    reply, read `${CLAUDE_SKILL_DIR}/short-texts.md`.
@@ -148,10 +165,9 @@ between them is where a reader loses the sentence.</rule>
    `daily-notes`. For a project record, read `types/record/record.md` and the
    file for its kind: `vision`, `research`, `requirement`, `decision`,
    `specification`, `epic`, `task` or `defect`.
-3. For a code comment or a code example, read `${CLAUDE_SKILL_DIR}/code.md`.
-4. When you edit a draft, yours or somebody else's, read
+3. When you edit a draft, yours or somebody else's, read
    `${CLAUDE_SKILL_DIR}/editing.md` and the pattern file for what you see in
    `${CLAUDE_SKILL_DIR}/patterns/`: `structure`, `voice` or `sentences`.
-5. Before a text is published, run the checks in `editing.md`, and stop when
+4. Before a text is published, run the checks in `editing.md`, and stop when
    every check passes.
 </steps>
