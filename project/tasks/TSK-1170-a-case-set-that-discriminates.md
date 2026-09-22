@@ -77,7 +77,7 @@ so this task can start first.
 
 ## Evidence
 
-Run on 2026-09-22 with `tools/loop.py`, which this task adds:
+Closed by #60. Run on 2026-09-22 with `tools/loop.py`, which this task adds:
 
 ```bash
 python3 tools/loop.py plugins/meow-core --candidates <dir holding one candidate>

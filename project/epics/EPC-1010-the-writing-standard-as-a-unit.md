@@ -119,7 +119,7 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: `tools/loop.py` on Sonnet 5 judged by Opus 5.5, five runs per
       arm: four cases that each separate the arms, the baseline at +0.04, and
       a deliberately worse candidate losing at -0.31. TSK-1170 carries the
-      tables.
+      tables, in #60.
 
 - [ ] T-008 TSK-1180 measure `meow-prose`: routing first, then what it says,
       then improve the skill through the loop
