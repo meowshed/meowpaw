@@ -89,7 +89,7 @@ In progress. #70 ships the unit, and the skill follows ADR-1020: tagged
 throughout, with the document rules and the code rule moved into
 `document-types.md` to keep the body under its limit.
 
-#71 aligns `document-types.md` with the kinds of the record, the vision to the
+Pull request #71 aligns `document-types.md` with the kinds of the record, the vision to the
 defect record, as the record actually writes them, and puts a shipped template
 ahead of the skill's own skeleton.
 
