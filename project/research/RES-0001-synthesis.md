@@ -154,6 +154,7 @@ here or in the sources below.
 | [Licensing and provenance](RES-0268-licensing-and-provenance.md)                             | This repository already declares its licensing in a bulk file and puts identifiers in code, and no decision records why.                                                                             |
 | [Documenting this project](RES-0269-documenting-this-project.md)                             | This repository holds two trees of prose, and only one of them is documentation.                                                                                                                     |
 | [Prompting Claude Sonnet 5 and Claude Opus 5.5](RES-0270-prompting-sonnet-5-and-opus-5-5.md) | A prompt's formatting carries into its reply, so a prompt that asks for prose is written in tags.                                                                                                    |
+| [Where the record lives](RES-0271-where-the-record-lives.md)                                 | A repository can keep its record in its own tree, another repository, or a folder relative to its root.                                                                                              |
 
 ## The situation
 
