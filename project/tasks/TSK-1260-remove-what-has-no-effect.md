@@ -1,11 +1,11 @@
 ---
 id: TSK-1260
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-22
 epic: EPC-1020
 closes: [REQ-1138]
-issue:
+issue: 69
 ---
 
 # Remove every instruction the loop shows has no effect

@@ -1,11 +1,11 @@
 ---
 id: TSK-1230
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-22
 epic: EPC-1020
 closes: [REQ-1130, REQ-1136]
-issue:
+issue: 66
 ---
 
 # Tag every shipped prompt, and measure on both models

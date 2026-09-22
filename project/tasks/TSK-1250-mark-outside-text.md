@@ -1,11 +1,11 @@
 ---
 id: TSK-1250
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-22
 epic: EPC-1020
 closes: [REQ-1132]
-issue:
+issue: 68
 ---
 
 # Mark outside text in the gate's and the reviewer's prompts

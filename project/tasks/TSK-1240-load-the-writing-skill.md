@@ -1,11 +1,11 @@
 ---
 id: TSK-1240
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-22
 epic: EPC-1020
 closes: [REQ-1140, REQ-1134]
-issue:
+issue: 67
 ---
 
 # Load the writing skill with a hook, and describe every unit in the third person

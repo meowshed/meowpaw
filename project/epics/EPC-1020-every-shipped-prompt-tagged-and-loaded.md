@@ -1,7 +1,7 @@
 ---
 id: EPC-1020
 artifact: epic
-status: draft
+status: approved
 revised: 2026-09-22
 realises: ADR-1020
 checked-at:

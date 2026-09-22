@@ -1,7 +1,7 @@
 ---
 id: TSK-1220
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-22
 epic:
 closes: []
