@@ -266,7 +266,7 @@ whole project.
 </example>
 <example name="pet abstraction">
 Shape, surface, seam, weight and blast radius, used again and again, are
-category words standing in for the thing (rule D3).
+category words standing in for the thing (rule D2).
 
 Failing:
 

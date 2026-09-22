@@ -45,10 +45,10 @@ files one kind of work needs; read only those, because each costs context.
 </rules>
 
 <rules name="lead with the answer">
-- A3. Put the condition before the action: "If validation fails, the gateway
+- A1. Put the condition before the action: "If validation fails, the gateway
   drops the request." A reader who meets the action first has often done it
   before reaching the condition.
-- A4. Put a warning before the step it protects, naming the hazard and the
+- A2. Put a warning before the step it protects, naming the hazard and the
   consequence, because after the step it arrives too late.
 </rules>
 
@@ -59,15 +59,15 @@ files one kind of work needs; read only those, because each costs context.
 - B2. Use contractions where you would say them aloud, and expand them only in
   a formal warning or a legal statement, because text without them reads as a
   contract.
-- B4. Give an instruction in the imperative, "Set the timeout", because "you
+- B3. Give an instruction in the imperative, "Set the timeout", because "you
   should" and "you can" make a step sound optional.
-- B5. Name the person who acted, "the reviewer asked", and cite the document or
+- B4. Name the person who acted, "the reviewer asked", and cite the document or
   measurement a fact comes from, because "a decision was reached" hides who
   decided.
-- B6. State the fact where you would judge the reader's effort: "Integration
+- B5. State the fact where you would judge the reader's effort: "Integration
   takes one call", in place of "simply integrate". Words such as simply, just
   and obviously tell a struggling reader the fault is theirs.
-- B7. Replace filler and hype with the fact: robust, seamless, leverage,
+- B6. Replace filler and hype with the fact: robust, seamless, leverage,
   crucial and "it's worth noting" take the reader's time and give back nothing.
 </rules>
 
@@ -84,61 +84,61 @@ files one kind of work needs; read only those, because each costs context.
 - C1. Average about 20 words a sentence, stay under about 30, and set short and
   long ones side by side, because a run of short sentences reads as a
   proclamation and a forty-word one as a contract.
-- C3. Write a claim plainly, without an inversion or an epigram, because a
+- C2. Write a claim plainly, without an inversion or an epigram, because a
   sentence that sounds like a proverb has usually lost its reason. Put the
   reason back into it.
-- C6. Hedge with a stated condition, "This fails when a batch names two
+- C3. Hedge with a stated condition, "This fails when a batch names two
   documents", because a bare "might" gives the reader nothing to check.
 </rules>
 
 <rules name="choose living words">
-- D2. Turn the action back into a verb: "changing the record invalidates the
+- D1. Turn the action back into a verb: "changing the record invalidates the
   cache", not "invalidation occurs on modification". A noun ending in -tion,
   -ment or -ity is often a verb in disguise that drops the actor.
-- D3. Name the thing, a number or a limit, where you would name its category:
+- D2. Name the thing, a number or a limit, where you would name its category:
   mechanism, functionality, solution and approach say nothing on their own.
-- D4. Use the most common word that is still exact, and the short word where
+- D3. Use the most common word that is still exact, and the short word where
   one exists: "big" over "substantial", "fix" over "remediate", use, start,
   end, enough, help, show, about, send, get. Keep the long word when it is the
   technical name.
-- D5. Write "how the parser validates its input" where a chain of "of"s would
+- D4. Write "how the parser validates its input" where a chain of "of"s would
   stand, because readers stall on the third one.
-- D6. Write the sentence inside an empty frame as the whole sentence: "The
+- D5. Write the sentence inside an empty frame as the whole sentence: "The
   loader fails in three cases", not "There are three cases in which the loader
   fails".
-- D7. Keep to one participle a sentence, and split a sentence that stacks -ing
+- D6. Keep to one participle a sentence, and split a sentence that stacks -ing
   clauses.
-- D8. Use the name, not "it", once two sentences have passed or wherever two
+- D7. Use the name, not "it", once two sentences have passed or wherever two
   nouns could be the antecedent, because the pronoun has drifted from what it
   names.
-- D9. Name the thing where you would write said, the given, the aforementioned
+- D8. Name the thing where you would write said, the given, the aforementioned
   or the respective.
-- D10. Use a concrete comparison, "about 200 bytes", where a stock metaphor
+- D9. Use a concrete comparison, "about 200 bytes", where a stock metaphor
   such as "under the hood" would tell the reader nothing.
-- D11. Read the sentence aloud and rewrite it until you would say it to a
+- D10. Read the sentence aloud and rewrite it until you would say it to a
   colleague. This one test catches most of what the rules above describe.
-- D12. Apply D2 to D9 in every language you write. In Russian that means
+- D11. Apply D1 to D8 in every language you write. In Russian that means
   `являться`, `осуществлять`, `данный`, `в рамках`, `с целью` and chains of
   genitives.
 </rules>
 
 <rules name="write for a second-language reader">
-- H3. Use the plain verb where a phrasal verb is ambiguous: "configure" over
+- H1. Use the plain verb where a phrasal verb is ambiguous: "configure" over
   "set up", "run" over "carry out".
-- H4. Say it literally, without idioms, sayings or culture references, which
+- H2. Say it literally, without idioms, sayings or culture references, which
   cost a lookup and are often mistranslated.
-- H5. State a thing positively and ask a question positively, because a double
+- H3. State a thing positively and ask a question positively, because a double
   negative or a negative question has two readings.
-- H6. Say what a modal means: "can" for permission, "might" for possibility,
+- H4. Say what a modal means: "can" for permission, "might" for possibility,
   "must not" for a prohibition, because "may" and "should" each carry two
   senses.
-- H7. Break a stack of more than two nouns into a phrase, because the reader
+- H5. Break a stack of more than two nouns into a phrase, because the reader
   cannot tell which noun modifies which.
-- H8. Expand every acronym on first use, and write "for example", "that is" and
+- H6. Expand every acronym on first use, and write "for example", "that is" and
   "and so on" for the Latin abbreviations.
-- H9. Write dates, times and numbers one way only: 2026-09-18, 14:30 CET, 1,500
+- H7. Write dates, times and numbers one way only: 2026-09-18, 14:30 CET, 1,500
   and 1500 ms.
-- H10. Keep the subject and the verb close together, because a clause between
+- H8. Keep the subject and the verb close together, because a clause between
   them is where a reader loses the sentence.
 </rules>
 
@@ -160,7 +160,7 @@ files one kind of work needs; read only those, because each costs context.
 </rules>
 
 <rules name="templates">
-- E15. Follow a template where the repository or an installed unit ships one
+- E1. Follow a template where the repository or an installed unit ships one
   for the kind of document you are writing: a repository's own in
   `.meowpaw/templates/` first, then the owning unit's. The template wins over
   the skeleton here, because two skeletons for one kind drift apart and the
@@ -168,7 +168,7 @@ files one kind of work needs; read only those, because each costs context.
 </rules>
 
 <rules name="before you draft">
-- E16. Decide who reads the document and state the level at the top of a draft,
+- E2. Decide who reads the document and state the level at the top of a draft,
   because the same fact is written differently for each and a reviewer can
   check the level only if it is written down. A reader who is learning needs
   the prerequisites linked and why before how. A reader who is integrating
@@ -178,30 +178,30 @@ files one kind of work needs; read only those, because each costs context.
 </rules>
 
 <rules name="shape the document">
-- C4. Give each paragraph one idea, topic sentence first, in three to five
+- E3. Give each paragraph one idea, topic sentence first, in three to five
   sentences, so a reader skimming first sentences still gets the argument.
-- E1. Define a term before its first use, or gloss it in the same sentence,
+- E4. Define a term before its first use, or gloss it in the same sentence,
   because a reader meeting an unknown name stops reading.
-- E2. Open with the reader's problem in the reader's words, and bring in your
+- E5. Open with the reader's problem in the reader's words, and bring in your
   own vocabulary once the problem is on the table.
-- E3. Open each section with two to four sentences on what it covers, so a
+- E6. Open each section with two to four sentences on what it covers, so a
   reader who stops after any section has a coherent picture.
-- E5. Give each section one question: a section answering two is two sections,
+- E7. Give each section one question: a section answering two is two sections,
   and two answering one are one.
-- E6. Give sibling sections the same shape, so the reader learns it once.
-- E7. Keep the main path for what a first-time reader needs, and move numbers,
+- E8. Give sibling sections the same shape, so the reader learns it once.
+- E9. Keep the main path for what a first-time reader needs, and move numbers,
   edge cases, long tables and derivations to a section they can skip.
-- E8. Refer back on the main path, never forward: "section 9 explains why"
+- E10. Refer back on the main path, never forward: "section 9 explains why"
   means the sections are in the wrong order.
-- E9. Refer to another section in a full sentence, never in a bare "Section 8."
+- E11. Refer to another section in a full sentence, never in a bare "Section 8."
   fragment.
-- E10. Add a glossary near the top when a document introduces more than five
+- E12. Add a glossary near the top when a document introduces more than five
   terms, so the reader has one place to look a term up.
 - E13. Add a note on how to read the document only past about 3,000 words,
   because a shorter one shows its own order.
-- E11. Put a table or figure beside the paragraph that uses it and say what the
+- E14. Put a table or figure beside the paragraph that uses it and say what the
   reader should take from it.
-- E14. Test the order with a cold read: wherever a reader holding only the
+- E15. Test the order with a cold read: wherever a reader holding only the
   earlier sections meets a name they cannot place, the structure has failed.
 </rules>
 
@@ -256,6 +256,6 @@ files one kind of work needs; read only those, because each costs context.
    document", "These notes", "Nothing ", "Nobody ", "None ", a sentence opening
    "That ", matters, "earlier draft", "a person", honest, shape. Rewrite each
    hit from `patterns.md`.
-5. Search for every word rules B6, B7, D3, D6 and D12 name, and for "there
+5. Search for every word rules B5, B6, D2, D5 and D11 name, and for "there
    is", "in terms of" and "the fact that", and rewrite each hit.
 </steps>
