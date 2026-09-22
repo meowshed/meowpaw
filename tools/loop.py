@@ -88,7 +88,8 @@ def input_tokens(model, cwd, prompt_file=None):
     cmd = ["claude", "-p", PROBE, "--model", model, "--output-format", "json", "--max-turns", "1"]
     if prompt_file:
         cmd += ["--append-system-prompt-file", str(prompt_file)]
-    out = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=True).stdout
+    out = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=True,
+                         stdin=subprocess.DEVNULL).stdout
     result = [e for e in json.loads(out) if e.get("type") == "result"][-1]["usage"]
     return sum(result.get(k, 0) for k in
                ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))

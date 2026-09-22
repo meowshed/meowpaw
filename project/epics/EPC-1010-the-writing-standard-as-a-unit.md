@@ -74,11 +74,11 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1110 `plugins/meow-prose/`: the manifest, the marketplace
-      entry, the skill carrying the standard rewritten smaller, and the
-      documentation page
-      closes: REQ-0990, REQ-0991, REQ-0992, REQ-0993, REQ-0994, REQ-0995,
-      REQ-0996, REQ-0997, REQ-0998, REQ-3188, REQ-1062, REQ-1064, REQ-1066
+- [>] T-001 TSK-1110 `plugins/meow-prose/`: the manifest, the marketplace
+  entry, the skill carrying the standard rewritten smaller, and the
+  documentation page
+  closes: REQ-0990, REQ-0991, REQ-0992, REQ-0993, REQ-0994, REQ-0995,
+  REQ-0996, REQ-0997, REQ-0998, REQ-3188, REQ-1062, REQ-1064, REQ-1066
 
 - [ ] T-002 TSK-1120 `plugins/meow-prose/agents/prose.md`: the reviewer that
       reads line by line and reports, including comments in code
