@@ -30,10 +30,10 @@ wording, whatever you declare.
 ## What it costs you
 
 The skill's description sits in context on every turn so that Claude knows when
-to load it, which costs about 440 characters. When it loads, the skill itself
-costs about 4,800 tokens on Sonnet 5. The pattern catalogue, the document
-skeletons and the self-review checks sit in separate files that load only when
-Claude needs them.
+to load it, which costs about 440 characters. When it loads, its core costs
+about 4,900 tokens on Sonnet 5 and carries the rules every text needs. The
+skeleton for a document type, about 200 to 400 tokens, and the pattern
+reference, about 2,750, load only when the work needs them.
 
 Claude doesn't yet load the skill on its own when you ask for a commit message
 or a pull request description. Until the plugin ships a hook that loads it,
