@@ -32,7 +32,7 @@ states:
 The reply shape covered here is the shape of every reply the harness makes to a
 person: what the first line carries, how a report states where a run has got
 to, how a failure is worded, and what a reply must never open or close with. It
-also covers the kernel's obligation to carry that shape, and the fragment that
+also covers the kernel's obligation to carry that shape, and the rules block that
 carries it into a subordinate agent.
 
 Read the writing standard in `CLAUDE.md` for the English inside an artifact,
@@ -48,13 +48,13 @@ which BUG-1040 records. REQ-0930 is unmet until that is resolved.
 
 What is observable from outside the part:
 
-| Surface                                | What it is                                                                       |
-| -------------------------------------- | -------------------------------------------------------------------------------- |
-| `plugins/meow-core/output-styles/*.md` | The style file the platform loads, with its YAML front matter                    |
-| `keep-coding-instructions`             | Set to true, so the platform's engineering guidance survives                     |
-| `force-for-plugin`                     | Set to true, and not honoured on Claude Code 2.1.278; see BUG-1040               |
-| The shape fragment                     | A file in `meow-core` that any unit includes in a subordinate agent's prompt     |
-| The style check                        | A check that reads the front matter and the rules, and fails with a named reason |
+| Surface                                | What it is                                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `plugins/meow-core/output-styles/*.md` | The style file the platform loads, with its YAML front matter                                          |
+| `keep-coding-instructions`             | Set to true, so the platform's engineering guidance survives                                           |
+| `force-for-plugin`                     | Set to true, and not honoured on Claude Code 2.1.278; see BUG-1040                                     |
+| The style's rules block                | `<rules name="the reply shape">` in the style, which any unit includes in a subordinate agent's prompt |
+| The style check                        | A check that reads the front matter and the rules, and fails with a named reason                       |
 
 Everything behind those surfaces is prose loaded into a context window, and no
 program reads it.
@@ -116,11 +116,11 @@ measurement is not repeated until it agrees.
 
 ## Failure paths
 
-| Condition                                                  | What happens                                                                                     |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `keep-coding-instructions` is false or absent              | The style check fails, naming the field and the file, and the gate stops                         |
-| A rule is stated with no condition under which it yields   | The style check fails, naming the rule                                                           |
-| A person has selected their own output style               | Nothing overrides it: the style is applied only when somebody selects it, which BUG-1040 records |
-| A unit dispatches a subordinate agent without the fragment | The subordinate answers in the platform's default shape, which is a defect against REQ-0954      |
-| A reply has nothing in the record to compute progress from | The reply states that, and states no step count it cannot support                                |
-| The shape would require dropping a verb or a finding       | The shape yields and the item stays (REQ-0952)                                                   |
+| Condition                                                     | What happens                                                                                     |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `keep-coding-instructions` is false or absent                 | The style check fails, naming the field and the file, and the gate stops                         |
+| A rule is stated with no condition under which it yields      | The style check fails, naming the rule                                                           |
+| A person has selected their own output style                  | Nothing overrides it: the style is applied only when somebody selects it, which BUG-1040 records |
+| A unit dispatches a subordinate agent without the rules block | The subordinate answers in the platform's default shape, which is a defect against REQ-0954      |
+| A reply has nothing in the record to compute progress from    | The reply states that, and states no step count it cannot support                                |
+| The shape would require dropping a verb or a finding          | The shape yields and the item stays (REQ-0952)                                                   |

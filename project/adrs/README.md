@@ -7,7 +7,7 @@ revised: 2026-09-22
 
 # Decisions
 
-Four decisions are in force.
+Five decisions are in force.
 
 |                                                                                                      | Decision                                                                      | Status                        |
 | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------- |
@@ -15,6 +15,7 @@ Four decisions are in force.
 | [ADR-1010](ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md)                     | The writing standard ships as a unit that reviews itself                      | approved, amended by ADR-1020 |
 | [ADR-1020](ADR-1020-every-shipped-prompt-is-tagged-and-a-rule-that-must-hold-is-loaded-by-a-hook.md) | Every shipped prompt is tagged, and a rule that must hold is loaded by a hook | approved                      |
 | [ADR-1030](ADR-1030-shipped-prompts-use-top-level-tags-with-markdown-inside.md)                      | Shipped prompts use top-level tags with Markdown inside                       | approved                      |
+| [ADR-1040](ADR-1040-the-style-carries-the-reply-shape-to-a-subordinate-agent.md)                     | The style carries the reply shape to a subordinate agent                      | approved                      |
 
 The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:
