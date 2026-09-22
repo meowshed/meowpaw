@@ -49,9 +49,11 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1230 tag every shipped prompt, check the vocabulary, and let
+- [x] T-001 TSK-1230 tag every shipped prompt, check the vocabulary, and let
       the loop measure on both models
       closes: REQ-1130, REQ-1136
+      evidence: the prompt check in the gate, the converted style landing on
+      both models at 173 fewer tokens, in #79. TSK-1230 carries the table.
 
 - [ ] T-002 TSK-1240 load the writing skill with a `SessionStart` hook, and
       write every description in the third person

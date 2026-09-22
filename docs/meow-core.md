@@ -19,8 +19,9 @@ confidence you have not earned.
 ## Subordinate agents
 
 A subordinate agent runs its own system prompt, and an output style never
-reaches it. If you write a prompt that dispatches one, include
-`${CLAUDE_PLUGIN_ROOT}/fragments/reply-shape.md` in it verbatim, and the
+reaches it. If you write a prompt that dispatches one, include the style's
+`<rules name="the reply shape">` block from
+`${CLAUDE_PLUGIN_ROOT}/output-styles/meow.md` in it as it stands, and the
 subordinate answers in the same shape. A fork inherits the style and needs
 nothing.
 
@@ -53,8 +54,8 @@ The shape is measured by running its cases with the plugin and without it. Each
 run is a real model call, so nothing runs it automatically. You run it by hand:
 
 ```bash
-mise run eval                              # Sonnet 5, judged by Opus 5.5
-mise run eval -- --model claude-haiku-4-5-20251001  # the same cases on another model
+mise run eval                              # Sonnet 5 and Opus 5.5, judged by Opus 5.5
+mise run eval -- --model claude-haiku-4-5-20251001  # the same cases on one other model
 ```
 
 Each unit prints a table with the difference the plugin makes on each case and

@@ -5,9 +5,10 @@
 """A prompt that dispatches a subordinate agent carries the reply shape.
 
 An output style reaches a fork and never a subordinate agent, which runs its
-own system prompt, so a unit that dispatches one includes the fragment in the
-prompt it sends (REQ-0954). This check reads every unit the harness ships,
-finds the ones that dispatch, and fails on any that does not name the fragment.
+own system prompt, so a unit that dispatches one includes the style's rules
+block in the prompt it sends (REQ-0954). This check reads every unit the harness ships,
+finds the ones that dispatch, and fails on any that does not name the style
+whose rules block it carries (ADR-1040).
 
 It cannot see what a prompt does at run time. What it can see is whether the
 material that writes the prompt names the file, which is the difference between
@@ -20,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PLUGINS = ROOT / "plugins"
-FRAGMENT = "fragments/reply-shape.md"
+FRAGMENT = "output-styles/meow.md"
 
 # A unit dispatches when it names the platform's mechanism for doing so. A
 # mention of the word "agent" is not a dispatch, or every document here would
@@ -50,7 +51,7 @@ def main() -> int:
 
     fragment = PLUGINS / "meow-core" / FRAGMENT
     if not fragment.is_file():
-        failures.append(f"the fragment itself is missing: {fragment.relative_to(ROOT)}")
+        failures.append(f"the style whose rules block a subordinate agent carries is missing: {fragment.relative_to(ROOT)}")
 
     verb = "dispatches" if dispatchers == 1 else "dispatch"
     print(f"{dispatchers} {verb} a subordinate agent, "

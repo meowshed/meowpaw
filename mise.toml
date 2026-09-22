@@ -20,10 +20,14 @@ run = "markdownlint-cli2 '**/*.md'"
 description = "Check every output style the harness ships"
 run = "python3 tools/check_style.py"
 
+[tasks.prompts]
+description = "Check every shipped prompt uses the tag vocabulary"
+run = "python3 tools/check_prompts.py"
+
 [tasks.eval]
 description = "Measure every unit on real models, by hand: it costs money, so `all` never runs it"
 run = "python3 tools/loop.py plugins/*/"
 
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "lint", "style"]
+depends = ["fmt-check", "lint", "style", "prompts"]
