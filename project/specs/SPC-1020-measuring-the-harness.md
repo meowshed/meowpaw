@@ -103,7 +103,9 @@ reading the absolute score alone would call an unchanged prompt better.
 A change to a prompt is measured against the prompt it replaces (REQ-0956).
 Every prompt goes through one runner, which measures on Sonnet 5 and judges
 with Opus 5.5, so a result for one prompt reads the same as a result for
-another. The current text is the baseline. Each candidate changes one thing, so the delta
+another. Opus 5.5 may also propose and refine the candidates: proposing is not
+judging, so the family rule in REQ-3028 does not reach it. The current text is
+the baseline. Each candidate changes one thing, so the delta
 can be attributed. Each candidate is measured on the same cases, with the same
 run count and the same judge.
 

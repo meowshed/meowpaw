@@ -138,8 +138,10 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1120 - the reviewer is what reads it, and the skill and the
       documentation page it reads land in TSK-1110
 
-- [ ] T-011 [P] TSK-1210 run the suite locally, at release and on a new model
+- [x] T-011 [P] TSK-1210 run the suite locally, at release and on a new model
       closes: REQ-3038
+      evidence: `mise run eval` on Sonnet 5 and again on Haiku 4.5, each with
+      its table, in #61. `all` runs no model.
       depends: TSK-1170 - a runner for a suite that cannot discriminate spends
       a model call on every run and reports nothing
 

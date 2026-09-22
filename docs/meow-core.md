@@ -47,6 +47,27 @@ Check what you got:
 claude plugin details meow-core@meowpaw
 ```
 
+## Measure it
+
+The shape is measured by running its cases with the plugin and without it. Each
+run is a real model call, so nothing runs it automatically. You run it by hand:
+
+```bash
+mise run eval                              # Sonnet 5, judged by Opus 5.5
+mise run eval -- --model claude-haiku-4-5-20251001  # the same cases on another model
+```
+
+Each unit prints a table with the difference the plugin makes on each case and
+what its text costs in tokens. A fall in that difference is a regression. A
+fall in the absolute score isn't, because a weaker model lowers both arms.
+
+Run it again when a new model comes out. A rule written to correct an older
+model's habit becomes dead weight once the new model stops having that habit,
+and only a run on the new model shows which rules those are.
+
+A usage limit or a cost ceiling shows up as a run error in the table, and never
+as a lower score.
+
 ## Where the rules come from
 
 The decision is `project/adrs/ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md`,
