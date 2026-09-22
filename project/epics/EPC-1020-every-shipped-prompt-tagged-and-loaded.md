@@ -53,7 +53,7 @@ A task is marked in the commit that advances it, never in a later pass.
       the loop measure on both models
       closes: REQ-1130, REQ-1136
       evidence: the prompt check in the gate, the converted style landing on
-      both models at 173 fewer tokens, in #66. TSK-1230 carries the table.
+      both models at 173 fewer tokens, in #79. TSK-1230 carries the table.
 
 - [ ] T-002 TSK-1240 load the writing skill with a `SessionStart` hook, and
       write every description in the third person

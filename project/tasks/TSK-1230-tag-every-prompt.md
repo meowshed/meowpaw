@@ -36,7 +36,7 @@ ships are written to the vocabulary when their own tasks write them.
 
 ## Evidence
 
-Closed by #66, in the form ADR-1030 and ADR-1040 state.
+Closed by #79, in the form ADR-1030 and ADR-1040 state.
 
 `tools/check_prompts.py` reads every shipped prompt and runs in the gate as
 `mise run prompts`. It failed first on probes with a heading, with a tag outside
