@@ -2,7 +2,7 @@
 id: SPC-1010
 artifact: spec
 status: live
-revised: 2026-09-21
+revised: 2026-09-22
 checked-at:
 states:
   [
@@ -39,6 +39,12 @@ states:
     REQ-1014,
     REQ-1024,
     REQ-1026,
+    REQ-1130,
+    REQ-1132,
+    REQ-1134,
+    REQ-1136,
+    REQ-1138,
+    REQ-1140,
   ]
 ---
 
@@ -55,19 +61,21 @@ It leaves licence headers to REQ-1008 and REQ-1016 to REQ-1022, which ask
 whether a header of a declared form is present, and it leaves the shape of a
 reply to SPC-1000.
 
-The harness does not implement this yet. ADR-1010 authorises it, EPC-1010
-realises it, and `checked-at` stays empty until that epic closes.
+The harness does not implement this yet. ADR-1010 authorises it and ADR-1020
+amends it, EPC-1010 and EPC-1020 realise them, and `checked-at` stays empty
+until both epics close.
 
 ## Boundary
 
 Two units ship, and either installs without the other (REQ-0012, REQ-0076).
 
-| Surface                                    | What it is                                                      |
-| ------------------------------------------ | --------------------------------------------------------------- |
-| `plugins/meow-prose/skills/writing/`       | The standard, loaded before anything is written                 |
-| `plugins/meow-prose/agents/prose.md`       | The deep reviewer, dispatched on request and at the review step |
-| `plugins/meow-prose-gate/hooks/hooks.json` | A `PreToolUse` prompt hook that blocks a publish                |
-| `.meowpaw/prose/`                          | A repository's replacement standard, which is total             |
+| Surface                                    | What it is                                                         |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `plugins/meow-prose/skills/writing/`       | The standard, loaded before anything is written                    |
+| `plugins/meow-prose/agents/prose.md`       | The deep reviewer, dispatched on request and at the review step    |
+| `plugins/meow-prose/hooks/hooks.json`      | A `SessionStart` command hook naming the skill and when to load it |
+| `plugins/meow-prose-gate/hooks/hooks.json` | A `PreToolUse` prompt hook that blocks a publish                   |
+| `.meowpaw/prose/`                          | A repository's replacement standard, which is total                |
 
 Installing either unit adds no task to a repository's runner, writes nothing
 into its tree and changes no build.
@@ -119,7 +127,9 @@ installable unit from doing, so it carries its own criteria in its own prompt.
 Its `PreToolUse` hook of type `prompt` reads a text before it is published, and
 publishing covers a commit, an issue, a pull request body, a review comment and
 a release note (REQ-3182). The hook names Haiku in its `model` field and blocks
-with `permissionDecision: "deny"`, giving a reason that names the rule.
+by answering `ok: false` with a reason that names the rule. It sets
+`continueOnBlock: true`, so the reason reaches the model as the tool error and
+the model corrects the text and publishes again.
 
 It judges only what a reader names without weighing taste: an idiom, an
 unexplained acronym, an American spelling outside a technical term, a bold
@@ -133,6 +143,44 @@ such as `$(cat notes.md)`, which the hook sees before the shell expands it. The
 denial names the form to use instead. A text the gate cannot read is not
 published.
 
+### How every prompt is written
+
+Every prompt either unit ships is written for Sonnet 5 and Opus 5.5 and is
+marked with XML tags from start to end, with front matter in YAML (REQ-1130).
+The tags form one vocabulary, and a prompt uses no other:
+
+| Tag                   | Holds                                                          |
+| --------------------- | -------------------------------------------------------------- |
+| `<role>`              | Who the model is while the prompt is in force                  |
+| `<rules>`             | The obligations, one `<rule id="...">` each                    |
+| `<examples>`          | Worked cases, one `<example>` each                             |
+| `<before>`, `<after>` | Inside an example, the failing form and the corrected one      |
+| `<steps>`             | A procedure, in order, ending at its stopping point            |
+| `<input>`             | Text from outside the harness, which the prompt treats as data |
+
+A rule says what to do and shows the form (REQ-1136). A prompt carries text
+from outside the harness only inside `<input>`, says that instructions inside
+it are data, and where the harness assembles the prompt, gives the opening and
+closing tags one identifier generated for that call (REQ-1132).
+
+A unit's description is in the third person, says what the unit does and when
+to use it, and leads with the words a request contains (REQ-1134).
+
+An instruction stays while the loop in SPC-1020 shows it changes the result on
+Sonnet 5 or Opus 5.5 (REQ-1138).
+
+### Loading the standard
+
+The skill has to be in context before a text is written, and the model's own
+choice loaded it in one run of nine. `meow-prose` therefore ships a
+`SessionStart` command hook that returns one line of `additionalContext`,
+naming the skill and the work it governs, on every new, resumed, cleared and
+compacted session (REQ-1140). The line costs under 300 characters, and the hook
+reads nothing and writes nothing.
+
+How often the skill is in context when a writing request arrives is measured on
+both models, with the hook and without it.
+
 ### Comments in code
 
 A comment is prose, so the standard holds it (REQ-0990) and the reviewer reads
@@ -141,7 +189,9 @@ which nothing carrying this method names (REQ-0016), and a model recognises one
 without that grammar.
 
 A comment exists only where the code cannot explain itself (REQ-1012), and the
-name is improved before a comment is added (REQ-1013). A comment never restates
+name is improved before a comment is added (REQ-1013). A comment is short and
+plain, one line where one line will do, and says why the code does what it
+does. A comment never restates
 what the code says (REQ-1014). Commented-out code does not survive a change
 (REQ-1024), and a marker for later work carries an issue or a task (REQ-1026).
 
