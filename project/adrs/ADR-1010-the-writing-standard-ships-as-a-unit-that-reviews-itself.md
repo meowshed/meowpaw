@@ -51,6 +51,11 @@ supersedes: []
 
 # 1010. The writing standard ships as a unit that reviews itself
 
+**Amended by ADR-1020.** The gate blocks by answering `ok: false` with a reason
+and sets `continueOnBlock: true`, where this record names
+`permissionDecision: "deny"`, a command hook's field. Every prompt this record
+ships is written in the tags ADR-1020 states. The rest stands.
+
 ## Decision
 
 The writing standard ships as a plugin named `meow-prose`.

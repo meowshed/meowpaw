@@ -35,13 +35,13 @@ it.
 
 ## Research
 
-126 documents, indexed by
+127 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
 ## Requirements
 
-1,053 obligations, indexed by [requirements/README.md](requirements/README.md).
+1,069 obligations, indexed by [requirements/README.md](requirements/README.md).
 Each is one file carrying one obligation, and it declares whether it's
 functional or non-functional and which of the four kinds of check verifies it:
 a static check, a behavioural fixture, a judgement with its judge named, or a
@@ -58,6 +58,11 @@ requirements as they now stand.
 is approved and in force: the writing standard ships as `meow-prose`, held
 by a reviewer inside it and by a separately installed gate, and never by a
 pattern over prose.
+
+[ADR-1020](adrs/ADR-1020-every-shipped-prompt-is-tagged-and-a-rule-that-must-hold-is-loaded-by-a-hook.md)
+is a draft that amends it: every shipped prompt is written in XML tags for
+Sonnet 5 and Opus 5.5, the writing skill is loaded by a `SessionStart` hook,
+and the gate blocks with the field a prompt hook actually has.
 
 ## Specifications
 
@@ -84,6 +89,10 @@ realises ADR-1010 in eleven tasks, TSK-1110 to TSK-1210, each filed as an issue
 once the epic was approved. TSK-1100 is the planning task, under #46. Every
 requirement ADR-1010 addresses lands in exactly one task except REQ-3034, which
 the epic defers with its reason.
+
+[EPC-1020](epics/EPC-1020-every-shipped-prompt-tagged-and-loaded.md) is a draft
+that realises ADR-1020 in four tasks, TSK-1230 to TSK-1260, not yet filed as
+issues. TSK-1220 is the planning task, under #62.
 
 ## Defects
 
