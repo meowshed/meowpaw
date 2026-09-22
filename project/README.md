@@ -41,7 +41,7 @@ downstream cites.
 
 ## Requirements
 
-1,072 obligations, indexed by [requirements/README.md](requirements/README.md).
+1,073 obligations, indexed by [requirements/README.md](requirements/README.md).
 Each is one file carrying one obligation, and it declares whether it's
 functional or non-functional and which of the four kinds of check verifies it:
 a static check, a behavioural fixture, a judgement with its judge named, or a
@@ -77,6 +77,10 @@ person selects it, and not on its own.
 and [SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to
 what the harness says is measured. Nothing implements either yet, so both leave
 `checked-at` empty.
+
+[SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
+prompt the harness ships is written: its form, its content, how it is divided
+and loaded, and what it costs.
 
 ## Epics and tasks
 
