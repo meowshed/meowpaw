@@ -3,7 +3,7 @@ id: REQ-1429
 artifact: requirement
 topic: safety
 class: non-functional
-status: draft
+status: approved
 revised: 2026-09-22
 elaborates: RES-0271
 verification: static

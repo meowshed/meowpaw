@@ -3,7 +3,7 @@ id: REQ-0521
 artifact: requirement
 topic: artifacts
 class: functional
-status: draft
+status: approved
 revised: 2026-09-22
 elaborates: RES-0271
 verification: behavioural
