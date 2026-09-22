@@ -27,6 +27,10 @@ supersedes: []
 
 # 1000. The reply shape is a forced output style carried by the kernel
 
+**Amended by ADR-1040.** The reply shape reaches a subordinate agent from the
+style's own rules block, and the separate prompt fragment is removed. The rest
+stands.
+
 ## Decision
 
 The kernel is a plugin named `meow-core`, and it ships the reply shape as an
