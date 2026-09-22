@@ -64,7 +64,7 @@ is approved and amends it: every shipped prompt is written in XML tags for
 Sonnet 5 and Opus 5.5, the writing skill is loaded by a `SessionStart` hook,
 and the gate blocks with the field a prompt hook actually has.
 [ADR-1030](adrs/ADR-1030-shipped-prompts-use-top-level-tags-with-markdown-inside.md)
-is a draft that amends it: five top-level tags with Markdown inside, and each
+is approved and amends it: five top-level tags with Markdown inside, and each
 rule a list item led by an identifier.
 
 ## Specifications
