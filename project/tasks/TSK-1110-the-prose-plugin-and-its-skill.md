@@ -85,11 +85,28 @@ No other task. `meow-core` exists, and nothing here needs it.
 
 ## Evidence
 
-Not yet. The task closes on `claude plugin install meow-prose@meowpaw` and
-`claude plugin list` showing the unit installed and enabled, a session in a
-clean repository with only `meow-prose` installed loading the skill before it
-writes a commit message, and the skill's token count with the position of its
-last obligation. The criteria table is part of the evidence.
+In progress. #70 ships the unit, and the skill follows ADR-1020: tagged
+throughout, with the document rules and the code rule moved into
+`document-types.md` to keep the body under its limit.
+
+```text
+$ claude plugin install meow-prose@meowpaw --scope local    # in a scratch repository
+Successfully installed plugin: meow-prose@meowpaw (scope: local)
+
+$ claude plugin list
+meow-prose@meowpaw  Version: 0.1.0  Scope: local  Status: enabled
+```
+
+Token counts on Sonnet 5, measured as the difference in input tokens with the
+file appended: `SKILL.md` 4,801, `patterns.md` 3,047, `document-types.md`
+2,594 and `self-review.md` 1,105. Every obligation in the body sits inside its
+first 5,000 tokens (REQ-1064, REQ-1066).
+
+REQ-0992 is not met yet. In a clean repository on Sonnet 5, with the skill
+listed in every session, the model loaded it in 0 of 9 runs across a commit
+message, an install section and a pull request body, against 1 of 9 for the
+first description. ADR-1020 answers this with a `SessionStart` hook, which
+TSK-1240 builds, and this task closes on the routing measured with that hook.
 
 ## Left alone
 

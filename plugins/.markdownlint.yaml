@@ -1,0 +1,10 @@
+# This file replaces the root configuration for everything under plugins/, so
+# it repeats the root's three settings. MD013 is off because prettier owns
+# wrapping, and MD033 is off because a shipped prompt is XML tags.
+MD013: false
+MD024:
+  siblings_only: true
+MD033: false
+# A shipped prompt is marked with XML tags from its first line and carries no
+# Markdown heading (REQ-1130), so MD041 has nothing to find there.
+MD041: false
