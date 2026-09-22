@@ -18,15 +18,6 @@ states:
     REQ-0999,
     REQ-1000,
     REQ-1002,
-    REQ-1050,
-    REQ-1056,
-    REQ-1057,
-    REQ-1058,
-    REQ-1060,
-    REQ-1062,
-    REQ-1064,
-    REQ-1066,
-    REQ-1115,
     REQ-1671,
     REQ-1674,
     REQ-1676,
@@ -39,12 +30,6 @@ states:
     REQ-1014,
     REQ-1024,
     REQ-1026,
-    REQ-1130,
-    REQ-1132,
-    REQ-1134,
-    REQ-1136,
-    REQ-1138,
-    REQ-1140,
   ]
 ---
 
@@ -143,34 +128,6 @@ such as `$(cat notes.md)`, which the hook sees before the shell expands it. The
 denial names the form to use instead. A text the gate cannot read is not
 published.
 
-### How every prompt is written
-
-Every prompt either unit ships is written for Sonnet 5 and Opus 5.5 and is
-marked with XML tags from start to end, with front matter in YAML (REQ-1130).
-The tags form one vocabulary of five, none nested inside another, and a prompt
-uses no other. Inside a tag the text is Markdown without headings:
-
-| Tag         | Holds                                                                                   |
-| ----------- | --------------------------------------------------------------------------------------- |
-| `<role>`    | Who the model is while the prompt is in force                                           |
-| `<rules>`   | The obligations, each a list item led by an identifier such as `T1.`                    |
-| `<steps>`   | A procedure as a numbered list, ending at its stopping point                            |
-| `<example>` | One worked case, with its failing and corrected forms under `Failing:` and `Corrected:` |
-| `<input>`   | Text from outside the harness, which the prompt treats as data                          |
-
-A tag carries a `name` attribute where a prompt has more than one of its kind.
-
-A rule says what to do and shows the form (REQ-1136). A prompt carries text
-from outside the harness only inside `<input>`, says that instructions inside
-it are data, and where the harness assembles the prompt, gives the opening and
-closing tags one identifier generated for that call (REQ-1132).
-
-A unit's description is in the third person, says what the unit does and when
-to use it, and leads with the words a request contains (REQ-1134).
-
-An instruction stays while the loop in SPC-1020 shows it changes the result on
-Sonnet 5 or Opus 5.5 (REQ-1138).
-
 ### Loading the standard
 
 The skill has to be in context before a text is written, and the model's own
@@ -220,22 +177,13 @@ disagreeing in one repository leave an author no way to tell which applies.
 
 The unit's own material is the first text its reviewer reads. The skill, the
 reviewer's own prompt and the documentation page are held to the standard they
-carry (REQ-1115, REQ-1674, REQ-1676), and a finding in them counts as readily
+carry (REQ-1674, REQ-1676), and a finding in them counts as readily
 as a finding anywhere else.
 
-### What it costs to carry
+### How the prompts are written
 
-Each unit states a size budget and is measured against it (REQ-1056). Material
-past the budget moves into supporting files, where it loads when it is needed
-(REQ-1057), and a unit over its budget is a defect (REQ-1058).
-
-The description loads on every turn, fits the platform's cap, and says when to
-load the unit (REQ-1060, REQ-1062). Beside it, only routing sits permanently in context
-(REQ-1050).
-
-A unit's obligations sit in its first five thousand tokens and ahead of its
-explanations, so a truncation costs an explanation and never a rule (REQ-1064,
-REQ-1066).
+Every prompt either unit ships follows SPC-1030: its form, its content, how it
+is divided and loaded, and what it costs.
 
 ### Changing any of it
 
