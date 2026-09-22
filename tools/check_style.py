@@ -22,9 +22,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 STYLES = ROOT / "plugins"
-# The underscore is a word character, so `\b` after "Yields" never matches the
-# emphasised form `_Yields_ never.` that the style actually writes.
-YIELDS = re.compile(r"^_Yields(?:_|\s)", re.M)
+# A tagged rule states its condition as a sentence, "It yields when" or "It
+# never yields". The older form under a heading wrote `_Yields_`, where the
+# underscore is a word character, so `\b` after it never matches.
+YIELDS = re.compile(r"\bIt (?:never )?yields\b|^_Yields(?:_|\s)", re.M)
+RULES = re.compile(r"<rules[^>]*>(?P<body>.*?)</rules>", re.S)
+ITEM = re.compile(r"^- (?P<id>[A-Z]+\d+)\. (?P<text>.*?)(?=^- |\Z)", re.S | re.M)
 FIELD = re.compile(r"^(?P<key>[a-z-]+):\s*(?P<value>.+?)\s*$", re.M)
 
 
@@ -40,7 +43,12 @@ def front_matter(text):
 
 
 def rules(body):
-    """Each `##` section is a rule, paired with the text under it."""
+    """Each rule with its text: a list item led by an identifier inside `<rules>`
+    (ADR-1030), or in the older form each `##` section."""
+    tagged = [(m.group("id"), m.group("text"))
+              for block in RULES.finditer(body) for m in ITEM.finditer(block.group("body") + "\n")]
+    if tagged:
+        return tagged
     parts = re.split(r"^## (.+)$", body, flags=re.M)[1:]
     return list(zip(parts[0::2], parts[1::2]))
 
