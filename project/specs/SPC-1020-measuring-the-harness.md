@@ -2,7 +2,7 @@
 id: SPC-1020
 artifact: spec
 status: live
-revised: 2026-09-21
+revised: 2026-09-22
 checked-at:
 states:
   [
@@ -36,12 +36,14 @@ and `checked-at` stays empty until that epic closes.
 
 ## Boundary
 
-| Surface                         | What it is                                                    |
-| ------------------------------- | ------------------------------------------------------------- |
-| `plugins/<unit>/evals/<case>/`  | One case: the prompt a person might type, and its graders     |
-| The platform's eval runner      | Runs each case in both arms and scores it                     |
-| `plugins/<unit>/evals/results/` | What a run wrote; no repository commits it                    |
-| The published delta             | Per case and weighted, with the run count and the judge named |
+| Surface                                | What it is                                                     |
+| -------------------------------------- | -------------------------------------------------------------- |
+| `plugins/<unit>/evals/<case>/`         | One case: the prompt a person might type, and its graders      |
+| The platform's eval runner             | Runs each case in both arms and scores it                      |
+| `plugins/<unit>/evals/results/`        | What a run wrote; no repository commits it                     |
+| `plugins/<unit>/evals/thresholds.toml` | What the styled arm must score on each case                    |
+| `tools/loop.py`                        | Runs the baseline and every candidate, and publishes one table |
+| The published delta                    | Per case and weighted, with the run count and the judge named  |
 
 ## Behaviour
 
@@ -98,8 +100,10 @@ reading the absolute score alone would call an unchanged prompt better.
 
 ### The loop
 
-A change to a prompt is measured against the prompt it replaces (REQ-0956). The
-current text is the baseline. Each candidate changes one thing, so the delta
+A change to a prompt is measured against the prompt it replaces (REQ-0956).
+Every prompt goes through one runner, which measures on Sonnet 5 and judges
+with Opus 5.5, so a result for one prompt reads the same as a result for
+another. The current text is the baseline. Each candidate changes one thing, so the delta
 can be attributed. Each candidate is measured on the same cases, with the same
 run count and the same judge.
 
