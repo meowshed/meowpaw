@@ -87,7 +87,7 @@ No other task. `meow-core` exists, and nothing here needs it.
 
 In progress. #70 ships the unit, and the skill follows ADR-1020: tagged
 throughout, with the document rules and the code rule moved into
-`document-types.md` to keep the body under its limit.
+`document-types.md` at the time.
 
 Pull request #71 aligns `document-types.md` with the kinds of the record, the vision to the
 defect record, as the record actually writes them, and puts a shipped template
@@ -101,10 +101,19 @@ $ claude plugin list
 meow-prose@meowpaw  Version: 0.1.0  Scope: local  Status: enabled
 ```
 
+Pull request #74 splits the skill so a text loads only what it needs, in the form ADR-1030
+states: one core, `SKILL.md`, with the rules every text needs and a router
+naming the rest; one pattern reference, `patterns.md`, with 16 patterns and 21
+failing and corrected pairs; and one file per document type, twelve under
+`types/` and nine for the record under `types/record/`. Each rule sits in one
+place, numbered from one within its group.
+
 Token counts on Sonnet 5, measured as the difference in input tokens with the
-file appended: `SKILL.md` 4,801, `patterns.md` 3,047, `document-types.md`
-2,594 and `self-review.md` 1,105. Every obligation in the body sits inside its
-first 5,000 tokens (REQ-1064, REQ-1066).
+file appended: `SKILL.md` 4,904, `patterns.md` 2,753, the document types 188
+to 359, and the record files 215 to 385. A commit message loads the core alone;
+a README loads the core and 240 tokens of skeleton. Every obligation in the
+core sits inside its first 5,000 tokens (REQ-1064, REQ-1066), with the router
+placed right after the role so a truncation cannot drop it.
 
 REQ-0992 is not met yet. In a clean repository on Sonnet 5, with the skill
 listed in every session, the model loaded it in 0 of 9 runs across a commit
