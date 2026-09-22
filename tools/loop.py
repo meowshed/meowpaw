@@ -9,7 +9,7 @@ changes one thing, every candidate runs on the same cases with the same run
 count and the same judge, and every candidate is published, including the ones
 that lost. This runs it over one unit and prints one table.
 
-    python3 tools/loop.py plugins/meow-core                      # baseline only
+    python3 tools/loop.py plugins/*/                             # every unit, baseline only
     python3 tools/loop.py plugins/meow-core --candidates DIR     # and each candidate
 
 A candidate is a directory under DIR holding `candidate.toml`, whose `change`
@@ -217,30 +217,11 @@ def table_classifier(rows):
     return "\n".join(lines)
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("unit", type=Path)
-    ap.add_argument("--candidates", type=Path)
-    ap.add_argument("--mode", choices=("delta", "classifier"), default="delta")
-    ap.add_argument("--loads", nargs="+", default=["output-styles/*.md"],
-                    help="globs, relative to the unit, for the text whose token cost is reported")
-    ap.add_argument("--runs", type=int, default=RUNS)
-    ap.add_argument("--cases")
-    ap.add_argument("-j", "--jobs", type=int, default=4)
-    ap.add_argument("--model", default=MODEL)
-    ap.add_argument("--judge", default=JUDGE)
-    args = ap.parse_args()
-
-    unit = args.unit.resolve()
+def loop(unit, args, entries):
+    """Run the baseline and every candidate over one unit, and publish its table."""
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out = unit / "evals" / "results" / f"loop-{stamp}"
     out.mkdir(parents=True)
-
-    entries = [("baseline", "the text as it stands", None)]
-    if args.candidates:
-        for d in sorted(p for p in args.candidates.iterdir() if (p / "candidate.toml").exists()):
-            change = tomllib.loads((d / "candidate.toml").read_text(encoding="utf-8"))["change"]
-            entries.append((d.name, change, d))
 
     rows = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -255,7 +236,7 @@ def main():
             row.update(name=name, change=change,
                        tokens=token_cost(root, args.loads, args.model, probe, empty))
             rows.append(row)
-            print(f"{name}: done, ${row['cost']:.2f}", file=sys.stderr)
+            print(f"{unit.name} {name}: done, ${row['cost']:.2f}", file=sys.stderr)
 
     if args.mode == "classifier":
         for r in rows:
@@ -278,7 +259,38 @@ def main():
     (out / "loop.md").write_text(text, encoding="utf-8")
     (out / "loop.json").write_text(json.dumps(rows, indent=2, default=str), encoding="utf-8")
     print(text)
-    print(f"written to {out.relative_to(Path.cwd()) if out.is_relative_to(Path.cwd()) else out}")
+    print(f"written to {out}\n")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("units", type=Path, nargs="+")
+    ap.add_argument("--candidates", type=Path)
+    ap.add_argument("--mode", choices=("delta", "classifier"), default="delta")
+    ap.add_argument("--loads", nargs="+", default=["output-styles/*.md"],
+                    help="globs, relative to the unit, for the text whose token cost is reported")
+    ap.add_argument("--runs", type=int, default=RUNS)
+    ap.add_argument("--cases")
+    ap.add_argument("-j", "--jobs", type=int, default=4)
+    ap.add_argument("--model", default=MODEL)
+    ap.add_argument("--judge", default=JUDGE)
+    args = ap.parse_args()
+
+    units = [u.resolve() for u in args.units]
+    if args.candidates and len(units) > 1:
+        sys.exit("candidates replace one unit's files, so name exactly one unit")
+
+    entries = [("baseline", "the text as it stands", None)]
+    if args.candidates:
+        for d in sorted(p for p in args.candidates.iterdir() if (p / "candidate.toml").exists()):
+            change = tomllib.loads((d / "candidate.toml").read_text(encoding="utf-8"))["change"]
+            entries.append((d.name, change, d))
+
+    for unit in units:
+        if not (unit / "evals").is_dir():
+            print(f"{unit.name}: no evals, nothing to measure\n")
+            continue
+        loop(unit, args, entries)
     return 0
 
 
