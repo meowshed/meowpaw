@@ -153,6 +153,7 @@ here or in the sources below.
 | [Monorepos and large repositories](RES-0267-monorepos.md)                                    | Several documents in this corpus assume one repository has one answer - one profile, one set of verbs, one record - and a monorepo has several.                                                      |
 | [Licensing and provenance](RES-0268-licensing-and-provenance.md)                             | This repository already declares its licensing in a bulk file and puts identifiers in code, and no decision records why.                                                                             |
 | [Documenting this project](RES-0269-documenting-this-project.md)                             | This repository holds two trees of prose, and only one of them is documentation.                                                                                                                     |
+| [Prompting Claude Sonnet 5 and Claude Opus 5.5](RES-0270-prompting-sonnet-5-and-opus-5-5.md) | A prompt's formatting carries into its reply, so a prompt that asks for prose is written in tags.                                                                                                    |
 
 ## The situation
 
