@@ -101,7 +101,7 @@ $ claude plugin list
 meow-prose@meowpaw  Version: 0.1.0  Scope: local  Status: enabled
 ```
 
-#74 splits the skill so a text loads only what it needs, in the form ADR-1030
+Pull request #74 splits the skill so a text loads only what it needs, in the form ADR-1030
 states: one core, `SKILL.md`, with the rules every text needs and a router
 naming the rest; one pattern reference, `patterns.md`, with 16 patterns and 21
 failing and corrected pairs; and one file per document type, twelve under
