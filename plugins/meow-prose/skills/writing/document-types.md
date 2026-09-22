@@ -1,9 +1,65 @@
 <role>
 Pick the type before you write, because each type has a fixed skeleton, and a
 document missing a part its type requires is incomplete however good its
-sentences are. The first four types sort documentation by what the reader is
-trying to do: learn, finish a task, look something up, or understand.
+sentences are. A shipped template comes first. The record's kinds follow, then
+the kinds of documentation, whose first four sort by what the reader is trying
+to do: learn, finish a task, look something up, or understand.
 </role>
+
+<rules name="templates">
+<rule id="template-first">Follow a template where the repository or an
+installed unit ships one for the kind of document you are writing: a
+repository's own in `.meowpaw/templates/` first, then the owning unit's. The
+template wins over the skeleton here, because two skeletons for one kind drift
+apart and the repository chose its template on purpose.</rule>
+</rules>
+
+<rules name="the record">
+<rule id="record">The record is the set of documents a project keeps about what
+it must do and why: a vision, research records, requirements, decision records,
+specifications, epics, tasks and defect records. Each lives in its own file,
+named for its identifier, with front matter stating its identifier, its kind,
+its status and the records it came from. Name what a record came from by its
+bare identifier and never by a link, because the reverse direction is derived
+and a record written earlier cannot be kept current by a later one.</rule>
+<rule id="vision">Vision: what the project is, the problem it answers, who it is
+for, what it will not do, where it is going, and what it will not trade away.
+It is a living document, rewritten freely, so it describes the present and
+carries no history.</rule>
+<rule id="research-record">Research record: a summary answering the question
+in five to eight sentences, the question, the method with its date and its
+limits, the findings, each naming its source, numbered conclusions, and the
+sources with what each one supported. Read the primary source, because a
+summary lags the thing it summarises.</rule>
+<rule id="requirement">Requirement: one obligation per file, under its
+identifier, stated with MUST or MUST NOT and naming what it binds, followed by
+the reason in one short paragraph. Allocate the identifier once and never reuse
+it. A wrong requirement is withdrawn with a line naming its replacement, never
+reworded, because a reworded obligation hides that it ever said something
+else.</rule>
+<rule id="decision-record">Decision record: the decision, stated so it can be
+checked; why; the alternatives, doing nothing among them, each with what it was
+better at and why it lost; what it costs; what would reverse it, as something
+observable; the consequences; how you will know it was realised; and what it
+does not settle. The last two are what let somebody verify it later without
+inventing the test.</rule>
+<rule id="specification">Specification: what the system does now, divided by
+its parts, in scope, boundary, behaviour and failure paths. It is living, so it
+states the present, and every statement traces to a requirement in
+force.</rule>
+<rule id="epic">Epic: the one record it realises, acceptance criteria taken from
+that record before the tasks were written, the tasks with what each closes and
+depends on, the coverage check, and what it leaves out with the reason. A
+criterion states what the project can bring about, never how a third party
+must behave.</rule>
+<rule id="task">Task: what to do, in enough detail for an implementer with no
+access to the conversation; what it depends on and why; the evidence, meaning
+the command, its result and the change that carried it, once done; and what it
+left alone.</rule>
+<rule id="defect">Defect record: the smallest reproduction, what the system
+does, what it should do and which requirement says so, the triage, and what
+closed it.</rule>
+</rules>
 
 <rules name="document types">
 <rule id="tutorial">Tutorial: A guaranteed path from nothing to a working result, for a reader who is
@@ -23,10 +79,6 @@ a realistic request and response, and each error with its exact text.</rule>
 and the history where it changes the answer. This is where the author's "I",
 or a team's "we", fits best, because the reader wants to know who chose and
 why.</rule>
-<rule id="decision-record">Decision record: Title, status and date. Context: the forces at play. The decision, in one
-paragraph, stated as a fact. Consequences, good and bad, each with a concrete
-effect. The alternatives considered, with the reason each lost. What would
-reverse the decision, stated as something observable.</rule>
 <rule id="design-proposal">Design proposal: A summary that stands alone in five sentences: problem, proposal, cost, risk
 and ask. Then goals and non-goals, the design, alternatives, rollout and open
 questions. Every risk carries an impact and a mitigation, and every mitigation
