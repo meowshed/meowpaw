@@ -17,7 +17,7 @@ the text is Markdown: a list, a numbered list, code spans and fences. A tag
 carries a `name` attribute where a prompt has more than one of its kind.
 
 Each rule is a list item inside a `<rules>` block, led by an identifier a
-review can cite, such as `T1.` or `A3.`. Each example is its own `<example>`,
+review can cite, such as `T1.` or `D4.`. Each example is its own `<example>`,
 with its failing and corrected forms under the plain labels `Failing:` and
 `Corrected:`. Text from outside the harness still sits in `<input>` (REQ-1132).
 
