@@ -19,8 +19,9 @@ confidence you have not earned.
 ## Subordinate agents
 
 A subordinate agent runs its own system prompt, and an output style never
-reaches it. If you write a prompt that dispatches one, include
-`${CLAUDE_PLUGIN_ROOT}/fragments/reply-shape.md` in it verbatim, and the
+reaches it. If you write a prompt that dispatches one, include the style's
+`<rules name="the reply shape">` block from
+`${CLAUDE_PLUGIN_ROOT}/output-styles/meow.md` in it as it stands, and the
 subordinate answers in the same shape. A fork inherits the style and needs
 nothing.
 
