@@ -30,10 +30,14 @@ wording, whatever you declare.
 ## What it costs you
 
 The skill's description sits in context on every turn so that Claude knows when
-to load it, which costs a few hundred characters. When it loads, the skill
-itself costs about 5,000 tokens. The pattern catalogue, the document skeletons
-and the self-review checks sit in separate files that load only when Claude
-needs them.
+to load it, which costs about 440 characters. When it loads, the skill itself
+costs about 4,800 tokens on Sonnet 5. The pattern catalogue, the document
+skeletons and the self-review checks sit in separate files that load only when
+Claude needs them.
+
+Claude doesn't yet load the skill on its own when you ask for a commit message
+or a pull request description. Until the plugin ships a hook that loads it,
+invoke it with `/meow-prose:writing` before you ask for the text.
 
 ## Install it
 
