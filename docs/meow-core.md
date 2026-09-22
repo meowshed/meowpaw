@@ -53,8 +53,8 @@ The shape is measured by running its cases with the plugin and without it. Each
 run is a real model call, so nothing runs it automatically. You run it by hand:
 
 ```bash
-mise run eval                              # Sonnet 5, judged by Opus 5.5
-mise run eval -- --model claude-haiku-4-5-20251001  # the same cases on another model
+mise run eval                              # Sonnet 5 and Opus 5.5, judged by Opus 5.5
+mise run eval -- --model claude-haiku-4-5-20251001  # the same cases on one other model
 ```
 
 Each unit prints a table with the difference the plugin makes on each case and

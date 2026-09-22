@@ -26,7 +26,8 @@ STYLES = ROOT / "plugins"
 # never yields". The older form under a heading wrote `_Yields_`, where the
 # underscore is a word character, so `\b` after it never matches.
 YIELDS = re.compile(r"\bIt (?:never )?yields\b|^_Yields(?:_|\s)", re.M)
-RULE = re.compile(r'<rule id="(?P<id>[^"]+)"[^>]*>(?P<text>.*?)</rule>', re.S)
+RULES = re.compile(r"<rules[^>]*>(?P<body>.*?)</rules>", re.S)
+ITEM = re.compile(r"^- (?P<id>[A-Z]+\d+)\. (?P<text>.*?)(?=^- |\Z)", re.S | re.M)
 FIELD = re.compile(r"^(?P<key>[a-z-]+):\s*(?P<value>.+?)\s*$", re.M)
 
 
@@ -42,8 +43,10 @@ def front_matter(text):
 
 
 def rules(body):
-    """Each `<rule>` element, or in the older form each `##` section, with its text."""
-    tagged = [(m.group("id"), m.group("text")) for m in RULE.finditer(body)]
+    """Each rule with its text: a list item led by an identifier inside `<rules>`
+    (ADR-1030), or in the older form each `##` section."""
+    tagged = [(m.group("id"), m.group("text"))
+              for block in RULES.finditer(body) for m in ITEM.finditer(block.group("body") + "\n")]
     if tagged:
         return tagged
     parts = re.split(r"^## (.+)$", body, flags=re.M)[1:]

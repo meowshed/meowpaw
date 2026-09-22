@@ -2,17 +2,18 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Every prompt the harness ships is written in one vocabulary of tags.
+"""Every prompt the harness ships is written in one vocabulary of top-level tags.
 
 A prompt's formatting carries into the reply it produces, so a prompt under
 Markdown headings teaches headings (REQ-1130), and a tag nobody documented is
 one the next author invents differently (REQ-1114). SPC-1010 states the
-vocabulary. This check reads every skill, agent, output style, fragment and
-prompt hook a unit ships, and fails on a Markdown heading, on a tag outside the
-vocabulary, and on text standing outside every tag.
+vocabulary: five tags, none nested, with Markdown inside them (ADR-1030). This
+check reads every skill, agent, output style, fragment and prompt hook a unit
+ships, and fails on a Markdown heading, on a tag outside the vocabulary, on a
+tag opened inside another, and on text standing outside every tag.
 
-Text inside `<before>`, `<after>` or `<input>` is quoted material, such as a
-failing example or a text under review, so it is read and never judged.
+Text inside `<example>` or `<input>` is quoted material, such as a failing
+example or a text under review, so its headings are read and never judged.
 """
 
 import json
@@ -22,8 +23,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PLUGINS = ROOT / "plugins"
-VOCABULARY = {"role", "rules", "rule", "examples", "example", "before", "after", "steps", "input"}
-QUOTED = {"before", "after", "input"}
+VOCABULARY = {"role", "rules", "steps", "example", "input"}
+QUOTED = {"example", "input"}
 PROMPTS = ("skills/**/*.md", "agents/*.md", "output-styles/*.md", "fragments/*.md")
 
 TAG = re.compile(r"<(/?)([A-Za-z_][\w-]*)(?:\s[^<>]*)?>")
@@ -69,6 +70,8 @@ def audit(text, where):
                     while stack and stack.pop() != name:
                         pass
             else:
+                if stack:
+                    found.append(f"{where}:{number}: <{name}> opens inside <{stack[-1]}>, where tags are top-level only")
                 stack.append(name)
         if outside and not TAG.match(line.strip()):
             found.append(f"{where}:{number}: text outside every tag")
