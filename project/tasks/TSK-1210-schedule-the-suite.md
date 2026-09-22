@@ -38,9 +38,27 @@ call on every run and reports nothing.
 
 ## Evidence
 
-Not yet. The task closes on `mise run eval` run twice, once on the current
-model and once with a different model named, each with its published table,
-and on `mise run all` still running no model.
+Run on 2026-09-22, judged by `claude-opus-5-5`, five runs per arm, no run
+errors. Every judged score is a smoke check (REQ-3028).
+
+```bash
+mise run eval                                       # claude-sonnet-5, $3.13
+mise run eval -- --model claude-haiku-4-5-20251001  # $1.81
+```
+
+| Case                     | Sonnet 5 delta | Haiku 4.5 delta |
+| ------------------------ | -------------- | --------------- |
+| `error-report`           | +0.05          | 0.00            |
+| `gap-list-kept`          | -0.20          | -0.20           |
+| `no-preamble-no-recap`   | +0.10          | +0.10           |
+| `one-line-keeps-the-gap` | +0.15          | +0.15           |
+| Weighted, with 2SE       | +0.02 (0.14)   | +0.01 (0.12)    |
+
+On Haiku 4.5 `error-report` scores 1.00 in both arms, so that case measures
+nothing on that model. The style costs 1,452 tokens on Sonnet 5 and 1,077 on
+Haiku 4.5, because each model counts the same text with its own tokenizer.
+
+`mise run all` still runs no model: `eval` is not among its dependencies.
 
 ## Left alone
 
