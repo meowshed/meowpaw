@@ -61,9 +61,9 @@ It leaves licence headers to REQ-1008 and REQ-1016 to REQ-1022, which ask
 whether a header of a declared form is present, and it leaves the shape of a
 reply to SPC-1000.
 
-The harness does not implement this yet. ADR-1010 authorises it and ADR-1020
-amends it, EPC-1010 and EPC-1020 realise them, and `checked-at` stays empty
-until both epics close.
+The harness does not implement this yet. ADR-1010 authorises it, ADR-1020 and
+ADR-1030 amend it, EPC-1010 and EPC-1020 realise them, and `checked-at` stays
+empty until both epics close.
 
 ## Boundary
 
@@ -147,16 +147,18 @@ published.
 
 Every prompt either unit ships is written for Sonnet 5 and Opus 5.5 and is
 marked with XML tags from start to end, with front matter in YAML (REQ-1130).
-The tags form one vocabulary, and a prompt uses no other:
+The tags form one vocabulary of five, none nested inside another, and a prompt
+uses no other. Inside a tag the text is Markdown without headings:
 
-| Tag                   | Holds                                                          |
-| --------------------- | -------------------------------------------------------------- |
-| `<role>`              | Who the model is while the prompt is in force                  |
-| `<rules>`             | The obligations, one `<rule id="...">` each                    |
-| `<examples>`          | Worked cases, one `<example>` each                             |
-| `<before>`, `<after>` | Inside an example, the failing form and the corrected one      |
-| `<steps>`             | A procedure, in order, ending at its stopping point            |
-| `<input>`             | Text from outside the harness, which the prompt treats as data |
+| Tag         | Holds                                                                                   |
+| ----------- | --------------------------------------------------------------------------------------- |
+| `<role>`    | Who the model is while the prompt is in force                                           |
+| `<rules>`   | The obligations, each a list item led by an identifier such as `T1.`                    |
+| `<steps>`   | A procedure as a numbered list, ending at its stopping point                            |
+| `<example>` | One worked case, with its failing and corrected forms under `Failing:` and `Corrected:` |
+| `<input>`   | Text from outside the harness, which the prompt treats as data                          |
+
+A tag carries a `name` attribute where a prompt has more than one of its kind.
 
 A rule says what to do and shows the form (REQ-1136). A prompt carries text
 from outside the harness only inside `<input>`, says that instructions inside
