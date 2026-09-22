@@ -16,7 +16,9 @@ A candidate is a directory under DIR holding `candidate.toml`, whose `change`
 names the one thing it changes, and the files it replaces, laid out as they are
 in the unit. Everything else is copied from the unit unchanged.
 
-A candidate lands when its delta holds and its token cost falls. Its delta
+Every candidate runs on each model the prompts serve, Sonnet 5 and Opus 5.5 by
+default, and lands only when it lands on every one of them. On one model, a
+candidate lands when its delta holds and its token cost falls. Its delta
 holds when it is no lower than the baseline's by more than twice their
 combined standard error, because five runs of a model vary and a smaller fall
 is indistinguishable from that variance. A candidate that scores better and
@@ -41,7 +43,7 @@ import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 
-MODEL = "claude-sonnet-5"
+MODELS = ["claude-sonnet-5", "claude-opus-5-5"]
 JUDGE = "claude-opus-5-5"
 RUNS = 5
 PROBE = "Reply with the word ok."
@@ -109,10 +111,10 @@ def token_cost(root, loads, model, cwd, empty):
     return input_tokens(model, cwd, joined) - empty
 
 
-def evaluate(root, args, out, mode):
+def evaluate(root, args, out, mode, model):
     report = out / "result.json"
     cmd = ["claude", "plugin", "eval", str(root), "--runs", str(args.runs),
-           "-j", str(args.jobs), "--model", args.model, "--judge-model", args.judge,
+           "-j", str(args.jobs), "--model", model, "--judge-model", args.judge,
            "--trust-plugin", "--no-publish", "--threshold", "0",
            "--json", str(report), "--output-dir", str(out)]
     if mode == "classifier":
@@ -191,13 +193,18 @@ def verdict(base, cand):
 
 
 def table_delta(rows, limits):
-    lines = ["| Candidate | Change | Delta | 2SE | Tokens | Errors | Verdict |",
-             "| --- | --- | --- | --- | --- | --- | --- |"]
+    lines = ["| Candidate | Model | Change | Delta | 2SE | Tokens | Errors | Verdict |",
+             "| --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
-        lines.append(f"| {r['name']} | {r['change']} | {r['delta']:+.2f} | {2 * r['se']:.2f} | "
+        lines.append(f"| {r['name']} | {r['model']} | {r['change']} | {r['delta']:+.2f} | {2 * r['se']:.2f} | "
                      f"{r['tokens'] if r['tokens'] is not None else '-'} | {r['errors']} | {r['verdict']} |")
-    base = rows[0]
-    lines += ["", f"Per case, for {base['name']}:", "",
+    for base in (r for r in rows if r["name"] == "baseline"):
+        lines += per_case(base, limits)
+    return "\n".join(lines)
+
+
+def per_case(base, limits):
+    lines = ["", f"Per case, for the baseline on {base['model']}:", "",
               "| Case | With | Without | Delta | Threshold | Meets it | Separates |",
               "| --- | --- | --- | --- | --- | --- | --- |"]
     for name, c in base["cases"].items():
@@ -206,14 +213,14 @@ def table_delta(rows, limits):
         separates = "no, cannot discriminate" if c["with"] == c["without"] else "yes"
         lines.append(f"| {name} | {c['with']:.2f} | {c['without']:.2f} | {c['delta']:+.2f} | "
                      f"{limit if limit is not None else '-'} | {meets} | {separates} |")
-    return "\n".join(lines)
+    return lines
 
 
 def table_classifier(rows):
-    lines = ["| Candidate | Change | Defects blocked | Clean passed | Tokens | Errors | Verdict |",
-             "| --- | --- | --- | --- | --- | --- | --- |"]
+    lines = ["| Candidate | Model | Change | Defects blocked | Clean passed | Tokens | Errors | Verdict |",
+             "| --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
-        lines.append(f"| {r['name']} | {r['change']} | {r['defect']:.2f} (n={r['n']['defect']}) | "
+        lines.append(f"| {r['name']} | {r['model']} | {r['change']} | {r['defect']:.2f} (n={r['n']['defect']}) | "
                      f"{r['clean']:.2f} (n={r['n']['clean']}) | {r['tokens']} | {r['errors']} | {r['verdict']} |")
     return "\n".join(lines)
 
@@ -229,27 +236,34 @@ def loop(unit, args, entries):
         tmp = Path(tmp)
         probe = tmp / "probe"
         probe.mkdir()
-        empty = input_tokens(args.model, probe)
-        for name, change, overlay in entries:
-            root = variant(unit, overlay, tmp / name / unit.name)
-            result = evaluate(root, args, out / name, args.mode)
-            row = (classify(result, root) if args.mode == "classifier" else summarise(result))
-            row.update(name=name, change=change,
-                       tokens=token_cost(root, args.loads, args.model, probe, empty))
-            rows.append(row)
-            print(f"{unit.name} {name}: done, ${row['cost']:.2f}", file=sys.stderr)
+        for model in args.models:
+            empty = input_tokens(model, probe)
+            for name, change, overlay in entries:
+                root = variant(unit, overlay, tmp / model / name / unit.name)
+                result = evaluate(root, args, out / model / name, args.mode, model)
+                row = (classify(result, root) if args.mode == "classifier" else summarise(result))
+                row.update(name=name, change=change, model=model,
+                           tokens=token_cost(root, args.loads, model, probe, empty))
+                rows.append(row)
+                print(f"{unit.name} {name} on {model}: done, ${row['cost']:.2f}", file=sys.stderr)
 
+    baselines = {r["model"]: r for r in rows if r["name"] == "baseline"}
     if args.mode == "classifier":
         for r in rows:
-            r["verdict"] = "baseline" if r is rows[0] else "see rates"
+            r["verdict"] = "baseline" if r["name"] == "baseline" else "see rates"
         text = table_classifier(rows)
     else:
-        rows[0]["verdict"] = "baseline"
-        for r in rows[1:]:
-            r["verdict"] = verdict(rows[0], r)
+        for r in rows:
+            r["verdict"] = "baseline" if r["name"] == "baseline" else verdict(baselines[r["model"]], r)
+        for name in {r["name"] for r in rows} - {"baseline"}:
+            mine = [r for r in rows if r["name"] == name]
+            if len(mine) > 1 and not all(r["verdict"] == "lands" for r in mine):
+                for r in mine:
+                    if r["verdict"] == "lands":
+                        r["verdict"] = "holds here, loses on another model"
         text = table_delta(rows, thresholds(unit))
 
-    head = (f"{unit.name} at {stamp}: model {args.model}, judge {args.judge}, "
+    head = (f"{unit.name} at {stamp}: models {', '.join(args.models)}, judge {args.judge}, "
             f"{args.runs} runs per arm, ${sum(r['cost'] for r in rows):.2f}.\n"
             f"The judge is from the model's own family, so every judged score is a "
             f"smoke check (REQ-3028). A regression is a fall in the delta, never in the "
@@ -273,9 +287,11 @@ def main():
     ap.add_argument("--runs", type=int, default=RUNS)
     ap.add_argument("--cases")
     ap.add_argument("-j", "--jobs", type=int, default=4)
-    ap.add_argument("--model", default=MODEL)
+    ap.add_argument("--model", dest="models", action="append",
+                    help="a model to run the candidates on; repeat for several (default: Sonnet 5 and Opus 5.5)")
     ap.add_argument("--judge", default=JUDGE)
     args = ap.parse_args()
+    args.models = args.models or MODELS
 
     units = [u.resolve() for u in args.units]
     if args.candidates and len(units) > 1:
