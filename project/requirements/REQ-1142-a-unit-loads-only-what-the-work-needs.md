@@ -3,7 +3,7 @@ id: REQ-1142
 artifact: requirement
 topic: prompt-format
 class: functional
-status: draft
+status: approved
 revised: 2026-09-22
 elaborates: RES-0005, RES-0201
 verification: static
