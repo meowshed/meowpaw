@@ -127,7 +127,10 @@ better, which is a result and not a failure.
 
 ### Measuring a gate
 
-A prompt that blocks is measured as a classifier and not as a delta. Its case
+A prompt that blocks is measured as a classifier and not as a delta. A hook
+on the shell never fires inside `claude plugin eval`, whose sessions have no
+shell, so `tools/measure_gate.py` runs each case as a real session in a fresh
+repository and reads the verdict from the hook's own answer. Its case
 set is labelled: texts carrying a named defect, which it must block, and clean
 texts, which it must pass. The result is how often it blocks each kind.
 

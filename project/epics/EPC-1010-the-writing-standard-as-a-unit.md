@@ -98,9 +98,11 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1120 - replacing the standard replaces what the reviewer
       reads, so both the skill and the reviewer must exist to be replaced
 
-- [ ] T-004 [P] TSK-1140 `plugins/meow-prose-gate/`: the `PreToolUse` prompt
+- [x] T-004 [P] TSK-1140 `plugins/meow-prose-gate/`: the `PreToolUse` prompt
       hook that blocks a publish
       closes: REQ-3182
+      evidence: five candidates on twelve cases, the one that landed blocking
+      every covered defect and no clean text, in #93. TSK-1140 has the table.
       depends: TSK-1110, TSK-1170 - the gate's criteria are drawn from the
       rewritten standard, and they are improved with the runner TSK-1170
       builds
@@ -113,11 +115,13 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1120 - removing the pattern check before the reviewer ships
       would leave this repository with nothing holding the standard
 
-- [>] T-006 [P] TSK-1160 a stated size budget for every shipped unit, and the
-  check that measures it
-  closes: REQ-1050, REQ-1056, REQ-1057, REQ-1058, REQ-1060
-  depends: TSK-1120, TSK-1140 - a budget covers what a unit loads, and the
-  three units have to exist before anything can be measured against one
+- [x] T-006 [P] TSK-1160 a stated size budget for every shipped unit, and the
+      check that measures it
+      closes: REQ-1050, REQ-1056, REQ-1057, REQ-1058, REQ-1060
+      evidence: every unit within its stated budget, the check failing a probe
+      over one, in #96 and #93. TSK-1160 carries the output.
+      depends: TSK-1120, TSK-1140 - a budget covers what a unit loads, and the
+      three units have to exist before anything can be measured against one
 
 - [x] T-007 [P] TSK-1170 replace the `meow-core` case set with one that
       discriminates, and build the loop every prompt is improved with
