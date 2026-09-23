@@ -40,9 +40,11 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1270 give the writing skill the description ADR-1050 states,
+- [x] T-001 TSK-1270 give the writing skill the description ADR-1050 states,
       and publish its routing on both models
       closes: REQ-1144, REQ-1146, REQ-1148, REQ-1150
+      evidence: 36 of 36 writing runs on Sonnet 5 and 33 of 33 on Opus 5.5,
+      none on work that changes code, in #84. TSK-1270 carries the table.
 
 ## Coverage
 
