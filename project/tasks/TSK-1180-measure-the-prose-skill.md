@@ -53,12 +53,42 @@ the conventions the repaired case set settles.
 
 ## Evidence
 
-Not yet. The task closes on the routing rate per phrasing with its threshold,
-then the content delta per case, both with the run count and the judge named.
-A routing rate below threshold is reported with the change to the description
-that raised it, or as unmet. The loop's table follows, one row per candidate
-with its delta, its token cost and whether it landed, including the ones that
-lost.
+In progress. Routing is measured and meets its threshold: the description
+ADR-1050 states loads the skill in 36 of 36 writing runs on Sonnet 5 and 33 of
+33 on Opus 5.5, on eleven phrasings including a one-line commit message, and in
+no run that only changes code. TSK-1270 carries the table.
+
+Content is measured on six cases under `plugins/meow-prose/evals/write-*`, each
+a writing task where the standard's defects appear without the skill, with a
+threshold each in `thresholds.toml`. The free graders are regexes for bold
+openers, counted openers, hype and judging words and American spellings; a
+judge reads only what needs reading. `tools/loop.py`, five runs per arm, judged
+by Opus 5.5, so every judged score is a smoke check (REQ-3028):
+
+| Candidate | Model    | Change                                    | Delta | 2SE  | Tokens | Verdict             |
+| --------- | -------- | ----------------------------------------- | ----- | ---- | ------ | ------------------- |
+| baseline  | Sonnet 5 | the skill as TSK-1110 shipped it          | +0.11 | 0.09 | 4,544  | baseline            |
+| C1        | Sonnet 5 | S2 asks for paragraphs, never bold labels | +0.15 | 0.06 | 4,590  | landed by the owner |
+| baseline  | Opus 5.5 | the skill as TSK-1110 shipped it          | +0.29 | 0.08 | 4,544  | baseline            |
+| C1        | Opus 5.5 | S2 asks for paragraphs, never bold labels | +0.31 | 0.05 | 4,590  | landed by the owner |
+
+C1 scores higher at 46 more tokens, so the owner decided, and landed it. On
+Sonnet 5 the baseline wrote pull request descriptions under bold labels such as
+`**What changed**`, the pattern the standard forbids, in three runs of five,
+and C1 took that case from 0.65 to 1.00. `write-commit-message` scores 1.00 in
+both arms on both models and `write-code-comments` on Sonnet 5, so neither
+discriminates yet. `write-explanation` on Sonnet 5 sits at 0.73 against its
+threshold of 0.75.
+
+Two faults in the instrument were found and fixed before these numbers: the
+judge failed a text for opening with a Markdown title, and the eval's sandbox
+refused the unit's reads of its own supporting files. `tools/loop.py` now
+grants each unit `Read` on its own directory, and takes `--tag` so the
+reviewer's classifier cases and these content cases run apart.
+
+Outstanding: the six cases are a sample, and the task asks for every rule and
+pattern in the criteria table to be measured. The task closes when the rest
+have cases and the loop's table covers them.
 
 ## Left alone
 
