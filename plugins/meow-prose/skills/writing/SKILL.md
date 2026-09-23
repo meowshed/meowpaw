@@ -206,7 +206,9 @@ file costs context.
   and link the record that authorises it. For a change, give what changed, the
   evidence that it works (the command, its exit status and its output), and
   what a reviewer should look at first. For a defect, give what you expected,
-  what happened, and the smallest steps that reproduce it.
+  what happened, and the smallest steps that reproduce it. Write these as
+  paragraphs in that order, never under bold labels such as "**What
+  changed**", because a label strips out the sentence that says why.
 - S3. Name the line, what is wrong with it and what would fix it, and give the
   reason, so the author can fix it without asking you.
 </rules>
