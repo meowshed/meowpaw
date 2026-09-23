@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What the arm with the writing skill must score on each content case
+# (REQ-3030). A case whose single defect is the whole failure, such as a commit
+# message with no reason, sits at 1.0; a case measuring a tendency across a
+# longer text sits lower. The reviewer's classifier cases have no threshold,
+# because they are read as rates and never as a delta.
+
+[cases]
+write-decision-note = 0.8
+write-release-notes = 0.8
+write-pr-description = 0.8
+write-commit-message = 1.0
+write-code-comments = 1.0
+write-explanation = 0.75
