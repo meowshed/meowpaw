@@ -2,7 +2,7 @@
 id: SPC-1010
 artifact: spec
 status: live
-revised: 2026-09-22
+revised: 2026-09-23
 checked-at:
 states:
   [
@@ -46,21 +46,20 @@ It leaves licence headers to REQ-1008 and REQ-1016 to REQ-1022, which ask
 whether a header of a declared form is present, and it leaves the shape of a
 reply to SPC-1000.
 
-The harness does not implement this yet. ADR-1010 authorises it, ADR-1020 and
-ADR-1030 amend it, EPC-1010 and EPC-1020 realise them, and `checked-at` stays
+The harness does not implement this yet. ADR-1010 authorises it, ADR-1020,
+ADR-1030 and ADR-1050 amend it, EPC-1010 and EPC-1020 realise them, and `checked-at` stays
 empty until both epics close.
 
 ## Boundary
 
 Two units ship, and either installs without the other (REQ-0012, REQ-0076).
 
-| Surface                                    | What it is                                                         |
-| ------------------------------------------ | ------------------------------------------------------------------ |
-| `plugins/meow-prose/skills/writing/`       | The standard, loaded before anything is written                    |
-| `plugins/meow-prose/agents/prose.md`       | The deep reviewer, dispatched on request and at the review step    |
-| `plugins/meow-prose/hooks/hooks.json`      | A `SessionStart` command hook naming the skill and when to load it |
-| `plugins/meow-prose-gate/hooks/hooks.json` | A `PreToolUse` prompt hook that blocks a publish                   |
-| `.meowpaw/prose/`                          | A repository's replacement standard, which is total                |
+| Surface                                    | What it is                                                      |
+| ------------------------------------------ | --------------------------------------------------------------- |
+| `plugins/meow-prose/skills/writing/`       | The standard, loaded before anything is written                 |
+| `plugins/meow-prose/agents/prose.md`       | The deep reviewer, dispatched on request and at the review step |
+| `plugins/meow-prose-gate/hooks/hooks.json` | A `PreToolUse` prompt hook that blocks a publish                |
+| `.meowpaw/prose/`                          | A repository's replacement standard, which is total             |
 
 Installing either unit adds no task to a repository's runner, writes nothing
 into its tree and changes no build.
@@ -130,15 +129,15 @@ published.
 
 ### Loading the standard
 
-The skill has to be in context before a text is written, and the model's own
-choice loaded it in one run of nine. `meow-prose` therefore ships a
-`SessionStart` command hook that returns one line of `additionalContext`,
-naming the skill and the work it governs, on every new, resumed, cleared and
-compacted session (REQ-1140). The line costs under 300 characters, and the hook
-reads nothing and writes nothing.
+The skill has to be in context before a text is written, and its description
+is what loads it. The description states the obligation in the form SPC-1030
+gives, and names the verbs a writing request uses, so Sonnet 5 loads the skill
+on a one-line commit message as well as on a document. `meow-prose` ships no
+hook for loading, because a `SessionStart` line naming the skill did not
+change what the model did.
 
 How often the skill is in context when a writing request arrives is measured on
-both models, with the hook and without it.
+both models, beside near misses that should not load it (REQ-1150).
 
 ### Comments in code
 

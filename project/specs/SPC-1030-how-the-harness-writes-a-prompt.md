@@ -2,7 +2,7 @@
 id: SPC-1030
 artifact: spec
 status: live
-revised: 2026-09-22
+revised: 2026-09-23
 checked-at:
 states:
   [
@@ -26,8 +26,11 @@ states:
     REQ-1134,
     REQ-1136,
     REQ-1138,
-    REQ-1140,
     REQ-1142,
+    REQ-1144,
+    REQ-1146,
+    REQ-1148,
+    REQ-1150,
     REQ-2688,
     REQ-3050,
   ]
@@ -46,9 +49,9 @@ It leaves what each prompt says to the specification of its unit, such as
 SPC-1000 for the reply shape and SPC-1010 for the writing standard, and how a
 change to a prompt is measured to SPC-1020.
 
-The harness implements part of this. ADR-1020 and ADR-1030 decide the form,
-ADR-1040 how the reply shape reaches a subordinate agent, and EPC-1020
-realises them, so `checked-at` stays empty until that epic closes.
+The harness implements part of this. ADR-1020, ADR-1030 and ADR-1050 decide
+the form, ADR-1040 how the reply shape reaches a subordinate agent, and
+EPC-1020 realises them, so `checked-at` stays empty until that epic closes.
 
 ## Boundary
 
@@ -131,10 +134,29 @@ A unit's description is written in the third person, says what the unit does
 and when to use it, leads with the words a request contains, and fits the
 platform's cap of 1,536 characters (REQ-1060, REQ-1062, REQ-1134, REQ-3050).
 
-A unit that has to be in context before the model acts is loaded by a
-mechanism that does not depend on the model choosing it, such as a
-`SessionStart` hook, and how often it is present when needed is measured
-(REQ-1140).
+A unit that has to be in context before the model acts is loaded by its
+description, which states the obligation. The description opens with a
+sentence saying what the unit is, then says in the third person that the unit
+MUST be loaded before the work (REQ-1144). It names each verb a request uses
+for that work and no work the unit does not govern (REQ-1146), and it closes
+by saying the unit MUST NOT be skipped however short or simple the work looks
+(REQ-1148). The writing skill's description shows the form:
+
+```text
+The writing standard for all text. It MUST be loaded before any prose of any
+length is written, rewritten, reworded, edited or reviewed, including code
+comments, pull request and issue descriptions, commit messages, and Markdown
+files. It MUST NOT be skipped, however short or simple the text looks.
+```
+
+Sonnet 5 reads a description literally, so a verb the description leaves out
+is a request the unit misses. The second person reads as a different voice
+from the platform's own prompt, and loaded the writing skill in less than half
+as many runs.
+
+How often such a unit loads is measured on Sonnet 5 and on Opus 5.5, on
+requests that should load it and on near misses including answers in chat,
+and a change to its description is measured again before it ships (REQ-1150).
 
 ### Outside text
 
@@ -154,11 +176,12 @@ audits every unit, because the format is uniform across them (REQ-1128).
 
 ## Failure paths
 
-| Condition                                          | What happens                                                                          |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| A prompt uses a heading or an unknown tag          | The check fails in the gate, naming the file and the line                             |
-| A prompt nests a tag inside another                | The check fails, because the vocabulary is top-level only                             |
-| A core names no supporting file for a kind of work | The model loads nothing for it, and the unit is defective against REQ-1124            |
-| A core grows past 5,000 tokens                     | The tail is lost after compaction, which is a defect against REQ-1064                 |
-| A unit exceeds its stated budget                   | The overrun is reported as a defect and the material moves into supporting files      |
-| The model does not load a unit that must hold      | The routing measurement shows it, and the loading mechanism is the thing that changes |
+| Condition                                          | What happens                                                                     |
+| -------------------------------------------------- | -------------------------------------------------------------------------------- |
+| A prompt uses a heading or an unknown tag          | The check fails in the gate, naming the file and the line                        |
+| A prompt nests a tag inside another                | The check fails, because the vocabulary is top-level only                        |
+| A core names no supporting file for a kind of work | The model loads nothing for it, and the unit is defective against REQ-1124       |
+| A core grows past 5,000 tokens                     | The tail is lost after compaction, which is a defect against REQ-1064            |
+| A unit exceeds its stated budget                   | The overrun is reported as a defect and the material moves into supporting files |
+| The model does not load a unit that must hold      | The routing measurement shows it, and the description is the thing that changes  |
+| A description loads its unit on a near miss        | The routing measurement shows it, and the wording is narrowed before it ships    |

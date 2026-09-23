@@ -2,7 +2,7 @@
 id: SPC-1020
 artifact: spec
 status: live
-revised: 2026-09-22
+revised: 2026-09-23
 checked-at:
 states:
   [
@@ -71,7 +71,14 @@ suite says the same thing about a case nobody tuned and a case somebody did.
 The measurement asks whether a unit is chosen before it asks what the unit says
 (REQ-3032), because a unit nobody loads has no effect to measure. For a skill
 that means its description, and the question is whether the skill fires on
-natural phrasing.
+natural phrasing and stays unloaded on a near miss. Routing is measured on
+each model the unit serves, because one description loaded the writing skill
+in 45 of 50 writing runs on Opus 5.5 and in 0 of 30 on Sonnet 5 (REQ-1150).
+
+The near misses include work close to the unit's own, such as fixing a typo in
+a README, and answers in chat, because a description stating an obligation
+could load its unit wherever text appears. Every wrong result keeps its
+transcript, so a miss can be read and not only counted.
 
 ### Graders, and when to spend a judge
 

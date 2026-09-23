@@ -55,11 +55,20 @@ def stated() -> set:
     return out
 
 
+def withdrawn() -> set:
+    """Requirements withdrawn for a replacement, which no specification states."""
+    out = set()
+    for req in (PROJECT / "requirements").glob("REQ-*.md"):
+        if field(front_matter(req)[0], "status").strip() == "withdrawn":
+            out.add(req.name[:8])
+    return out
+
+
 def main():
     failures = []
     epics = sorted((PROJECT / "epics").glob("EPC-*.md"))
     tasks = sorted((PROJECT / "tasks").glob("TSK-*.md"))
-    in_a_spec = stated()
+    in_a_spec = stated() | withdrawn()
 
     if not epics:
         print("no epics, nothing to cover")
