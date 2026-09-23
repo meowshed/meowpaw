@@ -1,0 +1,19 @@
+{
+  "name": "meow-prose-gate",
+  "version": "0.1.0",
+  "description": "Stops Claude Code from publishing a commit message, pull request, issue, comment or release note that carries a defect any reader would name: an idiom, an unexplained acronym, an American spelling or a bold fragment standing in for a heading. It costs one Haiku call per publish and nothing on any other command.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-prose-gate.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": [
+    "writing",
+    "prose",
+    "hook",
+    "gate",
+    "meowpaw"
+  ]
+}

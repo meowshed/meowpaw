@@ -98,12 +98,12 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1120 - replacing the standard replaces what the reviewer
       reads, so both the skill and the reviewer must exist to be replaced
 
-- [ ] T-004 [P] TSK-1140 `plugins/meow-prose-gate/`: the `PreToolUse` prompt
-      hook that blocks a publish
-      closes: REQ-3182
-      depends: TSK-1110, TSK-1170 - the gate's criteria are drawn from the
-      rewritten standard, and they are improved with the runner TSK-1170
-      builds
+- [>] T-004 [P] TSK-1140 `plugins/meow-prose-gate/`: the `PreToolUse` prompt
+  hook that blocks a publish
+  closes: REQ-3182
+  depends: TSK-1110, TSK-1170 - the gate's criteria are drawn from the
+  rewritten standard, and they are improved with the runner TSK-1170
+  builds
 
 - [x] T-005 TSK-1150 retire `tools/check_prose.py` and name the unit in
       `CLAUDE.md`

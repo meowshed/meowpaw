@@ -59,7 +59,11 @@ TSK-1170, because the criteria are improved with the runner that task builds.
 
 ## Evidence
 
-Not yet. The task closes on a labelled case set run through the hook, as
+In progress. The unit, its hook and 12 labelled cases are in the draft pull
+request for #51, which waits for the measurement pass before it lands. Two
+smoke runs on Sonnet 5 with Haiku 4.5 in the hook show why: the hook fired on
+`git commit` and on nothing else, and then passed the case whose commit names
+"DLQ" unexpanded while blocking its correction, which expands it. The task closes on a labelled case set run through the hook, as
 SPC-1020 describes for measuring a gate: texts carrying one named defect each,
 which it must block, and clean texts, which it must pass, with the block rate
 on each kind published for the baseline and for every candidate. A false block counts against the
