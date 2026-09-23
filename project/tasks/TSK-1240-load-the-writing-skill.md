@@ -41,9 +41,19 @@ extends.
 
 ## Evidence
 
-Not yet. The task closes on the routing table for both models with and without
-the hook, the hook's line and its character count, and every description
-rewritten.
+Every description the platform injects into a prompt is in the third person,
+so nothing was left to rewrite once ADR-1050 dropped the hook:
+
+- `plugins/meow-core/output-styles/meow.md`: "The reply shape the meowpaw
+  harness imposes on every reply it makes to a person."
+- `plugins/meow-prose/skills/writing/SKILL.md`: the description ADR-1050
+  states, shipped in #85.
+
+`grep -rn "^description:" plugins/*/output-styles/*.md
+plugins/*/skills/*/SKILL.md` lists these two and no other. The manifests'
+descriptions address a person choosing a plugin and never reach the model's
+prompt, so REQ-1134 does not govern them. REQ-1134 is closed. The routing
+table and the hook's line went to TSK-1270 and ADR-1050.
 
 ## Left alone
 
