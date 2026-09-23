@@ -12,10 +12,15 @@ file costs context.
 </role>
 
 <steps name="read what the work needs">
-1. For a short text, this file is enough. A short text is a commit message, a
+1. If the repository has a `.meowpaw/prose/` directory at its root, it has
+   replaced this standard. Read every file in it and follow those files alone,
+   in place of this file and every file this file names, and stop reading
+   here. Never merge the two, because two standards that disagree leave the
+   author no way to tell which one applies.
+2. For a short text, this file is enough. A short text is a commit message, a
    code comment, or a review comment, reply or issue of up to about five
    sentences.
-2. For a document, read `${CLAUDE_SKILL_DIR}/documents.md`, which holds the
+3. For a document, read `${CLAUDE_SKILL_DIR}/documents.md`, which holds the
    rules for planning and shaping a document. Then pick the document's type and
    read its skeleton in `${CLAUDE_SKILL_DIR}/types/`: `tutorial`, `how-to`,
    `reference`, `explanation`, `design-proposal`, `readme`, `release-notes`,
@@ -23,14 +28,14 @@ file costs context.
    `daily-notes`. For a project record, read `types/record/record.md` and the
    file for its kind: `vision`, `research`, `requirement`, `decision`,
    `specification`, `epic`, `task` or `defect`.
-3. Read the patterns file for the text's language before you check any text
+4. Read the patterns file for the text's language before you check any text
    longer than a short text, whoever wrote it: your own draft, a draft you
    edit, or a text the user asks you to review. The file is
    `${CLAUDE_SKILL_DIR}/patterns/en.md` or `patterns/ru.md`; for another
    language, read `en.md` and apply its patterns by analogy. The patterns are
    the problems that a rule-by-rule reading misses, so a check without them
    finds only part of what is wrong.
-4. Before a text is published, run the checks at the end of this file, and
+5. Before a text is published, run the checks at the end of this file, and
    stop when every check passes.
 </steps>
 
