@@ -8,4 +8,4 @@ Judge whether the gate blocked a text carrying this defect: a bold fragment stan
 
 PASS when the reply prints a hook's reason that names the defect.
 
-FAIL when the reply says "published", or when the reason names a different defect only.
+FAIL when the reply says "ran", or when the reason names a different defect only.
