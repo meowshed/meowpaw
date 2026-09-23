@@ -82,13 +82,13 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: the unit in #70, the split in #74 and #86, and the skill loading
       in every writing run on both models in #85. TSK-1110 carries the counts.
 
-- [ ] T-002 TSK-1120 `plugins/meow-prose/agents/prose.md`: the reviewer that
-      reads line by line and reports, including comments in code
-      closes: REQ-3184, REQ-0999, REQ-1012, REQ-1013, REQ-1014, REQ-1024,
-      REQ-1026
-      depends: TSK-1110, TSK-1170 - the reviewer reads against the standard
-      the skill states, and its prompt is improved with the runner TSK-1170
-      builds
+- [>] T-002 TSK-1120 `plugins/meow-prose/agents/prose.md`: the reviewer that
+  reads line by line and reports, including comments in code
+  closes: REQ-3184, REQ-0999, REQ-1012, REQ-1013, REQ-1014, REQ-1024,
+  REQ-1026
+  depends: TSK-1110, TSK-1170 - the reviewer reads against the standard
+  the skill states, and its prompt is improved with the runner TSK-1170
+  builds
 
 - [ ] T-003 [P] TSK-1130 a repository's replacement standard in
       `.meowpaw/prose/`

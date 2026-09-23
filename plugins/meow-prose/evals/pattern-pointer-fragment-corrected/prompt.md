@@ -1,0 +1,14 @@
+---
+name: pattern-pointer-fragment-corrected
+description: The corrected form of the pattern 'pointer fragment', which the standard accepts.
+tags: [clean]
+runs: 3
+max_turns: 10
+---
+
+Use the meow-prose:prose agent to review the text below, and print its report as it gives it.
+
+<text>
+It runs on today's storage layer; section 8 lists what not to promise until
+the new one ships.
+</text>

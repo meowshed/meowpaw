@@ -31,6 +31,15 @@ Claude then writes that language across the repository. A technical term
 keeps the spelling its own domain uses, and a quotation keeps its author's
 wording, whatever you declare.
 
+## Review a text
+
+The unit also ships a reviewer, `meow-prose:prose`. Ask Claude to review a text,
+or a change with comments in its code, and the reviewer reads it line by line
+against the same standard. It reports each finding with its line, the rule it
+breaks and the smallest fix, and it edits nothing and blocks nothing, so you
+decide what to change. It reads a quotation without judging it, and on a
+change to code it reads only the files the change touched.
+
 ## What it costs you
 
 The skill's description sits in context on every turn so that Claude knows when
