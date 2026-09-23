@@ -28,10 +28,14 @@ run = "python3 tools/check_prompts.py"
 description = "Check the kernel names no unit outside it"
 run = "python3 tools/check_kernel.py"
 
+[tasks.budget]
+description = "Check every unit stays within the budget it states for every turn"
+run = "python3 tools/check_budget.py"
+
 [tasks.eval]
 description = "Measure every unit on real models, by hand: it costs money, so `all` never runs it"
 run = "python3 tools/loop.py plugins/*/"
 
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "lint", "style", "prompts", "kernel"]
+depends = ["fmt-check", "lint", "style", "prompts", "kernel", "budget"]
