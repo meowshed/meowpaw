@@ -250,16 +250,12 @@ reader know what to do next and what just happened?
 </principle>
 
 <principle name="always_technical_english">
-All prose in this repository is **British English**, written to the standard
-that `meow-prose` will carry: lead with the answer, state the reason behind
-every rule, and show the failing example instead of describing it.
-
-The spelling is checked, because the model's default is American. A technical
-term keeps the spelling its own domain uses - `artifact` stays `artifact`, in
-the prose and in the front matter - and a quotation keeps whatever its author
-wrote, which is why a check masks block quotations before it looks. This
-governs documents, specifications, code comments, commit messages, pull request
-bodies and your replies. A commit message is prose and a reply is prose.
+All prose in this repository is held to the writing standard `meow-prose`
+ships, installed from this marketplace, and in its default language, British
+English. The rules and their reasons live in its skill, and this file doesn't
+repeat them, because a second copy drifts from the first. This governs
+documents, specifications, code comments, commit messages, pull request bodies
+and your replies. A commit message is prose and a reply is prose.
 
 Apply the standard while you write, not afterwards. Before a document, name
 the two or three rules its type breaks most often, and re-read each paragraph
@@ -267,9 +263,9 @@ before you write the next one. A sentence comes out shaped like whatever you
 have been reading, so a day spent in specifications produces specifications,
 and the rules only join in when you stop to look.
 
-The review before publishing catches what survived that. It is not where the
-work happens, and a review finding six defects in five short texts is your
-work handed to the next step.
+The review before publishing, by `meow-prose:prose`, catches what survived
+that. It is not where the work happens, and a review finding six defects in
+five short texts is your work handed to the next step.
 
 Check the text before it leaves your hands, not after somebody reads it.
 Every document, every commit message, every issue you file and every pull
@@ -378,17 +374,21 @@ way somebody breaks this by accident.
 Run the gate before opening a pull request, and report what it actually said:
 
 ```bash
-mise run all          # fmt-check and lint
+mise run all          # fmt-check, lint, style, prompts and kernel
 ```
 
-| Check       | Fails when                                          |
-| ----------- | --------------------------------------------------- |
-| `fmt-check` | Markdown isn't in canonical form                    |
-| `lint`      | Markdown breaks a rule in `.markdownlint-cli2.yaml` |
+| Check       | Fails when                                                      |
+| ----------- | --------------------------------------------------------------- |
+| `fmt-check` | Markdown isn't in canonical form                                |
+| `lint`      | Markdown breaks a rule in `.markdownlint-cli2.yaml`             |
+| `style`     | An output style breaks the shape SPC-1000 states                |
+| `prompts`   | A shipped prompt uses a heading or a tag outside the vocabulary |
+| `kernel`    | A file in the kernel names a unit outside it                    |
 
-The repository also has six checks of its own over the record - links,
-identifiers, front matter, the index, prose and research shape - written as
-Python scripts in `tools/`. No task runs them, so they're run by hand. They
+The repository also has checks of its own over the record - coverage, links,
+identifiers, front matter, the index, research shape and the shape a
+subordinate agent carries - written as Python scripts in `tools/`. No task
+runs them, so they're run by hand. They
 come back as part of the harness rather than beside it, because a harness
 checked by a mechanism it doesn't ship hasn't been shown to work.
 
