@@ -115,11 +115,25 @@ a README loads the core and 240 tokens of skeleton. Every obligation in the
 core sits inside its first 5,000 tokens (REQ-1064, REQ-1066), with the router
 placed right after the role so a truncation cannot drop it.
 
-REQ-0992 is not met yet. In a clean repository on Sonnet 5, with the skill
-listed in every session, the model loaded it in 0 of 9 runs across a commit
-message, an install section and a pull request body, against 1 of 9 for the
-first description. ADR-1020 answers this with a `SessionStart` hook, which
-TSK-1240 builds, and this task closes on the routing measured with that hook.
+REQ-0992 was not met by the description of #74: in a clean repository on
+Sonnet 5 the model loaded the skill in 0 of 9 runs across a commit message, an
+install section and a pull request body. ADR-1050 replaced the hook ADR-1020
+planned with a description stating the obligation, and #85 shipped it. It
+loads the skill in 36 of 36 writing runs on Sonnet 5 and 33 of 33 on Opus 5.5,
+a commit message included, and on no request that only changes code. TSK-1270
+carries the table, and REQ-0992 is met.
+
+Pull request #86 moves the rules for documents into `documents.md` and the patterns into
+one file per prose language, each pattern with the markers that find it.
+Token counts on Sonnet 5, measured the same way as above: `SKILL.md` 4,429,
+`documents.md` 944, `patterns/en.md` 3,389 and `patterns/ru.md` 4,115. A commit
+message loads the core alone, every obligation in it sits inside its first
+5,000 tokens, and the description is 299 characters.
+
+The criteria table is in #70, and `docs/meow-prose.md` states what the unit
+costs and how it loads. The rules
+REQ-0991 and REQ-0993 to REQ-0998 name are T3, E2 in `documents.md`, T6, the
+skeletons under `types/`, and T5 with I1 for REQ-3188.
 
 ## Left alone
 
