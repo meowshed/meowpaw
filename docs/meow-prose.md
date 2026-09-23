@@ -31,6 +31,15 @@ Claude then writes that language across the repository. A technical term
 keeps the spelling its own domain uses, and a quotation keeps its author's
 wording, whatever you declare.
 
+## Replace the standard
+
+To hold your repository to a standard of its own, put it in `.meowpaw/prose/`
+at the repository's root, in as many Markdown files as you like. When that
+directory exists, the skill and the reviewer read your files and nothing of
+the shipped standard: the replacement is total, because two standards that
+disagree leave an author no way to tell which one applies. The unit only reads
+the directory and never writes to it.
+
 ## Review a text
 
 The unit also ships a reviewer, `meow-prose:prose`. Ask Claude to review a text,

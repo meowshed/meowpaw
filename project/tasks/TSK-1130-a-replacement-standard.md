@@ -36,10 +36,27 @@ the skill and the reviewer must both exist before either can be replaced.
 
 ## Evidence
 
-Not yet. The task closes on a scratch repository declaring a replacement that
-contradicts one shipped rule, where a session follows the replacement's rule
-and the reviewer, given a text that breaks only the shipped rule, names
-nothing.
+The skill's router and the reviewer's setup both check for `.meowpaw/prose/`
+first, and follow its files alone when it exists. In a scratch repository
+whose `.meowpaw/prose/standard.md` asks for American English, which
+contradicts T6, on Sonnet 5 with this branch's `meow-prose`:
+
+```text
+$ claude -p "Write one sentence for the README saying that the worker now gives each log line a colour by its level. Print only the sentence."
+Skill meow-prose:writing, then Read .meowpaw/prose/standard.md
+The worker now colors each log line by its level.
+
+$ claude -p "Use the meow-prose:prose agent to review this text ... 'The worker normalizes the color of each log line by its level, so the dashboard can group them.'"
+Glob .meowpaw/prose/**, then Read .meowpaw/prose/standard.md
+Verdict: Nothing at fix level, and no findings at any level. ... The
+repository has `.meowpaw/prose/standard.md`, which replaces the preloaded
+standard.
+```
+
+The session followed the replacement's spelling over the shipped rule, and
+the reviewer, given a text breaking only the shipped rule, named nothing. The
+unit reads the directory and writes nothing to it (REQ-3180). REQ-1000 and
+REQ-1002 are closed.
 
 ## Left alone
 

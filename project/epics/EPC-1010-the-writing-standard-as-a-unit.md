@@ -90,9 +90,11 @@ A task is marked in the commit that advances it, never in a later pass.
   the skill states, and its prompt is improved with the runner TSK-1170
   builds
 
-- [ ] T-003 [P] TSK-1130 a repository's replacement standard in
+- [x] T-003 [P] TSK-1130 a repository's replacement standard in
       `.meowpaw/prose/`
       closes: REQ-1000, REQ-1002
+      evidence: a session and the reviewer following a replacement that
+      contradicts T6 in a scratch repository, in #50. TSK-1130 carries both.
       depends: TSK-1120 - replacing the standard replaces what the reviewer
       reads, so both the skill and the reviewer must exist to be replaced
 
