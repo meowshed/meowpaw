@@ -60,9 +60,11 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: the prompt check in the gate, the converted style landing on
       both models at 173 fewer tokens, in #79. TSK-1230 carries the table.
 
-- [ ] T-002 TSK-1240 write every description in the third person, with no
+- [x] T-002 TSK-1240 write every description in the third person, with no
       hook
       closes: REQ-1134
+      evidence: both descriptions the platform injects are in the third
+      person, the skill's shipped in #85. TSK-1240 lists them.
       depends: TSK-1110, TSK-1230 - the hook names a skill that has to exist,
       and its measurement runs on both models through the loop T-001 extends
 
