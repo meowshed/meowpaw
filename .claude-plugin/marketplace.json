@@ -17,6 +17,11 @@
       "name": "meow-prose",
       "source": "./plugins/meow-prose",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-prose.md"
+    },
+    {
+      "name": "meow-prose-gate",
+      "source": "./plugins/meow-prose-gate",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-prose-gate.md"
     }
   ]
 }
