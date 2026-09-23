@@ -76,8 +76,13 @@ builds.
 
 ## Evidence
 
-Not yet. The task closes on three runs of the reviewer, each shown with its
-output:
+In progress. The agent and its labelled set ship in the pull request for #49:
+`plugins/meow-prose/agents/prose.md`, which preloads the writing skill and
+carries no copy of the standard, and 52 cases under `plugins/meow-prose/evals/`.
+Of those, 42 come from the failing and corrected pairs in `patterns/en.md`, 21
+of each kind, and ten are written for this set, including the three below. The
+runs wait for the measurement pass. The task closes on three runs of the
+reviewer, each shown with its output:
 
 - On a text carrying a bold fragment where a heading belongs, a counted opener
   and an over-long sentence, it names all three with their lines.
