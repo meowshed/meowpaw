@@ -1,7 +1,7 @@
 ---
 name: comment-restates-the-line
 description: A text carrying a named defect.
-tags: [defect]
+tags: [defect, named]
 runs: 3
 max_turns: 10
 ---
