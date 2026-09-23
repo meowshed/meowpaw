@@ -111,8 +111,9 @@ variable, such as `${CLAUDE_SKILL_DIR}` or `${CLAUDE_PLUGIN_ROOT}`, so a unit
 works wherever it was installed (REQ-2688).
 
 The writing skill shows the form: a core with the rules every text needs and a
-router placed right after the role, one reference file of patterns, and one
-file per document type.
+router placed right after the role, a file of rules for documents, a file of
+patterns per prose language, and one file per document type. A short text
+needs only the core.
 
 An output style loads whole on every turn it is in force and cannot be divided,
 so it holds only what every reply needs.
