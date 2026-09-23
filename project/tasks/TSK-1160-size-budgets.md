@@ -42,15 +42,17 @@ units have to exist before anything can be measured against one.
 
 ## Evidence
 
-In progress. `tools/check_budget.py` runs in the gate as `mise run budget`, and
-`meow-core` and `meow-prose` state their budgets in `budget.toml`, with the
-measurement beside each number:
+`tools/check_budget.py` runs in the gate as `mise run budget`, and every unit
+states its budget in `budget.toml`, with the measurement beside the number.
+`meow-core` and `meow-prose` landed theirs in #96, and `meow-prose-gate` lands
+its own with the unit in #93:
 
 ```text
 $ python3 tools/check_budget.py
 meow-core: 3945 of 4200 characters on every turn
 meow-prose: 576 of 700 characters on every turn
-2 units, 0 budget failures
+meow-prose-gate: 0 of 0 characters on every turn
+3 units, 0 budget failures
 
 $ python3 tools/check_budget.py      # meow-prose given a budget of 500
 meow-prose: loads 576 characters on every turn, 76 over its budget of 500
@@ -59,8 +61,9 @@ meow-prose: loads 576 characters on every turn, 76 over its budget of 500
 
 Before the budgets existed the check failed both units for stating none. The
 permanent load is counted in characters, because that needs no model and gives
-the same number twice. `meow-prose-gate` gets its budget in the pull request
-that lands it, #93, and the task closes then.
+the same number twice. The gate is a prompt hook, which loads only when it
+fires, so its budget is 0. REQ-1050, REQ-1056, REQ-1057, REQ-1058 and REQ-1060
+are closed.
 
 ## Left alone
 

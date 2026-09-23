@@ -115,11 +115,12 @@ by answering `ok: false` with a reason that names the rule. It sets
 `continueOnBlock: true`, so the reason reaches the model as the tool error and
 the model corrects the text and publishes again.
 
-It judges only what a reader names without weighing taste: an idiom, an
-unexplained acronym, an American spelling outside a technical term, a bold
-fragment standing in for a heading. Narrow criteria are what make a model
-verdict fit to block on, and they stay inside what a small model settles
-reliably.
+It judges only what a small model settles the same way twice: an idiom from a
+closed list, a bold fragment standing in for a heading, and a text hidden
+behind a file. Narrow criteria are what make a model verdict fit to block on.
+An unexplained acronym and an American spelling were in the first draft, and
+Haiku 4.5 got both backwards, passing the defect and blocking its correction,
+so the skill and the reviewer hold them and the gate does not.
 
 The hook reads the call's input and opens no file, so it denies a publish that
 hides its text behind a path: `git commit -F`, `--body-file`, or a substitution

@@ -7,17 +7,18 @@ it installs on its own, with no other part of the `meowpaw` harness.
 
 ## What it blocks
 
-The gate blocks five defects and nothing else, because a block another reader
+The gate blocks three defects and nothing else, because a block another reader
 would dispute teaches you to route around it:
 
-- an idiom or a saying, such as "low-hanging fruit"
-- an acronym never expanded in the text, apart from ones every engineer reads,
-  such as API or JSON
-- an American spelling in prose, apart from a technical term, an identifier, a
-  command and a quotation
+- an idiom from a fixed list of fifteen, such as "low-hanging fruit" or "under
+  the hood"
 - a bold fragment standing in for a heading
 - a text hidden behind a file, such as `git commit -F notes.txt` or
   `--body-file`, which the gate can't read
+
+Unexplained acronyms and American spellings are left to the writing skill and
+the reviewer in `meow-prose`, because Haiku judged both backwards: it passed
+the defect and blocked the correction.
 
 When it blocks, Claude gets the reason as the command's error, with the span
 and the fix, and publishes again with the text corrected. A text given inline

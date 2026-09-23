@@ -59,21 +59,35 @@ TSK-1170, because the criteria are improved with the runner that task builds.
 
 ## Evidence
 
-In progress. The unit, its hook and 12 labelled cases are in the draft pull
-request for #51, which waits for the measurement pass before it lands. Two
-smoke runs on Sonnet 5 with Haiku 4.5 in the hook show why: the hook fired on
-`git commit` and on nothing else, and then passed the case whose commit names
-"DLQ" unexpanded while blocking its correction, which expands it. The ceiling on false blocks, stated before the first run: at most one clean
-run in ten blocked, across the clean cases. Misses have no ceiling and are
-published beside it. Each case asks the model to run its command once and
-print the hook's reason without retrying, and every `gh` command in the set
-names `--repo meowpaw-eval/none`, so a text the gate lets through creates
-nothing. The task closes on a labelled case set run through the hook, as
-SPC-1020 describes for measuring a gate: texts carrying one named defect each,
-which it must block, and clean texts, which it must pass, with the block rate
-on each kind published for the baseline and for every candidate. A false block counts against the
-criteria and not against the text. The same run shows `git commit -F` and `--body-file` denied
-with the inline form named.
+The ceiling on false blocks was stated before the first run: at most one clean
+run in ten blocked. `claude plugin eval` gives its sessions no shell, so a hook
+on `Bash` never fires there; the first run through it ended in 34 errors and no
+verdict. `tools/measure_gate.py` runs each case instead as a real `claude -p`
+session on Sonnet 5, in a fresh git repository, with the gate installed and
+Bash allowed, and reads the verdict from Haiku 4.5's own answer in the debug
+log. Every `gh` command in the set names `--repo meowpaw-eval/none`, so a text
+the gate passes creates nothing. Twelve cases, five runs each, no errors:
+
+| Candidate        | Change                               | Defects blocked | Clean passed | Verdict          |
+| ---------------- | ------------------------------------ | --------------- | ------------ | ---------------- |
+| baseline         | P1 to P5 as first drafted            | 20 of 30        | 17 of 30     | over the ceiling |
+| C1 no spelling   | drop the American spelling rule      | 20 of 30        | 23 of 30     | over the ceiling |
+| C2 no acronym    | drop the acronym rule                | 20 of 30        | 18 of 30     | over the ceiling |
+| C3 neither       | drop both                            | 20 of 30        | 25 of 30     | over the ceiling |
+| C4 closed idioms | C3, with the idioms as a closed list | 20 of 30        | 30 of 30     | lands            |
+
+Haiku got the acronym and spelling rules backwards: it passed "DLQ"
+unexpanded and "Normalize the retry behavior", and blocked the corrected texts
+that expand the acronym and keep "colour". With both rules gone, it still read
+"the cheapest fix" as an idiom, so C4 names the idioms it blocks. C4 blocks
+every defect its three rules cover and no clean text. Its ten misses are the
+acronym and spelling defects it no longer judges, the same ten the baseline
+missed, so misses did not rise. The two cases stay in the set as a record of
+what the gate leaves to the skill and the reviewer.
+
+The same runs show `git commit -F notes.txt` and `--body-file body.md` denied
+with the inline form named, and a heredoc commit passed. The hook's timeout is
+60 seconds, stated on the documentation page. REQ-3182 is closed.
 
 ## Left alone
 
