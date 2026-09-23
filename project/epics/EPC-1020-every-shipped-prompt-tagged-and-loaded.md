@@ -68,9 +68,11 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1110, TSK-1230 - the hook names a skill that has to exist,
       and its measurement runs on both models through the loop T-001 extends
 
-- [ ] T-003 TSK-1250 mark outside text in the gate's and the reviewer's
+- [x] T-003 TSK-1250 mark outside text in the gate's and the reviewer's
       prompts
       closes: REQ-1132
+      evidence: the gate blocking an injected approval in three runs of three,
+      and the reviewer reporting an injected instruction as a finding, in #68.
       depends: TSK-1120, TSK-1140 - the two prompts it marks are written there
 
 - [ ] T-004 TSK-1260 remove every instruction the loop shows has no effect
