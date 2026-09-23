@@ -28,6 +28,11 @@ In `--mode classifier` the cases carry a `defect` or a `clean` tag, the run has
 no baseline arm, and the table reports how often each kind passed. That is how
 SPC-1020 measures a prompt that blocks.
 
+Every run grants the unit read access to its own directory. An installed unit
+reads its own supporting files in a normal session, and the eval's sandbox
+refuses any read outside the working directory, so without the grant a unit
+that reads its own files measures the sandbox.
+
 Every run is a real model call, so the gate never runs this.
 """
 
@@ -116,11 +121,14 @@ def evaluate(root, args, out, mode, model):
     cmd = ["claude", "plugin", "eval", str(root), "--runs", str(args.runs),
            "-j", str(args.jobs), "--model", model, "--judge-model", args.judge,
            "--trust-plugin", "--no-publish", "--threshold", "0",
-           "--json", str(report), "--output-dir", str(out)]
+           "--json", str(report), "--output-dir", str(out),
+           "--allow-tools", f"Read(/{root.resolve()}/**)"]
     if mode == "classifier":
         cmd += ["--ablation", "none"]
     if args.cases:
         cmd += ["--case", args.cases]
+    for tag in args.tags or []:
+        cmd += ["--tag", tag]
     run = subprocess.run(cmd, capture_output=True, text=True)
     if not report.exists():
         sys.exit(f"the runner wrote no result, exit {run.returncode}:\n{run.stderr[-2000:]}")
@@ -286,6 +294,8 @@ def main():
                     help="globs, relative to the unit, for the text whose token cost is reported")
     ap.add_argument("--runs", type=int, default=RUNS)
     ap.add_argument("--cases")
+    ap.add_argument("--tag", dest="tags", action="append",
+                    help="run only the cases carrying this tag; repeat for several")
     ap.add_argument("-j", "--jobs", type=int, default=4)
     ap.add_argument("--model", dest="models", action="append",
                     help="a model to run the candidates on; repeat for several (default: Sonnet 5 and Opus 5.5)")
