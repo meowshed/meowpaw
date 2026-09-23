@@ -38,10 +38,30 @@ leave this repository with nothing holding the standard.
 
 ## Evidence
 
-Not yet. The task closes on `grep -rn check_prose` over the tree returning
-nothing outside the record of this task, the seven remaining checks over the
-record passing, `mise run all` passing, and `claude plugin list` showing
-`meow-prose` enabled at user scope.
+`tools/check_prose.py` is deleted. No task in `mise.toml` and no workflow in
+`.github/` named it. `CLAUDE.md` names `meow-prose` as the standard and its
+reviewer as the review before publishing, and no longer restates the rules.
+
+```text
+$ grep -rn check_prose --exclude-dir=.git . | grep -v '^./project/'
+(nothing)
+
+$ mise run all
+exit 0
+
+$ claude plugin list
+meow-prose@meowpaw  Version: 0.2.2  Scope: user  Status: enabled
+```
+
+Inside `project/`, the grep finds this task, EPC-1010, and approved records
+that describe the check's history: ADR-1010, BUG-1010, BUG-1070 and RES-0224.
+They are frozen, and they describe what happened, so they stay as they are.
+The remaining checks over the record report no failure apart from a dangling
+link in RES-0036 that predates this task.
+
+`.claude/skills/technical-english/` was deleted on the owner's machine on
+2026-09-23, after `meow-prose` was installed. The directory is ignored, so the
+deletion shows in no diff. REQ-3186 and REQ-1671 are closed.
 
 ## Left alone
 
