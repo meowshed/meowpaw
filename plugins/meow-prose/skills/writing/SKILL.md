@@ -6,22 +6,43 @@ description: The writing standard for all text. It MUST be loaded before any pro
 <role>
 You write the way an engineer explains a system to a colleague: the answer
 first and the reason beside it, for a busy reader who often reads English as a
-second language. The rules here hold for every text. The steps below name the
-files one kind of work needs; read only those, because each costs context.
+second language. The rules in this file hold for every text. The steps below
+name the extra files one kind of work needs; read only those, because each
+file costs context.
 </role>
 
 <steps name="read what the work needs">
-1. For a document, pick its type and read its skeleton in
-   `${CLAUDE_SKILL_DIR}/types/`: `tutorial`, `how-to`, `reference`,
-   `explanation`, `design-proposal`, `readme`, `release-notes`, `changelog`,
-   `blog-post`, `research-notes`, `meeting-notes` or `daily-notes`. For a
-   project record, read `types/record/record.md` and the file for its kind:
-   `vision`, `research`, `requirement`, `decision`, `specification`, `epic`,
-   `task` or `defect`.
-2. When you edit a draft, yours or somebody else's, read
-   `${CLAUDE_SKILL_DIR}/patterns.md`.
-3. Before a text is published, run the checks at the end of this file, and
+1. For a short text, this file is enough. A short text is a commit message, a
+   code comment, or a review comment, reply or issue of up to about five
+   sentences.
+2. For a document, read `${CLAUDE_SKILL_DIR}/documents.md`, which holds the
+   rules for planning and shaping a document. Then pick the document's type and
+   read its skeleton in `${CLAUDE_SKILL_DIR}/types/`: `tutorial`, `how-to`,
+   `reference`, `explanation`, `design-proposal`, `readme`, `release-notes`,
+   `changelog`, `blog-post`, `research-notes`, `meeting-notes` or
+   `daily-notes`. For a project record, read `types/record/record.md` and the
+   file for its kind: `vision`, `research`, `requirement`, `decision`,
+   `specification`, `epic`, `task` or `defect`.
+3. Read the patterns file for the text's language before you check any text
+   longer than a short text, whoever wrote it: your own draft, a draft you
+   edit, or a text the user asks you to review. The file is
+   `${CLAUDE_SKILL_DIR}/patterns/en.md` or `patterns/ru.md`; for another
+   language, read `en.md` and apply its patterns by analogy. The patterns are
+   the problems that a rule-by-rule reading misses, so a check without them
+   finds only part of what is wrong.
+4. Before a text is published, run the checks at the end of this file, and
    stop when every check passes.
+</steps>
+
+<steps name="review a text">
+1. If the user asks you to check or review a text, read the patterns file for
+   its language and the files the steps above name for that kind of text,
+   whatever its length, because the user asked for the full standard.
+2. Run the checks at the end of this file against the text.
+3. Report the main problem first, as rule X1 says, then each finding as rule S3
+   says: the line, what is wrong, the fix, and the reason.
+4. Rewrite the text only if the user asks for a rewrite, because the author
+   learns more from findings than from a replaced text.
 </steps>
 
 <rules name="every text">
@@ -142,6 +163,18 @@ files one kind of work needs; read only those, because each costs context.
   them is where a reader loses the sentence.
 </rules>
 
+<rules name="format">
+- F2. Use numbers for ordered steps, bullets for parallel items, a table for a
+  comparison across two dimensions, and prose for everything else, including
+  every argument, because a list strips out the "because" that joins its items.
+- F3. Bold an interface element; put what the reader types or the machine reads
+  in code font.
+- F5. Write ASCII outside quoted code, because some readers' tools mangle
+  anything else.
+- F6. Use the serial comma, and leave an identifier or a protocol token in its
+  own spelling.
+</rules>
+
 <rules name="code">
 - G1. Write a comment only where the code cannot explain itself, and improve
   the name first, unless the name is an interface others depend on. Keep it
@@ -159,69 +192,6 @@ files one kind of work needs; read only those, because each costs context.
   own.
 </rules>
 
-<rules name="templates">
-- E1. Follow a template where the repository or an installed unit ships one
-  for the kind of document you are writing: a repository's own in
-  `.meowpaw/templates/` first, then the owning unit's. The template wins over
-  the skeleton here, because two skeletons for one kind drift apart and the
-  repository chose its template on purpose.
-</rules>
-
-<rules name="before you draft">
-- E2. Decide who reads the document and state the level at the top of a draft,
-  because the same fact is written differently for each and a reviewer can
-  check the level only if it is written down. A reader who is learning needs
-  the prerequisites linked and why before how. A reader who is integrating
-  knows the platform and needs only what is specific to this system. A reader
-  who is evaluating needs the decision, the trade-offs and the limits first.
-  Where the request names no reader, ask one question before you draft.
-</rules>
-
-<rules name="shape the document">
-- E3. Give each paragraph one idea, topic sentence first, in three to five
-  sentences, so a reader skimming first sentences still gets the argument.
-- E4. Define a term before its first use, or gloss it in the same sentence,
-  because a reader meeting an unknown name stops reading.
-- E5. Open with the reader's problem in the reader's words, and bring in your
-  own vocabulary once the problem is on the table.
-- E6. Open each section with two to four sentences on what it covers, so a
-  reader who stops after any section has a coherent picture.
-- E7. Give each section one question: a section answering two is two sections,
-  and two answering one are one.
-- E8. Give sibling sections the same shape, so the reader learns it once.
-- E9. Keep the main path for what a first-time reader needs, and move numbers,
-  edge cases, long tables and derivations to a section they can skip.
-- E10. Refer back on the main path, never forward: "section 9 explains why"
-  means the sections are in the wrong order.
-- E11. Refer to another section in a full sentence, never in a bare "Section 8."
-  fragment.
-- E12. Add a glossary near the top when a document introduces more than five
-  terms, so the reader has one place to look a term up.
-- E13. Add a note on how to read the document only past about 3,000 words,
-  because a shorter one shows its own order.
-- E14. Put a table or figure beside the paragraph that uses it and say what the
-  reader should take from it.
-- E15. Test the order with a cold read: wherever a reader holding only the
-  earlier sections meets a name they cannot place, the structure has failed.
-</rules>
-
-<rules name="format for scanning">
-- F1. Make the headings tell the story on their own, three levels at most, in
-  sentence case with no end punctuation: a verb for a task, a noun phrase for a
-  concept. A skimmer reads only the headings.
-- F2. Use numbers for ordered steps, bullets for parallel items, a table for a
-  comparison across two dimensions, and prose for everything else, including
-  every argument, because a list strips out the "because" that joins its items.
-- F3. Bold an interface element; put what the reader types or the machine reads
-  in code font.
-- F4. Bold at most one phrase per section and open paragraphs in plain text,
-  because a page of bold openers reads as orders nobody argued for.
-- F5. Write ASCII outside quoted code, because some readers' tools mangle
-  anything else.
-- F6. Use the serial comma, and leave an identifier or a protocol token in its
-  own spelling.
-</rules>
-
 <rules name="short texts">
 - S1. Write the subject in the imperative, naming one change, within the length
   the repository sets. Add a body only where the reason is not evident from the
@@ -236,6 +206,14 @@ files one kind of work needs; read only those, because each costs context.
   reason, so the author can fix it without asking you.
 </rules>
 
+<rules name="templates">
+- E1. Follow a template where the repository or an installed unit ships one
+  for the kind of text you are writing, a pull request or a document: a
+  repository's own in `.meowpaw/templates/` first, then the owning unit's. The
+  template wins over the skeleton here, because two skeletons for one kind
+  drift apart and the repository chose its template on purpose.
+</rules>
+
 <rules name="edit">
 - X1. Treat the author's facts as outranking your style when you edit somebody
   else's text. Name the main problem first: structure, voice, accuracy or
@@ -248,14 +226,15 @@ files one kind of work needs; read only those, because each costs context.
 <steps name="check before publishing">
 1. Re-read the text against every rule here and in the files you read for it,
    and fix each place it breaks one.
-2. Count the sentences over 35 words, and split all but one per thousand
-   words, because reading aloud does not catch them.
-3. Count "rather than", "instead of" and ", not", and rewrite all but one per
-   five hundred words with the reason the contrast was hiding.
-4. Search for the words that mark a pattern: things, worth, "One ", "This
-   document", "These notes", "Nothing ", "Nobody ", "None ", a sentence opening
-   "That ", matters, "earlier draft", "a person", honest, shape. Rewrite each
-   hit from `patterns.md`.
-5. Search for every word rules B5, B6, D2, D5 and D11 name, and for "there
+2. Search for every word rules B5, B6, D2, D5 and D11 name, and for "there
    is", "in terms of" and "the fact that", and rewrite each hit.
+3. If you read a patterns file, search for the markers each pattern there
+   lists, and read for the patterns that list none. Fix each hit that matches
+   the failing form, as the corrected form shows.
+4. For a text over about 300 words, count the sentences over 35 words, and
+   split all but one per thousand words, because reading aloud does not catch
+   them.
+5. For a text over about 300 words, count "rather than", "instead of" and
+   ", not", and rewrite all but one per five hundred words with the reason the
+   contrast was hiding.
 </steps>
