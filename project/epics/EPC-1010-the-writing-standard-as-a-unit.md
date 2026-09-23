@@ -105,9 +105,11 @@ A task is marked in the commit that advances it, never in a later pass.
       rewritten standard, and they are improved with the runner TSK-1170
       builds
 
-- [ ] T-005 TSK-1150 retire `tools/check_prose.py` and name the unit in
+- [x] T-005 TSK-1150 retire `tools/check_prose.py` and name the unit in
       `CLAUDE.md`
       closes: REQ-3186, REQ-1671
+      evidence: the check deleted, `CLAUDE.md` naming the unit, and
+      `meow-prose` enabled at user scope, in #52. TSK-1150 carries the output.
       depends: TSK-1120 - removing the pattern check before the reviewer ships
       would leave this repository with nothing holding the standard
 
