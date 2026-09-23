@@ -6,6 +6,7 @@ revised: 2026-09-23
 checked-at:
 states:
   [
+    REQ-0077,
     REQ-1050,
     REQ-1056,
     REQ-1057,
@@ -62,6 +63,7 @@ EPC-1020 realises them, so `checked-at` stays empty until that epic closes.
 | `plugins/<unit>/output-styles/`  | An output style, loaded on every turn it is in force    |
 | `plugins/<unit>/hooks/`          | A hook's configuration, and the text of any prompt hook |
 | `tools/check_prompts.py`         | The check over every shipped prompt, run in the gate    |
+| `tools/check_kernel.py`          | The check that the kernel names no unit outside it      |
 
 ## Behaviour
 
@@ -114,6 +116,12 @@ file per document type.
 
 An output style loads whole on every turn it is in force and cannot be divided,
 so it holds only what every reply needs.
+
+A kernel prompt names, points to and loads no unit outside the kernel, because
+the kernel has to behave the same whether or not that unit is installed
+(REQ-0077). `tools/check_kernel.py` fails in the gate when a file in `meow-core`
+names another plugin, and review holds a pointer that uses no name, such as
+"the writing skill".
 
 ### Size
 
