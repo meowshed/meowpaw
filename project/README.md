@@ -98,7 +98,13 @@ requirement ADR-1010 addresses lands in exactly one task except REQ-3034, which
 the epic defers with its reason.
 
 [EPC-1020](epics/EPC-1020-every-shipped-prompt-tagged-and-loaded.md) is approved and realises ADR-1020 in four tasks, TSK-1230 to TSK-1260, each
-filed as an issue once the epic was approved. TSK-1220 is the planning task, under #62.
+filed as an issue once the epic was approved. TSK-1220 is the planning task, under #62. ADR-1050 amends it: the writing
+skill is loaded by its description and not by a hook, so TSK-1240 keeps only the
+third-person descriptions.
+
+[EPC-1030](epics/EPC-1030-the-writing-standard-loaded-by-its-description.md) is approved and
+realises ADR-1050 in one task, TSK-1270, which gives the writing skill the
+description ADR-1050 states and publishes its routing on both models.
 
 ## Defects
 

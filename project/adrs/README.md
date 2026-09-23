@@ -16,6 +16,7 @@ Five decisions are in force.
 | [ADR-1020](ADR-1020-every-shipped-prompt-is-tagged-and-a-rule-that-must-hold-is-loaded-by-a-hook.md) | Every shipped prompt is tagged, and a rule that must hold is loaded by a hook | approved                      |
 | [ADR-1030](ADR-1030-shipped-prompts-use-top-level-tags-with-markdown-inside.md)                      | Shipped prompts use top-level tags with Markdown inside                       | approved                      |
 | [ADR-1040](ADR-1040-the-style-carries-the-reply-shape-to-a-subordinate-agent.md)                     | The style carries the reply shape to a subordinate agent                      | approved                      |
+| [ADR-1050](ADR-1050-a-unit-that-must-hold-is-loaded-by-its-description.md)                           | A unit that must hold is loaded by a description stating the obligation       | approved                      |
 
 The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:

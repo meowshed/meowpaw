@@ -2,12 +2,17 @@
 id: EPC-1020
 artifact: epic
 status: approved
-revised: 2026-09-22
+revised: 2026-09-23
 realises: ADR-1020
 checked-at:
 ---
 
 # Every shipped prompt tagged, and the writing standard loaded by a hook
+
+**Amended by ADR-1050.** The writing standard is loaded by a description
+stating the obligation, not by a hook, and EPC-1030 realises that. T-002 keeps
+the third-person descriptions and drops the hook. REQ-1140 is withdrawn, and
+criterion 2 moves to EPC-1030.
 
 Realises exactly one authorising record, ADR-1020, which is what gives this
 epic an end: it is complete when every prompt the harness ships is written in
@@ -55,9 +60,9 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: the prompt check in the gate, the converted style landing on
       both models at 173 fewer tokens, in #79. TSK-1230 carries the table.
 
-- [ ] T-002 TSK-1240 load the writing skill with a `SessionStart` hook, and
-      write every description in the third person
-      closes: REQ-1140, REQ-1134
+- [ ] T-002 TSK-1240 write every description in the third person, with no
+      hook
+      closes: REQ-1134
       depends: TSK-1110, TSK-1230 - the hook names a skill that has to exist,
       and its measurement runs on both models through the loop T-001 extends
 
@@ -82,6 +87,9 @@ closed, every shipped prompt is in tags and the writing standard is present
 before a text is written, which is the claim ADR-1020 makes.
 
 ## Not covered
+
+REQ-1140 is withdrawn for REQ-1144, REQ-1146, REQ-1148 and REQ-1150, which
+EPC-1030 closes under ADR-1050, so no task here closes it.
 
 TSK-1140 of EPC-1010 builds the gate, and it follows ADR-1010 as amended: the
 gate answers `ok: false` with a reason and sets `continueOnBlock: true`, where

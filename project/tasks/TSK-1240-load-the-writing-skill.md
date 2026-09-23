@@ -2,13 +2,18 @@
 id: TSK-1240
 artifact: task
 status: approved
-revised: 2026-09-22
+revised: 2026-09-23
 epic: EPC-1020
-closes: [REQ-1140, REQ-1134]
+closes: [REQ-1134]
 issue: 67
 ---
 
 # Load the writing skill with a hook, and describe every unit in the third person
+
+**Amended by ADR-1050.** No hook, and REQ-1140 is withdrawn. The writing
+skill's description and its routing measurement move to TSK-1270. This task
+rewrites every other shipped unit's description in the third person
+(REQ-1134), and its evidence is those descriptions.
 
 One task, one branch, one pull request, one review.
 
