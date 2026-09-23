@@ -1,6 +1,6 @@
 ---
 name: writing
-description: Writing standard for commit messages, pull request and issue bodies, review comments, code comments, documents, specifications, release notes and replies. Use before writing or editing any text a person will read, including a one-line commit message and including when nobody mentions style. It asks for the answer first, a reason beside every rule, one term for one thing, and plain English for a reader who learned it as a second language.
+description: The writing standard for all text. It MUST be loaded before any prose of any length is written, rewritten, reworded, edited or reviewed, including code comments, pull request and issue descriptions, commit messages, and Markdown files. It MUST NOT be skipped, however short or simple the text looks.
 ---
 
 <role>
