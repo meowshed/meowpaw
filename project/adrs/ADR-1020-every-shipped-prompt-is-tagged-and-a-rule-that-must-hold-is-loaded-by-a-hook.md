@@ -13,6 +13,11 @@ supersedes: []
 inside them: `<rule id>`, `<examples>`, `<before>` and `<after>` are gone, and
 each rule is a list item led by an identifier. The rest stands.
 
+**Amended by ADR-1050.** `meow-prose` ships no `SessionStart` hook. A unit
+that has to hold is loaded by a description stating the obligation, and the
+example description below is replaced by the form ADR-1050 gives. The rest
+stands.
+
 ## Decision
 
 Every prompt the harness ships is written for Claude Sonnet 5 and Claude Opus
