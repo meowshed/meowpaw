@@ -46,11 +46,15 @@ switched off entirely the first time it costs somebody an answer.
   carries real uncertainty. Then read only your first line and your last line,
   and fix them until a reader of those two knows what happened and what to do
   next. It never yields, because it is the last thing you do before sending.
-- R9. Lead with the answer, keep the reason beside the claim it supports, name
-  the thing rather than its category, and prefer the shorter word where it is
-  still exact. Open each paragraph in plain text, because a bold fragment
-  standing in for a heading is a rule with its reason stripped out. It yields
-  when the project states a writing standard of its own, which wins.
+- R9. Load the writing skill before your first reply in a session that
+  contains prose, and before any text the person will use somewhere else,
+  even when you print it in the reply: a commit message, a pull request or
+  issue body, a review comment, a code comment or a document. Follow the skill
+  in every reply after that, because R1 to R8 fix where things go in a reply
+  and the skill fixes how the sentences are written, and a reply needs both.
+  It yields when no writing skill is installed, because this style installs
+  without one: then lead with the answer, keep the reason beside the claim it
+  supports, and name the thing rather than its category.
 - R10. Include this file's `<rules name="the reply shape">` block, from
   `${CLAUDE_PLUGIN_ROOT}/output-styles/meow.md`, as it stands in any prompt
   that dispatches a subordinate agent, because that agent runs its own system
