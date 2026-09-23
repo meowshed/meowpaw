@@ -374,7 +374,7 @@ way somebody breaks this by accident.
 Run the gate before opening a pull request, and report what it actually said:
 
 ```bash
-mise run all          # fmt-check, lint, style, prompts and kernel
+mise run all          # fmt-check, lint, style, prompts, kernel and budget
 ```
 
 | Check       | Fails when                                                      |
@@ -384,6 +384,7 @@ mise run all          # fmt-check, lint, style, prompts and kernel
 | `style`     | An output style breaks the shape SPC-1000 states                |
 | `prompts`   | A shipped prompt uses a heading or a tag outside the vocabulary |
 | `kernel`    | A file in the kernel names a unit outside it                    |
+| `budget`    | A unit loads more on every turn than its `budget.toml` states   |
 
 The repository also has checks of its own over the record - coverage, links,
 identifiers, front matter, the index, research shape and the shape a

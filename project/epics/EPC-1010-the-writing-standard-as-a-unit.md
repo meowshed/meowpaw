@@ -113,11 +113,11 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1120 - removing the pattern check before the reviewer ships
       would leave this repository with nothing holding the standard
 
-- [ ] T-006 [P] TSK-1160 a stated size budget for every shipped unit, and the
-      check that measures it
-      closes: REQ-1050, REQ-1056, REQ-1057, REQ-1058, REQ-1060
-      depends: TSK-1120, TSK-1140 - a budget covers what a unit loads, and the
-      three units have to exist before anything can be measured against one
+- [>] T-006 [P] TSK-1160 a stated size budget for every shipped unit, and the
+  check that measures it
+  closes: REQ-1050, REQ-1056, REQ-1057, REQ-1058, REQ-1060
+  depends: TSK-1120, TSK-1140 - a budget covers what a unit loads, and the
+  three units have to exist before anything can be measured against one
 
 - [x] T-007 [P] TSK-1170 replace the `meow-core` case set with one that
       discriminates, and build the loop every prompt is improved with

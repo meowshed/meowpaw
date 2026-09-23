@@ -64,6 +64,7 @@ EPC-1020 realises them, so `checked-at` stays empty until that epic closes.
 | `plugins/<unit>/hooks/`          | A hook's configuration, and the text of any prompt hook |
 | `tools/check_prompts.py`         | The check over every shipped prompt, run in the gate    |
 | `tools/check_kernel.py`          | The check that the kernel names no unit outside it      |
+| `tools/check_budget.py`          | The check that each unit stays within its budget        |
 
 ## Behaviour
 
@@ -127,7 +128,12 @@ names another plugin, and review holds a pointer that uses no name, such as
 ### Size
 
 Each unit states a size budget and is measured against it, and an overrun is a
-defect (REQ-1056, REQ-1058). Material past the budget moves into supporting
+defect (REQ-1056, REQ-1058). The budget sits in the unit's `budget.toml` as
+`permanent_characters`, with the measurement it was set from beside it, and
+covers what loads on every turn: each skill's and agent's description and
+`when_to_use`, and the whole of an output style. `tools/check_budget.py` counts
+it in the gate, and fails on an overrun, on a unit stating no budget, and on a
+description over the platform's cap. Material past the budget moves into supporting
 files, and never loses an obligation to get shorter (REQ-1057). Only what a
 model needs to decide whether the unit is relevant sits in context on every
 turn (REQ-1050).
