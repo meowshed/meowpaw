@@ -42,9 +42,25 @@ units have to exist before anything can be measured against one.
 
 ## Evidence
 
-Not yet. The task closes on the check failing on a probe unit over its budget,
-then passing on the shipped units, with each unit's measured cost printed
-beside its budget, and on `mise run all` depending on the check.
+In progress. `tools/check_budget.py` runs in the gate as `mise run budget`, and
+`meow-core` and `meow-prose` state their budgets in `budget.toml`, with the
+measurement beside each number:
+
+```text
+$ python3 tools/check_budget.py
+meow-core: 3945 of 4200 characters on every turn
+meow-prose: 576 of 700 characters on every turn
+2 units, 0 budget failures
+
+$ python3 tools/check_budget.py      # meow-prose given a budget of 500
+meow-prose: loads 576 characters on every turn, 76 over its budget of 500
+2 units, 1 budget failures
+```
+
+Before the budgets existed the check failed both units for stating none. The
+permanent load is counted in characters, because that needs no model and gives
+the same number twice. `meow-prose-gate` gets its budget in the pull request
+that lands it, #93, and the task closes then.
 
 ## Left alone
 
