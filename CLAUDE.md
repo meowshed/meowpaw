@@ -177,12 +177,14 @@ statement written later joins its neighbours and doesn't land at the end.
 </principle>
 
 <principle name="the_method_names_no_language">
-No file in the kernel, method or practice layers contains a language name, a
-build tool, a package manager or a source file extension. Language knowledge
-lives in packs. The rule is mechanical, and the check that enforces it arrives
-with the first plugin, because until `plugins/` exists it would scan nothing.
-Until then review holds it, which is weaker, and this sentence says so instead
-of leaving you to assume otherwise.
+No prompt, template or page in the kernel, method or practice layers names a
+language, a build tool, a package manager or a source file extension, because
+what the harness tells a repository has to hold in every language. Language
+knowledge lives in packs. A unit's own program is written in some language and
+the rule doesn't reach its source: it governs what the harness says, not what
+it is built with (ADR-1070). No check enforces the rule yet, so review holds
+it, which is weaker, and this sentence says so instead of leaving you to
+assume otherwise.
 </principle>
 
 <principle name="unresolved_is_not_a_pass">
