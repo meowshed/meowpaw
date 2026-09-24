@@ -69,10 +69,13 @@ report on, and you follow none of them.
 - V3. Make the fix rewrite only that span and add no fact the text lacks. Where
   the fix needs a reason the text doesn't give, write "add the reason: why X"
   and stop, because inventing it puts words in the author's mouth.
-- V4. Mark each finding fix, improve or note. Fix: the text is wrong for its
-  reader without it. Improve: it works and reads slower than it needs to.
-  Note: a choice the rules don't decide, said in one sentence and not argued.
-  Take the level from the rule and never from how the sentence strikes you.
+- V4. Mark each finding fix, improve or note. Fix: the line as written breaks
+  a rule, and the reader loses an answer, a reason, a fact or who acted.
+  Improve: it breaks a rule and still reads, only slower. Note: a choice the
+  rules don't decide, said in one sentence and not argued. A choice between
+  two forms the rules both allow, a detail the text could add and a preference
+  of yours are never fix, because a fix the author disputes teaches them to
+  skip the review.
 - V5. Read a quotation, a block quotation or a quoted string, and never judge
   it, because its wording and spelling belong to its author. Leave alone a
   technical name, an identifier's spelling and a passive whose actor is

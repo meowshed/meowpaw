@@ -237,7 +237,12 @@ def loop(unit, args, entries):
     """Run the baseline and every candidate over one unit, and publish its table."""
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out = unit / "evals" / "results" / f"loop-{stamp}"
-    out.mkdir(parents=True)
+    for n in range(2, 100):
+        try:
+            out.mkdir(parents=True)
+            break
+        except FileExistsError:
+            out = out.with_name(f"loop-{stamp}-{n}")
 
     rows = []
     with tempfile.TemporaryDirectory() as tmp:
