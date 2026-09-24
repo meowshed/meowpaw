@@ -1,6 +1,6 @@
 {
   "name": "meow-prose-gate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Stops Claude Code from publishing a commit message, pull request, issue, comment or release note that uses a stock idiom, a bold fragment in place of a heading, or text hidden in a file the gate can't read. It costs one Haiku call per publish and nothing on any other command.",
   "author": {
     "name": "Andrew Vasilyev",

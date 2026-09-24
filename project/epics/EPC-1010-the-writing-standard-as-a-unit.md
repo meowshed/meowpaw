@@ -146,8 +146,10 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1110, TSK-1170 - the rewrite follows the standard, and a
       case set scoring 1.00 in both arms cannot see whether it helped
 
-- [ ] T-010 TSK-1200 the reviewer reads the unit's own material
+- [x] T-010 TSK-1200 the reviewer reads the unit's own material
       closes: REQ-1115, REQ-1674, REQ-1676
+      evidence: the reviewer on the unit's seven texts, each finding fixed or
+      disputed, and the gate measured again unchanged, in #57.
       depends: TSK-1120 - the reviewer is what reads it, and the skill and the
       documentation page it reads land in TSK-1110
 

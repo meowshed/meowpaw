@@ -18,7 +18,7 @@ file costs context.
    here. Never merge the two, because two standards that disagree leave the
    author no way to tell which one applies.
 2. For a short text, this file is enough. A short text is a commit message, a
-   code comment, or a review comment, reply or issue of up to about five
+   code comment or a review comment, reply or issue of up to about five
    sentences.
 3. For a document, read `${CLAUDE_SKILL_DIR}/documents.md`, which holds the
    rules for planning and shaping a document. Then pick the document's type and
@@ -29,14 +29,13 @@ file costs context.
    file for its kind: `vision`, `research`, `requirement`, `decision`,
    `specification`, `epic`, `task` or `defect`.
 4. Read the patterns file for the text's language before you check any text
-   longer than a short text, whoever wrote it: your own draft, a draft you
-   edit, or a text the user asks you to review. The file is
+   longer than a short text, whether you wrote it or edit it. The file is
    `${CLAUDE_SKILL_DIR}/patterns/en.md` or `patterns/ru.md`; for another
    language, read `en.md` and apply its patterns by analogy. The patterns are
    the problems that a rule-by-rule reading misses, so a check without them
    finds only part of what is wrong.
-5. Before a text is published, run the checks at the end of this file, and
-   stop when every check passes.
+5. Before you publish a text, run the checks at the end of this file, and stop
+   when every check passes.
 </steps>
 
 <steps name="review a text">
@@ -67,7 +66,7 @@ file costs context.
 - T6. Write in the language the repository declares in `.meowpaw/profile.toml`
   as `[prose] language`, or British English where it declares none. Keep a
   technical term's own spelling, because respelling it renames the thing, and a
-  quotation's wording, because you did not write it.
+  quotation's wording, because you didn't write it.
 </rules>
 
 <rules name="lead with the answer">
@@ -81,7 +80,7 @@ file costs context.
 <rules name="sound like a person">
 - B1. For a decision the author made, say "I" when one person wrote the text
   and "we" when a team did, and keep to it, because a lone author writing "we"
-  invents a team the reader cannot ask.
+  invents a team the reader can't ask.
 - B2. Use contractions where you would say them aloud, and expand them only in
   a formal warning or a legal statement, because text without them reads as a
   contract.
@@ -159,7 +158,7 @@ file costs context.
   "must not" for a prohibition, because "may" and "should" each carry two
   senses.
 - H5. Break a stack of more than two nouns into a phrase, because the reader
-  cannot tell which noun modifies which.
+  can't tell which noun modifies which.
 - H6. Expand every acronym on first use, and write "for example", "that is" and
   "and so on" for the Latin abbreviations.
 - H7. Write dates, times and numbers one way only: 2026-09-18, 14:30 CET, 1,500
@@ -189,19 +188,19 @@ file costs context.
   what it does, because the reader already has the code and needs the reason it
   doesn't show. Write nothing that restates the line below, because it goes
   wrong the first time that line changes. Delete commented-out code, since
-  version control keeps it, and give every marker for later work an issue or a
+  version control keeps it. Give every marker for later work an issue or a
   task, because a bare marker is a promise nobody owns.
 - G2. Make an example runnable as pasted, with its prerequisites stated before
-  it, keep only what the prose around it explains, comment a line that is not
-  obvious, say so where you could not check it, introduce it with a sentence
-  ending in a colon, tag its fence, and follow it with prose. A reader copies
-  an example before reading the text around it, so it has to be right on its
-  own.
+  it. Keep only what the prose around it explains, comment a line that isn't
+  obvious, and say so where you couldn't check it. Introduce it with a
+  sentence ending in a colon, tag its fence and follow it with prose. A reader
+  copies an example before reading the text around it, so it has to be right
+  on its own.
 </rules>
 
 <rules name="short texts">
 - S1. Write the subject in the imperative, naming one change, within the length
-  the repository sets. Add a body only where the reason is not evident from the
+  the repository sets. Add a body only where the reason isn't evident from the
   change, in two or three lines saying why, because the detail belongs in the
   pull request and the reasoning in the decision record.
 - S2. Lead a pull request or issue with what the change does or what is broken,
@@ -216,9 +215,9 @@ file costs context.
 </rules>
 
 <rules name="templates">
-- E1. Follow a template where the repository or an installed unit ships one
-  for the kind of text you are writing, a pull request or a document: a
-  repository's own in `.meowpaw/templates/` first, then the owning unit's. The
+- E1. Follow a template where the repository or an installed plugin ships one
+  for the kind of text you're writing, a pull request or a document: a
+  repository's own in `.meowpaw/templates/` first, then the plugin's. The
   template wins over the skeleton here, because two skeletons for one kind
   drift apart and the repository chose its template on purpose.
 </rules>
@@ -226,22 +225,22 @@ file costs context.
 <rules name="edit">
 - X1. Treat the author's facts as outranking your style when you edit somebody
   else's text. Name the main problem first: structure, voice, accuracy or
-  completeness. Say what you changed and why before the result, leave alone
-  what you were not asked to change unless it is wrong, flag a claim you cannot
-  verify where you would delete it, and keep every reason, constraint and
-  number from the source.
+  completeness. Say what you changed and why before the result. Leave alone
+  what you weren't asked to change unless it's wrong, flag a claim you can't
+  verify where you would delete it and keep every reason, constraint and number
+  from the source.
 </rules>
 
 <steps name="check before publishing">
 1. Re-read the text against every rule here and in the files you read for it,
    and fix each place it breaks one.
-2. Search for every word rules B5, B6, D2, D5 and D11 name, and for "there
-   is", "in terms of" and "the fact that", and rewrite each hit.
+2. Search for every word rules B5, B6, D2 and D11 name, and for "there is",
+   "there are", "in terms of" and "the fact that", and rewrite each hit.
 3. If you read a patterns file, search for the markers each pattern there
    lists, and read for the patterns that list none. Fix each hit that matches
    the failing form, as the corrected form shows.
 4. For a text over about 300 words, count the sentences over 35 words, and
-   split all but one per thousand words, because reading aloud does not catch
+   split all but one per thousand words, because reading aloud doesn't catch
    them.
 5. For a text over about 300 words, count "rather than", "instead of" and
    ", not", and rewrite all but one per five hundred words with the reason the

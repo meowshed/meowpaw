@@ -1,11 +1,11 @@
 <role>
-Shapes that sound authoritative by hiding the author, the reader or the reason:
-bold where a heading or an argument belongs, text about the text, an
-abstraction or a void as the actor, importance promised instead of given, and a
-sentence cut off from its reason. Each is shown failing and corrected, and each
-lists the markers that find it. Use this file on any text: rewrite your own
-draft into the corrected form, and for a text somebody else wrote, report each
-finding as `SKILL.md` says under "review a text". Keep every fact either way.
+This file lists the patterns that make a text sound authoritative while they
+hide the author, the reader or the reason, from a bold fragment standing in for
+a heading to a contrast with its consequence missing. Each pattern is shown
+failing and corrected, and each lists the markers that find it. Use this file
+on any text: rewrite your own draft into the corrected form, and for a text
+somebody else wrote, report each finding as `SKILL.md` says under "review a
+text". Keep every fact either way.
 
 A marker finds a candidate, and a hit is a problem only when the sentence
 matches the failing form: "That overlap is the strongest argument" names its
@@ -20,7 +20,7 @@ parallel.
 <example name="bold standing in for structure">
 A bold sentence opening a paragraph, a bold fragment standing in for a heading,
 and a summary made of bold claims all state a conclusion with its argument
-stripped out, and a page of them reads as orders nobody argued for. Make a
+stripped out. A page of them reads as orders nobody argued for. Make a
 heading a heading, finish a fragment as a sentence, and give a summary numbers
 and actions a reader can check.
 
@@ -58,8 +58,8 @@ Most of the time went into reading the old code closely enough to find the
 23 rules it enforced.
 </example>
 <example name="counted opener">
-Announcing how many items follow makes the reader count instead of read. State
-the first item, and use a list when there really are three.
+Announcing how many items follow makes the reader count the items before
+reading them. State the first item, and use a list when there really are three.
 
 Markers: a sentence opening with a number word and a category noun, such as
 "Three things", "Two reasons" or "Four ways".
@@ -238,7 +238,7 @@ deterministic, sandboxed and bounded. That overlap is the strongest argument
 for adopting it instead of building one.
 </example>
 <example name="a long sentence and a short punchline">
-The punchline is usually a reason that came loose from its sentence.
+The short sentence is usually the reason, cut off from the long one before it.
 
 Markers: none reliable. On a read-through, look for a sentence under about
 eight words that follows a long one.
@@ -272,7 +272,7 @@ it reports, the edit has already landed.
 <example name="a contrast with the consequence missing">
 A contrast such as "X, and Y is not Z", "X rather than Y" or "X instead of Y"
 hides the consequence the reader needs. One is fine; a page of them reads as a
-string of aphorisms. Keep the claim, drop the mirror, and add the reason.
+string of aphorisms. Keep the claim, drop the "not Y" half and add the reason.
 
 Markers: "rather than", "instead of", ", not", "and ... is not".
 
