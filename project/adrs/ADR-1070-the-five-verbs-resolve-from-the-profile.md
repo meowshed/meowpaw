@@ -1,7 +1,7 @@
 ---
 id: ADR-1070
 artifact: adr
-status: draft
+status: approved
 revised: 2026-09-24
 addresses:
   [
@@ -171,5 +171,7 @@ Each is a fixture a program checks, and none needs a model.
 - Running a verb over part of the work (REQ-0140, REQ-0142).
 - Keeping results where evidence can cite them (REQ-0146), and evidence
   expiring when the tree changes.
-- Whether the rule on language names reaches the program's own source, which
-  the owner decides when approving this record.
+- Whether the program's source is bound by the constitution's rule on language
+  names is settled, and not here: the owner approved this record reading the
+  rule as governing what the harness says to a repository, not what its own
+  programs are written in, and the constitution now says so.
