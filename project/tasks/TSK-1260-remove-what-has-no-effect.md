@@ -30,6 +30,23 @@ Not yet. The task closes on one table per prompt, a row per removal
 candidate, each with its delta on both models, its token cost and whether it
 landed.
 
+Postponed by the owner on 2026-09-24, before any run, for two reasons. As
+written, the task runs one removal candidate per instruction: about 85 across
+the style, the skill, the reviewer and the gate, and about 18,000 sessions for
+the skill alone. And the case sets cannot yet see most single instructions:
+the overall delta moves by 0.05 to 0.12 through noise, a single rule touches
+one or two of fifteen cases, and three of `meow-core`'s four cases score the
+same in both arms on Opus 5.5. A removal that "holds the delta" would then
+mean a rule the cases cannot see, not a rule with no effect, and REQ-1138
+would remove most of the standard.
+
+The plan proposed for when it resumes, which amends this task and so needs
+its own approval: remove one rule group at a time, ten runs per arm, and look
+rule by rule only inside a group whose removal holds on both models; give
+`meow-core` cases that discriminate on Opus 5.5 before its ten rules are
+removed one at a time; and measure, alongside, whether the skill should load
+its patterns for every text, the question TSK-1180 left open.
+
 ## Left alone
 
 Adding instructions. A gap this finds is a candidate for the task that owns
