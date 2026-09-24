@@ -1,6 +1,6 @@
 {
   "name": "meow-prose",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Holds everything Claude Code writes for you to one writing standard: the answer first, a reason for every rule, one term for one thing, and plain English for a reader who learned it as a second language. It costs a skill that loads before you write, and about 5,000 tokens each time it does.",
   "author": {
     "name": "Andrew Vasilyev",

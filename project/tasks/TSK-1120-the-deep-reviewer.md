@@ -76,24 +76,64 @@ builds.
 
 ## Evidence
 
-In progress. The agent and its labelled set ship in the pull request for #49:
-`plugins/meow-prose/agents/prose.md`, which preloads the writing skill and
-carries no copy of the standard, and 52 cases under `plugins/meow-prose/evals/`.
-Of those, 42 come from the failing and corrected pairs in `patterns/en.md`, 21
-of each kind, and ten are written for this set, including the three below. The
-runs wait for the measurement pass. The task closes on three runs of the
-reviewer, each shown with its output:
+The agent and its labelled set shipped in #92. The set holds 52 cases: 42 from
+the failing and corrected pairs in `patterns/en.md` and ten written for it,
+each tagged `defect` or `clean`. `tools/loop.py --mode classifier`, three runs
+per case, judged by Opus 5.5, so every judged score is a smoke check
+(REQ-3028).
 
-- On a text carrying a bold fragment where a heading belongs, a counted opener
-  and an over-long sentence, it names all three with their lines.
-- On a text the standard is happy with, including a quotation in American
-  spelling, it names nothing.
-- On a source file carrying a comment that restates the line below it, it names
-  that comment.
+The first runs measured the eval's sandbox and not the reviewer. It refused
+the reviewer's reads of its own `patterns/en.md` and `documents.md`, so the
+reviewer reported every review as unrun, as its setup step says. `tools/loop.py`
+now grants each unit `Read` on its own directory (#98). The next run read the
+files and showed three faults in the set, which were corrected before any
+candidate was judged:
 
-Each case is seen failing first against an empty agent (REQ-2072). The
-labelled set's two rates follow for the baseline and for every candidate, with
-the run count and the judge named.
+- Three clean texts I wrote broke the standard: an acronym never expanded
+  (H6), times with no time zone (H7), "I" switching to "us" (B1), two words for
+  one action (T4) and a sum of minutes that didn't add up. The reviewer named
+  each of them.
+- The corrected example "deterministic, sandboxed and bounded" broke F6 as it
+  then read. F6 asked for the serial comma, and nothing else the standard
+  ships used it, so the owner changed F6 to leave it out, as British English
+  does.
+- The 42 pattern cases are excerpts, and reviewed as whole texts they have
+  references the surrounding document would define. Each now says it is an
+  excerpt.
+
+On the corrected set, Sonnet 5:
+
+| Candidate | Change                                                           | Defects named | Clean passed | Verdict             |
+| --------- | ---------------------------------------------------------------- | ------------- | ------------ | ------------------- |
+| first run | the set before its faults were fixed                             | 0.99 (n=84)   | 0.64 (n=72)  | superseded          |
+| baseline  | the draft from ADR-1010's appendix, in the tag vocabulary        | 0.99 (n=81)   | 0.88 (n=68)  | baseline            |
+| V4        | fix only where the line breaks a rule and the reader loses by it | 0.98 (n=84)   | 0.92 (n=72)  | landed by the owner |
+
+On the three hand-written clean texts alone, after their last correction, the
+baseline passed two runs of nine and V4 six. V4 missed one more defect in 84
+runs and costs two more lines, so the landing rule left it to the owner, who
+landed it.
+
+V4 on Opus 5.5 named defects in 1.00 of runs (n=76) and passed 0.97 of clean
+texts (n=66). Fourteen runs timed out at 300 seconds and count as failures.
+Its only misses on the named quotation case were a real ambiguity in my text,
+whether "five retries two seconds apart" counts a wait before the first retry;
+it never judged the quotation (REQ-0999).
+
+The three named cases, each first seen failing against an agent with the same
+name and description and no instructions (REQ-2072). That agent failed all
+nine runs, eight of them by running out of turns while it searched for a
+standard it had not been given:
+
+| Case                          | Kind   | V4 on Sonnet 5 | The empty agent |
+| ----------------------------- | ------ | -------------- | --------------- |
+| bold-count-long               | defect | 2 of 3         | 0 of 3          |
+| clean-with-american-quotation | clean  | 3 of 3         | 0 of 3          |
+| comment-restates-the-line     | defect | 3 of 3         | 0 of 3          |
+
+In the run that fell short on `bold-count-long`, the reviewer named two of its
+three defects. REQ-3184, REQ-0999, REQ-1012, REQ-1013, REQ-1014, REQ-1024 and
+REQ-1026 are closed.
 
 ## Left alone
 
