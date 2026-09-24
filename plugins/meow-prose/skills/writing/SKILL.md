@@ -176,8 +176,10 @@ file costs context.
   in code font.
 - F5. Write ASCII outside quoted code, because some readers' tools mangle
   anything else.
-- F6. Use the serial comma, and leave an identifier or a protocol token in its
-  own spelling.
+- F6. Leave out the serial comma, as British English does, and add one only
+  where a list item itself contains "and", because that is where a reader
+  loses the boundary. Leave an identifier or a protocol token in its own
+  spelling.
 </rules>
 
 <rules name="code">
