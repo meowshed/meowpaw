@@ -52,8 +52,8 @@ Corrected:
 правила, которые он проверял.
 </example>
 <example name="counted opener">
-Announcing how many items follow makes the reader count instead of read. State
-the first item, and use a list when there really are three.
+Announcing how many items follow makes the reader count the items before
+reading them. State the first item, and use a list when there really are three.
 
 Markers: a sentence opening with a number word and a category noun, such as
 "Три вещи", "Две причины" or "Есть несколько".
@@ -236,7 +236,7 @@ Corrected:
 сильный аргумент за то, чтобы взять его, а не писать свой.
 </example>
 <example name="a long sentence and a short punchline">
-The punchline is usually a reason that came loose from its sentence.
+The short sentence is usually the reason, cut off from the long one before it.
 
 Markers: none reliable. On a read-through, look for a sentence under about
 eight words that follows a long one.
@@ -269,7 +269,7 @@ Corrected:
 <example name="a contrast with the consequence missing">
 A contrast such as "X, а Y не Z", "X, а не Y" or "вместо Y" hides the
 consequence the reader needs. One is fine; a page of them reads as a string of
-aphorisms. Keep the claim, drop the mirror, and add the reason.
+aphorisms. Keep the claim, drop the "not Y" half and add the reason.
 
 Markers: "а не", "вместо", "не ..., а". Step 5 of the checks in `SKILL.md`
 sets how many a text can keep.
