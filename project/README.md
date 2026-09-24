@@ -70,6 +70,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   and not by the `SessionStart` hook ADR-1020 chose.
 - [ADR-1060](adrs/ADR-1060-the-kernel-names-no-unit-outside-it.md): the
   kernel names, points to and loads no unit outside it.
+- [ADR-1070](adrs/ADR-1070-the-five-verbs-resolve-from-the-profile.md): the
+  five verbs resolve from the repository's profile, and an unresolved verb is
+  reported as unresolved.
 
 ## Specifications
 
@@ -83,6 +86,9 @@ the harness says is measured, and
 [SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
 prompt the harness ships is written. The work realising them has landed, and
 each leaves `checked-at` empty until its epics are verified.
+
+[SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
+from the repository's profile. Nothing implements it yet.
 
 ## Epics and tasks
 
@@ -104,6 +110,9 @@ the owner until the case sets can see a single rule, and the task records why.
 
 [EPC-1030](epics/EPC-1030-the-writing-standard-loaded-by-its-description.md)
 realises ADR-1050 in one task, TSK-1270, closed in #85.
+
+[EPC-1040](epics/EPC-1040-the-five-verbs.md) is a draft that realises ADR-1070
+in two tasks, TSK-1280 and TSK-1290, and waits for the owner's approval.
 
 ## Defects
 
