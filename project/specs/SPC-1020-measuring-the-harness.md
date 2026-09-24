@@ -99,6 +99,13 @@ cites reported single-case variance above 0.9 at three trials.
 It states the judge, the case set, the revision it ran at, and the cost in
 tokens the unit under test loads on every turn.
 
+A candidate lands on its overall delta, when that moves by more than twice its
+standard error. A gain in one case is read only from ten runs or more and only
+when it exceeds 0.2, because at five runs a single case moves by 0.2 through
+noise alone: two candidates for the writing skill each raised their target case
+by 0.4 or more, and neither gain held when the two were measured again
+together.
+
 ### What a regression is
 
 A regression is a fall in the difference against the baseline, and never a fall

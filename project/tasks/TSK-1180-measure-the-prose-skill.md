@@ -86,9 +86,38 @@ refused the unit's reads of its own supporting files. `tools/loop.py` now
 grants each unit `Read` on its own directory, and takes `--tag` so the
 reviewer's classifier cases and these content cases run apart.
 
-Outstanding: the six cases are a sample, and the task asks for every rule and
-pattern in the criteria table to be measured. The task closes when the rest
-have cases and the loop's table covers them.
+Eight more cases cover the rule groups the first six left out: steps with a
+warning and a condition (A1, A2, B3), acronyms and times (H6, H7), idioms (H2),
+a proposal's reader and headings (E2, F1), a code example (G2), a reply to a
+reviewer (T2, S3), a bug report (S2) and plain verbs (D1, D4, D5). On all
+fourteen, with the skill as #100 left it:
+
+| Candidate | Model    | Change                                                     | Delta | 2SE  | Verdict  |
+| --------- | -------- | ---------------------------------------------------------- | ----- | ---- | -------- |
+| baseline  | Sonnet 5 | the skill on `main` after #100                             | +0.15 | 0.04 | baseline |
+| C2 and C3 | Sonnet 5 | headings state what a section says; every acronym expanded | +0.16 | 0.05 | lost     |
+| baseline  | Opus 5.5 | the skill on `main` after #100                             | +0.24 | 0.04 | baseline |
+| C2 and C3 | Opus 5.5 | headings state what a section says; every acronym expanded | +0.25 | 0.05 | lost     |
+
+C2 and C3 were first measured one at a time on the skill before #100. C2 raised
+Opus 5.5's design proposal from 0.48 to 0.92 and C3 raised Sonnet 5's incident
+summary from 0.50 to 1.00, and on those numbers I recommended both. Measured
+together on the current skill, the overall deltas moved by 0.01, inside twice
+their standard error, and the two case gains fell to 0.60 to 0.76 and 0.50 to
+0.60, while other cases fell by as much: how-to steps on Opus 5.5 from 0.80 to
+0.60, the pull request on Sonnet 5 from 1.00 to 0.80. At five runs one case
+moves by 0.2 through noise, so the first gains were at least partly noise. The
+owner dropped both, and SPC-1020 now reads a candidate from its overall delta.
+
+The token column in these runs is unreliable: the same `SKILL.md` measured
+3,281 tokens in one arm and 6,713 in another. A verdict of "costs no less" in
+the loop's own table rests on that column, so none of the verdicts above does.
+
+Still open: the patterns have no content cases of their own, and
+`write-commit-message`, `write-onboarding-note` and `write-plain-verbs` score
+the same with and without the skill on both models, so they cannot yet show a
+change. The task closes when the patterns have cases and those three are
+replaced by cases that discriminate.
 
 ## Left alone
 
