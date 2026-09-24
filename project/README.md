@@ -2,7 +2,7 @@
 id: index
 artifact: index
 status: live
-revised: 2026-09-22
+revised: 2026-09-24
 ---
 
 # The project
@@ -35,76 +35,75 @@ it.
 
 ## Research
 
-128 documents, indexed by
+129 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
 ## Requirements
 
-1,073 obligations, indexed by [requirements/README.md](requirements/README.md).
-Each is one file carrying one obligation, and it declares whether it's
-functional or non-functional and which of the four kinds of check verifies it:
-a static check, a behavioural fixture, a judgement with its judge named, or a
-measured evaluation.
+1,078 obligations, withdrawn ones included, indexed by
+[requirements/README.md](requirements/README.md). Each is one file carrying
+one obligation, and it declares whether it's functional or non-functional and
+which of the four kinds of check verifies it: a static check, a behavioural
+fixture, a judgement with its judge named, or a measured evaluation.
 
 ## Decisions
 
-[ADR-1000](adrs/ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md)
-is approved and in force: the reply shape is a forced output style carried by
-the kernel. It is the first turn the design step has run against the
-requirements as they now stand.
+Every decision below is approved and in force, as amended by the ones after it.
 
-[ADR-1010](adrs/ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md)
-is approved and in force: the writing standard ships as `meow-prose`, held
-by a reviewer inside it and by a separately installed gate, and never by a
-pattern over prose.
-
-[ADR-1020](adrs/ADR-1020-every-shipped-prompt-is-tagged-and-a-rule-that-must-hold-is-loaded-by-a-hook.md)
-is approved and amends it: every shipped prompt is written in XML tags for
-Sonnet 5 and Opus 5.5, the writing skill is loaded by a `SessionStart` hook,
-and the gate blocks with the field a prompt hook actually has.
-[ADR-1030](adrs/ADR-1030-shipped-prompts-use-top-level-tags-with-markdown-inside.md)
-is approved and amends it: five top-level tags with Markdown inside, and each
-rule a list item led by an identifier.
+- [ADR-1000](adrs/ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md):
+  the reply shape is a forced output style carried by the kernel.
+- [ADR-1010](adrs/ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md):
+  the writing standard ships as `meow-prose`, held by a reviewer inside it and
+  by a separately installed gate, and never by a pattern over prose.
+- [ADR-1020](adrs/ADR-1020-every-shipped-prompt-is-tagged-and-a-rule-that-must-hold-is-loaded-by-a-hook.md):
+  every shipped prompt is written in XML tags for Sonnet 5 and Opus 5.5, and
+  the gate blocks with the field a prompt hook actually has.
+- [ADR-1030](adrs/ADR-1030-shipped-prompts-use-top-level-tags-with-markdown-inside.md):
+  five top-level tags with Markdown inside, and each rule a list item led by
+  an identifier.
+- [ADR-1040](adrs/ADR-1040-the-style-carries-the-reply-shape-to-a-subordinate-agent.md):
+  the style carries the reply shape to a subordinate agent itself, through its
+  rule R10.
+- [ADR-1050](adrs/ADR-1050-a-unit-that-must-hold-is-loaded-by-its-description.md):
+  a unit that has to hold is loaded by a description stating the obligation,
+  and not by the `SessionStart` hook ADR-1020 chose.
+- [ADR-1060](adrs/ADR-1060-the-kernel-names-no-unit-outside-it.md): the
+  kernel names, points to and loads no unit outside it.
 
 ## Specifications
 
 [SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape, checked
-at #27. It records that REQ-0930 is unmet: the style applies when a
-person selects it, and not on its own.
+at #27. It records that REQ-0930 is unmet: the style applies when a person
+selects it, and not on its own.
 
-[SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard
-and [SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to
-what the harness says is measured. Nothing implements either yet, so both leave
-`checked-at` empty.
-
+[SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
+[SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to what
+the harness says is measured, and
 [SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
-prompt the harness ships is written: its form, its content, how it is divided
-and loaded, and what it costs.
+prompt the harness ships is written. The work realising them has landed, and
+each leaves `checked-at` empty until its epics are verified.
 
 ## Epics and tasks
 
-[EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) is approved and
-realises ADR-1000 in five tasks, TSK-1010 to TSK-1050, each filed as an issue
-from #5 to #9 and each closed with evidence. The epic closed at #27 with
-one acceptance criterion unmet, named in the epic as REQ-3170 requires. TSK-1000 is the
-planning task that produced all of it, and `tools/check_coverage.py` reports
-every requirement the decision addresses landing in exactly one task.
+[EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) realises ADR-1000
+in five tasks, TSK-1010 to TSK-1050, each closed with evidence. The epic closed
+at #27 with one acceptance criterion unmet, named in the epic as REQ-3170
+requires.
 
-[EPC-1010](epics/EPC-1010-the-writing-standard-as-a-unit.md) is approved and
-realises ADR-1010 in eleven tasks, TSK-1110 to TSK-1210, each filed as an issue
-once the epic was approved. TSK-1100 is the planning task, under #46. Every
-requirement ADR-1010 addresses lands in exactly one task except REQ-3034, which
-the epic defers with its reason.
+[EPC-1010](epics/EPC-1010-the-writing-standard-as-a-unit.md) realises ADR-1010
+in eleven tasks, TSK-1110 to TSK-1210, and all eleven are closed with evidence.
+The epic's own verification has not run. Every requirement ADR-1010 addresses
+lands in exactly one task except REQ-3034, which the epic defers with its
+reason.
 
-[EPC-1020](epics/EPC-1020-every-shipped-prompt-tagged-and-loaded.md) is approved and realises ADR-1020 in four tasks, TSK-1230 to TSK-1260, each
-filed as an issue once the epic was approved. TSK-1220 is the planning task, under #62. ADR-1050 amends it: the writing
-skill is loaded by its description and not by a hook, so TSK-1240 keeps only the
-third-person descriptions.
+[EPC-1020](epics/EPC-1020-every-shipped-prompt-tagged-and-loaded.md) realises
+ADR-1020 in four tasks, TSK-1230 to TSK-1260. Three are closed. TSK-1260,
+which removes every instruction the loop shows has no effect, is postponed by
+the owner until the case sets can see a single rule, and the task records why.
 
-[EPC-1030](epics/EPC-1030-the-writing-standard-loaded-by-its-description.md) is approved and
-realises ADR-1050 in one task, TSK-1270, which gives the writing skill the
-description ADR-1050 states and publishes its routing on both models.
+[EPC-1030](epics/EPC-1030-the-writing-standard-loaded-by-its-description.md)
+realises ADR-1050 in one task, TSK-1270, closed in #85.
 
 ## Defects
 
