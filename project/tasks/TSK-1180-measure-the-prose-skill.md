@@ -53,7 +53,7 @@ the conventions the repaired case set settles.
 
 ## Evidence
 
-In progress. Routing is measured and meets its threshold: the description
+Routing is measured and meets its threshold: the description
 ADR-1050 states loads the skill in 36 of 36 writing runs on Sonnet 5 and 33 of
 33 on Opus 5.5, on eleven phrasings including a one-line commit message, and in
 no run that only changes code. TSK-1270 carries the table.
@@ -113,11 +113,43 @@ The token column in these runs is unreliable: the same `SKILL.md` measured
 3,281 tokens in one arm and 6,713 in another. A verdict of "costs no less" in
 the loop's own table rests on that column, so none of the verdicts above does.
 
-Still open: the patterns have no content cases of their own, and
-`write-commit-message`, `write-onboarding-note` and `write-plain-verbs` score
-the same with and without the skill on both models, so they cannot yet show a
-change. The task closes when the patterns have cases and those three are
-replaced by cases that discriminate.
+Three cases scored the same with and without the skill on both models:
+`write-commit-message`, `write-onboarding-note` and `write-plain-verbs`. They
+are deleted, and four cases for the patterns replace them. Each is a writing
+task that tends to produce several patterns at once, graded by the markers
+`patterns/en.md` lists and by a judge for the patterns with none:
+`write-design-rationale`, `write-postmortem`, `write-status-update` and
+`write-revised-decision`. Ten runs per arm, as SPC-1020 asks before a case is
+read on its own:
+
+| Candidate | Model    | Change                                                   | Delta | 2SE  | Verdict  |
+| --------- | -------- | -------------------------------------------------------- | ----- | ---- | -------- |
+| baseline  | Sonnet 5 | the skill on `main`, first run                           | -0.07 | 0.06 | baseline |
+| baseline  | Opus 5.5 | the skill on `main`, first run                           | +0.13 | 0.05 | baseline |
+| baseline  | Sonnet 5 | the skill on `main`, second run                          | -0.01 | 0.05 | baseline |
+| P1        | Sonnet 5 | D7 covers "this" and "that" pointing at a whole sentence | +0.00 | 0.11 | lost     |
+| baseline  | Opus 5.5 | the skill on `main`, second run                          | +0.10 | 0.06 | baseline |
+| P1        | Opus 5.5 | D7 covers "this" and "that" pointing at a whole sentence | +0.14 | 0.06 | lost     |
+
+The first run's per-run results were deleted by mistake while a stopped run
+was cleared; its tables survive in the run's log. The second run lost 58 of
+its 320 runs to a timeout of 300 seconds, 41 of them in the arm with the
+skill, while another measurement loaded the same machine; a timed-out run
+counts in neither arm.
+
+On Opus 5.5 the skill reduces the patterns. On Sonnet 5 it doesn't: with the
+skill, `write-status-update` failed the judged patterns in eight or nine runs
+of ten against none without it, nearly always on a sentence opening "This"
+that points at the whole sentence before it, such as "This is blocked on a
+firewall change". A status update is a short text, so the skill never reads
+`patterns/en.md` for it, and the pattern reaches it only through the core's
+rules. P1 moved that rule into the core, and the case did not change.
+
+REQ-3032 is closed: routing was measured before content, on every phrasing,
+and the content cases now cover every rule group and the patterns. Left open,
+for the owner: on Sonnet 5 the skill does not reduce the patterns in a short
+text, and whether to load the patterns for every text is a decision about what
+the skill costs on every text it loads for.
 
 ## Left alone
 

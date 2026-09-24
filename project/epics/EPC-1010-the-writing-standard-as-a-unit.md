@@ -134,11 +134,13 @@ A task is marked in the commit that advances it, never in a later pass.
       a deliberately worse candidate losing at -0.31. TSK-1170 carries the
       tables, in #60.
 
-- [>] T-008 TSK-1180 measure `meow-prose`: routing first, then what it says,
-  then improve the skill through the loop
-  closes: REQ-3032
-  depends: TSK-1110, TSK-1170 - it measures the skill, and it grades with
-  the conventions the repaired case set settles
+- [x] T-008 TSK-1180 measure `meow-prose`: routing first, then what it says,
+      then improve the skill through the loop
+      closes: REQ-3032
+      evidence: routing on both models, then fifteen content cases and six
+      candidates, one landed, in #55. TSK-1180 has the tables and what is open.
+      depends: TSK-1110, TSK-1170 - it measures the skill, and it grades with
+      the conventions the repaired case set settles
 
 - [x] T-009 TSK-1190 rewrite the `meow-core` style and fragment against the
       standard, each improved through the loop against what it replaces
