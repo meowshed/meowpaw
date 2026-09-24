@@ -140,9 +140,11 @@ A task is marked in the commit that advances it, never in a later pass.
   depends: TSK-1110, TSK-1170 - it measures the skill, and it grades with
   the conventions the repaired case set settles
 
-- [ ] T-009 TSK-1190 rewrite the `meow-core` style and fragment against the
+- [x] T-009 TSK-1190 rewrite the `meow-core` style and fragment against the
       standard, each improved through the loop against what it replaces
       closes: REQ-0956
+      evidence: three candidates from the reviewer's findings, none beyond twice
+      its standard error, so the style stays, in #56. TSK-1190 has the table.
       depends: TSK-1110, TSK-1170 - the rewrite follows the standard, and a
       case set scoring 1.00 in both arms cannot see whether it helped
 
