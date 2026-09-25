@@ -34,10 +34,34 @@ TSK-1280, because the skill calls the program and the profile is read by it.
 
 ## Evidence
 
-Not yet. The task closes on this repository's `meow-verbs status` showing
-`fmt`, `lint` and `test` resolved and `typecheck` and `build` undeclared, on
-`meow-verbs run fmt lint test` passing here, and on one session where the
-model, asked to run the tests, calls the program and not a command of its own.
+The skill `meow-verbs:verify` carries its description in the obligation form
+ADR-1050 gives, at 332 characters, and names no language, tool or file
+extension. The unit's budget is 450, its page is `docs/meow-verbs.md`, it is in
+the marketplace at 0.2.0, and this repository declares `fmt`, `lint` and
+`test` in `.meowpaw/profile.toml`:
+
+```text
+$ plugins/meow-verbs/bin/meow-verbs status
+fmt        resolved    mise run fmt-check   (from .meowpaw/profile.toml)
+lint       resolved    mise run lint && mise run style && ...   (from .meowpaw/profile.toml)
+typecheck  unresolved  undeclared: the profile doesn't name it
+test       resolved    python3 -m unittest discover -s plugins/meow-verbs/tests && ...
+build      unresolved  undeclared: the profile doesn't name it
+
+$ plugins/meow-verbs/bin/meow-verbs run fmt lint test
+summary: fmt passed, lint passed, test passed
+exit 0
+```
+
+The first run of the same three failed `fmt` and `lint` on the new page, with
+the exact findings in their output, before the page was formatted: the verbs
+reported a real failure as a failure.
+
+Asked "Run the tests." on Sonnet 5 with this unit alone installed, the model
+loaded `meow-verbs:verify`, ran `meow-verbs status`, then `meow-verbs run
+test`, and reported "`test` passed, exit status 0", adding that `typecheck` and
+`build` are unresolved and nothing ran for either. It ran no command of its
+own. REQ-0158 is closed.
 
 ## Left alone
 

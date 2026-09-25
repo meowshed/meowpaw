@@ -8,6 +8,7 @@ under `project/`, and this hierarchy stays separate from it.
 | [meow-core](meow-core.md)             | The kernel, and the reply shape it imposes                             |
 | [meow-prose](meow-prose.md)           | The writing standard, loaded before Claude writes                      |
 | [meow-prose-gate](meow-prose-gate.md) | A hook that blocks a publish carrying a defect any reader can point to |
+| [meow-verbs](meow-verbs.md)           | The five verification verbs, run as the repository declared them       |
 
 One page per unit the harness ships, and a unit's catalogue entry links to its
 page.
