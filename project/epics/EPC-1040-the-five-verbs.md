@@ -56,9 +56,11 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: twelve fixtures, each seen failing against a stub and passing
       against the program, in #110. TSK-1280 carries the runs.
 
-- [ ] T-002 TSK-1290 the skill, the documentation page, the budget, the
+- [x] T-002 TSK-1290 the skill, the documentation page, the budget, the
       marketplace entry and this repository's own profile
       closes: REQ-0158
+      evidence: this repository's verbs resolving and passing through the
+      program, and a session calling it in place of a command, in #111.
       depends: TSK-1280 - the skill calls the program, and the profile is read
       by it
 

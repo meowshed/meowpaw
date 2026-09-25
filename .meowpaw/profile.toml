@@ -1,0 +1,8 @@
+# What this repository declares to the harness (RES-0261). Each verb is one
+# command, run by the shell from the repository's root. typecheck and build
+# are left undeclared: this repository has neither, so both report unresolved.
+
+[verbs]
+fmt = "mise run fmt-check"
+lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run budget"
+test = "python3 -m unittest discover -s plugins/meow-verbs/tests && python3 tools/check_coverage.py && python3 tools/check_front_matter.py && python3 tools/check_ids.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_research.py && python3 tools/check_subagent_shape.py"

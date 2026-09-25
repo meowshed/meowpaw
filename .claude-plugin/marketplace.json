@@ -22,6 +22,11 @@
       "name": "meow-prose-gate",
       "source": "./plugins/meow-prose-gate",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-prose-gate.md"
+    },
+    {
+      "name": "meow-verbs",
+      "source": "./plugins/meow-verbs",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-verbs.md"
     }
   ]
 }
