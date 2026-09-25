@@ -111,8 +111,8 @@ the owner until the case sets can see a single rule, and the task records why.
 [EPC-1030](epics/EPC-1030-the-writing-standard-loaded-by-its-description.md)
 realises ADR-1050 in one task, TSK-1270, closed in #85.
 
-[EPC-1040](epics/EPC-1040-the-five-verbs.md) is a draft that realises ADR-1070
-in two tasks, TSK-1280 and TSK-1290, and waits for the owner's approval.
+[EPC-1040](epics/EPC-1040-the-five-verbs.md) is approved and realises ADR-1070
+in two tasks, TSK-1280 and TSK-1290, each filed as an issue.
 
 ## Defects
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-1280
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-24
 epic: EPC-1040
 closes:
@@ -16,7 +16,7 @@ closes:
     REQ-0154,
     REQ-0156,
   ]
-issue:
+issue: 110
 ---
 
 # Resolve and run the five verbs from the profile

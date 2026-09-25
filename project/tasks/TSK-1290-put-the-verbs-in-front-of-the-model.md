@@ -1,11 +1,11 @@
 ---
 id: TSK-1290
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-24
 epic: EPC-1040
 closes: [REQ-0158]
-issue:
+issue: 111
 ---
 
 # Put the verbs in front of the model, and use them here
