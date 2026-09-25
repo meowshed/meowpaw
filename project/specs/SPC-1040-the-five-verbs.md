@@ -3,7 +3,7 @@ id: SPC-1040
 artifact: spec
 status: live
 revised: 2026-09-24
-checked-at:
+checked-at: "#115"
 states:
   [
     REQ-0130,
@@ -31,8 +31,8 @@ It leaves binding a verb to a runner's tasks, language packs, running a verb
 over part of the work and keeping results for evidence to later decisions,
 which ADR-1070 names. How the unit's skill is written is SPC-1030's.
 
-The harness doesn't implement this yet. ADR-1070 decides it and EPC-1040
-realises it, so `checked-at` stays empty until that epic closes.
+ADR-1070 decides it, EPC-1040 realises it, and `meow-verbs` implements it,
+checked at #115.
 
 ## Boundary
 

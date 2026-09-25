@@ -88,7 +88,8 @@ prompt the harness ships is written. The work realising them has landed, and
 each leaves `checked-at` empty until its epics are verified.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
-from the repository's profile, and `meow-verbs` implements it.
+from the repository's profile. `meow-verbs` implements it, and the check at
+pull request 115 confirmed it.
 
 ## Epics and tasks
 
@@ -112,8 +113,8 @@ the owner until the case sets can see a single rule, and the task records why.
 realises ADR-1050 in one task, TSK-1270, closed in #85.
 
 [EPC-1040](epics/EPC-1040-the-five-verbs.md) realises ADR-1070 in two tasks,
-TSK-1280 and TSK-1290, both closed with evidence. The epic's own verification
-has not run.
+TSK-1280 and TSK-1290, both closed with evidence, and was verified against
+every acceptance criterion at #115.
 
 ## Defects
 
