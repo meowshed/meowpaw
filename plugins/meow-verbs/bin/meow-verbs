@@ -1,0 +1,57 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# Finds an interpreter new enough to read TOML and hands over to the program.
+# Where there is none, it reports every verb unresolved itself, because a
+# verb that couldn't run must never read as passed.
+
+case $0 in
+*/*) here=${0%/*} ;;
+*) here=$(command -v "$0") && here=${here%/*} ;;
+esac
+for candidate in python3.14 python3.13 python3.12 python3.11 python3; do
+  if command -v "$candidate" >/dev/null 2>&1 &&
+    "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
+    exec "$candidate" "$here/../lib/meow_verbs.py" "$@"
+  fi
+done
+
+verbs="fmt lint typecheck test build"
+reason="Python 3.11 or later wasn't found"
+case "$1" in
+status)
+  if [ "$2" = "--json" ]; then
+    printf '{"profile": null, "profile_state": "unknown", "error": "%s", "verbs": {' "$reason"
+    sep=""
+    for verb in $verbs; do
+      printf '%s"%s": {"state": "unresolved", "kind": "no interpreter", "detail": "%s"}' "$sep" "$verb" "$reason"
+      sep=", "
+    done
+    printf '}, "ignored": []}\n'
+  else
+    for verb in $verbs; do
+      printf '%-10s unresolved  no interpreter: %s\n' "$verb" "$reason"
+    done
+  fi
+  exit 0
+  ;;
+run)
+  shift
+  if [ $# -eq 0 ]; then
+    echo "meow-verbs run: name the verbs to run, from: $verbs" >&2
+    exit 2
+  fi
+  summary=""
+  for verb in "$@"; do
+    printf '== %s: unresolved (no interpreter: %s), not run\n' "$verb" "$reason"
+    summary="$summary${summary:+, }$verb unresolved"
+  done
+  printf '\nsummary: %s\n' "$summary"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-verbs status [--json] | meow-verbs run <verb>..." >&2
+  exit 2
+  ;;
+esac
