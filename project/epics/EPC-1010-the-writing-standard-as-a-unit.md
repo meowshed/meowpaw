@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-22
 realises: ADR-1010
-checked-at:
+checked-at: "#118"
 ---
 
 # The writing standard, shipped as a unit that reviews itself
@@ -163,6 +163,41 @@ A task is marked in the commit that advances it, never in a later pass.
       its table, in #61. `all` runs no model.
       depends: TSK-1170 - a runner for a suite that cannot discriminate spends
       a model call on every run and reports nothing
+
+## Verified, and closed with a criterion unmet
+
+Checked under issue 118 at revision `2b613b6`. The mechanical criteria rest on
+evidence gathered there. The judged criteria rest on the measurements each
+task recorded, because running them again is an evaluation, and the owner has
+postponed the evaluations. The reviewer's prompt and the skill were reworded
+by #100 after TSK-1120 measured them, without changing what they ask for.
+
+| Criterion                                                                   | State       | Evidence                                                                                      |
+| --------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------- |
+| 1. The skill routes on writing work, measured                               | met         | TSK-1270: 36 of 36 writing runs on Sonnet 5, 33 of 33 on Opus 5.5                             |
+| 2. The reviewer names a bold fragment, a counted opener and a long sentence | met in part | TSK-1120: `bold-count-long` passed 2 of 3 runs; the third named two of the three              |
+| 3. The reviewer names nothing on a clean text                               | met         | TSK-1120: the named clean case, 3 of 3 runs                                                   |
+| 4. The unit's own material reviewed, each finding settled                   | met         | TSK-1200                                                                                      |
+| 5. The style measured against the one it replaces                           | met in part | TSK-1190: met on Sonnet 5; on Opus 5.5 three of four cases score 1.00 in both arms            |
+| 6. The gate blocks a named defect, passes clean text, denies a hidden text  | met         | TSK-1140: 20 of 30 defects in scope blocked, 30 of 30 clean texts passed                      |
+| 7. The reviewer names a comment that restates the code                      | met         | TSK-1120: `comment-restates-the-line`, 3 of 3 runs                                            |
+| 8. Every prompt through one loop, every candidate published                 | met         | TSK-1180, TSK-1120, TSK-1140, TSK-1190; the fragment it names was retired by ADR-1040         |
+| 9. Every rule lands or is dropped; each visible one has a case              | unmet       | Every rule lands (#70), but about 58 of 65 rules have no case in the reviewer's set: BUG-1100 |
+| 10. Every requirement in one closed task, nothing outstanding               | met         | `tools/check_coverage.py`: 39 of 40 in tasks, REQ-3034 deferred with its reason, 0 failures   |
+
+Criterion 9 is not met, and the epic closes anyway, which REQ-3170 permits
+when the epic names the criterion, names the defect and says why closing is
+correct. The criterion asks for a case in the reviewer's labelled set for
+every rule a reader can see in a text; BUG-1100 records that about 58 of the
+65 rules have none. Closing is correct because the gap is in the measurement
+and not in anything the unit ships: the rules are in the skill, the reviewer
+reads against all of them, and every task closed with evidence of its own.
+Writing the cases costs no model and running them is an evaluation, which the
+owner has postponed; holding the epic open would report nothing about eleven
+finished tasks while it waited on that.
+
+SPC-1010 stays unchecked: EPC-1020 realises it too, and TSK-1260 there is
+postponed.
 
 ## Coverage
 
