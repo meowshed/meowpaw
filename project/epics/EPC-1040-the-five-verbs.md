@@ -49,10 +49,12 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1280 `plugins/meow-verbs/`: the manifest, the launcher and the
+- [x] T-001 TSK-1280 `plugins/meow-verbs/`: the manifest, the launcher and the
       program's `status` and `run`, each failure path in SPC-1040 a fixture
       closes: REQ-0130, REQ-0131, REQ-0134, REQ-0135, REQ-0136, REQ-0144,
       REQ-0150, REQ-0154, REQ-0156
+      evidence: twelve fixtures, each seen failing against a stub and passing
+      against the program, in #110. TSK-1280 carries the runs.
 
 - [ ] T-002 TSK-1290 the skill, the documentation page, the budget, the
       marketplace entry and this repository's own profile
