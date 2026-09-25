@@ -21,7 +21,8 @@ def main() -> int:
             path = os.path.join(root, name)
             with open(path, encoding="utf-8") as handle:
                 text = handle.read()
-            for link in re.findall(r"\]\(([^)]+)\)", text):
+            for bracketed, bare in re.findall(r"\]\((?:<([^>]+)>|([^)\s]+))", text):
+                link = bracketed or bare
                 if link.startswith(("http://", "https://", "#", "mailto:")):
                     continue
                 target = os.path.normpath(os.path.join(root, link.split("#")[0]))
