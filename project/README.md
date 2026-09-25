@@ -100,7 +100,8 @@ requires.
 
 [EPC-1010](epics/EPC-1010-the-writing-standard-as-a-unit.md) realises ADR-1010
 in eleven tasks, TSK-1110 to TSK-1210, and all eleven are closed with evidence.
-The epic's own verification has not run. Every requirement ADR-1010 addresses
+Verified under issue 118, it closed with criterion 9 unmet, named in the epic:
+BUG-1100 records that the reviewer is unmeasured on most of the rules it holds. Every requirement ADR-1010 addresses
 lands in exactly one task except REQ-3034, which the epic defers with its
 reason.
 
@@ -126,12 +127,14 @@ every acceptance criterion under issue 115.
 | [BUG-1020](bugs/BUG-1020-the-marks-were-late.md)                             | Two closed tasks stayed unmarked and their records carried no evidence                      |
 | [BUG-1040](bugs/BUG-1040-the-shape-is-not-unconditional.md)                  | The forced style is not applied, so the reply shape is opt-in                               |
 | [BUG-1090](bugs/BUG-1090-the-record-cites-a-hash.md)                         | The record cited a commit hash where the pull request survives                              |
+| [BUG-1100](bugs/BUG-1100-the-reviewer-is-unmeasured-on-most-rules.md)        | The reviewer is unmeasured on most of the rules it holds                                    |
 | [BUG-1080](bugs/BUG-1080-the-records-cite-replaced-commits.md)               | The records cited commits that a message rewrite replaced                                   |
 | [BUG-1070](bugs/BUG-1070-the-records-are-written-below-the-standard.md)      | The records were written below the writing standard the constitution requires               |
 | [BUG-1060](bugs/BUG-1060-the-unit-field-is-dead.md)                          | A field the constitution required was dropped from the record and left in the templates     |
 | [BUG-1050](bugs/BUG-1050-the-specification-direction-was-unchecked.md)       | A requirement the decision addresses was stated in no specification                         |
 | [BUG-1030](bugs/BUG-1030-eval-results-were-committed.md)                     | A generated eval report reached `main`, because the ignore pattern was anchored at the root |
 
-Ten are closed. BUG-1040 is open: it routes to design, because the mechanism
-ADR-1000 chose does not deliver what the decision claims. BUG-1005 was written
+Ten are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
+asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.
