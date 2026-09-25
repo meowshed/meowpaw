@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-24
 realises: ADR-1070
-checked-at:
+checked-at: "#115"
 ---
 
 # The five verbs, resolved from the profile
@@ -63,6 +63,26 @@ A task is marked in the commit that advances it, never in a later pass.
       program, and a session calling it in place of a command, in #111.
       depends: TSK-1280 - the skill calls the program, and the profile is read
       by it
+
+## Verified
+
+Checked at revision `b242111`, with evidence gathered there and not carried
+over from the tasks, because evidence gathered before a change doesn't survive
+it. Every criterion is met:
+
+| Criterion                                                    | Evidence at `b242111`                                                                               |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| 1. No profile: all unresolved; `run lint` fails              | `test_no_profile_leaves_every_verb_unresolved`, `test_run_without_a_profile_runs_nothing_and_fails` |
+| 2. Unparseable profile: all unresolved, nothing runs         | `test_an_unparseable_profile_resolves_nothing_and_runs_nothing`                                     |
+| 3. A failing `lint`: command, status and whole output        | `test_a_failing_verb_reports_its_command_status_and_whole_output`                                   |
+| 4. An unknown key is reported, the rest resolve              | `test_an_unknown_key_is_reported_and_the_rest_still_resolve`                                        |
+| 5. No interpreter: all unresolved, nothing passed            | `test_no_interpreter_leaves_every_verb_unresolved`                                                  |
+| 6. This repository: `fmt`, `lint`, `test` resolved           | `meow-verbs status`: the three resolved from `.meowpaw/profile.toml`, two undeclared                |
+| 7. Every requirement in one closed task, nothing outstanding | `tools/check_coverage.py`: EPC-1040 10 of 10, 0 coverage failures                                   |
+
+All twelve fixtures ran with `python3 -m unittest discover -s
+plugins/meow-verbs/tests`, which reported `OK`, and `meow-verbs run fmt lint
+test` reported `summary: fmt passed, lint passed, test passed` and exited 0.
 
 ## Coverage
 
