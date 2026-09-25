@@ -6,7 +6,7 @@ severity: minor
 violates: REQ-3184
 found: 2026-09-26
 revised: 2026-09-26
-issue: 118
+issue: 120
 ---
 
 # The reviewer is unmeasured on most of the rules it holds
