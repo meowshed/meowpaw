@@ -48,8 +48,31 @@ Nothing. ADR-1070 and SPC-1040 are approved.
 
 ## Evidence
 
-Not yet. The task closes on the fixtures passing, each shown first failing,
-with the command, its exit status and its output.
+`plugins/meow-verbs/` carries the manifest, a budget of 0 characters, the
+launcher `bin/meow-verbs`, the program `lib/meow_verbs.py` and twelve fixtures
+in `tests/test_verbs.py`: one for each row of SPC-1040's failure paths, one for
+each of ADR-1070's first five checks, and one refusing a sixth verb (REQ-0131).
+Each builds a repository in a temporary directory and runs the launcher there.
+
+Each fixture was first seen failing against a launcher that returns nothing,
+then passing against the program:
+
+```text
+$ MEOW_VERBS_BIN=stub/meow-verbs python3 -m unittest discover -s plugins/meow-verbs/tests
+Ran 12 tests in 0.087s
+FAILED (failures=6, errors=6)
+exit 1
+
+$ python3 -m unittest discover -s plugins/meow-verbs/tests
+Ran 12 tests in 0.716s
+OK
+exit 0
+```
+
+The budget was TSK-1290's to add, and it lands here, because the gate's budget
+check fails a unit that states none. It stands at 0 until the skill arrives.
+REQ-0130, REQ-0131, REQ-0134, REQ-0135, REQ-0136, REQ-0144, REQ-0150,
+REQ-0154 and REQ-0156 are closed.
 
 ## Left alone
 

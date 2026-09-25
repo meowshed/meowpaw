@@ -1,0 +1,13 @@
+{
+  "name": "meow-verbs",
+  "version": "0.1.0",
+  "description": "Runs a repository's five verification verbs, fmt, lint, typecheck, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a verb with no command as unresolved, never as passed.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-verbs.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["verification", "verbs", "test", "lint", "meowpaw"]
+}
