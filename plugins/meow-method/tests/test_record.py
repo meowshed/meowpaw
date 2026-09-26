@@ -129,6 +129,7 @@ class Checks(unittest.TestCase):
         repository.edit("bugs/BUG-0001-a-defect.md", "violates: REQ-0001\n", "")
         done = repository.run("check", "front-matter")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("front-matter: 0 findings", done.stdout)
 
     def test_front_matter_reports_a_missing_field(self):
         repository = self.repo()
@@ -195,6 +196,144 @@ class Checks(unittest.TestCase):
         repository.write("notes/stray.md", "---\nid: x\nartifact: note\nstatus: live\nrevised: 2026-01-01\n---\n")
         self.found(repository.run("check", "front-matter"), "front-matter",
                    "project/notes/stray.md: an artifact of no known kind")
+
+
+class Chain(unittest.TestCase):
+    """SPC-1090: the gate each step checks, the chain's state, and the template in force."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def mark(self, repository, mark):
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
+                        f"## Tasks\n\n- [{mark}] T-001 TSK-0001 the task\n      closes: REQ-0001")
+
+    def ready(self, repository, *args):
+        return repository.run("ready", *args)
+
+    def test_research_is_always_ready(self):
+        done = self.ready(self.repo(), "research")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("research needs no approved input", done.stdout)
+
+    def test_design_refuses_a_draft_requirement_and_names_it(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: draft")
+        done = self.ready(repository, "design", "REQ-0001")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("REQ-0001, a requirement, is draft and not approved", done.stdout)
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: draft", "status: approved")
+        self.assertEqual(self.ready(repository, "design", "REQ-0001").returncode, 0)
+
+    def test_requirements_and_spec_refuse_what_has_no_file(self):
+        repository = self.repo()
+        for step, missing in (("requirements", "RES-0009"), ("spec", "ADR-0009")):
+            done = self.ready(repository, step, missing)
+            self.assertEqual(done.returncode, 1, step)
+            self.assertIn(f"{missing} has no file", done.stdout, step)
+        self.assertEqual(self.ready(repository, "requirements", "RES-0002").returncode, 0)
+        self.assertEqual(self.ready(repository, "spec", "ADR-0001").returncode, 0)
+
+    def test_epic_refuses_a_decision_whose_requirement_no_spec_states(self):
+        repository = self.repo()
+        self.assertEqual(self.ready(repository, "epic", "ADR-0001").returncode, 0)
+        repository.edit("specs/SPC-0001-a-part.md", "states: [REQ-0001]", "states: []")
+        done = self.ready(repository, "epic", "ADR-0001")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("REQ-0001, which ADR-0001 addresses, is stated by no specification", done.stdout)
+
+    def test_implement_refuses_until_its_dependency_is_done(self):
+        repository = self.repo()
+        repository.write("tasks/TSK-0002-a-second-task.md", CLEAN["tasks/TSK-0001-a-task.md"]
+                         .replace("TSK-0001", "TSK-0002").replace("## Depends on\n\nText.", "## Depends on\n\nTSK-0001."))
+        self.mark(repository, " ")
+        done = self.ready(repository, "implement", "TSK-0002")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("TSK-0001, which TSK-0002 depends on, isn't done", done.stdout)
+        self.mark_done(repository)
+        self.assertEqual(self.ready(repository, "implement", "TSK-0002").returncode, 0)
+
+    def mark_done(self, repository):
+        repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
+
+    def test_implement_refuses_a_task_whose_epic_is_a_draft(self):
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "status: approved", "status: draft")
+        done = self.ready(repository, "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("EPC-0001, the epic of TSK-0001, is draft and not approved", done.stdout)
+
+    def test_document_and_verify_wait_for_every_task(self):
+        repository = self.repo()
+        self.mark(repository, " ")
+        for step in ("document", "verify"):
+            done = self.ready(repository, step, "EPC-0001")
+            self.assertEqual(done.returncode, 1, step)
+            self.assertIn("TSK-0001, a task of EPC-0001, isn't done", done.stdout, step)
+        self.mark_done(repository)
+        for step in ("document", "verify"):
+            self.assertEqual(self.ready(repository, step, "EPC-0001").returncode, 0, step)
+
+    def test_review_waits_for_verification(self):
+        repository = self.repo()
+        done = self.ready(repository, "review", "EPC-0001")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("EPC-0001 hasn't been verified", done.stdout)
+        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#1"')
+        self.assertEqual(self.ready(repository, "review", "EPC-0001").returncode, 0)
+
+    def test_an_unknown_step_names_the_nine(self):
+        done = self.ready(self.repo(), "deploy", "EPC-0001")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("research, requirements, design, spec, epic, implement, document, verify, review", done.stderr)
+
+    def test_status_leads_with_drafts_and_places_each_decision(self):
+        repository = self.repo()
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
+        self.mark(repository, " ")
+        done = repository.run("status")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        lines = done.stdout.splitlines()
+        self.assertEqual(lines[0], "Waiting for approval")
+        self.assertIn("RES-0002 research, draft", lines[1])
+        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
+        self.mark_done(repository)
+        self.assertIn("next: document, then verify EPC-0001 (1 task done)", repository.run("status").stdout)
+        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#7"')
+        self.assertIn("realised: EPC-0001 verified under #7", repository.run("status").stdout)
+
+    def test_status_places_a_decision_with_no_epic(self):
+        repository = self.repo()
+        (repository.root / "epics" / "EPC-0001-a-plan.md").unlink()
+        self.assertIn("next: spec, then epic", repository.run("status").stdout)
+
+    def test_status_prints_the_same_state_twice(self):
+        repository = self.repo()
+        first = repository.run("status").stdout
+        self.assertIn("ADR-0001", first)
+        self.assertEqual(first, repository.run("status").stdout)
+
+    def test_template_prefers_the_repository_own(self):
+        repository = self.repo()
+        unit = UNIT / "templates" / "task.md"
+        done = repository.run("template", "task")
+        if unit.is_file():
+            self.assertEqual(done.stdout.strip(), str(unit))
+        else:
+            self.assertEqual(done.returncode, 1)
+        own = repository.path / ".meowpaw" / "templates" / "task.md"
+        own.parent.mkdir(parents=True)
+        own.write_text("# mine\n", encoding="utf-8")
+        done = repository.run("template", "task")
+        self.assertEqual(done.returncode, 0)
+        self.assertEqual(Path(done.stdout.strip()).resolve(), own.resolve())
+
+    def test_an_unknown_kind_names_the_kinds(self):
+        done = self.repo().run("template", "memo")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("research, requirement, adr, spec, epic, task, bug, vision, constitution", done.stderr)
 
 
 class Where(unittest.TestCase):
