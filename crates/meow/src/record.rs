@@ -983,6 +983,29 @@ fn rules(record: &Record) -> Vec<Finding> {
                         }
                     }
                 }
+                "title-states-claim" => {
+                    let line = doc.text.lines().position(|l| l.starts_with("# ")).map(|i| i + 1);
+                    let heading = title(doc);
+                    let words = heading.split_whitespace().count();
+                    if date.is_match(&heading) {
+                        out.push(Finding::at(doc, line, "has a title carrying a date, where an insight's title states its claim".into()));
+                    } else if words < 4 {
+                        out.push(Finding::at(doc, line, format!("has a title of {}, where an insight's title states its claim in at least four", count(words, "word"))));
+                    }
+                }
+                "evidence-measured" => {
+                    let lines = section_lines(doc, "Evidence");
+                    let measured = lines.iter().any(|(_, l)| l.chars().any(|c| c.is_ascii_digit()) || l.trim_start().starts_with("```"));
+                    if !lines.is_empty() && !measured {
+                        out.push(Finding::at(doc, lines.first().map(|(n, _)| n - 1), "has evidence with no number, measurement or reproducible block".into()));
+                    }
+                }
+                "ends-with-pattern" => {
+                    let last = doc.text.lines().enumerate().filter(|(_, l)| l.starts_with("## ")).last();
+                    if let Some((i, heading)) = last.filter(|(_, l)| l.trim_end() != "## The pattern") {
+                        out.push(Finding::at(doc, Some(i + 1), format!("ends with {}, where an insight ends with The pattern", heading.trim_start_matches("## ").trim())));
+                    }
+                }
                 unknown => out.push(Finding::at(doc, None, format!("the layout names a rule, {unknown}, this program doesn't know"))),
             }
         }
@@ -991,7 +1014,7 @@ fn rules(record: &Record) -> Vec<Finding> {
 }
 
 const STEPS: [&str; 9] = ["research", "requirements", "design", "spec", "epic", "implement", "document", "verify", "review"];
-const TEMPLATES: [&str; 9] = ["research", "requirement", "adr", "spec", "epic", "task", "bug", "vision", "constitution"];
+const TEMPLATES: [&str; 10] = ["research", "requirement", "adr", "spec", "epic", "task", "bug", "insight", "vision", "constitution"];
 
 fn approved(doc: &Doc) -> bool {
     bare(doc.value("status")) == "approved"
@@ -1605,7 +1628,8 @@ fn new_identifier(rest: &[String]) -> u8 {
             Some(top) => (top + 2, 2),
             None => ((highest / 100 + 1) * 100, 2),
         }
-    } else if kind.name == "research" {
+    } else if kind.name == "research" || kind.name == "insight" {
+        // Nothing is written later between two of these, so they need no gaps.
         (highest + 1, 1)
     } else {
         ((highest / 10 + 1) * 10, 10)
