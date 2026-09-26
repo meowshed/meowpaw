@@ -1,11 +1,11 @@
 ---
 id: TSK-1870
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1270
 closes: [REQ-0012, REQ-0014, REQ-0034]
-issue:
+issue: 338
 ---
 
 # Each unit stands alone, and a check holds it

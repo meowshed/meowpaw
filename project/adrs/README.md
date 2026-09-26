@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-method index -->
 
-28 decisions in all: 27 approved, 1 draft.
+28 decisions in all: 28 approved.
 
 | Identifier                                                                                           | What it concluded                                                                                      | Status   |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------- |
@@ -44,7 +44,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1240](ADR-1240-a-change-to-the-records-shape-migrates-what-exists.md)                           | A change to the record's shape migrates what exists, and a retired name stays retired                  | approved |
 | [ADR-1250](ADR-1250-init-writes-a-profile-and-a-constitution-from-what-the-repository-holds.md)      | `/meow-method:init` writes a profile and a constitution from what the repository holds                 | approved |
 | [ADR-1260](ADR-1260-onboarding-recovers-what-a-repository-is-and-places-every-document.md)           | Onboarding recovers what a repository is, and places every document it already has                     | approved |
-| [ADR-1270](ADR-1270-each-unit-is-adopted-alone-and-a-missing-capability-names-its-fix.md)            | Each unit is adopted alone, and a missing capability names what would supply it                        | draft    |
+| [ADR-1270](ADR-1270-each-unit-is-adopted-alone-and-a-missing-capability-names-its-fix.md)            | Each unit is adopted alone, and a missing capability names what would supply it                        | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070.
 <!-- /meow-method index -->

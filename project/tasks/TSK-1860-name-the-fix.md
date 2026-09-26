@@ -1,11 +1,11 @@
 ---
 id: TSK-1860
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1270
 closes: [REQ-0036, REQ-0038, REQ-0040]
-issue:
+issue: 337
 ---
 
 # An unavailable capability names what would supply it

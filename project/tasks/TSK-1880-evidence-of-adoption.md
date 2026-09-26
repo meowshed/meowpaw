@@ -1,7 +1,7 @@
 ---
 id: TSK-1880
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1270
 closes:
@@ -15,7 +15,7 @@ closes:
     REQ-0028,
     REQ-0030,
   ]
-issue:
+issue: 339
 ---
 
 # Record the evidence for the adoption rules that already hold
