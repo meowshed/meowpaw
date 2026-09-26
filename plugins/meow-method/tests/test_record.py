@@ -666,6 +666,19 @@ class Chain(unittest.TestCase):
         self.assertIn("ADR-0001", first)
         self.assertEqual(first, repository.run("status").stdout)
 
+    def test_the_profile_template_names_no_language(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        done = repository.run("template", "profile")
+        self.assertEqual(done.returncode, 0, done.stderr)
+        path = Path(done.stdout.strip())
+        self.assertEqual(path.name, "profile.toml")
+        text = path.read_text(encoding="utf-8")
+        for section in ("[verbs]", "[commits]", "[git]", "[record]", "[prose]"):
+            self.assertIn(section, text)
+        for word in ("python", "rust", "cargo", "npm", "node", "make", "mise", "gradle", "maven", "go ", "java", ".py", ".rs", ".js"):
+            self.assertNotIn(word, text.lower(), word)
+
     def test_template_prefers_the_repository_own(self):
         repository = self.repo()
         unit = UNIT / "templates" / "task.md"

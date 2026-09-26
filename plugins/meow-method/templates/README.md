@@ -16,6 +16,7 @@ and `meow-method template <kind>` prints the one in force.
 | `task.md`         | Task          | A record, its evidence added on done |
 | `bug.md`          | Defect        | A record                             |
 | `insight.md`      | Insight       | A record, written when learned       |
+| `profile.toml`    | Profile       | Configuration, rewritten freely      |
 
 Every template opens with a paragraph or section that lets a reader stop:
 what the artifact covers and what it doesn't. A section may be answered
