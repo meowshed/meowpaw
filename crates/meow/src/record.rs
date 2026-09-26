@@ -1111,7 +1111,7 @@ fn rules(record: &Record) -> Vec<Finding> {
 }
 
 const STEPS: [&str; 9] = ["research", "requirements", "design", "spec", "epic", "implement", "document", "verify", "review"];
-const TEMPLATES: [&str; 10] = ["research", "requirement", "adr", "spec", "epic", "task", "bug", "insight", "vision", "constitution"];
+const TEMPLATES: [&str; 11] = ["research", "requirement", "adr", "spec", "epic", "task", "bug", "insight", "vision", "constitution", "profile"];
 
 fn approved(doc: &Doc) -> bool {
     bare(doc.value("status")) == "approved"
@@ -1387,14 +1387,16 @@ fn template(rest: &[String]) -> u8 {
         eprintln!("meow-method template: no kind is named {kind}; the kinds are {}", TEMPLATES.join(", "));
         return USAGE;
     }
+    // The profile is configuration, and configuration the harness owns is TOML.
+    let file = if kind == "profile" { "profile.toml".to_string() } else { format!("{kind}.md") };
     let repository = profile::repository_root();
-    let own = repository.join(".meowpaw").join("templates").join(format!("{kind}.md"));
+    let own = repository.join(".meowpaw").join("templates").join(&file);
     if own.is_file() {
         say!("{}", own.display());
         return CLEAN;
     }
     let unit = match layout_path() {
-        Ok(path) => path.parent().and_then(Path::parent).map(|u| u.join("templates").join(format!("{kind}.md"))),
+        Ok(path) => path.parent().and_then(Path::parent).map(|u| u.join("templates").join(&file)),
         Err(reason) => {
             say!("meow-method template: no template was found: {reason}");
             return UNCHECKED;
