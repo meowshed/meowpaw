@@ -43,7 +43,45 @@ Nothing. ADR-1350 is approved.
 
 ## Evidence
 
-Not yet.
+`bin/paw` is the unit's launcher, and `bin/meow-method` is the alias: it
+prints to standard error that the command is now `paw` and that 0.31.0 removes
+the old name, then runs `paw` with the same arguments. The `record`
+subcommand names `paw` in every usage line and message, and the index markers
+keep `meow-method`. The skills, the hook, the templates, `CLAUDE.md`, the
+profile, the specifications and `docs/meow-method.md` run `paw`. The unit is
+at 0.30.0.
+
+Three fixtures in `Named`, each naming REQ-3166, failed against the tree
+before the change, with a `paw` launcher copied from the old one:
+
+```text
+$ python3 -m unittest plugins/meow-method/tests/test_record.py -k Named
+FAIL: test_every_usage_line_and_message_names_paw
+FAIL: test_nothing_the_unit_ships_runs_the_old_name
+FAIL: test_the_alias_says_it_is_deprecated_and_runs_paw
+FAILED (failures=3)
+```
+
+After the change, through the repository's verbs:
+
+```text
+$ plugins/meow-verbs/bin/meow-verbs run test fmt lint
+== test: `crates/meow/build-units && ... && plugins/meow-method/bin/paw check && ...`
+passed, exit status 0 after 8.1s
+Ran 126 tests in 4.571s
+OK
+== fmt: `mise run fmt-check`
+failed, exit status 127: mise: not found
+== lint: `mise run lint && ...`
+failed, exit status 127: mise: not found
+```
+
+`fmt` and `lint` failed only because `mise` isn't installed on the machine
+that ran them, so their commands ran directly: `prettier --check '**/*.md'`
+reports the same three files it reported before this change, none of them
+touched here; `markdownlint-cli2 '**/*.md'` reports 0 issues; `style`,
+`prompts`, `kernel`, `standalone` and `budget` pass; and `cargo test` over the
+crate passes.
 
 ## Left alone
 

@@ -1,5 +1,5 @@
 <role>
-The implement step. It reads an approved task, named by its identifier, and writes from `meow-method template task`. The step that picks
+The implement step. It reads an approved task, named by its identifier, and writes from `paw template task`. The step that picks
 it up is document.
 </role>
 

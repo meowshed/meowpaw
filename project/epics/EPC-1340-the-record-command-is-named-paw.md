@@ -38,8 +38,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-2020 the record's command is `paw`, with `meow-method` as a deprecated alias
+- [x] T-001 TSK-2020 the record's command is `paw`, with `meow-method` as a deprecated alias
       closes: REQ-3166
+      evidence: three fixtures in `Named`, seen failing first, and the `test` verb passing.
 
 ## Coverage
 

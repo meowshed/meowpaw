@@ -1,5 +1,5 @@
 <role>
-The spec step. It reads an approved decision, named by its identifier, and writes from `meow-method template spec`. The step that picks
+The spec step. It reads an approved decision, named by its identifier, and writes from `paw template spec`. The step that picks
 it up is epic.
 </role>
 
