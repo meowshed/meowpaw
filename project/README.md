@@ -144,8 +144,9 @@ the gate each checks, the state of the record and the command that drives it.
 `meow-method` implements it, verified under issue 202.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
-relations and resolving an identifier to its artifact and to what cites it.
-`meow-method` implements it.
+relations, resolving an identifier to its artifact and to what cites it, where
+the record contradicts itself, and each requirement's derived state.
+`meow-method` implements it, verified under issue 288.
 
 ## Epics and tasks
 
@@ -220,8 +221,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1200](epics/EPC-1200-quality-attributes.md) realised ADR-1200 in three tasks, TSK-1670 to TSK-1690, each closed with evidence, and was verified against every acceptance criterion under issue 277.
 
-[EPC-1210](epics/EPC-1210-record-drift.md) is approved and realises ADR-1210 in three
-tasks, TSK-1700 to TSK-1720, each filed as an issue.
+[EPC-1210](epics/EPC-1210-record-drift.md) realised ADR-1210 in three tasks, TSK-1700 to TSK-1720, each closed with evidence, and was verified against every acceptance criterion under issue 288.
 
 ## Defects
 
