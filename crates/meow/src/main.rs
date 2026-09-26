@@ -9,6 +9,8 @@
 //! unit's specification.
 
 mod profile;
+#[cfg(feature = "scm")]
+mod scm;
 #[cfg(feature = "verbs")]
 mod verbs;
 
@@ -23,6 +25,8 @@ fn main() -> ExitCode {
     let code = match command {
         #[cfg(feature = "verbs")]
         "verbs" => verbs::main(rest),
+        #[cfg(feature = "scm")]
+        "scm" => scm::main(rest),
         _ => {
             eprintln!("usage: meow <subcommand> ..., where this build carries: {}", carried().join(", "));
             2
