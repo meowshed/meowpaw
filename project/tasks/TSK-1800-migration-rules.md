@@ -27,7 +27,24 @@ Nothing. ADR-1240 is approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the
+`method` skill, and no rule names a requirement:
+
+| Requirement | Carried by        |
+| ----------- | ----------------- |
+| REQ-3008    | M14 in `SKILL.md` |
+| REQ-3009    | M14 in `SKILL.md` |
+| REQ-3012    | M15 in `SKILL.md` |
+| REQ-3014    | M16 in `SKILL.md` |
+| REQ-3016    | M16 in `SKILL.md` |
+| REQ-3018    | M17 in `SKILL.md` |
+| REQ-3019    | M17 in `SKILL.md` |
+
+M18 names `meow-method count`, which TSK-1790 added, for the count REQ-3020
+asks of a migration's evidence. The draft rules that ADR-1140 introduced are
+the grandfathering M15 names. A script found all 7 traced labels in
+`SKILL.md`. Whether the model follows the rules is measured by evaluation,
+which is postponed.
 
 ## Left alone
 
