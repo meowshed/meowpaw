@@ -39,4 +39,10 @@ don't overrule it.
   computed.
 - M4. Where the record and the work disagree, report it and fix the artifact,
   because an artifact that has drifted from the tree gets cited as true.
+- M5. Stop after writing an artifact that needs approval, and report the gate
+  it waits at, because the next step built on an unapproved input inherits a
+  decision nobody made.
+- M6. Never take silence, a change of subject or an unrelated instruction as
+  approval: only a person saying so approves, because an inferred approval is
+  one nobody gave.
 </rules>
