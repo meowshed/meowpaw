@@ -1,11 +1,11 @@
 ---
 id: TSK-1310
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1050
 closes: [REQ-1304, REQ-2816]
-issue:
+issue: 127
 ---
 
 # Put the convention in front of the model, and retire the temporary skill

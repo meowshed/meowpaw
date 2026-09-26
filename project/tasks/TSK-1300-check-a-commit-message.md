@@ -1,7 +1,7 @@
 ---
 id: TSK-1300
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1050
 closes:
@@ -15,7 +15,7 @@ closes:
     REQ-1314,
     REQ-1318,
   ]
-issue:
+issue: 126
 ---
 
 # Check a commit message against the declared convention

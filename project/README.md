@@ -123,9 +123,8 @@ realises ADR-1050 in one task, TSK-1270, closed in #85.
 TSK-1280 and TSK-1290, both closed with evidence, and was verified against
 every acceptance criterion under issue 115.
 
-[EPC-1050](epics/EPC-1050-the-commit-convention.md) is a draft that realises
-ADR-1080 in two tasks, TSK-1300 and TSK-1310, and waits for the owner's
-approval.
+[EPC-1050](epics/EPC-1050-the-commit-convention.md) is approved and realises
+ADR-1080 in two tasks, TSK-1300 and TSK-1310, each filed as an issue.
 
 ## Defects
 
