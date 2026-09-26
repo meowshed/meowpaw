@@ -110,6 +110,16 @@ fallen behind the tree. `meow-method template <kind>` prints the template a
 step writes from: yours at `.meowpaw/templates/<kind>.md` where you have one,
 and the unit's otherwise.
 
+## Postpone requirements
+
+A decision can postpone requirements you choose not to realise now. Give it
+`postpones: [REQ-...]` beside or in place of `addresses:`, and say under What
+would reverse it when they should be taken up. The requirements then read as
+postponed in `show` and `status`, and stop reading as postponed once a task
+closes them. A decision that only postpones needs no epic. Each time an epic
+is verified, the verify step lists every postponement with its condition and
+asks whether the condition now holds.
+
 ## Check the record
 
 From the repository, run every check, or one by name:
