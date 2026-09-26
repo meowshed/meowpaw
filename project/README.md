@@ -191,8 +191,9 @@ three tasks, TSK-1420 to TSK-1440, each filed as an issue.
 | [BUG-1120](bugs/BUG-1120-the-install-instructions-give-no-binary.md)                 | The install instructions gave a unit without its binary                                     |
 | [BUG-1130](bugs/BUG-1130-meow-method-counts-one-finding-as-findings.md)              | `meow-method` counted one finding as "1 findings"                                           |
 | [BUG-1140](bugs/BUG-1140-the-guards-act-on-commands-that-neither-commit-nor-push.md) | `meow-git`'s guards acted on commands that neither commit nor push                          |
+| [BUG-1150](bugs/BUG-1150-the-crate-tests-can-share-a-directory.md)                   | The crate's tests could share a temporary directory, so the gate failed at random           |
 
-Fourteen are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Fifteen are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.
