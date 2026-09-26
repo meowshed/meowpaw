@@ -110,11 +110,12 @@ evident from the change, says why, and is never a transcript (REQ-1304). It
 runs `check-message` on the message before the message is used, and carries
 the attribution ban as a rule on its first screen.
 
-### The interpreter
+### The program
 
-The program is written in Python and needs 3.11 or later, as `meow-verbs`
-does, through the same kind of launcher. Where it is missing, `check-message`
-says it couldn't check the message and exits 3, and never reports a pass.
+The program is the `scm` subcommand of the native tool SPC-1080 states,
+shipped as a binary inside the unit. Where the unit carries no binary for the
+machine, `check-message` says it couldn't check the message and exits 3, and
+never reports a pass.
 
 ## Failure paths
 
@@ -124,4 +125,4 @@ says it couldn't check the message and exits 3, and never reports a pass.
 | The profile doesn't parse                      | Nothing is checked against a convention; the parser's error is shown, exit 3    |
 | `types` isn't a table, or a meaning is unknown | The declaration is reported as malformed, and the type check doesn't run        |
 | The message is empty                           | Reported as an empty message, exit 1                                            |
-| No Python 3.11 or later                        | Reported as unchecked, exit 3                                                   |
+| No binary for the machine's target             | Reported as unchecked, exit 3                                                   |

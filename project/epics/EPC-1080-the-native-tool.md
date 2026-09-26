@@ -48,7 +48,9 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: meow-verbs' twelve fixtures, unchanged, passing against the
       native binary, and the crate's tests, in #150.
 
-- [ ] T-002 TSK-1360 `meow scm` ported with its launcher
+- [x] T-002 TSK-1360 `meow scm` ported with its launcher
+      evidence: meow-scm's fourteen fixtures, unchanged, passing against the
+      native binary, in #155.
       depends: TSK-1350 - it builds on the crate and the shared module
 
 - [ ] T-003 TSK-1370 `meow git` ported with its launcher
