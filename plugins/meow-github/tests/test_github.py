@@ -225,6 +225,50 @@ class Project(unittest.TestCase):
         self.assertEqual(before[1], self.task(root, "TSK-0001-first.md"))
         self.assertIn("TSK-0001: unchanged, issue #1 at", done.stdout)
 
+    def writes(self, root, since=0):
+        return [c for c in self.state(root)["calls"][since:] if "-X" in c]
+
+    def test_a_changed_task_updates_its_issue(self):
+        root = self.repository()
+        self.project(root)
+        before = self.task(root, "TSK-0001-first.md")
+        (root / "project" / "tasks" / "TSK-0001-first.md").write_text(before.replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+        calls = len(self.state(root)["calls"])
+        done = self.project(root)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse a blank title")
+        self.assertEqual([c[:4] for c in self.writes(root, calls)], [["api", "repos/o/r/issues/1", "-X", "PATCH"]])
+        self.assertNotEqual(before.split("projected: ")[1][:12], self.task(root, "TSK-0001-first.md").split("projected: ")[1][:12])
+
+    def test_an_issue_edited_on_github_is_reported_and_left(self):
+        root = self.repository()
+        self.project(root)
+        state = self.state(root)
+        state["issues"]["1"]["body"] = "Rewritten by a person."
+        (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        done = self.project(root)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("TSK-0001: issue #1 was edited on GitHub since it was projected", done.stdout)
+        self.assertEqual(self.state(root)["issues"]["1"]["body"], "Rewritten by a person.")
+        self.assertFalse(self.writes(root, len(state["calls"])))
+
+    def test_a_closed_issue_on_an_unmarked_task_is_reported_and_check_writes_nothing(self):
+        root = self.repository()
+        self.project(root)
+        state = self.state(root)
+        state["issues"]["2"]["state"] = "closed"
+        (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        tasks = [self.task(root, n) for n in ("TSK-0001-first.md", "TSK-0002-second.md")]
+        (root / "project" / "tasks" / "TSK-0001-first.md").write_text(tasks[0].replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+        done = self.project(root, "--check")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("TSK-0002: issue #2 is closed on GitHub while EPC-0001 leaves the task unmarked", done.stdout)
+        self.assertIn("TSK-0001: changed since it was projected at", done.stdout)
+        self.assertIn("would be updated", done.stdout)
+        self.assertFalse(self.writes(root, len(state["calls"])))
+        self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse an empty title")
+        self.assertEqual(self.task(root, "TSK-0002-second.md"), tasks[1])
+
     def test_a_draft_epic_projects_nothing(self):
         root = self.repository(status="draft")
         done = self.project(root)
