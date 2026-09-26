@@ -10,7 +10,7 @@
 #![allow(dead_code)]
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 pub const PROFILE: &str = ".meowpaw/profile.toml";
 
@@ -20,9 +20,24 @@ pub enum Profile {
     Parsed(toml::Table),
 }
 
+/// Source control run to read it, never to record authorship: nothing
+/// prompts, pages, advises or reads the machine-wide configuration, so a
+/// missing credential fails where it would wait (REQ-2526, REQ-2528). The
+/// user's own configuration stays, because it holds their identity and keys.
+pub fn reading_git() -> Command {
+    let mut git = Command::new("git");
+    git.env("GIT_TERMINAL_PROMPT", "0")
+        .env("GIT_PAGER", "cat")
+        .env("GIT_ADVICE", "0")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_OPTIONAL_LOCKS", "0")
+        .stdin(Stdio::null());
+    git
+}
+
 /// The top of the working tree, or the current directory where there is none.
 pub fn repository_root() -> PathBuf {
-    let top = Command::new("git").args(["rev-parse", "--show-toplevel"]).output();
+    let top = reading_git().args(["rev-parse", "--show-toplevel"]).output();
     if let Ok(done) = top {
         let text = String::from_utf8_lossy(&done.stdout).trim().to_string();
         if done.status.success() && !text.is_empty() {
