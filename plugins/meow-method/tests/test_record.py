@@ -12,6 +12,7 @@ program that returns nothing and be seen failing (REQ-2072).
 import hashlib
 import re
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -344,6 +345,45 @@ class Checks(unittest.TestCase):
         self.assertNotIn("ADR-0007", done.stdout)
         repository.edit("tasks/TSK-0001-a-task.md", "status: draft", "status: approved")
         self.assertEqual(repository.run("check", "relations").returncode, 0)
+
+    def verified(self, repository):
+        self.mark(repository, "x")
+        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#1"')
+
+    def test_show_derives_a_requirements_state(self):
+        repository = self.repo()
+        self.verified(repository)
+        done = repository.run("show", "REQ-0001")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("State\n  verified\n  TSK-0001 done in EPC-0001, verified under #1\n", done.stdout)
+        repository.write("requirements/REQ-0002-another.md",
+                         (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8").replace("REQ-0001", "REQ-0002"))
+        self.assertIn("State\n  checked by nothing\n\n", repository.run("show", "REQ-0002").stdout)
+
+    def test_status_counts_requirements_by_derived_state(self):
+        repository = self.repo()
+        self.verified(repository)
+        repository.write("requirements/REQ-0002-another.md",
+                         (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8").replace("REQ-0001", "REQ-0002"))
+        self.assertIn("Requirements\n  2 in force: 1 verified, 0 closed and not yet verified, 0 in a task not yet done, 1 checked by nothing\n",
+                      repository.run("status").stdout)
+
+    def test_status_withholds_verified_from_an_epic_check_reports_on(self):
+        repository = self.repo()
+        self.verified(repository)
+        self.assertIn("realised: EPC-0001 verified under #1", repository.run("status").stdout)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Left alone\n\nText.", "## Left alone\n\n[Gone](gone.md).")
+        done = repository.run("status").stdout
+        self.assertIn("drifted: EPC-0001 was verified under #1, and check reports 1 finding on it now", done)
+        self.assertNotIn("realised: EPC-0001", done)
+
+    def test_status_says_a_record_under_no_version_control_is_local(self):
+        repository = self.repo()
+        self.assertNotIn("local to this machine", repository.run("status").stdout)
+        shutil.rmtree(repository.path / ".git")
+        done = repository.run("status")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("The record is local to this machine: ", done.stdout)
 
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
