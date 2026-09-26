@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1170
-checked-at:
+checked-at: "#249"
 ---
 
 # Approvals held frozen, and pending ones reported first
@@ -49,6 +49,18 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-003 TSK-1610 the method skill stops at approval and never infers one
       closes: REQ-0390, REQ-0400
       evidence: M5 and M6 in the skill, in #244.
+
+## Verified
+
+Checked under issue 249 at revision `dc77c1f`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                  | Evidence at `dc77c1f`                                                                                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Rewording an approved requirement fails `check frozen`, and the same change naming its authority passes | `test_rewording_an_approved_requirement_invalidates_it` and `test_a_change_naming_its_authority_passes` run `OK`; against the revision before BUG-1110's fix the check found the eight requirements that fix edited          |
+| 2. Evidence on an approved task and marks on an unverified epic pass                                       | `test_a_task_may_gain_evidence_and_an_unverified_epic_marks` runs `OK`, and `test_a_verified_epic_is_frozen` shows the other side                                                                                            |
+| 3. A session with a draft waiting opens with it, and one with nothing waiting adds nothing                 | A fresh `claude -p` session with this unit, in a scratch record whose decision is a draft, opened "ADR-0001 is waiting for your approval at the design gate"; with the decision approved, `status --waiting` printed 0 bytes |
+| 4. Every requirement in one closed task                                                                    | `meow-method check coverage` reports 0 findings, and all seven checks and `check frozen` report 0                                                                                                                            |
 
 ## Coverage
 
