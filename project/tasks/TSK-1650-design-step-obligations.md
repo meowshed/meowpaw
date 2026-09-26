@@ -66,7 +66,57 @@ Nothing. ADR-1190 is approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the step
+file named, and no rule names a requirement:
+
+| Requirement | Carried by               |
+| ----------- | ------------------------ |
+| REQ-1230    | D11 in `steps/design.md` |
+| REQ-1231    | D12 in `steps/design.md` |
+| REQ-1232    | D14 in `steps/design.md` |
+| REQ-1233    | D12 in `steps/design.md` |
+| REQ-1234    | D14 in `steps/design.md` |
+| REQ-1235    | D12 in `steps/design.md` |
+| REQ-1236    | D15 in `steps/design.md` |
+| REQ-1237    | D13 in `steps/design.md` |
+| REQ-1238    | D15 in `steps/design.md` |
+| REQ-1239    | D13 in `steps/design.md` |
+| REQ-1240    | D16 in `steps/design.md` |
+| REQ-1242    | D16 in `steps/design.md` |
+| REQ-1244    | D16 in `steps/design.md` |
+| REQ-1246    | D18 in `steps/design.md` |
+| REQ-1248    | D18 in `steps/design.md` |
+| REQ-1250    | D18 in `steps/design.md` |
+| REQ-1252    | D18 in `steps/design.md` |
+| REQ-1254    | D20 in `steps/design.md` |
+| REQ-1256    | D21 in `steps/design.md` |
+| REQ-1258    | D21 in `steps/design.md` |
+| REQ-2138    | D23 in `steps/design.md` |
+| REQ-2140    | D24 in `steps/design.md` |
+| REQ-2760    | D22 in `steps/design.md` |
+| REQ-2762    | D22 in `steps/design.md` |
+| REQ-2764    | D22 in `steps/design.md` |
+| REQ-2766    | D15 in `steps/design.md` |
+| REQ-2768    | D17 in `steps/design.md` |
+| REQ-2770    | D16 in `steps/design.md` |
+| REQ-2772    | D17 in `steps/design.md` |
+| REQ-2776    | D19 in `steps/design.md` |
+| REQ-2778    | D19 in `steps/design.md` |
+| REQ-2780    | D19 in `steps/design.md` |
+| REQ-2782    | D19 in `steps/design.md` |
+| REQ-2794    | D21 in `steps/design.md` |
+| REQ-2796    | D21 in `steps/design.md` |
+
+REQ-2130 is held without a rule: a search of the step files for a practice command finds none, so no step requires one.
+
+```text
+$ grep -rln 'practice' plugins/meow-method/skills | wc -l
+0
+```
+
+The prompt check and `meow-method check` pass, as the gate shows, and a
+script found every traced label in its step file. Whether the model follows
+the rules is measured by evaluation, which is postponed.
 
 ## Left alone
 
