@@ -24,6 +24,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1100](ADR-1100-the-record-is-checked-by-a-unit-the-harness-ships.md)                            | The record is checked by a unit the harness ships                                | approved                      |
 | [ADR-1110](ADR-1110-one-native-tool-carries-every-units-program.md)                                  | One native tool carries every unit's program                                     | approved                      |
 | [ADR-1120](ADR-1120-the-marketplace-is-served-from-meow-retran-me.md)                                | The marketplace is served from meow.retran.me                                    | approved                      |
+| [ADR-1130](ADR-1130-the-chain-runs-as-steps-a-program-can-gate.md)                                   | The chain runs as steps that a program gates                                     | approved                      |
 
 The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:
