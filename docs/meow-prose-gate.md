@@ -48,6 +48,14 @@ The gate carries its own criteria and needs no other plugin: neither
 `meow-prose` installed as well, the writing skill shapes the text before it is
 written and the gate catches what the skill missed.
 
+## What it needs
+
+Claude Code 2.1.283 or later, the version this unit was tested on, declared
+in `plugins/meow-prose-gate/requires.toml`. It relies on these platform behaviours,
+each documented by Claude Code:
+
+- a `PreToolUse` hook of type `prompt`, with a `model` field: [documentation](https://code.claude.com/docs/en/hooks.md)
+
 ## Where the rules come from
 
 The decision is the architecture decision record
