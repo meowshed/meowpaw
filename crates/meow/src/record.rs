@@ -286,16 +286,27 @@ fn closing_tasks(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> V
 }
 
 /// A requirement's observed state, derived from the tasks closing it (REQ-0584).
-fn requirement_state(tasks: &[(String, char, String, String)]) -> &'static str {
+fn requirement_state(tasks: &[(String, char, String, String)], postponed: Option<&str>) -> &'static str {
     if tasks.iter().any(|(_, mark, _, checked)| *mark == 'x' && !checked.is_empty()) {
         "verified"
     } else if tasks.iter().any(|(_, mark, _, _)| *mark == 'x') {
         "closed and not yet verified"
     } else if tasks.iter().any(|(_, mark, _, _)| *mark != '~') {
         "in a task not yet done"
+    } else if postponed.is_some() {
+        "postponed"
     } else {
         "checked by nothing"
     }
+}
+
+/// The approved decision that postpones a requirement, if one does (ADR-1330).
+fn postponed_by(record: &Record, id: &str) -> Option<String> {
+    of_kind(record, "decision")
+        .into_iter()
+        .filter(|d| approved(d))
+        .find(|d| requirements_in(record, d.value("postpones")).contains(id))
+        .map(|d| bare(d.id()).to_string())
 }
 
 fn check_frozen(rest: &[String]) -> u8 {
@@ -1268,6 +1279,12 @@ fn rules(record: &Record) -> Vec<Finding> {
                         out.push(Finding::at(doc, lines.first().map(|(n, _)| n - 1), "has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working".into()));
                     }
                 }
+                "addresses-or-postpones" => {
+                    let named = requirements_in(record, doc.value("addresses")).len() + requirements_in(record, doc.value("postpones")).len();
+                    if named == 0 {
+                        out.push(Finding::at(doc, doc.field("addresses").map(|f| f.line), "addresses no requirement and postpones none, where a decision does one or both".into()));
+                    }
+                }
                 "title-states-claim" => {
                     let line = doc.text.lines().position(|l| l.starts_with("# ")).map(|i| i + 1);
                     let heading = title(doc);
@@ -1450,6 +1467,10 @@ fn title(doc: &Doc) -> String {
 fn position(record: &Record, known: &BTreeMap<String, &Doc>, findings: &BTreeMap<String, usize>, decision: &Doc) -> String {
     let id = bare(decision.id());
     let epics: Vec<&Doc> = of_kind(record, "epic").into_iter().filter(|e| bare(e.value("realises")) == id).collect();
+    let postponed = requirements_in(record, decision.value("postpones"));
+    if epics.is_empty() && requirements_in(record, decision.value("addresses")).is_empty() && !postponed.is_empty() {
+        return format!("postponing: {}, revisited at each verification", count(postponed.len(), "requirement"));
+    }
     let Some(epic) = epics.first() else { return "next: spec, then epic".to_string() };
     let epic_id = bare(epic.id());
     if !approved(epic) {
@@ -1554,12 +1575,13 @@ fn status(rest: &[String]) -> u8 {
     }
     say!();
     say!("Requirements");
-    let states = ["verified", "closed and not yet verified", "in a task not yet done", "checked by nothing"];
-    let mut tally = [0usize; 4];
+    let states = ["verified", "closed and not yet verified", "in a task not yet done", "postponed", "checked by nothing"];
+    let mut tally = [0usize; 5];
     let in_force: Vec<&Doc> = of_kind(&record, "requirement").into_iter().filter(|r| approved(r)).collect();
     for requirement in &in_force {
-        let state = requirement_state(&closing_tasks(&record, &known, bare(requirement.id())));
-        tally[states.iter().position(|s| *s == state).unwrap_or(3)] += 1;
+        let id = bare(requirement.id());
+        let state = requirement_state(&closing_tasks(&record, &known, id), postponed_by(&record, id).as_deref());
+        tally[states.iter().position(|s| *s == state).unwrap_or(4)] += 1;
     }
     let parts: Vec<String> = states.iter().zip(tally).map(|(s, n)| format!("{n} {s}")).collect();
     if in_force.is_empty() {
@@ -1658,7 +1680,11 @@ fn show(rest: &[String]) -> u8 {
         say!();
         say!("State");
         let tasks = closing_tasks(&record, &known, id);
-        say!("  {}", requirement_state(&tasks));
+        let by = postponed_by(&record, id);
+        match requirement_state(&tasks, by.as_deref()) {
+            "postponed" => say!("  postponed by {}", by.unwrap_or_default()),
+            state => say!("  {state}"),
+        }
         for (task, mark, epic, checked) in &tasks {
             let done = match mark {
                 'x' => "done",
