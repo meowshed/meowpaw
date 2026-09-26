@@ -4,7 +4,35 @@ artifact: spec
 status: live
 revised: 2026-09-26
 checked-at: "#160"
-states: [REQ-0032, REQ-0074, REQ-0076, REQ-1485, REQ-3178]
+states:
+  [
+    REQ-0032,
+    REQ-0074,
+    REQ-0076,
+    REQ-1485,
+    REQ-1720,
+    REQ-1722,
+    REQ-1724,
+    REQ-1726,
+    REQ-1728,
+    REQ-1730,
+    REQ-1732,
+    REQ-1734,
+    REQ-1736,
+    REQ-1740,
+    REQ-1742,
+    REQ-1744,
+    REQ-1746,
+    REQ-1748,
+    REQ-1750,
+    REQ-1752,
+    REQ-1754,
+    REQ-1756,
+    REQ-1758,
+    REQ-1762,
+    REQ-1766,
+    REQ-3178,
+  ]
 ---
 
 # The native tool
@@ -131,6 +159,24 @@ that repository alone, and it runs when someone starts it by hand.
 The features of the tool that read the record and project it onto a tracker,
 which later decisions add, are features no step of the method depends on
 (REQ-0032). A unit is complete with the record kept by hand and no tracker.
+
+### Quality attributes
+
+The commands that read the record write nothing and print the same text run
+twice with nothing changed, and a step reads the chain's state from the
+artifacts alone (REQ-1720, REQ-1728, REQ-1730, REQ-1732). `index --write`
+writes to a temporary file and renames it into place, so an interruption never
+leaves an index half-written (REQ-1722, REQ-1724). Each unit declares the
+Claude Code version it needs in `requires.toml`, and its page names the
+platform behaviours it relies on with where each is documented (REQ-1736,
+REQ-1740, REQ-1742). A unit that fails degrades alone through its launcher's
+fallback (REQ-1726), the record's shape changes by expand, migrate and
+contract (REQ-1744, REQ-1746), the kernel works installed alone (REQ-1748), a
+unit's description states its job and cost (REQ-1750), the record uses no
+syntax of its own (REQ-1752), every check runs locally by the command CI runs
+(REQ-1754, REQ-1756, REQ-1758), tools come from `mise.toml` (REQ-1762), no
+spend happens without a person (REQ-1766), and every report separates what was
+verified from what was assumed (REQ-1734) (ADR-1200).
 
 ## Failure paths
 
