@@ -41,5 +41,5 @@ remembered rather than read is researched or dropped.
 
 ## Sources
 
-- [Title](link), read YYYY-MM-DD - what it supports. A path and a revision for
+- [Title](https://example.org/the-source), read YYYY-MM-DD - what it supports. A path and a revision for
   anything in a repository, and a date for anything that can change.
