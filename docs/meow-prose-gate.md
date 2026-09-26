@@ -36,11 +36,10 @@ a text too long for Haiku 4.5 to read in 60 seconds passes unread.
 
 ## Install it
 
-Download the released marketplace file, add it, and install the unit:
+Add the marketplace and install the unit:
 
 ```bash
-curl -fsSLo marketplace.json https://github.com/meowshed/meowpaw/releases/download/marketplace/marketplace.json
-claude plugin marketplace add ./marketplace.json
+claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
 claude plugin install meow-prose-gate@meowpaw
 ```
 

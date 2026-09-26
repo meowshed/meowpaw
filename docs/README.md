@@ -18,16 +18,14 @@ page.
 
 ## Install
 
-Download the released marketplace file, add it, and install the units you
-want by name:
+Add the marketplace and install the units you want by name:
 
 ```bash
-curl -fsSLo marketplace.json https://github.com/meowshed/meowpaw/releases/download/marketplace/marketplace.json
-claude plugin marketplace add ./marketplace.json
+claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
 claude plugin install meow-verbs@meowpaw
 ```
 
 Each unit comes with its binaries for macOS, Linux and Windows on ARM64 and
-x64, so it needs neither Rust, Python nor Node.js. A later release reaches you
-when you download the file again and run
-`claude plugin marketplace update meowpaw`.
+x64, so it needs neither Rust, Python nor Node.js. A later release reaches you when you run
+`claude plugin marketplace update meowpaw`, or by itself once you turn on
+auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.

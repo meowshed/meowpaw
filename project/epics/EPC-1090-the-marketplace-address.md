@@ -42,13 +42,15 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1400 the site and the dispatch: the owner's setup, the site's
-      workflow in `retran/meow.retran.me`, the dispatch step in `release.yml`,
-      and the test that `marketplace update` fetches a `url` marketplace again
-      closes: REQ-1485
+- [>] T-001 TSK-1400 the site and the dispatch: the owner's setup, the site's
+  workflow in `retran/meow.retran.me`, the dispatch step in `release.yml`,
+  and the test that `marketplace update` fetches a `url` marketplace again
+  closes: REQ-1485
 
-- [ ] T-002 TSK-1410 every install instruction gives the address, and this
+- [x] T-002 TSK-1410 every install instruction gives the address, and this
       machine moves to it
+      evidence: no install instruction outside the record downloads the file,
+      and this machine's `meowpaw` has the address as its source, in #177.
       depends: TSK-1400 - the address has to serve the file before anybody is
       told to add it
 
