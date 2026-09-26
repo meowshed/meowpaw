@@ -150,8 +150,9 @@ criterion under issue 138.
 [EPC-1070](epics/EPC-1070-checking-the-record.md) is approved and realises
 ADR-1100 in two tasks, TSK-1330 and TSK-1340, each filed as an issue.
 
-[EPC-1080](epics/EPC-1080-the-native-tool.md) is approved and realises ADR-1110
-in four tasks, TSK-1350 to TSK-1380, each filed as an issue.
+[EPC-1080](epics/EPC-1080-the-native-tool.md) realised ADR-1110 in five
+tasks, TSK-1350 to TSK-1390, each closed with evidence, and was verified
+against every acceptance criterion under issue 160.
 
 ## Defects
 
