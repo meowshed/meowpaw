@@ -37,9 +37,10 @@ zero, not complete`, and `status` prints `none in force, so coverage is zero,
 not complete`; the clean record prints `1 of 1`.
 
 For REQ-3180, a search of the native tool for a file write finds 4
-places. Two write a profile inside `profile.rs`'s tests, under `#[cfg(test)]`,
-and the third is `index --write`, which writes the index a person asked for
-and keeps nothing for the unit. No unit keeps state: every program is a binary
+places. Three create a profile inside `profile.rs`'s tests, under
+`#[cfg(test)]`, and the fourth is `index --write`, which writes the index a
+person asked for and keeps nothing for the unit. Corrected at verification,
+because the first version accounted for three of the four. No unit keeps state: every program is a binary
 inside its unit's `bin/`, and no hook redirects output into the repository.
 
 ```text
