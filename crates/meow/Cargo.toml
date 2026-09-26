@@ -12,13 +12,14 @@ publish = false
 [features]
 default = []
 verbs = []
-scm = []
+scm = ["dep:regex"]
 git = []
 record = []
 
 [dependencies]
-toml = "0.8"
+toml = { version = "0.8", features = ["preserve_order"] }
 serde_json = { version = "1", features = ["preserve_order"] }
+regex = { version = "1", optional = true }
 
 [profile.release]
 strip = true
