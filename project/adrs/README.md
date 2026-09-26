@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-method index -->
 
-19 decisions in all: 19 approved.
+20 decisions in all: 20 approved.
 
 | Identifier                                                                                           | What it concluded                                                                                      | Status   |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------- |
@@ -36,6 +36,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1160](ADR-1160-each-step-carries-its-own-obligations.md)                                        | Each step's file carries the obligations of its step, and each template those of its kind              | approved |
 | [ADR-1170](ADR-1170-an-approval-is-a-stored-status-a-check-holds-frozen.md)                          | An approval is a stored status that a check holds frozen, and a session opens with what waits for one  | approved |
 | [ADR-1180](ADR-1180-the-record-grows-by-program-indexed-allocated-and-searched.md)                   | The record grows by program: its indexes generated, its identifiers allocated and its content searched | approved |
+| [ADR-1190](ADR-1190-the-design-step-carries-the-obligations-on-what-it-designs.md)                   | The design step carries the obligations on what it designs, and the other steps their share            | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070.
 <!-- /meow-method index -->
