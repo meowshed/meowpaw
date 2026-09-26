@@ -42,6 +42,11 @@
       "name": "meow-method",
       "source": "./plugins/meow-method",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-method.md"
+    },
+    {
+      "name": "meow-github",
+      "source": "./plugins/meow-github",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-github.md"
     }
   ]
 }
