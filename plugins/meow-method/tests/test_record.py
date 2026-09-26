@@ -687,6 +687,50 @@ class Indexes(unittest.TestCase):
         self.assertRegex(done.stdout, r"- a: REQ-0001, REQ-0002, REQ-0004")
 
 
+class Allocate(unittest.TestCase):
+    """ADR-1180: the next identifier, in its topic's block, never one already taken."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        base = CLEAN["requirements/REQ-0001-an-obligation.md"]
+        repository.write("requirements/REQ-0010-ten.md", base.replace("REQ-0001", "REQ-0010").replace("topic: a", "topic: t"))
+        return repository
+
+    def new(self, repository, *args):
+        done = repository.run("new", *args)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        return done.stdout.strip()
+
+    def test_a_requirement_takes_the_next_number_in_its_topic(self):
+        repository = self.repo()
+        self.assertEqual(self.new(repository, "requirement", "--topic", "t"), "REQ-0012")
+        base = CLEAN["requirements/REQ-0001-an-obligation.md"]
+        repository.write("requirements/REQ-0012-twelve.md", base.replace("REQ-0001", "REQ-0012").replace("topic: a", "topic: t"))
+        self.assertEqual(self.new(repository, "requirement", "--topic", "t"), "REQ-0014")
+
+    def test_a_withdrawn_or_cited_number_is_never_given_again(self):
+        repository = self.repo()
+        base = CLEAN["requirements/REQ-0001-an-obligation.md"]
+        repository.write("requirements/REQ-0012-gone.md", base.replace("REQ-0001", "REQ-0012").replace("topic: a", "topic: z")
+                         .replace("status: approved", "status: withdrawn"))
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nSee REQ-0014.")
+        self.assertEqual(self.new(repository, "requirement", "--topic", "t"), "REQ-0016")
+
+    def test_a_new_topic_starts_a_block_above_the_highest(self):
+        self.assertEqual(self.new(self.repo(), "requirement", "--topic", "fresh"), "REQ-0100")
+
+    def test_other_kinds_take_the_next_block_of_ten(self):
+        repository = self.repo()
+        self.assertEqual(self.new(repository, "adr"), "ADR-0010")
+        self.assertEqual(self.new(repository, "research"), "RES-0003")
+
+    def test_a_requirement_needs_its_topic(self):
+        done = self.repo().run("new", "requirement")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("name it with --topic", done.stderr)
+
+
 class Where(unittest.TestCase):
     def test_a_root_outside_the_repository_is_read_there(self):
         outside = tempfile.TemporaryDirectory()

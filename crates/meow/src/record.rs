@@ -128,9 +128,10 @@ pub fn main(args: &[String]) -> u8 {
         "template" => template(rest),
         "show" => show(rest),
         "index" => index_command(rest),
+        "new" => new_identifier(rest),
         _ => {
             eprintln!(
-                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write]",
+                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>]",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -1395,6 +1396,77 @@ fn index_command(rest: &[String]) -> u8 {
         }
     }
     say!("meow-method index: wrote the {} index to {}", record.layout.kinds[k].name, path.display());
+    CLEAN
+}
+
+/// The next identifier to allocate for a kind (ADR-1180): a requirement's
+/// next free number above its topic's highest, stepping by two, a new topic a
+/// block a hundred above the highest, research the next number, and every other
+/// kind the next block of ten. No identifier any file carries is given again.
+fn new_identifier(rest: &[String]) -> u8 {
+    let (word, topic) = match rest {
+        [word] => (word, None),
+        [word, flag, topic] if flag == "--topic" => (word, Some(topic.as_str())),
+        _ => {
+            eprintln!("usage: meow-method new <kind> [--topic <topic>]");
+            return USAGE;
+        }
+    };
+    let (record, _, _) = match open_record("new") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let Some(k) = kind_named(&record, word).filter(|&k| record.layout.kinds[k].prefix.is_some()) else {
+        let kinds: Vec<&str> = record.layout.kinds.iter().filter(|k| k.prefix.is_some()).map(|k| k.name.as_str()).collect();
+        eprintln!("meow-method new: no numbered kind is named {word}; the kinds are {}", kinds.join(", "));
+        return USAGE;
+    };
+    let kind = &record.layout.kinds[k];
+    let prefix = kind.prefix.clone().unwrap_or_default();
+    let number = Regex::new(&format!(r"\b{prefix}-(\d{{4}})\b")).expect("identifier pattern");
+    // Taken: every identifier of the kind that any file names, withdrawn ones
+    // and citations of missing ones included, because a cited number is spent.
+    let mut taken = BTreeSet::new();
+    for doc in record.docs.iter().chain(&record.outside) {
+        for c in number.captures_iter(&doc.text) {
+            if let Ok(n) = c[1].parse::<u32>() {
+                taken.insert(n);
+            }
+        }
+        if let Some(c) = doc.path.file_name().and_then(|n| n.to_str()).and_then(|n| number.captures(n)) {
+            if let Ok(n) = c[1].parse::<u32>() {
+                taken.insert(n);
+            }
+        }
+    }
+    let highest = taken.iter().max().copied().unwrap_or(0);
+    let (mut next, step) = if kind.name == "requirement" {
+        let Some(topic) = topic else {
+            eprintln!("meow-method new: a requirement is allocated in its topic's block; name it with --topic");
+            return USAGE;
+        };
+        let in_topic: Vec<u32> = of_kind(&record, "requirement")
+            .iter()
+            .filter(|d| bare(d.value("topic")) == topic)
+            .filter_map(|d| bare(d.id()).strip_prefix(&format!("{prefix}-")).and_then(|n| n.parse().ok()))
+            .collect();
+        match in_topic.iter().max() {
+            Some(top) => (top + 2, 2),
+            None => ((highest / 100 + 1) * 100, 2),
+        }
+    } else if kind.name == "research" {
+        (highest + 1, 1)
+    } else {
+        ((highest / 10 + 1) * 10, 10)
+    };
+    while taken.contains(&next) {
+        next += step;
+    }
+    if next > 9999 {
+        say!("meow-method new: the {} block is full", kind.name);
+        return FOUND;
+    }
+    say!("{prefix}-{next:04}");
     CLEAN
 }
 
