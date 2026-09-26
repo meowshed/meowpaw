@@ -172,15 +172,19 @@ fn done_in(epic: &Record) -> Vec<String> {
 
 pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
     let root = profile::repository_root();
-    let record_root = match profile::read(&root) {
-        Profile::Parsed(table) => table
-            .get("record")
-            .and_then(|r| r.get("root"))
-            .and_then(|r| r.as_str())
-            .unwrap_or("project")
-            .to_string(),
-        _ => "project".to_string(),
+    let table = match profile::read(&root) {
+        Profile::Parsed(table) => table,
+        _ => toml::Table::new(),
     };
+    // A repository declares its tracker, and one that declares none is fully
+    // served by the method without it (REQ-1351, REQ-1380).
+    let tracker = table.get("tracker").and_then(|t| t.get("kind")).and_then(|k| k.as_str()).unwrap_or("");
+    if tracker != "github" {
+        let declared = if tracker.is_empty() { "declares no tracker".to_string() } else { format!("declares the tracker {tracker}") };
+        println!("meow-github project: {} {declared}, so nothing is projected; declare `[tracker] kind = \"github\"` to project onto GitHub", profile::PROFILE);
+        return UNREAD;
+    }
+    let record_root = table.get("record").and_then(|r| r.get("root")).and_then(|r| r.as_str()).unwrap_or("project").to_string();
     let base = root.join(record_root);
     let Some(epic) = records(&base.join("epics"), &format!("{epic_id}-")).into_iter().next() else {
         println!("meow-github project: {epic_id} resolves to no epic under {}", base.display());
