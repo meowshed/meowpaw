@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1100
-checked-at:
+checked-at: "#168"
 ---
 
 # The record, checked by a unit the harness ships
@@ -62,6 +62,23 @@ A task is marked in the commit that advances it, never in a later pass.
       and no reference to the four scripts outside the record, in #145.
       depends: TSK-1330 - the verb runs the program, and parity has to hold
       before the scripts go
+
+## Verified
+
+Checked under issue 168 at revision `3162661`, with evidence gathered there and
+not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                    | Evidence at `3162661`                                                                                                                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Each check reports a planted defect, and nothing on clean | Twelve fixtures plant one defect each and assert the file and line; `test_a_clean_record_passes_every_check` sees 0 findings in all six checks                            |
+| 2. A root outside the repository is read there               | `test_a_root_outside_the_repository_is_read_there` and `test_a_relative_root_leading_outside_is_read_there`                                                               |
+| 3. The program changes no file                               | `test_the_tree_is_identical_before_and_after_a_run` hashes every file and its modification time before and after                                                          |
+| 4. Parity with the four scripts at one revision              | The four scripts, restored from #165, report 0 front matter failures, 0 identifier failures, 0 coverage failures and 0 missing sections; the six checks report 0 findings |
+| 5. The four scripts gone, the `test` verb passing            | `tools/` holds none of the four, and `meow-verbs run test` prints `summary: test passed` with `meow-method check` in it                                                   |
+| 6. Every requirement in one closed task, nothing outstanding | `meow-method check coverage`: 0 findings; the other five checks, `check_index` and `check_links` report 0 findings or failures                                            |
+
+All eighteen fixtures ran with `python3 -m unittest discover -s
+plugins/meow-method/tests`, which reported `OK`.
 
 ## Coverage
 
