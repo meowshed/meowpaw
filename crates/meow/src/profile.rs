@@ -93,11 +93,16 @@ mod tests {
 
         impl Dir {
             pub fn new() -> Dir {
+                // Tests run in parallel threads of one process, and two of them
+                // can read the same clock, so a counter keeps each directory
+                // its own.
+                static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+                let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 let stamp = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap()
                     .as_nanos();
-                let path = std::env::temp_dir().join(format!("meow-test-{}-{stamp}", std::process::id()));
+                let path = std::env::temp_dir().join(format!("meow-test-{}-{n}-{stamp}", std::process::id()));
                 std::fs::create_dir_all(&path).unwrap();
                 Dir(path)
             }
