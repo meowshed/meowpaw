@@ -50,8 +50,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172
       evidence: 23 requirements traced to labelled rules, in #224.
 
-- [ ] T-004 TSK-1550 the implement and document steps carry their obligations
+- [x] T-004 TSK-1550 the implement and document steps carry their obligations
       closes: REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0290, REQ-0292, REQ-0298, REQ-0300, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104
+      evidence: 19 requirements traced to labelled rules, in #225.
 
 - [ ] T-005 TSK-1560 the verify step carries its obligations
       closes: REQ-0241, REQ-0275, REQ-0277, REQ-0278, REQ-0279, REQ-0280, REQ-0281, REQ-0282, REQ-0283, REQ-0284, REQ-0286, REQ-0288, REQ-0291, REQ-0293, REQ-0295, REQ-0296, REQ-0297, REQ-0299, REQ-0307, REQ-0317, REQ-0319, REQ-0325, REQ-0327, REQ-0329, REQ-0542
