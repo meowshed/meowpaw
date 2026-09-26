@@ -71,6 +71,14 @@ and only a run on the new model shows which rules those are.
 A usage limit or a cost ceiling shows up as a run error in the table, and never
 as a lower score.
 
+## What it needs
+
+Claude Code 2.1.283 or later, the version this unit was tested on, declared
+in `plugins/meow-core/requires.toml`. It relies on these platform behaviours,
+each documented by Claude Code:
+
+- an output style with `force-for-plugin`, which applies the reply shape to every reply: [documentation](https://code.claude.com/docs/en/output-styles.md)
+
 ## Where the rules come from
 
 The decision is `project/adrs/ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md`,
