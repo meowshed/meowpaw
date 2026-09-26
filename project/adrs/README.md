@@ -9,17 +9,18 @@ revised: 2026-09-22
 
 Five decisions are in force.
 
-|                                                                                                      | Decision                                                                      | Status                        |
-| ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------- |
-| [ADR-1000](ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md)                       | The reply shape is a forced output style carried by the kernel                | approved                      |
-| [ADR-1010](ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md)                     | The writing standard ships as a unit that reviews itself                      | approved, amended by ADR-1020 |
-| [ADR-1020](ADR-1020-every-shipped-prompt-is-tagged-and-a-rule-that-must-hold-is-loaded-by-a-hook.md) | Every shipped prompt is tagged, and a rule that must hold is loaded by a hook | approved                      |
-| [ADR-1030](ADR-1030-shipped-prompts-use-top-level-tags-with-markdown-inside.md)                      | Shipped prompts use top-level tags with Markdown inside                       | approved                      |
-| [ADR-1040](ADR-1040-the-style-carries-the-reply-shape-to-a-subordinate-agent.md)                     | The style carries the reply shape to a subordinate agent                      | approved                      |
-| [ADR-1050](ADR-1050-a-unit-that-must-hold-is-loaded-by-its-description.md)                           | A unit that must hold is loaded by a description stating the obligation       | approved                      |
-| [ADR-1060](ADR-1060-the-kernel-names-no-unit-outside-it.md)                                          | The kernel names no unit outside it                                           | approved                      |
-| [ADR-1070](ADR-1070-the-five-verbs-resolve-from-the-profile.md)                                      | The five verbs resolve from the profile, and an unresolved verb is reported   | approved                      |
-| [ADR-1080](ADR-1080-a-commit-message-is-checked-against-the-declared-convention.md)                  | A commit message is checked against the convention the repository declares    | approved                      |
+|                                                                                                      | Decision                                                                         | Status                        |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------- |
+| [ADR-1000](ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md)                       | The reply shape is a forced output style carried by the kernel                   | approved                      |
+| [ADR-1010](ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md)                     | The writing standard ships as a unit that reviews itself                         | approved, amended by ADR-1020 |
+| [ADR-1020](ADR-1020-every-shipped-prompt-is-tagged-and-a-rule-that-must-hold-is-loaded-by-a-hook.md) | Every shipped prompt is tagged, and a rule that must hold is loaded by a hook    | approved                      |
+| [ADR-1030](ADR-1030-shipped-prompts-use-top-level-tags-with-markdown-inside.md)                      | Shipped prompts use top-level tags with Markdown inside                          | approved                      |
+| [ADR-1040](ADR-1040-the-style-carries-the-reply-shape-to-a-subordinate-agent.md)                     | The style carries the reply shape to a subordinate agent                         | approved                      |
+| [ADR-1050](ADR-1050-a-unit-that-must-hold-is-loaded-by-its-description.md)                           | A unit that must hold is loaded by a description stating the obligation          | approved                      |
+| [ADR-1060](ADR-1060-the-kernel-names-no-unit-outside-it.md)                                          | The kernel names no unit outside it                                              | approved                      |
+| [ADR-1070](ADR-1070-the-five-verbs-resolve-from-the-profile.md)                                      | The five verbs resolve from the profile, and an unresolved verb is reported      | approved                      |
+| [ADR-1080](ADR-1080-a-commit-message-is-checked-against-the-declared-convention.md)                  | A commit message is checked against the convention the repository declares       | approved                      |
+| [ADR-1090](ADR-1090-a-git-pack-enforces-the-convention-at-push.md)                                   | A git pack refuses a commit on the trunk and checks a branch before it is pushed | approved                      |
 
 The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:
