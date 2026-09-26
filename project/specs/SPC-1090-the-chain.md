@@ -147,6 +147,42 @@ states:
     REQ-0564,
     REQ-0566,
     REQ-0613,
+    REQ-1230,
+    REQ-1231,
+    REQ-1232,
+    REQ-1233,
+    REQ-1234,
+    REQ-1235,
+    REQ-1236,
+    REQ-1237,
+    REQ-1238,
+    REQ-1239,
+    REQ-1240,
+    REQ-1242,
+    REQ-1244,
+    REQ-1246,
+    REQ-1248,
+    REQ-1250,
+    REQ-1252,
+    REQ-1254,
+    REQ-1256,
+    REQ-1258,
+    REQ-2130,
+    REQ-2131,
+    REQ-2132,
+    REQ-2133,
+    REQ-2134,
+    REQ-2137,
+    REQ-2138,
+    REQ-2139,
+    REQ-2140,
+    REQ-2256,
+    REQ-2258,
+    REQ-2260,
+    REQ-2262,
+    REQ-2264,
+    REQ-2266,
+    REQ-2268,
     REQ-2630,
     REQ-2632,
     REQ-2638,
@@ -157,7 +193,20 @@ states:
     REQ-2650,
     REQ-2652,
     REQ-2694,
+    REQ-2760,
+    REQ-2762,
+    REQ-2764,
+    REQ-2766,
+    REQ-2768,
+    REQ-2770,
+    REQ-2772,
     REQ-2774,
+    REQ-2776,
+    REQ-2778,
+    REQ-2780,
+    REQ-2782,
+    REQ-2794,
+    REQ-2796,
     REQ-2858,
     REQ-2859,
     REQ-2860,
@@ -223,17 +272,17 @@ approvals and waiting report are verified under issue 249.
 The chain has nine steps in this order, each writing one kind of artifact
 (REQ-0190):
 
-| Step         | Reads                            | Writes                                 |
-| ------------ | -------------------------------- | -------------------------------------- |
-| research     | a question                       | a research record                      |
-| requirements | approved research                | requirement records                    |
-| design       | approved requirements            | a decision record                      |
-| spec         | an approved decision             | the specification, updated             |
-| epic         | an approved decision or defect   | an epic and its task records           |
-| implement    | an approved task                 | the change, and the task's evidence    |
-| document     | an epic whose tasks are all done | the user-facing documentation, updated |
-| verify       | an epic whose tasks are all done | the epic's verification                |
-| review       | a verified epic                  | findings in place, never a file        |
+| Step         | Reads                                                                                                                                                                                                                                                                                                                                                                               | Writes                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| research     | a question, REQ-2137, REQ-2139                                                                                                                                                                                                                                                                                                                                                      | a research record                      |
+| requirements | approved research, REQ-2131, REQ-2132, REQ-2133, REQ-2134                                                                                                                                                                                                                                                                                                                           | requirement records                    |
+| design       | approved requirements, REQ-1230, REQ-1231, REQ-1232, REQ-1233, REQ-1234, REQ-1235, REQ-1236, REQ-1237, REQ-1238, REQ-1239, REQ-1240, REQ-1242, REQ-1244, REQ-1246, REQ-1248, REQ-1250, REQ-1252, REQ-1254, REQ-1256, REQ-1258, REQ-2138, REQ-2140, REQ-2760, REQ-2762, REQ-2764, REQ-2766, REQ-2768, REQ-2770, REQ-2772, REQ-2776, REQ-2778, REQ-2780, REQ-2782, REQ-2794, REQ-2796 | a decision record                      |
+| spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated             |
+| epic         | an approved decision or defect                                                                                                                                                                                                                                                                                                                                                      | an epic and its task records           |
+| implement    | an approved task, REQ-2266                                                                                                                                                                                                                                                                                                                                                          | the change, and the task's evidence    |
+| document     | an epic whose tasks are all done                                                                                                                                                                                                                                                                                                                                                    | the user-facing documentation, updated |
+| verify       | an epic whose tasks are all done, REQ-2260, REQ-2262, REQ-2264                                                                                                                                                                                                                                                                                                                      | the epic's verification                |
+| review       | a verified epic, REQ-2268                                                                                                                                                                                                                                                                                                                                                           | findings in place, never a file        |
 
 A person or the model invokes one step by naming it to the `method` skill, and
 the step does its own work and no later step's (REQ-0192, REQ-0194). Each step
