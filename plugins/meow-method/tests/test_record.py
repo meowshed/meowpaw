@@ -385,6 +385,47 @@ class Checks(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("The record is local to this machine: ", done.stdout)
 
+    INSIGHT = ("---\nid: INS-0001\nartifact: insight\nstatus: approved\nrevised: 2026-01-01\n---\n\n"
+               "# A cache keyed by path misses after a rename\n\nText.\n\n## Evidence\n\n41 of 50 runs missed.\n\n"
+               "## What looked right\n\nNone did.\n\n## The pattern\n\nKey a cache by content.\n")
+
+    def insight(self, old="", new=""):
+        repository = self.repo()
+        repository.write("insights/INS-0001-a-lesson.md", self.INSIGHT.replace(old, new, 1))
+        return repository
+
+    def test_an_insight_meeting_each_rule_passes(self):
+        repository = self.insight()
+        done = repository.run("check")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("rules: 0 findings\n", done.stdout)
+        self.assertTrue(repository.run("show", "INS-0001").stdout.startswith("INS-0001 insight, approved: "))
+
+    def test_an_insight_title_states_a_claim(self):
+        self.found(self.insight("A cache keyed by path misses after a rename", "Notes 2026-01-01").run("check", "rules"), "rules",
+                   "project/insights/INS-0001-a-lesson.md:8: has a title carrying a date, where an insight's title states its claim")
+        self.found(self.insight("A cache keyed by path misses after a rename", "Caching").run("check", "rules"), "rules",
+                   "project/insights/INS-0001-a-lesson.md:8: has a title of 1 word, where an insight's title states its claim in at least four")
+
+    def test_an_insight_carries_measured_evidence(self):
+        self.found(self.insight("41 of 50 runs missed.", "Most runs missed.").run("check", "rules"), "rules",
+                   "project/insights/INS-0001-a-lesson.md:12: has evidence with no number, measurement or reproducible block")
+        done = self.insight("41 of 50 runs missed.", "```text\n$ run\n```").run("check", "rules")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_an_insight_ends_with_its_pattern(self):
+        repository = self.insight("## The pattern\n\nKey a cache by content.\n", "## The pattern\n\nKey a cache by content.\n\n## Notes\n\nMore.\n")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/insights/INS-0001-a-lesson.md:24: ends with Notes, where an insight ends with The pattern")
+
+    def test_an_insight_is_allocated_and_templated(self):
+        repository = self.repo()
+        self.assertEqual(repository.run("new", "insight").stdout, "INS-0001\n")
+        template = repository.run("template", "insight")
+        self.assertEqual(template.returncode, 0, template.stderr)
+        self.assertTrue(template.stdout.strip().endswith("templates/insight.md"), template.stdout)
+        self.assertIn("## The pattern", Path(template.stdout.strip()).read_text(encoding="utf-8"))
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")
@@ -550,7 +591,7 @@ class Chain(unittest.TestCase):
     def test_an_unknown_kind_names_the_kinds(self):
         done = self.repo().run("template", "memo")
         self.assertEqual(done.returncode, 2)
-        self.assertIn("research, requirement, adr, spec, epic, task, bug, vision, constitution", done.stderr)
+        self.assertIn("research, requirement, adr, spec, epic, task, bug, insight, vision, constitution", done.stderr)
 
 
 class Show(unittest.TestCase):
