@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1130
-checked-at:
+checked-at: "#202"
 ---
 
 # The method's chain, gated by the record
@@ -65,6 +65,20 @@ A task is marked in the commit that advances it, never in a later pass.
       the templates
       evidence: the skill and its nine step files pass the prompt check, and
       the unit loads 385 of its 500 characters, in #191.
+
+## Verified
+
+Checked under issue 202 at revision `f39d7af`, with evidence gathered there and
+not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                       | Evidence at `f39d7af`                                                                                                                                                                                       |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. `ready design` refuses a draft requirement, then passes      | `test_design_refuses_a_draft_requirement_and_names_it` runs `ok`: exit 1 naming the draft requirement as "draft and not approved", then 0 once approved; `ready design REQ-0190` exits 0 on this repository |
+| 2. `status` leads with drafts, then places each decision        | `meow-method status` opens with "Waiting for approval" and TSK-1360, then places ADR-1130 at "next: document, then verify EPC-1100 (3 tasks done)"                                                          |
+| 3. `status` prints the same twice, and the driver says it waits | Two runs of `status` are byte-identical; `/meow-method:run`, run twice in a fresh session on a record whose only decision is a draft, ran no step and reported waiting on ADR-0001 both times               |
+| 4. `template` prefers the repository's own                      | `meow-method template task` prints the unit's `templates/task.md`, and `.meowpaw/templates/task.md` once that file exists                                                                                   |
+| 5. The next decision is written through the design step         | ADR-1140 (#201): `ready design` exited 0 for its 36 requirements, it was written from `template adr` as a draft, and `status` led with it waiting before approval                                           |
+| 6. Every requirement in one closed task, nothing outstanding    | `meow-method check`: 0 findings in all six checks, coverage included; the unit's 34 fixtures run `OK`                                                                                                       |
 
 ## Coverage
 
