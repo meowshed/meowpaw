@@ -261,7 +261,7 @@ fn findings_by_file(record: &Record, root: &Path, repository: &Path) -> BTreeMap
 /// Whether the record's root is kept by version control: inside a work tree
 /// and not ignored by it.
 fn under_version_control(root: &Path) -> bool {
-    let git = |args: &[&str]| std::process::Command::new("git").args(args).current_dir(root).output().ok();
+    let git = |args: &[&str]| profile::reading_git().args(args).current_dir(root).output().ok();
     let inside = git(&["rev-parse", "--is-inside-work-tree"]).is_some_and(|o| o.status.success());
     let ignored = git(&["check-ignore", "-q", "."]).is_some_and(|o| o.status.success());
     inside && !ignored
@@ -320,7 +320,7 @@ fn check_frozen(rest: &[String]) -> u8 {
         if doc.is_index || own_index || kind.statuses.iter().any(|s| s == "live") || Path::new(&doc.shown).is_absolute() {
             continue;
         }
-        let Ok(out) = std::process::Command::new("git")
+        let Ok(out) = profile::reading_git()
             .args(["show", &format!("{base}:{}", doc.shown)])
             .current_dir(&repository)
             .output()
@@ -378,7 +378,7 @@ fn hash_citations(record: &Record, repository: &Path, base: &str) -> Vec<String>
         if doc.is_index || kind.statuses.iter().any(|s| s == "live") || Path::new(&doc.shown).is_absolute() {
             continue;
         }
-        let before = std::process::Command::new("git")
+        let before = profile::reading_git()
             .args(["show", &format!("{base}:{}", doc.shown)])
             .current_dir(repository)
             .output()
@@ -915,7 +915,7 @@ fn coverage(record: &Record) -> Vec<Finding> {
 /// The documents a repository has outside its record, tracked or not ignored,
 /// relative to its root.
 fn documents(root: &Path, repository: &Path) -> Vec<String> {
-    let Ok(out) = std::process::Command::new("git")
+    let Ok(out) = profile::reading_git()
         .args(["ls-files", "--cached", "--others", "--exclude-standard"])
         .current_dir(repository)
         .output()

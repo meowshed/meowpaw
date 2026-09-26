@@ -22,7 +22,7 @@ const BLOCK: u8 = 2;
 const ALLOW: u8 = 0;
 
 fn git(root: &Path, args: &[&str]) -> (bool, String) {
-    let done = Command::new("git")
+    let done = crate::profile::reading_git()
         .args(args)
         .current_dir(root)
         .env("GIT_TERMINAL_PROMPT", "0")

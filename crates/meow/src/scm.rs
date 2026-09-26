@@ -202,7 +202,7 @@ fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
 
 /// The commit's author as git will record it, without the time git appends.
 fn author(root: &Path) -> Option<String> {
-    let out = std::process::Command::new("git")
+    let out = crate::profile::reading_git()
         .args(["var", "GIT_AUTHOR_IDENT"])
         .current_dir(root)
         .env("GIT_TERMINAL_PROMPT", "0")
