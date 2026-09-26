@@ -167,7 +167,16 @@ states:
     REQ-1254,
     REQ-1256,
     REQ-1258,
+    REQ-1540,
+    REQ-1542,
+    REQ-1544,
+    REQ-1546,
+    REQ-1548,
+    REQ-1550,
+    REQ-1552,
     REQ-1554,
+    REQ-1556,
+    REQ-1558,
     REQ-1560,
     REQ-1561,
     REQ-1562,
@@ -237,6 +246,9 @@ states:
     REQ-2920,
     REQ-2922,
     REQ-2926,
+    REQ-3092,
+    REQ-3094,
+    REQ-3096,
     REQ-3098,
     REQ-3100,
     REQ-3104,
@@ -406,6 +418,22 @@ the layout and templates it finds (REQ-1561, REQ-1562), and on a second run
 shows what would change and writes nothing without agreement (REQ-1564). An
 empty record's coverage is reported as zero, never complete (REQ-3098), and no
 unit writes into the repository to run itself (REQ-3180) (ADR-1250).
+
+### Onboarding
+
+`/meow-method:onboard`, run after init, reads the repository's documentation,
+any existing harness and its code, and recovers the vision, the specifications
+and a missing constitution, each statement ending with its source file and a
+confidence, and nothing it can't trace (REQ-1540, REQ-1542, REQ-1546,
+REQ-1548). It writes no requirement and no decision (REQ-1544), reads an
+existing harness in full as evidence (REQ-1552), and rewrites no existing file
+(REQ-3094). Its report, `onboarding.md` at the record's root, opens with the
+verbs, then the conventions as frequencies offered as decisions, the
+disposition of every tracked document, the gaps, and adoption as numbered
+working steps (REQ-1550, REQ-3092, REQ-3096). `check coverage` holds that each
+tracked document outside the record gets exactly one outcome, migrated, cited,
+superseded or discarded, with a destination or a reason (REQ-1556), and the
+command stops at the report's approval (REQ-1558) (ADR-1260).
 
 ## Failure paths
 

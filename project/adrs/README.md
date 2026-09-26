@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-method index -->
 
-26 decisions in all: 26 approved.
+27 decisions in all: 26 approved, 1 draft.
 
 | Identifier                                                                                           | What it concluded                                                                                      | Status   |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------- |
@@ -43,6 +43,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1230](ADR-1230-the-record-keeps-its-reading-order-and-its-history-out-of-the-way.md)            | The record keeps its reading order, and its history out of the way                                     | approved |
 | [ADR-1240](ADR-1240-a-change-to-the-records-shape-migrates-what-exists.md)                           | A change to the record's shape migrates what exists, and a retired name stays retired                  | approved |
 | [ADR-1250](ADR-1250-init-writes-a-profile-and-a-constitution-from-what-the-repository-holds.md)      | `/meow-method:init` writes a profile and a constitution from what the repository holds                 | approved |
+| [ADR-1260](ADR-1260-onboarding-recovers-what-a-repository-is-and-places-every-document.md)           | Onboarding recovers what a repository is, and places every document it already has                     | draft    |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070.
 <!-- /meow-method index -->
