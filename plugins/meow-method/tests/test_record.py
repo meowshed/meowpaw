@@ -52,7 +52,7 @@ CLEAN = {
     "adrs/README.md": index("index", ["ADR-0001"]),
     "adrs/ADR-0001-a-choice.md": record(
         "adr", "ADR-0001", {"addresses": "[REQ-0001]"},
-        ["Decision", "Why", "Alternatives", "Consequences", "What it costs"]),
+        ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]),
     "epics/EPC-0001-a-plan.md": record(
         "epic", "EPC-0001", {"realises": "ADR-0001", "checked-at": ""},
         ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]),
@@ -61,7 +61,7 @@ CLEAN = {
         ["What to do", "Depends on", "Evidence", "Left alone"], "\nSee [the plan](../epics/EPC-0001-a-plan.md).\n"),
     "bugs/BUG-0001-a-defect.md": record(
         "bug", "BUG-0001", {"violates": "REQ-0001", "severity": "minor", "found": "2026-01-01"},
-        ["Reproduction", "What the system does", "What it should do, and why"]),
+        ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]),
 }
 
 
@@ -190,6 +190,69 @@ class Checks(unittest.TestCase):
         repository.edit("research/RES-0002-a-finding.md", "## Conclusions", "## Thoughts")
         self.found(repository.run("check", "shape"), "shape",
                    "project/research/RES-0002-a-finding.md: has no Conclusions section")
+
+    def test_a_draft_decision_carries_the_drafts_sections_and_an_approved_one_not(self):
+        repository = self.repo()
+        self.assertEqual(repository.run("check", "shape").returncode, 0)
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: draft")
+        done = repository.run("check", "shape")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/adrs/ADR-0001-a-choice.md: has no How I will know it was realised section, "
+                      "which a draft decision carries", done.stdout)
+        self.assertIn("has no What this does not settle section", done.stdout)
+
+    def test_research_opens_with_its_summary(self):
+        repository = self.repo()
+        repository.edit("research/RES-0002-a-finding.md", "## Summary\n\nText.\n\n## Method", "## Method\n\nText.\n\n## Summary")
+        self.found(repository.run("check", "shape"), "shape",
+                   "project/research/RES-0002-a-finding.md: opens with Method, where a research opens with Summary")
+
+    def test_research_carries_a_method_and_its_index_is_exempt(self):
+        repository = self.repo()
+        repository.edit("research/RES-0002-a-finding.md", "## Method\n\nText.\n\n", "")
+        done = repository.run("check", "shape")
+        self.found(done, "shape", "project/research/RES-0002-a-finding.md: has no Method section, which a research carries")
+        self.assertNotIn("RES-0001", done.stdout)
+
+    def test_a_requirement_never_carries_a_priority(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "topic: a", "topic: a\npriority: high")
+        self.found(repository.run("check", "front-matter"), "front-matter",
+                   "project/requirements/REQ-0001-an-obligation.md:7: carries priority, which a requirement never does")
+
+    def test_a_decision_must_address_a_requirement(self):
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", "addresses: []")
+        done = repository.run("check", "front-matter")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/adrs/ADR-0001-a-choice.md:6: addresses is empty, and a decision must fill it", done.stdout)
+
+    def test_a_defect_carries_its_triage_and_no_priority(self):
+        repository = self.repo()
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Triage", "## Thoughts")
+        self.found(repository.run("check", "shape"), "shape",
+                   "project/bugs/BUG-0001-a-defect.md: has no Triage section, which a defect carries")
+        repository.edit("bugs/BUG-0001-a-defect.md", "severity: minor", "severity: minor\npriority: p1")
+        self.assertIn("carries priority, which a defect never does", repository.run("check", "front-matter").stdout)
+
+    def test_the_living_vision_stores_only_live(self):
+        repository = self.repo()
+        repository.edit("vision.md", "status: live", "status: approved")
+        self.found(repository.run("check", "front-matter"), "front-matter",
+                   "project/vision.md:4: status approved is not one a vision stores: live")
+
+    def test_an_observed_status_is_never_stored(self):
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "status: approved", "status: verified")
+        self.found(repository.run("check", "front-matter"), "front-matter",
+                   "project/epics/EPC-0001-a-plan.md:4: status verified is not one a epic stores")
+
+    def test_a_numbered_kind_is_named_for_its_identifier(self):
+        repository = self.repo()
+        repository.write("research/a-loose-note.md", CLEAN["research/RES-0002-a-finding.md"].replace("RES-0002", "RES-0003"))
+        done = repository.run("check", "identifiers")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/research/a-loose-note.md: the name doesn't have the form RES-NNNN-<slug>.md", done.stdout)
 
     def test_a_file_of_no_known_kind_is_reported(self):
         repository = self.repo()

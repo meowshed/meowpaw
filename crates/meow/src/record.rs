@@ -34,6 +34,10 @@ struct Kind {
     statuses: Vec<String>,
     index: Option<String>,
     sections: Vec<String>,
+    draft_sections: Vec<String>,
+    first_section: Option<String>,
+    required_values: Vec<String>,
+    forbidden_fields: Vec<String>,
 }
 
 struct Layout {
@@ -51,6 +55,8 @@ struct Field {
 
 struct Doc {
     path: PathBuf,
+    /// The path under the record's root, or empty for a file outside it.
+    relative: String,
     shown: String,
     text: String,
     fields: Option<Vec<Field>>,
@@ -217,6 +223,10 @@ fn load_layout() -> Result<Layout, String> {
             statuses: strings(table, "statuses"),
             index: string(table, "index"),
             sections: strings(table, "sections"),
+            draft_sections: strings(table, "draft_sections"),
+            first_section: string(table, "first_section"),
+            required_values: strings(table, "required_values"),
+            forbidden_fields: strings(table, "forbidden_fields"),
         });
     }
     Ok(Layout {
@@ -296,7 +306,7 @@ fn read_doc(path: PathBuf, repository: &Path) -> Doc {
     let text = std::fs::read_to_string(&path).unwrap_or_default();
     let fields = parse_front_matter(&text);
     let shown = shown(&path, repository);
-    Doc { path, shown, text, fields, kind: None, is_index: false }
+    Doc { path, relative: String::new(), shown, text, fields, kind: None, is_index: false }
 }
 
 fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
@@ -306,6 +316,7 @@ fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
     for path in paths {
         let relative = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace('\\', "/");
         let mut doc = read_doc(path.clone(), repository);
+        doc.relative = relative.clone();
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
         let parent = relative.rsplit_once('/').map(|(dir, _)| dir).unwrap_or("");
         doc.is_index = name == layout.index_name;
@@ -372,6 +383,19 @@ fn front_matter(record: &Record) -> Vec<Finding> {
         for key in record.layout.fields.iter().chain(&kind.fields) {
             if !fields.iter().any(|f| &f.key == key) {
                 out.push(Finding::at(doc, None, format!("front matter has no {key}")));
+            }
+        }
+        for key in &kind.forbidden_fields {
+            if let Some(field) = doc.field(key) {
+                out.push(Finding::at(doc, Some(field.line), format!("carries {key}, which a {} never does", kind.name)));
+            }
+        }
+        for key in &kind.required_values {
+            if let Some(field) = doc.field(key) {
+                let value = bare(&field.value).trim_matches(|c: char| c == '[' || c == ']' || c.is_whitespace());
+                if value.is_empty() {
+                    out.push(Finding::at(doc, Some(field.line), format!("{key} is empty, and a {} must fill it", kind.name)));
+                }
             }
         }
         if let Some(field) = doc.field("artifact") {
@@ -569,10 +593,18 @@ fn coverage(record: &Record) -> Vec<Finding> {
     out
 }
 
+fn is_draft(doc: &Doc) -> bool {
+    bare(doc.value("status")) == "draft"
+}
+
 fn shape(record: &Record) -> Vec<Finding> {
     let mut out = Vec::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
+        // A kind's own index lists its records and makes no claims of its own.
+        if kind.index.as_deref() == Some(doc.relative.as_str()) {
+            continue;
+        }
         let headings: Vec<&str> = doc
             .text
             .lines()
@@ -581,13 +613,19 @@ fn shape(record: &Record) -> Vec<Finding> {
             .filter(|l| l.starts_with(' '))
             .map(str::trim)
             .collect();
-        for section in &kind.sections {
-            let present = headings.iter().any(|h| {
-                h.strip_prefix(section.as_str())
-                    .is_some_and(|rest| !rest.starts_with(|c: char| c.is_alphanumeric()))
-            });
-            if !present {
-                out.push(Finding::at(doc, None, format!("has no {section} section, which a {} carries", kind.name)));
+        let names = |heading: &str, section: &str| {
+            heading.strip_prefix(section).is_some_and(|rest| !rest.starts_with(|c: char| c.is_alphanumeric()))
+        };
+        let drafted = if is_draft(doc) { kind.draft_sections.as_slice() } else { &[] };
+        for section in kind.sections.iter().chain(drafted) {
+            if !headings.iter().any(|h| names(h, section)) {
+                let scope = if drafted.contains(section) { "a draft " } else { "a " };
+                out.push(Finding::at(doc, None, format!("has no {section} section, which {scope}{} carries", kind.name)));
+            }
+        }
+        if let (Some(first), Some(opening)) = (&kind.first_section, headings.first()) {
+            if !names(opening, first) {
+                out.push(Finding::at(doc, None, format!("opens with {opening}, where a {} opens with {first}", kind.name)));
             }
         }
     }
