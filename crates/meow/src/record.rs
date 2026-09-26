@@ -1049,10 +1049,46 @@ fn position(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> String
     }
 }
 
+/// The gate a draft of each kind waits at.
+fn gate_of(kind: &str) -> &'static str {
+    match kind {
+        "research" => "the research gate",
+        "requirement" => "the requirements gate",
+        "decision" => "the design gate",
+        "epic" | "task" => "the epic gate",
+        "defect" => "triage",
+        _ => "approval",
+    }
+}
+
 fn status(rest: &[String]) -> u8 {
-    if !rest.is_empty() {
-        eprintln!("usage: meow-method status");
-        return USAGE;
+    let waiting_only = match rest {
+        [] => false,
+        [flag] if flag == "--waiting" => true,
+        _ => {
+            eprintln!("usage: meow-method status [--waiting]");
+            return USAGE;
+        }
+    };
+    if waiting_only {
+        // Run at the start of every session, so it says nothing unless
+        // something waits: a repository with no record pays nothing.
+        let repository = profile::repository_root();
+        let (Ok(layout), Ok(root)) = (load_layout(), record_root(&repository)) else { return CLEAN };
+        if !root.is_dir() {
+            return CLEAN;
+        }
+        let record = read_record(layout, &repository, &root);
+        let known = known(&record);
+        let drafts: Vec<&&Doc> = known.values().filter(|doc| bare(doc.value("status")) == "draft").collect();
+        if !drafts.is_empty() {
+            say!("Waiting for approval in this repository's record:");
+            for doc in &drafts {
+                let kind = kind_of(&record, doc);
+                say!("  {} {kind}, at {}: {}", bare(doc.id()), gate_of(kind), title(doc));
+            }
+        }
+        return CLEAN;
     }
     let (record, _, _) = match open_record("status") {
         Ok(opened) => opened,
@@ -1065,7 +1101,8 @@ fn status(rest: &[String]) -> u8 {
         say!("  nothing");
     }
     for doc in &drafts {
-        say!("  {} {}, draft: {}", bare(doc.id()), kind_of(&record, doc), title(doc));
+        let kind = kind_of(&record, doc);
+        say!("  {} {kind}, draft at {}: {}", bare(doc.id()), gate_of(kind), title(doc));
     }
     say!();
     say!("Decisions");

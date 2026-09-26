@@ -550,7 +550,9 @@ class Frozen(unittest.TestCase):
     def test_a_change_naming_its_authority_passes(self):
         repository = self.repo()
         repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001", "# REQ-0001\n\n**Amended by ADR-0001.** It says more.")
-        self.assertEqual(self.frozen(repository).returncode, 0)
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
 
     def test_a_task_may_gain_evidence_and_an_unverified_epic_marks(self):
         repository = self.repo()
@@ -558,6 +560,7 @@ class Frozen(unittest.TestCase):
         repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task")
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
 
     def test_a_task_rewritten_outside_its_evidence_is_reported(self):
         repository = self.repo()
@@ -579,17 +582,49 @@ class Frozen(unittest.TestCase):
     def test_a_living_document_is_never_frozen(self):
         repository = self.repo()
         repository.edit("specs/SPC-0001-a-part.md", "## Scope\n\nText.", "## Scope\n\nRewritten.")
-        self.assertEqual(self.frozen(repository).returncode, 0)
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
 
     def test_a_kinds_own_index_is_never_frozen(self):
         repository = self.repo()
         repository.edit("research/RES-0001-synthesis.md", "It indexes RES-0002.", "It indexes RES-0002, and more.")
-        self.assertEqual(self.frozen(repository).returncode, 0)
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
 
     def test_withdrawing_a_requirement_passes(self):
         repository = self.repo()
         repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
-        self.assertEqual(self.frozen(repository).returncode, 0)
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
+
+
+class Waiting(unittest.TestCase):
+    """ADR-1170: a session opens with what waits for approval, and says nothing otherwise."""
+
+    def test_a_draft_decision_is_reported_at_its_gate(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: draft")
+        done = repository.run("status", "--waiting")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("ADR-0001 decision, at the design gate", done.stdout)
+
+    def test_nothing_waiting_prints_nothing(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        done = repository.run("status", "--waiting")
+        self.assertEqual((done.returncode, done.stdout), (0, ""))
+        self.assertIn("ADR-0001", repository.run("status").stdout)
+
+    def test_a_repository_with_no_record_prints_nothing(self):
+        repository = Repository(profile='[record]\nroot = "nowhere"\n')
+        self.addCleanup(repository.tmp.cleanup)
+        done = repository.run("status", "--waiting")
+        self.assertEqual((done.returncode, done.stdout), (0, ""))
+        self.assertIn("nowhere", repository.run("status").stdout)
 
 
 class Where(unittest.TestCase):
