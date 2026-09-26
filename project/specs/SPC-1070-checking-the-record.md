@@ -41,6 +41,7 @@ realises it, so `checked-at` stays empty until that epic closes.
 | ------------------------------------- | --------------------------------------- |
 | `.meowpaw/profile.toml`, `[record]`   | Where the record lives                  |
 | `plugins/meow-method/bin/meow-method` | The program: `check` and `check <name>` |
+| `crates/meow/src/record.rs`           | The program's source, `meow record`     |
 | `plugins/meow-method/lib/layout.toml` | The record's layout, as data            |
 | `docs/meow-method.md`                 | The unit's documentation page           |
 
@@ -89,10 +90,21 @@ did. `meow-method check <name>` runs one. No check writes a file (REQ-0137).
 deleted (REQ-1673). `tools/check_index.py`, `tools/check_links.py` and the
 checks over the harness's own units stay.
 
-### The interpreter
+### The program
 
-The program needs Python 3.11 or later, like the other units. Where it is
-missing, the launcher says the record was not checked and exits 3, never 0.
+The program is `meow record`, the `record` subcommand of the native tool, built
+with the unit's own feature as SPC-1080 states. The launcher runs the binary
+for the machine, and the binary reads `lib/layout.toml` from the unit it ships
+in. Where there is no binary for the machine, or the layout can't be read, the
+record is reported as not checked and the program exits 3, never 0.
+
+The checks are named `front-matter`, `identifiers`, `relations`, `index`,
+`coverage` and `shape`. Each finding is printed as `<file>:<line>: <what>`, or
+`<file>: <what>` where no one line holds it, with the file relative to the
+repository's root, or absolute where the record lies outside it. Each check
+ends with a line counting its findings. The identifiers check reads citations
+of requirements in the record and in the repository's other Markdown, as
+`check_ids` did.
 
 ## Failure paths
 
@@ -102,4 +114,4 @@ missing, the launcher says the record was not checked and exits 3, never 0.
 | `root` doesn't exist                 | Nothing is checked; the missing path is named, exit 1 |
 | A file of no known kind under `root` | Reported as an artifact of no known kind              |
 | An unknown check named               | An error naming the six checks, exit 2                |
-| No Python 3.11 or later              | The record is reported as not checked, exit 3         |
+| No binary for the machine            | The record is reported as not checked, exit 3         |

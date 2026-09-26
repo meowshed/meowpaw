@@ -1,0 +1,89 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# The record's layout, as CLAUDE.md states it and SPC-1070 reads it: for each
+# kind, where its files live under the record's root, the front matter it
+# requires, the statuses it may store, the file that indexes it, and the
+# sections it must carry. Paths are relative to the root.
+
+# Every artifact carries these, whatever its kind.
+fields = ["id", "artifact", "status", "revised"]
+
+# The front matter fields whose values name other artifacts.
+relations = ["elaborates", "addresses", "supersedes", "realises", "epic", "closes", "states", "violates"]
+
+# A file with this name is an index, and indexes are checked as indexes.
+index_name = "README.md"
+
+[[kind]]
+name = "vision"
+artifact = "vision"
+file = "vision.md"
+statuses = ["live"]
+
+[[kind]]
+name = "specification"
+artifact = "spec"
+prefix = "SPC"
+dir = "specs"
+fields = ["states", "checked-at"]
+statuses = ["live"]
+index = "README.md"
+sections = ["Scope", "Boundary", "Behaviour", "Failure paths"]
+
+[[kind]]
+name = "research"
+artifact = "research"
+prefix = "RES"
+dir = "research"
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "research/RES-0001-synthesis.md"
+sections = ["Summary", "Conclusions", "Sources"]
+
+[[kind]]
+name = "requirement"
+artifact = "requirement"
+prefix = "REQ"
+dir = "requirements"
+fields = ["topic", "class", "verification", "elaborates"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "requirements/README.md"
+
+[[kind]]
+name = "decision"
+artifact = "adr"
+prefix = "ADR"
+dir = "adrs"
+fields = ["addresses"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "adrs/README.md"
+sections = ["Decision", "Why", "Alternatives", "Consequences", "What it costs"]
+
+[[kind]]
+name = "epic"
+artifact = "epic"
+prefix = "EPC"
+dir = "epics"
+fields = ["realises", "checked-at"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "README.md"
+sections = ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]
+
+[[kind]]
+name = "task"
+artifact = "task"
+prefix = "TSK"
+dir = "tasks"
+fields = ["epic", "closes"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+sections = ["What to do", "Depends on", "Evidence", "Left alone"]
+
+[[kind]]
+name = "defect"
+artifact = "bug"
+prefix = "BUG"
+dir = "bugs"
+fields = ["violates", "severity", "found"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "README.md"
+sections = ["What the system does", "What it should do, and why", "Reproduction"]

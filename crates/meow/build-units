@@ -33,7 +33,7 @@ case $target in
 *) exe= ;;
 esac
 
-for pair in meow-verbs:verbs meow-scm:scm meow-git:git; do
+for pair in meow-verbs:verbs meow-scm:scm meow-git:git meow-method:record; do
   unit=${pair%%:*}
   feature=${pair#*:}
   cargo build --quiet --release --manifest-path "$root/crates/meow/Cargo.toml" \
