@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1310
-checked-at:
+checked-at: "#378"
 ---
 
 # The GitHub pack projects an approved epic's tasks onto issues
@@ -53,6 +53,18 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-1351, REQ-1372, REQ-1376, REQ-1380, REQ-1384, REQ-1402
       evidence: a fixture, the declared tracker, and six rules recorded, in
       #373.
+
+## Verified
+
+Checked under issue 378 at revision `aa5b5f5`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                                                                                                                       | Evidence at `aa5b5f5`                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 1. `project` creates one issue per task of an approved epic, citing requirements and dependencies with the marker, writes `issue:` and `projected:`, reads each back, refuses a draft epic, and changes nothing on a second run | The projection, fingerprint, replay and draft-epic fixtures pass                                         |
+| 2. A changed task updates its issue, an edited issue is reported and not overwritten, and a closed issue on an unmarked task is reported, with `--check` writing nothing                                                        | The three disagreement fixtures pass; the pack's fixtures report `Ran 12 tests`, `OK`                    |
+| 3. A profile with no tracker is reported with nothing done, and `check frozen` passes an approved task whose `projected:` changed                                                                                               | `test_a_repository_declaring_no_tracker_projects_nothing` and `test_a_task_may_gain_its_projection` pass |
+| 4. Every requirement lands in exactly one closed task                                                                                                                                                                           | `meow-method check coverage` reports 0 findings, and the three tasks are marked `[x]` with evidence      |
 
 ## Coverage
 
