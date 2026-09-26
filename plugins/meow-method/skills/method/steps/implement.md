@@ -45,4 +45,7 @@ it up is document.
 - I11. Work from the parts the task touches and the dependencies it may use,
   as the specification states them, not from structure inferred from the file
   tree.
+- I12. Where the task predicts a measurable outcome, write the predicted number
+  under Acceptance criteria before the work starts, because a prediction
+  written after the result fits it, and an approved task holds it frozen.
 </rules>
