@@ -95,7 +95,7 @@ from the repository's profile. `meow-verbs` implements it, verified under
 issue 115.
 
 [SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
-convention and its check, and `meow-scm` implements it.
+convention and its check, and `meow-scm` implements it, verified under issue 130.
 
 ## Epics and tasks
 
@@ -124,8 +124,8 @@ TSK-1280 and TSK-1290, both closed with evidence, and was verified against
 every acceptance criterion under issue 115.
 
 [EPC-1050](epics/EPC-1050-the-commit-convention.md) realises ADR-1080 in two
-tasks, TSK-1300 and TSK-1310, both closed with evidence. The epic's own
-verification has not run.
+tasks, TSK-1300 and TSK-1310, both closed with evidence, and was verified
+against every acceptance criterion under issue 130.
 
 ## Defects
 
