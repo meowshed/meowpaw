@@ -1391,7 +1391,12 @@ fn index_command(rest: &[String]) -> u8 {
     };
     let updated = format!("{}\n\n{}\n{}", &text[..open], block.trim_end(), &text[close..]);
     if updated != text {
-        if let Err(e) = std::fs::write(&path, updated) {
+        // Written beside the index and renamed into place, so an interrupted
+        // write leaves the old index or the new one and never half of either.
+        let temporary = path.with_extension("md.meow-tmp");
+        let written = std::fs::write(&temporary, updated).and_then(|_| std::fs::rename(&temporary, &path));
+        if let Err(e) = written {
+            let _ = std::fs::remove_file(&temporary);
             say!("meow-method index: {}: {e}", path.display());
             return FOUND;
         }
