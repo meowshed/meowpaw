@@ -28,7 +28,25 @@ Nothing. ADR-1320 is approved.
 
 ## Evidence
 
-Not yet.
+`profile::reading_git()` builds every read of git in the native tool, with
+`GIT_TERMINAL_PROMPT=0`, `GIT_PAGER=cat`, `GIT_ADVICE=0`,
+`GIT_CONFIG_NOSYSTEM=1`, `GIT_OPTIONAL_LOCKS=0` and no standard input. The
+user's own configuration stays, because it holds their identity and keys,
+which RES-0131 keeps for work that records authorship. The seven reads in
+`git.rs`, `profile.rs`, `scm.rs` and `record.rs` use it, and a search for
+another way of starting git finds 1.
+
+A fixture puts a stand-in git on the `PATH` that records its environment and
+runs the real one, then runs `status`, `check frozen` and `check coverage`:
+every read it records has prompting, paging, advice and the machine-wide
+configuration off. It failed with the change stashed and passes with it, and
+every unit's fixtures and the crate's tests pass.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 120 tests in 9.499s
+OK
+```
 
 ## Left alone
 

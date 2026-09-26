@@ -1090,6 +1090,30 @@ class Find(unittest.TestCase):
         self.assertIn("usage: meow-method find", done.stderr)
 
 
+class ReadingEnvironment(unittest.TestCase):
+    """ADR-1320: every read of source control has prompting, paging, advice and machine-wide configuration off."""
+
+    def test_each_read_of_git_runs_in_the_reading_environment(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        real = shutil.which("git")
+        stand_in = repository.path.parent / "bin"
+        stand_in.mkdir()
+        log = repository.path.parent / "git.log"
+        (stand_in / "git").write_text(
+            "#!/bin/sh\n"
+            f"printf '%s %s %s %s %s\\n' \"$GIT_TERMINAL_PROMPT\" \"$GIT_PAGER\" \"$GIT_ADVICE\" \"$GIT_CONFIG_NOSYSTEM\" \"$1\" >> {log}\n"
+            f"exec {real} \"$@\"\n", encoding="utf-8")
+        (stand_in / "git").chmod(0o755)
+        env = {**os.environ, "PATH": f"{stand_in}:{os.environ['PATH']}"}
+        for command in (["status"], ["check", "frozen"], ["check", "coverage"]):
+            subprocess.run([str(BIN), *command], cwd=repository.path, capture_output=True, text=True, env=env)
+        calls = log.read_text(encoding="utf-8").splitlines()
+        self.assertGreaterEqual(len(calls), 3, calls)
+        for call in calls:
+            self.assertEqual(call.split()[:4], ["0", "cat", "0", "1"], call)
+
+
 class ReadOnly(unittest.TestCase):
     """ADR-1200: the commands that read the record write nothing, and repeat themselves."""
 
