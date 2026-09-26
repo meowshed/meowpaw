@@ -132,9 +132,10 @@ pub fn main(args: &[String]) -> u8 {
         "index" => index_command(rest),
         "new" => new_identifier(rest),
         "find" => find(rest),
+        "count" => count_record(rest),
         _ => {
             eprintln!(
-                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>...",
+                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -1738,6 +1739,32 @@ fn new_identifier(rest: &[String]) -> u8 {
         return FOUND;
     }
     say!("{prefix}-{next:04}");
+    CLEAN
+}
+
+/// Each kind's artifacts by status, and the identifiers, for a migration's
+/// evidence before and after: a lost artifact fails no other check (REQ-3020).
+fn count_record(rest: &[String]) -> u8 {
+    if !rest.is_empty() {
+        eprintln!("usage: meow-method count");
+        return USAGE;
+    }
+    let (record, _, _) = match open_record("count") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    for (k, kind) in record.layout.kinds.iter().enumerate() {
+        let index = kind.index.as_deref();
+        let docs: Vec<&Doc> = record.docs.iter().filter(|d| d.kind == Some(k) && Some(d.relative.as_str()) != index && !d.is_index).collect();
+        let mut statuses: BTreeMap<&str, usize> = BTreeMap::new();
+        for doc in &docs {
+            *statuses.entry(bare(doc.value("status"))).or_default() += 1;
+        }
+        let parts: Vec<String> = statuses.iter().map(|(s, n)| format!("{n} {s}")).collect();
+        let detail = if parts.is_empty() { String::new() } else { format!(": {}", parts.join(", ")) };
+        say!("{}: {}{detail}", kind.name, docs.len());
+    }
+    say!("identifiers: {}", known(&record).len());
     CLEAN
 }
 
