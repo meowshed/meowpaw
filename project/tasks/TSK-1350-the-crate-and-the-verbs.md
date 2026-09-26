@@ -1,11 +1,11 @@
 ---
 id: TSK-1350
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1080
 closes: [REQ-0032, REQ-0076]
-issue:
+issue: 150 151 152 153
 ---
 
 # Build the crate, and run the verbs on it
