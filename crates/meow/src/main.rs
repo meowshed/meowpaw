@@ -9,6 +9,8 @@
 //! unit's specification.
 
 mod profile;
+#[cfg(feature = "github")]
+mod github;
 #[cfg(feature = "git")]
 mod git;
 #[cfg(feature = "record")]
@@ -35,6 +37,8 @@ fn main() -> ExitCode {
         "git" => git::main(rest),
         #[cfg(feature = "record")]
         "record" => record::main(rest),
+        #[cfg(feature = "github")]
+        "github" => github::main(rest),
         _ => {
             eprintln!("usage: meow <subcommand> ..., where this build carries: {}", carried().join(", "));
             2
@@ -57,6 +61,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "record") {
         names.push("record");
+    }
+    if cfg!(feature = "github") {
+        names.push("github");
     }
     names
 }
