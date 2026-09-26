@@ -129,9 +129,10 @@ pub fn main(args: &[String]) -> u8 {
         "show" => show(rest),
         "index" => index_command(rest),
         "new" => new_identifier(rest),
+        "find" => find(rest),
         _ => {
             eprintln!(
-                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>]",
+                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>...",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -1467,6 +1468,49 @@ fn new_identifier(rest: &[String]) -> u8 {
         return FOUND;
     }
     say!("{prefix}-{next:04}");
+    CLEAN
+}
+
+/// Artifacts whose identifier, title or conclusion carry the words, ranked by
+/// how many they carry: identifiers and headings first, never a body
+/// (ADR-1180).
+fn find(rest: &[String]) -> u8 {
+    if rest.is_empty() {
+        eprintln!("usage: meow-method find <word>...");
+        return USAGE;
+    }
+    let (record, _, _) = match open_record("find") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let words: Vec<String> = rest.iter().map(|w| w.to_lowercase()).collect();
+    let mut hits: Vec<(usize, String, String)> = Vec::new();
+    for doc in &record.docs {
+        let id = bare(doc.id());
+        if id.is_empty() || doc.is_index {
+            continue;
+        }
+        let concluded = conclusion(&record, doc);
+        // A requirement's heading is its identifier, so its statement heads it.
+        let heading = if title(doc) == id { concluded.clone() } else { title(doc) };
+        let haystack = format!("{id} {heading} {concluded}").to_lowercase();
+        let score = words.iter().filter(|w| haystack.contains(w.as_str())).count();
+        if score > 0 {
+            let line = format!("{id} {}, {}: {heading}", kind_of(&record, doc), bare(doc.value("status")));
+            hits.push((score, id.to_string(), line));
+        }
+    }
+    hits.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    if hits.is_empty() {
+        say!("meow-method find: nothing in the record carries {}", rest.join(" "));
+        return FOUND;
+    }
+    for (_, _, line) in hits.iter().take(20) {
+        say!("{line}");
+    }
+    if hits.len() > 20 {
+        say!("... and {} more; narrow the words", hits.len() - 20);
+    }
     CLEAN
 }
 
