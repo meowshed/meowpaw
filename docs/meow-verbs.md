@@ -51,9 +51,9 @@ to run the program.
 ## What it costs you
 
 The skill's description costs 332 characters in context on every turn. The
-program needs Python 3.11 or later, which it looks for on the machine and
-never installs. Without it, every verb is reported unresolved, as "no
-interpreter".
+program is a native binary shipped inside the unit, so it needs nothing
+installed on the machine. On a machine the unit carries no binary for, every
+verb is reported unresolved, as "no interpreter".
 
 ## Where the rules come from
 

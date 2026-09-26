@@ -32,10 +32,18 @@ run = "python3 tools/check_kernel.py"
 description = "Check every unit stays within the budget it states for every turn"
 run = "python3 tools/check_budget.py"
 
+[tasks.build]
+description = "Build each unit's binary of the native tool for this machine"
+run = "crates/meow/build-units"
+
+[tasks.crate]
+description = "Run the native tool's own tests"
+run = "cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features"
+
 [tasks.eval]
 description = "Measure every unit on real models, by hand: it costs money, so `all` never runs it"
 run = "python3 tools/loop.py plugins/*/"
 
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "lint", "style", "prompts", "kernel", "budget"]
+depends = ["fmt-check", "lint", "style", "prompts", "kernel", "budget", "crate"]
