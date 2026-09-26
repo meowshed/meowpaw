@@ -40,8 +40,10 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1750 the specifications read in citation order
+- [x] T-001 TSK-1750 the specifications read in citation order
       closes: REQ-0525
+      evidence: a fixture, and the specifications reordered with their cycles
+      broken, in #299.
 
 - [ ] T-002 TSK-1760 withdrawn statements are collected and nothing is archived
       closes: REQ-0530, REQ-0552, REQ-0554, REQ-0555

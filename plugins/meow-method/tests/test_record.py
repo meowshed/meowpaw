@@ -426,6 +426,18 @@ class Checks(unittest.TestCase):
         self.assertTrue(template.stdout.strip().endswith("templates/insight.md"), template.stdout)
         self.assertIn("## The pattern", Path(template.stdout.strip()).read_text(encoding="utf-8"))
 
+    def test_the_specifications_index_lists_each_after_what_it_cites(self):
+        repository = self.repo()
+        spec = (repository.root / "specs/SPC-0001-a-part.md").read_text(encoding="utf-8")
+        repository.write("specs/SPC-0002-a-layer.md", spec.replace("SPC-0001", "SPC-0002"))
+        repository.edit("specs/SPC-0001-a-part.md", "## Scope\n\nText.", "## Scope\n\nText, built on SPC-0002.")
+        repository.edit("README.md", "- SPC-0001\n", "- SPC-0001\n- SPC-0002\n")
+        self.found(repository.run("check", "index"), "index", "project/README.md:10: lists SPC-0001 before SPC-0002, which it cites")
+        repository.edit("README.md", "- SPC-0001\n- SPC-0002\n", "- SPC-0002\n- SPC-0001\n")
+        done = repository.run("check", "index")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("index: 0 findings\n", done.stdout)
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")
