@@ -135,7 +135,7 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 `meow-git` implements it, verified under issue 138.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
-checked, and `meow-method` implements it, verified under issue 168.
+checked, and `meow-method` implements it, verified under issue 296.
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release and the marketplace address. The crate implements it,
@@ -225,8 +225,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1210](epics/EPC-1210-record-drift.md) realised ADR-1210 in three tasks, TSK-1700 to TSK-1720, each closed with evidence, and was verified against every acceptance criterion under issue 288.
 
-[EPC-1220](epics/EPC-1220-insights.md) is approved and realises ADR-1220 in two tasks,
-TSK-1730 and TSK-1740, each filed as an issue.
+[EPC-1220](epics/EPC-1220-insights.md) realised ADR-1220 in two tasks, TSK-1730 and TSK-1740, each closed with evidence, and was verified against every acceptance criterion under issue 296.
 
 ## Defects
 
