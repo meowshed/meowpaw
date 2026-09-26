@@ -95,6 +95,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   task carries its evidence.
 - [ADR-1160](adrs/ADR-1160-each-step-carries-its-own-obligations.md): each
   step's file carries its step's obligations, and each template its kind's.
+- [ADR-1170](adrs/ADR-1170-an-approval-is-a-stored-status-a-check-holds-frozen.md):
+  an approval is a stored status a check holds frozen, and a session opens
+  with what waits for one.
 
 ## Specifications
 
@@ -198,6 +201,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1150](epics/EPC-1150-navigate-the-record.md) realised ADR-1150 in two tasks, TSK-1500 and TSK-1510, each closed with evidence, and was verified against every acceptance criterion under issue 219.
 
 [EPC-1160](epics/EPC-1160-step-obligations.md) realised ADR-1160 in seven tasks, TSK-1520 to TSK-1580, each closed with evidence, and was verified against every acceptance criterion under issue 237.
+
+[EPC-1170](epics/EPC-1170-approvals-held.md) realises ADR-1170 in three
+tasks, TSK-1590 to TSK-1610, each filed as an issue.
 
 ## Defects
 
