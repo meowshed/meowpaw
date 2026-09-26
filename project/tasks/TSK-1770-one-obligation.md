@@ -28,7 +28,23 @@ Nothing. ADR-1230 is approved.
 
 ## Evidence
 
-Not yet.
+Four fixtures, each seen passing against the program and failing against a
+stub that returns nothing. On a draft requirement, `check rules` reports "The
+check MUST run and MUST NOT write." as carrying two keywords, naming both,
+and passes "The check MUST NOT write."; it reports "Such a record MUST be
+kept." as leaning on a neighbour, and "No step MUST write." as negating a
+requirement. The same three statements in an approved requirement report
+nothing, because an approved requirement keeps the rules it was approved
+under. This repository reports `rules: 0 findings`, since no requirement is a draft.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 102 tests in 6.761s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=99, errors=3)
+```
 
 ## Left alone
 

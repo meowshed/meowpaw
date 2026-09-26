@@ -457,6 +457,33 @@ class Checks(unittest.TestCase):
         self.assertIn("project/research/archive/RES-0003-old.md: sits in research/archive, a directory named for an archive; "
                       "freeze the record or discard it with a reason", repository.run("check", "shape").stdout)
 
+    def statement(self, text, status="draft"):
+        repository = self.repo()
+        path = repository.root / "requirements/REQ-0001-an-obligation.md"
+        body = path.read_text(encoding="utf-8").replace("status: approved", f"status: {status}")
+        head, _, _ = body.partition("# REQ-0001")
+        repository.write("requirements/REQ-0001-an-obligation.md", head + "# REQ-0001\n\n" + text + "\n\nWhy it holds.\n")
+        return repository.run("check", "rules")
+
+    def test_a_draft_requirement_carries_one_obligation(self):
+        self.found(self.statement("The check MUST run and MUST NOT write."), "rules",
+                   "project/requirements/REQ-0001-an-obligation.md:14: carries more than one keyword, where a requirement carries one obligation: MUST, MUST NOT")
+        self.assertEqual(self.statement("The check MUST NOT write.").returncode, 0)
+
+    def test_a_draft_requirement_stands_alone(self):
+        self.found(self.statement("Such a record MUST be kept."), "rules",
+                   "project/requirements/REQ-0001-an-obligation.md:14: leans on a neighbour: Such a record")
+
+    def test_a_draft_requirement_prohibits_with_must_not(self):
+        self.found(self.statement("No step MUST write."), "rules",
+                   'project/requirements/REQ-0001-an-obligation.md:14: negates a requirement with "No ... MUST", where a prohibition is MUST NOT: No step MUST')
+
+    def test_an_approved_requirement_keeps_the_rules_it_was_approved_under(self):
+        for text in ("The check MUST run and MUST NOT write.", "Such a record MUST be kept.", "No step MUST write."):
+            done = self.statement(text, status="approved")
+            self.assertEqual(done.returncode, 0, done.stdout)
+            self.assertIn("rules: 0 findings\n", done.stdout)
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")
