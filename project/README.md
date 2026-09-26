@@ -124,6 +124,8 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1270](adrs/ADR-1270-each-unit-is-adopted-alone-and-a-missing-capability-names-its-fix.md):
   each unit is adopted alone, and a missing capability names what would supply
   it.
+- [ADR-1280](adrs/ADR-1280-onboarding-finishes-by-removing-what-it-placed.md):
+  onboarding finishes by removing what it placed, once the report is approved.
 
 ## Specifications
 
@@ -253,6 +255,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1260](epics/EPC-1260-onboarding.md) realised ADR-1260 in two tasks, TSK-1840 and TSK-1850, each closed with evidence, and was verified against every acceptance criterion under issue 334.
 
 [EPC-1270](epics/EPC-1270-adoption.md) realised ADR-1270 in three tasks, TSK-1860 to TSK-1880, each closed with evidence, and was verified against every acceptance criterion under issue 344.
+
+[EPC-1280](epics/EPC-1280-remove-placed.md) is approved and realises ADR-1280 in two
+tasks, TSK-1890 and TSK-1900, each filed as an issue.
 
 ## Defects
 
