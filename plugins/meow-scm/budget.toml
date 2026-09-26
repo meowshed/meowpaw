@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-# What this unit may load on every turn, in characters (REQ-1056). The unit
-# carries a program and no skill yet, so nothing of it sits in context.
-# Measured at 0 by tools/check_budget.py on 2026-09-26; the skill TSK-1310
-# adds raises it.
-permanent_characters = 0
+# What this unit may load on every turn, in characters (REQ-1056): the commit
+# skill's description, which routes it. Measured at 263 by
+# tools/check_budget.py on 2026-09-26; the budget adds about one sentence.
+permanent_characters = 380
