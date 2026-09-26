@@ -167,7 +167,7 @@ checked, and `meow-method` implements it, verified under issue 316.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
-`meow-method` implements it, verified under issue 356.
+`meow-method` implements it, verified under issue 368.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
@@ -265,8 +265,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1290](epics/EPC-1290-github-pack.md) realised ADR-1290 in one task, TSK-1910, closed with evidence, and was verified against every acceptance criterion under issue 362.
 
-[EPC-1300](epics/EPC-1300-onboard-history.md) is approved and realises ADR-1300 in one
-task, TSK-1920, each filed as an issue.
+[EPC-1300](epics/EPC-1300-onboard-history.md) realised ADR-1300 in one task, TSK-1920, closed with evidence, and was verified against every acceptance criterion under issue 368.
 
 ## Defects
 

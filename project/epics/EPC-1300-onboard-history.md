@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1300
-checked-at:
+checked-at: "#368"
 ---
 
 # Onboarding reads what the history states
@@ -38,6 +38,17 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-001 TSK-1920 the onboard command reads the forge history and recovers what it states
       closes: REQ-3110, REQ-3112, REQ-3128
       evidence: 3 requirements traced to three rules, in #365.
+
+## Verified
+
+Checked under issue 368 at revision `254f25e`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                  | Evidence at `254f25e`                                                                       |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 1. Each rule in the onboard command maps to its requirement in the task that closes it                     | B13, B14 and B15 are each found once in `skills/onboard/SKILL.md`, traced in TSK-1920       |
+| 2. The onboard command runs `meow-github history` only as a bare command, and `check_standalone.py` passes | `check_standalone.py` reports `88 unit files, 0 paths leaving their unit`                   |
+| 3. Every requirement lands in exactly one closed task                                                      | `meow-method check coverage` reports 0 findings, and TSK-1920 is marked `[x]` with evidence |
 
 ## Coverage
 
