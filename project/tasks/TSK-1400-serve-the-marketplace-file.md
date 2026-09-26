@@ -1,11 +1,11 @@
 ---
 id: TSK-1400
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1090
 closes: [REQ-1485]
-issue:
+issue: 176
 ---
 
 # Serve the marketplace file at meow.retran.me

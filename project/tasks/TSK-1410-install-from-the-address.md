@@ -1,11 +1,11 @@
 ---
 id: TSK-1410
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1090
 closes: []
-issue:
+issue: 177
 ---
 
 # Give the address in every install instruction
