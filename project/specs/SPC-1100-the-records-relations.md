@@ -71,7 +71,7 @@ ADR-1150 and ADR-1180 decide it, EPC-1150 and EPC-1180 realise them, and
 | Surface                          | What it is                                          |
 | -------------------------------- | --------------------------------------------------- |
 | `relations` in `lib/layout.toml` | The fixed vocabulary of relation fields             |
-| `meow-method show <id>`          | The artifact an identifier names, and what cites it |
+| `paw show <id>`                  | The artifact an identifier names, and what cites it |
 
 ## Behaviour
 
@@ -92,7 +92,7 @@ identifier in a relation resolves to an artifact that exists (REQ-0654).
 
 ### Resolving an identifier
 
-`meow-method show <id>` resolves an identifier alone, with no path, and prints
+`paw show <id>` resolves an identifier alone, with no path, and prints
 (REQ-0642, REQ-0652):
 
 ```text
@@ -117,7 +117,7 @@ artifact resolves and prints its status, so an identifier resolves forever
 
 ### Indexes
 
-`meow-method index <kind>` prints a kind's index generated from the tree: a
+`paw index <kind>` prints a kind's index generated from the tree: a
 table with one row per artifact, ordered by identifier, each row naming the
 artifact, what it concluded, taken from its own summary or statement, and its
 stored status only (REQ-0522, REQ-2870, REQ-2872, REQ-2873). Once a kind holds
@@ -131,7 +131,7 @@ change adding or removing an artifact without its index fails in that change
 
 ### Allocating identifiers
 
-`meow-method new <kind> [--topic <topic>]` prints the next identifier to
+`paw new <kind> [--topic <topic>]` prints the next identifier to
 allocate (REQ-0550). A requirement gets the next free number above its topic's
 highest, stepping by two as the topic's neighbours do, and a requirement in a
 new topic starts a block a hundred above the highest in use. Every other kind
@@ -141,7 +141,7 @@ an identifier becomes permanent at its first reference (REQ-0548).
 
 ### Searching
 
-`meow-method find <word>...` searches identifiers, titles, statements and
+`paw find <word>...` searches identifiers, titles, statements and
 summaries across the record and prints one line per match, `ID kind status:
 title`, ranked by the number of words matched, at most twenty, and never a
 document's body, which `show` prints on request (REQ-1601, REQ-1602). The

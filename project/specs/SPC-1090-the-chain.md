@@ -293,7 +293,7 @@ approvals and waiting report are verified under issue 249.
 | `plugins/meow-method/skills/run/SKILL.md`    | `/meow-method:run`, the command that drives the chain   |
 | `plugins/meow-method/templates/<kind>.md`    | The unit's template for each kind                       |
 | `.meowpaw/templates/<kind>.md`               | A repository's own template, which overrides the unit's |
-| `meow-method status`, `ready`, `template`    | The chain's state, a step's gate, the template in force |
+| `paw status`, `ready`, `template`            | The chain's state, a step's gate, the template in force |
 
 ## Behaviour
 
@@ -345,7 +345,7 @@ The rules name no requirement, because the files ship to other repositories.
 
 ### The gate
 
-Before it writes, a step runs `meow-method ready <step> <id>...` with the
+Before it writes, a step runs `paw ready <step> <id>...` with the
 identifiers of its input. `ready` exits 0 when every input exists and is
 approved, and 1 when one isn't, naming each missing or unapproved input on its
 own line (REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
@@ -368,7 +368,7 @@ A task is done when its epic marks it `[x]`, and dropped when it is marked
 
 ### The state
 
-`meow-method status` prints the chain's state, computed from the record each
+`paw status` prints the chain's state, computed from the record each
 time it runs. It leads with every research, requirement, decision, epic, task
 and defect record whose status is `draft`, under "Waiting for approval"
 (REQ-0321). Then, for each approved decision, it prints the step the decision
@@ -392,7 +392,7 @@ step that produces an artifact needing approval stops there, and never reads
 silence, a change of subject or an unrelated instruction as approval
 (REQ-0390, REQ-0400).
 
-`meow-method status --waiting` prints only what waits for approval, each line
+`paw status --waiting` prints only what waits for approval, each line
 naming the artifact, its kind and the gate it waits at, and prints nothing when
 nothing waits or the repository has no record (REQ-0392). A `SessionStart` hook
 runs it, so a session opens with the pending approval before anything else
@@ -411,7 +411,7 @@ approved one, and run again with nothing approved it says it is waiting
 
 ### Templates
 
-A step writes each artifact from the template `meow-method template <kind>`
+A step writes each artifact from the template `paw template <kind>`
 names: `.meowpaw/templates/<kind>.md` where the repository has it, and the
 unit's `templates/<kind>.md` otherwise (REQ-0526, REQ-0528). The kinds are
 `research`, `requirement`, `adr`, `spec`, `epic`, `task`, `bug`, `vision` and
@@ -420,7 +420,7 @@ unit's `templates/<kind>.md` otherwise (REQ-0526, REQ-0528). The kinds are
 ### Bringing a repository in
 
 `/meow-method:init`, a command only a person invokes, writes
-`.meowpaw/profile.toml` from `meow-method template profile` and, where none
+`.meowpaw/profile.toml` from `paw template profile` and, where none
 exists, `CLAUDE.md` from the constitution template, and nothing else (REQ-1560,
 REQ-1563). It reports which verbs resolve before anything else (REQ-1554),
 reports an inconsistent convention as its variants and chooses none, records
@@ -448,7 +448,7 @@ command stops at the report's approval (REQ-1558) (ADR-1260).
 Onboarding migrates a record the repository keeps in a format of its own to
 the matching artifact kind, and writes each requirement or decision it
 recovers as a draft (REQ-3114, REQ-3116). Once the report is approved,
-`meow-method onboarding remove` removes each document it marks migrated,
+`paw onboarding remove` removes each document it marks migrated,
 superseded or discarded and keeps each marked cited (REQ-3118, REQ-3120). It
 refuses on an unapproved report and on a migrated or superseded document whose
 destination names no artifact (REQ-3122, REQ-3124), prints the count before
