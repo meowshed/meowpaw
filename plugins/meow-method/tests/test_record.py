@@ -332,6 +332,13 @@ class Checks(unittest.TestCase):
         repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      dropped: the decision was reversed")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
+    def test_a_draft_task_carries_acceptance_criteria(self):
+        repository = self.repo()
+        self.assertEqual(repository.run("check", "shape").returncode, 0)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        self.found(repository.run("check", "shape"), "shape",
+                   "project/tasks/TSK-0001-a-task.md: has no Acceptance criteria section, which a draft task carries")
+
     def test_a_file_of_no_known_kind_is_reported(self):
         repository = self.repo()
         repository.write("notes/stray.md", "---\nid: x\nartifact: note\nstatus: live\nrevised: 2026-01-01\n---\n")

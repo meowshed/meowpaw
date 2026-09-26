@@ -16,6 +16,11 @@ and `meow-method template <kind>` prints the one in force.
 | `task.md`         | Task          | A record, its evidence added on done |
 | `bug.md`          | Defect        | A record                             |
 
+Every template opens with a paragraph or section that lets a reader stop:
+what the artifact covers and what it doesn't. A section may be answered
+"Nothing", with the reason, and an answer has to be earned, because a padded
+section reads as a claim and gets cited.
+
 Every template names where its artifact came from in its front matter, as bare
 identifiers and never as links, because a path changes when a repository is
 reorganised. Only the upward direction is written: what cites an artifact is
