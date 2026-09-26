@@ -23,6 +23,15 @@ reads the repository and writes the profile from the template
 template where the repository has none. It writes nothing else, and it leaves
 an existing `CLAUDE.md` untouched. Review both files before you commit them.
 
+Then type `/meow-method:onboard` to bring the repository's existing documents
+into the record. It recovers the vision, the specifications and, where none
+exists, the constitution, each statement ending with the file it came from and
+a confidence. It writes no requirement and no decision: each obligation it
+notices becomes a question in the report's gaps, and the record's coverage
+stays at zero until you affirm requirements through the requirements step. It
+stops at `onboarding.md`, a draft report placing every document the
+repository has, which `check coverage` holds, and waits for your approval.
+
 ## Declare where the record lives
 
 Put it under `[record]` in `.meowpaw/profile.toml` at the repository's root:
