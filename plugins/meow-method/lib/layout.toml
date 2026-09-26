@@ -58,7 +58,7 @@ fields = ["topic", "class", "verification", "elaborates"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "requirements/README.md"
 forbidden_fields = ["priority", "owner", "difficulty"]
-draft_rules = ["judgement-verifier"]
+draft_rules = ["judgement-verifier", "one-obligation", "stands-alone", "no-negated-requirement"]
 
 [[kind]]
 name = "decision"
