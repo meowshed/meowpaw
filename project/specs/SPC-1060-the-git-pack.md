@@ -48,8 +48,16 @@ a trusted key (REQ-1326). A key the pack doesn't read is reported as ignored.
 ### The hooks
 
 Each hook is a `PreToolUse` command hook on the shell tool, matched by an `if`
-rule to its own command, so it runs for that command and for no other:
-`git commit` for the first, `git push` for the second. A hook blocks by exiting
+rule to its own command: `git commit` for the first, `git push` for the
+second. Claude Code runs a hook whenever it can't tell which commands a shell
+input runs, such as one holding `$()` or `$VAR`, so the rule is a filter and
+not a promise. Each guard reads the command from the hook's input and checks
+nothing where the command doesn't run `git commit` or `git push`, naming
+that. Where the command runs it in another directory, through `cd <dir>` or
+`git -C <dir>`, the guard judges that directory's repository and branch, and
+it judges the session's directory where the named one doesn't exist. The scan
+errs towards finding the command: text that only mentions `git commit` inside
+quotes counts. A hook blocks by exiting
 with status 2 and writing its reason to standard error, which reaches the model
 as the reason the command didn't run. It lets the command through by exiting 0.
 
