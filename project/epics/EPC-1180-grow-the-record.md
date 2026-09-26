@@ -39,8 +39,10 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1620 generate each kind's index and check it for drift
+- [x] T-001 TSK-1620 generate each kind's index and check it for drift
       closes: REQ-0522, REQ-0523, REQ-0575, REQ-2870, REQ-2871, REQ-2872, REQ-2873
+      evidence: four fixtures, and both indexes migrated with their counts, in
+      #252.
 
 - [ ] T-002 TSK-1630 allocate the next identifier
       closes: REQ-0548, REQ-0550

@@ -10,6 +10,7 @@ program that returns nothing and be seen failing (REQ-2072).
 """
 
 import hashlib
+import re
 import os
 import subprocess
 import tempfile
@@ -625,6 +626,65 @@ class Waiting(unittest.TestCase):
         done = repository.run("status", "--waiting")
         self.assertEqual((done.returncode, done.stdout), (0, ""))
         self.assertIn("nowhere", repository.run("status").stdout)
+
+
+class Indexes(unittest.TestCase):
+    """ADR-1180: a kind's index generated from the tree, and checked for drift."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.write("adrs/README.md", "---\nid: index\nartifact: index\nstatus: live\nrevised: 2026-01-01\n---\n\n"
+                         "# Decisions\n\nWritten by hand.\n\n<!-- meow-method index -->\n<!-- /meow-method index -->\n")
+        return repository
+
+    def test_index_writes_the_block_and_keeps_the_prose(self):
+        repository = self.repo()
+        done = repository.run("index", "adr", "--write")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        text = (repository.root / "adrs" / "README.md").read_text(encoding="utf-8")
+        self.assertIn("Written by hand.", text)
+        self.assertIn("| [ADR-0001](ADR-0001-a-choice.md) |", text)
+        self.assertIn("1 decision in all: 1 approved.", text)
+        self.assertEqual(repository.run("check", "index").returncode, 0)
+
+    def test_an_index_left_behind_is_reported_and_rewriting_clears_it(self):
+        repository = self.repo()
+        repository.run("index", "adr", "--write")
+        repository.write("adrs/ADR-0002-another.md", CLEAN["adrs/ADR-0001-a-choice.md"].replace("ADR-0001", "ADR-0002"))
+        done = repository.run("check", "index")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/adrs/README.md:12: its generated block is out of date; run meow-method index decision --write",
+                      done.stdout)
+        repository.run("index", "adr", "--write")
+        done = repository.run("check", "index")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("index: 0 findings", done.stdout)
+
+    def test_padding_a_generated_table_is_not_drift(self):
+        repository = self.repo()
+        repository.run("index", "adr", "--write")
+        path = repository.root / "adrs" / "README.md"
+        path.write_text(path.read_text(encoding="utf-8").replace("| --- |", "| ------------ |").replace("| [ADR", "|   [ADR"),
+                        encoding="utf-8")
+        done = repository.run("check", "index")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("index: 0 findings", done.stdout)
+
+    def test_a_large_kind_gains_a_view_by_topic_ordered_by_identifier(self):
+        repository = self.repo()
+        base = CLEAN["requirements/REQ-0001-an-obligation.md"]
+        for n in range(2, 40):
+            topic = "b" if n % 2 else "a"
+            repository.write(f"requirements/REQ-{n:04d}-r.md",
+                             base.replace("REQ-0001", f"REQ-{n:04d}").replace("topic: a", f"topic: {topic}"))
+        done = repository.run("index", "requirement")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        rows = re.findall(r"^\| \[(REQ-\d{4})\]", done.stdout, re.M)
+        self.assertEqual(rows, sorted(rows))
+        self.assertEqual(len(rows), 39)
+        self.assertIn("By topic:", done.stdout)
+        self.assertRegex(done.stdout, r"- a: REQ-0001, REQ-0002, REQ-0004")
 
 
 class Where(unittest.TestCase):
