@@ -3,7 +3,7 @@ id: REQ-1485
 artifact: requirement
 topic: distribution
 class: functional
-status: draft
+status: approved
 revised: 2026-09-26
 elaborates: RES-0274, RES-0275
 verification: behavioural
