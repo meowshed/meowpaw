@@ -1,0 +1,13 @@
+{
+  "name": "meow-method",
+  "version": "0.1.0",
+  "description": "Checks a repository's record where .meowpaw/profile.toml declares it: front matter and status vocabulary, identifiers, relations, each kind's index, coverage and shape, reporting each finding with its file and line and writing nothing.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-method.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["record", "requirements", "traceability", "meowpaw"]
+}

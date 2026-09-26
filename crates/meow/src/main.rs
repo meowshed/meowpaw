@@ -11,6 +11,8 @@
 mod profile;
 #[cfg(feature = "git")]
 mod git;
+#[cfg(feature = "record")]
+mod record;
 #[cfg(feature = "scm")]
 mod scm;
 #[cfg(feature = "verbs")]
@@ -31,6 +33,8 @@ fn main() -> ExitCode {
         "scm" => scm::main(rest),
         #[cfg(feature = "git")]
         "git" => git::main(rest),
+        #[cfg(feature = "record")]
+        "record" => record::main(rest),
         _ => {
             eprintln!("usage: meow <subcommand> ..., where this build carries: {}", carried().join(", "));
             2
