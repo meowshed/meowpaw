@@ -89,6 +89,7 @@ states:
     REQ-3019,
     REQ-3020,
     REQ-3102,
+    REQ-3166,
   ]
 ---
 
@@ -96,7 +97,7 @@ states:
 
 ## Scope
 
-This covers `meow-method check`, the program that checks a repository's
+This covers `paw check`, the program that checks a repository's
 record: where it finds the record, the layout it reads it by, what each check
 reports, and how it exits.
 
@@ -111,13 +112,14 @@ issue 206.
 
 ## Boundary
 
-| Surface                               | What it is                              |
-| ------------------------------------- | --------------------------------------- |
-| `.meowpaw/profile.toml`, `[record]`   | Where the record lives                  |
-| `plugins/meow-method/bin/meow-method` | The program: `check` and `check <name>` |
-| `crates/meow/src/record.rs`           | The program's source, `meow record`     |
-| `plugins/meow-method/lib/layout.toml` | The record's layout, as data            |
-| `docs/meow-method.md`                 | The unit's documentation page           |
+| Surface                               | What it is                                        |
+| ------------------------------------- | ------------------------------------------------- |
+| `.meowpaw/profile.toml`, `[record]`   | Where the record lives                            |
+| `plugins/meow-method/bin/paw`         | The program: `check` and `check <name>`           |
+| `plugins/meow-method/bin/paw`         | The deprecated alias for `paw`, removed in 0.31.0 |
+| `crates/meow/src/record.rs`           | The program's source, `meow record`               |
+| `plugins/meow-method/lib/layout.toml` | The record's layout, as data                      |
+| `docs/meow-method.md`                 | The unit's documentation page                     |
 
 ## Behaviour
 
@@ -189,7 +191,7 @@ constitution outranks every artifact (REQ-0530) (ADR-1230).
 
 The layout records every retired front matter field and status value with what
 replaced it, and the check refuses a record or a kind carrying one, so a
-retired name is never reused (REQ-3010, REQ-3011). `meow-method count` prints
+retired name is never reused (REQ-3010, REQ-3011). `paw count` prints
 each kind's count by status and the number of identifiers, which a migration's
 evidence carries before and after (REQ-3020). The `method` skill runs a change
 to the record's shape as expand, migrate and contract, names the release that
@@ -215,13 +217,13 @@ field its kind must fill that is empty. The coverage check is the
 decomposition's named coverage check, and `check` runs it on every change
 (REQ-0266, REQ-3102).
 
-Each finding names the file, and the line where there is one. `meow-method
+Each finding names the file, and the line where there is one. `paw
 check` runs every check and exits 0 when none found anything and 1 when any
-did. `meow-method check <name>` runs one. No check writes a file (REQ-0137).
+did. `paw check <name>` runs one. No check writes a file (REQ-0137).
 
 ### The frozen check
 
-`meow-method check frozen --base <rev>` reads each record whose stored status
+`paw check frozen --base <rev>` reads each record whose stored status
 was `approved` at `<rev>`, through git, and compares it with the current file
 (ADR-1170). A change is reported, naming the record, as one that invalidates
 its approval (REQ-0396, REQ-0398, REQ-0626, REQ-0630, REQ-0635), unless it is
@@ -235,20 +237,22 @@ one its kind allows:
 | living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                             |
 
 Without `--base`, the check compares with `HEAD`. It isn't among the checks
-`meow-method check` runs with no name, because it needs a base and git.
+`paw check` runs with no name, because it needs a base and git.
 
 ### This repository
 
 `.meowpaw/profile.toml` declares `root = "project"`, and the `test` verb runs
-`meow-method check` in place of the four scripts it replaces, which are
+`paw check` in place of the four scripts it replaces, which are
 deleted (REQ-1673). `tools/check_index.py`, `tools/check_links.py` and the
 checks over the harness's own units stay.
 
 ### The program
 
 The program is `meow record`, the `record` subcommand of the native tool, built
-with the unit's own feature as SPC-1080 states. The launcher runs the binary
-for the machine, and the binary reads `lib/layout.toml` from the unit it ships
+with the unit's own feature as SPC-1080 states. A person runs it as `paw`, the
+name of the unit's launcher, and every usage line and message it prints names
+it `paw` (REQ-3166). The unit keeps the name `meow-method`. The launcher runs
+the binary for the machine, and the binary reads `lib/layout.toml` from the unit it ships
 in. Where there is no binary for the machine, or the layout can't be read, the
 record is reported as not checked and the program exits 3, never 0.
 
@@ -262,10 +266,11 @@ of requirements in the record and in the repository's other Markdown, as
 
 ## Failure paths
 
-| Condition                            | What happens                                          |
-| ------------------------------------ | ----------------------------------------------------- |
-| No profile, or no `[record]` table   | The record is looked for at `project/`                |
-| `root` doesn't exist                 | Nothing is checked; the missing path is named, exit 1 |
-| A file of no known kind under `root` | Reported as an artifact of no known kind              |
-| An unknown check named               | An error naming the seven checks, exit 2              |
-| No binary for the machine            | The record is reported as not checked, exit 3         |
+| Condition                            | What happens                                                                               |
+| ------------------------------------ | ------------------------------------------------------------------------------------------ |
+| No profile, or no `[record]` table   | The record is looked for at `project/`                                                     |
+| `root` doesn't exist                 | Nothing is checked; the missing path is named, exit 1                                      |
+| A file of no known kind under `root` | Reported as an artifact of no known kind                                                   |
+| An unknown check named               | An error naming the seven checks, exit 2                                                   |
+| No binary for the machine            | The record is reported as not checked, exit 3                                              |
+| Run as `meow-method`                 | A notice on standard error names `paw` and 0.31.0, then `paw` runs with the same arguments |

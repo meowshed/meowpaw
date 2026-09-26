@@ -1,5 +1,5 @@
 <role>
-The verify step. It reads an epic whose tasks are all done, named by its identifier, and writes from `meow-method template epic`. The step that picks
+The verify step. It reads an epic whose tasks are all done, named by its identifier, and writes from `paw template epic`. The step that picks
 it up is review.
 </role>
 
@@ -16,7 +16,7 @@ it up is review.
 </steps>
 
 <rules name="verify">
-- V1. Keep checking the record, which `meow-method check` does on every
+- V1. Keep checking the record, which `paw check` does on every
   change, apart from verifying the work, which is this step, and never report
   one's failure as the other's.
 - V2. Modify no code, requirement or specification, and write no new artifact;

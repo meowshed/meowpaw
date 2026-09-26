@@ -19,7 +19,7 @@ import unittest
 from pathlib import Path
 
 UNIT = Path(__file__).resolve().parent.parent
-BIN = Path(os.environ.get("MEOW_METHOD_BIN", UNIT / "bin" / "meow-method"))
+BIN = Path(os.environ.get("MEOW_METHOD_BIN", UNIT / "bin" / "paw"))
 
 
 def record(kind, ident, fields, sections, body=""):
@@ -851,7 +851,7 @@ class Show(unittest.TestCase):
     def test_show_needs_an_identifier(self):
         done = self.repo().run("show")
         self.assertEqual(done.returncode, 2)
-        self.assertIn("usage: meow-method show <id>", done.stderr)
+        self.assertIn("usage: paw show <id>", done.stderr)
 
 
 class Frozen(unittest.TestCase):
@@ -1015,7 +1015,7 @@ class Indexes(unittest.TestCase):
         repository.write("adrs/ADR-0002-another.md", CLEAN["adrs/ADR-0001-a-choice.md"].replace("ADR-0001", "ADR-0002"))
         done = repository.run("check", "index")
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("project/adrs/README.md:12: its generated block is out of date; run meow-method index decision --write",
+        self.assertIn("project/adrs/README.md:12: its generated block is out of date; run paw index decision --write",
                       done.stdout)
         repository.run("index", "adr", "--write")
         done = repository.run("check", "index")
@@ -1119,7 +1119,7 @@ class Find(unittest.TestCase):
         self.addCleanup(repository.tmp.cleanup)
         done = repository.run("find")
         self.assertEqual(done.returncode, 2)
-        self.assertIn("usage: meow-method find", done.stderr)
+        self.assertIn("usage: paw find", done.stderr)
 
 
 class ReadingEnvironment(unittest.TestCase):
@@ -1255,9 +1255,9 @@ class Launcher(unittest.TestCase):
 
     def test_a_missing_binary_names_the_machine_and_the_reinstall(self):
         with tempfile.TemporaryDirectory() as tmp:
-            launcher = Path(tmp) / "bin" / "meow-method"
+            launcher = Path(tmp) / "bin" / "paw"
             launcher.parent.mkdir()
-            launcher.write_text((UNIT / "bin" / "meow-method").read_text(encoding="utf-8"), encoding="utf-8")
+            launcher.write_text((UNIT / "bin" / "paw").read_text(encoding="utf-8"), encoding="utf-8")
             launcher.chmod(0o755)
             done = subprocess.run(["sh", str(launcher), "check"], cwd=tmp, capture_output=True, text=True, input="")
             machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
@@ -1265,6 +1265,47 @@ class Launcher(unittest.TestCase):
             self.assertIn("not checked", done.stdout)
             self.assertIn(machine, done.stdout)
             self.assertIn("reinstall the unit", done.stdout)
+
+
+class Named(unittest.TestCase):
+    """REQ-3166, ADR-1350: the record's command is paw, and meow-method is a deprecated alias for one release."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def test_every_usage_line_and_message_names_paw(self):
+        repository = self.repo()
+        done = [repository.run(*args) for args in
+                [("check",), ("show",), ("ready",), ("find",), ("count", "x"), ("check", "nothing"), ("show", "REQ-0999")]]
+        self.assertEqual(done[0].returncode, 0, done[0].stdout + done[0].stderr)
+        said = "".join(run.stdout + run.stderr for run in done)
+        self.assertIn("usage: paw show <id>", said)
+        self.assertIn("paw check: no check is named nothing", said)
+        self.assertIn("paw show: REQ-0999 resolves to nothing", said)
+        self.assertNotIn("meow-method", said)
+
+    def test_the_alias_says_it_is_deprecated_and_runs_paw(self):
+        repository = self.repo()
+        for args in [("check",), ("show", "REQ-0999")]:
+            paw = subprocess.run([str(UNIT / "bin" / "paw"), *args], cwd=repository.path, capture_output=True, text=True)
+            alias = subprocess.run([str(UNIT / "bin" / "meow-method"), *args], cwd=repository.path,
+                                   capture_output=True, text=True)
+            self.assertEqual(alias.returncode, paw.returncode, alias.stderr)
+            self.assertEqual(alias.stdout, paw.stdout)
+            self.assertIn("this command is now paw", alias.stderr)
+            self.assertIn("0.31.0", alias.stderr)
+
+    def test_nothing_the_unit_ships_runs_the_old_name(self):
+        old = re.compile(r"bin/meow-method\b|(?<![/\w:-])meow-method\s+(check|status|ready|template|show|index|new|find|count|onboarding)\b")
+        found = [f"{path.relative_to(UNIT)}:{number}"
+                 for path in sorted(UNIT.rglob("*"))
+                 if path.is_file() and path.suffix in {".md", ".json", ".toml", ""} and "tests" not in path.parts
+                 and path != UNIT / "bin" / "meow-method" and path.parent.parent != UNIT / "bin"
+                 for number, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1)
+                 if old.search(line)]
+        self.assertEqual(found, [])
 
 
 if __name__ == "__main__":

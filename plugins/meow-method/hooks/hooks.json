@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-method status --waiting",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/paw status --waiting",
             "timeout": 30
           }
         ]

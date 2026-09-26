@@ -1,5 +1,5 @@
 <role>
-The requirements step. It reads approved research, named by its identifiers, and writes from `meow-method template requirement`. The step that picks
+The requirements step. It reads approved research, named by its identifiers, and writes from `paw template requirement`. The step that picks
 it up is design.
 </role>
 

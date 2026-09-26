@@ -89,7 +89,7 @@ Templates ship inside the plugin that owns them and are read from
 `${CLAUDE_PLUGIN_ROOT}`, so a repository gets them from the installed harness
 and never from a copy that drifts. A repository that wants one changed puts its
 own in `.meowpaw/templates/`, which overrides. The record's templates ship with
-`meow-method`, and `meow-method template <kind>` prints the one in force.
+`meow-method`, and `paw template <kind>` prints the one in force.
 
 One artifact per file, named for its identifier, in a directory named for its
 kind. A directory appears when its first artifact does. A record is found by
@@ -400,7 +400,7 @@ checks front matter, identifiers, relations, each kind's index, coverage and
 shape, where `.meowpaw/profile.toml` declares the record:
 
 ```bash
-plugins/meow-method/bin/meow-method check
+plugins/meow-method/bin/paw check
 ```
 
 Three checks stay in `tools/` as Python scripts, because they read this
