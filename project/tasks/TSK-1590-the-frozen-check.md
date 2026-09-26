@@ -30,7 +30,39 @@ Nothing. ADR-1170 is approved.
 
 ## Evidence
 
-Not yet.
+`meow record check frozen [--base <rev>]` reads each record approved at the
+base through `git show`, compares it with the current file, and reports a
+change outside what its kind may change: a task's evidence, issue and date, an
+epic until it carries `checked-at`, a move to `withdrawn` or `superseded`, and
+any change adding a line that names its authority. Living documents and each
+kind's own index are never frozen. Nine fixtures cover each criterion and
+each allowance:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 66 tests in 4.102s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=59, errors=2)
+```
+
+Run against this repository's own history, from the revision before BUG-1110's
+fix, it finds the 9 records changed since without a line naming
+their authority: the eight requirements BUG-1110 corrected and EPC-1080, whose
+mark BUG-1160 corrected after its verification. Both corrections went through a
+defect record, and neither added the line, which is what the check now asks:
+
+```text
+$ meow-method check frozen --base 2a19c76^
+frozen: 9 findings
+$ meow-method check frozen --base origin/main
+frozen: 0 findings
+```
+
+The first run also flagged the research index, RES-0001, a false positive: an
+index changes as its kind grows, so each kind's own index is now exempt, with a
+fixture. The ship step in this repository runs the check against the trunk.
 
 ## Left alone
 

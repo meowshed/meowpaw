@@ -129,7 +129,7 @@ pub fn main(args: &[String]) -> u8 {
         "show" => show(rest),
         _ => {
             eprintln!(
-                "usage: meow-method check [{}] | status | ready <step> <id>... | template <kind> | show <id>",
+                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id>",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -163,6 +163,9 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
 }
 
 fn check(rest: &[String]) -> u8 {
+    if rest.first().map(String::as_str) == Some("frozen") {
+        return check_frozen(&rest[1..]);
+    }
     if rest.len() > 1 {
         eprintln!("usage: meow-method check [{}]", CHECKS.join(" | "));
         return USAGE;
@@ -216,6 +219,92 @@ fn layout_path() -> Result<PathBuf, String> {
             Ok(unit.ok_or("the binary is not inside a unit")?.join("lib").join("layout.toml"))
         }
     }
+}
+
+/// Records approved at a base revision and changed since, outside what their
+/// kind may change (ADR-1170).
+fn check_frozen(rest: &[String]) -> u8 {
+    let base = match rest {
+        [] => "HEAD".to_string(),
+        [flag, rev] if flag == "--base" => rev.clone(),
+        _ => {
+            eprintln!("usage: meow-method check frozen [--base <rev>]");
+            return USAGE;
+        }
+    };
+    let (record, repository, _) = match open_record("check") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let authority = Regex::new(r"(?:Amended|Corrected) by (?:ADR|BUG|EPC)-\d{4}").expect("authority pattern");
+    let mut findings = Vec::new();
+    for doc in &record.docs {
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
+        // A living document describes the present and is rewritten freely.
+        let own_index = kind.index.as_deref() == Some(doc.relative.as_str());
+        if doc.is_index || own_index || kind.statuses.iter().any(|s| s == "live") || Path::new(&doc.shown).is_absolute() {
+            continue;
+        }
+        let Ok(out) = std::process::Command::new("git")
+            .args(["show", &format!("{base}:{}", doc.shown)])
+            .current_dir(&repository)
+            .output()
+        else {
+            continue;
+        };
+        if !out.status.success() {
+            continue;
+        }
+        let before = String::from_utf8_lossy(&out.stdout).into_owned();
+        if before == doc.text {
+            continue;
+        }
+        let old = Doc { path: doc.path.clone(), relative: doc.relative.clone(), shown: doc.shown.clone(), fields: parse_front_matter(&before), text: before.clone(), kind: doc.kind, is_index: false };
+        if bare(old.value("status")) != "approved" {
+            continue;
+        }
+        if matches!(bare(doc.value("status")), "withdrawn" | "superseded") {
+            continue;
+        }
+        let was: BTreeSet<&str> = before.lines().collect();
+        if doc.text.lines().any(|line| !was.contains(line) && authority.is_match(line)) {
+            continue;
+        }
+        let allowed = match kind.name.as_str() {
+            "epic" => bare(old.value("checked-at")).is_empty(),
+            "task" => frozen_part(&before) == frozen_part(&doc.text),
+            _ => false,
+        };
+        if !allowed {
+            findings.push(format!(
+                "{}: approved at {base}, and changed since without a line naming its authority; a change to an approved record invalidates its approval",
+                doc.shown
+            ));
+        }
+    }
+    findings.sort();
+    for finding in &findings {
+        say!("{finding}");
+    }
+    say!("frozen: {} finding{}", findings.len(), if findings.len() == 1 { "" } else { "s" });
+    if findings.is_empty() { CLEAN } else { FOUND }
+}
+
+/// A task's text without what may change after approval: its evidence, its
+/// issue and its revision date.
+fn frozen_part(text: &str) -> String {
+    let mut out = Vec::new();
+    let mut in_evidence = false;
+    for line in text.lines() {
+        if let Some(heading) = line.strip_prefix("## ") {
+            in_evidence = heading.trim() == "Evidence";
+        }
+        if in_evidence || line.starts_with("issue:") || line.starts_with("revised:") {
+            continue;
+        }
+        out.push(line);
+    }
+    out.join("\n")
 }
 
 /// The layout from `MEOW_LAYOUT`, or from the unit this binary ships in.
