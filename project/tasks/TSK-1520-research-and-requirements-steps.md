@@ -49,7 +49,41 @@ Nothing. ADR-1160 and SPC-1090 are approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the step
+file named, and every rule names no requirement, because the file ships to
+other repositories:
+
+| Requirement | Carried by                    |
+| ----------- | ----------------------------- |
+| REQ-0209    | R1 in `steps/research.md`     |
+| REQ-0211    | R3 in `steps/research.md`     |
+| REQ-0213    | Q1 in `steps/requirements.md` |
+| REQ-0214    | Q5 in `steps/requirements.md` |
+| REQ-0215    | Q2 in `steps/requirements.md` |
+| REQ-0221    | R7 in `steps/research.md`     |
+| REQ-0222    | R8 in `steps/research.md`     |
+| REQ-0225    | R6 in `steps/research.md`     |
+| REQ-0226    | R5 in `steps/research.md`     |
+| REQ-0227    | R2 in `steps/research.md`     |
+| REQ-0229    | R4 in `steps/research.md`     |
+| REQ-0231    | Q7 in `steps/requirements.md` |
+| REQ-0245    | Q4 in `steps/requirements.md` |
+| REQ-0253    | Q3 in `steps/requirements.md` |
+| REQ-0271    | Q8 in `steps/requirements.md` |
+| REQ-0273    | Q8 in `steps/requirements.md` |
+| REQ-0564    | R9 in `steps/research.md`     |
+| REQ-2640    | R9 in `steps/research.md`     |
+| REQ-2642    | R9 in `steps/research.md`     |
+| REQ-2644    | R9 in `steps/research.md`     |
+| REQ-2648    | R10 in `steps/research.md`    |
+| REQ-2650    | R11 in `steps/research.md`    |
+| REQ-2869    | R12 in `steps/research.md`    |
+| REQ-2874    | Q9 in `steps/requirements.md` |
+| REQ-2876    | Q6 in `steps/requirements.md` |
+
+The prompt check passes on the step files and `meow-method check` reports 0
+findings, as the gate below shows. Whether the model follows the rules is
+measured by evaluation, which is postponed.
 
 ## Left alone
 
