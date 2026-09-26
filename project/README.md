@@ -123,7 +123,7 @@ verified under issue 160.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
-Nothing implements it yet.
+`meow-method` implements it, verified under issue 202.
 
 ## Epics and tasks
 
@@ -171,8 +171,9 @@ against every acceptance criterion under issue 160.
 tasks, TSK-1400 and TSK-1410, each closed with evidence, and was verified
 against every acceptance criterion under issue 184.
 
-[EPC-1100](epics/EPC-1100-the-chain.md) is approved and realises ADR-1130 in
-three tasks, TSK-1420 to TSK-1440, each closed with evidence.
+[EPC-1100](epics/EPC-1100-the-chain.md) realised ADR-1130 in three tasks,
+TSK-1420 to TSK-1440, each closed with evidence, and was verified against every
+acceptance criterion under issue 202.
 
 [EPC-1110](epics/EPC-1110-content-rules.md) is approved and realises ADR-1140 in two tasks,
 TSK-1450 and TSK-1460, each filed as an issue.
