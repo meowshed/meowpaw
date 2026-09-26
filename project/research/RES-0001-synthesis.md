@@ -158,6 +158,7 @@ here or in the sources below.
 | [Routing a skill by its description](RES-0272-routing-a-skill-by-its-description.md)         | On Sonnet 5 a description stating the obligation in the third person loads a skill that a descriptive one and a hook do not.                                                                         |
 | [One native tool, shipped inside the units](RES-0273-one-native-tool-in-the-units.md)        | A plugin can carry a native binary to every platform Claude Code supports, pinned by its hash, with no separate install.                                                                             |
 | [Installing from a released marketplace](RES-0274-installing-from-a-released-marketplace.md) | A marketplace file on a GitHub release installs only when downloaded and added by its path, and its units run with no interpreter.                                                                   |
+| [Where the marketplace file lives](RES-0275-where-the-marketplace-file-lives.md)             | A marketplace file on `retran.me` or `github.io` is a url marketplace; the domain's verification keeps `meowshed` off its subdomains.                                                                |
 
 ## The situation
 
