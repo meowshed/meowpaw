@@ -13,28 +13,36 @@ issue: # the tracker's number, where the repository uses one
 
 # <What is wrong, as a statement>
 
+One defect, stated so a reader who stops here knows what is broken; a second
+defect is a second record, because a record describing two can't be closed.
+
 ## Reproduction
 
-Ordered steps from a stated starting state, with the environment, the versions
-and the revision it was seen at. A defect with no reproduction is a report,
-because the triage question can't be answered about behaviour nobody has seen
-twice; where it can't be reproduced, say why and how often it happens.
+The environment and the versions, exactly, and the revision it was seen at.
+Then ordered steps from a stated starting state. A defect with no reproduction
+is a report, because the triage question can't be answered about behaviour
+nobody has seen twice; where it can't be reproduced, say why and how often it
+happens.
 
 ## What the system does
 
-What was observed, exactly, with the evidence, sanitised.
+What happened, exactly, with the evidence: output, a log, a screenshot. Strip
+secrets and personal data from it first.
 
 ## What it should do, and why
 
-The requirement it violates. Where none exists, say so: that is a gap in the
-requirements and routes to the requirements step.
+What was expected, and the requirement it violates, cited in `violates`. Where
+none exists, say so here: that is a gap in the requirements and routes to the
+requirements step.
 
 ## Triage
 
 Where in the chain this enters, and why it has the severity it has. A report
-that turned out not to be a defect says so here, so it isn't triaged again.
+that turned out not to be a defect says so here, so it isn't triaged again. No
+priority: when to fix it is the tracker's question, not the record's.
 
 ## Closed by
 
 The reproduction, now passing, and where it lives as a regression check. The
-fix is a change of its own, reviewed as one.
+fix is a task of its own, or a change reviewed on its own, never an edit made
+inside this record.
