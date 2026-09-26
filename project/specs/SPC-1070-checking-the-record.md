@@ -78,6 +78,16 @@ states:
     REQ-2914,
     REQ-2923,
     REQ-2924,
+    REQ-3008,
+    REQ-3009,
+    REQ-3010,
+    REQ-3011,
+    REQ-3012,
+    REQ-3014,
+    REQ-3016,
+    REQ-3018,
+    REQ-3019,
+    REQ-3020,
     REQ-3102,
   ]
 ---
@@ -176,6 +186,17 @@ because a superseded record carries its status and names its replacement
 (REQ-0552, REQ-0554, REQ-0555). A draft requirement's statement carries one
 keyword, leans on no neighbour, and prohibits with `MUST NOT` (REQ-2880). The
 constitution outranks every artifact (REQ-0530) (ADR-1230).
+
+The layout records every retired front matter field and status value with what
+replaced it, and the check refuses a record or a kind carrying one, so a
+retired name is never reused (REQ-3010, REQ-3011). `meow-method count` prints
+each kind's count by status and the number of identifiers, which a migration's
+evidence carries before and after (REQ-3020). The `method` skill runs a change
+to the record's shape as expand, migrate and contract, names the release that
+removes the old form, migrates or grandfathers a new obligation, edits
+structured data as structured data, and splits a migration into reviewable
+parts with the mechanical apart from the editorial (REQ-3008, REQ-3009,
+REQ-3012, REQ-3014, REQ-3016, REQ-3018, REQ-3019) (ADR-1240).
 
 ### The checks
 
