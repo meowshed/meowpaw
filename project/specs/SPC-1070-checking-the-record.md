@@ -17,6 +17,8 @@ states:
     REQ-0262,
     REQ-0266,
     REQ-0309,
+    REQ-0396,
+    REQ-0398,
     REQ-0512,
     REQ-0514,
     REQ-0520,
@@ -36,6 +38,11 @@ states:
     REQ-0590,
     REQ-0592,
     REQ-0593,
+    REQ-0622,
+    REQ-0626,
+    REQ-0630,
+    REQ-0634,
+    REQ-0635,
     REQ-0656,
     REQ-0692,
     REQ-0698,
@@ -153,6 +160,24 @@ decomposition's named coverage check, and `check` runs it on every change
 Each finding names the file, and the line where there is one. `meow-method
 check` runs every check and exits 0 when none found anything and 1 when any
 did. `meow-method check <name>` runs one. No check writes a file (REQ-0137).
+
+### The frozen check
+
+`meow-method check frozen --base <rev>` reads each record whose stored status
+was `approved` at `<rev>`, through git, and compares it with the current file
+(ADR-1170). A change is reported, naming the record, as one that invalidates
+its approval (REQ-0396, REQ-0398, REQ-0626, REQ-0630, REQ-0635), unless it is
+one its kind allows:
+
+| Kind            | May change after approval                                                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| task            | its `## Evidence` section and its `issue`                                                                                                                  |
+| epic            | anything, until its `checked-at` is set (REQ-0634)                                                                                                         |
+| every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic |
+| living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                             |
+
+Without `--base`, the check compares with `HEAD`. It isn't among the checks
+`meow-method check` runs with no name, because it needs a base and git.
 
 ### This repository
 
