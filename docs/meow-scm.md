@@ -64,6 +64,13 @@ program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, the
 check reports the message as unchecked and exits 3.
 
+## The sign-off is the author's
+
+Where the convention requires a `Signed-off-by` trailer, the check compares
+its value with the commit's author as git reports it, and refuses a sign-off
+naming anybody else, because the certificate is a statement the author makes.
+Where git reports no author, it says the sign-off wasn't compared.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared

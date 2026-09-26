@@ -28,7 +28,32 @@ Nothing. ADR-1320 is approved.
 
 ## Evidence
 
-Not yet.
+Where the profile's trailers include `Signed-off-by`, `meow-scm check-message`
+compares each sign-off with the author `git var GIT_AUTHOR_IDENT` reports, and
+reports one naming anybody else with both names; where git reports no author,
+it says the sign-off wasn't compared. A fixture signs off as a second person
+and sees the refusal naming both, exit 1, and fails against a stub that
+returns nothing. The other fixtures now present their signer as the author.
+
+The push guard checks commits already made, so it passes each commit's own
+author to the check, and a sign-off is compared with the author of the commit
+that carries it, not with whoever pushes.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-scm/tests
+Ran 16 tests in 0.352s
+OK
+
+$ python3 -m unittest discover -s plugins/meow-git/tests
+Ran 17 tests in 4.255s
+OK
+
+$ MEOW_SCM_BIN=stub python3 -m unittest plugins/meow-scm/tests/test_scm.py -k sign_off_naming
+FAILED (failures=1)
+
+$ meow-scm check-message   # this repository, signed off by its author
+meow-scm check-message: the message meets the declared convention
+```
 
 ## Left alone
 
