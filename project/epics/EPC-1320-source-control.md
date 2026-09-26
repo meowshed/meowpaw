@@ -52,8 +52,9 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: two fixtures, a rule in the verify step, and a run over real
       records, in #383.
 
-- [ ] T-004 TSK-1990 source control is read with prompting and paging off
+- [x] T-004 TSK-1990 source control is read with prompting and paging off
       closes: REQ-2526, REQ-2528
+      evidence: one environment for every read, and a fixture, in #384.
 
 - [ ] T-005 TSK-2000 the commit skill carries the branching and merging rules
       closes: REQ-1296, REQ-1298, REQ-1306, REQ-1320, REQ-1322, REQ-1324, REQ-1328, REQ-2534, REQ-2536, REQ-2538, REQ-2820, REQ-2822
