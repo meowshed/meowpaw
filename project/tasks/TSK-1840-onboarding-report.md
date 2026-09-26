@@ -29,7 +29,32 @@ Nothing. ADR-1260 is approved.
 
 ## Evidence
 
-Not yet.
+`lib/layout.toml` gains the kind `onboarding`, `onboarding.md` at the
+record's root, opening with Verbs, and `templates/onboarding.md` holds its
+five sections with a Documents table and numbered Adoption steps. Four
+fixtures, each seen passing against the program and failing against a stub
+that returns nothing, run over a repository holding `docs/guide.md` and
+`notes.txt` outside the record:
+
+- A report placing both, one migrated and one discarded with its reason,
+  passes `check coverage`.
+- Dropping the row for `notes.txt` reports it as not placed, and adding a
+  second row reports it placed twice at the second row's line.
+- The outcome `archived` is reported as outside the four, and a discard with
+  an empty reason as having no destination or reason.
+- An Adoption section with no numbered step fails `check rules`.
+
+The documents are those git tracks or doesn't ignore, in six document
+formats, outside the record's root and `.meowpaw/`.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 112 tests in 7.336s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=109, errors=3)
+```
 
 ## Left alone
 
