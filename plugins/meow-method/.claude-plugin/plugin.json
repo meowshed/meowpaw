@@ -1,6 +1,6 @@
 {
   "name": "meow-method",
-  "version": "0.24.0",
+  "version": "0.24.1",
   "description": "Runs the method's nine steps from research to review, each refused by a native program until its input is approved, drives them to the next approval gate with /meow-method:run, and checks the record they write where .meowpaw/profile.toml declares it. Costs one skill description on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
