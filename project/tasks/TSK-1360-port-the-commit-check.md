@@ -23,8 +23,30 @@ TSK-1350, which builds the crate and the shared module.
 
 ## Evidence
 
-Not yet. The task closes on `meow-scm`'s fourteen fixtures, unchanged, passing
-against the new launcher.
+`meow scm` is `meow-scm`'s program, ported line for line behind the `scm`
+feature, which alone pulls in the regular-expression crate. The launcher runs
+the binary for the machine and reports the message unchecked where there is
+none, and `lib/meow_scm.py` is deleted. The types keep the order the profile
+declares them in, as they did. The port landed in #155; its records land here,
+because the edit that carried them failed and the commit ran without it.
+
+```text
+$ git diff --stat origin/main -- plugins/meow-scm/tests
+(nothing: the fixtures are unchanged)
+
+$ python3 -m unittest discover -s plugins/meow-scm/tests
+Ran 14 tests in 0.579s
+OK
+
+$ MEOW_SCM_BIN=stub/meow-scm python3 -m unittest discover -s plugins/meow-scm/tests
+FAILED (failures=14)
+
+$ python3 -m unittest discover -s plugins/meow-git/tests   # which calls meow-scm
+OK
+```
+
+The `scm` binary for `aarch64-apple-darwin` is 1,334,192 bytes, most of it the
+regular-expression engine.
 
 ## Left alone
 

@@ -58,8 +58,9 @@ change was made, which a check can't decide.
 ## What it costs you
 
 The skill's description costs 263 characters in context on every turn. The
-program needs Python 3.11 or later, found on the machine and never installed.
-Without it, the check reports the message as unchecked and exits 3.
+program is a native binary shipped inside the unit, so it needs nothing
+installed on the machine. On a machine the unit carries no binary for, the
+check reports the message as unchecked and exits 3.
 
 ## Where the rules come from
 
