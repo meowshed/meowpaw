@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-# What this unit may load on every turn, in characters (REQ-1056): nothing,
-# because it ships a program and no skill, hook or style.
-permanent_characters = 0
+# What this unit may load on every turn, in characters (REQ-1056): the method
+# skill's description, which routes it. The driver is a command only a person
+# invokes, so the platform doesn't list it. Measured at 385 by
+# tools/check_budget.py on 2026-09-26; the budget adds about one sentence.
+permanent_characters = 500

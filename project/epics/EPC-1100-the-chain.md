@@ -57,12 +57,14 @@ A task is marked in the commit that advances it, never in a later pass.
       preferred, in #190.
       depends: TSK-1420 - `template` resolves the path the move creates
 
-- [ ] T-003 TSK-1440 the `method` skill with a file per step, and the
+- [x] T-003 TSK-1440 the `method` skill with a file per step, and the
       `/meow-method:run` command
       closes: REQ-0190, REQ-0192, REQ-0194, REQ-0196, REQ-0202, REQ-0204,
       REQ-0208, REQ-0532, REQ-2630, REQ-2632
       depends: TSK-1420, TSK-1430 - the steps call the program and write from
       the templates
+      evidence: the skill and its nine step files pass the prompt check, and
+      the unit loads 385 of its 500 characters, in #191.
 
 ## Coverage
 
