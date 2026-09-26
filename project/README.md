@@ -221,8 +221,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 | [BUG-1140](bugs/BUG-1140-the-guards-act-on-commands-that-neither-commit-nor-push.md) | `meow-git`'s guards acted on commands that neither commit nor push                                    |
 | [BUG-1150](bugs/BUG-1150-the-crate-tests-can-share-a-directory.md)                   | The crate's tests could share a temporary directory, so the gate failed at random                     |
 | [BUG-1160](bugs/BUG-1160-the-record-drifted-from-the-work.md)                        | The record drifted from the work: stale task statuses, a stale mark, and three decisions with no epic |
+| [BUG-1170](bugs/BUG-1170-a-verification-cited-a-check-that-matched-nothing.md)       | A verification cited a check that matched nothing                                                     |
 
-Sixteen are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Seventeen are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.
