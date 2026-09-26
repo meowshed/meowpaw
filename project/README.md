@@ -110,6 +110,8 @@ Every decision below is approved and in force, as amended by the ones after it.
   requirement's state.
 - [ADR-1220](adrs/ADR-1220-an-insight-is-a-kind-of-record.md): an insight is
   a kind of record, written only when something was learned.
+- [ADR-1230](adrs/ADR-1230-the-record-keeps-its-reading-order-and-its-history-out-of-the-way.md):
+  the record keeps its reading order, and its history out of the way.
 
 ## Specifications
 
@@ -226,6 +228,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1210](epics/EPC-1210-record-drift.md) realised ADR-1210 in three tasks, TSK-1700 to TSK-1720, each closed with evidence, and was verified against every acceptance criterion under issue 288.
 
 [EPC-1220](epics/EPC-1220-insights.md) realised ADR-1220 in two tasks, TSK-1730 and TSK-1740, each closed with evidence, and was verified against every acceptance criterion under issue 296.
+
+[EPC-1230](epics/EPC-1230-reading-order.md) realises ADR-1230 in three
+tasks, TSK-1750 to TSK-1770, each filed as an issue.
 
 ## Defects
 
