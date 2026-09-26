@@ -153,7 +153,7 @@ which follows both. The work realising them has landed, and each leaves
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release and the marketplace address. The crate implements it,
-verified under issue 362.
+verified under issue 378.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
@@ -270,8 +270,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1300](epics/EPC-1300-onboard-history.md) realised ADR-1300 in one task, TSK-1920, closed with evidence, and was verified against every acceptance criterion under issue 368.
 
-[EPC-1310](epics/EPC-1310-project-tasks.md) is approved and realises ADR-1310 in three tasks,
-TSK-1930 to TSK-1950, each filed as an issue.
+[EPC-1310](epics/EPC-1310-project-tasks.md) realised ADR-1310 in three tasks, TSK-1930 to TSK-1950, each closed with evidence, and was verified against every acceptance criterion under issue 378.
 
 ## Defects
 
