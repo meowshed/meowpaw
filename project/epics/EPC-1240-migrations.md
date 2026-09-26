@@ -37,8 +37,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1780 a retired name is recorded and never reused
+- [x] T-001 TSK-1780 a retired name is recorded and never reused
       closes: REQ-3010, REQ-3011
+      evidence: two fixtures and three retired names recorded, in #309.
 
 - [ ] T-002 TSK-1790 the record can be counted before and after a migration
       closes: REQ-3020

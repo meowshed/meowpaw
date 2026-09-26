@@ -64,6 +64,8 @@ struct Layout {
     relations: Vec<String>,
     index_name: String,
     kinds: Vec<Kind>,
+    retired_fields: BTreeMap<String, String>,
+    retired_statuses: BTreeMap<String, String>,
 }
 
 struct Field {
@@ -399,11 +401,20 @@ fn load_layout() -> Result<Layout, String> {
             draft_rules: strings(table, "draft_rules"),
         });
     }
+    let retired = |key: &str| -> BTreeMap<String, String> {
+        data.get("retired")
+            .and_then(|r| r.get(key))
+            .and_then(|t| t.as_table())
+            .map(|t| t.iter().map(|(k, v)| (k.clone(), v.as_str().unwrap_or_default().to_string())).collect())
+            .unwrap_or_default()
+    };
     Ok(Layout {
         fields: strings(&data, "fields"),
         relations: strings(&data, "relations"),
         index_name: string(&data, "index_name").unwrap_or_else(|| "README.md".into()),
         kinds,
+        retired_fields: retired("fields"),
+        retired_statuses: retired("statuses"),
     })
 }
 
@@ -541,6 +552,13 @@ fn front_matter(record: &Record) -> Vec<Finding> {
     let date = Regex::new(r"^\d{4}-\d{2}-\d{2}$").expect("date pattern");
     let today = today();
     let mut out = Vec::new();
+    for kind in &record.layout.kinds {
+        let reused = kind.statuses.iter().filter(|s| record.layout.retired_statuses.contains_key(*s));
+        let reused = reused.chain(kind.fields.iter().filter(|f| record.layout.retired_fields.contains_key(*f)));
+        for name in reused {
+            out.push(Finding { shown: "the layout".into(), line: None, message: format!("the kind {} declares {name}, a retired name", kind.name) });
+        }
+    }
     for doc in record.docs.iter().filter(|d| !d.is_index) {
         let Some(fields) = &doc.fields else {
             out.push(Finding::at(doc, None, "no front matter".into()));
@@ -573,9 +591,16 @@ fn front_matter(record: &Record) -> Vec<Finding> {
                 out.push(Finding::at(doc, Some(field.line), format!("artifact is {}, where a {} is {}", bare(&field.value), kind.name, kind.artifact)));
             }
         }
+        for field in fields {
+            if let Some(why) = record.layout.retired_fields.get(&field.key) {
+                out.push(Finding::at(doc, Some(field.line), format!("carries {}, a retired field: {why}", field.key)));
+            }
+        }
         if let Some(field) = doc.field("status") {
             let status = bare(&field.value);
-            if !kind.statuses.iter().any(|s| s == status) {
+            if let Some(why) = record.layout.retired_statuses.get(status) {
+                out.push(Finding::at(doc, Some(field.line), format!("status {status} is retired: {why}")));
+            } else if !kind.statuses.iter().any(|s| s == status) {
                 out.push(Finding::at(doc, Some(field.line), format!("status {status} is not one a {} stores: {}", kind.name, kind.statuses.join(", "))));
             }
         }
