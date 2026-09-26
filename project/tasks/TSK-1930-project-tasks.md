@@ -42,7 +42,42 @@ Nothing. ADR-1310 is approved.
 
 ## Evidence
 
-Not yet.
+`meow-github project <epic> [<owner>/<name>]` projects an approved epic's
+tasks. Four fixtures run it against a stand-in `gh` that keeps its issues in a
+file:
+
+- On an approved epic with two tasks it creates two issues titled with each
+  task's identifier and title. The second's body names its epic and the
+  decision the epic realises, lists both requirements it closes by
+  identifier, quotes its dependency with the reason, and ends with the marker
+  naming the task and a twelve-digit fingerprint. Each task gains `issue:` and
+  `projected:`, and each issue is read back with a GET of its own address.
+- The fingerprint matches the first twelve hex digits of the SHA-256 of the
+  title, a newline and the body without the marker, computed separately, so a
+  person reproduces it with `shasum -a 256`.
+- A second run makes no write to the tracker, leaves the task byte for byte,
+  and reports each task unchanged.
+- A draft epic projects nothing and says so, and `gh` is never called.
+
+`meow-method check frozen` now lets an approved task's `projected:` change, as
+it lets `issue:`: a fixture adding `projected:` to an approved task failed with
+the change stashed and passes with it.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-github/tests
+Ran 8 tests in 0.744s
+OK
+
+$ MEOW_GITHUB_BIN=stub python3 -m unittest discover -s plugins/meow-github/tests
+FAILED (failures=3, errors=4)
+
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 117 tests in 7.668s
+OK
+
+$ cargo test --all-features
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
 
 ## Left alone
 

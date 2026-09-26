@@ -374,7 +374,7 @@ fn frozen_part(text: &str) -> String {
         if let Some(heading) = line.strip_prefix("## ") {
             in_evidence = heading.trim() == "Evidence";
         }
-        if in_evidence || line.starts_with("issue:") || line.starts_with("revised:") {
+        if in_evidence || line.starts_with("issue:") || line.starts_with("projected:") || line.starts_with("revised:") {
             continue;
         }
         out.push(line);
