@@ -28,7 +28,23 @@ Nothing. ADR-1240 is approved.
 
 ## Evidence
 
-Not yet.
+`lib/layout.toml` gains a `[retired]` table recording the field `unit` and
+the statuses `proposed` and `current`, each with what replaced it, taken from
+this record's history. Two fixtures, each seen passing against the program and
+failing against a stub that returns nothing: `check front-matter` reports a
+decision with `status: proposed` as retired and replaced by draft, and one
+carrying `unit:` as a retired field, each at its line; and a layout whose
+specification kind declares `current` fails with "the kind specification
+declares current, a retired name". This repository reports `front-matter: 0 findings`.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 104 tests in 6.878s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=101, errors=3)
+```
 
 ## Left alone
 
