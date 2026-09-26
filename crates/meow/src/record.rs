@@ -945,6 +945,15 @@ fn claims_done(task: &Doc) -> bool {
     first.is_some_and(|l| !l.starts_with("Not yet"))
 }
 
+/// A requirement's statement: the paragraph under its heading, with its line.
+fn statement(doc: &Doc) -> Option<(usize, String)> {
+    let lines: Vec<&str> = doc.text.lines().collect();
+    let heading = lines.iter().position(|l| l.starts_with("# "))?;
+    let start = (heading + 1..lines.len()).find(|&i| !lines[i].trim().is_empty())?;
+    let end = (start..lines.len()).find(|&i| lines[i].trim().is_empty()).unwrap_or(lines.len());
+    Some((start + 1, lines[start..end].join(" ")))
+}
+
 /// A task's evidence, without a leading "Not yet." paragraph.
 fn evidence_of(task: &Doc) -> String {
     let lines: Vec<&str> = section_lines(task, "Evidence").into_iter().map(|(_, l)| l).collect();
@@ -961,6 +970,11 @@ fn rules(record: &Record) -> Vec<Finding> {
     let date = Regex::new(r"\d{4}-\d{2}-\d{2}").expect("date pattern");
     let requirement = Regex::new(r"REQ-\d{4}").expect("requirement pattern");
     let authority = Regex::new(r"(?:ADR|BUG)-\d{4}").expect("authority pattern");
+    // RES-0254: two keywords can't be cited by one check, "such a record" breaks
+    // when its neighbour moves, and "No X MUST Y" negates a requirement.
+    let keyword = Regex::new(r"\b(?:MUST|SHALL|SHOULD|MAY)(?: NOT)?\b").expect("keyword pattern");
+    let neighbour = Regex::new(r"(?i)\b(?:such an? \w+|the (?:above|previous|preceding|following) \w+|that (?:command|record|artifact|check|step|file|document|unit|requirement))\b").expect("neighbour pattern");
+    let negated = Regex::new(r"\bNo\b[^.]*?\bMUST\b(?: NOT)?").expect("negation pattern");
     let mut out = Vec::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
@@ -1024,6 +1038,20 @@ fn rules(record: &Record) -> Vec<Finding> {
                             }
                             _ => {}
                         }
+                    }
+                }
+                "one-obligation" | "stands-alone" | "no-negated-requirement" => {
+                    let Some((line, text)) = statement(doc) else { continue };
+                    let (pattern, message) = match rule.as_str() {
+                        "one-obligation" => (&keyword, "carries more than one keyword, where a requirement carries one obligation"),
+                        "stands-alone" => (&neighbour, "leans on a neighbour"),
+                        _ => (&negated, "negates a requirement with \"No ... MUST\", where a prohibition is MUST NOT"),
+                    };
+                    let hits: Vec<&str> = pattern.find_iter(&text).map(|m| m.as_str()).collect();
+                    let found = if rule == "one-obligation" { hits.len() > 1 } else { !hits.is_empty() };
+                    if found {
+                        let shown = if rule == "one-obligation" { hits.join(", ") } else { hits[0].to_string() };
+                        out.push(Finding::at(doc, Some(line), format!("{message}: {shown}")));
                     }
                 }
                 "title-states-claim" => {
