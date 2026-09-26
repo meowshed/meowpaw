@@ -28,18 +28,44 @@ TSK-1350, TSK-1360 and TSK-1370, because a release carries every ported unit.
 
 ## Evidence
 
-Not yet. The task closes on a release published from the workflow, every
-target built, each archive's size in the release, and one unit installed from
-it on a machine with neither Python nor Node.js.
+Release run 36232216779 built all six targets and published a release for
+each unit, tagged `<unit>-v<version>`, and a `marketplace` release whose notes
+list every archive's size and SHA-256:
 
-The first half landed with issue #153. The marketplace reference documents a
-hosted `marketplace.json` added by its `https://` address and an `archive`
-source taking a zip by `url` and `sha256`, so SPC-1080 keeps its design and
-now names the tags. `crates/meow/build-units x86_64-apple-darwin` cross-built
-all three units on an ARM64 Mac, and `file` reports each binary as "Mach-O
-64-bit executable x86_64". The pack step, run locally, packed all six units,
-and `unzip -Z` on `meow-verbs-0.2.0.zip` lists both binaries and the launcher
-with mode `-rwxr-xr-x`.
+```text
+$ gh run watch 36232216779 --exit-status
+exit=0
+$ gh release list
+Marketplace       Latest  marketplace
+meow-git 0.1.0            meow-git-v0.1.0
+meow-scm 0.2.0            meow-scm-v0.2.0
+meow-verbs 0.2.0          meow-verbs-v0.2.0
+meow-prose-gate 0.1.1     meow-prose-gate-v0.1.1
+meow-prose 0.3.4          meow-prose-v0.3.4
+meow-core 0.6.0           meow-core-v0.6.0
+```
+
+The archives are 1,675,980 bytes for meow-verbs, 3,928,000 for meow-scm and
+1,768,656 for meow-git. In a `debian:bookworm-slim` container on ARM64, with
+`python3: absent  node: absent`, Claude Code 2.1.283 installed `meow-verbs`
+and `meow-git` from the released marketplace, `stat` showed `-rwxr-xr-x` on
+both launchers and their binaries, and both units ran:
+
+```text
+$ meow-verbs run test
+summary: test passed
+exit=0
+$ echo '{"tool_input":{"command":"git push"}}' | meow-git push-guard
+meow-git push-guard: no commit to publish was found; checked nothing
+exit=0
+```
+
+Adding the marketplace by its release address failed, because Claude Code
+reads an address on `github.com` as a git repository. Adding the downloaded
+file by its path worked, so SPC-1080, the workflow's notes and
+`docs/README.md` now give that form, and RES-0274 records the finding. This
+closes REQ-0074, since each unit is released under its own version, and
+REQ-3178, since a person installs a unit with nothing else.
 
 ## Left alone
 

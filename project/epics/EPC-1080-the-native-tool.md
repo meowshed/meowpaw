@@ -58,9 +58,11 @@ A task is marked in the commit that advances it, never in a later pass.
       binary, in #152.
       depends: TSK-1350 - it builds on the crate and the shared module
 
-- [ ] T-004 TSK-1380 the release: six targets, an archive per unit, the
+- [x] T-004 TSK-1380 the release: six targets, an archive per unit, the
       marketplace file, and each archive's size published
       closes: REQ-0074, REQ-3178
+      evidence: release run 36232216779, and two units installed from it and
+      run in a container with neither Python nor Node.js, in #153.
       depends: TSK-1350, TSK-1360, TSK-1370 - a release carries every ported
       unit
 
