@@ -22,6 +22,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1080](ADR-1080-a-commit-message-is-checked-against-the-declared-convention.md)                  | A commit message is checked against the convention the repository declares       | approved                      |
 | [ADR-1090](ADR-1090-a-git-pack-enforces-the-convention-at-push.md)                                   | A git pack refuses a commit on the trunk and checks a branch before it is pushed | approved                      |
 | [ADR-1100](ADR-1100-the-record-is-checked-by-a-unit-the-harness-ships.md)                            | The record is checked by a unit the harness ships                                | approved                      |
+| [ADR-1110](ADR-1110-one-native-tool-carries-every-units-program.md)                                  | One native tool carries every unit's program                                     | approved                      |
 
 The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:

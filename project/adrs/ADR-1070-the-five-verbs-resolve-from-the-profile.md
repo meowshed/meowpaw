@@ -21,6 +21,10 @@ supersedes: []
 
 # 1070. The five verbs resolve from the profile, and an unresolved verb is reported
 
+**Amended by ADR-1110.** The program is a subcommand of one native tool,
+`meow`, written in Rust and shipped as a binary inside the unit, not a program
+for an interpreter already on the machine. What the program does stands.
+
 ## Decision
 
 A new unit, `meow-verbs`, gives the harness its five verification verbs and
