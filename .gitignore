@@ -14,3 +14,4 @@ plugins/*/evals/results/
 /target/
 crates/meow/target/
 plugins/*/bin/*-*-*/
+/dist/
