@@ -1,0 +1,36 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# Builds each unit's binary for this machine into plugins/<unit>/bin/<target>/,
+# named the way the units' launchers look for it, so a checkout loaded in place
+# runs the native tool without a release (SPC-1080). A release builds the six
+# targets itself.
+
+set -e
+root=$(cd "$(dirname "$0")/../.." && pwd)
+case $(uname -s) in
+Darwin) system=apple-darwin exe= ;;
+Linux) system=unknown-linux-musl exe= ;;
+MINGW* | MSYS* | CYGWIN*) system=pc-windows-msvc exe=.exe ;;
+*) echo "build-units: no target for $(uname -s)" >&2; exit 1 ;;
+esac
+case $(uname -m) in
+arm64 | aarch64) cpu=aarch64 ;;
+x86_64 | amd64) cpu=x86_64 ;;
+*) echo "build-units: no target for $(uname -m)" >&2; exit 1 ;;
+esac
+target="$cpu-$system"
+
+for pair in meow-verbs:verbs; do
+  unit=${pair%%:*}
+  feature=${pair#*:}
+  cargo build --quiet --release --manifest-path "$root/crates/meow/Cargo.toml" \
+    --no-default-features --features "$feature" --target-dir "$root/target/$feature"
+  mkdir -p "$root/plugins/$unit/bin/$target"
+  # Replace the file rather than overwrite it: macOS caches a binary's code
+  # signature per file, and kills a binary rewritten in place when it next runs.
+  rm -f "$root/plugins/$unit/bin/$target/meow$exe"
+  cp "$root/target/$feature/release/meow$exe" "$root/plugins/$unit/bin/$target/meow$exe"
+  echo "built $unit for $target"
+done
