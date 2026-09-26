@@ -100,6 +100,12 @@ rules: 0 findings
 | `shape`        | An artifact missing a section its kind carries, such as research without its conclusions                                                                                                                                                                                            |
 | `rules`        | An undated source or a cited requirement in draft research, a judged draft requirement with no verifier, an epic realising other than one record, a decision's alternatives with no reason they lost; an epic task marked done with no evidence, or added or dropped with no reason |
 
+`meow-method check frozen --base <rev>` reports each record approved at
+`<rev>` and changed since, outside what its kind may change, unless the change
+adds a line naming its authority, such as `**Amended by ADR-0120.**`: a change
+to an approved record invalidates its approval. It runs only by name, because
+it needs git and a base.
+
 It exits 0 when no check found anything, 1 when any did or the root doesn't
 exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
