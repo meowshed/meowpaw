@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-method index -->
 
-21 decisions in all: 20 approved, 1 draft.
+21 decisions in all: 21 approved.
 
 | Identifier                                                                                           | What it concluded                                                                                      | Status   |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------- |
@@ -37,7 +37,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1170](ADR-1170-an-approval-is-a-stored-status-a-check-holds-frozen.md)                          | An approval is a stored status that a check holds frozen, and a session opens with what waits for one  | approved |
 | [ADR-1180](ADR-1180-the-record-grows-by-program-indexed-allocated-and-searched.md)                   | The record grows by program: its indexes generated, its identifiers allocated and its content searched | approved |
 | [ADR-1190](ADR-1190-the-design-step-carries-the-obligations-on-what-it-designs.md)                   | The design step carries the obligations on what it designs, and the other steps their share            | approved |
-| [ADR-1200](ADR-1200-the-harness-holds-its-quality-attributes-with-evidence.md)                       | The harness holds its quality attributes, each with a check or a stated piece of evidence              | draft    |
+| [ADR-1200](ADR-1200-the-harness-holds-its-quality-attributes-with-evidence.md)                       | The harness holds its quality attributes, each with a check or a stated piece of evidence              | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070.
 <!-- /meow-method index -->

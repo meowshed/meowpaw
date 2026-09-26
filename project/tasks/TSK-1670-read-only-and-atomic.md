@@ -1,11 +1,11 @@
 ---
 id: TSK-1670
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1200
 closes: [REQ-1720, REQ-1722, REQ-1724, REQ-1728, REQ-1730, REQ-1732]
-issue:
+issue: 270
 ---
 
 # Read-only commands write nothing, and an index is written atomically

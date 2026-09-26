@@ -1,11 +1,11 @@
 ---
 id: TSK-1680
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1200
 closes: [REQ-1736, REQ-1740, REQ-1742]
-issue:
+issue: 271
 ---
 
 # Each unit declares the platform it needs and the behaviours it relies on

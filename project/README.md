@@ -215,7 +215,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1190](epics/EPC-1190-design-obligations.md) realised ADR-1190 in two tasks, TSK-1650 and TSK-1660, each closed with evidence, and was verified against every acceptance criterion under issue 267.
 
-[EPC-1200](epics/EPC-1200-quality-attributes.md) realises ADR-1200 in three
+[EPC-1200](epics/EPC-1200-quality-attributes.md) is approved and realises ADR-1200 in three
 tasks, TSK-1670 to TSK-1690, each filed as an issue.
 
 ## Defects

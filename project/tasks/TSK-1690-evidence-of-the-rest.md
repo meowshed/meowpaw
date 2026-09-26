@@ -1,7 +1,7 @@
 ---
 id: TSK-1690
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1200
 closes:
@@ -19,7 +19,7 @@ closes:
     REQ-1762,
     REQ-1766,
   ]
-issue:
+issue: 272
 ---
 
 # Record the evidence for the attributes that already hold
