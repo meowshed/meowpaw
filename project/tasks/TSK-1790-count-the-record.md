@@ -1,11 +1,11 @@
 ---
 id: TSK-1790
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1240
 closes: [REQ-3020]
-issue:
+issue: 310
 ---
 
 # The record can be counted before and after a migration

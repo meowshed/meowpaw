@@ -1,11 +1,11 @@
 ---
 id: TSK-1800
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1240
 closes: [REQ-3008, REQ-3009, REQ-3012, REQ-3014, REQ-3016, REQ-3018, REQ-3019]
-issue:
+issue: 311
 ---
 
 # The method says how a change to the record's shape migrates it

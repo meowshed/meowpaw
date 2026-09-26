@@ -1,11 +1,11 @@
 ---
 id: TSK-1780
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1240
 closes: [REQ-3010, REQ-3011]
-issue:
+issue: 309
 ---
 
 # A retired name is recorded and never reused
