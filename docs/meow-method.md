@@ -61,7 +61,9 @@ meow-method ready implement: not ready
 ```
 
 `meow-method status` prints where the record stands, leading with whatever
-waits for your approval. `meow-method show <id>` prints what an identifier
+waits for your approval. When a session starts, a hook runs `meow-method
+status --waiting`, so Claude opens with any draft waiting for you and says
+nothing when none is. `meow-method show <id>` prints what an identifier
 names and every artifact that cites it, grouped by the field that cites it. `meow-method template <kind>` prints the template a
 step writes from: yours at `.meowpaw/templates/<kind>.md` where you have one,
 and the unit's otherwise.
