@@ -5,7 +5,7 @@
 [verbs]
 fmt = "mise run fmt-check"
 lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run budget"
-test = "crates/meow/build-units && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 tools/check_coverage.py && python3 tools/check_front_matter.py && python3 tools/check_ids.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_research.py && python3 tools/check_subagent_shape.py"
+test = "crates/meow/build-units && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-method/tests && plugins/meow-method/bin/meow-method check && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py"
 
 # The commit convention: each type with what it means for a release, the
 # subject limit and the trailer every commit carries (CLAUDE.md).
@@ -25,3 +25,7 @@ chore = "none"
 [git]
 trunk = "main"
 require_signatures = true
+
+# Where the record lives, for meow-method's checks (SPC-1070).
+[record]
+root = "project"

@@ -11,6 +11,7 @@ under `project/`, and this hierarchy stays separate from it.
 | [meow-verbs](meow-verbs.md)           | The five verification verbs, run as the repository declared them                  |
 | [meow-scm](meow-scm.md)               | The commit convention, checked before a message is used                           |
 | [meow-git](meow-git.md)               | A pack that refuses a commit on the trunk and checks a branch before it is pushed |
+| [meow-method](meow-method.md)         | Checks the record where the repository declares it                                |
 
 One page per unit the harness ships, and a unit's catalogue entry links to its
 page.
