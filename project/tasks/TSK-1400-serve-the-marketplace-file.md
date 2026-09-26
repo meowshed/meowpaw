@@ -74,9 +74,23 @@ after local edit: 1 stale, 0 served
 after update: 0 stale, 1 served
 ```
 
+Release run 36237476056 sent the dispatch, and the site's deployment followed
+it:
+
+```text
+$ gh run view 36237476056    # meowshed/meowpaw, release
+Publish: success
+Tell meow.retran.me a release happened: success
+$ gh run view 36237621838    # retran/meow.retran.me, deploy
+repository_dispatch success
+$ cmp <(curl -fsSL https://meow.retran.me/meowpaw/marketplace.json) <(curl -fsSL <the release's marketplace.json>)
+served file matches the release's
+```
+
 Still to show: a release that raises a unit's version, installed by
-`marketplace update` and `plugin update`, and a release run whose dispatch the
-site's deployment follows.
+`marketplace update` and `plugin update`. No unit has changed since the last
+release, so it waits for the next change to one. The `marketplace` release's
+notes now give the address, where they gave the download form.
 
 ## Left alone
 
