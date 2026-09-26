@@ -41,8 +41,10 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: nine fixtures, and the check run on this repository's history,
       in #242.
 
-- [ ] T-002 TSK-1600 report what waits for approval when a session starts
+- [x] T-002 TSK-1600 report what waits for approval when a session starts
       closes: REQ-0392, REQ-0394, REQ-0402
+      evidence: three fixtures, and a fresh session opening with the draft,
+      in #243.
 
 - [ ] T-003 TSK-1610 the method skill stops at approval and never infers one
       closes: REQ-0390, REQ-0400
