@@ -3,7 +3,7 @@ id: SPC-1050
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at:
+checked-at: "#130"
 states:
   [
     REQ-1290,
@@ -30,8 +30,8 @@ attribution ban, `meow-scm`, and the skill that holds what no check can decide.
 It leaves the commands that make a commit, signing, branches and working trees
 to a pack, which ADR-1080 names, and how the skill is written to SPC-1030.
 
-The harness doesn't implement this yet. ADR-1080 decides it and EPC-1050
-realises it, so `checked-at` stays empty until that epic closes.
+ADR-1080 decides it, EPC-1050 realises it, and `meow-scm` implements it,
+verified under issue 130.
 
 ## Boundary
 
