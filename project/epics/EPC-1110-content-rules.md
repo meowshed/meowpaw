@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1140
-checked-at:
+checked-at: "#206"
 ---
 
 # Each kind's content rules, checked with the scope the frozen record allows
@@ -53,6 +53,19 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1450 - the rules read the scope the layout declares
       evidence: five fixtures, each rule and its scope, seen failing against a
       stub, in #200.
+
+## Verified
+
+Checked under issue 206 at revision `94e3341`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                        | Evidence at `94e3341`                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. A draft research record with an undated source fails `rules`, and the approved record's don't | `test_a_research_draft_dates_each_source_and_an_approved_one_need_not` runs `ok`; on this repository 126 approved research records have undated sources and `rules` reports 0 findings |
+| 2. A draft decision without its realisation section fails `shape`, and ADR-1000 doesn't          | `test_a_draft_decision_carries_the_drafts_sections_and_an_approved_one_not` runs `ok`; ADR-1000 lacks the section and `shape` reports 0 findings                                       |
+| 3. A requirement carrying `priority` fails `front-matter`, draft or approved                     | `test_a_requirement_never_carries_a_priority` runs `ok` on an approved requirement                                                                                                     |
+| 4. `meow-method check` on this repository reports 0 findings                                     | All seven checks report 0 findings, exit 0                                                                                                                                             |
+| 5. Every requirement in one closed task, nothing outstanding                                     | `coverage` reports 0 findings; the unit's 48 fixtures run `OK`                                                                                                                         |
 
 ## Coverage
 
