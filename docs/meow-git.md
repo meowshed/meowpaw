@@ -62,6 +62,14 @@ The program is a native binary shipped inside the pack, so it needs nothing
 installed on the machine; on a machine the pack carries no binary for, it says
 it checked nothing and blocks nothing.
 
+## Branch names
+
+The push guard refuses a push from a branch whose name carries a date, such as
+`2026-09-26` or `20260926`, or the author's name, because the forge already
+stores both. Name the branch for the change instead, such as
+`fix/1234-read-the-trunk`; an issue number followed by other numbers isn't
+read as a date.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
