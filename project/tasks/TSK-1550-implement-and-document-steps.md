@@ -1,7 +1,7 @@
 ---
 id: TSK-1550
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1160
 closes:
@@ -26,7 +26,7 @@ closes:
     REQ-2774,
     REQ-3104,
   ]
-issue:
+issue: 225
 ---
 
 # The implement and document steps carry their obligations

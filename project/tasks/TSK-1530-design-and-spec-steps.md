@@ -1,7 +1,7 @@
 ---
 id: TSK-1530
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1160
 closes:
@@ -37,7 +37,7 @@ closes:
     REQ-2888,
     REQ-2890,
   ]
-issue:
+issue: 223
 ---
 
 # The design and spec steps carry their obligations

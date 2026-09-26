@@ -1,7 +1,7 @@
 ---
 id: TSK-1560
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1160
 closes:
@@ -32,7 +32,7 @@ closes:
     REQ-0329,
     REQ-0542,
   ]
-issue:
+issue: 226
 ---
 
 # The verify step carries its obligations

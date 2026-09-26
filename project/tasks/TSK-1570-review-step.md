@@ -1,7 +1,7 @@
 ---
 id: TSK-1570
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1160
 closes:
@@ -24,7 +24,7 @@ closes:
     REQ-0544,
     REQ-3108,
   ]
-issue:
+issue: 227
 ---
 
 # The review step carries its obligations

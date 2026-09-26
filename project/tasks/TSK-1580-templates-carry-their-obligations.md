@@ -1,7 +1,7 @@
 ---
 id: TSK-1580
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1160
 closes:
@@ -22,7 +22,7 @@ closes:
     REQ-2922,
     REQ-2926,
   ]
-issue:
+issue: 228
 ---
 
 # The task and defect templates carry their obligations

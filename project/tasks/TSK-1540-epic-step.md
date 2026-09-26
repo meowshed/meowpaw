@@ -1,7 +1,7 @@
 ---
 id: TSK-1540
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1160
 closes:
@@ -30,7 +30,7 @@ closes:
     REQ-3106,
     REQ-3172,
   ]
-issue:
+issue: 224
 ---
 
 # The epic step carries its obligations

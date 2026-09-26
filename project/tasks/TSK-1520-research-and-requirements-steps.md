@@ -1,7 +1,7 @@
 ---
 id: TSK-1520
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1160
 closes:
@@ -32,7 +32,7 @@ closes:
     REQ-2874,
     REQ-2876,
   ]
-issue:
+issue: 222
 ---
 
 # The research and requirements steps carry their obligations
