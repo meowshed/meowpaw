@@ -4,7 +4,7 @@ artifact: spec
 status: live
 revised: 2026-09-26
 checked-at: "#160"
-states: [REQ-0032, REQ-0074, REQ-0076, REQ-3178]
+states: [REQ-0032, REQ-0074, REQ-0076, REQ-1485, REQ-3178]
 ---
 
 # The native tool
@@ -30,6 +30,7 @@ launchers and release implements it, verified under issue 160.
 | `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed            |
 | `.github/workflows/build.yml`   | The six-target build, run by CI when the crate changes and by the release |
 | `.github/workflows/release.yml` | The release: one archive per unit, a marketplace file                     |
+| `retran/meow.retran.me`         | The site serving the marketplace file at `meow.retran.me`                 |
 
 ## Behaviour
 
@@ -98,6 +99,34 @@ paths for development. Run without publishing, the workflow builds and packs
 only, and leaves the archives, their sizes and their SHA-256 as a workflow
 artifact.
 
+### The marketplace address
+
+ADR-1120 decides this and EPC-1090 realises it. Until that epic closes, the
+download form above is the one that works.
+
+The released `marketplace.json` is served at
+`https://meow.retran.me/meowpaw/marketplace.json`, and a person adds it once,
+by its address (REQ-1485):
+
+```bash
+claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+```
+
+Claude Code reads that address as a `url` marketplace (RES-0275), so
+`claude plugin marketplace update meowpaw` fetches the file again and brings a
+later release. A person who turns on auto-update for the marketplace under
+`/plugin` gets each release without running anything.
+
+The file is served by the Pages site of `retran/meow.retran.me`, which the
+owner's personal account owns, because `retran.me` is verified for that
+account and only its repositories may publish to the domain's subdomains. A
+`CNAME` record for `meow` at EuroDNS points at `retran.github.io`. The site's
+workflow downloads the `marketplace` release's `marketplace.json` and deploys
+it at `meowpaw/marketplace.json`. It runs on a `repository_dispatch` of type
+`meowpaw-release`, which the release workflow sends after publishing with the
+secret `MARKETPLACE_DISPATCH_TOKEN`, a fine-grained token that can write to
+that repository alone, and it runs when someone starts it by hand.
+
 ### What stays optional
 
 The features of the tool that read the record and project it onto a tracker,
@@ -112,3 +141,5 @@ which later decisions add, are features no step of the method depends on
 | The binary has lost its executable bit | The launcher sets it and runs the binary                |
 | A unit's feature fails to build        | The gate fails, naming the unit                         |
 | A target fails to build at release     | The release publishes nothing, and names the target     |
+| The dispatch to the site fails         | The release stays published; the step fails, naming it  |
+| The site's deployment fails            | The address keeps serving the previous file             |
