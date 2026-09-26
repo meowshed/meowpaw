@@ -126,6 +126,8 @@ Every decision below is approved and in force, as amended by the ones after it.
   it.
 - [ADR-1280](adrs/ADR-1280-onboarding-finishes-by-removing-what-it-placed.md):
   onboarding finishes by removing what it placed, once the report is approved.
+- [ADR-1290](adrs/ADR-1290-a-github-pack-reads-a-repositorys-history.md): a
+  GitHub pack reads a repository's history, and writes nothing.
 
 ## Specifications
 
@@ -257,6 +259,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1270](epics/EPC-1270-adoption.md) realised ADR-1270 in three tasks, TSK-1860 to TSK-1880, each closed with evidence, and was verified against every acceptance criterion under issue 344.
 
 [EPC-1280](epics/EPC-1280-remove-placed.md) realised ADR-1280 in two tasks, TSK-1890 and TSK-1900, each closed with evidence, and was verified against every acceptance criterion under issue 356.
+
+[EPC-1290](epics/EPC-1290-github-pack.md) is approved and realises ADR-1290 in one task,
+TSK-1910, filed as an issue.
 
 ## Defects
 
