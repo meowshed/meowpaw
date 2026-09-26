@@ -29,7 +29,27 @@ Nothing. ADR-1230 is approved.
 
 ## Evidence
 
-Not yet.
+Two fixtures, each seen passing against the program and failing against a
+stub that returns nothing. `check shape` reports a specification's body citing
+a withdrawn requirement at its line, and passes once the citation sits under a
+section headed Withdrawn. It reports a record kept in `research/archive/`,
+naming the directory. This repository reports `shape: 0 findings`.
+
+| Requirement | Evidence                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REQ-0530    | The constitution template opens with "The root policy for this repository, and what outranks it", `plugins/meow-method/templates/constitution.md:13`, and this repository's `CLAUDE.md:7` says that where a document disagrees with it, it wins.                                                                                                                                    |
+| REQ-0552    | `check shape` reports a withdrawn citation in a living document outside a Withdrawn section, as the first fixture shows.                                                                                                                                                                                                                                                            |
+| REQ-0554    | A record replaced by a later one takes the stored status `superseded`, which every numbered kind in `lib/layout.toml` declares and `check frozen` accepts as a change to an approved record, and the later record names it in `supersedes`, which `show` reports under "Cited by". Relations are authored upward, so the replacement names the replaced record and not the reverse. |
+| REQ-0555    | `check shape` reports a record in an archive directory, as the second fixture shows, and no such directory exists under `project/`.                                                                                                                                                                                                                                                 |
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 98 tests in 6.527s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=95, errors=3)
+```
 
 ## Left alone
 
