@@ -212,7 +212,9 @@ fn push_guard(root: &Path) -> u8 {
         let subject = git(root, &["log", "-1", "--format=%h %s", commit]).1.trim().to_string();
         if let Some(scm) = &scm {
             let message = git(root, &["log", "-1", "--format=%B", commit]).1;
-            if let Some((code, stdout)) = run_check(scm, root, &message) {
+            let author = git(root, &["log", "-1", "--format=%an%x00%ae", commit]).1;
+            let (name, email) = author.trim_end().split_once('\0').unwrap_or(("", ""));
+            if let Some((code, stdout)) = run_check(scm, root, &message, (name, email)) {
                 if code == 1 {
                     let lines: Vec<String> =
                         stdout.lines().filter(|line| line.starts_with("line ")).map(|line| format!("    {line}")).collect();
@@ -249,10 +251,14 @@ fn push_guard(root: &Path) -> u8 {
 }
 
 /// Runs `meow-scm check-message` on one message, as its exit status and output.
-fn run_check(scm: &Path, root: &Path, message: &str) -> Option<(i32, String)> {
+/// The commit's own author goes with its message, because a sign-off is
+/// compared with the author of the commit that carries it.
+fn run_check(scm: &Path, root: &Path, message: &str, author: (&str, &str)) -> Option<(i32, String)> {
     let mut child = Command::new(scm)
         .arg("check-message")
         .current_dir(root)
+        .env("GIT_AUTHOR_NAME", author.0)
+        .env("GIT_AUTHOR_EMAIL", author.1)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
