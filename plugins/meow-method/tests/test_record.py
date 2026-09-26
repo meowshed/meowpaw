@@ -863,6 +863,13 @@ class Frozen(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
 
+    def test_a_task_may_gain_its_projection(self):
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "epic: EPC-0001", "epic: EPC-0001\nprojected: 0123456789ab")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
+
     def test_a_task_rewritten_outside_its_evidence_is_reported(self):
         repository = self.repo()
         repository.edit("tasks/TSK-0001-a-task.md", "## What to do\n\nText.", "## What to do\n\nSomething else.")
