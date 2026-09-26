@@ -260,7 +260,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1280](epics/EPC-1280-remove-placed.md) realised ADR-1280 in two tasks, TSK-1890 and TSK-1900, each closed with evidence, and was verified against every acceptance criterion under issue 356.
 
-[EPC-1290](epics/EPC-1290-github-pack.md) realises ADR-1290 in one task,
+[EPC-1290](epics/EPC-1290-github-pack.md) is approved and realises ADR-1290 in one task,
 TSK-1910, filed as an issue.
 
 ## Defects

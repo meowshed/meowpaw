@@ -1,11 +1,11 @@
 ---
 id: TSK-1910
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1290
 closes: [REQ-2556, REQ-2558, REQ-2560, REQ-2564, REQ-2826, REQ-2832, REQ-2906]
-issue:
+issue: 359
 ---
 
 # The GitHub pack reads a repository's history
