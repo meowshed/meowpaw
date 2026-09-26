@@ -34,7 +34,25 @@ TSK-1380, because it moves the matrix that task wrote.
 
 ## Evidence
 
-Not yet.
+The pull request for issue #161 changed `build.yml`, so CI ran the Build
+workflow on it, and a release run without publishing on the same branch called
+it:
+
+```text
+$ gh run watch 36233014435 --exit-status    # Build, on the pull request
+exit=0
+build aarch64-apple-darwin: success          build x86_64-apple-darwin: success
+build aarch64-unknown-linux-musl: success    build x86_64-unknown-linux-musl: success
+build aarch64-pc-windows-msvc: success       build x86_64-pc-windows-msvc: success
+
+$ gh run watch 36233124490 --exit-status    # Release, publish off
+exit=0
+build / build <target>: success              (all six)
+release: success
+```
+
+The release run's `meow-scm-0.2.0.zip` holds the launcher and all six
+binaries, so the release still receives the called workflow's artifacts.
 
 ## Left alone
 
