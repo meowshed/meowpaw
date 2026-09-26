@@ -27,7 +27,20 @@ TSK-1810, which writes the command these rules join.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the init
+command, and no rule names a requirement:
+
+| Requirement | Carried by                   |
+| ----------- | ---------------------------- |
+| REQ-1554    | N2 in `skills/init/SKILL.md` |
+| REQ-1561    | N3 in `skills/init/SKILL.md` |
+| REQ-1562    | N4 in `skills/init/SKILL.md` |
+| REQ-1564    | N5 in `skills/init/SKILL.md` |
+
+Step 3 now stops at a diff where a profile exists, and step 5 reports the
+verbs first, so the steps follow N2 and N5. A script found all 4 traced
+labels. Whether the model follows the rules is measured by evaluation, which
+is postponed.
 
 ## Left alone
 
