@@ -42,8 +42,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-1560, REQ-1563
       evidence: the template, the command and a fixture, in #319.
 
-- [ ] T-002 TSK-1820 the init command reports before it writes and chooses nothing
+- [x] T-002 TSK-1820 the init command reports before it writes and chooses nothing
       closes: REQ-1554, REQ-1561, REQ-1562, REQ-1564
+      evidence: 4 requirements traced to four rules, in #320.
 
 - [ ] T-003 TSK-1830 an empty record reports its coverage as zero
       closes: REQ-3098, REQ-3180
