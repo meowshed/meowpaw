@@ -48,8 +48,31 @@ Nothing. ADR-1080 and SPC-1050 are approved.
 
 ## Evidence
 
-Not yet. The task closes on the fixtures passing, each shown first failing,
-with the command, its exit status and its output.
+`plugins/meow-scm/` carries the manifest, a budget of 0 characters, the
+launcher `bin/meow-scm`, the program `lib/meow_scm.py` and fourteen fixtures in
+`tests/test_scm.py`: one for each row of SPC-1050's check table and failure
+paths, and one for each of ADR-1080's first four checks, including a path and
+a product name that the attribution check must not trip on. The fixture file
+builds its attribution samples from parts, so the file itself carries none.
+
+Each fixture was first seen failing against a launcher that returns nothing,
+then passing against the program. The first run against the stub found two
+fixtures that passed on the exit status alone; each now also asserts the
+line the program prints:
+
+```text
+$ MEOW_SCM_BIN=stub/meow-scm python3 -m unittest discover -s plugins/meow-scm/tests
+FAILED (failures=14)
+exit 1
+
+$ python3 -m unittest discover -s plugins/meow-scm/tests
+Ran 14 tests in 0.663s
+OK
+exit 0
+```
+
+REQ-1290, REQ-1294, REQ-1295, REQ-1302, REQ-1308, REQ-1310, REQ-1314 and
+REQ-1318 are closed.
 
 ## Left alone
 
