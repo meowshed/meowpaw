@@ -35,6 +35,11 @@
 [record]
 # root = "<the directory holding the record>"
 
+# The tracker the record is projected onto, for a repository that uses one.
+# Leave the section out for one that doesn't: the method needs none.
+[tracker]
+# kind = "github"
+
 # The language prose is written in, where it isn't British English.
 [prose]
 # language = "en-GB"

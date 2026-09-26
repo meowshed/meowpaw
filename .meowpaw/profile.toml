@@ -26,6 +26,10 @@ chore = "none"
 trunk = "main"
 require_signatures = true
 
+# The tracker meow-github projects each approved epic's tasks onto (ADR-1310).
+[tracker]
+kind = "github"
+
 # Where the record lives, for meow-method's checks (SPC-1070).
 [record]
 root = "project"

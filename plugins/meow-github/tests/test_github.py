@@ -160,11 +160,13 @@ Not yet.
 
 
 class Project(unittest.TestCase):
-    def repository(self, status="approved"):
+    def repository(self, status="approved", tracker='[tracker]\nkind = "github"\n'):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
         subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+        (root / ".meowpaw").mkdir()
+        (root / ".meowpaw" / "profile.toml").write_text(tracker, encoding="utf-8")
         (root / "project" / "epics").mkdir(parents=True)
         (root / "project" / "tasks").mkdir()
         (root / "project" / "epics" / "EPC-0001-a-plan.md").write_text(EPIC.format(status=status), encoding="utf-8")
@@ -268,6 +270,14 @@ class Project(unittest.TestCase):
         self.assertFalse(self.writes(root, len(state["calls"])))
         self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse an empty title")
         self.assertEqual(self.task(root, "TSK-0002-second.md"), tasks[1])
+
+    def test_a_repository_declaring_no_tracker_projects_nothing(self):
+        root = self.repository(tracker="[verbs]\n")
+        done = self.project(root)
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn(".meowpaw/profile.toml declares no tracker, so nothing is projected; declare `[tracker] kind = \"github\"`", done.stdout)
+        self.assertFalse((root / "state.json").exists())
+        self.assertNotIn("issue: 1", self.task(root, "TSK-0001-first.md"))
 
     def test_a_draft_epic_projects_nothing(self):
         root = self.repository(status="draft")

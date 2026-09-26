@@ -49,8 +49,10 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: three fixtures, the update, both reports and a check that
       writes nothing, in #372.
 
-- [ ] T-003 TSK-1950 the tracker is declared, optional, and projectable by hand
+- [x] T-003 TSK-1950 the tracker is declared, optional, and projectable by hand
       closes: REQ-1351, REQ-1372, REQ-1376, REQ-1380, REQ-1384, REQ-1402
+      evidence: a fixture, the declared tracker, and six rules recorded, in
+      #373.
 
 ## Coverage
 
