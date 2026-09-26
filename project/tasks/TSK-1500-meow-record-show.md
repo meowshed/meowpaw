@@ -35,7 +35,39 @@ Nothing. ADR-1150 and SPC-1100 are approved.
 
 ## Evidence
 
-Not yet.
+`meow record show <id>` resolves an identifier alone and prints the artifact's
+path, kind, stored status, title and first paragraph, its own relations under
+`Names`, and under `Cited by` every artifact whose relation fields name it,
+grouped by field, then every other file in the record that mentions it. The
+downward direction is derived on every run. A withdrawn artifact resolves and
+prints its status.
+
+The relations check now reports a relation field holding more than bare
+identifiers, such as a link, which REQ-0644 asks for and nothing checked. The
+record's output writes through a macro that stops quietly on a closed pipe, so
+`show ... | head` no longer panics, and the launcher's fallback names the unit
+rather than `check`.
+
+```text
+$ meow-method show REQ-0190
+REQ-0190 requirement, approved: project/requirements/REQ-0190-nine-steps-in-order.md
+...
+Cited by
+  addresses: ADR-1130
+  closes: TSK-1440
+  states: SPC-1090
+
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 53 tests in 2.474s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=51, errors=2)
+```
+
+The fixed vocabulary, the upward direction and the identifiers naming their
+kind are held by `lib/layout.toml` and the identifiers and relations checks,
+whose fixtures already cover them.
 
 ## Left alone
 
