@@ -22,7 +22,26 @@ Nothing. ADR-1150 and SPC-1100 are approved.
 
 ## Evidence
 
-Not yet.
+The epic kind's `rules` in `lib/layout.toml` gain `done-has-evidence`,
+`added-says-why` and `dropped-says-why`, and the `rules` check runs them on
+every epic: a task marked `[x]` whose Evidence section holds nothing past a
+leading "Not yet." paragraph, a `[+]` entry with no `added:` line, and a `[~]`
+entry with no `dropped:` line are each reported on the entry's line.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 56 tests in 2.490s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=54, errors=2)
+
+$ meow-method check rules
+rules: 0 findings
+```
+
+Every epic in this repository meets the three rules, so they hold on every
+record, and `meow-method` is 0.4.0.
 
 ## Left alone
 

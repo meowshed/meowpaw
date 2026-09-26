@@ -678,6 +678,36 @@ fn section_lines<'a>(doc: &'a Doc, name: &str) -> Vec<(usize, &'a str)> {
     out
 }
 
+/// Each task entry an epic lists: its line, its mark, its task and the whole
+/// entry with its continuation lines.
+fn entries(epic: &Doc) -> Vec<(usize, char, String, String)> {
+    let head = Regex::new(r"^- \[(.)\] T-\d+ (TSK-\d{4})").expect("entry pattern");
+    let mut out: Vec<(usize, char, String, String)> = Vec::new();
+    for (i, line) in epic.text.lines().enumerate() {
+        if let Some(c) = head.captures(line) {
+            let mark = c[1].chars().next().unwrap_or(' ');
+            out.push((i + 1, mark, c[2].to_string(), line.to_string()));
+        } else if let Some(last) = out.last_mut() {
+            if line.starts_with(' ') && !line.trim().is_empty() {
+                last.3.push('\n');
+                last.3.push_str(line);
+            }
+        }
+    }
+    out
+}
+
+/// A task's evidence, without a leading "Not yet." paragraph.
+fn evidence_of(task: &Doc) -> String {
+    let lines: Vec<&str> = section_lines(task, "Evidence").into_iter().map(|(_, l)| l).collect();
+    let text = lines.join("\n");
+    let mut paragraphs = text.split("\n\n").map(str::trim).filter(|p| !p.is_empty()).peekable();
+    if paragraphs.peek().is_some_and(|p| p.starts_with("Not yet")) {
+        paragraphs.next();
+    }
+    paragraphs.collect::<Vec<_>>().join("\n\n")
+}
+
 /// The named rules a section or a field can't express (ADR-1140).
 fn rules(record: &Record) -> Vec<Finding> {
     let date = Regex::new(r"\d{4}-\d{2}-\d{2}").expect("date pattern");
@@ -726,6 +756,26 @@ fn rules(record: &Record) -> Vec<Finding> {
                     let says = header.is_some_and(|(_, text)| text.to_lowercase().contains("lost"));
                     if !says {
                         out.push(Finding::at(doc, header.map(|(line, _)| line), "has no column saying why each alternative lost".into()));
+                    }
+                }
+                "done-has-evidence" | "added-says-why" | "dropped-says-why" => {
+                    let known = known(record);
+                    for (line, mark, task, entry) in entries(doc) {
+                        match (rule.as_str(), mark) {
+                            ("done-has-evidence", 'x') => {
+                                let evidence = known.get(task.as_str()).map(|t| evidence_of(t)).unwrap_or_default();
+                                if evidence.is_empty() {
+                                    out.push(Finding::at(doc, Some(line), format!("marks {task} done, and its Evidence section holds nothing past \"Not yet.\"")));
+                                }
+                            }
+                            ("added-says-why", '+') if !entry.contains("added:") => {
+                                out.push(Finding::at(doc, Some(line), format!("marks {task} added after approval with no added: line saying why")));
+                            }
+                            ("dropped-says-why", '~') if !entry.contains("dropped:") => {
+                                out.push(Finding::at(doc, Some(line), format!("marks {task} dropped with no dropped: line saying why")));
+                            }
+                            _ => {}
+                        }
                     }
                 }
                 unknown => out.push(Finding::at(doc, None, format!("the layout names a rule, {unknown}, this program doesn't know"))),
