@@ -147,7 +147,7 @@ pub fn main(args: &[String]) -> u8 {
                 None => println!("{}: {}", finding.shown, finding.message),
             }
         }
-        println!("{check}: {} findings", findings.len());
+        println!("{check}: {} finding{}", findings.len(), if findings.len() == 1 { "" } else { "s" });
         total += findings.len();
     }
     if total == 0 { CLEAN } else { FOUND }

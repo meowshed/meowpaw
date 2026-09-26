@@ -102,7 +102,7 @@ class Checks(unittest.TestCase):
     def found(self, done, check, line):
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn(line, done.stdout)
-        self.assertIn(f"{check}: 1 findings", done.stdout)
+        self.assertIn(f"{check}: 1 finding\n", done.stdout)
 
     def test_a_clean_record_passes_every_check(self):
         done = self.repo().run("check")
@@ -115,6 +115,20 @@ class Checks(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
         self.found(repository.run("check"), "front-matter",
                    "project/tasks/TSK-0001-a-task.md:4: status done is not one a task stores")
+
+    def test_two_findings_are_counted_in_the_plural(self):
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
+        done = repository.run("check", "front-matter")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("front-matter: 2 findings\n", done.stdout)
+
+    def test_a_defect_may_name_no_requirement(self):
+        repository = self.repo()
+        repository.edit("bugs/BUG-0001-a-defect.md", "violates: REQ-0001\n", "")
+        done = repository.run("check", "front-matter")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
     def test_front_matter_reports_a_missing_field(self):
         repository = self.repo()
