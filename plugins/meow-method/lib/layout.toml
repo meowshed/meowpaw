@@ -82,7 +82,7 @@ fields = ["realises", "checked-at"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]
-rules = ["realises-one"]
+rules = ["realises-one", "done-has-evidence", "added-says-why", "dropped-says-why"]
 
 [[kind]]
 name = "task"
