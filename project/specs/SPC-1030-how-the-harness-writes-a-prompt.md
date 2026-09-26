@@ -46,8 +46,7 @@ supporting files, an agent definition, an output style, and the text of a
 prompt hook. It states their form, what a rule in them says, how a unit divides
 its material and loads it, what it may cost, and the check that holds the form.
 
-It leaves what each prompt says to the specification of its unit, such as
-SPC-1000 for the reply shape and SPC-1010 for the writing standard, and how a
+It leaves what each prompt says to the specification of its unit, and how a
 change to a prompt is measured to SPC-1020.
 
 The harness implements part of this. ADR-1020, ADR-1030 and ADR-1050 decide

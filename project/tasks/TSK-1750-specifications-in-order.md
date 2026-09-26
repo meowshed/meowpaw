@@ -28,7 +28,29 @@ Nothing. ADR-1230 is approved.
 
 ## Evidence
 
-Not yet.
+`check index` now reads a living kind's index as its reading order, and
+reports a document listed before one it cites. A fixture lists a specification
+before the one it builds on and sees the finding at its line, then swaps the
+two and sees `index: 0 findings`; it fails against a stub that returns nothing.
+
+This repository failed the check before the change: SPC-1010 was listed before
+SPC-1020 and SPC-1030, and SPC-1040 to SPC-1070 before SPC-1080, in two cycles.
+The contracts SPC-1020 and SPC-1030 no longer name a unit's specification, and
+SPC-1080 no longer names the units' specifications that cite it, which breaks
+both cycles. The index now reads SPC-1000, SPC-1020, SPC-1030, SPC-1010,
+SPC-1080, SPC-1040, SPC-1050, SPC-1060, SPC-1070, SPC-1090 and SPC-1100.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 96 tests in 6.295s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=93, errors=3)
+
+$ meow-method check index
+index: 0 findings
+```
 
 ## Left alone
 

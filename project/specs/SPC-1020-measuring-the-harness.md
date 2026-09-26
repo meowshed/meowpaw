@@ -27,9 +27,9 @@ Measuring a change to what the harness says is what this covers: the case set,
 the two arms, the judge, the thresholds, what counts as a regression, and the
 loop by which a prompt is optimised.
 
-It leaves what the prompts say to SPC-1000 and SPC-1010. It leaves the size
-budget a unit carries to SPC-1010, which states it alongside the standard the
-unit ships.
+It leaves what the prompts say, and the size budget a unit carries, to the
+specification of the unit that ships them, because a contract names no unit
+and every unit's specification cites the contracts it follows.
 
 Nothing implements this yet. ADR-1010 authorises it and EPC-1010 realises it,
 and `checked-at` stays empty until that epic closes.
