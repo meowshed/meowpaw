@@ -45,4 +45,7 @@ it up is review.
 - V11. Check an architectural property a program can settle rather than
   reviewing it, assess one no program can settle as a declared judgement, and
   never report passing checks on single properties as an architectural pass.
+- V12. Name the revision a check ran at by the pull request that last
+  merged into the trunk, never by a commit hash, because a squash rebuilds
+  the commit and the hash stops resolving.
 </rules>
