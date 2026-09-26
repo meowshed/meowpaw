@@ -157,6 +157,9 @@ against every acceptance criterion under issue 168.
 tasks, TSK-1350 to TSK-1390, each closed with evidence, and was verified
 against every acceptance criterion under issue 160.
 
+[EPC-1090](epics/EPC-1090-the-marketplace-address.md) is approved and realises
+ADR-1120 in two tasks, TSK-1400 and TSK-1410, each filed as an issue.
+
 ## Defects
 
 | Defect                                                                       | What it was                                                                                 |
