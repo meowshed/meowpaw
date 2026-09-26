@@ -303,6 +303,35 @@ class Checks(unittest.TestCase):
         self.found(repository.run("check", "rules"), "rules",
                    "project/adrs/ADR-0001-a-choice.md:21: has no column saying why each alternative lost")
 
+    def mark(self, repository, mark, extra=""):
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
+                        f"## Tasks\n\n- [{mark}] T-001 TSK-0001 the task\n      closes: REQ-0001{extra}")
+
+    def test_a_task_marked_done_carries_evidence(self):
+        repository = self.repo()
+        self.mark(repository, "x")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
+        self.found(repository.run("check", "rules"), "rules",
+                   'project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nNot yet.", "## Evidence\n\nNot yet.\n\nThe fixture passed.")
+        self.assertEqual(repository.run("check", "rules").returncode, 0)
+
+    def test_a_task_added_after_approval_says_why(self):
+        repository = self.repo()
+        self.mark(repository, "+")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 added after approval with no added: line saying why")
+        repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      added: nobody foresaw the case")
+        self.assertEqual(repository.run("check", "rules").returncode, 0)
+
+    def test_a_dropped_task_keeps_its_entry_and_says_why(self):
+        repository = self.repo()
+        self.mark(repository, "~")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 dropped with no dropped: line saying why")
+        repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      dropped: the decision was reversed")
+        self.assertEqual(repository.run("check", "rules").returncode, 0)
+
     def test_a_file_of_no_known_kind_is_reported(self):
         repository = self.repo()
         repository.write("notes/stray.md", "---\nid: x\nartifact: note\nstatus: live\nrevised: 2026-01-01\n---\n")
