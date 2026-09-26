@@ -16,10 +16,10 @@ update` fetches again, so a person gets a later release without downloading
 anything by hand. `retran.me` is the owner's domain, served by GitHub Pages
 from `retran/retran.github.io` and verified for the owner's personal account.
 That verification lets only that account's repositories publish to the domain
-and its immediate subdomains, so `meowshed/meowpaw` can't serve
-`meowpaw.retran.me`, while the homepage repository can serve
-`retran.me/meowpaw/`. `meowshed.github.io/meowpaw/` needs no domain at all.
-None of these addresses has been tried yet.
+and its immediate subdomains, so a repository under `retran` can serve
+`meow.retran.me` with one CNAME record, while `meowshed/meowpaw` can't.
+`meowshed.github.io/meowpaw/` needs no domain at all. None of these addresses
+has been tried yet.
 
 ## The question
 
@@ -67,7 +67,8 @@ workflow, `cname` `retran.me`, `protected_domain_state` `verified`, HTTPS
 enforced, and a certificate for `retran.me` and `www.retran.me`. The site is
 built with Astro by `withastro/action` and deployed by `actions/deploy-pages` on
 every push to `master`. `retran.me` resolves to GitHub Pages' four addresses,
-and `www.retran.me` is a CNAME for `retran.github.io`.
+`www.retran.me` is a CNAME for `retran.github.io`, and EuroDNS serves the
+zone. `meow.retran.me` resolves to nothing, so it is free to use.
 
 GitHub's documentation says a custom domain set on a user site "will be used
 for all project sites owned by the same account", so a project site of a
@@ -75,7 +76,9 @@ repository `retran/<name>` appears at `retran.me/<name>`.
 `https://retran.me/ide-development-2023/`, a project site of the owner's,
 answers 200. The same page says verifying a domain for a personal account lets
 "only repositories owned by your personal account" publish "to the verified
-custom domain or the domain's immediate subdomains".
+custom domain or the domain's immediate subdomains". A custom subdomain is set
+in the repository's Pages settings and pointed at Pages by a `CNAME` record at
+the DNS provider, and a site deployed by a workflow needs no `CNAME` file.
 
 ### meowshed
 
@@ -90,11 +93,11 @@ Pages site for `meowshed/meowpaw` would be served at
 1. A marketplace file on `retran.me` or on `github.io` is a `url` marketplace,
    and whether `marketplace update` fetches it again is what a test settles
    first.
-2. `meowshed/meowpaw` can't publish to `meowpaw.retran.me` while `retran.me` is
-   verified for the owner's personal account.
-3. `retran.me/meowpaw/marketplace.json` can be served by a repository the
-   owner's account owns: the homepage itself, or a project site named `meowpaw`
-   under `retran`. Either way a workflow in `meowshed/meowpaw` has to tell it a
+2. `meowshed/meowpaw` can't publish to a subdomain of `retran.me` while
+   `retran.me` is verified for the owner's personal account.
+3. A repository the owner's account owns can serve the file at
+   `meow.retran.me` with one CNAME record at EuroDNS, or at `retran.me/<name>/`
+   with none. Either way a workflow in `meowshed/meowpaw` has to tell it a
    release happened, which takes a token with access to that repository.
 4. `meowshed.github.io/meowpaw/marketplace.json` can be deployed by the release
    workflow itself, with no token for another repository and no domain, and its
@@ -117,6 +120,10 @@ Pages site for `meowshed/meowpaw` would be served at
 - [Verifying your custom domain for GitHub Pages](https://github.com/github/docs/blob/main/content/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages.md),
   read 2026-09-26 - which repositories may publish to a verified domain and its
   subdomains.
+- [Managing a custom domain for your GitHub Pages site](https://github.com/github/docs/blob/main/content/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site.md),
+  read 2026-09-26 - a custom subdomain set in the settings and a `CNAME`
+  record, with no `CNAME` file for a workflow-deployed site.
 - The GitHub API and DNS, 2026-09-26 - the Pages settings of
   `retran/retran.github.io` and `meowshed/meowpaw`, the homepage's deploy
-  workflow, and the records of `retran.me` and `www.retran.me`.
+  workflow, the records of `retran.me`, `www.retran.me` and `meow.retran.me`,
+  and the zone's name servers.
