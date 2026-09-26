@@ -28,9 +28,27 @@ scripts go.
 
 ## Evidence
 
-Not yet. The task closes on the four scripts gone, `meow-verbs run test`
-passing with `meow-method check` in it, and `grep` finding no reference to the
-deleted scripts outside the record.
+`.meowpaw/profile.toml` declares `root = "project"` under `[record]`, the
+`test` verb runs `meow-method check` where it ran the four scripts, and the
+four are deleted. `CLAUDE.md`'s gate section names the unit, and the unit has
+its page, its marketplace entry and its row in `docs/README.md`.
+
+```text
+$ meow-verbs run test
+passed, exit status 0 after 6.3s
+Ran 12 tests ... OK    Ran 14 tests ... OK    Ran 12 tests ... OK    Ran 18 tests ... OK
+front-matter: 0 findings    identifiers: 0 findings    relations: 0 findings
+index: 0 findings           coverage: 0 findings       shape: 0 findings
+7 documents, 0 index failures
+0 dangling links
+summary: test passed
+
+$ grep -rln -E 'check_(coverage|front_matter|ids|research)' . --exclude-dir=.git --exclude-dir=target --exclude-dir=project | wc -l
+0
+```
+
+The record still names the four scripts where it recorded what they reported,
+which is history and stays as written.
 
 ## Left alone
 
