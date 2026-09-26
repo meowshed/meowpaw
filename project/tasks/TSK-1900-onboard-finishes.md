@@ -27,7 +27,17 @@ Nothing. ADR-1280 is approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the onboard
+command, and no rule names a requirement:
+
+| Requirement | Carried by                       |
+| ----------- | -------------------------------- |
+| REQ-3114    | B12 in `skills/onboard/SKILL.md` |
+| REQ-3116    | B11 in `skills/onboard/SKILL.md` |
+
+Step 6 now names `meow-method onboarding remove` as what follows the report's
+approval. A script found both traced labels. Whether the model follows the
+rules is measured by evaluation, which is postponed.
 
 ## Left alone
 

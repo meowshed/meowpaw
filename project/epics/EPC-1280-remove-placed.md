@@ -40,8 +40,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-3118, REQ-3120, REQ-3122, REQ-3124, REQ-3126
       evidence: three fixtures, the removal and both refusals, in #351.
 
-- [ ] T-002 TSK-1900 the onboard command migrates an existing record and writes drafts
+- [x] T-002 TSK-1900 the onboard command migrates an existing record and writes drafts
       closes: REQ-3114, REQ-3116
+      evidence: 2 requirements traced to two rules, in #352.
 
 ## Coverage
 
