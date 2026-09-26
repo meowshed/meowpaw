@@ -28,7 +28,25 @@ Nothing. ADR-1200 is approved.
 
 ## Evidence
 
-Not yet.
+A fixture runs each read-only command, `check`, `check frozen`, `status`,
+`status --waiting`, `ready`, `template`, `show`, `index` without `--write`,
+`new` and `find`, twice over a committed record, and shows the tree's hashes
+and modification times unchanged, the two outputs identical, and each output
+non-empty, so a command that printed nothing couldn't pass, except `status
+--waiting`, whose right answer with nothing waiting is silence. `index --write`
+now writes a temporary file beside the index and renames it into place, and a
+second fixture shows no temporary file left behind. The chain's state is read
+from the artifacts alone, which the first fixture's `status` exercises with no
+session and no cache, and `show` names the artifact behind each claim.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 83 tests in 5.215s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=80, errors=3)
+```
 
 ## Left alone
 
