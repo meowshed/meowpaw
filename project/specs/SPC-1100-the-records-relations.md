@@ -3,7 +3,7 @@ id: SPC-1100
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at: "#219"
+checked-at: "#259"
 states:
   [
     REQ-0237,
@@ -44,7 +44,8 @@ This covers how artifacts name one another: the identifiers, the relation
 fields, and resolving an identifier to its artifact and to what cites it. It
 leaves checking that a relation resolves to SPC-1070's relations check.
 
-ADR-1150 decides it, EPC-1150 realises it, and `meow-method` implements it.
+ADR-1150 and ADR-1180 decide it, EPC-1150 and EPC-1180 realise them, and
+`meow-method` implements it, verified under issue 259.
 
 ## Boundary
 
