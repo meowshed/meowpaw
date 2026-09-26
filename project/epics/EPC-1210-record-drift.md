@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1210
-checked-at:
+checked-at: "#288"
 ---
 
 # The record reports where it contradicts itself
@@ -51,6 +51,19 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-003 TSK-1720 record the evidence for the status rules that already hold
       closes: REQ-0510, REQ-0516, REQ-0518, REQ-0519, REQ-0582, REQ-0586, REQ-0690, REQ-0694, REQ-0696, REQ-0716
       evidence: ten rules, each with its command or file, in #283.
+
+## Verified
+
+Checked under issue 288 at revision `d18e0a8`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                    | Evidence at `d18e0a8`                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. A task with evidence left unmarked fails `check coverage`, and a body naming a missing identifier fails `check relations` | The fixtures for an unmarked task, a withdrawn requirement in an open epic, and a draft naming a missing identifier pass, among `Ran 7 tests`, `OK`; the body scan reads drafts only, as the amendment by EPC-1210 records                                                           |
+| 2. `show` prints a requirement's closing task and its verification, and "checked by nothing" for one with none               | `test_show_derives_a_requirements_state` passes                                                                                                                                                                                                                                      |
+| 3. `status` withholds "verified" from an epic with a finding, and reports a record under no version control as local         | `test_status_withholds_verified_from_an_epic_check_reports_on` and `test_status_says_a_record_under_no_version_control_is_local` pass; on this record `status` counts 1075 in force: 411 verified, 21 closed and not yet verified, 14 in a task not yet done, 629 checked by nothing |
+| 4. Each requirement that already holds has its evidence recorded in the task that closes it                                  | TSK-1720's evidence table holds 10 rows, one per requirement it closes                                                                                                                                                                                                               |
+| 5. Every requirement lands in exactly one closed task                                                                        | `meow-method check coverage` reports 0 findings, and the three tasks are marked `[x]` with evidence                                                                                                                                                                                  |
 
 ## Coverage
 
