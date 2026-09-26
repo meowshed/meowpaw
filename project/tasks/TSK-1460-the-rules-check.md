@@ -1,11 +1,11 @@
 ---
 id: TSK-1460
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1110
 closes: [REQ-0223, REQ-0262, REQ-0558, REQ-2868, REQ-2882]
-issue:
+issue: 200
 ---
 
 # The rules check

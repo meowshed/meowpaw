@@ -1,7 +1,7 @@
 ---
 id: TSK-1450
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1110
 closes:
@@ -38,7 +38,7 @@ closes:
     REQ-2924,
     REQ-3102,
   ]
-issue:
+issue: 199
 ---
 
 # The layout's content rules and their scope
