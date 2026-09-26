@@ -64,7 +64,10 @@ meow-method ready implement: not ready
 waits for your approval. When a session starts, a hook runs `meow-method
 status --waiting`, so Claude opens with any draft waiting for you and says
 nothing when none is. `meow-method show <id>` prints what an identifier
-names and every artifact that cites it, grouped by the field that cites it. `meow-method template <kind>` prints the template a
+names and every artifact that cites it, grouped by the field that cites it.
+`meow-method index <kind> --write` regenerates a kind's index between its
+`<!-- meow-method index -->` markers, and `check index` reports one that has
+fallen behind the tree. `meow-method template <kind>` prints the template a
 step writes from: yours at `.meowpaw/templates/<kind>.md` where you have one,
 and the unit's otherwise.
 
