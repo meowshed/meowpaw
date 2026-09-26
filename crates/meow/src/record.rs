@@ -11,6 +11,23 @@
 //! each kind's index (REQ-0524), coverage (REQ-0246) and shape (REQ-0145).
 
 use crate::profile::{self, Profile};
+
+/// Prints a line, and stops quietly when the reader has gone, as `head` does,
+/// because a closed pipe isn't a failure of the program.
+macro_rules! say {
+    () => {{
+        use std::io::Write;
+        if writeln!(std::io::stdout()).is_err() {
+            std::process::exit(0);
+        }
+    }};
+    ($($t:tt)*) => {{
+        use std::io::Write;
+        if writeln!(std::io::stdout(), $($t)*).is_err() {
+            std::process::exit(0);
+        }
+    }};
+}
 use regex::Regex;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -109,9 +126,10 @@ pub fn main(args: &[String]) -> u8 {
         "status" => status(rest),
         "ready" => ready(rest),
         "template" => template(rest),
+        "show" => show(rest),
         _ => {
             eprintln!(
-                "usage: meow-method check [{}] | status | ready <step> <id>... | template <kind>",
+                "usage: meow-method check [{}] | status | ready <step> <id>... | template <kind> | show <id>",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -124,7 +142,7 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
     let layout = match load_layout() {
         Ok(layout) => layout,
         Err(reason) => {
-            println!("meow-method {verb}: the record was not checked: {reason}");
+            say!("meow-method {verb}: the record was not checked: {reason}");
             return Err(UNCHECKED);
         }
     };
@@ -132,12 +150,12 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
     let root = match record_root(&repository) {
         Ok(root) => root,
         Err(reason) => {
-            println!("meow-method {verb}: {reason}");
+            say!("meow-method {verb}: {reason}");
             return Err(FOUND);
         }
     };
     if !root.is_dir() {
-        println!("meow-method {verb}: the record's root {} doesn't exist; nothing was checked", root.display());
+        say!("meow-method {verb}: the record's root {} doesn't exist; nothing was checked", root.display());
         return Err(FOUND);
     }
     let record = read_record(layout, &repository, &root);
@@ -176,11 +194,11 @@ fn check(rest: &[String]) -> u8 {
         findings.sort_by(|a, b| (&a.shown, a.line, &a.message).cmp(&(&b.shown, b.line, &b.message)));
         for finding in &findings {
             match finding.line {
-                Some(line) => println!("{}:{}: {}", finding.shown, line, finding.message),
-                None => println!("{}: {}", finding.shown, finding.message),
+                Some(line) => say!("{}:{}: {}", finding.shown, line, finding.message),
+                None => say!("{}: {}", finding.shown, finding.message),
             }
         }
-        println!("{check}: {} finding{}", findings.len(), if findings.len() == 1 { "" } else { "s" });
+        say!("{check}: {} finding{}", findings.len(), if findings.len() == 1 { "" } else { "s" });
         total += findings.len();
     }
     if total == 0 { CLEAN } else { FOUND }
@@ -482,6 +500,12 @@ fn relations(record: &Record) -> Vec<Finding> {
     for doc in &record.docs {
         for key in &record.layout.relations {
             let Some(field) = doc.field(key) else { continue };
+            // A relation is bare identifiers, because a link carries a path and
+            // a path changes when a repository is reorganised.
+            let rest = record.ids.replace_all(bare(&field.value), "");
+            if rest.chars().any(|c| !(c.is_whitespace() || c == ',' || c == '[' || c == ']')) {
+                out.push(Finding::at(doc, Some(field.line), format!("{key} holds more than bare identifiers: {}", bare(&field.value))));
+            }
             for found in record.ids.find_iter(&field.value) {
                 if !known.contains_key(found.as_str()) {
                     out.push(Finding::at(doc, Some(field.line), format!("{key} names {}, which has no file", found.as_str())));
@@ -763,7 +787,7 @@ fn ready(rest: &[String]) -> u8 {
         return USAGE;
     }
     if step == "research" {
-        println!("meow-method ready research: ready; research needs no approved input");
+        say!("meow-method ready research: ready; research needs no approved input");
         return CLEAN;
     }
     if ids.is_empty() {
@@ -838,12 +862,12 @@ fn ready(rest: &[String]) -> u8 {
         }
     }
     if missing.is_empty() {
-        println!("meow-method ready {step}: ready; {} approved and complete", ids.join(", "));
+        say!("meow-method ready {step}: ready; {} approved and complete", ids.join(", "));
         CLEAN
     } else {
-        println!("meow-method ready {step}: not ready");
+        say!("meow-method ready {step}: not ready");
         for line in &missing {
-            println!("  {line}");
+            say!("  {line}");
         }
         FOUND
     }
@@ -897,24 +921,24 @@ fn status(rest: &[String]) -> u8 {
     };
     let known = known(&record);
     let drafts: Vec<&&Doc> = known.values().filter(|doc| bare(doc.value("status")) == "draft").collect();
-    println!("Waiting for approval");
+    say!("Waiting for approval");
     if drafts.is_empty() {
-        println!("  nothing");
+        say!("  nothing");
     }
     for doc in &drafts {
-        println!("  {} {}, draft: {}", bare(doc.id()), kind_of(&record, doc), title(doc));
+        say!("  {} {}, draft: {}", bare(doc.id()), kind_of(&record, doc), title(doc));
     }
-    println!();
-    println!("Decisions");
+    say!();
+    say!("Decisions");
     let mut decisions: Vec<&Doc> = of_kind(&record, "decision").into_iter().filter(|d| approved(d)).collect();
     decisions.sort_by_key(|d| bare(d.id()).to_string());
     if decisions.is_empty() {
-        println!("  none approved");
+        say!("  none approved");
     }
     for decision in decisions {
         let id = bare(decision.id());
-        println!("  {id} {}", title(decision));
-        println!("    {}", position(&record, &known, id));
+        say!("  {id} {}", title(decision));
+        say!("    {}", position(&record, &known, id));
     }
     CLEAN
 }
@@ -931,30 +955,106 @@ fn template(rest: &[String]) -> u8 {
     let repository = profile::repository_root();
     let own = repository.join(".meowpaw").join("templates").join(format!("{kind}.md"));
     if own.is_file() {
-        println!("{}", own.display());
+        say!("{}", own.display());
         return CLEAN;
     }
     let unit = match layout_path() {
         Ok(path) => path.parent().and_then(Path::parent).map(|u| u.join("templates").join(format!("{kind}.md"))),
         Err(reason) => {
-            println!("meow-method template: no template was found: {reason}");
+            say!("meow-method template: no template was found: {reason}");
             return UNCHECKED;
         }
     };
     match unit {
         Some(path) if path.is_file() => {
-            println!("{}", path.display());
+            say!("{}", path.display());
             CLEAN
         }
         Some(path) => {
-            println!("meow-method template: the unit has no template for {kind} at {}", path.display());
+            say!("meow-method template: the unit has no template for {kind} at {}", path.display());
             FOUND
         }
         None => {
-            println!("meow-method template: no template was found for {kind}");
+            say!("meow-method template: no template was found for {kind}");
             UNCHECKED
         }
     }
+}
+
+fn show(rest: &[String]) -> u8 {
+    let [id] = rest else {
+        eprintln!("usage: meow-method show <id>");
+        return USAGE;
+    };
+    let (record, _, _) = match open_record("show") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let known = known(&record);
+    let Some(doc) = known.get(id.as_str()) else {
+        say!("meow-method show: {id} resolves to nothing in the record");
+        return FOUND;
+    };
+    say!("{id} {}, {}: {}", kind_of(&record, doc), bare(doc.value("status")), doc.shown);
+    let heading = title(doc);
+    if heading != id.as_str() {
+        say!("{heading}");
+    }
+    let first = doc
+        .text
+        .split("\n\n")
+        .skip_while(|p| p.starts_with("---") || p.trim_start().starts_with('#') || p.trim().is_empty())
+        .next()
+        .map(|p| p.split_whitespace().collect::<Vec<_>>().join(" "))
+        .unwrap_or_default();
+    if !first.is_empty() {
+        say!("{first}");
+    }
+    say!();
+    say!("Names");
+    let mut named = false;
+    for key in &record.layout.relations {
+        if let Some(field) = doc.field(key) {
+            let ids: Vec<&str> = record.ids.find_iter(&field.value).map(|m| m.as_str()).collect();
+            if !ids.is_empty() {
+                say!("  {key}: {}", ids.join(", "));
+                named = true;
+            }
+        }
+    }
+    if !named {
+        say!("  nothing");
+    }
+    say!();
+    say!("Cited by");
+    let mut cited: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for other in &record.docs {
+        if other.path == doc.path {
+            continue;
+        }
+        let mut in_field = false;
+        for key in &record.layout.relations {
+            if let Some(field) = other.field(key) {
+                if record.ids.find_iter(&field.value).any(|m| m.as_str() == id) {
+                    let who = if bare(other.id()).is_empty() { other.shown.clone() } else { bare(other.id()).to_string() };
+                    cited.entry(key.clone()).or_default().insert(who);
+                    in_field = true;
+                }
+            }
+        }
+        if !in_field && record.ids.find_iter(&other.text).any(|m| m.as_str() == id) {
+            cited.entry("body".into()).or_default().insert(other.shown.clone());
+        }
+    }
+    if cited.is_empty() {
+        say!("  nothing");
+    }
+    for key in record.layout.relations.iter().map(String::as_str).chain(std::iter::once("body")) {
+        if let Some(who) = cited.get(key) {
+            say!("  {key}: {}", who.iter().cloned().collect::<Vec<_>>().join(", "));
+        }
+    }
+    CLEAN
 }
 
 #[cfg(test)]
