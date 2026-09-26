@@ -30,7 +30,34 @@ Nothing. ADR-1210 is approved.
 
 ## Evidence
 
-Not yet.
+Four fixtures, each seen passing against the program and failing against a
+stub that returns nothing. `show` on the fixture's requirement prints `verified` and the task done
+in its epic, verified under `#1`, and a requirement no task closes prints
+`checked by nothing`. `status` counts two requirements in force, one verified
+and one checked by nothing. It prints `realised` for a verified epic, and
+`drifted ... check reports 1 finding on it now` once a task of that epic links
+to a missing file. It says the record is local to this machine once the
+repository's `.git` is removed, and says nothing of it before. The state is
+derived from the tasks' `closes`, their epics' marks and `checked-at`, and no
+field stores it. Run on this repository's own record:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 90 tests in 6.202s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=87, errors=3)
+
+$ meow-method status | tail -1
+1075 in force: 411 verified, 5 closed and not yet verified, 30 in a task not yet done, 629 checked by nothing
+
+$ meow-method show REQ-0704
+...
+State
+  closed and not yet verified
+  TSK-1700 done in EPC-1210, not yet verified
+```
 
 ## Left alone
 

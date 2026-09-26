@@ -61,10 +61,17 @@ meow-method ready implement: not ready
 ```
 
 `meow-method status` prints where the record stands, leading with whatever
-waits for your approval. When a session starts, a hook runs `meow-method
+waits for your approval. It counts the requirements in force by the state it
+derives from the tasks closing them: verified, closed and not yet verified, in
+a task not yet done, or checked by nothing. It calls an epic verified only
+while `check` reports nothing on the epic, its decision or its tasks, and
+calls it drifted otherwise. Where the record's root is under no version
+control, it says the record is local to this machine. When a session starts, a hook runs `meow-method
 status --waiting`, so Claude opens with any draft waiting for you and says
 nothing when none is. `meow-method show <id>` prints what an identifier
-names and every artifact that cites it, grouped by the field that cites it.
+names and every artifact that cites it, grouped by the field that cites it,
+and for a requirement each task closing it with its mark and its epic's
+verification.
 `meow-method find <word>...` lists the artifacts whose identifier, title or
 conclusion carry the words, headings only and at most twenty.
 `meow-method new <kind> [--topic <topic>]` prints the next identifier to
