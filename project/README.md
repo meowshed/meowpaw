@@ -76,6 +76,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1080](adrs/ADR-1080-a-commit-message-is-checked-against-the-declared-convention.md):
   a commit message is checked against the convention the repository declares
   and against the attribution ban.
+- [ADR-1090](adrs/ADR-1090-a-git-pack-enforces-the-convention-at-push.md): a
+  `git` pack refuses a commit on the trunk and checks a branch before it is
+  pushed.
 
 ## Specifications
 
@@ -96,6 +99,9 @@ issue 115.
 
 [SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
 convention and its check, and `meow-scm` implements it, verified under issue 130.
+
+[SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack. Nothing
+implements it yet.
 
 ## Epics and tasks
 
@@ -126,6 +132,9 @@ every acceptance criterion under issue 115.
 [EPC-1050](epics/EPC-1050-the-commit-convention.md) realises ADR-1080 in two
 tasks, TSK-1300 and TSK-1310, both closed with evidence, and was verified
 against every acceptance criterion under issue 130.
+
+[EPC-1060](epics/EPC-1060-the-git-pack.md) is a draft that realises ADR-1090
+in one task, TSK-1320, and waits for the owner's approval.
 
 ## Defects
 
