@@ -42,4 +42,7 @@ it up is document.
 - I10. Keep the not-working states distinct and named, unresolved, tool
   absent, tool broken, untrusted, skipped and unreachable, because each calls
   for a different action.
+- I11. Work from the parts the task touches and the dependencies it may use,
+  as the specification states them, not from structure inferred from the file
+  tree.
 </rules>
