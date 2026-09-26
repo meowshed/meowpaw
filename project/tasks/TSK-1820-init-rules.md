@@ -1,11 +1,11 @@
 ---
 id: TSK-1820
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1250
 closes: [REQ-1554, REQ-1561, REQ-1562, REQ-1564]
-issue:
+issue: 320
 ---
 
 # The init command reports before it writes and chooses nothing

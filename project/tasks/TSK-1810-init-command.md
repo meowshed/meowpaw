@@ -1,11 +1,11 @@
 ---
 id: TSK-1810
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1250
 closes: [REQ-1560, REQ-1563]
-issue:
+issue: 319
 ---
 
 # The init command and the profile template

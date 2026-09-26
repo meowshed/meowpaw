@@ -1,11 +1,11 @@
 ---
 id: TSK-1830
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1250
 closes: [REQ-3098, REQ-3180]
-issue:
+issue: 321
 ---
 
 # An empty record reports its coverage as zero

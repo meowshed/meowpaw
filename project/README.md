@@ -242,7 +242,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1240](epics/EPC-1240-migrations.md) realised ADR-1240 in three tasks, TSK-1780 to TSK-1800, each closed with evidence, and was verified against every acceptance criterion under issue 316.
 
-[EPC-1250](epics/EPC-1250-init.md) realises ADR-1250 in three tasks,
+[EPC-1250](epics/EPC-1250-init.md) is approved and realises ADR-1250 in three tasks,
 TSK-1810 to TSK-1830, each filed as an issue.
 
 ## Defects
