@@ -41,6 +41,43 @@ Not yet. The task closes on the address adding a `url` marketplace on a clean
 machine, a raised version installed by `marketplace update` and `plugin
 update`, and a release run whose dispatch the site's deployment follows.
 
+The first half landed with issue #176. The owner created `retran/meow.retran.me`
+with Pages built by its workflow and `meow.retran.me` as its domain, added the
+`CNAME` record, and stored `MARKETPLACE_DISPATCH_TOKEN`. The site's workflow,
+run by hand as run 36236366982, deployed the file:
+
+```text
+$ curl -sS -o /dev/null -w '%{http_code} %{content_type}' https://meow.retran.me/meowpaw/marketplace.json
+200 application/json; charset=utf-8
+```
+
+In a clean `debian:bookworm-slim` container, Claude Code 2.1.283 added the
+address as a `url` marketplace and installed a unit from it:
+
+```text
+$ claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+✔ Successfully added marketplace: meowpaw (declared in user settings)
+$ claude plugin marketplace list
+  ❯ meowpaw
+    Source: URL (https://meow.retran.me/meowpaw/marketplace.json)
+$ claude plugin install meow-core@meowpaw
+✔ Successfully installed plugin: meow-core@meowpaw (scope: user)
+```
+
+`marketplace update` fetches the file again. With `meow-core`'s archive
+address in the cached copy changed to a stale one, an update put the served
+address back:
+
+```text
+after local edit: 1 stale, 0 served
+✔ Successfully updated marketplace: meowpaw
+after update: 0 stale, 1 served
+```
+
+Still to show: a release that raises a unit's version, installed by
+`marketplace update` and `plugin update`, and a release run whose dispatch the
+site's deployment follows.
+
 ## Left alone
 
 The install instructions, which TSK-1410 changes.
