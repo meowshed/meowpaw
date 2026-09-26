@@ -1,7 +1,7 @@
 ---
 id: TSK-1850
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1260
 closes:
@@ -17,7 +17,7 @@ closes:
     REQ-3092,
     REQ-3094,
   ]
-issue:
+issue: 330
 ---
 
 # The onboard command recovers what a repository is and invents nothing
