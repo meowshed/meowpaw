@@ -5,7 +5,7 @@ topic: testing
 class: functional
 status: approved
 revised: 2026-09-20
-elaborates: RES-0043, RES-0066
+elaborates: RES-0066
 verification: behavioural
 ---
 
