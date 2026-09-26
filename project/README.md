@@ -79,6 +79,8 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1090](adrs/ADR-1090-a-git-pack-enforces-the-convention-at-push.md): a
   `git` pack refuses a commit on the trunk and checks a branch before it is
   pushed.
+- [ADR-1100](adrs/ADR-1100-the-record-is-checked-by-a-unit-the-harness-ships.md):
+  the record is checked by a unit the harness ships, as EPC-1070 amends it.
 
 ## Specifications
 
@@ -102,6 +104,9 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 
 [SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, and
 `meow-git` implements it.
+
+[SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
+checked. Nothing implements it yet.
 
 ## Epics and tasks
 
@@ -136,6 +141,10 @@ against every acceptance criterion under issue 130.
 [EPC-1060](epics/EPC-1060-the-git-pack.md) realises ADR-1090 in one task,
 TSK-1320, closed with evidence, and was verified against every acceptance
 criterion under issue 138.
+
+[EPC-1070](epics/EPC-1070-checking-the-record.md) is a draft that realises
+ADR-1100 in two tasks, TSK-1330 and TSK-1340, and waits for the owner's
+approval.
 
 ## Defects
 
