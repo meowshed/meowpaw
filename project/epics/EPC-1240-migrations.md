@@ -41,8 +41,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-3010, REQ-3011
       evidence: two fixtures and three retired names recorded, in #309.
 
-- [ ] T-002 TSK-1790 the record can be counted before and after a migration
+- [x] T-002 TSK-1790 the record can be counted before and after a migration
       closes: REQ-3020
+      evidence: a fixture, and the count read-only, in #310.
 
 - [ ] T-003 TSK-1800 the method says how a change to the record's shape migrates it
       closes: REQ-3008, REQ-3009, REQ-3012, REQ-3014, REQ-3016, REQ-3018, REQ-3019
