@@ -172,8 +172,9 @@ against every acceptance criterion under issue 160.
 | [BUG-1050](bugs/BUG-1050-the-specification-direction-was-unchecked.md)       | A requirement the decision addresses was stated in no specification                         |
 | [BUG-1030](bugs/BUG-1030-eval-results-were-committed.md)                     | A generated eval report reached `main`, because the ignore pattern was anchored at the root |
 | [BUG-1110](bugs/BUG-1110-requirements-elaborate-missing-research.md)         | Eight requirements elaborated research that never existed                                   |
+| [BUG-1120](bugs/BUG-1120-the-install-instructions-give-no-binary.md)         | The install instructions gave a unit without its binary                                     |
 
-Eleven are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Twelve are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.

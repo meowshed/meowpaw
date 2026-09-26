@@ -97,13 +97,18 @@ you need instead of the whole catalogue.
 
 ## Install
 
-Not yet installable. When the first plugins land:
+Download the released marketplace file, add it, and install the plugins you
+want by name:
 
-```text
-/plugin marketplace add meowshed/meowpaw
-/plugin install meow-core@meowpaw
-/plugin install meow-rust@meowpaw
+```bash
+curl -fsSLo marketplace.json https://github.com/meowshed/meowpaw/releases/download/marketplace/marketplace.json
+claude plugin marketplace add ./marketplace.json
+claude plugin install meow-core@meowpaw
 ```
+
+[`docs/README.md`](docs/README.md) lists every plugin with its page. A later
+release reaches you when you download the file again and run
+`claude plugin marketplace update meowpaw`.
 
 A [dotmeow](https://github.com/meowshed/dotmeow) component will do this on a
 machine it manages. None exists yet.

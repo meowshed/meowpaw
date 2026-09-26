@@ -8,8 +8,11 @@ message check where that unit is installed.
 
 ## Install it
 
+Download the released marketplace file, add it, and install the unit:
+
 ```bash
-claude plugin marketplace add meowshed/meowpaw
+curl -fsSLo marketplace.json https://github.com/meowshed/meowpaw/releases/download/marketplace/marketplace.json
+claude plugin marketplace add ./marketplace.json
 claude plugin install meow-git@meowpaw
 ```
 
