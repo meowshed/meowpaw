@@ -47,8 +47,10 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: 7 units declare their platform, and their pages the
       behaviours they rely on, in #271.
 
-- [ ] T-003 TSK-1690 record the evidence for the attributes that already hold
+- [x] T-003 TSK-1690 record the evidence for the attributes that already hold
       closes: REQ-1726, REQ-1734, REQ-1744, REQ-1746, REQ-1748, REQ-1750, REQ-1752, REQ-1754, REQ-1756, REQ-1758, REQ-1762, REQ-1766
+      evidence: twelve attributes, each with its command or file, and the
+      toolchain declared, in #272.
 
 ## Coverage
 
