@@ -254,6 +254,8 @@ states:
     REQ-3104,
     REQ-3106,
     REQ-3108,
+    REQ-3110,
+    REQ-3112,
     REQ-3114,
     REQ-3116,
     REQ-3118,
@@ -261,6 +263,7 @@ states:
     REQ-3122,
     REQ-3124,
     REQ-3126,
+    REQ-3128,
     REQ-3172,
     REQ-3180,
   ]
@@ -450,6 +453,13 @@ superseded or discarded and keeps each marked cited (REQ-3118, REQ-3120). It
 refuses on an unapproved report and on a migrated or superseded document whose
 destination names no artifact (REQ-3122, REQ-3124), prints the count before
 and after and each removed path, and commits nothing (REQ-3126) (ADR-1280).
+
+Onboarding reads the forge history through `meow-github history` where that
+pack is installed, and recovers as drafts each obligation and each decision
+with its rejected alternative that a document, an issue or a pull request
+states, citing its address, and none from code alone (REQ-3110, REQ-3112).
+Without the pack it reports the history as unread and names `meow-github`
+(REQ-3128) (ADR-1300).
 
 ## Failure paths
 
