@@ -38,8 +38,10 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1910 the GitHub pack reads a repository's history
+- [x] T-001 TSK-1910 the GitHub pack reads a repository's history
       closes: REQ-2556, REQ-2558, REQ-2560, REQ-2564, REQ-2826, REQ-2832, REQ-2906
+      evidence: the pack, four fixtures and a read of this repository, in
+      #359.
 
 ## Coverage
 
