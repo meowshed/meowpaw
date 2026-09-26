@@ -45,8 +45,9 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: a fixture, and the specifications reordered with their cycles
       broken, in #299.
 
-- [ ] T-002 TSK-1760 withdrawn statements are collected and nothing is archived
+- [x] T-002 TSK-1760 withdrawn statements are collected and nothing is archived
       closes: REQ-0530, REQ-0552, REQ-0554, REQ-0555
+      evidence: two fixtures and two recorded rules, in #300.
 
 - [ ] T-003 TSK-1770 a draft requirement carries one obligation, stands alone, and prohibits with MUST NOT
       closes: REQ-2880
