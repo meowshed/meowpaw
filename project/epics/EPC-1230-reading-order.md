@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1230
-checked-at:
+checked-at: "#306"
 ---
 
 # The record keeps its reading order, and its history out of the way
@@ -52,6 +52,19 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-003 TSK-1770 a draft requirement carries one obligation, stands alone, and prohibits with MUST NOT
       closes: REQ-2880
       evidence: four fixtures and three draft rules, in #301.
+
+## Verified
+
+Checked under issue 306 at revision `5976105`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                                       | Evidence at `5976105`                                                                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. A specification listed before one it cites fails `check index`, and this repository's index passes                                           | `test_the_specifications_index_lists_each_after_what_it_cites` passes; `meow-method check index` reports `index: 0 findings`                        |
+| 2. `check shape` reports a withdrawn requirement in a living document's body and an archive directory, and passes one collected under Withdrawn | `test_a_living_document_collects_a_withdrawn_citation` and `test_nothing_is_kept_in_an_archive_directory` pass                                      |
+| 3. `check rules` reports each of the three statements in a draft requirement, and passes each in an approved one                                | The three draft-rule fixtures and `test_an_approved_requirement_keeps_the_rules_it_was_approved_under` pass, `Ran 7 tests`, `OK` with the two above |
+| 4. Each requirement that already holds has its evidence recorded                                                                                | TSK-1760's evidence table holds 4 rows, among them REQ-0530 and REQ-0554                                                                            |
+| 5. Every requirement lands in exactly one closed task                                                                                           | `meow-method check coverage` reports 0 findings, and the three tasks are marked `[x]` with evidence                                                 |
 
 ## Coverage
 
