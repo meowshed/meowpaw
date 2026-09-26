@@ -164,6 +164,13 @@ class Checks(unittest.TestCase):
         self.found(repository.run("check", "relations"), "relations",
                    "project/tasks/TSK-0001-a-task.md:31: links to ../epics/EPC-0001-gone.md, which doesn't exist")
 
+    def test_a_relation_is_bare_identifiers(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "elaborates: RES-0002",
+                        "elaborates: [RES-0002](../research/RES-0002-a-finding.md)")
+        self.found(repository.run("check", "relations"), "relations",
+                   "project/requirements/REQ-0001-an-obligation.md:9: elaborates holds more than bare identifiers")
+
     def test_index_reports_an_artifact_its_index_does_not_list(self):
         repository = self.repo()
         repository.write("requirements/README.md", index("index", []))
@@ -439,6 +446,43 @@ class Chain(unittest.TestCase):
         done = self.repo().run("template", "memo")
         self.assertEqual(done.returncode, 2)
         self.assertIn("research, requirement, adr, spec, epic, task, bug, vision, constitution", done.stderr)
+
+
+class Show(unittest.TestCase):
+    """SPC-1100: an identifier resolves to its artifact and to what cites it."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def test_show_resolves_an_identifier_and_derives_what_cites_it(self):
+        done = self.repo().run("show", "REQ-0001")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.splitlines()
+        self.assertEqual(lines[0], "REQ-0001 requirement, approved: project/requirements/REQ-0001-an-obligation.md")
+        self.assertIn("Names\n  elaborates: RES-0002", done.stdout)
+        cited = done.stdout.split("Cited by\n", 1)[1]
+        for line in ("  addresses: ADR-0001", "  closes: TSK-0001", "  states: SPC-0001", "  violates: BUG-0001",
+                     "  body: project/requirements/README.md"):
+            self.assertIn(line, cited)
+
+    def test_a_withdrawn_artifact_still_resolves(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
+        done = repository.run("show", "REQ-0001")
+        self.assertEqual(done.returncode, 0)
+        self.assertIn("REQ-0001 requirement, withdrawn:", done.stdout)
+
+    def test_an_identifier_with_no_artifact_resolves_to_nothing(self):
+        done = self.repo().run("show", "REQ-0999")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("REQ-0999 resolves to nothing in the record", done.stdout)
+
+    def test_show_needs_an_identifier(self):
+        done = self.repo().run("show")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("usage: meow-method show <id>", done.stderr)
 
 
 class Where(unittest.TestCase):

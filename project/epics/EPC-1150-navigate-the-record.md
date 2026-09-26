@@ -38,9 +38,10 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1500 `meow record show`, resolving an identifier and deriving
+- [x] T-001 TSK-1500 `meow record show`, resolving an identifier and deriving
       what cites it, with fixtures for the relation rules it records
       closes: REQ-0237, REQ-0638, REQ-0640, REQ-0642, REQ-0644, REQ-0646, REQ-0648, REQ-0650, REQ-0652, REQ-0654, REQ-0658
+      evidence: five fixtures, `show` seen resolving both ways, in #214.
 
 - [ ] T-002 TSK-1510 the epic's rules for a done, an added and a dropped task
       closes: REQ-0692, REQ-0698, REQ-0700, REQ-0702
