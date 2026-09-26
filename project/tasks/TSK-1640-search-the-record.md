@@ -59,7 +59,10 @@ $ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-
 FAILED (failures=78, errors=3)
 ```
 
-The prompt check reports plugins/meow-method/skills/method/SKILL.md:49: <word> is not in the vocabulary SPC-1010 states, and the budget meow-method: 385 of 500 characters on every turn.
+The prompt check reports 50 shipped prompts and 0 failures, and meow-method
+loads 385 of its 500 characters on every turn. An earlier line here quoted a
+prompt-check failure fixed before the merge; EPC-1180's verification corrected
+it.
 
 ## Left alone
 
