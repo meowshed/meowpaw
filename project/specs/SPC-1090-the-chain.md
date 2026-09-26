@@ -124,6 +124,11 @@ states:
     REQ-0337,
     REQ-0339,
     REQ-0341,
+    REQ-0390,
+    REQ-0392,
+    REQ-0394,
+    REQ-0400,
+    REQ-0402,
     REQ-0450,
     REQ-0458,
     REQ-0460,
@@ -298,6 +303,20 @@ has reached and the next one:
 - the epic carries `checked-at`: realised
 
 Run twice with nothing changed, it prints the same text (REQ-0210).
+
+### Approvals
+
+An approval is a record's stored status moving from `draft` to `approved`, in a
+commit of its own, so it is durable and survives every session (REQ-0402). A
+step that produces an artifact needing approval stops there, and never reads
+silence, a change of subject or an unrelated instruction as approval
+(REQ-0390, REQ-0400).
+
+`meow-method status --waiting` prints only what waits for approval, each line
+naming the artifact, its kind and the gate it waits at, and prints nothing when
+nothing waits or the repository has no record (REQ-0392). A `SessionStart` hook
+runs it, so a session opens with the pending approval before anything else
+(REQ-0394).
 
 ### The driver
 
