@@ -31,7 +31,17 @@ states:
     REQ-0558,
     REQ-0560,
     REQ-0562,
+    REQ-0568,
+    REQ-0569,
+    REQ-0570,
+    REQ-0571,
+    REQ-0572,
     REQ-0573,
+    REQ-0574,
+    REQ-0576,
+    REQ-0577,
+    REQ-0578,
+    REQ-0580,
     REQ-0587,
     REQ-0588,
     REQ-0589,
@@ -114,7 +124,7 @@ The unit carries the layout `CLAUDE.md` states, as data: for each kind, its
 prefix, its directory under `root`, its required front matter fields, its
 status vocabulary, the file that indexes it if one does, and the sections it
 must carry if any. The kinds are the vision, specifications, research,
-requirements, decisions, epics, tasks and defects.
+requirements, decisions, epics, tasks, defects and insights.
 
 For each kind the layout also declares its content rules, and the scope of
 each: every record of the kind, or drafts only (ADR-1140). A rule applies to
@@ -139,6 +149,17 @@ stored statuses come from one vocabulary, `draft`, `approved`, `withdrawn`,
 the observed statuses, `implemented`, `verified`, `in-progress` and `done`,
 are never stored (REQ-0587, REQ-0588, REQ-0589, REQ-0592, REQ-0593,
 REQ-2668).
+
+An insight, `INS-NNNN` in `insights/`, holds one generalisable lesson apart
+from decisions, requirements and history (REQ-0568). Its title states the
+claim with no date and at least four words, its Evidence section holds a digit
+or a fenced block, it records under What looked right each refuted hypothesis
+with why it seemed correct, and it ends with The pattern (REQ-0569, REQ-0571,
+REQ-0574, REQ-0576). The `method` skill writes one only when something was
+learned and never on a schedule, keeps activity in the history, and finds one
+with `find` and never by default; a task records a prediction under its
+acceptance criteria before the work that tests it (REQ-0570, REQ-0572,
+REQ-0577, REQ-0578, REQ-0580) (ADR-1220).
 
 ### The checks
 
