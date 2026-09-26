@@ -438,6 +438,25 @@ class Checks(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("index: 0 findings\n", done.stdout)
 
+    def test_a_living_document_collects_a_withdrawn_citation(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
+        repository.edit("specs/SPC-0001-a-part.md", "## Behaviour\n\nText.", "## Behaviour\n\nIt holds REQ-0001.")
+        self.found(repository.run("check", "shape"), "shape",
+                   "project/specs/SPC-0001-a-part.md:22: cites REQ-0001, which is withdrawn, outside a Withdrawn section")
+        repository.edit("specs/SPC-0001-a-part.md", "## Behaviour\n\nIt holds REQ-0001.", "## Behaviour\n\nText.")
+        repository.edit("specs/SPC-0001-a-part.md", "## Failure paths\n\nText.", "## Failure paths\n\nText.\n\n## Withdrawn\n\nREQ-0001, by ADR-0001.")
+        done = repository.run("check", "shape")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("shape: 0 findings\n", done.stdout)
+
+    def test_nothing_is_kept_in_an_archive_directory(self):
+        repository = self.repo()
+        research = (repository.root / "research/RES-0002-a-finding.md").read_text(encoding="utf-8")
+        repository.write("research/archive/RES-0003-old.md", research.replace("RES-0002", "RES-0003"))
+        self.assertIn("project/research/archive/RES-0003-old.md: sits in research/archive, a directory named for an archive; "
+                      "freeze the record or discard it with a reason", repository.run("check", "shape").stdout)
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")
