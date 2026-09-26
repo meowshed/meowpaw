@@ -42,8 +42,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-1556, REQ-3096
       evidence: the report kind, its template and four fixtures, in #329.
 
-- [ ] T-002 TSK-1850 the onboard command recovers what a repository is and invents nothing
+- [x] T-002 TSK-1850 the onboard command recovers what a repository is and invents nothing
       closes: REQ-1540, REQ-1542, REQ-1544, REQ-1546, REQ-1548, REQ-1550, REQ-1552, REQ-1558, REQ-3092, REQ-3094
+      evidence: the command, 10 requirements traced to ten rules, in #330.
 
 ## Coverage
 
