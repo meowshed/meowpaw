@@ -21,6 +21,13 @@ supersedes: []
 
 # 1100. The record is checked by a unit the harness ships
 
+**Amended by EPC-1070.** Two of the six scripts this decision moves don't check
+the record: `check_index` checks the documentation index in `docs/`, and
+`check_links` checks links across the whole repository. Both stay in `tools/`.
+The unit adds the record index check REQ-0524 asks for, which nothing does
+today, and checks links inside the record. Four scripts move and are deleted,
+and criteria 4 and 5 count those four. The rest stands.
+
 ## Decision
 
 A new unit, `meow-method`, starts the method layer with the checks over the
