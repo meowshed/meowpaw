@@ -1,0 +1,117 @@
+# Builds the native tool for six targets, packs every unit whose version has
+# no release yet, and publishes each as its own release beside a marketplace
+# file that installs every unit from its archive (SPC-1080). Without `publish`
+# it builds and packs only, and leaves the result as a workflow artifact.
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the releases; leave it off to build and pack only
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+
+jobs:
+  build:
+    name: build ${{ matrix.target }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { target: aarch64-apple-darwin, os: macos-15 }
+          - { target: x86_64-apple-darwin, os: macos-15 }
+          - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm }
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-24.04 }
+          - { target: aarch64-pc-windows-msvc, os: windows-11-arm }
+          - { target: x86_64-pc-windows-msvc, os: windows-2025 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: runner.os == 'Linux'
+        run: sudo apt-get install -y musl-tools
+      - run: crates/meow/build-units ${{ matrix.target }}
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ matrix.target }}
+          path: plugins/*/bin/${{ matrix.target }}/
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BASE: https://github.com/${{ github.repository }}/releases/download
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bin-*
+          path: plugins
+          merge-multiple: true
+      - name: Pack the units without a release
+        run: |
+          mkdir dist
+          cp .claude-plugin/marketplace.json dist/marketplace.json
+          printf '| Unit | Version | Archive | Bytes | SHA-256 |\n' > dist/notes.md
+          printf '| ---- | ------- | ------- | ----- | ------- |\n' >> dist/notes.md
+          for name in $(jq -r '.plugins[].name' .claude-plugin/marketplace.json); do
+            dir=plugins/$name
+            version=$(jq -r .version "$dir/.claude-plugin/plugin.json")
+            tag=$name-v$version
+            zip=$name-$version.zip
+            if gh release view "$tag" >/dev/null 2>&1; then
+              gh release download "$tag" --pattern "$zip" --dir dist
+              state=released
+            else
+              chmod +x "$dir"/bin/* "$dir"/bin/*/meow* 2>/dev/null || true
+              { git ls-files "$dir"; ls "$dir"/bin/*-*-*/meow* 2>/dev/null || true; } |
+                sed 's|^plugins/||' | (cd plugins && zip -q -X "../dist/$zip" -@)
+              echo "$tag" >> dist/tags
+              state=new
+            fi
+            sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
+            bytes=$(wc -c < "dist/$zip")
+            printf '| %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$bytes" "$sha" >> dist/notes.md
+            jq --arg name "$name" --arg url "$BASE/$tag/$zip" --arg sha "$sha" \
+              '(.plugins[] | select(.name == $name) | .source) = {source: "archive", url: $url, sha256: $sha}' \
+              dist/marketplace.json > dist/next.json
+            mv dist/next.json dist/marketplace.json
+          done
+          cat dist/notes.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: dist/
+      - name: Publish
+        if: inputs.publish
+        run: |
+          touch dist/tags
+          while read -r tag; do
+            name=${tag%-v*}
+            version=${tag##*-v}
+            gh release create "$tag" "dist/$name-$version.zip" --target "$GITHUB_SHA" \
+              --title "$name $version" --notes "$(head -2 dist/notes.md; grep "^| $name |" dist/notes.md)" --latest=false
+          done < dist/tags
+          notes="$(printf 'Add this marketplace with `claude plugin marketplace add %s/marketplace/marketplace.json`.\n\n' "$BASE"; cat dist/notes.md)"
+          if gh release view marketplace >/dev/null 2>&1; then
+            gh release upload marketplace dist/marketplace.json --clobber
+            gh release edit marketplace --notes "$notes"
+          else
+            gh release create marketplace dist/marketplace.json --target "$GITHUB_SHA" \
+              --title "Marketplace" --notes "$notes"
+          fi
