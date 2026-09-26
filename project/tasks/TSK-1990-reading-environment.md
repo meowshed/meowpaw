@@ -34,7 +34,8 @@ Nothing. ADR-1320 is approved.
 user's own configuration stays, because it holds their identity and keys,
 which RES-0131 keeps for work that records authorship. The seven reads in
 `git.rs`, `profile.rs`, `scm.rs` and `record.rs` use it, and a search for
-another way of starting git finds 1.
+`Command::new("git")` finds 1, the helper itself. Corrected at verification,
+because the first version didn't say which one it found.
 
 A fixture puts a stand-in git on the `PATH` that records its environment and
 runs the real one, then runs `status`, `check frozen` and `check coverage`:

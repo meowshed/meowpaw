@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1320
-checked-at:
+checked-at: "#392"
 ---
 
 # Source-control discipline, held by checks and by the commit skill
@@ -60,6 +60,18 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-1296, REQ-1298, REQ-1306, REQ-1320, REQ-1322, REQ-1324, REQ-1328, REQ-2534, REQ-2536, REQ-2538, REQ-2820, REQ-2822
       evidence: 12 requirements traced to eight rules and the signing setup, in
       #385.
+
+## Verified
+
+Checked under issue 392 on the trunk after #391, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                                                                                                      | Evidence on the trunk after #391                                                                      |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 1. `check-message` refuses a sign-off naming someone other than the author, `push-guard` refuses a branch named for a date or its author, and `check frozen` reports an added line citing a hash as a revision | The sign-off, branch-name and hash-citation fixtures pass                                             |
+| 2. Each read runs with prompting and paging turned off                                                                                                                                                         | `test_each_read_of_git_runs_in_the_reading_environment` passes                                        |
+| 3. Each rule in the commit skill maps to its requirement in the task that closes it                                                                                                                            | B1 to B8 are found in `skills/commit/SKILL.md`, traced in TSK-2000 with REQ-1322 on the signing setup |
+| 4. Every requirement lands in exactly one closed task                                                                                                                                                          | `meow-method check coverage` reports 0 findings, and the five tasks are marked `[x]` with evidence    |
 
 ## Coverage
 
