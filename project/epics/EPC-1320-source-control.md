@@ -42,8 +42,10 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: a fixture, and the push guard passing each commit's author, in
       #381.
 
-- [ ] T-002 TSK-1970 a branch name carries nothing the forge stores
+- [x] T-002 TSK-1970 a branch name carries nothing the forge stores
       closes: REQ-2818
+      evidence: two fixtures, the refusal and the false positive guarded, in
+      #382.
 
 - [ ] T-003 TSK-1980 the record cites a pull request, never a commit hash
       closes: REQ-3176

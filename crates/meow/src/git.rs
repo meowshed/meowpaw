@@ -187,6 +187,35 @@ fn plural(count: usize) -> &'static str {
     if count > 1 { "s" } else { "" }
 }
 
+/// What a branch name repeats of what the forge stores: a date, or the
+/// author's name (REQ-2818).
+fn stored_in_name(branch: &str, author: &str) -> Option<String> {
+    let chars: Vec<char> = branch.chars().collect();
+    let digits: Vec<bool> = chars.iter().map(|c| c.is_ascii_digit()).collect();
+    // A year of this century or the last followed by a real month, so an
+    // issue number followed by a number isn't read as a date.
+    let month = |a: char, b: char| matches!((a, b), ('0', '1'..='9') | ('1', '0'..='2'));
+    for i in 0..chars.len() {
+        if i > 0 && digits[i - 1] {
+            continue;
+        }
+        let run = digits[i..].iter().take_while(|d| **d).count();
+        let century = run >= 4 && matches!((chars[i], chars[i + 1]), ('1', '9') | ('2', '0'));
+        let packed = run == 8 && century && month(chars[i + 4], chars[i + 5]);
+        let separated = run == 4 && century && i + 7 <= chars.len() && !digits[i + 4] && month(chars[i + 5], chars[i + 6]);
+        if packed || separated {
+            return Some("a date".to_string());
+        }
+    }
+    let lower = branch.to_lowercase();
+    let words: Vec<String> = author.to_lowercase().split_whitespace().map(str::to_string).collect();
+    let forms = [words.join("-"), words.join("."), words.join("_"), words.concat()];
+    forms
+        .iter()
+        .find(|form| form.len() >= 4 && lower.contains(form.as_str()))
+        .map(|_| format!("the author's name, {author}"))
+}
+
 fn push_guard(root: &Path) -> u8 {
     let policy = policy(root);
     let (ok, listed) = git(root, &["rev-list", "--reverse", "HEAD", "--not", "--remotes"]);
@@ -203,11 +232,18 @@ fn push_guard(root: &Path) -> u8 {
         return ALLOW;
     }
 
+    let branch = git(root, &["symbolic-ref", "--short", "-q", "HEAD"]).1.trim().to_string();
+    let author = git(root, &["config", "user.name"]).1.trim().to_string();
+    let mut failures: Vec<String> = Vec::new();
+    if let Some(what) = stored_in_name(&branch, &author) {
+        failures.push(format!(
+            "the branch `{branch}`\n    branch name: it carries {what}, which the forge already stores; name the branch for the change"
+        ));
+    }
     let scm = find_meow_scm();
     if scm.is_none() {
         notes.push("meow-scm isn't installed: the message check is unrun for every commit".to_string());
     }
-    let mut failures: Vec<String> = Vec::new();
     for commit in &commits {
         let subject = git(root, &["log", "-1", "--format=%h %s", commit]).1.trim().to_string();
         if let Some(scm) = &scm {
