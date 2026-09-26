@@ -17,3 +17,26 @@ it up is none, the chain ends here.
    nothing into the repository, and post to the review system only when
    asked.
 </steps>
+
+<rules name="review">
+- W1. Read the verification report first, and spend findings only on what a
+  reader can see and a check can't, because passing checks are no substitute
+  for review.
+- W2. Read the difference against a recorded base, not against whatever the
+  branch sits on now.
+- W3. Judge conformance to the requirements and the quality of the work
+  separately, because correct but wrong is still wrong.
+- W4. Name in each finding the input or condition that makes the work wrong,
+  and ask as a question anything you can't name that way; try to refute each
+  finding before reporting it.
+- W5. State each finding's kind in its first clause, mark a preference as a
+  preference, and order findings worst first.
+- W6. Report a clean result as clean in one sentence, and manufacture no
+  finding when there is none.
+- W7. Approve work that improves the state of the codebase, and don't withhold
+  approval because it could be better.
+- W8. End in one verdict from a fixed set, finished or returned, and name the
+  step the work returns to.
+- W9. Post findings to the review system only when asked, and write nothing
+  into the repository.
+</rules>

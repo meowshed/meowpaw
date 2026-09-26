@@ -41,7 +41,33 @@ Nothing. ADR-1160 and SPC-1090 are approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the step
+file named, and every rule names no requirement, because the file ships to
+other repositories:
+
+| Requirement | Carried by              |
+| ----------- | ----------------------- |
+| REQ-0304    | W1 in `steps/review.md` |
+| REQ-0306    | W8 in `steps/review.md` |
+| REQ-0308    | W8 in `steps/review.md` |
+| REQ-0310    | W1 in `steps/review.md` |
+| REQ-0311    | W2 in `steps/review.md` |
+| REQ-0312    | W4 in `steps/review.md` |
+| REQ-0313    | W3 in `steps/review.md` |
+| REQ-0314    | W4 in `steps/review.md` |
+| REQ-0315    | W9 in `steps/review.md` |
+| REQ-0316    | W6 in `steps/review.md` |
+| REQ-0318    | W6 in `steps/review.md` |
+| REQ-0320    | W7 in `steps/review.md` |
+| REQ-0322    | W5 in `steps/review.md` |
+| REQ-0324    | W5 in `steps/review.md` |
+| REQ-0326    | W1 in `steps/review.md` |
+| REQ-0544    | W9 in `steps/review.md` |
+| REQ-3108    | W5 in `steps/review.md` |
+
+The prompt check passes on the step files and `meow-method check` reports 0
+findings, as the gate below shows. Whether the model follows the rules is
+measured by evaluation, which is postponed.
 
 ## Left alone
 
