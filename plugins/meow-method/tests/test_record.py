@@ -508,6 +508,17 @@ class Checks(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         return Path(directory.name) / "layout.toml"
 
+    def test_count_prints_each_kind_by_status_and_the_identifiers(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
+        first = repository.run("count")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        self.assertIn("requirement: 1: 1 withdrawn\n", first.stdout)
+        self.assertIn("research: 1: 1 approved\n", first.stdout)
+        self.assertIn("insight: 0\n", first.stdout)
+        self.assertTrue(first.stdout.endswith("identifiers: 8\n"), first.stdout)
+        self.assertEqual(first.stdout, repository.run("count").stdout)
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")
@@ -957,7 +968,7 @@ class ReadOnly(unittest.TestCase):
 
     COMMANDS = (["check"], ["check", "frozen"], ["status"], ["status", "--waiting"], ["ready", "design", "REQ-0001"],
                 ["template", "task"], ["show", "REQ-0001"], ["index", "requirement"], ["new", "adr"],
-                ["find", "task"])
+                ["find", "task"], ["count"])
 
     def tree(self, root):
         out = {}
