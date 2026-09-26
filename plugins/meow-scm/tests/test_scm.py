@@ -28,6 +28,7 @@ fix = "patch"
 spec = "none"
 """
 SIGNED = "Signed-off-by: A Person <a@example.org>"
+AUTHOR = {**os.environ, "GIT_AUTHOR_NAME": "A Person", "GIT_AUTHOR_EMAIL": "a@example.org"}
 GOOD = f"fix: read a link whose target sits in angle brackets\n\nThe check cut a target at its first parenthesis.\n\n{SIGNED}\n"
 # Built from parts, so this file itself carries no attribution a search would find.
 CO_AUTHOR = "Co-Authored-" + "By: Claude <noreply@" + "anthropic.com>"
@@ -43,6 +44,7 @@ class Repository:
             (self.root / ".meowpaw" / "profile.toml").write_text(profile, encoding="utf-8")
 
     def check(self, message, env=None):
+        env = {**AUTHOR, **(env or {})}
         return subprocess.run([str(BIN), "check-message"], cwd=self.root, input=message,
                               capture_output=True, text=True, env=env)
 
@@ -56,6 +58,11 @@ class Convention(unittest.TestCase):
         repository = Repository(profile)
         self.addCleanup(repository.tmp.cleanup)
         return repository
+
+    def test_a_sign_off_naming_someone_else_is_refused(self):
+        done = self.repo().check(GOOD.replace("A Person <a@example.org>", "Another Person <b@example.org>"))
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("sign-off: the sign-off names Another Person <b@example.org>, and the commit's author is A Person <a@example.org>", done.stdout)
 
     def test_a_message_in_the_convention_passes(self):
         done = self.repo().check(GOOD)

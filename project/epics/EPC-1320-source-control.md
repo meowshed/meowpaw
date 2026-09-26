@@ -37,8 +37,10 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1960 the sign-off names the commit's author
+- [x] T-001 TSK-1960 the sign-off names the commit's author
       closes: REQ-1312
+      evidence: a fixture, and the push guard passing each commit's author, in
+      #381.
 
 - [ ] T-002 TSK-1970 a branch name carries nothing the forge stores
       closes: REQ-2818
