@@ -83,15 +83,17 @@ and its binaries, and publishes it as a release tagged `<unit>-v<version>`, so
 each unit carries its own version (REQ-0074). A unit whose version already has
 a release keeps its archive. A release named `marketplace` holds one
 `marketplace.json` whose entries point at every unit's archive by `url` and
-`sha256`. Claude Code reads an address on `github.com` as a git repository, so
-a person downloads the file and adds it by its path (RES-0274):
+`sha256`. A person adds it by the address the next section gives. Claude Code
+reads an address on `github.com` as a git repository, so the release's own copy
+is added by downloading it and adding it by its path (RES-0274), which stays as
+a fallback:
 
 ```bash
 curl -fsSLo marketplace.json https://github.com/meowshed/meowpaw/releases/download/marketplace/marketplace.json
 claude plugin marketplace add ./marketplace.json
 ```
 
-A later release reaches that person when they download the file again.
+A later release reaches that fallback when the file is downloaded again.
 
 A person installs a released unit from that marketplace and never needs Rust,
 Python or Node.js. The repository's own `marketplace.json` keeps its relative
@@ -100,9 +102,6 @@ only, and leaves the archives, their sizes and their SHA-256 as a workflow
 artifact.
 
 ### The marketplace address
-
-ADR-1120 decides this and EPC-1090 realises it. Until that epic closes, the
-download form above is the one that works.
 
 The released `marketplace.json` is served at
 `https://meow.retran.me/meowpaw/marketplace.json`, and a person adds it once,

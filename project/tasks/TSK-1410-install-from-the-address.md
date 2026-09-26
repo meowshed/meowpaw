@@ -27,9 +27,23 @@ TSK-1400, because the address has to serve the file first.
 
 ## Evidence
 
-Not yet. The task closes on `grep` finding no install instruction outside the
-record that downloads the file, and `claude plugin marketplace list` showing
-`meowpaw` with the address as its source on this machine.
+Every install instruction outside the record, in the seven unit pages,
+`docs/README.md` and the root `README.md`, adds the marketplace by its
+address, and the two indexes say how to turn on auto-update. SPC-1080 keeps
+the download form as a fallback.
+
+```text
+$ grep -rn 'curl -fsSLo marketplace.json' --include='*.md' --exclude-dir=project . | wc -l
+0
+$ grep -rln 'meow.retran.me/meowpaw/marketplace.json' --include='*.md' --exclude-dir=project . | wc -l
+9
+$ claude plugin marketplace list
+  ❯ meowpaw
+    Source: URL (https://meow.retran.me/meowpaw/marketplace.json)
+```
+
+This machine's six units, reinstalled from the address, each printed
+"Successfully installed".
 
 ## Left alone
 
