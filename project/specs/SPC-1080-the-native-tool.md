@@ -3,7 +3,7 @@ id: SPC-1080
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at:
+checked-at: "#160"
 states: [REQ-0032, REQ-0074, REQ-0076, REQ-3178]
 ---
 
@@ -18,8 +18,8 @@ it. What each subcommand does is its unit's specification: SPC-1040 for the
 verbs, SPC-1050 for the commit check, SPC-1060 for the `git` pack and SPC-1070
 for the record checks.
 
-The harness doesn't implement this yet. ADR-1110 decides it and EPC-1080
-realises it, so `checked-at` stays empty until that epic closes.
+ADR-1110 decides it, EPC-1080 realises it, and the `meow` crate with its
+launchers and release implements it, verified under issue 160.
 
 ## Boundary
 
