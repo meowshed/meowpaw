@@ -3,7 +3,7 @@ id: SPC-1100
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at: "#259"
+checked-at: "#288"
 states:
   [
     REQ-0237,
