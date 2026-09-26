@@ -54,10 +54,12 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1350 of EPC-1080 - ADR-1110 builds the program in the
       native tool, whose crate that task creates
 
-- [ ] T-002 TSK-1340 this repository on the unit: `[record]`, the `test` verb,
+- [x] T-002 TSK-1340 this repository on the unit: `[record]`, the `test` verb,
       the four scripts deleted, `CLAUDE.md`, the page, the budget and the
       marketplace entry
       closes: REQ-1673
+      evidence: `meow-verbs run test` passing with `meow-method check` in it,
+      and no reference to the four scripts outside the record, in #145.
       depends: TSK-1330 - the verb runs the program, and parity has to hold
       before the scripts go
 

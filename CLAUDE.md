@@ -392,12 +392,19 @@ mise run all          # fmt-check, lint, style, prompts, kernel and budget
 | `kernel`    | A file in the kernel names a unit outside it                    |
 | `budget`    | A unit loads more on every turn than its `budget.toml` states   |
 
-The repository also has checks of its own over the record - coverage, links,
-identifiers, front matter, the index, research shape and the shape a
-subordinate agent carries - written as Python scripts in `tools/`. No task
-runs them, so they're run by hand. They
-come back as part of the harness rather than beside it, because a harness
-checked by a mechanism it doesn't ship hasn't been shown to work.
+The record is checked by `meow-method`, a unit the harness ships, because a
+harness checked by a mechanism it doesn't ship hasn't been shown to work. It
+checks front matter, identifiers, relations, each kind's index, coverage and
+shape, where `.meowpaw/profile.toml` declares the record:
+
+```bash
+plugins/meow-method/bin/meow-method check
+```
+
+Three checks stay in `tools/` as Python scripts, because they read this
+repository and not the record: the documentation index, links, and the shape a
+subordinate agent carries. The `test` verb runs all four, and so does
+`meow-verbs run test`.
 
 A check that reports a false positive is a defect in the check, and never a
 reason to reword the text around it. A check that trips on what it shouldn't
