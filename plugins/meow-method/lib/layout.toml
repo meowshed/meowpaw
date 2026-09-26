@@ -12,6 +12,13 @@ fields = ["id", "artifact", "status", "revised"]
 # The front matter fields whose values name other artifacts.
 relations = ["elaborates", "addresses", "supersedes", "realises", "epic", "closes", "states", "violates"]
 
+# Per kind: `sections` every record carries, `draft_sections` a draft carries
+# as well, `first_section` it opens with, `required_values` fields it must
+# fill, `forbidden_fields` it must not carry, and the named checks of `rules`
+# for every record and `draft_rules` for drafts only (ADR-1140). A rule the
+# approved record already breaks applies to drafts, because an approved record
+# is frozen.
+
 # A file with this name is an index, and indexes are checked as indexes.
 index_name = "README.md"
 
@@ -38,7 +45,9 @@ prefix = "RES"
 dir = "research"
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "research/RES-0001-synthesis.md"
-sections = ["Summary", "Conclusions", "Sources"]
+sections = ["Summary", "Method", "Conclusions", "Sources"]
+first_section = "Summary"
+draft_rules = ["sources-dated", "cites-no-requirement"]
 
 [[kind]]
 name = "requirement"
@@ -48,6 +57,8 @@ dir = "requirements"
 fields = ["topic", "class", "verification", "elaborates"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "requirements/README.md"
+forbidden_fields = ["priority", "owner", "difficulty"]
+draft_rules = ["judgement-verifier"]
 
 [[kind]]
 name = "decision"
@@ -57,7 +68,10 @@ dir = "adrs"
 fields = ["addresses"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "adrs/README.md"
-sections = ["Decision", "Why", "Alternatives", "Consequences", "What it costs"]
+sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]
+draft_sections = ["How I will know it was realised", "What this does not settle"]
+required_values = ["addresses"]
+rules = ["alternatives-why-lost"]
 
 [[kind]]
 name = "epic"
@@ -68,6 +82,7 @@ fields = ["realises", "checked-at"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]
+rules = ["realises-one"]
 
 [[kind]]
 name = "task"
@@ -88,4 +103,5 @@ dir = "bugs"
 fields = ["severity", "found"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
-sections = ["What the system does", "What it should do, and why", "Reproduction"]
+sections = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
+forbidden_fields = ["priority"]

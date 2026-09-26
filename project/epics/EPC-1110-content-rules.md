@@ -39,10 +39,12 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1450 the layout's content rules and their scope: sections,
+- [x] T-001 TSK-1450 the layout's content rules and their scope: sections,
       drafts-only sections, the opening section, fields required and
       forbidden, with a fixture for each
       closes: REQ-0216, REQ-0219, REQ-0234, REQ-0247, REQ-0266, REQ-0309, REQ-0512, REQ-0514, REQ-0538, REQ-0540, REQ-0546, REQ-0556, REQ-0560, REQ-0562, REQ-0587, REQ-0588, REQ-0589, REQ-0592, REQ-0593, REQ-2668, REQ-2864, REQ-2866, REQ-2878, REQ-2884, REQ-2886, REQ-2898, REQ-2912, REQ-2914, REQ-2923, REQ-2924, REQ-3102
+      evidence: ten fixtures, each rule and scope, seen failing against a
+      stub, in #199.
 
 - [ ] T-002 TSK-1460 the `rules` check: dated sources, research citing no
       requirement, a judged requirement's verifier, an epic realising one

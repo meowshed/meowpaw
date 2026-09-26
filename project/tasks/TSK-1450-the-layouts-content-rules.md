@@ -55,7 +55,35 @@ Nothing. ADR-1140 and SPC-1070 are approved.
 
 ## Evidence
 
-Not yet.
+`lib/layout.toml` declares each kind's content rules and their scope, and the
+checker reads them: `sections` and `draft_sections` in `shape`, with a kind's
+own index exempt, `first_section` in `shape`, and `required_values` and
+`forbidden_fields` in `front-matter`. Research gains `Method` and opens with
+`Summary`; a decision gains `What would reverse it`, and as a draft `How I
+will know it was realised` and `What this does not settle`; a defect gains
+`Triage` and `Closed by` and never a `priority`; a requirement never carries a
+`priority`, `owner` or `difficulty`; a decision's `addresses` is never empty.
+
+Ten new fixtures, one per rule and scope, and one each for the rules ADR-1140
+records as already held: the living vision stores only `live`, an observed
+status is never stored, and a numbered kind is named for its identifier. The
+clean record in the fixtures gains the sections the layout now requires.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 43 tests in 1.819s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=42, errors=1)
+
+$ meow-method check
+front-matter: 0 findings    identifiers: 0 findings    relations: 0 findings
+index: 0 findings           coverage: 0 findings       shape: 0 findings
+```
+
+On this repository the approved record passes, because the rules it breaks
+apply to drafts.
 
 ## Left alone
 
