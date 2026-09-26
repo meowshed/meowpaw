@@ -27,7 +27,9 @@ complete when that decision is realised or that defect is closed.
 [~] dropped, with the reason        [+] added after approval, with why
 ```
 
-A task is marked in the commit that advances it, never in a later pass.
+A task is marked in the commit that advances it, never in a later pass. A
+task that can run in parallel with its neighbours carries `[P]` after its
+number, as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
