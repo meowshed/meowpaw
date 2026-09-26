@@ -761,6 +761,51 @@ class Find(unittest.TestCase):
         self.assertIn("usage: meow-method find", done.stderr)
 
 
+class ReadOnly(unittest.TestCase):
+    """ADR-1200: the commands that read the record write nothing, and repeat themselves."""
+
+    COMMANDS = (["check"], ["check", "frozen"], ["status"], ["status", "--waiting"], ["ready", "design", "REQ-0001"],
+                ["template", "task"], ["show", "REQ-0001"], ["index", "requirement"], ["new", "adr"],
+                ["find", "task"])
+
+    def tree(self, root):
+        out = {}
+        for path in sorted(root.rglob("*")):
+            if ".git" in path.parts:
+                continue
+            stat = path.stat()
+            out[str(path)] = (hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else "dir", stat.st_mtime_ns)
+        return out
+
+    def test_each_read_only_command_writes_nothing_and_repeats_itself(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                                     "commit", "-q", "-m", "base"]):
+            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
+        for command in self.COMMANDS:
+            before = self.tree(repository.path)
+            first = repository.run(*command)
+            second = repository.run(*command)
+            self.assertEqual(before, self.tree(repository.path), command)
+            self.assertEqual(first.stdout, second.stdout, command)
+            # Nothing waiting is the one case whose right answer is silence.
+            if command != ["status", "--waiting"]:
+                self.assertNotEqual(first.stdout + first.stderr, "", command)
+
+    def test_writing_an_index_leaves_no_temporary_file(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.write("adrs/README.md", "# Decisions\n\n<!-- meow-method index -->\n<!-- /meow-method index -->\n")
+        done = repository.run("index", "adr", "--write")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(sorted(p.name for p in (repository.root / "adrs").iterdir()),
+                         ["ADR-0001-a-choice.md", "README.md"])
+        written = (repository.root / "adrs" / "README.md").read_text(encoding="utf-8")
+        self.assertIn("| [ADR-0001](ADR-0001-a-choice.md) |", written)
+        self.assertIn("<!-- /meow-method index -->", written)
+
+
 class Where(unittest.TestCase):
     def test_a_root_outside_the_repository_is_read_there(self):
         outside = tempfile.TemporaryDirectory()

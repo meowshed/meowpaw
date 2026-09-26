@@ -37,8 +37,10 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1670 read-only commands write nothing, and an index is written atomically
+- [x] T-001 TSK-1670 read-only commands write nothing, and an index is written atomically
       closes: REQ-1720, REQ-1722, REQ-1724, REQ-1728, REQ-1730, REQ-1732
+      evidence: two fixtures, ten read-only commands and an atomic write, in
+      #270.
 
 - [ ] T-002 TSK-1680 each unit declares the platform it needs and the behaviours it relies on
       closes: REQ-1736, REQ-1740, REQ-1742
