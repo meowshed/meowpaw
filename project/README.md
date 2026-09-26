@@ -81,6 +81,8 @@ Every decision below is approved and in force, as amended by the ones after it.
   pushed.
 - [ADR-1100](adrs/ADR-1100-the-record-is-checked-by-a-unit-the-harness-ships.md):
   the record is checked by a unit the harness ships, as EPC-1070 amends it.
+- [ADR-1110](adrs/ADR-1110-one-native-tool-carries-every-units-program.md):
+  every unit's program is a subcommand of one native tool, amending ADR-1070.
 
 ## Specifications
 
@@ -107,6 +109,9 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
 checked. Nothing implements it yet.
+
+[SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
+launchers and its release. Nothing implements it yet.
 
 ## Epics and tasks
 
@@ -144,6 +149,9 @@ criterion under issue 138.
 
 [EPC-1070](epics/EPC-1070-checking-the-record.md) is approved and realises
 ADR-1100 in two tasks, TSK-1330 and TSK-1340, each filed as an issue.
+
+[EPC-1080](epics/EPC-1080-the-native-tool.md) is approved and realises ADR-1110
+in four tasks, TSK-1350 to TSK-1380, each filed as an issue.
 
 ## Defects
 
