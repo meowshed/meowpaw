@@ -19,6 +19,7 @@ Five decisions are in force.
 | [ADR-1050](ADR-1050-a-unit-that-must-hold-is-loaded-by-its-description.md)                           | A unit that must hold is loaded by a description stating the obligation       | approved                      |
 | [ADR-1060](ADR-1060-the-kernel-names-no-unit-outside-it.md)                                          | The kernel names no unit outside it                                           | approved                      |
 | [ADR-1070](ADR-1070-the-five-verbs-resolve-from-the-profile.md)                                      | The five verbs resolve from the profile, and an unresolved verb is reported   | approved                      |
+| [ADR-1080](ADR-1080-a-commit-message-is-checked-against-the-declared-convention.md)                  | A commit message is checked against the convention the repository declares    | approved                      |
 
 The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:
