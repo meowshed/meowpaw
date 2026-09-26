@@ -22,6 +22,17 @@ relations = ["elaborates", "addresses", "supersedes", "realises", "epic", "close
 # A file with this name is an index, and indexes are checked as indexes.
 index_name = "README.md"
 
+# Names the record has retired, each with what replaced it (ADR-1240). A
+# retired name is never reused, because reuse gives every old record carrying
+# it a new meaning and nothing fails; the check refuses it in a record and in
+# a kind below.
+[retired.fields]
+unit = "the unit of work is named by the relations the record carries"
+
+[retired.statuses]
+proposed = "replaced by draft"
+current = "replaced by live"
+
 [[kind]]
 name = "vision"
 artifact = "vision"
