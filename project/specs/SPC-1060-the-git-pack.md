@@ -3,7 +3,7 @@ id: SPC-1060
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at: "#138"
+checked-at: "#392"
 states:
   [
     REQ-0079,
