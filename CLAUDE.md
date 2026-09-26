@@ -327,6 +327,10 @@ lands on `main` carries GitHub's own key and not yours. That's accepted: the
 branch commits it was built from verify against the named key, and they're what
 review read.
 
+Before a message is used, `meow-scm check-message` checks it against the
+convention `.meowpaw/profile.toml` declares and against the attribution ban
+below, and a message it fails isn't used.
+
 Every commit also carries the author's sign-off:
 
 ```text
