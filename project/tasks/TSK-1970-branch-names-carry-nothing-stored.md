@@ -1,11 +1,12 @@
 ---
 id: TSK-1970
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1320
 closes: [REQ-2818]
-issue:
+issue: 382
+projected: 1151b3b1d51b
 ---
 
 # A branch name carries nothing the forge stores

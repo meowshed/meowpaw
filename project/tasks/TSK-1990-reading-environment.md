@@ -1,11 +1,12 @@
 ---
 id: TSK-1990
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1320
 closes: [REQ-2526, REQ-2528]
-issue:
+issue: 384
+projected: 81d8df5aeada
 ---
 
 # Source control is read with prompting and paging off

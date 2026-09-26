@@ -1,11 +1,12 @@
 ---
 id: TSK-1960
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1320
 closes: [REQ-1312]
-issue:
+issue: 381
+projected: a137b0a74372
 ---
 
 # The sign-off names the commit's author

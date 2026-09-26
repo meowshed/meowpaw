@@ -1,7 +1,7 @@
 ---
 id: TSK-2000
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1320
 closes:
@@ -19,7 +19,8 @@ closes:
     REQ-2820,
     REQ-2822,
   ]
-issue:
+issue: 385
+projected: 82f35d881942
 ---
 
 # The commit skill carries the branching and merging rules

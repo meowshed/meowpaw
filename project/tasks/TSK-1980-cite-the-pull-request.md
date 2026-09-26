@@ -1,11 +1,12 @@
 ---
 id: TSK-1980
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1320
 closes: [REQ-3176]
-issue:
+issue: 383
+projected: fe212fdcf779
 ---
 
 # The record cites a pull request, never a commit hash
