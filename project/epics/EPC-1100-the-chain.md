@@ -43,10 +43,12 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1420 `meow record status`, `ready` and `template`, with a
+- [x] T-001 TSK-1420 `meow record status`, `ready` and `template`, with a
       fixture for each gate and for the state
       closes: REQ-0198, REQ-0200, REQ-0206, REQ-0210, REQ-0212, REQ-0228,
       REQ-0240, REQ-0294, REQ-0302, REQ-0321
+      evidence: thirty-four fixtures, each seen failing against a stub, in
+      #189.
 
 - [ ] T-002 TSK-1430 the templates moved into `meow-method`, overridable by
       the repository, with their old citations corrected
