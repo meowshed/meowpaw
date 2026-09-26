@@ -1,11 +1,11 @@
 ---
 id: TSK-1750
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1230
 closes: [REQ-0525]
-issue:
+issue: 299
 ---
 
 # The specifications read in citation order

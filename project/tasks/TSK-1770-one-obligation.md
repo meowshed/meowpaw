@@ -1,11 +1,11 @@
 ---
 id: TSK-1770
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1230
 closes: [REQ-2880]
-issue:
+issue: 301
 ---
 
 # A draft requirement carries one obligation, stands alone, and prohibits with MUST NOT

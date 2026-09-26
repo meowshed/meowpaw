@@ -229,7 +229,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1220](epics/EPC-1220-insights.md) realised ADR-1220 in two tasks, TSK-1730 and TSK-1740, each closed with evidence, and was verified against every acceptance criterion under issue 296.
 
-[EPC-1230](epics/EPC-1230-reading-order.md) realises ADR-1230 in three
+[EPC-1230](epics/EPC-1230-reading-order.md) is approved and realises ADR-1230 in three
 tasks, TSK-1750 to TSK-1770, each filed as an issue.
 
 ## Defects

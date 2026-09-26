@@ -1,7 +1,7 @@
 ---
 id: ADR-1230
 artifact: adr
-status: draft
+status: approved
 revised: 2026-09-26
 addresses: [REQ-0525, REQ-0530, REQ-0552, REQ-0554, REQ-0555, REQ-2880]
 supersedes: []

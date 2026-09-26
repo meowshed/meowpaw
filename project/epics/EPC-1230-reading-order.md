@@ -1,7 +1,7 @@
 ---
 id: EPC-1230
 artifact: epic
-status: draft
+status: approved
 revised: 2026-09-26
 realises: ADR-1230
 checked-at:
