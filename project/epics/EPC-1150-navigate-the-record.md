@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1150
-checked-at:
+checked-at: "#219"
 ---
 
 # Identifiers resolved both ways, and closed tasks held to their evidence
@@ -47,6 +47,19 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0692, REQ-0698, REQ-0700, REQ-0702
       evidence: three fixtures, each rule seen failing and then passing, in
       #215.
+
+## Verified
+
+Checked under issue 219 at revision `85b9f5c`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                          | Evidence at `85b9f5c`                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. `show REQ-0190` prints path, status and title, and lists ADR-1130 under `addresses` and SPC-1090 under `states` | `meow-method show REQ-0190` prints the requirement, approved, with its path, and under `Cited by`: `addresses: ADR-1130`, `states: SPC-1090` |
+| 2. `show` on a withdrawn requirement prints it as withdrawn                                                        | `meow-method show REQ-1140` opens with `REQ-1140 requirement, withdrawn`                                                                     |
+| 3. An epic marking a task done whose evidence is only "Not yet." fails `check rules`                               | `test_a_task_marked_done_carries_evidence` runs `OK`                                                                                         |
+| 4. `meow-method check` on this repository reports 0 findings                                                       | 7 checks report 0 findings                                                                                                                   |
+| 5. Every requirement in one closed task, nothing outstanding                                                       | `coverage` reports 0 findings; the unit's fixtures run `OK`                                                                                  |
 
 ## Coverage
 
