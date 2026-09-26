@@ -35,7 +35,7 @@ that will close each requirement it cites. Not how to do it.
 
 ## Depends on
 
-The tasks that must be done first, as `TSK-` identifiers, and why. `meow-method
+The tasks that must be done first, as `TSK-` identifiers, and why. `paw
 ready implement` reads this section.
 
 ## Evidence

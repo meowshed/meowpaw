@@ -136,7 +136,7 @@ pub fn main(args: &[String]) -> u8 {
         "onboarding" => onboarding(rest),
         _ => {
             eprintln!(
-                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | onboarding remove",
+                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | onboarding remove",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -149,7 +149,7 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
     let layout = match load_layout() {
         Ok(layout) => layout,
         Err(reason) => {
-            say!("meow-method {verb}: the record was not checked: {reason}");
+            say!("paw {verb}: the record was not checked: {reason}");
             return Err(UNCHECKED);
         }
     };
@@ -157,12 +157,12 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
     let root = match record_root(&repository) {
         Ok(root) => root,
         Err(reason) => {
-            say!("meow-method {verb}: {reason}");
+            say!("paw {verb}: {reason}");
             return Err(FOUND);
         }
     };
     if !root.is_dir() {
-        say!("meow-method {verb}: the record's root {} doesn't exist; nothing was checked", root.display());
+        say!("paw {verb}: the record's root {} doesn't exist; nothing was checked", root.display());
         return Err(FOUND);
     }
     let record = read_record(layout, &repository, &root);
@@ -174,13 +174,13 @@ fn check(rest: &[String]) -> u8 {
         return check_frozen(&rest[1..]);
     }
     if rest.len() > 1 {
-        eprintln!("usage: meow-method check [{}]", CHECKS.join(" | "));
+        eprintln!("usage: paw check [{}]", CHECKS.join(" | "));
         return USAGE;
     }
     let chosen: Vec<&str> = match rest.first() {
         Some(name) if CHECKS.contains(&name.as_str()) => vec![name.as_str()],
         Some(name) => {
-            eprintln!("meow-method check: no check is named {name}; the checks are {}", CHECKS.join(", "));
+            eprintln!("paw check: no check is named {name}; the checks are {}", CHECKS.join(", "));
             return USAGE;
         }
         None => CHECKS.to_vec(),
@@ -314,7 +314,7 @@ fn check_frozen(rest: &[String]) -> u8 {
         [] => "HEAD".to_string(),
         [flag, rev] if flag == "--base" => rev.clone(),
         _ => {
-            eprintln!("usage: meow-method check frozen [--base <rev>]");
+            eprintln!("usage: paw check frozen [--base <rev>]");
             return USAGE;
         }
     };
@@ -795,7 +795,7 @@ fn index(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
         if let Some((open, close)) = generated_block(&listing.text) {
             let generated = generate_index(record, k).unwrap_or_default();
             if normalised(&listing.text[open..close]) != normalised(&generated) {
-                out.push(Finding::at(listing, Some(line_of(&listing.text, open)), format!("its generated block is out of date; run meow-method index {} --write", kind.name)));
+                out.push(Finding::at(listing, Some(line_of(&listing.text, open)), format!("its generated block is out of date; run paw index {} --write", kind.name)));
             }
         }
         let own = Regex::new(&format!(r"\b{prefix}-\d{{4}}\b")).expect("identifier pattern");
@@ -966,7 +966,7 @@ fn placements(report: &Doc) -> Vec<(usize, String, String, String)> {
 /// tree as it was, and it commits nothing.
 fn onboarding(rest: &[String]) -> u8 {
     if rest.first().map(String::as_str) != Some("remove") || rest.len() != 1 {
-        eprintln!("usage: meow-method onboarding remove");
+        eprintln!("usage: paw onboarding remove");
         return USAGE;
     }
     let (record, repository, root) = match open_record("onboarding") {
@@ -974,12 +974,12 @@ fn onboarding(rest: &[String]) -> u8 {
         Err(code) => return code,
     };
     let Some(report) = of_kind(&record, "onboarding").into_iter().next() else {
-        say!("meow-method onboarding remove: there is no onboarding report, so nothing is placed and nothing is removed");
+        say!("paw onboarding remove: there is no onboarding report, so nothing is placed and nothing is removed");
         return FOUND;
     };
     let status = bare(report.value("status"));
     if status != "approved" {
-        say!("meow-method onboarding remove: {} is {status}, and nothing is removed before a person approves where each document goes", report.shown);
+        say!("paw onboarding remove: {} is {status}, and nothing is removed before a person approves where each document goes", report.shown);
         return FOUND;
     }
     let known = known(&record);
@@ -1004,7 +1004,7 @@ fn onboarding(rest: &[String]) -> u8 {
         for line in &refused {
             say!("{line}");
         }
-        say!("meow-method onboarding remove: nothing was removed");
+        say!("paw onboarding remove: nothing was removed");
         return FOUND;
     }
     let before = documents(&root, &repository).len();
@@ -1018,7 +1018,7 @@ fn onboarding(rest: &[String]) -> u8 {
             continue;
         }
         if let Err(e) = std::fs::remove_file(&file) {
-            say!("meow-method onboarding remove: {path}: {e}; stopped part way");
+            say!("paw onboarding remove: {path}: {e}; stopped part way");
             return FOUND;
         }
         say!("removed {path} ({outcome})");
@@ -1358,20 +1358,20 @@ fn task_finished(known: &BTreeMap<String, &Doc>, task: &str) -> bool {
 
 fn ready(rest: &[String]) -> u8 {
     let Some((step, ids)) = rest.split_first() else {
-        eprintln!("usage: meow-method ready <step> <id>..., where a step is one of {}", STEPS.join(", "));
+        eprintln!("usage: paw ready <step> <id>..., where a step is one of {}", STEPS.join(", "));
         return USAGE;
     };
     let step = step.as_str();
     if !STEPS.contains(&step) {
-        eprintln!("meow-method ready: no step is named {step}; the steps are {}", STEPS.join(", "));
+        eprintln!("paw ready: no step is named {step}; the steps are {}", STEPS.join(", "));
         return USAGE;
     }
     if step == "research" {
-        say!("meow-method ready research: ready; research needs no approved input");
+        say!("paw ready research: ready; research needs no approved input");
         return CLEAN;
     }
     if ids.is_empty() {
-        eprintln!("meow-method ready {step}: name the identifiers of the step's input");
+        eprintln!("paw ready {step}: name the identifiers of the step's input");
         return USAGE;
     }
     let (record, _, _) = match open_record("ready") {
@@ -1442,10 +1442,10 @@ fn ready(rest: &[String]) -> u8 {
         }
     }
     if missing.is_empty() {
-        say!("meow-method ready {step}: ready; {} approved and complete", ids.join(", "));
+        say!("paw ready {step}: ready; {} approved and complete", ids.join(", "));
         CLEAN
     } else {
-        say!("meow-method ready {step}: not ready");
+        say!("paw ready {step}: not ready");
         for line in &missing {
             say!("  {line}");
         }
@@ -1518,7 +1518,7 @@ fn status(rest: &[String]) -> u8 {
         [] => false,
         [flag] if flag == "--waiting" => true,
         _ => {
-            eprintln!("usage: meow-method status [--waiting]");
+            eprintln!("usage: paw status [--waiting]");
             return USAGE;
         }
     };
@@ -1594,11 +1594,11 @@ fn status(rest: &[String]) -> u8 {
 
 fn template(rest: &[String]) -> u8 {
     let [kind] = rest else {
-        eprintln!("usage: meow-method template <kind>, where a kind is one of {}", TEMPLATES.join(", "));
+        eprintln!("usage: paw template <kind>, where a kind is one of {}", TEMPLATES.join(", "));
         return USAGE;
     };
     if !TEMPLATES.contains(&kind.as_str()) {
-        eprintln!("meow-method template: no kind is named {kind}; the kinds are {}", TEMPLATES.join(", "));
+        eprintln!("paw template: no kind is named {kind}; the kinds are {}", TEMPLATES.join(", "));
         return USAGE;
     }
     // The profile is configuration, and configuration the harness owns is TOML.
@@ -1612,7 +1612,7 @@ fn template(rest: &[String]) -> u8 {
     let unit = match layout_path() {
         Ok(path) => path.parent().and_then(Path::parent).map(|u| u.join("templates").join(&file)),
         Err(reason) => {
-            say!("meow-method template: no template was found: {reason}");
+            say!("paw template: no template was found: {reason}");
             return UNCHECKED;
         }
     };
@@ -1622,11 +1622,11 @@ fn template(rest: &[String]) -> u8 {
             CLEAN
         }
         Some(path) => {
-            say!("meow-method template: the unit has no template for {kind} at {}", path.display());
+            say!("paw template: the unit has no template for {kind} at {}", path.display());
             FOUND
         }
         None => {
-            say!("meow-method template: no template was found for {kind}");
+            say!("paw template: no template was found for {kind}");
             UNCHECKED
         }
     }
@@ -1634,7 +1634,7 @@ fn template(rest: &[String]) -> u8 {
 
 fn show(rest: &[String]) -> u8 {
     let [id] = rest else {
-        eprintln!("usage: meow-method show <id>");
+        eprintln!("usage: paw show <id>");
         return USAGE;
     };
     let (record, _, _) = match open_record("show") {
@@ -1643,7 +1643,7 @@ fn show(rest: &[String]) -> u8 {
     };
     let known = known(&record);
     let Some(doc) = known.get(id.as_str()) else {
-        say!("meow-method show: {id} resolves to nothing in the record");
+        say!("paw show: {id} resolves to nothing in the record");
         return FOUND;
     };
     say!("{id} {}, {}: {}", kind_of(&record, doc), bare(doc.value("status")), doc.shown);
@@ -1847,7 +1847,7 @@ fn index_command(rest: &[String]) -> u8 {
         [word] => (word, false),
         [word, flag] if flag == "--write" => (word, true),
         _ => {
-            eprintln!("usage: meow-method index <kind> [--write]");
+            eprintln!("usage: paw index <kind> [--write]");
             return USAGE;
         }
     };
@@ -1857,11 +1857,11 @@ fn index_command(rest: &[String]) -> u8 {
     };
     let Some(k) = kind_named(&record, word) else {
         let kinds: Vec<&str> = record.layout.kinds.iter().filter(|k| k.index.is_some()).map(|k| k.name.as_str()).collect();
-        eprintln!("meow-method index: no kind is named {word}; the kinds with an index are {}", kinds.join(", "));
+        eprintln!("paw index: no kind is named {word}; the kinds with an index are {}", kinds.join(", "));
         return USAGE;
     };
     let Some(block) = generate_index(&record, k) else {
-        say!("meow-method index: a {} has no index file in the layout", record.layout.kinds[k].name);
+        say!("paw index: a {} has no index file in the layout", record.layout.kinds[k].name);
         return FOUND;
     };
     if !write {
@@ -1871,7 +1871,7 @@ fn index_command(rest: &[String]) -> u8 {
     let path = root.join(record.layout.kinds[k].index.as_deref().unwrap_or_default());
     let text = std::fs::read_to_string(&path).unwrap_or_default();
     let Some((open, close)) = generated_block(&text) else {
-        say!("meow-method index: {} has no {INDEX_OPEN} block to write into", path.display());
+        say!("paw index: {} has no {INDEX_OPEN} block to write into", path.display());
         return FOUND;
     };
     let updated = format!("{}\n\n{}\n{}", &text[..open], block.trim_end(), &text[close..]);
@@ -1882,11 +1882,11 @@ fn index_command(rest: &[String]) -> u8 {
         let written = std::fs::write(&temporary, updated).and_then(|_| std::fs::rename(&temporary, &path));
         if let Err(e) = written {
             let _ = std::fs::remove_file(&temporary);
-            say!("meow-method index: {}: {e}", path.display());
+            say!("paw index: {}: {e}", path.display());
             return FOUND;
         }
     }
-    say!("meow-method index: wrote the {} index to {}", record.layout.kinds[k].name, path.display());
+    say!("paw index: wrote the {} index to {}", record.layout.kinds[k].name, path.display());
     CLEAN
 }
 
@@ -1899,7 +1899,7 @@ fn new_identifier(rest: &[String]) -> u8 {
         [word] => (word, None),
         [word, flag, topic] if flag == "--topic" => (word, Some(topic.as_str())),
         _ => {
-            eprintln!("usage: meow-method new <kind> [--topic <topic>]");
+            eprintln!("usage: paw new <kind> [--topic <topic>]");
             return USAGE;
         }
     };
@@ -1909,7 +1909,7 @@ fn new_identifier(rest: &[String]) -> u8 {
     };
     let Some(k) = kind_named(&record, word).filter(|&k| record.layout.kinds[k].prefix.is_some()) else {
         let kinds: Vec<&str> = record.layout.kinds.iter().filter(|k| k.prefix.is_some()).map(|k| k.name.as_str()).collect();
-        eprintln!("meow-method new: no numbered kind is named {word}; the kinds are {}", kinds.join(", "));
+        eprintln!("paw new: no numbered kind is named {word}; the kinds are {}", kinds.join(", "));
         return USAGE;
     };
     let kind = &record.layout.kinds[k];
@@ -1933,7 +1933,7 @@ fn new_identifier(rest: &[String]) -> u8 {
     let highest = taken.iter().max().copied().unwrap_or(0);
     let (mut next, step) = if kind.name == "requirement" {
         let Some(topic) = topic else {
-            eprintln!("meow-method new: a requirement is allocated in its topic's block; name it with --topic");
+            eprintln!("paw new: a requirement is allocated in its topic's block; name it with --topic");
             return USAGE;
         };
         let in_topic: Vec<u32> = of_kind(&record, "requirement")
@@ -1955,7 +1955,7 @@ fn new_identifier(rest: &[String]) -> u8 {
         next += step;
     }
     if next > 9999 {
-        say!("meow-method new: the {} block is full", kind.name);
+        say!("paw new: the {} block is full", kind.name);
         return FOUND;
     }
     say!("{prefix}-{next:04}");
@@ -1966,7 +1966,7 @@ fn new_identifier(rest: &[String]) -> u8 {
 /// evidence before and after: a lost artifact fails no other check (REQ-3020).
 fn count_record(rest: &[String]) -> u8 {
     if !rest.is_empty() {
-        eprintln!("usage: meow-method count");
+        eprintln!("usage: paw count");
         return USAGE;
     }
     let (record, _, _) = match open_record("count") {
@@ -1993,7 +1993,7 @@ fn count_record(rest: &[String]) -> u8 {
 /// (ADR-1180).
 fn find(rest: &[String]) -> u8 {
     if rest.is_empty() {
-        eprintln!("usage: meow-method find <word>...");
+        eprintln!("usage: paw find <word>...");
         return USAGE;
     }
     let (record, _, _) = match open_record("find") {
@@ -2019,7 +2019,7 @@ fn find(rest: &[String]) -> u8 {
     }
     hits.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
     if hits.is_empty() {
-        say!("meow-method find: nothing in the record carries {}", rest.join(" "));
+        say!("paw find: nothing in the record carries {}", rest.join(" "));
         return FOUND;
     }
     for (_, _, line) in hits.iter().take(20) {

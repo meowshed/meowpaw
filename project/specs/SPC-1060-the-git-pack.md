@@ -129,7 +129,7 @@ punish the person for something the pack can't check.
 A sign-off names the commit's author, which `meow-scm check-message` holds
 where the trailer is required (REQ-1312); a branch name carries no date and no
 author, which the push guard holds (REQ-2818); a line added to the record
-cites a pull request, never a commit hash, which `meow-method check frozen`
+cites a pull request, never a commit hash, which `paw check frozen`
 holds (REQ-3176); and every read of source control runs with prompting,
 paging, advice and machine-wide configuration off (REQ-2526, REQ-2528). The
 `commit` skill carries the rest: one task, one branch, one pull request and

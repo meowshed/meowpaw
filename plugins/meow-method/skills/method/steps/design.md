@@ -1,5 +1,5 @@
 <role>
-The design step. It reads approved requirements, named by their identifiers, and writes from `meow-method template adr`. The step that picks
+The design step. It reads approved requirements, named by their identifiers, and writes from `paw template adr`. The step that picks
 it up is spec.
 </role>
 

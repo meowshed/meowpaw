@@ -1,5 +1,5 @@
 <role>
-The epic step. It reads an approved decision or defect, named by its identifier, and writes from `meow-method template epic`. The step that picks
+The epic step. It reads an approved decision or defect, named by its identifier, and writes from `paw template epic`. The step that picks
 it up is implement.
 </role>
 
@@ -10,7 +10,7 @@ it up is implement.
    record of its own from the `task` template that cites every requirement it
    closes and names the tasks it depends on.
 3. Land every requirement the record addresses in exactly one task, or defer
-   it under `## Not covered` with a reason, and run `meow-method check
+   it under `## Not covered` with a reason, and run `paw check
    coverage` to prove it.
 4. Name the smallest set of tasks that would test the decision, and mark the
    tasks that can run in parallel.
