@@ -588,6 +588,7 @@ fn identifiers(record: &Record) -> Vec<Finding> {
 fn relations(record: &Record) -> Vec<Finding> {
     let known = known(record);
     let link = Regex::new(r"\]\((?:<([^>]+)>|([^)\s]+))").expect("link pattern");
+    let span = Regex::new(r"`[^`]*`").expect("code span pattern");
     let mut out = Vec::new();
     for doc in &record.docs {
         for key in &record.layout.relations {
@@ -601,6 +602,25 @@ fn relations(record: &Record) -> Vec<Finding> {
             for found in record.ids.find_iter(&field.value) {
                 if !known.contains_key(found.as_str()) {
                     out.push(Finding::at(doc, Some(field.line), format!("{key} names {}, which has no file", found.as_str())));
+                }
+            }
+        }
+        // Only a draft's body is read: an approved record may name an identifier
+        // that has no file on purpose, as a defect listing what is missing does.
+        if is_draft(doc) {
+            let mut fenced = false;
+            for (i, text) in doc.text.lines().enumerate().skip(body_start(doc)) {
+                if text.trim_start().starts_with("```") {
+                    fenced = !fenced;
+                }
+                if fenced {
+                    continue;
+                }
+                let prose = span.replace_all(text, "");
+                for found in record.ids.find_iter(&prose) {
+                    if !known.contains_key(found.as_str()) {
+                        out.push(Finding::at(doc, Some(i + 1), format!("names {}, which has no file", found.as_str())));
+                    }
                 }
             }
         }
@@ -662,6 +682,14 @@ fn of_kind<'a>(record: &'a Record, name: &str) -> Vec<&'a Doc> {
     record.docs.iter().filter(|d| d.kind == Some(k)).collect()
 }
 
+/// The index of a document's first line after its front matter.
+fn body_start(doc: &Doc) -> usize {
+    if !doc.text.starts_with("---") {
+        return 0;
+    }
+    doc.text.lines().enumerate().skip(1).find(|(_, l)| l.trim_end() == "---").map(|(i, _)| i + 1).unwrap_or(0)
+}
+
 fn requirements_in(record: &Record, text: &str) -> BTreeSet<String> {
     record.ids.find_iter(text).map(|m| m.as_str()).filter(|id| id.starts_with("REQ-")).map(str::to_string).collect()
 }
@@ -681,6 +709,7 @@ fn coverage(record: &Record) -> Vec<Finding> {
     }
     let decisions = of_kind(record, "decision");
     let tasks = of_kind(record, "task");
+    let known = known(record);
     let not_covered = Regex::new(r"(?ms)^## Not covered$(.*)").expect("section pattern");
     for epic in of_kind(record, "epic") {
         let epic_id = bare(epic.id());
@@ -689,6 +718,21 @@ fn coverage(record: &Record) -> Vec<Finding> {
             out.push(Finding::at(epic, epic.field("realises").map(|f| f.line), format!("realises {realises}, which is not a decision")));
             continue;
         };
+        let verified = !bare(epic.value("checked-at")).is_empty();
+        for (line, mark, task, _) in entries(epic) {
+            let Some(doc) = known.get(task.as_str()) else { continue };
+            if mark == ' ' && claims_done(doc) {
+                out.push(Finding::at(epic, Some(line), format!("leaves {task} unmarked, and its Evidence section is written")));
+            }
+            if verified || mark == '~' {
+                continue;
+            }
+            for requirement in requirements_in(record, doc.value("closes")) {
+                if known.get(requirement.as_str()).is_some_and(|r| bare(r.value("status")) == "withdrawn") {
+                    out.push(Finding::at(doc, doc.field("closes").map(|f| f.line), format!("closes {requirement}, which is withdrawn, in {epic_id}, which is not verified")));
+                }
+            }
+        }
         let addressed = requirements_in(record, decision.value("addresses"));
         let mut claimed: BTreeMap<String, Vec<&str>> = BTreeMap::new();
         for task in tasks.iter().filter(|t| bare(t.value("epic")) == epic_id) {
@@ -793,6 +837,14 @@ fn entries(epic: &Doc) -> Vec<(usize, char, String, String)> {
         }
     }
     out
+}
+
+/// Whether a task's Evidence section says the work is done: it holds text and
+/// doesn't open with "Not yet.", which a postponed task keeps above its note.
+fn claims_done(task: &Doc) -> bool {
+    let lines = section_lines(task, "Evidence");
+    let first = lines.iter().map(|(_, l)| l.trim()).find(|l| !l.is_empty());
+    first.is_some_and(|l| !l.starts_with("Not yet"))
 }
 
 /// A task's evidence, without a leading "Not yet." paragraph.
