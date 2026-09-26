@@ -36,4 +36,9 @@ it up is design.
   nobody noticed.
 - Q9. Give a requirement its reason where the obligation would otherwise look
   arbitrary, and none where the sentence already carries it.
+- Q10. Before you ask anything, read what the repository already contains, and
+  ask only what reading can't answer.
+- Q11. Refine an idea by asking about it rather than assuming what was meant,
+  present what you elicited in sections and stop after each, because a result
+  presented whole is approved whole, and write no artifact while you elicit.
 </rules>
