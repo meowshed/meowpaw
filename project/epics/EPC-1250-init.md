@@ -46,8 +46,10 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-1554, REQ-1561, REQ-1562, REQ-1564
       evidence: 4 requirements traced to four rules, in #320.
 
-- [ ] T-003 TSK-1830 an empty record reports its coverage as zero
+- [x] T-003 TSK-1830 an empty record reports its coverage as zero
       closes: REQ-3098, REQ-3180
+      evidence: two fixtures, and every write the program makes accounted for,
+      in #321.
 
 ## Coverage
 

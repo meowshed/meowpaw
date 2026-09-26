@@ -519,6 +519,18 @@ class Checks(unittest.TestCase):
         self.assertTrue(first.stdout.endswith("identifiers: 8\n"), first.stdout)
         self.assertEqual(first.stdout, repository.run("count").stdout)
 
+    def test_an_empty_record_reports_its_coverage_as_zero(self):
+        repository = self.repo()
+        for path in (repository.root / "requirements").glob("REQ-*.md"):
+            path.unlink()
+        done = repository.run("check", "coverage")
+        self.assertIn("coverage: 0 of 0 requirements in force land in a task; an empty record's coverage is zero, not complete\n", done.stdout)
+        self.assertIn("Requirements\n  none in force, so coverage is zero, not complete\n", repository.run("status").stdout)
+
+    def test_coverage_counts_the_requirements_that_land_in_a_task(self):
+        done = self.repo().run("check", "coverage")
+        self.assertIn("coverage: 1 of 1 requirements in force land in a task\n", done.stdout)
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")

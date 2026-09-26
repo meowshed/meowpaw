@@ -199,6 +199,15 @@ fn check(rest: &[String]) -> u8 {
                 None => say!("{}: {}", finding.shown, finding.message),
             }
         }
+        if check == "coverage" {
+            // Nothing required and nothing missing look the same to a count of
+            // findings, so the coverage itself is stated (REQ-3098).
+            let known = known(&record);
+            let in_force: Vec<&Doc> = of_kind(&record, "requirement").into_iter().filter(|r| approved(r)).collect();
+            let landed = in_force.iter().filter(|r| !closing_tasks(&record, &known, bare(r.id())).is_empty()).count();
+            let zero = if in_force.is_empty() { "; an empty record's coverage is zero, not complete" } else { "" };
+            say!("coverage: {landed} of {} requirements in force land in a task{zero}", in_force.len());
+        }
         say!("{check}: {} finding{}", findings.len(), if findings.len() == 1 { "" } else { "s" });
         total += findings.len();
     }
@@ -1374,7 +1383,11 @@ fn status(rest: &[String]) -> u8 {
         tally[states.iter().position(|s| *s == state).unwrap_or(3)] += 1;
     }
     let parts: Vec<String> = states.iter().zip(tally).map(|(s, n)| format!("{n} {s}")).collect();
-    say!("  {} in force: {}", in_force.len(), parts.join(", "));
+    if in_force.is_empty() {
+        say!("  none in force, so coverage is zero, not complete");
+    } else {
+        say!("  {} in force: {}", in_force.len(), parts.join(", "));
+    }
     CLEAN
 }
 
