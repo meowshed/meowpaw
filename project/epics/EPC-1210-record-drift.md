@@ -44,8 +44,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0704, REQ-0710
       evidence: three fixtures, and the scan narrowed to drafts, in #281.
 
-- [ ] T-002 TSK-1710 show and status derive each requirement's state
+- [x] T-002 TSK-1710 show and status derive each requirement's state
       closes: REQ-0527, REQ-0584, REQ-0591, REQ-0706, REQ-0712, REQ-0714
+      evidence: four fixtures, and the record's own state derived, in #282.
 
 - [ ] T-003 TSK-1720 record the evidence for the status rules that already hold
       closes: REQ-0510, REQ-0516, REQ-0518, REQ-0519, REQ-0582, REQ-0586, REQ-0690, REQ-0694, REQ-0696, REQ-0716

@@ -188,15 +188,7 @@ fn check(rest: &[String]) -> u8 {
 
     let mut total = 0;
     for check in chosen {
-        let mut findings = match check {
-            "front-matter" => front_matter(&record),
-            "identifiers" => identifiers(&record),
-            "relations" => relations(&record),
-            "index" => index(&record, &root, &repository),
-            "coverage" => coverage(&record),
-            "shape" => shape(&record),
-            _ => rules(&record),
-        };
+        let mut findings = run_check(check, &record, &root, &repository);
         findings.sort_by(|a, b| (&a.shown, a.line, &a.message).cmp(&(&b.shown, b.line, &b.message)));
         for finding in &findings {
             match finding.line {
@@ -226,6 +218,69 @@ fn layout_path() -> Result<PathBuf, String> {
 
 /// Records approved at a base revision and changed since, outside what their
 /// kind may change (ADR-1170).
+fn run_check(check: &str, record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
+    match check {
+        "front-matter" => front_matter(record),
+        "identifiers" => identifiers(record),
+        "relations" => relations(record),
+        "index" => index(record, root, repository),
+        "coverage" => coverage(record),
+        "shape" => shape(record),
+        _ => rules(record),
+    }
+}
+
+/// How many findings every check reports on each file, keyed by its shown path.
+fn findings_by_file(record: &Record, root: &Path, repository: &Path) -> BTreeMap<String, usize> {
+    let mut out = BTreeMap::new();
+    for check in CHECKS {
+        for finding in run_check(check, record, root, repository) {
+            *out.entry(finding.shown).or_insert(0) += 1;
+        }
+    }
+    out
+}
+
+/// Whether the record's root is kept by version control: inside a work tree
+/// and not ignored by it.
+fn under_version_control(root: &Path) -> bool {
+    let git = |args: &[&str]| std::process::Command::new("git").args(args).current_dir(root).output().ok();
+    let inside = git(&["rev-parse", "--is-inside-work-tree"]).is_some_and(|o| o.status.success());
+    let ignored = git(&["check-ignore", "-q", "."]).is_some_and(|o| o.status.success());
+    inside && !ignored
+}
+
+/// Each task closing a requirement, with its mark, its epic and the issue the
+/// epic was verified under, which is empty until it is.
+fn closing_tasks(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> Vec<(String, char, String, String)> {
+    let mut out = Vec::new();
+    for task in of_kind(record, "task") {
+        if !requirements_in(record, task.value("closes")).contains(id) {
+            continue;
+        }
+        let epic_id = bare(task.value("epic")).to_string();
+        let epic = known.get(epic_id.as_str());
+        let mark = epic.and_then(|e| marks(e).into_iter().find(|(t, _)| t == bare(task.id())).map(|(_, m)| m)).unwrap_or(' ');
+        let checked = epic.map(|e| bare(e.value("checked-at")).to_string()).unwrap_or_default();
+        out.push((bare(task.id()).to_string(), mark, epic_id, checked));
+    }
+    out.sort();
+    out
+}
+
+/// A requirement's observed state, derived from the tasks closing it (REQ-0584).
+fn requirement_state(tasks: &[(String, char, String, String)]) -> &'static str {
+    if tasks.iter().any(|(_, mark, _, checked)| *mark == 'x' && !checked.is_empty()) {
+        "verified"
+    } else if tasks.iter().any(|(_, mark, _, _)| *mark == 'x') {
+        "closed and not yet verified"
+    } else if tasks.iter().any(|(_, mark, _, _)| *mark != '~') {
+        "in a task not yet done"
+    } else {
+        "checked by nothing"
+    }
+}
+
 fn check_frozen(rest: &[String]) -> u8 {
     let base = match rest {
         [] => "HEAD".to_string(),
@@ -1084,7 +1139,8 @@ fn title(doc: &Doc) -> String {
 }
 
 /// Where one authorising record stands in the chain, and what comes next.
-fn position(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> String {
+fn position(record: &Record, known: &BTreeMap<String, &Doc>, findings: &BTreeMap<String, usize>, decision: &Doc) -> String {
+    let id = bare(decision.id());
     let epics: Vec<&Doc> = of_kind(record, "epic").into_iter().filter(|e| bare(e.value("realises")) == id).collect();
     let Some(epic) = epics.first() else { return "next: spec, then epic".to_string() };
     let epic_id = bare(epic.id());
@@ -1104,7 +1160,13 @@ fn position(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> String
     }
     let checked = bare(epic.value("checked-at"));
     if checked.is_empty() {
-        format!("next: document, then verify {epic_id} ({} done)", count(tasks.len(), "task"))
+        return format!("next: document, then verify {epic_id} ({} done)", count(tasks.len(), "task"));
+    }
+    // A verification holds only while the check reports nothing on what it verified (REQ-0706).
+    let on = |doc: &Doc| findings.get(&doc.shown).copied().unwrap_or(0);
+    let drifted = on(decision) + on(epic) + tasks.iter().filter_map(|(t, _)| known.get(t.as_str())).map(|t| on(t)).sum::<usize>();
+    if drifted > 0 {
+        format!("drifted: {epic_id} was verified under {checked}, and check reports {} on it now", count(drifted, "finding"))
     } else {
         format!("realised: {epic_id} verified under {checked}")
     }
@@ -1151,11 +1213,16 @@ fn status(rest: &[String]) -> u8 {
         }
         return CLEAN;
     }
-    let (record, _, _) = match open_record("status") {
+    let (record, repository, root) = match open_record("status") {
         Ok(opened) => opened,
         Err(code) => return code,
     };
+    if !under_version_control(&root) {
+        say!("The record is local to this machine: {} is under no version control.", root.display());
+        say!();
+    }
     let known = known(&record);
+    let findings = findings_by_file(&record, &root, &repository);
     let drafts: Vec<&&Doc> = known.values().filter(|doc| bare(doc.value("status")) == "draft").collect();
     say!("Waiting for approval");
     if drafts.is_empty() {
@@ -1175,8 +1242,19 @@ fn status(rest: &[String]) -> u8 {
     for decision in decisions {
         let id = bare(decision.id());
         say!("  {id} {}", title(decision));
-        say!("    {}", position(&record, &known, id));
+        say!("    {}", position(&record, &known, &findings, decision));
     }
+    say!();
+    say!("Requirements");
+    let states = ["verified", "closed and not yet verified", "in a task not yet done", "checked by nothing"];
+    let mut tally = [0usize; 4];
+    let in_force: Vec<&Doc> = of_kind(&record, "requirement").into_iter().filter(|r| approved(r)).collect();
+    for requirement in &in_force {
+        let state = requirement_state(&closing_tasks(&record, &known, bare(requirement.id())));
+        tally[states.iter().position(|s| *s == state).unwrap_or(3)] += 1;
+    }
+    let parts: Vec<String> = states.iter().zip(tally).map(|(s, n)| format!("{n} {s}")).collect();
+    say!("  {} in force: {}", in_force.len(), parts.join(", "));
     CLEAN
 }
 
@@ -1261,6 +1339,21 @@ fn show(rest: &[String]) -> u8 {
     }
     if !named {
         say!("  nothing");
+    }
+    if kind_of(&record, doc) == "requirement" {
+        say!();
+        say!("State");
+        let tasks = closing_tasks(&record, &known, id);
+        say!("  {}", requirement_state(&tasks));
+        for (task, mark, epic, checked) in &tasks {
+            let done = match mark {
+                'x' => "done",
+                '~' => "dropped",
+                _ => "open",
+            };
+            let verified = if checked.is_empty() { "not yet verified".to_string() } else { format!("verified under {checked}") };
+            say!("  {task} {done} in {epic}, {verified}");
+        }
     }
     say!();
     say!("Cited by");
