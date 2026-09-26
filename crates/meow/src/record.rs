@@ -96,7 +96,48 @@ pub fn main(args: &[String]) -> u8 {
         Some((verb, rest)) => (verb.as_str(), rest),
         None => ("", &[][..]),
     };
-    if verb != "check" || rest.len() > 1 {
+    match verb {
+        "check" => check(rest),
+        "status" => status(rest),
+        "ready" => ready(rest),
+        "template" => template(rest),
+        _ => {
+            eprintln!(
+                "usage: meow-method check [{}] | status | ready <step> <id>... | template <kind>",
+                CHECKS.join(" | ")
+            );
+            USAGE
+        }
+    }
+}
+
+/// The record at the declared root, or the exit code and why it can't be read.
+fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
+    let layout = match load_layout() {
+        Ok(layout) => layout,
+        Err(reason) => {
+            println!("meow-method {verb}: the record was not checked: {reason}");
+            return Err(UNCHECKED);
+        }
+    };
+    let repository = profile::repository_root();
+    let root = match record_root(&repository) {
+        Ok(root) => root,
+        Err(reason) => {
+            println!("meow-method {verb}: {reason}");
+            return Err(FOUND);
+        }
+    };
+    if !root.is_dir() {
+        println!("meow-method {verb}: the record's root {} doesn't exist; nothing was checked", root.display());
+        return Err(FOUND);
+    }
+    let record = read_record(layout, &repository, &root);
+    Ok((record, repository, root))
+}
+
+fn check(rest: &[String]) -> u8 {
+    if rest.len() > 1 {
         eprintln!("usage: meow-method check [{}]", CHECKS.join(" | "));
         return USAGE;
     }
@@ -108,27 +149,10 @@ pub fn main(args: &[String]) -> u8 {
         }
         None => CHECKS.to_vec(),
     };
-
-    let layout = match load_layout() {
-        Ok(layout) => layout,
-        Err(reason) => {
-            println!("meow-method check: the record was not checked: {reason}");
-            return UNCHECKED;
-        }
+    let (record, repository, root) = match open_record("check") {
+        Ok(opened) => opened,
+        Err(code) => return code,
     };
-    let repository = profile::repository_root();
-    let root = match record_root(&repository) {
-        Ok(root) => root,
-        Err(reason) => {
-            println!("meow-method check: {reason}");
-            return FOUND;
-        }
-    };
-    if !root.is_dir() {
-        println!("meow-method check: the record's root {} doesn't exist; nothing was checked", root.display());
-        return FOUND;
-    }
-    let record = read_record(layout, &repository, &root);
 
     let mut total = 0;
     for check in chosen {
@@ -153,17 +177,23 @@ pub fn main(args: &[String]) -> u8 {
     if total == 0 { CLEAN } else { FOUND }
 }
 
-/// The layout from `MEOW_LAYOUT`, or from the unit this binary ships in.
-fn load_layout() -> Result<Layout, String> {
-    let path = match std::env::var_os("MEOW_LAYOUT") {
-        Some(path) => PathBuf::from(path),
+/// Where the layout is: `MEOW_LAYOUT`, or `lib/layout.toml` in the unit this
+/// binary ships in.
+fn layout_path() -> Result<PathBuf, String> {
+    match std::env::var_os("MEOW_LAYOUT") {
+        Some(path) => Ok(PathBuf::from(path)),
         None => {
             let exe = std::env::current_exe().map_err(|e| e.to_string())?;
             // The binary sits at <unit>/bin/<target>/meow.
             let unit = exe.parent().and_then(Path::parent).and_then(Path::parent);
-            unit.ok_or("the binary is not inside a unit")?.join("lib").join("layout.toml")
+            Ok(unit.ok_or("the binary is not inside a unit")?.join("lib").join("layout.toml"))
         }
-    };
+    }
+}
+
+/// The layout from `MEOW_LAYOUT`, or from the unit this binary ships in.
+fn load_layout() -> Result<Layout, String> {
+    let path = layout_path()?;
     let text = std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
     let data: toml::Table = text.parse().map_err(|e| format!("{}: {e}", path.display()))?;
     let strings = |table: &toml::Table, key: &str| -> Vec<String> {
@@ -562,6 +592,252 @@ fn shape(record: &Record) -> Vec<Finding> {
         }
     }
     out
+}
+
+const STEPS: [&str; 9] = ["research", "requirements", "design", "spec", "epic", "implement", "document", "verify", "review"];
+const TEMPLATES: [&str; 9] = ["research", "requirement", "adr", "spec", "epic", "task", "bug", "vision", "constitution"];
+
+fn approved(doc: &Doc) -> bool {
+    bare(doc.value("status")) == "approved"
+}
+
+fn kind_of<'a>(record: &'a Record, doc: &Doc) -> &'a str {
+    doc.kind.map(|k| record.layout.kinds[k].name.as_str()).unwrap_or("artifact")
+}
+
+/// Each task an epic lists, with the mark it carries: `x` done, `~` dropped,
+/// and anything else open.
+fn marks(epic: &Doc) -> Vec<(String, char)> {
+    let line = Regex::new(r"(?m)^- \[(.)\] T-\d+ (TSK-\d{4})").expect("mark pattern");
+    line.captures_iter(&epic.text)
+        .filter_map(|c| Some((c.get(2)?.as_str().to_string(), c.get(1)?.as_str().chars().next()?)))
+        .collect()
+}
+
+fn finished(mark: char) -> bool {
+    mark == 'x' || mark == '~'
+}
+
+/// The tasks a task depends on: the `TSK-` identifiers under `## Depends on`.
+fn depends_on(task: &Doc) -> Vec<String> {
+    let section = Regex::new(r"(?ms)^## Depends on$(.*?)(?:^## |\z)").expect("section pattern");
+    let id = Regex::new(r"TSK-\d{4}").expect("identifier pattern");
+    section
+        .captures(&task.text)
+        .map(|c| id.find_iter(&c[1]).map(|m| m.as_str().to_string()).collect())
+        .unwrap_or_default()
+}
+
+/// Whether a task is marked done or dropped by the epic it names.
+fn task_finished(known: &BTreeMap<String, &Doc>, task: &str) -> bool {
+    let Some(doc) = known.get(task) else { return false };
+    let Some(epic) = known.get(bare(doc.value("epic"))) else { return false };
+    marks(epic).iter().any(|(id, mark)| id == task && finished(*mark))
+}
+
+fn ready(rest: &[String]) -> u8 {
+    let Some((step, ids)) = rest.split_first() else {
+        eprintln!("usage: meow-method ready <step> <id>..., where a step is one of {}", STEPS.join(", "));
+        return USAGE;
+    };
+    let step = step.as_str();
+    if !STEPS.contains(&step) {
+        eprintln!("meow-method ready: no step is named {step}; the steps are {}", STEPS.join(", "));
+        return USAGE;
+    }
+    if step == "research" {
+        println!("meow-method ready research: ready; research needs no approved input");
+        return CLEAN;
+    }
+    if ids.is_empty() {
+        eprintln!("meow-method ready {step}: name the identifiers of the step's input");
+        return USAGE;
+    }
+    let (record, _, _) = match open_record("ready") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let known = known(&record);
+    let mut missing: Vec<String> = Vec::new();
+    for id in ids {
+        let Some(doc) = known.get(id.as_str()) else {
+            missing.push(format!("{id} has no file"));
+            continue;
+        };
+        let kind = kind_of(&record, doc);
+        match step {
+            "requirements" | "design" | "spec" | "epic" | "implement" => {
+                if !approved(doc) {
+                    missing.push(format!("{id}, a {kind}, is {} and not approved", bare(doc.value("status"))));
+                    continue;
+                }
+            }
+            _ => {}
+        }
+        match step {
+            "epic" if kind == "decision" => {
+                let mut stated = BTreeSet::new();
+                for spec in of_kind(&record, "specification") {
+                    stated.extend(requirements_in(&record, spec.value("states")));
+                }
+                for requirement in requirements_in(&record, doc.value("addresses")) {
+                    if !stated.contains(&requirement) {
+                        missing.push(format!("{requirement}, which {id} addresses, is stated by no specification"));
+                    }
+                }
+            }
+            "implement" => {
+                let epic_id = bare(doc.value("epic"));
+                match known.get(epic_id) {
+                    Some(epic) if approved(epic) => {}
+                    Some(epic) => missing.push(format!("{epic_id}, the epic of {id}, is {} and not approved", bare(epic.value("status")))),
+                    None => missing.push(format!("{epic_id}, the epic of {id}, has no file")),
+                }
+                for dependency in depends_on(doc) {
+                    if !task_finished(&known, &dependency) {
+                        missing.push(format!("{dependency}, which {id} depends on, isn't done"));
+                    }
+                }
+            }
+            "document" | "verify" => {
+                let open: Vec<String> = marks(doc)
+                    .into_iter()
+                    .filter(|(_, mark)| !finished(*mark))
+                    .map(|(task, _)| task)
+                    .collect();
+                if marks(doc).is_empty() {
+                    missing.push(format!("{id} lists no tasks"));
+                }
+                for task in open {
+                    missing.push(format!("{task}, a task of {id}, isn't done"));
+                }
+            }
+            "review" => {
+                if bare(doc.value("checked-at")).is_empty() {
+                    missing.push(format!("{id} hasn't been verified: its checked-at is empty"));
+                }
+            }
+            _ => {}
+        }
+    }
+    if missing.is_empty() {
+        println!("meow-method ready {step}: ready; {} approved and complete", ids.join(", "));
+        CLEAN
+    } else {
+        println!("meow-method ready {step}: not ready");
+        for line in &missing {
+            println!("  {line}");
+        }
+        FOUND
+    }
+}
+
+fn count(n: usize, noun: &str) -> String {
+    format!("{n} {noun}{}", if n == 1 { "" } else { "s" })
+}
+
+fn title(doc: &Doc) -> String {
+    let heading = doc.text.lines().find(|l| l.starts_with("# ")).unwrap_or("# ").trim_start_matches("# ");
+    // A decision's heading carries its number, "1130. The chain ...".
+    heading.split_once(". ").filter(|(n, _)| n.chars().all(|c| c.is_ascii_digit())).map(|(_, t)| t).unwrap_or(heading).to_string()
+}
+
+/// Where one authorising record stands in the chain, and what comes next.
+fn position(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> String {
+    let epics: Vec<&Doc> = of_kind(record, "epic").into_iter().filter(|e| bare(e.value("realises")) == id).collect();
+    let Some(epic) = epics.first() else { return "next: spec, then epic".to_string() };
+    let epic_id = bare(epic.id());
+    if !approved(epic) {
+        return format!("waiting: {epic_id} is {} and not approved", bare(epic.value("status")));
+    }
+    let tasks = marks(epic);
+    let open: Vec<&String> = tasks.iter().filter(|(_, mark)| !finished(*mark)).map(|(task, _)| task).collect();
+    if !open.is_empty() {
+        let doable = open.iter().find(|task| {
+            known.get(task.as_str()).map(|doc| depends_on(doc).iter().all(|d| task_finished(known, d))).unwrap_or(true)
+        });
+        return match doable {
+            Some(task) => format!("next: implement {task} ({epic_id}, {} of {} done)", tasks.len() - open.len(), count(tasks.len(), "task")),
+            None => format!("waiting: every open task of {epic_id} depends on one that isn't done"),
+        };
+    }
+    let checked = bare(epic.value("checked-at"));
+    if checked.is_empty() {
+        format!("next: document, then verify {epic_id} ({} done)", count(tasks.len(), "task"))
+    } else {
+        format!("realised: {epic_id} verified under {checked}")
+    }
+}
+
+fn status(rest: &[String]) -> u8 {
+    if !rest.is_empty() {
+        eprintln!("usage: meow-method status");
+        return USAGE;
+    }
+    let (record, _, _) = match open_record("status") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let known = known(&record);
+    let drafts: Vec<&&Doc> = known.values().filter(|doc| bare(doc.value("status")) == "draft").collect();
+    println!("Waiting for approval");
+    if drafts.is_empty() {
+        println!("  nothing");
+    }
+    for doc in &drafts {
+        println!("  {} {}, draft: {}", bare(doc.id()), kind_of(&record, doc), title(doc));
+    }
+    println!();
+    println!("Decisions");
+    let mut decisions: Vec<&Doc> = of_kind(&record, "decision").into_iter().filter(|d| approved(d)).collect();
+    decisions.sort_by_key(|d| bare(d.id()).to_string());
+    if decisions.is_empty() {
+        println!("  none approved");
+    }
+    for decision in decisions {
+        let id = bare(decision.id());
+        println!("  {id} {}", title(decision));
+        println!("    {}", position(&record, &known, id));
+    }
+    CLEAN
+}
+
+fn template(rest: &[String]) -> u8 {
+    let [kind] = rest else {
+        eprintln!("usage: meow-method template <kind>, where a kind is one of {}", TEMPLATES.join(", "));
+        return USAGE;
+    };
+    if !TEMPLATES.contains(&kind.as_str()) {
+        eprintln!("meow-method template: no kind is named {kind}; the kinds are {}", TEMPLATES.join(", "));
+        return USAGE;
+    }
+    let repository = profile::repository_root();
+    let own = repository.join(".meowpaw").join("templates").join(format!("{kind}.md"));
+    if own.is_file() {
+        println!("{}", own.display());
+        return CLEAN;
+    }
+    let unit = match layout_path() {
+        Ok(path) => path.parent().and_then(Path::parent).map(|u| u.join("templates").join(format!("{kind}.md"))),
+        Err(reason) => {
+            println!("meow-method template: no template was found: {reason}");
+            return UNCHECKED;
+        }
+    };
+    match unit {
+        Some(path) if path.is_file() => {
+            println!("{}", path.display());
+            CLEAN
+        }
+        Some(path) => {
+            println!("meow-method template: the unit has no template for {kind} at {}", path.display());
+            FOUND
+        }
+        None => {
+            println!("meow-method template: no template was found for {kind}");
+            UNCHECKED
+        }
+    }
 }
 
 #[cfg(test)]

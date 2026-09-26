@@ -34,7 +34,34 @@ Nothing. ADR-1130 and SPC-1090 are approved.
 
 ## Evidence
 
-Not yet.
+`meow record` gains `status`, `ready` and `template` as SPC-1090 states them.
+Fourteen new fixtures cover each gate, the state and each failure path. Three
+fixtures, one of them older, passed against a program that returns nothing,
+so each now asserts the program's output, and every fixture fails against it:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 34 tests
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=33, errors=1)
+```
+
+Run on this repository, `status` leads with four tasks still stored as
+`draft` and places each decision, and `ready` refuses TSK-1430 until
+TSK-1420 is done:
+
+```text
+$ meow-method ready implement TSK-1430
+meow-method ready implement: not ready
+  TSK-1420, which TSK-1430 depends on, isn't done
+```
+
+`status` also shows ADR-1030, ADR-1040 and ADR-1060 with no epic of their own,
+which REQ-0239 requires, and EPC-1030 with every task done and no
+verification. Those are defects in the record, not in the program, and a
+defect record carries them.
 
 ## Left alone
 
