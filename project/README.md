@@ -121,6 +121,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1260](adrs/ADR-1260-onboarding-recovers-what-a-repository-is-and-places-every-document.md):
   onboarding recovers what a repository is, and places every document it
   already has.
+- [ADR-1270](adrs/ADR-1270-each-unit-is-adopted-alone-and-a-missing-capability-names-its-fix.md):
+  each unit is adopted alone, and a missing capability names what would supply
+  it.
 
 ## Specifications
 
@@ -248,6 +251,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1250](epics/EPC-1250-init.md) realised ADR-1250 in three tasks, TSK-1810 to TSK-1830, each closed with evidence, and was verified against every acceptance criterion under issue 326.
 
 [EPC-1260](epics/EPC-1260-onboarding.md) realised ADR-1260 in two tasks, TSK-1840 and TSK-1850, each closed with evidence, and was verified against every acceptance criterion under issue 334.
+
+[EPC-1270](epics/EPC-1270-adoption.md) is approved and realises ADR-1270 in three tasks,
+TSK-1860 to TSK-1880, each filed as an issue.
 
 ## Defects
 

@@ -6,7 +6,21 @@ revised: 2026-09-26
 checked-at: "#277"
 states:
   [
+    REQ-0010,
+    REQ-0012,
+    REQ-0014,
+    REQ-0016,
+    REQ-0018,
+    REQ-0022,
+    REQ-0024,
+    REQ-0026,
+    REQ-0028,
+    REQ-0030,
     REQ-0032,
+    REQ-0034,
+    REQ-0036,
+    REQ-0038,
+    REQ-0040,
     REQ-0074,
     REQ-0076,
     REQ-1485,
@@ -158,6 +172,20 @@ that repository alone, and it runs when someone starts it by hand.
 The features of the tool that read the record and project it onto a tracker,
 which later decisions add, are features no step of the method depends on
 (REQ-0032). A unit is complete with the record kept by hand and no tracker.
+
+### Adopted in part
+
+A repository adopts any subset of the units, and each is a working harness on
+its own: no file a unit ships reaches outside the unit's directory, which
+`tools/check_standalone.py` holds (REQ-0012, REQ-0014, REQ-0034). Installing a
+unit adds nothing to the repository, the record is optional and the other
+units work without it, the harness names no language, its artifacts are plain
+text, and a repository overrides a convention with a file of its own that wins
+over the unit's (REQ-0010, REQ-0016, REQ-0018, REQ-0022, REQ-0024, REQ-0026,
+REQ-0028, REQ-0030). A capability that isn't available is reported as
+unresolved or unchecked, never replaced by a weaker one, and the report names
+what would supply it: the profile's `[verbs]` for a verb, a reinstall for a
+missing binary (REQ-0036, REQ-0038, REQ-0040) (ADR-1270).
 
 ### Quality attributes
 
