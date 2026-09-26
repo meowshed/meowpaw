@@ -24,9 +24,14 @@ states:
     REQ-0520,
     REQ-0521,
     REQ-0524,
+    REQ-0525,
+    REQ-0530,
     REQ-0538,
     REQ-0540,
     REQ-0546,
+    REQ-0552,
+    REQ-0554,
+    REQ-0555,
     REQ-0556,
     REQ-0558,
     REQ-0560,
@@ -64,6 +69,7 @@ states:
     REQ-2866,
     REQ-2868,
     REQ-2878,
+    REQ-2880,
     REQ-2882,
     REQ-2884,
     REQ-2886,
@@ -161,6 +167,15 @@ learned and never on a schedule, keeps activity in the history, and finds one
 with `find` and never by default; a task records a prediction under its
 acceptance criteria before the work that tests it (REQ-0570, REQ-0572,
 REQ-0577, REQ-0578, REQ-0580) (ADR-1220).
+
+The specifications' index lists each specification after every specification
+it cites, so reading it in order never needs a forward reference (REQ-0525).
+A living document collects any withdrawn requirement it cites under a section
+headed Withdrawn, and no directory under the root is named for an archive,
+because a superseded record carries its status and names its replacement
+(REQ-0552, REQ-0554, REQ-0555). A draft requirement's statement carries one
+keyword, leans on no neighbour, and prohibits with `MUST NOT` (REQ-2880). The
+constitution outranks every artifact (REQ-0530) (ADR-1230).
 
 ### The checks
 
