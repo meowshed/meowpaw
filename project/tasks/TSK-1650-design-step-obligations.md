@@ -1,7 +1,7 @@
 ---
 id: TSK-1650
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1190
 closes:
@@ -43,7 +43,7 @@ closes:
     REQ-2794,
     REQ-2796,
   ]
-issue:
+issue: 262
 ---
 
 # The design step carries the obligations on what it designs
