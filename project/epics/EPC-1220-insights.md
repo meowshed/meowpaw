@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1220
-checked-at:
+checked-at: "#296"
 ---
 
 # The record keeps an insight
@@ -45,6 +45,18 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-002 TSK-1740 the method says when to write an insight and how to find one
       closes: REQ-0570, REQ-0572, REQ-0577, REQ-0578, REQ-0580
       evidence: 5 requirements traced to four rules, in #292.
+
+## Verified
+
+Checked under issue 296 at revision `ffd5860`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                                                                 | Evidence at `ffd5860`                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. `check` refuses an insight whose title carries a date, whose evidence holds no number or block, or that doesn't end with its pattern, and passes one meeting each rule | The five insight fixtures pass: `Ran 5 tests`, `OK`                                                                                   |
+| 2. `template insight` prints the template, and `new insight` allocates `INS-0001` in an empty record                                                                      | `test_an_insight_is_allocated_and_templated` passes; `meow-method template insight` prints `plugins/meow-method/templates/insight.md` |
+| 3. Each rule in the skill and the implement step maps to its requirement in the task that closes it                                                                       | TSK-1740's trace holds 5 rows, and M11, M12, M13 in `SKILL.md` and I12 in `steps/implement.md` are each found once                    |
+| 4. Every requirement lands in exactly one closed task                                                                                                                     | `meow-method check coverage` reports 0 findings, and both tasks are marked `[x]` with evidence                                        |
 
 ## Coverage
 
