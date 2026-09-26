@@ -22,7 +22,33 @@ TSK-1450, because the rules read the scope the layout declares.
 
 ## Evidence
 
-Not yet.
+`meow-method check rules` is the seventh check. It runs the named rules each
+kind lists in `lib/layout.toml`, under `rules` for every record and
+`draft_rules` for drafts: a research draft dates each source and cites no
+requirement, a judged requirement draft names its verifier, an epic realises
+exactly one decision or defect, and a decision's alternatives table says why
+each lost. A rule the layout names and the program doesn't know is itself a
+finding, so a typo can't switch a rule off.
+
+Five new fixtures, each showing the rule and, for the drafts-only ones, the
+approved record passing:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 48 tests in 2.086s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=47, errors=1)
+
+$ meow-method check rules
+rules: 0 findings
+```
+
+On this repository every decision's alternatives say why each lost and every
+epic realises one record, and the approved research and requirements that
+break the drafts-only rules pass, as ADR-1140 decides. `docs/meow-method.md`
+lists the check, and `meow-method` is 0.3.0.
 
 ## Left alone
 
