@@ -15,6 +15,14 @@ claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
 claude plugin install meow-method@meowpaw
 ```
 
+## Bring a repository in
+
+Type `/meow-method:init` in a repository with no `.meowpaw/profile.toml`. It
+reads the repository and writes the profile from the template
+`meow-method template profile` names, and a `CLAUDE.md` from the constitution
+template where the repository has none. It writes nothing else, and it leaves
+an existing `CLAUDE.md` untouched. Review both files before you commit them.
+
 ## Declare where the record lives
 
 Put it under `[record]` in `.meowpaw/profile.toml` at the repository's root:
