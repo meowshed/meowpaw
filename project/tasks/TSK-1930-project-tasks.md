@@ -1,7 +1,7 @@
 ---
 id: TSK-1930
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1310
 closes:
@@ -17,7 +17,7 @@ closes:
     REQ-1386,
     REQ-1396,
   ]
-issue:
+issue: 371
 ---
 
 # Project an approved epic's tasks onto issues
