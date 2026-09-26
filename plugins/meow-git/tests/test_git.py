@@ -152,6 +152,24 @@ class GitPack(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertIn("1 commit checked", done.stdout)
 
+    def test_a_branch_named_for_a_date_or_its_author_is_refused(self):
+        for name, says in (("fix/2026-09-26-links", "it carries a date"), ("fix/20260926", "it carries a date"),
+                           ("a-person/links", "it carries the author's name, A Person")):
+            repo = self.repo()
+            run(repo.root, "git", "checkout", "-q", "-b", name)
+            repo.commit(f"fix: read the trunk from the profile\n\n{SIGNED_OFF}")
+            done = repo.guard("push-guard")
+            self.assertEqual(done.returncode, 2, name + done.stdout + done.stderr)
+            self.assertIn(f"the branch `{name}`", done.stderr)
+            self.assertIn(says, done.stderr)
+
+    def test_a_branch_named_for_its_change_goes_through(self):
+        repo = self.repo()
+        run(repo.root, "git", "checkout", "-q", "-b", "fix/1234-12-factor-names")
+        repo.commit(f"fix: read the trunk from the profile\n\n{SIGNED_OFF}")
+        done = repo.guard("push-guard")
+        self.assertEqual(done.returncode, 0, done.stderr)
+
     def test_without_meow_scm_the_message_check_is_unrun(self):
         repo = self.repo()
         repo.commit("anything at all")
