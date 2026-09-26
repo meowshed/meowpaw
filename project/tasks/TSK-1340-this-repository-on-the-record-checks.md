@@ -1,11 +1,11 @@
 ---
 id: TSK-1340
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1070
 closes: [REQ-1673]
-issue:
+issue: 145
 ---
 
 # Move this repository onto the record checks the harness ships

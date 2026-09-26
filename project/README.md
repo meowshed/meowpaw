@@ -142,9 +142,8 @@ against every acceptance criterion under issue 130.
 TSK-1320, closed with evidence, and was verified against every acceptance
 criterion under issue 138.
 
-[EPC-1070](epics/EPC-1070-checking-the-record.md) is a draft that realises
-ADR-1100 in two tasks, TSK-1330 and TSK-1340, and waits for the owner's
-approval.
+[EPC-1070](epics/EPC-1070-checking-the-record.md) is approved and realises
+ADR-1100 in two tasks, TSK-1330 and TSK-1340, each filed as an issue.
 
 ## Defects
 

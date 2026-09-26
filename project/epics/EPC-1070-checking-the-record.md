@@ -1,7 +1,7 @@
 ---
 id: EPC-1070
 artifact: epic
-status: draft
+status: approved
 revised: 2026-09-26
 realises: ADR-1100
 checked-at:

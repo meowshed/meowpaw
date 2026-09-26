@@ -1,7 +1,7 @@
 ---
 id: TSK-1330
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1070
 closes:
@@ -16,7 +16,7 @@ closes:
     REQ-0590,
     REQ-0656,
   ]
-issue:
+issue: 144
 ---
 
 # Check the record where the repository declares it
