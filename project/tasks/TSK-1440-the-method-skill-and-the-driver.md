@@ -34,7 +34,29 @@ TSK-1420 and TSK-1430, because the steps call the program and write from the tem
 
 ## Evidence
 
-Not yet.
+`plugins/meow-method/skills/method/SKILL.md` holds what every step shares and
+the three caps and rules, and `steps/<step>.md` holds each of the nine steps:
+its input, the template it writes from, its content rules and the step that
+picks it up. `plugins/meow-method/skills/run/SKILL.md` is the driver, marked
+`disable-model-invocation: true`, so only a person invokes it and the platform
+doesn't list it on every turn.
+
+`tools/check_budget.py` counted the driver's description, which the platform
+doesn't load: its skills documentation says such a skill's "Description not in
+context". That was a false positive in the check, and the check now skips a
+skill marked so.
+
+```text
+$ python3 tools/check_prompts.py
+50 shipped prompts, 0 failures
+$ python3 tools/check_budget.py
+meow-method: 385 of 500 characters on every turn
+7 units, 0 budget failures
+```
+
+`docs/meow-method.md` describes the steps, the driver, `status`, `ready` and
+`template`, and `meow-method` is 0.2.0. Whether the skill routes on its
+description is left for evaluation, as ADR-1130 says.
 
 ## Left alone
 
