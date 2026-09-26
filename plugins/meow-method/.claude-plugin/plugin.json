@@ -1,7 +1,7 @@
 {
   "name": "meow-method",
-  "version": "0.1.1",
-  "description": "Checks a repository's record where .meowpaw/profile.toml declares it: front matter and status vocabulary, identifiers, relations, each kind's index, coverage and shape, reporting each finding with its file and line and writing nothing.",
+  "version": "0.2.0",
+  "description": "Runs the method's nine steps from research to review, each refused by a native program until its input is approved, drives them to the next approval gate with /meow-method:run, and checks the record they write where .meowpaw/profile.toml declares it. Costs one skill description on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
