@@ -128,6 +128,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   onboarding finishes by removing what it placed, once the report is approved.
 - [ADR-1290](adrs/ADR-1290-a-github-pack-reads-a-repositorys-history.md): a
   GitHub pack reads a repository's history, and writes nothing.
+- [ADR-1300](adrs/ADR-1300-onboarding-reads-what-the-history-states.md):
+  onboarding reads what the documents and the forge history state, and
+  recovers it as drafts.
 
 ## Specifications
 
@@ -261,6 +264,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1280](epics/EPC-1280-remove-placed.md) realised ADR-1280 in two tasks, TSK-1890 and TSK-1900, each closed with evidence, and was verified against every acceptance criterion under issue 356.
 
 [EPC-1290](epics/EPC-1290-github-pack.md) realised ADR-1290 in one task, TSK-1910, closed with evidence, and was verified against every acceptance criterion under issue 362.
+
+[EPC-1300](epics/EPC-1300-onboard-history.md) is approved and realises ADR-1300 in one
+task, TSK-1920, each filed as an issue.
 
 ## Defects
 
