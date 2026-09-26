@@ -112,6 +112,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   a kind of record, written only when something was learned.
 - [ADR-1230](adrs/ADR-1230-the-record-keeps-its-reading-order-and-its-history-out-of-the-way.md):
   the record keeps its reading order, and its history out of the way.
+- [ADR-1240](adrs/ADR-1240-a-change-to-the-records-shape-migrates-what-exists.md):
+  a change to the record's shape migrates what exists, and a retired name stays
+  retired.
 
 ## Specifications
 
@@ -233,6 +236,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1220](epics/EPC-1220-insights.md) realised ADR-1220 in two tasks, TSK-1730 and TSK-1740, each closed with evidence, and was verified against every acceptance criterion under issue 296.
 
 [EPC-1230](epics/EPC-1230-reading-order.md) realised ADR-1230 in three tasks, TSK-1750 to TSK-1770, each closed with evidence, and was verified against every acceptance criterion under issue 306.
+
+[EPC-1240](epics/EPC-1240-migrations.md) is approved and realises ADR-1240 in three
+tasks, TSK-1780 to TSK-1800, each filed as an issue.
 
 ## Defects
 
