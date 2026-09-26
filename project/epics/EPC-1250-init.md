@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1250
-checked-at:
+checked-at: "#326"
 ---
 
 # A repository is brought into the harness by `/meow-method:init`
@@ -50,6 +50,18 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-3098, REQ-3180
       evidence: two fixtures, and every write the program makes accounted for,
       in #321.
+
+## Verified
+
+Checked under issue 326 at revision `2636f4b`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                                             | Evidence at `2636f4b`                                                                                                                                                   |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. `template profile` prints a template naming no language, build tool or package manager, and `/meow-method:init` carries `disable-model-invocation` | `test_the_profile_template_names_no_language` passes, and `disable-model-invocation: true` is found once in `skills/init/SKILL.md`                                      |
+| 2. Each rule in the command maps to its requirement in the task that closes it                                                                        | N1 to N5 are each found once in `skills/init/SKILL.md`; TSK-1810 traces N1 and TSK-1820 traces N2 to N5                                                                 |
+| 3. `check coverage` and `status` on an empty record report zero requirements and coverage as zero                                                     | `test_an_empty_record_reports_its_coverage_as_zero` and `test_coverage_counts_the_requirements_that_land_in_a_task` pass, `Ran 3 tests`, `OK` with the template fixture |
+| 4. Every requirement lands in exactly one closed task                                                                                                 | `meow-method check coverage` reports 0 findings, and the three tasks are marked `[x]` with evidence                                                                     |
 
 ## Coverage
 
