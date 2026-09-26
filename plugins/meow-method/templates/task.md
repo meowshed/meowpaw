@@ -22,8 +22,10 @@ knows whether it is theirs. One task, one branch, one pull request, one review.
    command's output>.
 
 Each criterion is a state, an action and an outcome someone can observe,
-never an adjective, and names the evidence that will close it. The
-repository's definition of done applies as well and isn't restated here.
+never an adjective, and names the evidence that will close it. Where the work
+predicts a measurable outcome, the criterion states the predicted number now,
+before the work. The repository's definition of done applies as well and
+isn't restated here.
 
 ## What to do
 

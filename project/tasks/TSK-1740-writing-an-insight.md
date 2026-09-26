@@ -27,7 +27,23 @@ Nothing. ADR-1220 is approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the file
+named, and no rule names a requirement:
+
+| Requirement | Carried by                  |
+| ----------- | --------------------------- |
+| REQ-0570    | M12 in `SKILL.md`           |
+| REQ-0572    | M11 in `SKILL.md`           |
+| REQ-0577    | M11 in `SKILL.md`           |
+| REQ-0578    | I12 in `steps/implement.md` |
+| REQ-0580    | M13 in `SKILL.md`           |
+
+The task template's Acceptance criteria now asks for the predicted number
+before the work, beside I12, and `check frozen` holds an approved task's
+criteria. The session's only hook runs `meow-method status --waiting`, which
+reads no insight, so nothing loads insights by default. A script found all
+5 traced labels in their files. Whether the model follows the rules is
+measured by evaluation, which is postponed.
 
 ## Left alone
 
