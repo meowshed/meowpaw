@@ -49,7 +49,41 @@ Nothing. ADR-1160 and SPC-1090 are approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the step
+file named, and every rule names no requirement, because the file ships to
+other repositories:
+
+| Requirement | Carried by               |
+| ----------- | ------------------------ |
+| REQ-0241    | V6 in `steps/verify.md`  |
+| REQ-0275    | V1 in `steps/verify.md`  |
+| REQ-0277    | V1 in `steps/verify.md`  |
+| REQ-0278    | V2 in `steps/verify.md`  |
+| REQ-0279    | V1 in `steps/verify.md`  |
+| REQ-0280    | V3 in `steps/verify.md`  |
+| REQ-0281    | V4 in `steps/verify.md`  |
+| REQ-0282    | V5 in `steps/verify.md`  |
+| REQ-0283    | V4 in `steps/verify.md`  |
+| REQ-0284    | V5 in `steps/verify.md`  |
+| REQ-0286    | V7 in `steps/verify.md`  |
+| REQ-0288    | V8 in `steps/verify.md`  |
+| REQ-0291    | V1 in `steps/verify.md`  |
+| REQ-0293    | V3 in `steps/verify.md`  |
+| REQ-0295    | V5 in `steps/verify.md`  |
+| REQ-0296    | V6 in `steps/verify.md`  |
+| REQ-0297    | V9 in `steps/verify.md`  |
+| REQ-0299    | V5 in `steps/verify.md`  |
+| REQ-0307    | V3 in `steps/verify.md`  |
+| REQ-0317    | V9 in `steps/verify.md`  |
+| REQ-0319    | V2 in `steps/verify.md`  |
+| REQ-0325    | V7 in `steps/verify.md`  |
+| REQ-0327    | V5 in `steps/verify.md`  |
+| REQ-0329    | V10 in `steps/verify.md` |
+| REQ-0542    | V2 in `steps/verify.md`  |
+
+The prompt check passes on the step files and `meow-method check` reports 0
+findings, as the gate below shows. Whether the model follows the rules is
+measured by evaluation, which is postponed.
 
 ## Left alone
 
