@@ -115,16 +115,23 @@ Every decision below is approved and in force, as amended by the ones after it.
 
 ## Specifications
 
+Listed in reading order: each specification after every one it cites.
+
 [SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape, checked
 at #27. It records that REQ-0930 is unmet: the style applies when a person
 selects it, and not on its own.
 
-[SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
 [SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to what
-the harness says is measured, and
+the harness says is measured,
 [SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
-prompt the harness ships is written. The work realising them has landed, and
-each leaves `checked-at` empty until its epics are verified.
+prompt the harness ships is written, and
+[SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
+which follows both. The work realising them has landed, and each leaves
+`checked-at` empty until its epics are verified.
+
+[SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
+launchers, its release and the marketplace address. The crate implements it,
+verified under issue 277.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
@@ -138,10 +145,6 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
 checked, and `meow-method` implements it, verified under issue 296.
-
-[SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
-launchers, its release and the marketplace address. The crate implements it,
-verified under issue 277.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.

@@ -712,8 +712,24 @@ fn index(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
         }
         let own = Regex::new(&format!(r"\b{prefix}-\d{{4}}\b")).expect("identifier pattern");
         let mut listed: BTreeMap<&str, usize> = BTreeMap::new();
+        let mut first: BTreeMap<&str, usize> = BTreeMap::new();
         for found in own.find_iter(&listing.text) {
             listed.entry(found.as_str()).or_insert_with(|| line_of(&listing.text, found.start()));
+            first.entry(found.as_str()).or_insert(found.start());
+        }
+        // A living kind's index is its reading order, so each document follows
+        // everything it cites (REQ-0525); a record's index is ordered by identifier.
+        if kind.statuses.iter().any(|s| s == "live") {
+            for doc in record.docs.iter().filter(|d| d.kind == Some(k) && d.path != path) {
+                let id = bare(doc.id());
+                let Some(&at) = first.get(id) else { continue };
+                let cited: BTreeSet<&str> = own.find_iter(&doc.text).map(|m| m.as_str()).filter(|c| *c != id).collect();
+                for c in cited {
+                    if first.get(c).is_some_and(|&later| later > at) {
+                        out.push(Finding::at(listing, Some(line_of(&listing.text, at)), format!("lists {id} before {c}, which it cites")));
+                    }
+                }
+            }
         }
         let mut present = BTreeSet::new();
         for doc in record.docs.iter().filter(|d| d.kind == Some(k) && d.path != path) {

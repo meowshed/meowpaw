@@ -42,9 +42,8 @@ states:
 This covers `meow`, the one command-line tool every unit's program is a
 subcommand of: where its source lives, how a unit gets a binary built with its
 own features, how a unit's launcher finds and runs it, and how a release ships
-it. What each subcommand does is its unit's specification: SPC-1040 for the
-verbs, SPC-1050 for the commit check, SPC-1060 for the `git` pack and SPC-1070
-for the record checks.
+it. What each subcommand does is its unit's specification, which cites this one,
+so this one names none of them.
 
 ADR-1110 decides it, EPC-1080 realises it, and the `meow` crate with its
 launchers and release implements it, verified under issue 160.
