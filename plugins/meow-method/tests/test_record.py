@@ -521,6 +521,77 @@ class Show(unittest.TestCase):
         self.assertIn("usage: meow-method show <id>", done.stderr)
 
 
+class Frozen(unittest.TestCase):
+    """ADR-1170: an approved record changed since a base, outside what its kind may change."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                                     "commit", "-q", "-m", "base"]):
+            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
+        return repository
+
+    def frozen(self, repository):
+        return repository.run("check", "frozen", "--base", "HEAD")
+
+    def test_nothing_changed_is_clean(self):
+        done = self.frozen(self.repo())
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("frozen: 0 findings", done.stdout)
+
+    def test_rewording_an_approved_requirement_invalidates_it(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001", "# REQ-0001\n\nThe system MUST do more.")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/requirements/REQ-0001-an-obligation.md: approved at HEAD, and changed since", done.stdout)
+
+    def test_a_change_naming_its_authority_passes(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001", "# REQ-0001\n\n**Amended by ADR-0001.** It says more.")
+        self.assertEqual(self.frozen(repository).returncode, 0)
+
+    def test_a_task_may_gain_evidence_and_an_unverified_epic_marks(self):
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixture passed.")
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_task_rewritten_outside_its_evidence_is_reported(self):
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "## What to do\n\nText.", "## What to do\n\nSomething else.")
+        self.assertEqual(self.frozen(repository).returncode, 1)
+
+    def test_a_verified_epic_is_frozen(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#9"')
+        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                                     "commit", "-q", "-m", "base"]):
+            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\nTidied.")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/epics/EPC-0001-a-plan.md: approved at HEAD", done.stdout)
+
+    def test_a_living_document_is_never_frozen(self):
+        repository = self.repo()
+        repository.edit("specs/SPC-0001-a-part.md", "## Scope\n\nText.", "## Scope\n\nRewritten.")
+        self.assertEqual(self.frozen(repository).returncode, 0)
+
+    def test_a_kinds_own_index_is_never_frozen(self):
+        repository = self.repo()
+        repository.edit("research/RES-0001-synthesis.md", "It indexes RES-0002.", "It indexes RES-0002, and more.")
+        self.assertEqual(self.frozen(repository).returncode, 0)
+
+    def test_withdrawing_a_requirement_passes(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
+        self.assertEqual(self.frozen(repository).returncode, 0)
+
+
 class Where(unittest.TestCase):
     def test_a_root_outside_the_repository_is_read_there(self):
         outside = tempfile.TemporaryDirectory()

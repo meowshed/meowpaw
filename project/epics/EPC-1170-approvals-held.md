@@ -36,8 +36,10 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1590 the frozen check
+- [x] T-001 TSK-1590 the frozen check
       closes: REQ-0396, REQ-0398, REQ-0622, REQ-0626, REQ-0630, REQ-0634, REQ-0635
+      evidence: nine fixtures, and the check run on this repository's history,
+      in #242.
 
 - [ ] T-002 TSK-1600 report what waits for approval when a session starts
       closes: REQ-0392, REQ-0394, REQ-0402
