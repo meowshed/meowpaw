@@ -42,7 +42,29 @@ Nothing. ADR-1320 is approved.
 
 ## Evidence
 
-Not yet.
+The `commit` skill gains a `branches` rules block. Each requirement this task
+closes is carried by a labelled rule in it, or, for REQ-1322, by the signing
+setup that already holds, and no rule names a requirement:
+
+| Requirement | Carried by                                                                                                                                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| REQ-1296    | B1 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-1298    | B3 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-1306    | B1 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-1320    | B8 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-1324    | B8 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-1328    | B2 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-2534    | B4 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-2536    | B4 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-2538    | B5 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-2820    | B6 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-2822    | B7 in `skills/commit/SKILL.md`                                                                                                                                                                         |
+| REQ-1322    | `.github/allowed_signers` names the accepted key, 1 line, and `meow-git push-guard` verifies each commit against the repository's `gpg.ssh.allowedSignersFile` where `[git] require_signatures` is set |
+
+B8 restates what the push guard already holds for this repository, which
+requires signatures, and `meow-scm check-message` requires the sign-off
+trailer. A script found all 11 traced labels. Whether the model follows
+the rules is measured by evaluation, which is postponed.
 
 ## Left alone
 
