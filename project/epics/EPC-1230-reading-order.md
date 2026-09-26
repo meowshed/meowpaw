@@ -49,8 +49,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0530, REQ-0552, REQ-0554, REQ-0555
       evidence: two fixtures and two recorded rules, in #300.
 
-- [ ] T-003 TSK-1770 a draft requirement carries one obligation, stands alone, and prohibits with MUST NOT
+- [x] T-003 TSK-1770 a draft requirement carries one obligation, stands alone, and prohibits with MUST NOT
       closes: REQ-2880
+      evidence: four fixtures and three draft rules, in #301.
 
 ## Coverage
 
