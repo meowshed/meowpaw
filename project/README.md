@@ -90,6 +90,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1140](adrs/ADR-1140-a-draft-meets-every-content-rule-a-frozen-record-keeps-its-own.md):
   each kind's content rules are checked, drafts held to rules the frozen
   record predates.
+- [ADR-1150](adrs/ADR-1150-the-record-answers-what-an-identifier-is-and-what-cites-it.md):
+  an identifier resolves to its artifact and to what cites it, and a closed
+  task carries its evidence.
 
 ## Specifications
 
@@ -124,6 +127,10 @@ verified under issue 160.
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
 `meow-method` implements it, verified under issue 202.
+
+[SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
+relations and resolving an identifier to its artifact and to what cites it.
+Nothing implements it yet.
 
 ## Epics and tasks
 
@@ -185,6 +192,9 @@ and [EPC-1140](epics/EPC-1140-kernel-names-no-unit.md) realise ADR-1030,
 ADR-1040 and ADR-1060, whose work other epics' tasks made. Each confirmed the
 decision with its own probes and was verified under issue 209, BUG-1160's
 fix; EPC-1120 names its measurement on both models as unmet.
+
+[EPC-1150](epics/EPC-1150-navigate-the-record.md) is approved and realises ADR-1150 in two
+tasks, TSK-1500 and TSK-1510, each filed as an issue.
 
 ## Defects
 
