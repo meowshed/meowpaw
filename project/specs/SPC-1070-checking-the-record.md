@@ -3,7 +3,7 @@ id: SPC-1070
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at:
+checked-at: "#168"
 states:
   [
     REQ-0137,
@@ -32,8 +32,8 @@ citations, orphaned artifacts and records that contradict the tree to later
 decisions, which ADR-1100 names. The documentation index and links outside the
 record are this repository's, and `tools/` keeps checking them.
 
-The harness doesn't implement this yet. ADR-1100 decides it and EPC-1070
-realises it, so `checked-at` stays empty until that epic closes.
+ADR-1100 decides it, EPC-1070 realises it, and `meow-method` implements it,
+verified under issue 168.
 
 ## Boundary
 
