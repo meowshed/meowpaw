@@ -3,7 +3,7 @@ id: SPC-1060
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at:
+checked-at: "#138"
 states: [REQ-0079, REQ-1292, REQ-1326, REQ-2530]
 ---
 
@@ -19,8 +19,8 @@ It leaves the message convention to SPC-1050, which the pack uses through
 `meow-scm`, and worktrees, stacked branches and the squash merge to later
 decisions, which ADR-1090 names.
 
-The harness doesn't implement this yet. ADR-1090 decides it and EPC-1060
-realises it, so `checked-at` stays empty until that epic closes.
+ADR-1090 decides it, EPC-1060 realises it, and `meow-git` implements it,
+verified under issue 138.
 
 ## Boundary
 

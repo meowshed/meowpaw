@@ -134,7 +134,8 @@ tasks, TSK-1300 and TSK-1310, both closed with evidence, and was verified
 against every acceptance criterion under issue 130.
 
 [EPC-1060](epics/EPC-1060-the-git-pack.md) realises ADR-1090 in one task,
-TSK-1320, closed with evidence. The epic's own verification has not run.
+TSK-1320, closed with evidence, and was verified against every acceptance
+criterion under issue 138.
 
 ## Defects
 
