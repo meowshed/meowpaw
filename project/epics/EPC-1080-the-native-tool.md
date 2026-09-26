@@ -66,13 +66,13 @@ A task is marked in the commit that advances it, never in a later pass.
       depends: TSK-1350, TSK-1360, TSK-1370 - a release carries every ported
       unit
 
-- [+] T-005 TSK-1390 the six-target build run by CI on every change to the
-  crate, and called by the release
-  added: the verification under #160 found criterion 2 met only by the
-  release run by hand, because T-004 put the matrix there.
-  evidence: Build run 36233014435 on the pull request and release run
-  36233124490 calling it, all six targets built, in #161.
-  depends: TSK-1380 - it moves the matrix that task wrote
+- [x] T-005 TSK-1390 the six-target build run by CI on every change to the
+      crate, and called by the release
+      added: the verification under #160 found criterion 2 met only by the
+      release run by hand, because T-004 put the matrix there.
+      evidence: Build run 36233014435 on the pull request and release run
+      36233124490 calling it, all six targets built, in #161.
+      depends: TSK-1380 - it moves the matrix that task wrote
 
 ## Verified
 
