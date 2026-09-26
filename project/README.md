@@ -101,6 +101,8 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1180](adrs/ADR-1180-the-record-grows-by-program-indexed-allocated-and-searched.md):
   indexes are generated, identifiers allocated and the record searched by the
   program.
+- [ADR-1190](adrs/ADR-1190-the-design-step-carries-the-obligations-on-what-it-designs.md):
+  the design step carries the obligations on what it designs.
 
 ## Specifications
 
@@ -208,6 +210,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1170](epics/EPC-1170-approvals-held.md) realised ADR-1170 in three tasks, TSK-1590 to TSK-1610, each closed with evidence, and was verified against every acceptance criterion under issue 249.
 
 [EPC-1180](epics/EPC-1180-grow-the-record.md) realised ADR-1180 in three tasks, TSK-1620 to TSK-1640, each closed with evidence, and was verified against every acceptance criterion under issue 259.
+
+[EPC-1190](epics/EPC-1190-design-obligations.md) is approved and realises ADR-1190 in two
+tasks, TSK-1650 and TSK-1660, each filed as an issue.
 
 ## Defects
 
