@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1190
-checked-at:
+checked-at: "#267"
 ---
 
 # The design obligations carried by the steps
@@ -43,6 +43,18 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-002 TSK-1660 the other steps carry their share of the design obligations
       closes: REQ-2131, REQ-2132, REQ-2133, REQ-2134, REQ-2137, REQ-2139, REQ-2256, REQ-2258, REQ-2260, REQ-2262, REQ-2264, REQ-2266, REQ-2268
       evidence: 13 requirements traced, in #263.
+
+## Verified
+
+Checked under issue 267 at revision `a7a5705`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                    | Evidence at `a7a5705`                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Every requirement maps to a labelled rule in the step file named, or REQ-2130 to a search | A script read TSK-1650's and TSK-1660's traces: 48 traced labels found in their step files, 0 missing; a search for a practice command in the step files finds 0 files |
+| 2. The prompt check and `meow-method check` pass                                             | `check_prompts`: 50 shipped prompts, 0 failures; 7 checks report 0 findings                                                                                            |
+| 3. Evaluation measures that a design follows the rules                                       | Not met: evaluation is postponed by the owner, and REQ-3170 lets the epic close with this named                                                                        |
+| 4. Every requirement in one closed task                                                      | `coverage` reports 0 findings                                                                                                                                          |
 
 ## Coverage
 
