@@ -153,9 +153,11 @@ REQ-1606, REQ-1608).
 ### Where the record contradicts itself
 
 `check coverage` reports a task marked done with no evidence, a task whose
-evidence is written while its epic leaves it unmarked, and a task closing a
-withdrawn requirement in an epic not yet verified (REQ-0704). `check relations`
-reports an identifier in a body or a relation that resolves to no artifact, and
+Evidence section says it's done, opening with anything but "Not yet.", while
+its epic leaves it unmarked, and a task closing a withdrawn requirement in an
+epic not yet verified (REQ-0704). `check relations` reports an identifier that
+resolves to no artifact in a relation, or in a draft's prose outside code
+spans and fences, and
 `status` counts the requirements nothing checks, which covers both directions
 (REQ-0710).
 

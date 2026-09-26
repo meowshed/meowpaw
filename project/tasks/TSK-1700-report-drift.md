@@ -29,7 +29,34 @@ Nothing. ADR-1210 is approved.
 
 ## Evidence
 
-Not yet.
+Three fixtures, each seen passing against the program and failing against a
+stub that returns nothing. `check coverage` reports a task whose Evidence
+section opens with anything but "Not yet." while its epic marks it `[ ]`, and
+passes once the section opens with "Not yet." and a postponement note. It
+reports a task closing a withdrawn requirement while its epic has no
+`checked-at`, and passes once the epic is verified. `check relations` reports
+`ADR-0009` in a draft's prose, ignores one in a code span and one in a fence,
+and passes once the task is approved.
+
+Two findings changed the design. Scanning every body found ten identifiers in
+approved records that resolve to nothing on purpose, such as BUG-1110 naming
+the research nobody wrote, so the scan reads drafts alone, and ADR-1210 carries
+the amendment. The first version of the unmarked check reported TSK-1260,
+which the owner postponed and whose Evidence section opens with "Not yet."
+above the note, so the check now matches a claim of done and not any text.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 86 tests in 5.568s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=83, errors=3)
+
+$ meow-method check coverage; meow-method check relations
+coverage: 0 findings
+relations: 0 findings
+```
 
 ## Left alone
 

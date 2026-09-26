@@ -119,3 +119,7 @@ Two new findings in `coverage`, a body scan in `relations`, a derived state in
 
 - Reading tests that name a requirement.
 - The migration path for a change to the record's shape, REQ-3008 to REQ-3020.
+
+Amended by EPC-1210: the body scan reads a draft's prose alone, outside code
+spans and fences, because approved records name missing identifiers on
+purpose.
