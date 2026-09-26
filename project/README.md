@@ -147,7 +147,7 @@ which follows both. The work realising them has landed, and each leaves
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release and the marketplace address. The crate implements it,
-verified under issue 344.
+verified under issue 362.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
@@ -260,8 +260,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1280](epics/EPC-1280-remove-placed.md) realised ADR-1280 in two tasks, TSK-1890 and TSK-1900, each closed with evidence, and was verified against every acceptance criterion under issue 356.
 
-[EPC-1290](epics/EPC-1290-github-pack.md) is approved and realises ADR-1290 in one task,
-TSK-1910, filed as an issue.
+[EPC-1290](epics/EPC-1290-github-pack.md) realised ADR-1290 in one task, TSK-1910, closed with evidence, and was verified against every acceptance criterion under issue 362.
 
 ## Defects
 

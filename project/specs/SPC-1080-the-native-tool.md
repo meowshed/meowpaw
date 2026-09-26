@@ -3,7 +3,7 @@ id: SPC-1080
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at: "#344"
+checked-at: "#362"
 states:
   [
     REQ-0010,
