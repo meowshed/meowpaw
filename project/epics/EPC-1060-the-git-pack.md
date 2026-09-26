@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1090
-checked-at:
+checked-at: "#138"
 ---
 
 # The git pack, refusing a commit on the trunk and checking a push
@@ -50,6 +50,23 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0079, REQ-1292, REQ-1326, REQ-2530
       evidence: twelve fixtures, each seen failing against a stub, and this
       repository's branch passing the push guard, in #136.
+
+## Verified
+
+Checked under issue 138 at revision `850f662`, with evidence gathered there and
+not carried over from the task. Every criterion is met:
+
+| Criterion                                                    | Evidence at `850f662`                                                                                       |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 1. A commit on the trunk is blocked; one on a branch runs    | `test_a_commit_on_the_trunk_is_refused`, `test_a_commit_on_a_branch_runs`                                   |
+| 2. A push adding a failing message is blocked                | `test_a_push_with_a_failing_message_is_refused`                                                             |
+| 3. Without `meow-scm`, the message check is unrun            | `test_without_meow_scm_the_message_check_is_unrun`                                                          |
+| 4. Unsigned is blocked; missing key material is unverifiable | `test_signatures_required_refuses_an_unsigned_commit`, `test_a_signature_nobody_can_verify_is_unverifiable` |
+| 5. No `[git]` table: nothing refused, the policy undeclared  | `test_no_git_table_refuses_nothing_and_says_so`                                                             |
+| 6. Every requirement in one closed task, nothing outstanding | `tools/check_coverage.py`: EPC-1060 4 of 4, 0 coverage failures                                             |
+
+All twelve fixtures ran with `python3 -m unittest discover -s
+plugins/meow-git/tests`, which reported `OK`.
 
 ## Coverage
 
