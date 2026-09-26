@@ -98,6 +98,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1170](adrs/ADR-1170-an-approval-is-a-stored-status-a-check-holds-frozen.md):
   an approval is a stored status a check holds frozen, and a session opens
   with what waits for one.
+- [ADR-1180](adrs/ADR-1180-the-record-grows-by-program-indexed-allocated-and-searched.md):
+  indexes are generated, identifiers allocated and the record searched by the
+  program.
 
 ## Specifications
 
@@ -203,6 +206,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1160](epics/EPC-1160-step-obligations.md) realised ADR-1160 in seven tasks, TSK-1520 to TSK-1580, each closed with evidence, and was verified against every acceptance criterion under issue 237.
 
 [EPC-1170](epics/EPC-1170-approvals-held.md) realised ADR-1170 in three tasks, TSK-1590 to TSK-1610, each closed with evidence, and was verified against every acceptance criterion under issue 249.
+
+[EPC-1180](epics/EPC-1180-grow-the-record.md) is approved and realises ADR-1180 in three
+tasks, TSK-1620 to TSK-1640, each filed as an issue.
 
 ## Defects
 
