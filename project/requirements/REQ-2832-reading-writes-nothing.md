@@ -3,7 +3,7 @@ id: REQ-2832
 artifact: requirement
 topic: the-forge
 class: functional
-status: draft
+status: approved
 revised: 2026-09-26
 elaborates: RES-0277
 verification: static

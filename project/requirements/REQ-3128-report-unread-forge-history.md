@@ -3,7 +3,7 @@ id: REQ-3128
 artifact: requirement
 topic: onboarding
 class: functional
-status: draft
+status: approved
 revised: 2026-09-26
 elaborates: RES-0277
 verification: behavioural
