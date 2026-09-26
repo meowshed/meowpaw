@@ -43,8 +43,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0036, REQ-0038, REQ-0040
       evidence: five fixtures across four units, in #337.
 
-- [ ] T-002 TSK-1870 each unit stands alone, and a check holds it
+- [x] T-002 TSK-1870 each unit stands alone, and a check holds it
       closes: REQ-0012, REQ-0014, REQ-0034
+      evidence: the standalone check in the gate, with four fixtures, in #338.
 
 - [ ] T-003 TSK-1880 record the evidence for the adoption rules that already hold
       closes: REQ-0010, REQ-0016, REQ-0018, REQ-0022, REQ-0024, REQ-0026, REQ-0028, REQ-0030

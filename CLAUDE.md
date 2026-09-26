@@ -381,17 +381,18 @@ way somebody breaks this by accident.
 Run the gate before opening a pull request, and report what it actually said:
 
 ```bash
-mise run all          # fmt-check, lint, style, prompts, kernel and budget
+mise run all          # fmt-check, lint, style, prompts, kernel, standalone and budget
 ```
 
-| Check       | Fails when                                                      |
-| ----------- | --------------------------------------------------------------- |
-| `fmt-check` | Markdown isn't in canonical form                                |
-| `lint`      | Markdown breaks a rule in `.markdownlint-cli2.yaml`             |
-| `style`     | An output style breaks the shape SPC-1000 states                |
-| `prompts`   | A shipped prompt uses a heading or a tag outside the vocabulary |
-| `kernel`    | A file in the kernel names a unit outside it                    |
-| `budget`    | A unit loads more on every turn than its `budget.toml` states   |
+| Check        | Fails when                                                      |
+| ------------ | --------------------------------------------------------------- |
+| `fmt-check`  | Markdown isn't in canonical form                                |
+| `lint`       | Markdown breaks a rule in `.markdownlint-cli2.yaml`             |
+| `style`      | An output style breaks the shape SPC-1000 states                |
+| `prompts`    | A shipped prompt uses a heading or a tag outside the vocabulary |
+| `kernel`     | A file in the kernel names a unit outside it                    |
+| `standalone` | A unit's file runs a path outside the unit's own directory      |
+| `budget`     | A unit loads more on every turn than its `budget.toml` states   |
 
 The record is checked by `meow-method`, a unit the harness ships, because a
 harness checked by a mechanism it doesn't ship hasn't been shown to work. It

@@ -16,6 +16,16 @@ under `project/`, and this hierarchy stays separate from it.
 One page per unit the harness ships, and a unit's catalogue entry links to its
 page.
 
+## Adopt any part of it
+
+Each unit is a working harness on its own, and you can install any
+combination of them. No unit runs another unit's files, which a check holds,
+so removing one leaves the rest working. A unit that could do more with
+another installed says so and names it, and reports what it can't do without
+it. Nothing a unit installs changes your repository: the only files the
+harness writes there are ones you ask for, such as `.meowpaw/profile.toml`,
+and the record is optional.
+
 ## Install
 
 Add the marketplace and install the units you want by name:

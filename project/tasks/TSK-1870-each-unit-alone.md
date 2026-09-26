@@ -28,7 +28,28 @@ Nothing. ADR-1270 is approved.
 
 ## Evidence
 
-Not yet.
+`tools/check_standalone.py` reads every file each unit ships, skipping its
+measurement cases and fixtures, and reports a path through
+`${CLAUDE_PLUGIN_ROOT}` or `${CLAUDE_SKILL_DIR}` that resolves outside the
+unit, and a path into another unit's directory. It runs as the `standalone`
+task in `mise run all`, which CI runs, and in the `lint` verb. Four fixtures:
+paths inside a unit, and naming another unit in prose, pass; a climb out of a
+unit and a path into another unit are each reported at their line; and a
+fixture file naming another unit is skipped while a shipped one beside it is
+reported. Against a check that finds nothing, all four fail.
+
+`docs/README.md` gains "Adopt any part of it", stating that each unit is a
+working harness alone and in any combination, and `CLAUDE.md`'s gate lists
+the new check.
+
+```text
+$ python3 tools/check_standalone.py
+84 unit files, 0 paths leaving their unit
+
+$ python3 -m unittest tools/test_check_standalone.py
+Ran 4 tests in 0.004s
+OK
+```
 
 ## Left alone
 
