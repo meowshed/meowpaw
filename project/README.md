@@ -175,8 +175,9 @@ against every acceptance criterion under issue 184.
 TSK-1420 to TSK-1440, each closed with evidence, and was verified against every
 acceptance criterion under issue 202.
 
-[EPC-1110](epics/EPC-1110-content-rules.md) is approved and realises ADR-1140 in two tasks,
-TSK-1450 and TSK-1460, each filed as an issue.
+[EPC-1110](epics/EPC-1110-content-rules.md) realised ADR-1140 in two tasks, TSK-1450
+and TSK-1460, each closed with evidence, and was verified against every
+acceptance criterion under issue 206.
 
 ## Defects
 

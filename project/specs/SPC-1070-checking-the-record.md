@@ -69,8 +69,8 @@ decisions, which ADR-1100 names. The documentation index and links outside the
 record are this repository's, and `tools/` keeps checking them.
 
 ADR-1100 decides it and EPC-1070 realised it, verified under issue 168.
-ADR-1140 adds the content rules and EPC-1110 realises them, so `checked-at`
-names the first verification until that epic closes.
+ADR-1140 adds the content rules, and EPC-1110 realised them, verified under
+issue 206.
 
 ## Boundary
 
