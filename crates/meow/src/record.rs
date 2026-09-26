@@ -841,6 +841,33 @@ fn is_draft(doc: &Doc) -> bool {
 
 fn shape(record: &Record) -> Vec<Finding> {
     let mut out = Vec::new();
+    let withdrawn: BTreeSet<&str> = of_kind(record, "requirement").into_iter().filter(|r| bare(r.value("status")) == "withdrawn").map(|r| bare(r.id())).collect();
+    let mut archives = BTreeSet::new();
+    for doc in &record.docs {
+        // A directory named for age holds material nobody reads, which neither
+        // freezes nor discards it (REQ-0555).
+        if let Some((dir, _)) = doc.relative.rsplit_once('/') {
+            if dir.split('/').any(|part| part.to_lowercase().contains("archive")) && archives.insert(dir.to_string()) {
+                out.push(Finding::at(doc, None, format!("sits in {dir}, a directory named for an archive; freeze the record or discard it with a reason")));
+            }
+        }
+        let living = doc.kind.is_some_and(|k| record.layout.kinds[k].statuses.iter().any(|s| s == "live"));
+        if living && !doc.is_index {
+            let mut aside = false;
+            for (i, text) in doc.text.lines().enumerate().skip(body_start(doc)) {
+                if let Some(heading) = text.strip_prefix("## ") {
+                    aside = heading.trim_start().starts_with("Withdrawn");
+                    continue;
+                }
+                if aside {
+                    continue;
+                }
+                for found in record.ids.find_iter(text).filter(|m| withdrawn.contains(m.as_str())) {
+                    out.push(Finding::at(doc, Some(i + 1), format!("cites {}, which is withdrawn, outside a Withdrawn section", found.as_str())));
+                }
+            }
+        }
+    }
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
         // A kind's own index lists its records and makes no claims of its own.
