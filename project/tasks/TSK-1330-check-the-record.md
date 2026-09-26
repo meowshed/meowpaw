@@ -21,6 +21,11 @@ issue: 144
 
 # Check the record where the repository declares it
 
+**Amended by ADR-1110.** The program is the `record` subcommand of the native
+tool `meow`, behind `meow-method`'s feature, with a launcher as SPC-1080
+states, and this task depends on TSK-1350, which builds the crate. The rest
+stands.
+
 One task, one branch, one pull request, one review.
 
 ## What to do
