@@ -125,6 +125,16 @@ program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, it
 reports the record as not checked and exits 3.
 
+## What it needs
+
+Claude Code 2.1.283 or later, the version this unit was tested on, declared
+in `plugins/meow-method/requires.toml`. It relies on these platform behaviours,
+each documented by Claude Code:
+
+- a skill loaded by its description, and one only a person invokes, with `disable-model-invocation`: [documentation](https://code.claude.com/docs/en/skills.md)
+- a `SessionStart` command hook whose output reaches the model before its first reply: [documentation](https://code.claude.com/docs/en/hooks.md)
+- a plugin's `bin/` programs, run by path: [documentation](https://code.claude.com/docs/en/plugins-reference.md)
+
 ## Where the rules come from
 
 The decisions are

@@ -62,6 +62,14 @@ The program is a native binary shipped inside the pack, so it needs nothing
 installed on the machine; on a machine the pack carries no binary for, it says
 it checked nothing and blocks nothing.
 
+## What it needs
+
+Claude Code 2.1.283 or later, the version this unit was tested on, declared
+in `plugins/meow-git/requires.toml`. It relies on these platform behaviours,
+each documented by Claude Code:
+
+- `PreToolUse` command hooks filtered by an `if` rule, which Claude Code applies as a best-effort filter: [documentation](https://code.claude.com/docs/en/hooks.md)
+
 ## Where the rules come from
 
 The decision is

@@ -81,6 +81,15 @@ comment loads only that file. A document adds the rules for documents, about
 text adds the patterns for its language: about 3,400 tokens for English and
 4,100 for Russian.
 
+## What it needs
+
+Claude Code 2.1.283 or later, the version this unit was tested on, declared
+in `plugins/meow-prose/requires.toml`. It relies on these platform behaviours,
+each documented by Claude Code:
+
+- a skill loaded by its description: [documentation](https://code.claude.com/docs/en/skills.md)
+- a subordinate agent, the reviewer: [documentation](https://code.claude.com/docs/en/sub-agents.md)
+
 ## Where the rules come from
 
 The decision is

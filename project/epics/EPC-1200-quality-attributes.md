@@ -42,8 +42,10 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: two fixtures, ten read-only commands and an atomic write, in
       #270.
 
-- [ ] T-002 TSK-1680 each unit declares the platform it needs and the behaviours it relies on
+- [x] T-002 TSK-1680 each unit declares the platform it needs and the behaviours it relies on
       closes: REQ-1736, REQ-1740, REQ-1742
+      evidence: 7 units declare their platform, and their pages the
+      behaviours they rely on, in #271.
 
 - [ ] T-003 TSK-1690 record the evidence for the attributes that already hold
       closes: REQ-1726, REQ-1734, REQ-1744, REQ-1746, REQ-1748, REQ-1750, REQ-1752, REQ-1754, REQ-1756, REQ-1758, REQ-1762, REQ-1766
