@@ -73,6 +73,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1070](adrs/ADR-1070-the-five-verbs-resolve-from-the-profile.md): the
   five verbs resolve from the repository's profile, and an unresolved verb is
   reported as unresolved.
+- [ADR-1080](adrs/ADR-1080-a-commit-message-is-checked-against-the-declared-convention.md):
+  a commit message is checked against the convention the repository declares
+  and against the attribution ban.
 
 ## Specifications
 
@@ -90,6 +93,9 @@ each leaves `checked-at` empty until its epics are verified.
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
 issue 115.
+
+[SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
+convention and its check. Nothing implements it yet.
 
 ## Epics and tasks
 
@@ -116,6 +122,10 @@ realises ADR-1050 in one task, TSK-1270, closed in #85.
 [EPC-1040](epics/EPC-1040-the-five-verbs.md) realises ADR-1070 in two tasks,
 TSK-1280 and TSK-1290, both closed with evidence, and was verified against
 every acceptance criterion under issue 115.
+
+[EPC-1050](epics/EPC-1050-the-commit-convention.md) is a draft that realises
+ADR-1080 in two tasks, TSK-1300 and TSK-1310, and waits for the owner's
+approval.
 
 ## Defects
 
