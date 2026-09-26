@@ -58,8 +58,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0241, REQ-0275, REQ-0277, REQ-0278, REQ-0279, REQ-0280, REQ-0281, REQ-0282, REQ-0283, REQ-0284, REQ-0286, REQ-0288, REQ-0291, REQ-0293, REQ-0295, REQ-0296, REQ-0297, REQ-0299, REQ-0307, REQ-0317, REQ-0319, REQ-0325, REQ-0327, REQ-0329, REQ-0542
       evidence: 25 requirements traced to labelled rules, in #226.
 
-- [ ] T-006 TSK-1570 the review step carries its obligations
+- [x] T-006 TSK-1570 the review step carries its obligations
       closes: REQ-0304, REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-3108
+      evidence: 17 requirements traced to labelled rules, in #227.
 
 - [ ] T-007 TSK-1580 the task and defect templates carry their obligations
       closes: REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926
