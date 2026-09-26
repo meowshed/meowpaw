@@ -15,7 +15,7 @@ use regex::Regex;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-const CHECKS: [&str; 6] = ["front-matter", "identifiers", "relations", "index", "coverage", "shape"];
+const CHECKS: [&str; 7] = ["front-matter", "identifiers", "relations", "index", "coverage", "shape", "rules"];
 const CLEAN: u8 = 0;
 const FOUND: u8 = 1;
 const USAGE: u8 = 2;
@@ -38,6 +38,8 @@ struct Kind {
     first_section: Option<String>,
     required_values: Vec<String>,
     forbidden_fields: Vec<String>,
+    rules: Vec<String>,
+    draft_rules: Vec<String>,
 }
 
 struct Layout {
@@ -168,7 +170,8 @@ fn check(rest: &[String]) -> u8 {
             "relations" => relations(&record),
             "index" => index(&record, &root, &repository),
             "coverage" => coverage(&record),
-            _ => shape(&record),
+            "shape" => shape(&record),
+            _ => rules(&record),
         };
         findings.sort_by(|a, b| (&a.shown, a.line, &a.message).cmp(&(&b.shown, b.line, &b.message)));
         for finding in &findings {
@@ -227,6 +230,8 @@ fn load_layout() -> Result<Layout, String> {
             first_section: string(table, "first_section"),
             required_values: strings(table, "required_values"),
             forbidden_fields: strings(table, "forbidden_fields"),
+            rules: strings(table, "rules"),
+            draft_rules: strings(table, "draft_rules"),
         });
     }
     Ok(Layout {
@@ -626,6 +631,80 @@ fn shape(record: &Record) -> Vec<Finding> {
         if let (Some(first), Some(opening)) = (&kind.first_section, headings.first()) {
             if !names(opening, first) {
                 out.push(Finding::at(doc, None, format!("opens with {opening}, where a {} opens with {first}", kind.name)));
+            }
+        }
+    }
+    out
+}
+
+
+/// The lines of a `## <name>` section, with their line numbers.
+fn section_lines<'a>(doc: &'a Doc, name: &str) -> Vec<(usize, &'a str)> {
+    let mut out = Vec::new();
+    let mut inside = false;
+    for (i, line) in doc.text.lines().enumerate() {
+        if let Some(heading) = line.strip_prefix("## ") {
+            inside = heading.trim() == name;
+            continue;
+        }
+        if inside {
+            out.push((i + 1, line));
+        }
+    }
+    out
+}
+
+/// The named rules a section or a field can't express (ADR-1140).
+fn rules(record: &Record) -> Vec<Finding> {
+    let date = Regex::new(r"\d{4}-\d{2}-\d{2}").expect("date pattern");
+    let requirement = Regex::new(r"REQ-\d{4}").expect("requirement pattern");
+    let authority = Regex::new(r"(?:ADR|BUG)-\d{4}").expect("authority pattern");
+    let mut out = Vec::new();
+    for doc in &record.docs {
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
+        if kind.index.as_deref() == Some(doc.relative.as_str()) {
+            continue;
+        }
+        let drafted = if is_draft(doc) { kind.draft_rules.as_slice() } else { &[] };
+        for rule in kind.rules.iter().chain(drafted) {
+            match rule.as_str() {
+                "sources-dated" => {
+                    for (line, text) in section_lines(doc, "Sources") {
+                        if text.starts_with("- ") && !date.is_match(text) {
+                            out.push(Finding::at(doc, Some(line), "names a source without the date it was read".into()));
+                        }
+                    }
+                }
+                "cites-no-requirement" => {
+                    let body_start = doc.fields.as_ref().map(|f| f.last().map(|l| l.line).unwrap_or(0)).unwrap_or(0) + 1;
+                    for (i, text) in doc.text.lines().enumerate().skip(body_start) {
+                        for found in requirement.find_iter(text) {
+                            out.push(Finding::at(doc, Some(i + 1), format!("cites {}, and research cites no requirement", found.as_str())));
+                        }
+                    }
+                }
+                "judgement-verifier" => {
+                    if let Some(field) = doc.field("verification") {
+                        if bare(&field.value) == "judgement" && doc.field("verifier").is_none() {
+                            out.push(Finding::at(doc, Some(field.line), "is verified by judgement and names no verifier: agent or person".into()));
+                        }
+                    }
+                }
+                "realises-one" => {
+                    let field = doc.field("realises");
+                    let named = field.map(|f| authority.find_iter(&f.value).count()).unwrap_or(0);
+                    if named != 1 {
+                        out.push(Finding::at(doc, field.map(|f| f.line), format!("realises {named} records, where an epic realises exactly one decision or defect")));
+                    }
+                }
+                "alternatives-why-lost" => {
+                    let header = section_lines(doc, "Alternatives").into_iter().find(|(_, text)| text.trim_start().starts_with('|'));
+                    let says = header.is_some_and(|(_, text)| text.to_lowercase().contains("lost"));
+                    if !says {
+                        out.push(Finding::at(doc, header.map(|(line, _)| line), "has no column saying why each alternative lost".into()));
+                    }
+                }
+                unknown => out.push(Finding::at(doc, None, format!("the layout names a rule, {unknown}, this program doesn't know"))),
             }
         }
     }

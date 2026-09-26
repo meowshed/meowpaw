@@ -46,11 +46,13 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: ten fixtures, each rule and scope, seen failing against a
       stub, in #199.
 
-- [ ] T-002 TSK-1460 the `rules` check: dated sources, research citing no
+- [x] T-002 TSK-1460 the `rules` check: dated sources, research citing no
       requirement, a judged requirement's verifier, an epic realising one
       record, and the alternatives' reason
       closes: REQ-0223, REQ-0262, REQ-0558, REQ-2868, REQ-2882
       depends: TSK-1450 - the rules read the scope the layout declares
+      evidence: five fixtures, each rule and its scope, seen failing against a
+      stub, in #200.
 
 ## Coverage
 

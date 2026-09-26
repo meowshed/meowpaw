@@ -64,6 +64,9 @@ CLEAN = {
         ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]),
 }
 
+CLEAN["adrs/ADR-0001-a-choice.md"] = CLEAN["adrs/ADR-0001-a-choice.md"].replace(
+    "## Alternatives\n\nText.", "## Alternatives\n\n| Option | Why it lost |\n| ------ | ----------- |\n| Nothing | It costs more |")
+
 
 class Repository:
     def __init__(self, profile=None, root="project"):
@@ -107,7 +110,7 @@ class Checks(unittest.TestCase):
     def test_a_clean_record_passes_every_check(self):
         done = self.repo().run("check")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        for check in ("front-matter", "identifiers", "relations", "index", "coverage", "shape"):
+        for check in ("front-matter", "identifiers", "relations", "index", "coverage", "shape", "rules"):
             self.assertIn(f"{check}: 0 findings", done.stdout)
 
     def test_front_matter_reports_a_status_outside_the_vocabulary(self):
@@ -253,6 +256,45 @@ class Checks(unittest.TestCase):
         done = repository.run("check", "identifiers")
         self.assertEqual(done.returncode, 1, done.stdout)
         self.assertIn("project/research/a-loose-note.md: the name doesn't have the form RES-NNNN-<slug>.md", done.stdout)
+
+    def test_a_research_draft_dates_each_source_and_an_approved_one_need_not(self):
+        repository = self.repo()
+        repository.edit("research/RES-0002-a-finding.md", "## Sources\n\nText.",
+                        "## Sources\n\n- [A page](https://example.org), read 2026-01-01\n- [Another](https://example.org)")
+        self.assertEqual(repository.run("check", "rules").returncode, 0)
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/research/RES-0002-a-finding.md:26: names a source without the date it was read")
+
+    def test_a_research_draft_cites_no_requirement(self):
+        repository = self.repo()
+        repository.edit("research/RES-0002-a-finding.md", "## Method\n\nText.", "## Method\n\nAs REQ-0001 asks.")
+        self.assertEqual(repository.run("check", "rules").returncode, 0)
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/research/RES-0002-a-finding.md:17: cites REQ-0001, and research cites no requirement")
+
+    def test_a_judged_requirement_draft_names_its_verifier(self):
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "verification: static", "verification: judgement")
+        self.assertEqual(repository.run("check", "rules").returncode, 0)
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: draft")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/requirements/REQ-0001-an-obligation.md:8: is verified by judgement and names no verifier")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "verification: judgement", "verification: judgement\nverifier: agent")
+        self.assertEqual(repository.run("check", "rules").returncode, 0)
+
+    def test_an_epic_realises_exactly_one_record(self):
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: ADR-0001, BUG-0001")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/epics/EPC-0001-a-plan.md:6: realises 2 records, where an epic realises exactly one decision or defect")
+
+    def test_a_decision_says_why_each_alternative_lost(self):
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "| Option | Why it lost |", "| Option | Notes |")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/adrs/ADR-0001-a-choice.md:21: has no column saying why each alternative lost")
 
     def test_a_file_of_no_known_kind_is_reported(self):
         repository = self.repo()
@@ -432,7 +474,7 @@ class Where(unittest.TestCase):
         self.addCleanup(repository.tmp.cleanup)
         done = repository.run("check", "spelling")
         self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
-        self.assertIn("front-matter, identifiers, relations, index, coverage, shape", done.stderr)
+        self.assertIn("front-matter, identifiers, relations, index, coverage, shape, rules", done.stderr)
 
 
 class NoWrites(unittest.TestCase):
