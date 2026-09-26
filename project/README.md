@@ -100,8 +100,8 @@ issue 115.
 [SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
 convention and its check, and `meow-scm` implements it, verified under issue 130.
 
-[SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack. Nothing
-implements it yet.
+[SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, and
+`meow-git` implements it.
 
 ## Epics and tasks
 
@@ -133,8 +133,8 @@ every acceptance criterion under issue 115.
 tasks, TSK-1300 and TSK-1310, both closed with evidence, and was verified
 against every acceptance criterion under issue 130.
 
-[EPC-1060](epics/EPC-1060-the-git-pack.md) is approved and realises ADR-1090
-in one task, TSK-1320, filed as an issue.
+[EPC-1060](epics/EPC-1060-the-git-pack.md) realises ADR-1090 in one task,
+TSK-1320, closed with evidence. The epic's own verification has not run.
 
 ## Defects
 
