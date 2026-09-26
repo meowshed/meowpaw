@@ -58,6 +58,14 @@ rejected approach, and `null` for an issue.
 
 ## Project an epic's tasks onto issues
 
+Declare the tracker in `.meowpaw/profile.toml` first. Without it the command
+says so and does nothing, and nothing in the method needs a tracker:
+
+```toml
+[tracker]
+kind = "github"
+```
+
 Once an epic is approved, file one issue per task:
 
 ```bash
@@ -81,6 +89,24 @@ unmarked is reported, because the epic decides what the tasks are. Add
 ```bash
 meow-github project EPC-1310 --check
 ```
+
+## Project a task by hand
+
+You can file a task's issue without the pack and get the same issue and the
+same mapping, so installing the pack later continues your record instead of
+duplicating it. Write the body as the pack does: the task and its epic, the
+requirements it closes, and its dependencies. Then:
+
+```bash
+title="TSK-1930: Project an approved epic's tasks onto issues"
+fingerprint=$(printf '%s\n%s' "$title" "$body" | shasum -a 256 | cut -c1-12)
+gh api repos/OWNER/REPO/issues -X POST -f title="$title" -f body="$body
+
+<!-- meow-github: projected from TSK-1930 at $fingerprint -->"
+```
+
+Set the task's `issue:` to the number GitHub returns and add
+`projected: <fingerprint>` beside it.
 
 ## When it can't read
 
