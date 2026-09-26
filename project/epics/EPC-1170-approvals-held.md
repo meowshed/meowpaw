@@ -46,8 +46,9 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: three fixtures, and a fresh session opening with the draft,
       in #243.
 
-- [ ] T-003 TSK-1610 the method skill stops at approval and never infers one
+- [x] T-003 TSK-1610 the method skill stops at approval and never infers one
       closes: REQ-0390, REQ-0400
+      evidence: M5 and M6 in the skill, in #244.
 
 ## Coverage
 
