@@ -484,6 +484,30 @@ class Checks(unittest.TestCase):
             self.assertEqual(done.returncode, 0, done.stdout)
             self.assertIn("rules: 0 findings\n", done.stdout)
 
+    def test_a_retired_name_is_refused_in_a_record(self):
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: proposed")
+        self.found(repository.run("check", "front-matter"), "front-matter",
+                   "project/adrs/ADR-0001-a-choice.md:4: status proposed is retired: replaced by draft")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: proposed", "status: approved\nunit: meow-core")
+        self.found(repository.run("check", "front-matter"), "front-matter",
+                   "project/adrs/ADR-0001-a-choice.md:5: carries unit, a retired field: the unit of work is named by the relations the record carries")
+
+    def test_a_retired_name_is_refused_in_the_layout(self):
+        repository = self.repo()
+        layout = self.tmp_layout()
+        text = (UNIT / "lib" / "layout.toml").read_text(encoding="utf-8")
+        layout.write_text(text.replace('statuses = ["live"]\nindex = "README.md"', 'statuses = ["live", "current"]\nindex = "README.md"', 1), encoding="utf-8")
+        done = subprocess.run([str(BIN), "check", "front-matter"], cwd=repository.path, capture_output=True, text=True,
+                              env={**os.environ, "MEOW_LAYOUT": str(layout)})
+        self.assertIn("the layout: the kind specification declares current, a retired name\n", done.stdout)
+        self.assertEqual(done.returncode, 1, done.stdout)
+
+    def tmp_layout(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        return Path(directory.name) / "layout.toml"
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")
