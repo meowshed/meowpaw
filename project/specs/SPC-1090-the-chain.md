@@ -254,6 +254,13 @@ states:
     REQ-3104,
     REQ-3106,
     REQ-3108,
+    REQ-3114,
+    REQ-3116,
+    REQ-3118,
+    REQ-3120,
+    REQ-3122,
+    REQ-3124,
+    REQ-3126,
     REQ-3172,
     REQ-3180,
   ]
@@ -434,6 +441,15 @@ working steps (REQ-1550, REQ-3092, REQ-3096). `check coverage` holds that each
 tracked document outside the record gets exactly one outcome, migrated, cited,
 superseded or discarded, with a destination or a reason (REQ-1556), and the
 command stops at the report's approval (REQ-1558) (ADR-1260).
+
+Onboarding migrates a record the repository keeps in a format of its own to
+the matching artifact kind, and writes each requirement or decision it
+recovers as a draft (REQ-3114, REQ-3116). Once the report is approved,
+`meow-method onboarding remove` removes each document it marks migrated,
+superseded or discarded and keeps each marked cited (REQ-3118, REQ-3120). It
+refuses on an unapproved report and on a migrated or superseded document whose
+destination names no artifact (REQ-3122, REQ-3124), prints the count before
+and after and each removed path, and commits nothing (REQ-3126) (ADR-1280).
 
 ## Failure paths
 
