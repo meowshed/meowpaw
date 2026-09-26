@@ -1,10 +1,10 @@
 # meow-method
 
-`meow-method` checks your repository's record: the research, requirements,
-decisions, specifications, epics, tasks and defects the method keeps. It reads
-the record where you declare it, reports each finding with its file and line,
-and writes nothing. It installs on its own, with no other part of the
-`meowpaw` harness.
+`meow-method` runs the method: nine steps from research to review, each
+writing one artifact from an approved input. It keeps the record those steps
+write, the research, requirements, decisions, specifications, epics, tasks and
+defects, and checks it, reporting each finding with its file and line. It
+installs on its own, with no other part of the `meowpaw` harness.
 
 ## Install it
 
@@ -28,7 +28,44 @@ root = "project"
 folder or to another repository's checkout. Where you declare none, the record
 is at `project/`.
 
-## Run it
+## Run the method
+
+Type `/meow-method:run` to be taken to the next approval gate. It reads where
+the record stands, runs the next step, and stops where that step waits for
+your approval, saying what the next run will do. Run it again after you
+approve, and it carries on; run it with nothing approved, and it says what it
+is waiting on.
+
+To run one step yourself, ask for it by name, such as "run the design step for
+REQ-0190", and Claude loads the `method` skill. The steps, in order:
+
+| Step           | Reads                          | Writes                      |
+| -------------- | ------------------------------ | --------------------------- |
+| `research`     | a question                     | a research record           |
+| `requirements` | approved research              | requirement records         |
+| `design`       | approved requirements          | a decision record           |
+| `spec`         | an approved decision           | the specification, updated  |
+| `epic`         | an approved decision or defect | an epic and its tasks       |
+| `implement`    | an approved task               | the change and its evidence |
+| `document`     | an epic with every task done   | your documentation, updated |
+| `verify`       | an epic with every task done   | the epic's verification     |
+| `review`       | a verified epic                | findings, never a file      |
+
+A step refuses when its input is missing or not approved, because the program
+checks that before the step writes anything:
+
+```text
+$ meow-method ready implement TSK-1430
+meow-method ready implement: not ready
+  TSK-1420, which TSK-1430 depends on, isn't done
+```
+
+`meow-method status` prints where the record stands, leading with whatever
+waits for your approval. `meow-method template <kind>` prints the template a
+step writes from: yours at `.meowpaw/templates/<kind>.md` where you have one,
+and the unit's otherwise.
+
+## Check the record
 
 From the repository, run every check, or one by name:
 
@@ -63,14 +100,17 @@ exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
 ## What it costs you
 
-Nothing in context: the unit ships a program and no skill, hook or style. The
+The `method` skill's description, 385 characters, on every turn, so Claude
+knows when to load it. The driver costs nothing until you type it. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, it
 reports the record as not checked and exits 3.
 
 ## Where the rules come from
 
-The decision is
-`project/adrs/ADR-1100-the-record-is-checked-by-a-unit-the-harness-ships.md`,
-and the unit is specified in `project/specs/SPC-1070-checking-the-record.md`.
+The decisions are
+`project/adrs/ADR-1100-the-record-is-checked-by-a-unit-the-harness-ships.md`
+and `project/adrs/ADR-1130-the-chain-runs-as-steps-a-program-can-gate.md`, and
+the unit is specified in `project/specs/SPC-1070-checking-the-record.md` and
+`project/specs/SPC-1090-the-chain.md`.
 The layout it reads each kind by is `plugins/meow-method/lib/layout.toml`.

@@ -30,7 +30,7 @@ def front_matter(text):
         return {}
     block = text[4 : text.index("\n---\n", 4)]
     fields = {}
-    for name in ("description", "when_to_use"):
+    for name in ("description", "when_to_use", "disable-model-invocation"):
         match = re.search(rf"^{name}:\s*(.*)$", block, re.M)
         if match:
             fields[name] = match.group(1).strip().strip("\"'")
@@ -42,6 +42,10 @@ def permanent(unit):
     pieces = []
     for path in sorted(unit.glob("skills/*/SKILL.md")) + sorted(unit.glob("agents/**/*.md")):
         fields = front_matter(path.read_text(encoding="utf-8"))
+        # A skill only a person can invoke isn't listed to the model, so its
+        # description costs nothing on a turn.
+        if fields.get("disable-model-invocation") == "true":
+            continue
         listed = " ".join(v for v in (fields.get("description"), fields.get("when_to_use")) if v)
         pieces.append((path, len(listed)))
     for path in sorted(unit.glob("output-styles/*.md")):
