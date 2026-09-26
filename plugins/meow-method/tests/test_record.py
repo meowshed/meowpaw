@@ -317,6 +317,34 @@ class Checks(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nNot yet.", "## Evidence\n\nNot yet.\n\nThe fixture passed.")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
+    def test_a_task_with_evidence_left_unmarked_is_reported(self):
+        repository = self.repo()
+        self.mark(repository, " ")
+        self.found(repository.run("check", "coverage"), "coverage",
+                   "project/epics/EPC-0001-a-plan.md:18: leaves TSK-0001 unmarked, and its Evidence section is written")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet. Postponed by the owner.")
+        self.assertEqual(repository.run("check", "coverage").returncode, 0)
+
+    def test_a_task_closing_a_withdrawn_requirement_in_an_open_epic_is_reported(self):
+        repository = self.repo()
+        self.mark(repository, "x")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
+        self.found(repository.run("check", "coverage"), "coverage",
+                   "project/tasks/TSK-0001-a-task.md:7: closes REQ-0001, which is withdrawn, in EPC-0001, which is not verified")
+        repository.edit("epics/EPC-0001-a-plan.md", 'checked-at: ', 'checked-at: "#1"')
+        self.assertEqual(repository.run("check", "coverage").returncode, 0)
+
+    def test_a_draft_body_naming_a_missing_identifier_is_reported(self):
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Left alone\n\nText.", "## Left alone\n\nADR-0009 and `ADR-0008`.\n\n```text\nADR-0007\n```")
+        done = repository.run("check", "relations")
+        self.found(done, "relations", "project/tasks/TSK-0001-a-task.md:29: names ADR-0009, which has no file")
+        self.assertNotIn("ADR-0008", done.stdout)
+        self.assertNotIn("ADR-0007", done.stdout)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: draft", "status: approved")
+        self.assertEqual(repository.run("check", "relations").returncode, 0)
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")

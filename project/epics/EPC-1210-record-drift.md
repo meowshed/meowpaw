@@ -40,8 +40,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1700 the check reports work left unmarked and identifiers that resolve to nothing
+- [x] T-001 TSK-1700 the check reports work left unmarked and identifiers that resolve to nothing
       closes: REQ-0704, REQ-0710
+      evidence: three fixtures, and the scan narrowed to drafts, in #281.
 
 - [ ] T-002 TSK-1710 show and status derive each requirement's state
       closes: REQ-0527, REQ-0584, REQ-0591, REQ-0706, REQ-0712, REQ-0714
@@ -55,6 +56,12 @@ ADR-1210 addresses 18 requirements. Each lands in exactly one task above,
 and `meow-method check coverage` compares the decision's `addresses` against
 the union of the tasks' `closes`. TSK-1700 and TSK-1710 both change the
 record's program, so they run one after the other; TSK-1720 runs alongside.
+
+TSK-1700 found that ADR-1210's body scan can't read an approved record: ten
+identifiers in approved bodies resolve to nothing on purpose, such as
+BUG-1110 naming the research its requirements cited and nobody wrote. So the
+scan reads a draft's prose alone, outside code spans and fences, and an
+approved record keeps the rules it was approved under, as ADR-1140 decided.
 
 ## Not covered
 
