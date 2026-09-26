@@ -200,6 +200,37 @@ fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
     found_problems
 }
 
+/// The commit's author as git will record it, without the time git appends.
+fn author(root: &Path) -> Option<String> {
+    let out = std::process::Command::new("git")
+        .args(["var", "GIT_AUTHOR_IDENT"])
+        .current_dir(root)
+        .env("GIT_TERMINAL_PROMPT", "0")
+        .stdin(std::process::Stdio::null())
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let ident = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    let end = ident.rfind('>')?;
+    Some(ident[..=end].to_string())
+}
+
+/// A sign-off is the author's own statement, so one naming anybody else is a
+/// problem (REQ-1312).
+fn sign_off(message: &str, author: &str) -> Vec<(usize, String, String)> {
+    message
+        .lines()
+        .enumerate()
+        .filter_map(|(i, line)| line.strip_prefix("Signed-off-by: ").map(|v| (i + 1, v.trim())))
+        .filter(|(_, named)| *named != author)
+        .map(|(number, named)| {
+            (number, "sign-off".to_string(), format!("the sign-off names {named}, and the commit's author is {author}; the certificate is the author's own statement"))
+        })
+        .collect()
+}
+
 fn check_message(root: &Path, source: Option<&str>) -> u8 {
     let message = match source {
         None => {
@@ -217,6 +248,16 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
     };
     let found = convention(root);
     let mut listed = problems(&message, &found);
+    let mut notes = Vec::new();
+    if found.trailers.iter().any(|t| t == "Signed-off-by") {
+        match author(root) {
+            Some(author) => listed.extend(sign_off(&message, &author)),
+            None => notes.push("sign-off: not compared with the author, because git reports no author identity".to_string()),
+        }
+    }
+    for note in &notes {
+        println!("{note}");
+    }
     listed.sort();
     for (number, rule, detail) in &listed {
         println!("line {number}: {rule}: {detail}");
