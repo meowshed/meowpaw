@@ -3,7 +3,7 @@ id: REQ-0079
 artifact: requirement
 topic: universality
 class: non-functional
-status: draft
+status: approved
 revised: 2026-09-26
 elaborates: RES-0004
 verification: static

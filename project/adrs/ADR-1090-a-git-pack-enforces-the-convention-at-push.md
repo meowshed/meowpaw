@@ -1,7 +1,7 @@
 ---
 id: ADR-1090
 artifact: adr
-status: draft
+status: approved
 revised: 2026-09-26
 addresses: [REQ-0079, REQ-1292, REQ-1326, REQ-2530]
 supersedes: []
