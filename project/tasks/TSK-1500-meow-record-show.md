@@ -1,7 +1,7 @@
 ---
 id: TSK-1500
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1150
 closes:
@@ -18,7 +18,7 @@ closes:
     REQ-0654,
     REQ-0658,
   ]
-issue:
+issue: 214
 ---
 
 # Resolve an identifier and what cites it

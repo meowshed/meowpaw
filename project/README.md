@@ -193,7 +193,7 @@ ADR-1040 and ADR-1060, whose work other epics' tasks made. Each confirmed the
 decision with its own probes and was verified under issue 209, BUG-1160's
 fix; EPC-1120 names its measurement on both models as unmet.
 
-[EPC-1150](epics/EPC-1150-navigate-the-record.md) realises ADR-1150 in two
+[EPC-1150](epics/EPC-1150-navigate-the-record.md) is approved and realises ADR-1150 in two
 tasks, TSK-1500 and TSK-1510, each filed as an issue.
 
 ## Defects

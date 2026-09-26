@@ -1,11 +1,11 @@
 ---
 id: TSK-1510
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1150
 closes: [REQ-0692, REQ-0698, REQ-0700, REQ-0702]
-issue:
+issue: 215
 ---
 
 # The epic's rules for a done, an added and a dropped task
