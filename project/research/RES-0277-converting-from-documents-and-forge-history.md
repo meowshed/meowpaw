@@ -1,7 +1,7 @@
 ---
 id: RES-0277
 artifact: research
-status: draft
+status: approved
 revised: 2026-09-26
 elaborates: RES-0037, RES-0154, RES-0265
 ---
