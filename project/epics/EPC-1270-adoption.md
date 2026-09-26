@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1270
-checked-at:
+checked-at: "#344"
 ---
 
 # Each unit is adopted alone, and a missing capability names its fix
@@ -50,6 +50,18 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-003 TSK-1880 record the evidence for the adoption rules that already hold
       closes: REQ-0010, REQ-0016, REQ-0018, REQ-0022, REQ-0024, REQ-0026, REQ-0028, REQ-0030
       evidence: eight rules, each with its command, fixture or file, in #339.
+
+## Verified
+
+Checked under issue 344 at revision `6a95325`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                                                                          | Evidence at `6a95325`                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 1. `check_standalone.py` reports a path climbing out of a unit and one naming another unit's directory, and this repository passes                                                 | Its four fixtures pass; on this repository it reports `84 unit files, 0 paths leaving their unit`                   |
+| 2. `meow-verbs status` names `.meowpaw/profile.toml` for an undeclared verb, and a launcher with no binary names the machine and the reinstall, each still unresolved or unchecked | The undeclared-verb fixture and the launcher fixture in each of meow-verbs, meow-scm, meow-git and meow-method pass |
+| 3. Each requirement that already holds has its evidence recorded                                                                                                                   | TSK-1880's evidence table holds 8 rows, one per requirement it closes                                               |
+| 4. Every requirement lands in exactly one closed task                                                                                                                              | `meow-method check coverage` reports 0 findings, and the three tasks are marked `[x]` with evidence                 |
 
 ## Coverage
 
