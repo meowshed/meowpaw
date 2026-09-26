@@ -26,5 +26,9 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   exec "$binary" record "$@"
 fi
 
+# At the start of a session, say nothing rather than a failure nobody asked about.
+if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
+  exit 0
+fi
 echo "meow-method: the record was not checked: no meow binary was found for this machine"
 exit 3

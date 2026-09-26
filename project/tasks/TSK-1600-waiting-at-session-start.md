@@ -29,7 +29,36 @@ Nothing. ADR-1170 is approved.
 
 ## Evidence
 
-Not yet.
+`meow record status --waiting` prints only the drafts, each with the gate it
+waits at, and nothing at all when none waits or the repository has no record.
+The full `status` now names each draft's gate too. The launcher's fallback
+stays silent for `status --waiting`, and `plugins/meow-method/hooks/hooks.json`
+runs it at `SessionStart`.
+
+Three new fixtures, and the five frozen fixtures #246 left passing against a
+program that returns nothing now assert its output, so every fixture fails
+against one:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 69 tests
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=67, errors=2)
+```
+
+A fresh `claude -p` session, with this unit loaded by `--plugin-dir` in a
+scratch repository whose decision is a draft, asked only "What's the state of
+things here?", opened with:
+
+```text
+ADR-0001 is waiting for your approval at the design gate, and it's the only
+thing blocking the next step.
+```
+
+On this repository, with nothing waiting, `status --waiting` prints nothing
+and exits 0.
 
 ## Left alone
 
