@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1120
-checked-at:
+checked-at: "#184"
 ---
 
 # One marketplace address that serves every release
@@ -57,6 +57,23 @@ A task is marked in the commit that advances it, never in a later pass.
       and this machine's `meowpaw` has the address as its source, in #177.
       depends: TSK-1400 - the address has to serve the file before anybody is
       told to add it
+
+## Verified
+
+Checked under issue 184 at revision `29a57f2`, with evidence gathered there and
+not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                    | Evidence at `29a57f2`                                                                                                                        |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. The address adds a `url` marketplace; a unit installs     | A fresh `debian:bookworm-slim` container: `Source: URL (https://meow.retran.me/meowpaw/marketplace.json)`, and `meow-scm` installed and ran  |
+| 2. A raised version installs by update, nothing by hand      | In `meowtest`, `claude plugin update meow-method@meowpaw` printed `updated from 0.1.0 to 0.1.1` after `marketplace update`                   |
+| 3. The dispatch is sent and the site's deployment serves it  | Release run 36238738539's dispatch step succeeded, site run 36238875657 followed it, and the served file matches the release's byte for byte |
+| 4. Every install instruction gives the one command           | 0 instructions outside the record download the file or add `meowshed/meowpaw`, and 9 files give the address                                  |
+| 5. Every requirement in one closed task, nothing outstanding | `meow-method check`: 0 findings in all six checks, coverage included; `check_index` and `check_links` report 0 failures                      |
+
+`meow-scm check-message` in the fresh container exited 3 with "convention
+undeclared", which is right for a machine with no profile: it ran from the
+installed binary and reported the ban on attribution as checked.
 
 ## Coverage
 
