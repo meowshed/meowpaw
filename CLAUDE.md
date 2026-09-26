@@ -87,8 +87,8 @@ stays YAML, because the platform decided that and we didn't.
 Templates ship inside the plugin that owns them and are read from
 `${CLAUDE_PLUGIN_ROOT}`, so a repository gets them from the installed harness
 and never from a copy that drifts. A repository that wants one changed puts its
-own in `.meowpaw/templates/`, which overrides. The harness's own templates sit
-in `templates/` until the plugin that carries them is specified.
+own in `.meowpaw/templates/`, which overrides. The record's templates ship with
+`meow-method`, and `meow-method template <kind>` prints the one in force.
 
 One artifact per file, named for its identifier, in a directory named for its
 kind. A directory appears when its first artifact does. A record is found by
