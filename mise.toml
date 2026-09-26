@@ -3,6 +3,8 @@
 [tools]
 markdownlint-cli2 = "latest"
 "npm:prettier" = "latest"
+python = "3.14"
+rust = "1.98"
 
 [tasks.fmt]
 description = "Bring Markdown to canonical form"

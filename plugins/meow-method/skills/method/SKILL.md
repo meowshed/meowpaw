@@ -56,4 +56,7 @@ don't overrule it.
 - M9. Write a durable finding back into the artifact it belongs to, because the
   record is the only memory the method keeps, and a finding left in the
   conversation is lost with it.
+- M10. Separate, in every report, what you verified from what you assumed, and
+  name the command behind each verified claim, because an assumption reported
+  beside a check reads as one.
 </rules>
