@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-23
 realises: ADR-1050
-checked-at:
+checked-at: "#211"
 ---
 
 # The writing standard loaded by its description
@@ -45,6 +45,19 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-1144, REQ-1146, REQ-1148, REQ-1150
       evidence: 36 of 36 writing runs on Sonnet 5 and 33 of 33 on Opus 5.5,
       none on work that changes code, in #84. TSK-1270 carries the table.
+
+## Verified
+
+Checked under issue 211 at revision `a8893d2`. Every criterion is met, with
+criteria 1 and 2 resting on TSK-1270's measurement of the description that
+still ships, as the table says:
+
+| Criterion                                                                              | Evidence at `a8893d2`                                                                                                                                                                                                                                      |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. The writing skill loads in nine runs of ten on the writing requests, on both models | TSK-1270 measured 36/36 on Sonnet 5 and 33/33 on Opus 5.5 at #85; the skill's description is byte-identical at every commit since, checked by hashing it at each; Claude Code's own version has moved and the measurement wasn't repeated on today's build |
+| 2. Near misses that change code load it in no more than one run of ten                 | The same measurement: 0/30 on each model                                                                                                                                                                                                                   |
+| 3. `meow-prose` ships no hook, and SPC-1010 and SPC-1030 name none                     | `plugins/meow-prose` holds `agents`, `budget.toml`, `evals` and `skills` and no `hooks`; the hooks SPC-1010 names belong to `meow-prose-gate`                                                                                                              |
+| 4. Every requirement in one closed task                                                | `meow-method check coverage` reports 0 findings                                                                                                                                                                                                            |
 
 ## Coverage
 
