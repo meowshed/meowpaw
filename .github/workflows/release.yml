@@ -82,7 +82,7 @@ jobs:
             gh release create "$tag" "dist/$name-$version.zip" --target "$GITHUB_SHA" \
               --title "$name $version" --notes "$(head -2 dist/notes.md; grep "^| $name |" dist/notes.md)" --latest=false
           done < dist/tags
-          notes="$(printf 'Download `marketplace.json` from this release and add it by its path:\n\n```bash\ncurl -fsSLo marketplace.json %s/marketplace/marketplace.json\nclaude plugin marketplace add ./marketplace.json\n```\n\n' "$BASE"; cat dist/notes.md)"
+          notes="$(printf 'Add the marketplace by its address, which serves this file:\n\n```bash\nclaude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json\n```\n\n' ; cat dist/notes.md)"
           if gh release view marketplace >/dev/null 2>&1; then
             gh release upload marketplace dist/marketplace.json --clobber
             gh release edit marketplace --notes "$notes"
