@@ -27,6 +27,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1130](ADR-1130-the-chain-runs-as-steps-a-program-can-gate.md)                                   | The chain runs as steps that a program gates                                                       | approved                      |
 | [ADR-1140](ADR-1140-a-draft-meets-every-content-rule-a-frozen-record-keeps-its-own.md)               | A draft meets every content rule, and a frozen record keeps the rules it was approved under        | approved                      |
 | [ADR-1150](ADR-1150-the-record-answers-what-an-identifier-is-and-what-cites-it.md)                   | The record answers what an identifier is and what cites it, and a closed task carries its evidence | approved                      |
+| [ADR-1160](ADR-1160-each-step-carries-its-own-obligations.md)                                        | Each step's file carries the obligations of its step, and each template those of its kind          | draft                         |
 
 The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:
