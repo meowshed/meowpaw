@@ -85,12 +85,13 @@ The pack uses `meow-scm` only where it is installed, and never installs it
 `meow-scm` beside the pack in the same marketplace directory, and at the
 newest version of `meow-scm` in the platform's plugin cache.
 
-### The interpreter
+### The program
 
-The program needs Python 3.11 or later, like the other units. Where it is
-missing, the launcher reports each check as unrun and lets the command
-through, because a pack that blocks every commit when an interpreter is
-missing punishes the person for something the pack can't check.
+The program is the `git` subcommand of the native tool SPC-1080 states,
+shipped as a binary inside the pack. Where the pack carries no binary for the
+machine, the launcher reports each check as unrun and lets the command
+through, because a pack that blocked every commit for a missing binary would
+punish the person for something the pack can't check.
 
 ## Failure paths
 
@@ -103,4 +104,4 @@ missing punishes the person for something the pack can't check.
 | An unsigned commit, signatures required | The push is blocked, naming the commit as unsigned                                 |
 | Key material missing locally            | The push is blocked, naming the commit as unverifiable                             |
 | Nothing to publish                      | The push goes through, and the hook says it checked no commits                     |
-| No Python 3.11 or later                 | Every check reported unrun, and nothing blocked                                    |
+| No binary for the machine's target      | Every check reported unrun, and nothing blocked                                    |

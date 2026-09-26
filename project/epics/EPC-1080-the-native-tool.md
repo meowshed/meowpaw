@@ -53,7 +53,9 @@ A task is marked in the commit that advances it, never in a later pass.
       native binary, in #155.
       depends: TSK-1350 - it builds on the crate and the shared module
 
-- [ ] T-003 TSK-1370 `meow git` ported with its launcher
+- [x] T-003 TSK-1370 `meow git` ported with its launcher
+      evidence: meow-git's twelve fixtures, unchanged, passing against the native
+      binary, in #152.
       depends: TSK-1350 - it builds on the crate and the shared module
 
 - [ ] T-004 TSK-1380 the release: six targets, an archive per unit, the

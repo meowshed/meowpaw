@@ -56,8 +56,9 @@ messages on push, and says the trunk and the signing policy are undeclared.
 
 Nothing in context: the pack is two hooks, and each runs only on its own
 command. A push takes one message check and one signature check per commit.
-The program needs Python 3.11 or later, found on the machine and never
-installed; without it, the pack says it checked nothing and blocks nothing.
+The program is a native binary shipped inside the pack, so it needs nothing
+installed on the machine; on a machine the pack carries no binary for, it says
+it checked nothing and blocks nothing.
 
 ## Where the rules come from
 
