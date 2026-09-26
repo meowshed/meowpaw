@@ -12,7 +12,18 @@ issue: # the tracker's number, where the repository uses one
 
 # <What this task does>
 
-One task, one branch, one pull request, one review.
+What this task makes true, in a sentence or two, so a reader who stops here
+knows whether it is theirs. One task, one branch, one pull request, one review.
+
+## Acceptance criteria
+
+1. Given <a starting state>, when <an action>, then <an observable outcome>.
+   Closed by: <the evidence that will show it, such as a named test or a
+   command's output>.
+
+Each criterion is a state, an action and an outcome someone can observe,
+never an adjective, and names the evidence that will close it. The
+repository's definition of done applies as well and isn't restated here.
 
 ## What to do
 

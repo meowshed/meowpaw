@@ -92,6 +92,7 @@ dir = "tasks"
 fields = ["epic", "closes"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 sections = ["What to do", "Depends on", "Evidence", "Left alone"]
+draft_sections = ["Acceptance criteria"]
 
 [[kind]]
 name = "defect"
