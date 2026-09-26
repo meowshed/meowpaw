@@ -47,11 +47,13 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1300 `plugins/meow-scm/`: the manifest, the launcher and the
+- [x] T-001 TSK-1300 `plugins/meow-scm/`: the manifest, the launcher and the
       program's `convention` and `check-message`, each check in SPC-1050 a
       fixture
       closes: REQ-1290, REQ-1294, REQ-1295, REQ-1302, REQ-1308, REQ-1310,
       REQ-1314, REQ-1318
+      evidence: fourteen fixtures, each seen failing against a stub and passing
+      against the program, in #126. TSK-1300 carries the runs.
 
 - [ ] T-002 TSK-1310 the skill, the documentation page, the budget, the
       marketplace entry, this repository's `[commits]` table, and retiring the
