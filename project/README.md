@@ -139,6 +139,8 @@ Every decision below is approved and in force, as amended by the ones after it.
   and by the commit skill where none does.
 - [ADR-1330](adrs/ADR-1330-a-decision-may-postpone-requirements-and-each-verification-revisits-them.md):
   a decision may postpone requirements, and each verification revisits them.
+- [ADR-1340](adrs/ADR-1340-version-control-tools-other-than-git-are-postponed.md):
+  version control tools other than git are postponed.
 
 ## Specifications
 
