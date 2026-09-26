@@ -363,7 +363,9 @@ own line (REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
 | review       | the named epic carries `checked-at` (REQ-0302)                                                            |
 
 A task is done when its epic marks it `[x]`, and dropped when it is marked
-`[~]`. The tasks a task depends on are the `TSK-` identifiers under its
+`[~]`. A task entry may carry `[P]` between its number and its identifier,
+marking it as able to run in parallel (REQ-0265), and it is read with its mark
+like any other. The tasks a task depends on are the `TSK-` identifiers under its
 `## Depends on` section.
 
 ### The state

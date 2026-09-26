@@ -311,6 +311,7 @@ realises ADR-1350 in one task, TSK-2020.
 | [BUG-1150](bugs/BUG-1150-the-crate-tests-can-share-a-directory.md)                   | The crate's tests could share a temporary directory, so the gate failed at random                     |
 | [BUG-1160](bugs/BUG-1160-the-record-drifted-from-the-work.md)                        | The record drifted from the work: stale task statuses, a stale mark, and three decisions with no epic |
 | [BUG-1170](bugs/BUG-1170-a-verification-cited-a-check-that-matched-nothing.md)       | A verification cited a check that matched nothing                                                     |
+| [BUG-1180](bugs/BUG-1180-a-parallel-task-reads-as-open.md)                           | A task marked `[P]` derived as open whatever its mark                                                 |
 
 Seventeen are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
