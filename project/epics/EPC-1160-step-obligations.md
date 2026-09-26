@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1160
-checked-at:
+checked-at: "#237"
 ---
 
 # Every step and template carrying its obligations
@@ -66,6 +66,19 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926
       evidence: fifteen requirements traced to template lines, and a draft
       task held to its acceptance criteria, in #228.
+
+## Verified
+
+Checked under issue 237 at revision `951d8bd`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                              | Evidence at `951d8bd`                                                                                                                                                             |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Every requirement maps to a labelled rule that exists where the task names it       | A script read the six step tasks' traces and found each label in its step file: 0 traced labels found in their step files, 0 missing; TSK-1580 maps its fifteen to template lines |
+| 2. `meow-method check` reports 0 findings, and every step file passes the prompt check | 7 checks report 0 findings; `check_prompts` reports 50 shipped prompts, 0 failures                                                                                                |
+| 3. A draft task without acceptance criteria fails `shape`                              | `test_a_draft_task_carries_acceptance_criteria` runs `OK`                                                                                                                         |
+| 4. Evaluation measures that the steps follow their rules                               | Not met: evaluation is postponed by the owner, and REQ-3170 lets the epic close with this named                                                                                   |
+| 5. Every requirement in one closed task, nothing outstanding                           | `coverage` reports 0 findings                                                                                                                                                     |
 
 ## Coverage
 
