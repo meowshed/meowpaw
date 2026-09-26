@@ -74,7 +74,9 @@ meow-method check
 meow-method check relations
 ```
 
-A run with one finding prints it and each check's count:
+A run with one finding prints it and each check's count. A draft is held to
+every rule of its kind, and an approved record to the rules it was approved
+under, because an approved record is frozen:
 
 ```text
 project/tasks/TSK-0001-a-task.md:4: status done is not one a task stores: draft, approved, withdrawn, rejected, superseded
@@ -84,16 +86,18 @@ relations: 0 findings
 index: 0 findings
 coverage: 0 findings
 shape: 0 findings
+rules: 0 findings
 ```
 
-| Check          | Reports                                                                                      |
-| -------------- | -------------------------------------------------------------------------------------------- |
-| `front-matter` | A field the kind requires that's missing, a status the kind doesn't store, a bad `revised`   |
-| `identifiers`  | A file whose name and `id` disagree, an identifier used twice, a cited requirement not found |
-| `relations`    | An identifier in a relation field with no file, and a link in the record to a missing file   |
-| `index`        | A file its kind's index doesn't list, and an index entry with no file                        |
-| `coverage`     | A requirement a decision addresses that lands in no task or in two, or no specification      |
-| `shape`        | An artifact missing a section its kind carries, such as research without its conclusions     |
+| Check          | Reports                                                                                                                                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `front-matter` | A field the kind requires that's missing, a status the kind doesn't store, a bad `revised`                                                                                                           |
+| `identifiers`  | A file whose name and `id` disagree, an identifier used twice, a cited requirement not found                                                                                                         |
+| `relations`    | An identifier in a relation field with no file, and a link in the record to a missing file                                                                                                           |
+| `index`        | A file its kind's index doesn't list, and an index entry with no file                                                                                                                                |
+| `coverage`     | A requirement a decision addresses that lands in no task or in two, or no specification                                                                                                              |
+| `shape`        | An artifact missing a section its kind carries, such as research without its conclusions                                                                                                             |
+| `rules`        | An undated source or a cited requirement in draft research, a judged draft requirement with no verifier, an epic realising other than one record, a decision's alternatives with no reason they lost |
 
 It exits 0 when no check found anything, 1 when any did or the root doesn't
 exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
