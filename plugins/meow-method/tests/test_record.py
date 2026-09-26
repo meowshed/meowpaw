@@ -563,6 +563,43 @@ class Checks(unittest.TestCase):
         self.found(self.onboarded("| `notes.txt` | discarded | a scratch list nobody reads |", "| `notes.txt` | discarded | |").run("check", "coverage"),
                    "coverage", "project/onboarding.md:25: marks notes.txt discarded with no destination or reason")
 
+    def converted(self, status="approved", guide="SPC-0001"):
+        repository = self.repo()
+        for name in ("docs/guide.md", "notes.txt", "old.md", "source.md"):
+            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
+            (repository.path / name).write_text("text\n", encoding="utf-8")
+        rows = (f"| `docs/guide.md` | migrated | {guide} |\n| `notes.txt` | discarded | a scratch list nobody reads |\n"
+                "| `old.md` | superseded | ADR-0001 |\n| `source.md` | cited | SPC-0001 |\n")
+        report = self.REPORT.replace("status: draft", f"status: {status}").replace(
+            "| `docs/guide.md` | migrated | SPC-0001 |\n| `notes.txt` | discarded | a scratch list nobody reads |\n", rows)
+        repository.write("onboarding.md", report)
+        return repository
+
+    def present(self, repository):
+        return sorted(n for n in ("docs/guide.md", "notes.txt", "old.md", "source.md") if (repository.path / n).exists())
+
+    def test_removing_placed_documents_keeps_what_is_cited(self):
+        repository = self.converted()
+        done = repository.run("onboarding", "remove")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(self.present(repository), ["source.md"])
+        self.assertEqual(done.stdout, "before: 4 documents\nremoved docs/guide.md (migrated)\nremoved notes.txt (discarded)\n"
+                                      "removed old.md (superseded)\nafter: 1 document\n")
+
+    def test_nothing_is_removed_before_the_report_is_approved(self):
+        repository = self.converted(status="draft")
+        done = repository.run("onboarding", "remove")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/onboarding.md is draft, and nothing is removed before a person approves", done.stdout)
+        self.assertEqual(len(self.present(repository)), 4)
+
+    def test_nothing_is_removed_where_a_destination_does_not_exist(self):
+        repository = self.converted(guide="SPC-0009")
+        done = repository.run("onboarding", "remove")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("docs/guide.md is migrated to SPC-0009, which names no artifact that exists", done.stdout)
+        self.assertEqual(len(self.present(repository)), 4)
+
     def test_onboarding_adoption_is_numbered_steps(self):
         self.found(self.onboarded("1. Declare the verbs.", "Declare the verbs.").run("check", "rules"), "rules",
                    "project/onboarding.md:31: has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working")

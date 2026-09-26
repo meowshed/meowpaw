@@ -133,9 +133,10 @@ pub fn main(args: &[String]) -> u8 {
         "new" => new_identifier(rest),
         "find" => find(rest),
         "count" => count_record(rest),
+        "onboarding" => onboarding(rest),
         _ => {
             eprintln!(
-                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count",
+                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | onboarding remove",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -898,23 +899,98 @@ fn documents(root: &Path, repository: &Path) -> Vec<String> {
     paths
 }
 
-/// Every document an onboarding report finds gets exactly one outcome, with
-/// where it went or why, so nothing is deleted before it is placed (REQ-1556).
-fn placement(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
-    let Some(report) = of_kind(record, "onboarding").into_iter().next() else { return Vec::new() };
-    let mut placed: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+/// Each row of an onboarding report's Documents table: its line, the document,
+/// the outcome and where it went or why.
+fn placements(report: &Doc) -> Vec<(usize, String, String, String)> {
     let mut out = Vec::new();
     for (line, text) in section_lines(report, "Documents") {
         let cells: Vec<&str> = text.trim().trim_matches('|').split('|').map(str::trim).collect();
         if !text.trim_start().starts_with('|') || cells.len() < 3 || cells[0].starts_with("---") || cells[0] == "Document" {
             continue;
         }
-        let path = cells[0].trim_matches('`').to_string();
-        let outcome = cells[1];
+        out.push((line, cells[0].trim_matches('`').to_string(), cells[1].to_string(), cells[2].to_string()));
+    }
+    out
+}
+
+/// Removes what an approved onboarding report placed, keeping what it cites
+/// (ADR-1280). It refuses before removing anything, so a refusal leaves the
+/// tree as it was, and it commits nothing.
+fn onboarding(rest: &[String]) -> u8 {
+    if rest.first().map(String::as_str) != Some("remove") || rest.len() != 1 {
+        eprintln!("usage: meow-method onboarding remove");
+        return USAGE;
+    }
+    let (record, repository, root) = match open_record("onboarding") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let Some(report) = of_kind(&record, "onboarding").into_iter().next() else {
+        say!("meow-method onboarding remove: there is no onboarding report, so nothing is placed and nothing is removed");
+        return FOUND;
+    };
+    let status = bare(report.value("status"));
+    if status != "approved" {
+        say!("meow-method onboarding remove: {} is {status}, and nothing is removed before a person approves where each document goes", report.shown);
+        return FOUND;
+    }
+    let known = known(&record);
+    let rows = placements(report);
+    let mut refused = Vec::new();
+    for (line, path, outcome, destination) in &rows {
+        if outcome != "migrated" && outcome != "superseded" {
+            continue;
+        }
+        let ids: Vec<&str> = record.ids.find_iter(destination).map(|m| m.as_str()).collect();
+        let named = destination.trim_matches('`');
+        let exists = if ids.is_empty() {
+            !named.is_empty() && (root.join(named).is_file() || repository.join(named).is_file())
+        } else {
+            ids.iter().all(|id| known.contains_key(*id))
+        };
+        if !exists {
+            refused.push(format!("{}:{line}: {path} is {outcome} to {destination}, which names no artifact that exists", report.shown));
+        }
+    }
+    if !refused.is_empty() {
+        for line in &refused {
+            say!("{line}");
+        }
+        say!("meow-method onboarding remove: nothing was removed");
+        return FOUND;
+    }
+    let before = documents(&root, &repository).len();
+    say!("before: {}", count(before, "document"));
+    for (_, path, outcome, _) in &rows {
+        if !matches!(outcome.as_str(), "migrated" | "superseded" | "discarded") {
+            continue;
+        }
+        let file = repository.join(path);
+        if !file.is_file() {
+            continue;
+        }
+        if let Err(e) = std::fs::remove_file(&file) {
+            say!("meow-method onboarding remove: {path}: {e}; stopped part way");
+            return FOUND;
+        }
+        say!("removed {path} ({outcome})");
+    }
+    say!("after: {}", count(documents(&root, &repository).len(), "document"));
+    CLEAN
+}
+
+/// Every document an onboarding report finds gets exactly one outcome, with
+/// where it went or why, so nothing is deleted before it is placed (REQ-1556).
+fn placement(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
+    let Some(report) = of_kind(record, "onboarding").into_iter().next() else { return Vec::new() };
+    let mut placed: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+    let mut out = Vec::new();
+    for (line, path, outcome, destination) in placements(report) {
+        let outcome = outcome.as_str();
         placed.entry(path.clone()).or_default().push(line);
         if !["migrated", "cited", "superseded", "discarded"].contains(&outcome) {
             out.push(Finding::at(report, Some(line), format!("gives {path} the outcome {outcome}, where an outcome is migrated, cited, superseded or discarded")));
-        } else if cells[2].is_empty() {
+        } else if destination.is_empty() {
             out.push(Finding::at(report, Some(line), format!("marks {path} {outcome} with no destination or reason")));
         }
     }

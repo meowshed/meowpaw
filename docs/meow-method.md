@@ -32,6 +32,13 @@ stays at zero until you affirm requirements through the requirements step. It
 stops at `onboarding.md`, a draft report placing every document the
 repository has, which `check coverage` holds, and waits for your approval.
 
+Once you approve the report, run `meow-method onboarding remove` to finish.
+It removes each document the report marks migrated, superseded or discarded,
+keeps each one marked cited, and prints the count before and after. It
+refuses, removing nothing, while the report isn't approved or where a
+migrated document's destination doesn't exist, and it commits nothing, so you
+review the removal as a change of its own.
+
 ## Declare where the record lives
 
 Put it under `[record]` in `.meowpaw/profile.toml` at the repository's root:
