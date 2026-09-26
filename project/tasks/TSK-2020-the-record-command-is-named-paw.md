@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-26
 epic: EPC-1340
 closes: [REQ-3166]
-issue:
+issue: 402
+projected: d0afbc78b9e2
 ---
 
 # The record's command is `paw`, with `meow-method` as a deprecated alias
