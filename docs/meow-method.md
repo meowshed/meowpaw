@@ -26,9 +26,12 @@ an existing `CLAUDE.md` untouched. Review both files before you commit them.
 Then type `/meow-method:onboard` to bring the repository's existing documents
 into the record. It recovers the vision, the specifications and, where none
 exists, the constitution, each statement ending with the file it came from and
-a confidence. It writes no requirement and no decision: each obligation it
-notices becomes a question in the report's gaps, and the record's coverage
-stays at zero until you affirm requirements through the requirements step. It
+a confidence. Where `meow-github` is installed it reads the repository's
+issues, pull requests and comments too. Each obligation a document, an issue
+or a pull request states becomes a draft requirement, and each choice
+recorded with the alternative it rejected becomes a draft decision, citing
+where it was stated; code alone yields neither, and you affirm each draft by
+approving it. Without `meow-github`, the report says the history is unread. It
 stops at `onboarding.md`, a draft report placing every document the
 repository has, which `check coverage` holds, and waits for your approval.
 
