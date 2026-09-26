@@ -39,4 +39,6 @@ it up is none, the chain ends here.
   step the work returns to.
 - W9. Post findings to the review system only when asked, and write nothing
   into the repository.
+- W10. Name the parts the change touches and the dependencies it adds, because
+  a structural regression is invisible in a diff by construction.
 </rules>

@@ -47,4 +47,9 @@ it up is requirements.
 - R11. Let a comparison inform a decision and never record one, because the
   decision belongs to the design step and its record.
 - R12. Give a fact that will change the date it was true where you state it.
+- R13. Drop an option that is better at nothing rather than listing it,
+  because a survey padded with weak options looks like diligence and
+  manufactures consent.
+- R14. Let the verdicts an assessment may reach include abandoning the idea
+  entirely.
 </rules>

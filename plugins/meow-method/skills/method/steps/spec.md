@@ -38,4 +38,8 @@ it up is epic.
 - S11. Where two decisions in force address one requirement and contradict
   each other, report it and don't choose, because which one is stale is a
   judgement.
+- S12. Name the abstraction level a description or a diagram is at, and never
+  mix two in one.
+- S13. State the dependencies permitted between parts, so a dependency that
+  crosses a forbidden boundary is a finding and not a preference.
 </rules>

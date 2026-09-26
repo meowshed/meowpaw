@@ -42,4 +42,7 @@ it up is review.
   first.
 - V10. Stop at whether the decision was realised, and don't ask whether it was
   right, because its reversal condition answers that on later evidence.
+- V11. Check an architectural property a program can settle rather than
+  reviewing it, assess one no program can settle as a declared judgement, and
+  never report passing checks on single properties as an architectural pass.
 </rules>
