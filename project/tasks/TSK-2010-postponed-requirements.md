@@ -31,7 +31,31 @@ Nothing. ADR-1330 is approved.
 
 ## Evidence
 
-Not yet.
+`postpones` joins the layout's relations, and a decision's required
+`addresses` becomes the rule `addresses-or-postpones`. Four fixtures, each
+failing against a stub that returns nothing:
+
+- A second requirement postponed by an approved decision that addresses
+  nothing reads `postponed by` that decision in `show`; `status` shows the
+  decision as "postponing: 1 requirement, revisited at each verification" and
+  counts "1 postponed"; `check rules` and `check coverage` pass with no epic
+  and no specification for it.
+- Once a task closes that requirement, `show` reads it as in a task not yet
+  done, and no longer as postponed.
+- A decision with empty `addresses` and empty `postpones` fails `check rules`
+  at its line, as does the clean record's decision with its `addresses`
+  emptied; that fixture used to test the required value, which the rule
+  replaces.
+
+The verify step gains V13, listing every postponement with its condition at
+each verification and asking whether it now holds. This repository's record
+passes every check with the new layout.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 123 tests in 9.860s
+OK
+```
 
 ## Left alone
 

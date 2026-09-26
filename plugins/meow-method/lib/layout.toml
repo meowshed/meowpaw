@@ -10,7 +10,7 @@
 fields = ["id", "artifact", "status", "revised"]
 
 # The front matter fields whose values name other artifacts.
-relations = ["elaborates", "addresses", "supersedes", "realises", "epic", "closes", "states", "violates"]
+relations = ["elaborates", "addresses", "postpones", "supersedes", "realises", "epic", "closes", "states", "violates"]
 
 # Per kind: `sections` every record carries, `draft_sections` a draft carries
 # as well, `first_section` it opens with, `required_values` fields it must
@@ -90,8 +90,7 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "adrs/README.md"
 sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]
 draft_sections = ["How I will know it was realised", "What this does not settle"]
-required_values = ["addresses"]
-rules = ["alternatives-why-lost"]
+rules = ["alternatives-why-lost", "addresses-or-postpones"]
 
 [[kind]]
 name = "epic"
