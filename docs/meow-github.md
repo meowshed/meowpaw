@@ -56,6 +56,21 @@ hour so a second read costs no quota:
 `merged` is `false` for a pull request closed without merging, which records a
 rejected approach, and `null` for an issue.
 
+## Project an epic's tasks onto issues
+
+Once an epic is approved, file one issue per task:
+
+```bash
+meow-github project EPC-1310
+```
+
+Each issue is titled with the task's identifier and title, and its body cites
+the epic, the requirements the task closes and its dependencies, and ends with
+a marker naming the task and a fingerprint. The task gains `issue:` with the
+issue's number and `projected:` with the fingerprint, so the mapping lives in
+the repository. Each issue is read back after it is created. Run it again and
+nothing changes. It refuses an epic that isn't approved.
+
 ## When it can't read
 
 Where `gh` is missing, isn't signed in, or GitHub refuses a listing, it prints
