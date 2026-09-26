@@ -3,7 +3,7 @@ id: SPC-1090
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at: "#202"
+checked-at: "#237"
 states:
   [
     REQ-0190,
@@ -196,8 +196,8 @@ specifications of the steps that write them, and classifying trivial work to a
 later decision.
 
 ADR-1130 decides it, and EPC-1100 realised it, verified under issue 202.
-ADR-1160 adds each step's obligations and EPC-1160 realises them, so
-`checked-at` names the first verification until that epic closes.
+ADR-1160 adds each step's obligations, and EPC-1160 realised them, verified
+under issue 237 with their measurement by evaluation still to come.
 
 ## Boundary
 
