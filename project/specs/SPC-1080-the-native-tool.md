@@ -23,12 +23,13 @@ realises it, so `checked-at` stays empty until that epic closes.
 
 ## Boundary
 
-| Surface                         | What it is                                                              |
-| ------------------------------- | ----------------------------------------------------------------------- |
-| `crates/meow/`                  | The tool's source: one crate, with a feature per unit and its own tests |
-| `plugins/<unit>/bin/<unit>`     | The unit's launcher, which picks the binary for the machine             |
-| `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed          |
-| `.github/workflows/release.yml` | The release: six targets, one archive per unit, a marketplace file      |
+| Surface                         | What it is                                                                |
+| ------------------------------- | ------------------------------------------------------------------------- |
+| `crates/meow/`                  | The tool's source: one crate, with a feature per unit and its own tests   |
+| `plugins/<unit>/bin/<unit>`     | The unit's launcher, which picks the binary for the machine               |
+| `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed            |
+| `.github/workflows/build.yml`   | The six-target build, run by CI when the crate changes and by the release |
+| `.github/workflows/release.yml` | The release: one archive per unit, a marketplace file                     |
 
 ## Behaviour
 
@@ -72,8 +73,10 @@ fixtures against the launchers.
 
 ### A release
 
-A person runs the release workflow by hand, and it builds all six targets with
-`crates/meow/build-units <target>`, the script the local build runs. It packs
+CI builds all six targets with `crates/meow/build-units <target>`, the script
+the local build runs, on every pull request and push that changes the crate, a
+unit's launcher or the build. A person runs the release workflow by hand, and
+it calls that same build. It packs
 each unit whose version has no release yet as a zip of the unit's tracked files
 and its binaries, and publishes it as a release tagged `<unit>-v<version>`, so
 each unit carries its own version (REQ-0074). A unit whose version already has

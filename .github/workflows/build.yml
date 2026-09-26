@@ -1,0 +1,51 @@
+# Builds each unit's binary of the native tool for all six targets (SPC-1080).
+# CI runs it whenever the crate, a launcher or the build changes, and the
+# release calls it for the binaries it packs.
+
+name: Build
+
+on:
+  workflow_call:
+  pull_request:
+    paths:
+      - crates/**
+      - plugins/*/bin/**
+      - .github/workflows/build.yml
+  push:
+    branches: [main]
+    paths:
+      - crates/**
+      - plugins/*/bin/**
+      - .github/workflows/build.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build ${{ matrix.target }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { target: aarch64-apple-darwin, os: macos-15 }
+          - { target: x86_64-apple-darwin, os: macos-15 }
+          - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm }
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-24.04 }
+          - { target: aarch64-pc-windows-msvc, os: windows-11-arm }
+          - { target: x86_64-pc-windows-msvc, os: windows-2025 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: runner.os == 'Linux'
+        run: sudo apt-get install -y musl-tools
+      - run: crates/meow/build-units ${{ matrix.target }}
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ matrix.target }}
+          path: plugins/*/bin/${{ matrix.target }}/
+          if-no-files-found: error
