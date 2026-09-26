@@ -150,7 +150,27 @@ fn same(a: &str, b: &str) -> bool {
     a.replace("\r\n", "\n").trim_end() == b.replace("\r\n", "\n").trim_end()
 }
 
-pub fn run(epic_id: &str, repository: Option<&str>) -> u8 {
+/// What the tracker holds now, as the fingerprint its title and body carry
+/// without the marker, and whether the issue is closed.
+fn tracked(repository: &str, issue: &str) -> Result<(String, bool), String> {
+    let read = gh(&["api", &format!("repos/{repository}/issues/{issue}")])?;
+    let title = read.get("title").and_then(Value::as_str).ok_or("the issue lacks the field `title`")?;
+    let body = read.get("body").and_then(Value::as_str).unwrap_or("").replace("\r\n", "\n");
+    let body = body.rsplit_once("\n\n<!-- meow-github:").map(|(b, _)| b.to_string()).unwrap_or(body);
+    let closed = read.get("state").and_then(Value::as_str) == Some("closed");
+    Ok((fingerprint(title, &body), closed))
+}
+
+/// The tasks the epic marks done.
+fn done_in(epic: &Record) -> Vec<String> {
+    epic.text
+        .lines()
+        .filter_map(|l| l.strip_prefix("- [x] "))
+        .filter_map(|l| l.split_whitespace().nth(1).map(str::to_string))
+        .collect()
+}
+
+pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
     let root = profile::repository_root();
     let record_root = match profile::read(&root) {
         Profile::Parsed(table) => table
@@ -178,6 +198,7 @@ pub fn run(epic_id: &str, repository: Option<&str>) -> u8 {
         }
     };
     let tasks: Vec<Record> = records(&base.join("tasks"), "TSK-").into_iter().filter(|t| t.field("epic") == epic_id).collect();
+    let done = done_in(&epic);
     let mut worst = CLEAN;
     for task in &tasks {
         let id = task.field("id");
@@ -186,14 +207,51 @@ pub fn run(epic_id: &str, repository: Option<&str>) -> u8 {
         let issue = task.field("issue");
         if !issue.is_empty() {
             let projected = task.field("projected");
-            if projected == print {
-                println!("{id}: unchanged, issue #{issue} at {print}");
-            } else if projected.is_empty() {
+            if projected.is_empty() {
                 println!("{id}: mapped to issue #{issue} by hand, with no fingerprint; left as it is");
-            } else {
-                println!("{id}: changed since it was projected at {projected}; issue #{issue} not updated");
+                continue;
+            }
+            // Computed from the two fingerprints each run, never stored (REQ-1388).
+            let (on_tracker, closed) = match tracked(&repository, &issue) {
+                Ok(state) => state,
+                Err(e) => {
+                    println!("{id}: issue #{issue} couldn't be read: {e}");
+                    worst = worst.max(UNREAD);
+                    continue;
+                }
+            };
+            if closed && !done.contains(&id) {
+                println!("{id}: issue #{issue} is closed on GitHub while {epic_id} leaves the task unmarked; the epic decides what the tasks are, so this is reported, not reconciled");
                 worst = worst.max(FOUND);
             }
+            if on_tracker != projected {
+                println!("{id}: issue #{issue} was edited on GitHub since it was projected at {projected}; the record owns its title and body, and it is left as it is");
+                worst = worst.max(FOUND);
+            } else if projected == print {
+                println!("{id}: unchanged, issue #{issue} at {print}");
+            } else if check {
+                println!("{id}: changed since it was projected at {projected}; issue #{issue} would be updated to {print}");
+            } else {
+                let full = format!("{body}\n\n{}", marker(&id, &print));
+                let endpoint = format!("repos/{repository}/issues/{issue}");
+                match gh(&["api", &endpoint, "-X", "PATCH", "-f", &format!("title={title}"), "-f", &format!("body={full}")]) {
+                    Ok(_) => match issue.parse::<u64>().ok().map(|n| record_mapping(task, n, &print)) {
+                        Some(Ok(())) => println!("{id}: changed since {projected}, issue #{issue} updated to {print}"),
+                        _ => {
+                            println!("{id}: issue #{issue} updated, and the mapping couldn't be written to {}", task.path.display());
+                            worst = worst.max(FOUND);
+                        }
+                    },
+                    Err(e) => {
+                        println!("{id}: issue #{issue} not updated: {endpoint}: {e}");
+                        worst = worst.max(UNREAD);
+                    }
+                }
+            }
+            continue;
+        }
+        if check {
+            println!("{id}: not projected yet");
             continue;
         }
         let full = format!("{body}\n\n{}", marker(&id, &print));

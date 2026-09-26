@@ -71,6 +71,17 @@ issue's number and `projected:` with the fingerprint, so the mapping lives in
 the repository. Each issue is read back after it is created. Run it again and
 nothing changes. It refuses an epic that isn't approved.
 
+The record owns each issue's title and body, and GitHub owns whether it is
+open or closed, which the pack never writes. A task you changed updates its
+issue on the next run. An issue someone edited on GitHub is reported and left
+as it is, and an issue closed on GitHub while the epic leaves its task
+unmarked is reported, because the epic decides what the tasks are. Add
+`--check` to see each task's state without writing anything:
+
+```bash
+meow-github project EPC-1310 --check
+```
+
 ## When it can't read
 
 Where `gh` is missing, isn't signed in, or GitHub refuses a listing, it prints

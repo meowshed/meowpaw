@@ -29,7 +29,32 @@ TSK-1930, whose command this extends.
 
 ## Evidence
 
-Not yet.
+Each run reads every projected task's issue and computes its state from two
+fingerprints, the task's `projected:` and the one the issue's title and body
+carry, and stores nothing (REQ-1388). Three fixtures, against the stand-in
+`gh`:
+
+- A task retitled after it was projected updates its issue with one `PATCH`,
+  its only write, and `projected:` moves to the new fingerprint.
+- An issue whose body a person rewrote on GitHub is reported as edited since
+  it was projected, exit 1, and left exactly as the person wrote it, with no
+  write.
+- With `--check`, an issue closed on GitHub while the epic leaves its task
+  unmarked is reported as a disagreement, and a retitled task is reported as
+  one that would be updated; no write reaches the tracker, and neither task
+  file changes.
+
+The pack never writes an issue's state: the only writes are `POST` for a new
+issue and `PATCH` of its title and body. It polls when run.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-github/tests
+Ran 11 tests in 1.340s
+OK
+
+$ MEOW_GITHUB_BIN=stub python3 -m unittest discover -s plugins/meow-github/tests
+FAILED (failures=3, errors=7)
+```
 
 ## Left alone
 
