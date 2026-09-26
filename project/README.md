@@ -85,6 +85,8 @@ Every decision below is approved and in force, as amended by the ones after it.
   every unit's program is a subcommand of one native tool, amending ADR-1070.
 - [ADR-1120](adrs/ADR-1120-the-marketplace-is-served-from-meow-retran-me.md):
   the released marketplace is served from `meow.retran.me`.
+- [ADR-1130](adrs/ADR-1130-the-chain-runs-as-steps-a-program-can-gate.md): the
+  method's nine steps run as one skill, gated by `meow record`.
 
 ## Specifications
 
@@ -107,13 +109,18 @@ issue 115.
 convention and its check, and `meow-scm` implements it, verified under issue 130.
 
 [SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, and
-`meow-git` implements it.
+`meow-git` implements it, verified under issue 138.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
-checked. Nothing implements it yet.
+checked, and `meow-method` implements it, verified under issue 168.
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
-launchers and its release. Nothing implements it yet.
+launchers, its release and the marketplace address. The crate implements it,
+verified under issue 160.
+
+[SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
+the gate each checks, the state of the record and the command that drives it.
+Nothing implements it yet.
 
 ## Epics and tasks
 
@@ -160,6 +167,9 @@ against every acceptance criterion under issue 160.
 [EPC-1090](epics/EPC-1090-the-marketplace-address.md) realised ADR-1120 in two
 tasks, TSK-1400 and TSK-1410, each closed with evidence, and was verified
 against every acceptance criterion under issue 184.
+
+[EPC-1100](epics/EPC-1100-the-chain.md) is approved and realises ADR-1130 in
+three tasks, TSK-1420 to TSK-1440, each filed as an issue.
 
 ## Defects
 
