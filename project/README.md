@@ -279,7 +279,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1320](epics/EPC-1320-source-control.md) realised ADR-1320 in five tasks, TSK-1960 to TSK-2000, each closed with evidence, and was verified against every acceptance criterion under issue 392.
 
-[EPC-1330](epics/EPC-1330-postpone.md) realises ADR-1330 in one task,
+[EPC-1330](epics/EPC-1330-postpone.md) is approved and realises ADR-1330 in one task,
 TSK-2010, each filed as an issue.
 
 ## Defects

@@ -1,11 +1,12 @@
 ---
 id: TSK-2010
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1330
 closes: [REQ-0325]
-issue:
+issue: 395
+projected: a98413e55d12
 ---
 
 # A decision postpones requirements, and each verification revisits them
