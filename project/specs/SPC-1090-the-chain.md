@@ -3,7 +3,7 @@ id: SPC-1090
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at:
+checked-at: "#202"
 states:
   [
     REQ-0190,
@@ -41,8 +41,8 @@ chain as the record shows it. It leaves each artifact's content rules to the
 specifications of the steps that write them, and classifying trivial work to a
 later decision.
 
-ADR-1130 decides it and EPC-1100 realises it, so `checked-at` stays empty until
-that epic closes.
+ADR-1130 decides it, EPC-1100 realises it, and `meow-method` implements it,
+verified under issue 202.
 
 ## Boundary
 
