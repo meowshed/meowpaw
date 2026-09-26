@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-method index -->
 
-33 decisions in all: 33 approved.
+34 decisions in all: 33 approved, 1 draft.
 
 | Identifier                                                                                           | What it concluded                                                                                                | Status   |
 | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- |
@@ -50,6 +50,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1300](ADR-1300-onboarding-reads-what-the-history-states.md)                                     | Onboarding reads what the documents and the forge history state, and recovers it as drafts                       | approved |
 | [ADR-1310](ADR-1310-the-github-pack-projects-an-approved-epic-onto-issues.md)                        | The GitHub pack projects an approved epic's tasks onto issues, and reports where the two disagree                | approved |
 | [ADR-1320](ADR-1320-source-control-is-held-by-checks-where-a-program-settles-it.md)                  | Source-control discipline is held by a check where a program settles it, and by the commit skill where none does | approved |
+| [ADR-1330](ADR-1330-a-decision-may-postpone-requirements-and-each-verification-revisits-them.md)     | A decision may postpone requirements, and each verification revisits them                                        | draft    |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070.
 <!-- /meow-method index -->

@@ -7,6 +7,7 @@ checked-at: "#288"
 states:
   [
     REQ-0237,
+    REQ-0325,
     REQ-0510,
     REQ-0516,
     REQ-0518,
@@ -179,6 +180,16 @@ front matter, and the harness fixes each kind's meaning in `lib/layout.toml`
 work, a correction to an approved artifact goes through the amendment path
 `check frozen` holds, and a new requirement enters an approved set with a new
 identifier (REQ-0690, REQ-0694, REQ-0696, REQ-0716) (ADR-1210).
+
+### Postponing a requirement
+
+A decision may carry `postpones:`, beside or in place of `addresses:`, and
+carries at least one of the two. A requirement an approved decision postpones
+and no task closes is derived as postponed: `show` names the decision and
+`status` counts it, and a decision that only postpones needs no epic and no
+specification. The verify step lists every postponement and its condition
+whenever an epic is verified, which is where a deferral is looked at again
+(REQ-0325) (ADR-1330).
 
 ## Failure paths
 
