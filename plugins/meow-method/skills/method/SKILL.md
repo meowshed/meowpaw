@@ -69,4 +69,24 @@ don't overrule it.
 - M13. Look for an insight with `meow-method find` when the work in front of
   you touches its subject, and never read the insights in bulk at the start,
   because retrieval earns its cost only where the work needs the lesson.
+- M14. Change the record's shape by expand, migrate and contract: accept both
+  forms, move every record, then remove the old form, and name the release
+  that removes it when the new form arrives, because a removal nobody
+  scheduled either never happens or surprises whoever still writes the old
+  form.
+- M15. Give a new obligation on records that already exist a migration in the
+  same change, or add it as a draft rule, which grandfathers the approved
+  records, and say which in the decision, because an approved record can't be
+  changed to meet a rule written after it.
+- M16. Edit front matter as structured data and a link as a link, never by
+  text substitution, and where no parser exists make the migration smaller,
+  not cleverer, because a substitution that matches the wrong text corrupts a
+  record and nothing fails.
+- M17. Split a migration into parts reviewed separately, by kind or by
+  directory, with the mechanical part in a change of its own apart from the
+  editorial part, because a rename can be checked and a rewritten paragraph
+  can only be read.
+- M18. Run `meow-method count` before and after a migration and put both
+  outputs in its evidence, because a record the migration lost fails no other
+  check.
 </rules>
