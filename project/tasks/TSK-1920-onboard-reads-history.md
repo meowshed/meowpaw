@@ -1,11 +1,11 @@
 ---
 id: TSK-1920
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1300
 closes: [REQ-3110, REQ-3112, REQ-3128]
-issue:
+issue: 365
 ---
 
 # The onboard command reads the forge history and recovers what it states

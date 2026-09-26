@@ -265,7 +265,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1290](epics/EPC-1290-github-pack.md) realised ADR-1290 in one task, TSK-1910, closed with evidence, and was verified against every acceptance criterion under issue 362.
 
-[EPC-1300](epics/EPC-1300-onboard-history.md) realises ADR-1300 in one
+[EPC-1300](epics/EPC-1300-onboard-history.md) is approved and realises ADR-1300 in one
 task, TSK-1920, each filed as an issue.
 
 ## Defects
