@@ -875,6 +875,28 @@ class Frozen(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "## What to do\n\nText.", "## What to do\n\nSomething else.")
         self.assertEqual(self.frozen(repository).returncode, 1)
 
+    def committed(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                                     "commit", "-q", "-m", "base"]):
+            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
+        return repository
+
+    def test_an_added_line_citing_a_hash_as_a_revision_is_reported(self):
+        repository = self.committed()
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixtures passed at `9f3c2e1`.")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("cites the commit 9f3c2e1 as a revision; cite the pull request that carried it", done.stdout)
+
+    def test_an_added_line_citing_a_pull_request_passes(self):
+        repository = self.committed()
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixtures passed at the trunk after #12, and a fee was added.")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
+
     def test_a_verified_epic_is_frozen(self):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)

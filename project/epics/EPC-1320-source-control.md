@@ -47,8 +47,10 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: two fixtures, the refusal and the false positive guarded, in
       #382.
 
-- [ ] T-003 TSK-1980 the record cites a pull request, never a commit hash
+- [x] T-003 TSK-1980 the record cites a pull request, never a commit hash
       closes: REQ-3176
+      evidence: two fixtures, a rule in the verify step, and a run over real
+      records, in #383.
 
 - [ ] T-004 TSK-1990 source control is read with prompting and paging off
       closes: REQ-2526, REQ-2528

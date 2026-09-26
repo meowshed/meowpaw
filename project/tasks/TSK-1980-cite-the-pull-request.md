@@ -29,7 +29,29 @@ Nothing. ADR-1320 is approved.
 
 ## Evidence
 
-Not yet.
+`meow-method check frozen` now reads every record's lines added since the
+base, outside the front matter, and reports one citing a hash of seven to
+forty hexadecimal digits, holding a digit and a letter, after "at" or
+"revision". It reads only added lines, so an approved record keeps what it
+said. Two fixtures on a committed record: a task's evidence gaining "passed at
+`9f3c2e1`" is reported, exit 1, and fails against a stub that returns
+nothing; the same line citing the trunk after a pull request, beside a
+hex-looking word, passes.
+
+Run from a base fifteen commits back, the check reports 8 lines: the
+two hash citations in each of the four verifications written since, and
+nothing else. The verify step gains V12, naming the revision by the pull
+request that last merged, and the verification this repository writes now
+reads "on the trunk after #N".
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 119 tests in 9.148s
+OK
+
+$ MEOW_METHOD_BIN=stub python3 -m unittest plugins/meow-method/tests/test_record.py -k citing_a_hash
+FAILED (failures=1)
+```
 
 ## Left alone
 

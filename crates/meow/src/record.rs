@@ -357,12 +357,49 @@ fn check_frozen(rest: &[String]) -> u8 {
             ));
         }
     }
+    findings.extend(hash_citations(&record, &repository, &base));
     findings.sort();
     for finding in &findings {
         say!("{finding}");
     }
     say!("frozen: {} finding{}", findings.len(), if findings.len() == 1 { "" } else { "s" });
     if findings.is_empty() { CLEAN } else { FOUND }
+}
+
+/// Lines added since the base that cite a commit hash as the revision a check
+/// ran at. A squash rebuilds the commit, so the hash stops resolving on the
+/// trunk, and the pull request that carried the change is what a record cites
+/// (REQ-3176). Only added lines are read, so a record keeps what it said.
+fn hash_citations(record: &Record, repository: &Path, base: &str) -> Vec<String> {
+    let cited = Regex::new(r"\b(?:at|revision)\s+`?([0-9a-f]{7,40})`?(?:[^0-9A-Za-z]|$)").expect("citation pattern");
+    let mut out = Vec::new();
+    for doc in &record.docs {
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
+        if doc.is_index || kind.statuses.iter().any(|s| s == "live") || Path::new(&doc.shown).is_absolute() {
+            continue;
+        }
+        let before = std::process::Command::new("git")
+            .args(["show", &format!("{base}:{}", doc.shown)])
+            .current_dir(repository)
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+            .unwrap_or_default();
+        let was: BTreeSet<&str> = before.lines().collect();
+        for (i, line) in doc.text.lines().enumerate().skip(body_start(doc)) {
+            if was.contains(line) {
+                continue;
+            }
+            for c in cited.captures_iter(line) {
+                let hash = &c[1];
+                if hash.chars().any(|ch| ch.is_ascii_digit()) && hash.chars().any(|ch| ch.is_ascii_alphabetic()) {
+                    out.push(format!("{}:{}: cites the commit {hash} as a revision; cite the pull request that carried it, because a squash rebuilds the commit", doc.shown, i + 1));
+                }
+            }
+        }
+    }
+    out
 }
 
 /// A task's text without what may change after approval: its evidence, its
