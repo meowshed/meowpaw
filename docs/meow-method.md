@@ -72,7 +72,9 @@ nothing when none is. `meow-method show <id>` prints what an identifier
 names and every artifact that cites it, grouped by the field that cites it,
 and for a requirement each task closing it with its mark and its epic's
 verification.
-`meow-method find <word>...` lists the artifacts whose identifier, title or
+`meow-method count` prints each kind's number of artifacts by status and the
+number of identifiers, which a migration runs before and after to show it lost
+nothing. `meow-method find <word>...` lists the artifacts whose identifier, title or
 conclusion carry the words, headings only and at most twenty.
 `meow-method new <kind> [--topic <topic>]` prints the next identifier to
 allocate, never one any file already carries. `meow-method index <kind> --write` regenerates a kind's index between its
