@@ -28,7 +28,32 @@ Nothing. ADR-1250 is approved.
 
 ## Evidence
 
-Not yet.
+`check coverage` now states how many requirements in force land in a task
+before its findings, and `status` says an empty record's coverage is zero. Two
+fixtures, each seen passing against the program and failing against a stub
+that returns nothing: a record with its requirements removed prints `coverage:
+0 of 0 requirements in force land in a task; an empty record's coverage is
+zero, not complete`, and `status` prints `none in force, so coverage is zero,
+not complete`; the clean record prints `1 of 1`.
+
+For REQ-3180, a search of the native tool for a file write finds 4
+places. Two write a profile inside `profile.rs`'s tests, under `#[cfg(test)]`,
+and the third is `index --write`, which writes the index a person asked for
+and keeps nothing for the unit. No unit keeps state: every program is a binary
+inside its unit's `bin/`, and no hook redirects output into the repository.
+
+```text
+$ meow-method check coverage
+coverage: 480 of 1075 requirements in force land in a task
+coverage: 0 findings
+
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 108 tests in 7.422s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=105, errors=3)
+```
 
 ## Left alone
 
