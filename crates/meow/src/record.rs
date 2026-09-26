@@ -127,9 +127,10 @@ pub fn main(args: &[String]) -> u8 {
         "ready" => ready(rest),
         "template" => template(rest),
         "show" => show(rest),
+        "index" => index_command(rest),
         _ => {
             eprintln!(
-                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id>",
+                "usage: meow-method check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write]",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -626,6 +627,12 @@ fn index(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
             out.push(Finding { shown: shown(&path, repository), line: None, message: format!("the index of each {} doesn't exist", kind.name) });
             continue;
         };
+        if let Some((open, close)) = generated_block(&listing.text) {
+            let generated = generate_index(record, k).unwrap_or_default();
+            if normalised(&listing.text[open..close]) != normalised(&generated) {
+                out.push(Finding::at(listing, Some(line_of(&listing.text, open)), format!("its generated block is out of date; run meow-method index {} --write", kind.name)));
+            }
+        }
         let own = Regex::new(&format!(r"\b{prefix}-\d{{4}}\b")).expect("identifier pattern");
         let mut listed: BTreeMap<&str, usize> = BTreeMap::new();
         for found in own.find_iter(&listing.text) {
@@ -1230,6 +1237,164 @@ fn show(rest: &[String]) -> u8 {
             say!("  {key}: {}", who.iter().cloned().collect::<Vec<_>>().join(", "));
         }
     }
+    CLEAN
+}
+
+const INDEX_OPEN: &str = "<!-- meow-method index -->";
+const INDEX_CLOSE: &str = "<!-- /meow-method index -->";
+
+/// A kind by its name or its artifact word, such as `decision` or `adr`.
+fn kind_named(record: &Record, word: &str) -> Option<usize> {
+    record.layout.kinds.iter().position(|k| k.name == word || k.artifact == word)
+}
+
+/// What an artifact concluded, in one line: a requirement's statement, a
+/// research record's summary, and otherwise its title.
+fn conclusion(record: &Record, doc: &Doc) -> String {
+    let kind = kind_of(record, doc);
+    let paragraph = |text: &str| -> String {
+        text.split("\n\n")
+            .map(str::trim)
+            .find(|p| !p.is_empty() && !p.starts_with('#') && !p.starts_with("---") && !p.starts_with("<!--"))
+            .map(|p| p.split_whitespace().collect::<Vec<_>>().join(" "))
+            .unwrap_or_default()
+    };
+    let text = match kind {
+        "requirement" => paragraph(doc.text.splitn(3, "\n---\n").last().unwrap_or("")),
+        "research" => {
+            let summary: Vec<&str> = section_lines(doc, "Summary").into_iter().map(|(_, l)| l).collect();
+            let first = paragraph(&summary.join("\n"));
+            first.split_inclusive(". ").next().unwrap_or(&first).trim().to_string()
+        }
+        _ => title(doc),
+    };
+    text.replace("**", "").replace('|', "\\|")
+}
+
+/// A path from the directory holding `from` to `to`, both under one root.
+fn relative_link(from: &str, to: &str) -> String {
+    let base: Vec<&str> = from.split('/').collect();
+    let base = &base[..base.len().saturating_sub(1)];
+    let target: Vec<&str> = to.split('/').collect();
+    let common = base.iter().zip(&target).take_while(|(a, b)| a == b).count();
+    let mut parts: Vec<String> = std::iter::repeat("..".to_string()).take(base.len() - common).collect();
+    parts.extend(target[common..].iter().map(|s| s.to_string()));
+    parts.join("/")
+}
+
+/// The generated index of a kind, the block between the markers.
+fn generate_index(record: &Record, k: usize) -> Option<String> {
+    let kind = &record.layout.kinds[k];
+    let index = kind.index.as_deref()?;
+    let mut docs: Vec<&Doc> = record
+        .docs
+        .iter()
+        .filter(|d| d.kind == Some(k) && d.relative != index && !bare(d.id()).is_empty())
+        .collect();
+    docs.sort_by(|a, b| bare(a.id()).cmp(bare(b.id())));
+    let mut statuses: BTreeMap<String, usize> = BTreeMap::new();
+    for doc in &docs {
+        *statuses.entry(bare(doc.value("status")).to_string()).or_default() += 1;
+    }
+    let mut out = String::new();
+    let counted: Vec<String> = statuses.iter().map(|(s, n)| format!("{n} {s}")).collect();
+    out.push_str(&format!("{} in all: {}.\n\n", count(docs.len(), &kind.name), counted.join(", ")));
+    out.push_str(&format!("| Identifier | What it {} | Status |\n| --- | --- | --- |\n", if kind.name == "requirement" { "requires" } else { "concluded" }));
+    for doc in &docs {
+        let id = bare(doc.id());
+        out.push_str(&format!(
+            "| [{id}]({}) | {} | {} |\n",
+            relative_link(index, &doc.relative),
+            conclusion(record, doc),
+            bare(doc.value("status"))
+        ));
+    }
+    let amended = Regex::new(r"\*\*Amended by ((?:ADR|BUG|EPC)-\d{4})").expect("amendment pattern");
+    let amendments: Vec<String> = docs
+        .iter()
+        .filter_map(|doc| {
+            let by: Vec<&str> = amended.captures_iter(&doc.text).filter_map(|c| c.get(1)).map(|m| m.as_str()).collect();
+            (!by.is_empty()).then(|| format!("{} by {}", bare(doc.id()), by.join(" and ")))
+        })
+        .collect();
+    if !amendments.is_empty() {
+        out.push_str(&format!("\nAmended: {}.\n", amendments.join("; ")));
+    }
+    let topical = docs.iter().any(|d| d.field("topic").is_some());
+    if docs.len() > 36 && topical {
+        let mut topics: BTreeMap<String, Vec<&str>> = BTreeMap::new();
+        for doc in &docs {
+            topics.entry(bare(doc.value("topic")).to_string()).or_default().push(bare(doc.id()));
+        }
+        out.push_str("\nBy topic:\n\n");
+        for (topic, ids) in &topics {
+            out.push_str(&format!("- {topic}: {}\n", ids.join(", ")));
+        }
+    }
+    Some(out)
+}
+
+/// A block's text as a formatter leaves its meaning: blank lines, the padding
+/// in a table's cells and the length of its separator rules don't count.
+fn normalised(text: &str) -> Vec<String> {
+    let rule = Regex::new(r"-{3,}").expect("rule pattern");
+    text.lines()
+        .map(|line| {
+            let line = line.split_whitespace().collect::<Vec<_>>().join(" ");
+            let line = line.replace("| ", "|").replace(" |", "|");
+            rule.replace_all(&line, "---").into_owned()
+        })
+        .filter(|line| !line.is_empty())
+        .collect()
+}
+
+/// The block between the markers in an index file's text, if it has one.
+fn generated_block(text: &str) -> Option<(usize, usize)> {
+    let open = text.find(INDEX_OPEN)? + INDEX_OPEN.len();
+    let close = text[open..].find(INDEX_CLOSE)? + open;
+    Some((open, close))
+}
+
+fn index_command(rest: &[String]) -> u8 {
+    let (word, write) = match rest {
+        [word] => (word, false),
+        [word, flag] if flag == "--write" => (word, true),
+        _ => {
+            eprintln!("usage: meow-method index <kind> [--write]");
+            return USAGE;
+        }
+    };
+    let (record, _, root) = match open_record("index") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let Some(k) = kind_named(&record, word) else {
+        let kinds: Vec<&str> = record.layout.kinds.iter().filter(|k| k.index.is_some()).map(|k| k.name.as_str()).collect();
+        eprintln!("meow-method index: no kind is named {word}; the kinds with an index are {}", kinds.join(", "));
+        return USAGE;
+    };
+    let Some(block) = generate_index(&record, k) else {
+        say!("meow-method index: a {} has no index file in the layout", record.layout.kinds[k].name);
+        return FOUND;
+    };
+    if !write {
+        print!("{block}");
+        return CLEAN;
+    }
+    let path = root.join(record.layout.kinds[k].index.as_deref().unwrap_or_default());
+    let text = std::fs::read_to_string(&path).unwrap_or_default();
+    let Some((open, close)) = generated_block(&text) else {
+        say!("meow-method index: {} has no {INDEX_OPEN} block to write into", path.display());
+        return FOUND;
+    };
+    let updated = format!("{}\n\n{}\n{}", &text[..open], block.trim_end(), &text[close..]);
+    if updated != text {
+        if let Err(e) = std::fs::write(&path, updated) {
+            say!("meow-method index: {}: {e}", path.display());
+            return FOUND;
+        }
+    }
+    say!("meow-method index: wrote the {} index to {}", record.layout.kinds[k].name, path.display());
     CLEAN
 }
 

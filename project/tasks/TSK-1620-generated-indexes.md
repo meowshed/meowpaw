@@ -29,7 +29,37 @@ Nothing. ADR-1180 is approved.
 
 ## Evidence
 
-Not yet.
+`meow record index <kind> [--write]` generates a kind's index from the tree:
+the count of artifacts by stored status, a table ordered by identifier whose
+rows carry what each artifact concluded and its stored status only, the
+amendments each decision names, and a view by topic once a kind with topics
+holds more than 36. `--write` replaces the block between the markers and keeps
+the prose around it. `check index` reports a block that differs from what
+`index` prints, ignoring the padding a formatter adds to a table.
+
+The two indexes migrated as expand, migrate and contract: the program first,
+then the generated blocks in place of the tables written by hand, counted
+before and after:
+
+| Index                            | Entries before | Entries after | Files in the tree |
+| -------------------------------- | -------------- | ------------- | ----------------- |
+| `project/requirements/README.md` | 1080           | 1080          | 1080              |
+| `project/adrs/README.md`         | 19             | 19            | 19                |
+
+The hand-written requirements index had said "1073 obligations" where 1075
+are in force, and the decisions index noted one amendment of six; the
+generated blocks say 1075 approved and 5 withdrawn, and list all six
+amendments. Four new fixtures cover writing, drift, padding and the view by
+topic:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 73 tests in 4.323s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=71, errors=2)
+```
 
 ## Left alone
 
