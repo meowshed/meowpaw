@@ -90,3 +90,13 @@ jobs:
             gh release create marketplace dist/marketplace.json --target "$GITHUB_SHA" \
               --title "Marketplace" --notes "$notes"
           fi
+      - name: Tell meow.retran.me a release happened
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ secrets.MARKETPLACE_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::MARKETPLACE_DISPATCH_TOKEN is not set, so meow.retran.me still serves the previous marketplace file"
+            exit 1
+          fi
+          gh api repos/retran/meow.retran.me/dispatches -f event_type=meowpaw-release
