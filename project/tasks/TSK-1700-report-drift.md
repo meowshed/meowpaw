@@ -1,11 +1,11 @@
 ---
 id: TSK-1700
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1210
 closes: [REQ-0704, REQ-0710]
-issue:
+issue: 281
 ---
 
 # The check reports work left unmarked and identifiers that resolve to nothing

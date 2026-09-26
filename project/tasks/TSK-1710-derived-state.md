@@ -1,11 +1,11 @@
 ---
 id: TSK-1710
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1210
 closes: [REQ-0527, REQ-0584, REQ-0591, REQ-0706, REQ-0712, REQ-0714]
-issue:
+issue: 282
 ---
 
 # Show and status derive each requirement's state

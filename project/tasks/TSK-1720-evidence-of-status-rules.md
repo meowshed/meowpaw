@@ -1,7 +1,7 @@
 ---
 id: TSK-1720
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1210
 closes:
@@ -17,7 +17,7 @@ closes:
     REQ-0696,
     REQ-0716,
   ]
-issue:
+issue: 283
 ---
 
 # Record the evidence for the status rules that already hold

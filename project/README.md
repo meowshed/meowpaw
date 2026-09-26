@@ -220,7 +220,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1200](epics/EPC-1200-quality-attributes.md) realised ADR-1200 in three tasks, TSK-1670 to TSK-1690, each closed with evidence, and was verified against every acceptance criterion under issue 277.
 
-[EPC-1210](epics/EPC-1210-record-drift.md) realises ADR-1210 in three
+[EPC-1210](epics/EPC-1210-record-drift.md) is approved and realises ADR-1210 in three
 tasks, TSK-1700 to TSK-1720, each filed as an issue.
 
 ## Defects
