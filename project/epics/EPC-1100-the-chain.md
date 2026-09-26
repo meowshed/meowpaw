@@ -50,9 +50,11 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: thirty-four fixtures, each seen failing against a stub, in
       #189.
 
-- [ ] T-002 TSK-1430 the templates moved into `meow-method`, overridable by
+- [x] T-002 TSK-1430 the templates moved into `meow-method`, overridable by
       the repository, with their old citations corrected
       closes: REQ-0526, REQ-0528
+      evidence: the unit's template printed, and a repository's own
+      preferred, in #190.
       depends: TSK-1420 - `template` resolves the path the move creates
 
 - [ ] T-003 TSK-1440 the `method` skill with a file per step, and the
