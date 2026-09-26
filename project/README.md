@@ -145,7 +145,8 @@ which removes every instruction the loop shows has no effect, is postponed by
 the owner until the case sets can see a single rule, and the task records why.
 
 [EPC-1030](epics/EPC-1030-the-writing-standard-loaded-by-its-description.md)
-realises ADR-1050 in one task, TSK-1270, closed in #85.
+realised ADR-1050 in one task, TSK-1270, closed in #85, and was verified
+against every acceptance criterion under issue 211.
 
 [EPC-1040](epics/EPC-1040-the-five-verbs.md) realises ADR-1070 in two tasks,
 TSK-1280 and TSK-1290, both closed with evidence, and was verified against
