@@ -28,7 +28,24 @@ Nothing. ADR-1300 is approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the onboard
+command, and no rule names a requirement:
+
+| Requirement | Carried by                       |
+| ----------- | -------------------------------- |
+| REQ-3110    | B13 in `skills/onboard/SKILL.md` |
+| REQ-3112    | B14 in `skills/onboard/SKILL.md` |
+| REQ-3128    | B15 in `skills/onboard/SKILL.md` |
+
+Step 2 runs `meow-github history` where the command exists, as a bare command
+found 1 time, never by a path into that unit, and step 3 writes the
+recovered drafts. A script found all 3 traced labels. Whether the model
+follows the rules is measured by evaluation, which is postponed.
+
+```text
+$ python3 tools/check_standalone.py
+88 unit files, 0 paths leaving their unit
+```
 
 ## Left alone
 
