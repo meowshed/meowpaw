@@ -12,6 +12,8 @@
 use serde_json::{json, Value};
 use std::process::{Command, Stdio};
 
+mod project;
+
 const USAGE: u8 = 2;
 const UNREAD: u8 = 3;
 const LISTINGS: [(&str, &str); 4] = [
@@ -25,10 +27,21 @@ pub fn main(args: &[String]) -> u8 {
     match args {
         [command] if command == "history" => history(None),
         [command, repository] if command == "history" => history(Some(repository.as_str())),
+        [command, epic] if command == "project" => project::run(epic, None),
+        [command, epic, repository] if command == "project" => project::run(epic, Some(repository.as_str())),
         _ => {
-            eprintln!("usage: meow-github history [<owner>/<name>]");
+            eprintln!("usage: meow-github history [<owner>/<name>] | project <epic> [<owner>/<name>]");
             USAGE
         }
+    }
+}
+
+fn name_repository(repository: Option<&str>) -> Result<String, String> {
+    match repository {
+        Some(name) => Ok(name.to_string()),
+        None => gh(&["repo", "view", "--json", "nameWithOwner"])
+            .map(|view| view.get("nameWithOwner").and_then(Value::as_str).unwrap_or_default().to_string())
+            .map_err(|e| format!("couldn't name this directory's repository: {e}; name it as <owner>/<name>")),
     }
 }
 
@@ -84,15 +97,12 @@ fn listing(repository: &str, name: &str, path: &str) -> Result<Vec<Value>, Strin
 }
 
 fn history(repository: Option<&str>) -> u8 {
-    let repository = match repository {
-        Some(name) => name.to_string(),
-        None => match gh(&["repo", "view", "--json", "nameWithOwner"]) {
-            Ok(view) => view.get("nameWithOwner").and_then(Value::as_str).unwrap_or_default().to_string(),
-            Err(e) => {
-                println!("meow-github history: unread: couldn't name this directory's repository: {e}; name it as <owner>/<name>");
-                return UNREAD;
-            }
-        },
+    let repository = match name_repository(repository) {
+        Ok(name) => name,
+        Err(e) => {
+            println!("meow-github history: unread: {e}");
+            return UNREAD;
+        }
     };
     match read(&repository) {
         Ok(document) => {

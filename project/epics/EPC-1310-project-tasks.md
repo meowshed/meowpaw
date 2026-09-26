@@ -40,8 +40,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1930 project an approved epic's tasks onto issues
+- [x] T-001 TSK-1930 project an approved epic's tasks onto issues
       closes: REQ-1350, REQ-1352, REQ-1354, REQ-1355, REQ-1356, REQ-1360, REQ-1368, REQ-1382, REQ-1386, REQ-1396
+      evidence: five fixtures across two units, in #371.
 
 - [ ] T-002 TSK-1940 report where the record and the tracker disagree
       closes: REQ-1353, REQ-1378, REQ-1388, REQ-1392, REQ-1394, REQ-1400
