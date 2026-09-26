@@ -27,6 +27,11 @@
       "name": "meow-verbs",
       "source": "./plugins/meow-verbs",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-verbs.md"
+    },
+    {
+      "name": "meow-scm",
+      "source": "./plugins/meow-scm",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-scm.md"
     }
   ]
 }
