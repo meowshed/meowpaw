@@ -39,9 +39,32 @@ it.
 
 ## Evidence
 
-Not yet. The task closes on `check-message` run over the last ten commits on
-`main`, on the temporary skill gone, and on one session where the model,
-asked to write a commit message, loads `meow-scm:commit` and runs the check.
+The skill `meow-scm:commit` carries its description in the obligation form
+ADR-1050 gives, at 263 characters, states the attribution ban on its first
+screen, and names no version control tool. The unit's budget is 380, its page
+is `docs/meow-scm.md`, and it is in the marketplace at 0.2.0. This repository
+declares its convention under `[commits]`, and `CLAUDE.md` tells an author to
+run the check before a message is used.
+
+Run over the last ten commits on `main`, the check failed exactly one:
+
+```text
+e51ac8a exit 1  spec: verify the writing standard and close it with one ...
+     line 1: subject length: 78 characters, over the limit of 72
+```
+
+That is #119, a real break of the convention: its subject was written before
+the pull request's number was added to it. The other nine passed.
+
+`.claude/skills/commits/` was deleted on the owner's machine on 2026-09-26.
+The directory is ignored, so the deletion shows in no diff.
+
+Asked on Sonnet 5, with this unit alone installed, to write the commit message
+for a staged change, the model loaded `meow-scm:commit`, ran `meow-scm
+convention`, passed its message to `meow-scm check-message` and used it only
+once it passed. It left out a co-author trailer its own session instructions
+asked for, saying the skill forbids crediting a tool. REQ-1304 and REQ-2816
+are closed.
 
 ## Left alone
 

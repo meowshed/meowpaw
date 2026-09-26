@@ -55,10 +55,12 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: fourteen fixtures, each seen failing against a stub and passing
       against the program, in #126. TSK-1300 carries the runs.
 
-- [ ] T-002 TSK-1310 the skill, the documentation page, the budget, the
+- [x] T-002 TSK-1310 the skill, the documentation page, the budget, the
       marketplace entry, this repository's `[commits]` table, and retiring the
       temporary `commits` skill
       closes: REQ-1304, REQ-2816
+      evidence: the check failing the one over-long subject in the last ten
+      commits, and a session running it before using a message, in #127.
       depends: TSK-1300 - the skill runs the program, and the convention it
       declares is read by it
 
