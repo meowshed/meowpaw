@@ -156,6 +156,7 @@ here or in the sources below.
 | [Prompting Claude Sonnet 5 and Claude Opus 5.5](RES-0270-prompting-sonnet-5-and-opus-5-5.md) | A prompt's formatting carries into its reply, so a prompt that asks for prose is written in tags.                                                                                                    |
 | [Where the record lives](RES-0271-where-the-record-lives.md)                                 | A repository can keep its record in its own tree, another repository, or a folder relative to its root.                                                                                              |
 | [Routing a skill by its description](RES-0272-routing-a-skill-by-its-description.md)         | On Sonnet 5 a description stating the obligation in the third person loads a skill that a descriptive one and a hook do not.                                                                         |
+| [One native tool, shipped inside the units](RES-0273-one-native-tool-in-the-units.md)        | A plugin can carry a native binary to every platform Claude Code supports, pinned by its hash, with no separate install.                                                                             |
 
 ## The situation
 
