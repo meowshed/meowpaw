@@ -26,5 +26,5 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   exec "$binary" record "$@"
 fi
 
-echo "meow-method check: the record was not checked: no meow binary was found for this machine"
+echo "meow-method: the record was not checked: no meow binary was found for this machine"
 exit 3
