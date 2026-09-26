@@ -5,7 +5,7 @@ topic: adoption
 class: functional
 status: approved
 revised: 2026-09-20
-elaborates: RES-0007, RES-0160, RES-0003
+elaborates: RES-0160, RES-0003
 verification: behavioural
 ---
 

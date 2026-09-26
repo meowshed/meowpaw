@@ -5,7 +5,7 @@ topic: artifacts
 class: functional
 status: approved
 revised: 2026-09-20
-elaborates: RES-0029, RES-0009, RES-0158, RES-0255
+elaborates: RES-0029, RES-0158, RES-0255
 verification: static
 ---
 
