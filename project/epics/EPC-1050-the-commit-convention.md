@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1080
-checked-at:
+checked-at: "#130"
 ---
 
 # The commit convention, checked before a message is used
@@ -63,6 +63,26 @@ A task is marked in the commit that advances it, never in a later pass.
       commits, and a session running it before using a message, in #127.
       depends: TSK-1300 - the skill runs the program, and the convention it
       declares is read by it
+
+## Verified
+
+Checked under issue 130 at revision `af5c65c`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                 | Evidence at `af5c65c`                                                                                      |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1. A message in the convention passes; each break is named                | `test_a_message_in_the_convention_passes`, `test_each_break_is_named`                                      |
+| 2. Attribution fails, with or without a convention                        | `test_attribution_fails_with_a_convention`, `test_attribution_fails_without_a_convention`                  |
+| 3. No `[commits]` table: the ban alone, the convention undeclared         | `test_no_commits_table_leaves_the_convention_undeclared`                                                   |
+| 4. No interpreter: unchecked, non-zero                                    | `test_no_interpreter_leaves_the_message_unchecked`                                                         |
+| 5. The last ten commits: each break reported, the rest passed             | `check-message` failed only `e51ac8a` (#119, a 78-character subject) and passed the other nine             |
+| 6. The temporary skill gone; a session loads the skill and runs the check | `.claude/skills/commits/` absent; the session TSK-1310 records, which ran `convention` and `check-message` |
+| 7. Every requirement in one closed task, nothing outstanding              | `tools/check_coverage.py`: EPC-1050 10 of 10, 0 coverage failures                                          |
+
+All fourteen fixtures ran with `python3 -m unittest discover -s
+plugins/meow-scm/tests`, which reported `OK`. This repository's `test` verb
+didn't run them until this check, so a break in the commit check wouldn't have
+failed `test`; `.meowpaw/profile.toml` now runs them beside `meow-verbs`'s.
 
 ## Coverage
 
