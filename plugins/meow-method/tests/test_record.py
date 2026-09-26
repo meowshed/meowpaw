@@ -731,6 +731,36 @@ class Allocate(unittest.TestCase):
         self.assertIn("name it with --topic", done.stderr)
 
 
+class Find(unittest.TestCase):
+    """ADR-1180: identifiers and headings first, ranked by the words matched."""
+
+    def test_find_ranks_and_prints_headings_only(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("adrs/ADR-0001-a-choice.md", "# ADR-0001", "# 0001. An approval gate for the plan")
+        repository.edit("epics/EPC-0001-a-plan.md", "# EPC-0001", "# The gate")
+        done = repository.run("find", "approval", "gate")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[0], "ADR-0001 decision, approved: An approval gate for the plan")
+        self.assertEqual(lines[1], "EPC-0001 epic, approved: The gate")
+        self.assertNotIn("Text.", done.stdout)
+
+    def test_find_with_no_match_says_so(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        done = repository.run("find", "zebra")
+        self.assertEqual(done.returncode, 1)
+        self.assertIn("nothing in the record carries zebra", done.stdout)
+
+    def test_find_needs_a_word(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        done = repository.run("find")
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("usage: meow-method find", done.stderr)
+
+
 class Where(unittest.TestCase):
     def test_a_root_outside_the_repository_is_read_there(self):
         outside = tempfile.TemporaryDirectory()
