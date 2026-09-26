@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1180
-checked-at:
+checked-at: "#259"
 ---
 
 # A record that grows by program
@@ -53,6 +53,19 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0636, REQ-1600, REQ-1601, REQ-1602, REQ-1604, REQ-1606, REQ-1608
       evidence: three fixtures, `find` on this repository, and M7 to M9, in
       #254.
+
+## Verified
+
+Checked under issue 259 at revision `6a27d69`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                 | Evidence at `6a27d69`                                                                                                                             |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. A decision added without regenerating its index fails `check index`, and `index adr --write` clears it | `test_an_index_left_behind_is_reported_and_rewriting_clears_it` runs `OK`                                                                         |
+| 2. `new requirement --topic the-method` prints an identifier no file carries, next to the topic's highest | It prints the requirement numbered 3190, the first free number stepping by two above the topic's highest, 3172                                    |
+| 3. `find approval gate` lists identifiers and headings, no bodies                                         | Its first line is `REQ-0204 requirement, approved: The command that drives the chain MUST`; every line is an identifier, kind, status and heading |
+| 4. The requirements index lists every requirement, counted before and after                               | The generated index lists 1080 requirements against 1080 files; TSK-1620 recorded 1080 before and after the migration                             |
+| 5. Every requirement in one closed task                                                                   | `coverage` reports 0 findings; 7 checks report 0                                                                                                  |
 
 ## Coverage
 
