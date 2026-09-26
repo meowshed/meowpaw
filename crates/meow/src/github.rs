@@ -27,10 +27,20 @@ pub fn main(args: &[String]) -> u8 {
     match args {
         [command] if command == "history" => history(None),
         [command, repository] if command == "history" => history(Some(repository.as_str())),
-        [command, epic] if command == "project" => project::run(epic, None),
-        [command, epic, repository] if command == "project" => project::run(epic, Some(repository.as_str())),
+        [command, rest @ ..] if command == "project" && !rest.is_empty() => {
+            let check = rest.iter().any(|a| a == "--check");
+            let words: Vec<&str> = rest.iter().map(String::as_str).filter(|a| *a != "--check").collect();
+            match words.as_slice() {
+                [epic] => project::run(epic, None, check),
+                [epic, repository] => project::run(epic, Some(repository), check),
+                _ => {
+                    eprintln!("usage: meow-github project <epic> [--check] [<owner>/<name>]");
+                    USAGE
+                }
+            }
+        }
         _ => {
-            eprintln!("usage: meow-github history [<owner>/<name>] | project <epic> [<owner>/<name>]");
+            eprintln!("usage: meow-github history [<owner>/<name>] | project <epic> [--check] [<owner>/<name>]");
             USAGE
         }
     }
