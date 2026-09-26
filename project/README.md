@@ -108,6 +108,8 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1210](adrs/ADR-1210-the-record-reports-where-it-contradicts-itself.md):
   the record reports where it contradicts itself, and derives each
   requirement's state.
+- [ADR-1220](adrs/ADR-1220-an-insight-is-a-kind-of-record.md): an insight is
+  a kind of record, written only when something was learned.
 
 ## Specifications
 
@@ -222,6 +224,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1200](epics/EPC-1200-quality-attributes.md) realised ADR-1200 in three tasks, TSK-1670 to TSK-1690, each closed with evidence, and was verified against every acceptance criterion under issue 277.
 
 [EPC-1210](epics/EPC-1210-record-drift.md) realised ADR-1210 in three tasks, TSK-1700 to TSK-1720, each closed with evidence, and was verified against every acceptance criterion under issue 288.
+
+[EPC-1220](epics/EPC-1220-insights.md) realises ADR-1220 in two tasks,
+TSK-1730 and TSK-1740, each filed as an issue.
 
 ## Defects
 
