@@ -44,10 +44,12 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1320 `plugins/meow-git/`: the hooks, the program, the
+- [x] T-001 TSK-1320 `plugins/meow-git/`: the hooks, the program, the
       fixtures over scratch repositories, the page, the budget, the
       marketplace entry and this repository's `[git]` table
       closes: REQ-0079, REQ-1292, REQ-1326, REQ-2530
+      evidence: twelve fixtures, each seen failing against a stub, and this
+      repository's branch passing the push guard, in #136.
 
 ## Coverage
 

@@ -32,6 +32,11 @@
       "name": "meow-scm",
       "source": "./plugins/meow-scm",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-scm.md"
+    },
+    {
+      "name": "meow-git",
+      "source": "./plugins/meow-git",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-git.md"
     }
   ]
 }
