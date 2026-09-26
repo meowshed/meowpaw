@@ -3,7 +3,7 @@ id: SPC-1070
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at: "#306"
+checked-at: "#316"
 states:
   [
     REQ-0137,

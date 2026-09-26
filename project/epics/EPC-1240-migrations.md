@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1240
-checked-at:
+checked-at: "#316"
 ---
 
 # A change to the record's shape migrates what exists
@@ -48,6 +48,18 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-003 TSK-1800 the method says how a change to the record's shape migrates it
       closes: REQ-3008, REQ-3009, REQ-3012, REQ-3014, REQ-3016, REQ-3018, REQ-3019
       evidence: 7 requirements traced to five rules, in #311.
+
+## Verified
+
+Checked under issue 316 at revision `f3b04a2`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                               | Evidence at `f3b04a2`                                                                                                                           |
+| ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. `check front-matter` reports a record carrying `unit` or `status: proposed`, and a layout declaring a retired status | `test_a_retired_name_is_refused_in_a_record` and `test_a_retired_name_is_refused_in_the_layout` pass                                            |
+| 2. `count` prints each kind's count by status and the number of identifiers, identical on two runs                      | `test_count_prints_each_kind_by_status_and_the_identifiers` passes, and the read-only fixture shows `count` writes nothing; `Ran 4 tests`, `OK` |
+| 3. Each rule in the skill maps to its requirement in the task that closes it                                            | TSK-1800's trace holds 7 rows, and M14 to M18 are each found once in `SKILL.md`                                                                 |
+| 4. Every requirement lands in exactly one closed task                                                                   | `meow-method check coverage` reports 0 findings, and the three tasks are marked `[x]` with evidence                                             |
 
 ## Coverage
 

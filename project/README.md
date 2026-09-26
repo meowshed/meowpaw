@@ -147,7 +147,7 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 `meow-git` implements it, verified under issue 138.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
-checked, and `meow-method` implements it, verified under issue 306.
+checked, and `meow-method` implements it, verified under issue 316.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
@@ -237,8 +237,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1230](epics/EPC-1230-reading-order.md) realised ADR-1230 in three tasks, TSK-1750 to TSK-1770, each closed with evidence, and was verified against every acceptance criterion under issue 306.
 
-[EPC-1240](epics/EPC-1240-migrations.md) is approved and realises ADR-1240 in three
-tasks, TSK-1780 to TSK-1800, each filed as an issue.
+[EPC-1240](epics/EPC-1240-migrations.md) realised ADR-1240 in three tasks, TSK-1780 to TSK-1800, each closed with evidence, and was verified against every acceptance criterion under issue 316.
 
 ## Defects
 
