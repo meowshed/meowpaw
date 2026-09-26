@@ -83,6 +83,8 @@ Every decision below is approved and in force, as amended by the ones after it.
   the record is checked by a unit the harness ships, as EPC-1070 amends it.
 - [ADR-1110](adrs/ADR-1110-one-native-tool-carries-every-units-program.md):
   every unit's program is a subcommand of one native tool, amending ADR-1070.
+- [ADR-1120](adrs/ADR-1120-the-marketplace-is-served-from-retran-me.md), a
+  draft: the released marketplace is served from `retran.me`.
 
 ## Specifications
 
