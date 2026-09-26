@@ -134,7 +134,7 @@ checked, and `meow-method` implements it, verified under issue 168.
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release and the marketplace address. The crate implements it,
-verified under issue 160.
+verified under issue 277.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
@@ -215,8 +215,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1190](epics/EPC-1190-design-obligations.md) realised ADR-1190 in two tasks, TSK-1650 and TSK-1660, each closed with evidence, and was verified against every acceptance criterion under issue 267.
 
-[EPC-1200](epics/EPC-1200-quality-attributes.md) is approved and realises ADR-1200 in three
-tasks, TSK-1670 to TSK-1690, each filed as an issue.
+[EPC-1200](epics/EPC-1200-quality-attributes.md) realised ADR-1200 in three tasks, TSK-1670 to TSK-1690, each closed with evidence, and was verified against every acceptance criterion under issue 277.
 
 ## Defects
 

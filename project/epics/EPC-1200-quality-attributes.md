@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1200
-checked-at:
+checked-at: "#277"
 ---
 
 # The harness's quality attributes, held
@@ -51,6 +51,18 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-1726, REQ-1734, REQ-1744, REQ-1746, REQ-1748, REQ-1750, REQ-1752, REQ-1754, REQ-1756, REQ-1758, REQ-1762, REQ-1766
       evidence: twelve attributes, each with its command or file, and the
       toolchain declared, in #272.
+
+## Verified
+
+Checked under issue 277 at revision `02332aa`, with evidence gathered there
+and not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                                 | Evidence at `02332aa`                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Each read-only command leaves the tree's hashes unchanged, and prints the same text twice                                              | The `ReadOnly` fixtures in `plugins/meow-method/tests/test_record.py` run ten read-only commands twice over a committed record: `Ran 2 tests`, both `ok` |
+| 2. Every unit has a `requires.toml` naming a Claude Code version, and its page names the behaviours it relies on with their documentation | `ls plugins/*/requires.toml` lists 7 of 7 units; 7 pages carry `## What it needs`, and 7 link Claude Code's documentation                                |
+| 3. Each remaining attribute has its evidence recorded in the task that closes it                                                          | TSK-1690's evidence table holds 12 rows, one per requirement it closes; TSK-1670 and TSK-1680 record theirs                                              |
+| 4. Every requirement ADR-1200 addresses lands in exactly one closed task                                                                  | `meow-method check coverage` reports 0 findings, and the three tasks are marked `[x]` with evidence                                                      |
 
 ## Coverage
 
