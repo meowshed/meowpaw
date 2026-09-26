@@ -31,8 +31,40 @@ the Xcode licence accepted.
 
 ## Evidence
 
-Not yet. The task closes on `meow-verbs`' twelve fixtures, unchanged, passing
-against the new launcher, and on the crate's own tests passing.
+`crates/meow/` builds one binary with a feature per unit: `verbs`, and the
+empty `scm`, `git` and `record` the ports fill (REQ-0076). The shared module
+reads the repository's root and its profile as absent, unparseable or parsed.
+`meow verbs` is `meow-verbs`' program, ported line for line; the launcher names
+the machine's target, runs `bin/<target>/meow`, and reports every verb unrun
+where there is none. `lib/meow_verbs.py` is deleted. `crates/meow/build-units`,
+run by `mise run build` and by this repository's `test` verb, builds each unit's
+binary into its ignored `bin/<target>/`. The gate runs the crate's tests. No
+record or tracker feature exists in the crate yet, so no unit depends on one
+(REQ-0032).
+
+```text
+$ git diff --stat origin/main -- plugins/meow-verbs/tests
+(nothing: the fixtures are unchanged)
+
+$ python3 -m unittest discover -s plugins/meow-verbs/tests
+Ran 12 tests in 0.530s
+OK
+
+$ cargo test --manifest-path crates/meow/Cargo.toml --all-features
+test result: ok. 3 passed; 0 failed
+
+$ MEOW_VERBS_BIN=stub/meow-verbs python3 -m unittest discover -s plugins/meow-verbs/tests
+FAILED (failures=6, errors=6)
+```
+
+The `verbs` binary for `aarch64-apple-darwin` is 504,336 bytes.
+
+Two things surfaced. The first local build copied a new binary over the old
+one, and macOS killed it on its next run, because it caches a binary's code
+signature per file; `build-units` now replaces the file. And the kind SPC-1040
+calls "no interpreter" now means the unit carries no binary for the machine;
+it keeps its name so that the fixtures defining it didn't change in the port,
+and SPC-1040 says so. REQ-0032 and REQ-0076 are closed.
 
 ## Left alone
 

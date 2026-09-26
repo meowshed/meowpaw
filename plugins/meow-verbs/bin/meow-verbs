@@ -2,23 +2,32 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-# Finds an interpreter new enough to read TOML and hands over to the program.
-# Where there is none, it reports every verb unresolved itself, because a
-# verb that couldn't run must never read as passed.
+# Runs this unit's binary of the native tool for this machine (SPC-1080).
+# Where there is none, it reports every verb unresolved itself, because a verb
+# that couldn't run must never read as passed.
 
 case $0 in
 */*) here=${0%/*} ;;
 *) here=$(command -v "$0") && here=${here%/*} ;;
 esac
-for candidate in python3.14 python3.13 python3.12 python3.11 python3; do
-  if command -v "$candidate" >/dev/null 2>&1 &&
-    "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
-    exec "$candidate" "$here/../lib/meow_verbs.py" "$@"
-  fi
-done
+system= cpu= exe=
+case $(uname -s 2>/dev/null) in
+Darwin) system=apple-darwin ;;
+Linux) system=unknown-linux-musl ;;
+MINGW* | MSYS* | CYGWIN*) system=pc-windows-msvc exe=.exe ;;
+esac
+case $(uname -m 2>/dev/null) in
+arm64 | aarch64) cpu=aarch64 ;;
+x86_64 | amd64) cpu=x86_64 ;;
+esac
+binary="$here/$cpu-$system/meow$exe"
+if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
+  [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
+  exec "$binary" verbs "$@"
+fi
 
 verbs="fmt lint typecheck test build"
-reason="Python 3.11 or later wasn't found"
+reason="no meow binary was found for this machine"
 case "$1" in
 status)
   if [ "$2" = "--json" ]; then

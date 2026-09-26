@@ -79,13 +79,13 @@ answer to what a verb means.
 For a resolved verb it gives the command and the file it came from. For an
 unresolved verb it gives the kind, one of five (REQ-0154):
 
-| Kind                  | Means                                                                |
-| --------------------- | -------------------------------------------------------------------- |
-| undeclared            | The profile exists and doesn't name the verb                         |
-| no profile            | The repository has no `.meowpaw/profile.toml`                        |
-| profile unparseable   | The profile exists and can't be read; the parser's message is shown  |
-| malformed declaration | The profile names the verb with a value that isn't one command       |
-| no interpreter        | The program can't run, because the interpreter it needs is not found |
+| Kind                  | Means                                                                    |
+| --------------------- | ------------------------------------------------------------------------ |
+| undeclared            | The profile exists and doesn't name the verb                             |
+| no profile            | The repository has no `.meowpaw/profile.toml`                            |
+| profile unparseable   | The profile exists and can't be read; the parser's message is shown      |
+| malformed declaration | The profile names the verb with a value that isn't one command           |
+| no interpreter        | The program can't run on this machine: the unit carries no binary for it |
 
 A key under `[verbs]` that is not one of the five, and a table the unit
 doesn't read, are listed as ignored, so the person learns why a setting had no
@@ -122,12 +122,15 @@ commands the profile names are on screen before anything executes, and it
 reports each verb with the kind of result the program gave, never rounding an
 unresolved verb into a pass.
 
-### The interpreter
+### The program
 
-The program is written in Python and needs Python 3.11 or later, whose
-standard library reads TOML. It uses the interpreter already on the machine
-and installs nothing. A launcher checks for it first, and where it is missing,
-every verb reports the kind "no interpreter" and nothing reports passed.
+The program is the `verbs` subcommand of the native tool SPC-1080 states,
+shipped as a binary inside the unit, so it needs nothing installed on the
+machine. The launcher runs the binary for the machine's target, and where
+there is none, every verb reports the kind "no interpreter" and nothing reports
+passed. The kind keeps the name it had when the program needed an interpreter,
+so the fixtures that define it didn't change in the port; it means the program
+can't run on this machine.
 
 ## Failure paths
 
@@ -138,5 +141,5 @@ every verb reports the kind "no interpreter" and nothing reports passed.
 | A verb's value isn't a string                 | That verb is unresolved, reported as a malformed declaration                     |
 | The declared command exits non-zero           | The verb failed: its command, status and whole output, led by its last lines     |
 | The declared command isn't found by the shell | The verb failed, with the shell's own message, because the repository named it   |
-| No Python 3.11 or later                       | Every verb is unresolved, of kind "no interpreter"                               |
+| No binary for the machine's target            | Every verb is unresolved, of kind "no interpreter"                               |
 | `run` with no verb                            | An error naming the five verbs, and nothing runs                                 |
