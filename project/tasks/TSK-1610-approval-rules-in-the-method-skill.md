@@ -28,7 +28,17 @@ Nothing. ADR-1170 is approved.
 
 ## Evidence
 
-Not yet.
+The `method` skill's rules gain M5, to stop after writing an artifact that
+needs approval and report its gate, and M6, never to take silence, a change of
+subject or an unrelated instruction as approval, each with its reason:
+
+| Requirement | Carried by                     |
+| ----------- | ------------------------------ |
+| REQ-0390    | M5 in `skills/method/SKILL.md` |
+| REQ-0400    | M6 in `skills/method/SKILL.md` |
+
+The rules sit in the skill's body, so the unit's per-turn cost is unchanged,
+and the prompt check and the budget check pass, as the gate below shows.
 
 ## Left alone
 
