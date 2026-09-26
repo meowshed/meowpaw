@@ -9,3 +9,8 @@ __pycache__/
 # The runner writes into the plugin it evaluates, so the pattern has to reach
 # there; `evals/results/` alone is anchored to this file's own directory.
 plugins/*/evals/results/
+
+# The native tool: its build and the binaries each unit carries (SPC-1080)
+/target/
+crates/meow/target/
+plugins/*/bin/*-*-*/

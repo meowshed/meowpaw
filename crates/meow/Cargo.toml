@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "meow"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+description = "The native tool every meowpaw unit's program is a subcommand of"
+publish = false
+
+[features]
+default = []
+verbs = []
+scm = []
+git = []
+record = []
+
+[dependencies]
+toml = "0.8"
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+opt-level = "z"

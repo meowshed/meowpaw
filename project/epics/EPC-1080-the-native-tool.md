@@ -42,9 +42,11 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1350 the crate, the shared profile and report module, the local
+- [x] T-001 TSK-1350 the crate, the shared profile and report module, the local
       build, and `meow verbs` ported with its launcher
       closes: REQ-0032, REQ-0076
+      evidence: meow-verbs' twelve fixtures, unchanged, passing against the
+      native binary, and the crate's tests, in #150.
 
 - [ ] T-002 TSK-1360 `meow scm` ported with its launcher
       depends: TSK-1350 - it builds on the crate and the shared module
