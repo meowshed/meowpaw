@@ -1,7 +1,7 @@
 ---
 id: BUG-1120
 artifact: bug
-status: draft
+status: approved
 severity: major
 violates: REQ-3178
 found: 2026-09-26
