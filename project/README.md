@@ -105,6 +105,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   the design step carries the obligations on what it designs.
 - [ADR-1200](adrs/ADR-1200-the-harness-holds-its-quality-attributes-with-evidence.md):
   the harness holds its quality attributes, each with a check or evidence.
+- [ADR-1210](adrs/ADR-1210-the-record-reports-where-it-contradicts-itself.md):
+  the record reports where it contradicts itself, and derives each
+  requirement's state.
 
 ## Specifications
 
@@ -216,6 +219,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1190](epics/EPC-1190-design-obligations.md) realised ADR-1190 in two tasks, TSK-1650 and TSK-1660, each closed with evidence, and was verified against every acceptance criterion under issue 267.
 
 [EPC-1200](epics/EPC-1200-quality-attributes.md) realised ADR-1200 in three tasks, TSK-1670 to TSK-1690, each closed with evidence, and was verified against every acceptance criterion under issue 277.
+
+[EPC-1210](epics/EPC-1210-record-drift.md) realises ADR-1210 in three
+tasks, TSK-1700 to TSK-1720, each filed as an issue.
 
 ## Defects
 

@@ -7,11 +7,20 @@ checked-at: "#259"
 states:
   [
     REQ-0237,
+    REQ-0510,
+    REQ-0516,
+    REQ-0518,
+    REQ-0519,
     REQ-0522,
     REQ-0523,
+    REQ-0527,
     REQ-0548,
     REQ-0550,
     REQ-0575,
+    REQ-0582,
+    REQ-0584,
+    REQ-0586,
+    REQ-0591,
     REQ-0636,
     REQ-0638,
     REQ-0640,
@@ -23,6 +32,15 @@ states:
     REQ-0652,
     REQ-0654,
     REQ-0658,
+    REQ-0690,
+    REQ-0694,
+    REQ-0696,
+    REQ-0704,
+    REQ-0706,
+    REQ-0710,
+    REQ-0712,
+    REQ-0714,
+    REQ-0716,
     REQ-1600,
     REQ-1601,
     REQ-1602,
@@ -131,6 +149,34 @@ record grows, and it is answered by search and never by deleting what it holds
 decision it finds, and writes a durable finding back into an artifact; the
 harness keeps no memory store apart from the record (REQ-1600, REQ-1604,
 REQ-1606, REQ-1608).
+
+### Where the record contradicts itself
+
+`check coverage` reports a task marked done with no evidence, a task whose
+evidence is written while its epic leaves it unmarked, and a task closing a
+withdrawn requirement in an epic not yet verified (REQ-0704). `check relations`
+reports an identifier in a body or a relation that resolves to no artifact, and
+`status` counts the requirements nothing checks, which covers both directions
+(REQ-0710).
+
+### A requirement's state
+
+A requirement stores only a decided status, from the one vocabulary
+`lib/layout.toml` declares, and the program derives the observed one (REQ-0582,
+REQ-0584, REQ-0586, REQ-0591). `show` prints each task that closes a
+requirement with its mark, and the issue its epic was verified under, or
+"checked by nothing"; a requirement is verified only where such a check exists
+(REQ-0712, REQ-0714). `status` reports an epic as verified only when `check`
+reports nothing on the epic, its decision or its tasks (REQ-0706), and says the
+record is local to this machine where its root is under no version control
+(REQ-0510, REQ-0527).
+
+The record divides by kind, each artifact names its unit of work in its own
+front matter, and the harness fixes each kind's meaning in `lib/layout.toml`
+(REQ-0516, REQ-0518, REQ-0519). A status moves in the change that moves the
+work, a correction to an approved artifact goes through the amendment path
+`check frozen` holds, and a new requirement enters an approved set with a new
+identifier (REQ-0690, REQ-0694, REQ-0696, REQ-0716) (ADR-1210).
 
 ## Failure paths
 
