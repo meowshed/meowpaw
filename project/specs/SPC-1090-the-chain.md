@@ -3,7 +3,7 @@ id: SPC-1090
 artifact: spec
 status: live
 revised: 2026-09-26
-checked-at: "#237"
+checked-at: "#249"
 states:
   [
     REQ-0190,
@@ -202,7 +202,8 @@ later decision.
 
 ADR-1130 decides it, and EPC-1100 realised it, verified under issue 202.
 ADR-1160 adds each step's obligations, and EPC-1160 realised them, verified
-under issue 237 with their measurement by evaluation still to come.
+under issue 237 with their measurement by evaluation still to come. ADR-1170's
+approvals and waiting report are verified under issue 249.
 
 ## Boundary
 
