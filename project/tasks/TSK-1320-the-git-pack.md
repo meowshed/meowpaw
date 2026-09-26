@@ -1,11 +1,11 @@
 ---
 id: TSK-1320
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1060
 closes: [REQ-0079, REQ-1292, REQ-1326, REQ-2530]
-issue:
+issue: 136
 ---
 
 # Refuse a commit on the trunk, and check a branch before it is pushed

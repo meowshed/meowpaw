@@ -133,8 +133,8 @@ every acceptance criterion under issue 115.
 tasks, TSK-1300 and TSK-1310, both closed with evidence, and was verified
 against every acceptance criterion under issue 130.
 
-[EPC-1060](epics/EPC-1060-the-git-pack.md) is a draft that realises ADR-1090
-in one task, TSK-1320, and waits for the owner's approval.
+[EPC-1060](epics/EPC-1060-the-git-pack.md) is approved and realises ADR-1090
+in one task, TSK-1320, filed as an issue.
 
 ## Defects
 
