@@ -134,6 +134,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1310](adrs/ADR-1310-the-github-pack-projects-an-approved-epic-onto-issues.md):
   the GitHub pack projects an approved epic's tasks onto issues, and reports
   where the two disagree.
+- [ADR-1320](adrs/ADR-1320-source-control-is-held-by-checks-where-a-program-settles-it.md):
+  source-control discipline is held by a check where a program settles it,
+  and by the commit skill where none does.
 
 ## Specifications
 
@@ -271,6 +274,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1300](epics/EPC-1300-onboard-history.md) realised ADR-1300 in one task, TSK-1920, closed with evidence, and was verified against every acceptance criterion under issue 368.
 
 [EPC-1310](epics/EPC-1310-project-tasks.md) realised ADR-1310 in three tasks, TSK-1930 to TSK-1950, each closed with evidence, and was verified against every acceptance criterion under issue 378.
+
+[EPC-1320](epics/EPC-1320-source-control.md) realises ADR-1320 in five
+tasks, TSK-1960 to TSK-2000, each filed as an issue.
 
 ## Defects
 
