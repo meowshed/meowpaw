@@ -44,8 +44,10 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: four fixtures, and both indexes migrated with their counts, in
       #252.
 
-- [ ] T-002 TSK-1630 allocate the next identifier
+- [x] T-002 TSK-1630 allocate the next identifier
       closes: REQ-0548, REQ-0550
+      evidence: five fixtures, and the next identifiers on this repository,
+      in #253.
 
 - [ ] T-003 TSK-1640 search the record, and search it first
       closes: REQ-0636, REQ-1600, REQ-1601, REQ-1602, REQ-1604, REQ-1606, REQ-1608
