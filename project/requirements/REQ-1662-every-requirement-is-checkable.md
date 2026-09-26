@@ -5,7 +5,7 @@ topic: the-harness-on-itself
 class: functional
 status: approved
 revised: 2026-09-20
-elaborates: RES-0043, RES-0070, RES-0005
+elaborates: RES-0070, RES-0005
 verification: static
 ---
 

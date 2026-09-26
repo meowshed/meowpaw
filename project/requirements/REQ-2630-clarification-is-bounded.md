@@ -5,7 +5,7 @@ topic: the-method
 class: functional
 status: approved
 revised: 2026-09-20
-elaborates: RES-0151, RES-0008
+elaborates: RES-0151
 verification: behavioural
 ---
 
