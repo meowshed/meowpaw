@@ -43,7 +43,35 @@ Nothing. ADR-1160 and SPC-1090 are approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in the step
+file named, and every rule names no requirement, because the file ships to
+other repositories:
+
+| Requirement | Carried by                  |
+| ----------- | --------------------------- |
+| REQ-0257    | I5 in `steps/implement.md`  |
+| REQ-0259    | I4 in `steps/implement.md`  |
+| REQ-0267    | I1 in `steps/implement.md`  |
+| REQ-0269    | I2 in `steps/implement.md`  |
+| REQ-0272    | I3 in `steps/implement.md`  |
+| REQ-0274    | I4 in `steps/implement.md`  |
+| REQ-0276    | I4 in `steps/implement.md`  |
+| REQ-0290    | O1 in `steps/document.md`   |
+| REQ-0292    | O2 in `steps/document.md`   |
+| REQ-0298    | O3 in `steps/document.md`   |
+| REQ-0300    | O2 in `steps/document.md`   |
+| REQ-0450    | I7 in `steps/implement.md`  |
+| REQ-0458    | I9 in `steps/implement.md`  |
+| REQ-0460    | I8 in `steps/implement.md`  |
+| REQ-0462    | I8 in `steps/implement.md`  |
+| REQ-0464    | I8 in `steps/implement.md`  |
+| REQ-0466    | I8 in `steps/implement.md`  |
+| REQ-2774    | I10 in `steps/implement.md` |
+| REQ-3104    | I6 in `steps/implement.md`  |
+
+The prompt check passes on the step files and `meow-method check` reports 0
+findings, as the gate below shows. Whether the model follows the rules is
+measured by evaluation, which is postponed.
 
 ## Left alone
 

@@ -10,3 +10,13 @@ it up is verify.
 2. Report what you changed and what you deliberately left alone, with the
    reason, because an unreported silence reads as an omission.
 </steps>
+
+<rules name="document">
+- O1. Bring the user-facing documentation into agreement with what the epic
+  changed.
+- O2. Report what you changed and what you deliberately left alone, and record
+  the reason wherever documentation is left un-updated, because an unreported
+  silence reads as an omission.
+- O3. Don't report an epic finished while documentation its tasks invalidated
+  is still published.
+</rules>
