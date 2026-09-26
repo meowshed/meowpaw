@@ -72,13 +72,24 @@ fixtures against the launchers.
 
 ### A release
 
-A release builds all six targets for every unit that changed, packs each unit
-with its binaries as an archive, and publishes the archives with their SHA-256
-and a marketplace file whose entries point at them by `url` and `sha256`. A
-person installs a released unit from that marketplace, and never needs Rust,
+A person runs the release workflow by hand, and it builds all six targets with
+`crates/meow/build-units <target>`, the script the local build runs. It packs
+each unit whose version has no release yet as a zip of the unit's tracked files
+and its binaries, and publishes it as a release tagged `<unit>-v<version>`, so
+each unit carries its own version (REQ-0074). A unit whose version already has
+a release keeps its archive. A release named `marketplace` holds one
+`marketplace.json` whose entries point at every unit's archive by `url` and
+`sha256`, and a person adds it with:
+
+```bash
+claude plugin marketplace add https://github.com/meowshed/meowpaw/releases/download/marketplace/marketplace.json
+```
+
+A person installs a released unit from that marketplace and never needs Rust,
 Python or Node.js. The repository's own `marketplace.json` keeps its relative
-paths for development. Adding a marketplace from a released file's address is
-what the release task confirms first, and this section changes if it can't.
+paths for development. Run without publishing, the workflow builds and packs
+only, and leaves the archives, their sizes and their SHA-256 as a workflow
+artifact.
 
 ### What stays optional
 
