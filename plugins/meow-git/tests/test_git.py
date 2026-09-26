@@ -66,9 +66,12 @@ class Repository:
     def trust(self):
         run(self.root, "git", "config", "gpg.ssh.allowedSignersFile", str(self.keys / "allowed"))
 
-    def guard(self, name, scm=SCM, env=None):
+    def guard(self, name, scm=SCM, env=None, command=None):
         environment = {**os.environ, "MEOW_SCM": str(scm)} if env is None else env
-        return subprocess.run([str(BIN), name], input=json.dumps({"cwd": str(self.root)}),
+        event = {"cwd": str(self.root)}
+        if command is not None:
+            event["tool_input"] = {"command": command}
+        return subprocess.run([str(BIN), name], input=json.dumps(event),
                               capture_output=True, text=True, env=environment)
 
 
@@ -85,6 +88,48 @@ class GitPack(unittest.TestCase):
         done = repo.guard("commit-guard")
         self.assertEqual(done.returncode, 2)
         self.assertIn("refused a commit on `main`", done.stderr)
+
+    def test_a_command_that_does_not_commit_runs_on_the_trunk(self):
+        # Claude Code runs the hook whenever it can't parse the command, so the
+        # guard reads the command itself.
+        repo = self.repo()
+        run(repo.root, "git", "checkout", "-q", "main")
+        for command in ('echo "$(git log --oneline -1)"', "git status && ls $HOME", "gh pr list | tr a b"):
+            done = repo.guard("commit-guard", command=command)
+            self.assertEqual(done.returncode, 0, command + done.stderr)
+            self.assertEqual(done.stderr, "", command)
+            self.assertIn("doesn't commit", done.stdout, command)
+
+    def test_every_form_of_a_commit_is_refused_on_the_trunk(self):
+        repo = self.repo()
+        run(repo.root, "git", "checkout", "-q", "main")
+        for command in ("git commit -m x", "cd a && git commit -am x", "git -C /tmp/r commit -m x",
+                        'x=$(git commit -m "y")', "git -c user.name=a commit"):
+            done = repo.guard("commit-guard", command=command)
+            self.assertEqual(done.returncode, 2, command)
+            self.assertIn("refused a commit on `main`", done.stderr, command)
+
+    def test_a_commit_in_another_directory_is_judged_there(self):
+        # The session sits on the trunk; the command commits in a worktree on a branch.
+        repo = self.repo()
+        other = repo.root.parent / "elsewhere"
+        run(repo.root, "git", "checkout", "-q", "main")
+        run(repo.root, "git", "worktree", "add", "-q", str(other), "work")
+        # A real repository commits its profile; the fixture's is only on disk.
+        (other / ".meowpaw").mkdir(exist_ok=True)
+        (other / ".meowpaw" / "profile.toml").write_text(
+            (repo.root / ".meowpaw" / "profile.toml").read_text(encoding="utf-8"), encoding="utf-8")
+        for command in (f"cd {other} && git commit -m x", f"git -C {other} commit -m x"):
+            done = repo.guard("commit-guard", command=command)
+            self.assertEqual(done.returncode, 0, command + done.stderr)
+            self.assertIn("`work` isn't the trunk `main`", done.stdout, command)
+
+    def test_a_command_that_does_not_push_checks_nothing(self):
+        repo = self.repo()
+        repo.commit("not a conventional subject")
+        done = repo.guard("push-guard", command='echo "$(git log -1)"')
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("doesn't push", done.stdout)
 
     def test_a_commit_on_a_branch_runs(self):
         done = self.repo().guard("commit-guard")

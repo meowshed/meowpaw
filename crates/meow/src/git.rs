@@ -35,16 +35,56 @@ fn git(root: &Path, args: &[&str]) -> (bool, String) {
     }
 }
 
-/// The session's directory, from the hook's input where it names one.
-fn working_directory() -> PathBuf {
+/// The session's directory and the shell command, from the hook's input.
+fn read_event() -> (PathBuf, Option<String>) {
     let mut text = String::new();
     let _ = std::io::stdin().read_to_string(&mut text);
     let event: serde_json::Value = serde_json::from_str(if text.trim().is_empty() { "{}" } else { &text })
         .unwrap_or(serde_json::Value::Null);
-    match event.get("cwd").and_then(|cwd| cwd.as_str()) {
+    let cwd = match event.get("cwd").and_then(|cwd| cwd.as_str()) {
         Some(cwd) if !cwd.is_empty() => PathBuf::from(cwd),
         _ => std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+    };
+    let command = event.pointer("/tool_input/command").and_then(|c| c.as_str()).map(str::to_string);
+    (cwd, command)
+}
+
+/// Where the shell command runs `git <subcommand>`, if it runs it at all: the
+/// directory named by `git -C`, or else by the last `cd` before it, or else
+/// the session's own.
+///
+/// Claude Code runs a hook whenever it can't tell which commands a Bash input
+/// runs, so the `if` rule alone doesn't mean the command commits or pushes.
+/// This scan errs towards yes: text that only mentions `git commit` inside
+/// quotes counts, because refusing a command wrongly costs a retry and letting
+/// a commit through on the trunk costs the rule.
+fn invocation(command: &str, subcommand: &str) -> Option<Option<String>> {
+    let words: Vec<&str> = command
+        .split(|c: char| c.is_whitespace() || ";&|()`\"'$".contains(c))
+        .filter(|w| !w.is_empty())
+        .collect();
+    let mut directory: Option<String> = None;
+    let mut i = 0;
+    while i < words.len() {
+        if words[i] == "cd" {
+            directory = words.get(i + 1).map(|d| d.to_string());
+        } else if words[i] == "git" {
+            let mut at = directory.clone();
+            let mut j = i + 1;
+            while j < words.len() && words[j].starts_with('-') {
+                if words[j] == "-C" {
+                    at = words.get(j + 1).map(|d| d.to_string());
+                }
+                let takes_value = matches!(words[j], "-C" | "-c" | "--git-dir" | "--work-tree" | "--namespace");
+                j += if takes_value { 2 } else { 1 };
+            }
+            if words.get(j) == Some(&subcommand) {
+                return Some(at);
+            }
+        }
+        i += 1;
     }
+    None
 }
 
 struct Policy {
@@ -233,7 +273,20 @@ pub fn main(args: &[String]) -> u8 {
             return 1;
         }
     };
-    let start = working_directory();
+    let (mut start, command) = read_event();
+    let verb = if name == "commit-guard" { "commit" } else { "push" };
+    if let Some(command) = &command {
+        match invocation(command, verb) {
+            None => {
+                println!("meow-git {name}: the command doesn't {verb}; nothing checked");
+                return ALLOW;
+            }
+            // A directory that doesn't exist can't hold the commit, so the
+            // session's own is judged rather than letting the command through.
+            Some(Some(directory)) if start.join(&directory).is_dir() => start = start.join(directory),
+            Some(_) => {}
+        }
+    }
     let (ok, top) = git(&start, &["rev-parse", "--show-toplevel"]);
     if !ok {
         println!("meow-git {name}: not inside a repository; checked nothing");
