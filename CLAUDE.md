@@ -68,6 +68,7 @@ a file. A decision record is `approved` when someone accepted it and
 | `project/epics/EPC-NNNN-<slug>.md`        | One authorising record decomposed into tasks                                                                       |
 | `project/tasks/TSK-NNNN-<slug>.md`        | One task, one branch, one pull request                                                                             |
 | `project/bugs/BUG-NNNN-<slug>.md`         | Evidence that a requirement isn't met                                                                              |
+| `project/insights/INS-NNNN-<slug>.md`     | One lesson learned, with its evidence and the pattern it generalises to                                            |
 | `docs/`                                   | Documentation for someone using the harness. A separate hierarchy                                                  |
 | `plugins/<name>/`                         | One directory per plugin                                                                                           |
 | `.claude-plugin/marketplace.json`         | The marketplace index                                                                                              |
