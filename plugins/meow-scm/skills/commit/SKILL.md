@@ -55,6 +55,30 @@ project gained and when, so every message is written for that question.
   the check looks for it.
 </rules>
 
+<rules name="branches">
+- B1. Give one task one branch, one pull request and one review, and land it
+  on the trunk as one squashed commit, because the history then reads as a
+  list of what the project gained.
+- B2. Take every branch from the one trunk and keep it short-lived, and never
+  keep a second long-lived branch, because two trunks drift and every change
+  then lands twice.
+- B3. Merge, tag, release or publish only when the person tells you to, for
+  that change, because each is a public act the person answers for.
+- B4. Never check out one branch in two working trees, and never force it:
+  take a new branch or a detached checkout for parallel work. Working trees
+  share one repository, so a branch or a tag made in one exists in all.
+- B5. Lock a working tree while you use it, with the reason, in the way the
+  source control tool offers, because a cleanup reclaims an unlocked tree
+  with your work in it.
+- B6. Split a branch that has grown past one reviewable change into several,
+  rather than extending it, because review turns into approval past a size.
+- B7. Say so in the pull request when you force-push over a branch someone
+  reviewed, because the push removes what they reviewed.
+- B8. Sign every commit, and write the sign-off as well where the repository
+  asks for both: the signature says the claim wasn't forged, the sign-off
+  says who makes it.
+</rules>
+
 <example name="a subject">
 Failing:
 
