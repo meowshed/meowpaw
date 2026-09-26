@@ -40,6 +40,15 @@ file = "vision.md"
 statuses = ["live"]
 
 [[kind]]
+name = "onboarding"
+artifact = "onboarding"
+file = "onboarding.md"
+statuses = ["draft", "approved", "superseded"]
+sections = ["Verbs", "Conventions", "Documents", "Gaps", "Adoption"]
+first_section = "Verbs"
+rules = ["adoption-in-steps"]
+
+[[kind]]
 name = "specification"
 artifact = "spec"
 prefix = "SPC"

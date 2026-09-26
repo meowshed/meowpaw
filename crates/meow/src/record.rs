@@ -236,7 +236,11 @@ fn run_check(check: &str, record: &Record, root: &Path, repository: &Path) -> Ve
         "identifiers" => identifiers(record),
         "relations" => relations(record),
         "index" => index(record, root, repository),
-        "coverage" => coverage(record),
+        "coverage" => {
+            let mut findings = coverage(record);
+            findings.extend(placement(record, root, repository));
+            findings
+        }
         "shape" => shape(record),
         _ => rules(record),
     }
@@ -870,6 +874,61 @@ fn coverage(record: &Record) -> Vec<Finding> {
     out
 }
 
+/// The documents a repository has outside its record, tracked or not ignored,
+/// relative to its root.
+fn documents(root: &Path, repository: &Path) -> Vec<String> {
+    let Ok(out) = std::process::Command::new("git")
+        .args(["ls-files", "--cached", "--others", "--exclude-standard"])
+        .current_dir(repository)
+        .output()
+    else {
+        return Vec::new();
+    };
+    let record = root.strip_prefix(repository).ok().map(|p| p.to_string_lossy().replace('\\', "/"));
+    let text = String::from_utf8_lossy(&out.stdout);
+    let mut paths: Vec<String> = text
+        .lines()
+        .filter(|p| [".md", ".markdown", ".txt", ".rst", ".adoc", ".org"].iter().any(|e| p.to_lowercase().ends_with(e)))
+        .filter(|p| !p.starts_with(".meowpaw/"))
+        .filter(|p| record.as_deref().is_none_or(|r| !r.is_empty() && !p.starts_with(&format!("{r}/"))))
+        .map(str::to_string)
+        .collect();
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
+/// Every document an onboarding report finds gets exactly one outcome, with
+/// where it went or why, so nothing is deleted before it is placed (REQ-1556).
+fn placement(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
+    let Some(report) = of_kind(record, "onboarding").into_iter().next() else { return Vec::new() };
+    let mut placed: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+    let mut out = Vec::new();
+    for (line, text) in section_lines(report, "Documents") {
+        let cells: Vec<&str> = text.trim().trim_matches('|').split('|').map(str::trim).collect();
+        if !text.trim_start().starts_with('|') || cells.len() < 3 || cells[0].starts_with("---") || cells[0] == "Document" {
+            continue;
+        }
+        let path = cells[0].trim_matches('`').to_string();
+        let outcome = cells[1];
+        placed.entry(path.clone()).or_default().push(line);
+        if !["migrated", "cited", "superseded", "discarded"].contains(&outcome) {
+            out.push(Finding::at(report, Some(line), format!("gives {path} the outcome {outcome}, where an outcome is migrated, cited, superseded or discarded")));
+        } else if cells[2].is_empty() {
+            out.push(Finding::at(report, Some(line), format!("marks {path} {outcome} with no destination or reason")));
+        }
+    }
+    let present = documents(root, repository);
+    for path in &present {
+        match placed.get(path) {
+            None => out.push(Finding::at(report, None, format!("doesn't place {path}, a document the repository has"))),
+            Some(lines) if lines.len() > 1 => out.push(Finding::at(report, Some(lines[1]), format!("places {path} {} times", lines.len()))),
+            _ => {}
+        }
+    }
+    out
+}
+
 fn is_draft(doc: &Doc) -> bool {
     bare(doc.value("status")) == "draft"
 }
@@ -1089,6 +1148,13 @@ fn rules(record: &Record) -> Vec<Finding> {
                         out.push(Finding::at(doc, Some(line), format!("{message}: {shown}")));
                     }
                 }
+                "adoption-in-steps" => {
+                    let lines = section_lines(doc, "Adoption");
+                    let numbered = Regex::new(r"^\d+\. ").expect("step pattern");
+                    if !lines.is_empty() && !lines.iter().any(|(_, l)| numbered.is_match(l)) {
+                        out.push(Finding::at(doc, lines.first().map(|(n, _)| n - 1), "has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working".into()));
+                    }
+                }
                 "title-states-claim" => {
                     let line = doc.text.lines().position(|l| l.starts_with("# ")).map(|i| i + 1);
                     let heading = title(doc);
@@ -1120,7 +1186,7 @@ fn rules(record: &Record) -> Vec<Finding> {
 }
 
 const STEPS: [&str; 9] = ["research", "requirements", "design", "spec", "epic", "implement", "document", "verify", "review"];
-const TEMPLATES: [&str; 11] = ["research", "requirement", "adr", "spec", "epic", "task", "bug", "insight", "vision", "constitution", "profile"];
+const TEMPLATES: [&str; 12] = ["research", "requirement", "adr", "spec", "epic", "task", "bug", "insight", "vision", "constitution", "profile", "onboarding"];
 
 fn approved(doc: &Doc) -> bool {
     bare(doc.value("status")) == "approved"

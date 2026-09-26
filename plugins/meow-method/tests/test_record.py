@@ -531,6 +531,42 @@ class Checks(unittest.TestCase):
         done = self.repo().run("check", "coverage")
         self.assertIn("coverage: 1 of 1 requirements in force land in a task\n", done.stdout)
 
+    REPORT = ("---\nid: onboarding\nartifact: onboarding\nstatus: draft\nrevised: 2026-01-01\n---\n\n# Onboarding\n\nText.\n\n"
+              "## Verbs\n\nText.\n\n## Conventions\n\nText.\n\n## Documents\n\n"
+              "| Document | Outcome | Where, or why |\n| --- | --- | --- |\n"
+              "| `docs/guide.md` | migrated | SPC-0001 |\n| `notes.txt` | discarded | a scratch list nobody reads |\n\n"
+              "## Gaps\n\nText.\n\n## Adoption\n\n1. Declare the verbs.\n")
+
+    def onboarded(self, old="", new=""):
+        repository = self.repo()
+        (repository.path / "docs").mkdir()
+        (repository.path / "docs" / "guide.md").write_text("# Guide\n", encoding="utf-8")
+        (repository.path / "notes.txt").write_text("notes\n", encoding="utf-8")
+        repository.write("onboarding.md", self.REPORT.replace(old, new, 1))
+        return repository
+
+    def test_an_onboarding_report_placing_every_document_passes(self):
+        done = self.onboarded().run("check", "coverage")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("coverage: 0 findings\n", done.stdout)
+
+    def test_an_onboarding_report_places_every_document_once(self):
+        self.found(self.onboarded("| `notes.txt` | discarded | a scratch list nobody reads |\n", "").run("check", "coverage"), "coverage",
+                   "project/onboarding.md: doesn't place notes.txt, a document the repository has")
+        self.found(self.onboarded("| `notes.txt` | discarded | a scratch list nobody reads |\n",
+                                  "| `notes.txt` | discarded | a scratch list nobody reads |\n| `notes.txt` | cited | SPC-0001 |\n").run("check", "coverage"),
+                   "coverage", "project/onboarding.md:26: places notes.txt 2 times")
+
+    def test_an_onboarding_outcome_is_one_of_four_with_a_reason(self):
+        self.found(self.onboarded("| `notes.txt` | discarded |", "| `notes.txt` | archived |").run("check", "coverage"), "coverage",
+                   "project/onboarding.md:25: gives notes.txt the outcome archived, where an outcome is migrated, cited, superseded or discarded")
+        self.found(self.onboarded("| `notes.txt` | discarded | a scratch list nobody reads |", "| `notes.txt` | discarded | |").run("check", "coverage"),
+                   "coverage", "project/onboarding.md:25: marks notes.txt discarded with no destination or reason")
+
+    def test_onboarding_adoption_is_numbered_steps(self):
+        self.found(self.onboarded("1. Declare the verbs.", "Declare the verbs.").run("check", "rules"), "rules",
+                   "project/onboarding.md:31: has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working")
+
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()
         self.mark(repository, "+")
