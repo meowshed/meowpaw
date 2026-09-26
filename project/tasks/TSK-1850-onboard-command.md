@@ -40,7 +40,27 @@ TSK-1840, whose report template the command writes from.
 
 ## Evidence
 
-Not yet.
+`skills/onboard/SKILL.md` carries `disable-model-invocation: true`, found
+1 time, so only a person starts it. Each requirement this task closes is
+carried by a labelled rule in it, and no rule names a requirement:
+
+| Requirement | Carried by                       |
+| ----------- | -------------------------------- |
+| REQ-1540    | B1 in `skills/onboard/SKILL.md`  |
+| REQ-1542    | B2 in `skills/onboard/SKILL.md`  |
+| REQ-1544    | B3 in `skills/onboard/SKILL.md`  |
+| REQ-1546    | B4 in `skills/onboard/SKILL.md`  |
+| REQ-1548    | B5 in `skills/onboard/SKILL.md`  |
+| REQ-1550    | B6 in `skills/onboard/SKILL.md`  |
+| REQ-1552    | B7 in `skills/onboard/SKILL.md`  |
+| REQ-1558    | B10 in `skills/onboard/SKILL.md` |
+| REQ-3092    | B8 in `skills/onboard/SKILL.md`  |
+| REQ-3094    | B9 in `skills/onboard/SKILL.md`  |
+
+Its steps check for a profile first and send a repository without one to
+`/meow-method:init`, run `meow-method check` over what they wrote, and stop at
+the draft report. A script found all 10 traced labels. Whether the model
+follows the rules is measured by evaluation, which is postponed.
 
 ## Left alone
 
