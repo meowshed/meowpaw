@@ -143,5 +143,23 @@ class Convention(unittest.TestCase):
         self.assertNotIn("meets", done.stdout)
 
 
+
+class Launcher(unittest.TestCase):
+    """ADR-1270: a launcher with no binary for the machine names the machine and the fix."""
+
+    def test_a_missing_binary_names_the_machine_and_the_reinstall(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            launcher = Path(tmp) / "bin" / "meow-scm"
+            launcher.parent.mkdir()
+            launcher.write_text((UNIT / "bin" / "meow-scm").read_text(encoding="utf-8"), encoding="utf-8")
+            launcher.chmod(0o755)
+            done = subprocess.run(["sh", str(launcher), "check-message"], cwd=tmp, capture_output=True, text=True, input="")
+            machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
+            self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+            self.assertIn("unchecked", done.stdout)
+            self.assertIn(machine, done.stdout)
+            self.assertIn("reinstall the unit", done.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

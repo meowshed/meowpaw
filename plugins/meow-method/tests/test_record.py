@@ -1127,5 +1127,23 @@ class NoWrites(unittest.TestCase):
         self.assertEqual(before, tree())
 
 
+
+class Launcher(unittest.TestCase):
+    """ADR-1270: a launcher with no binary for the machine names the machine and the fix."""
+
+    def test_a_missing_binary_names_the_machine_and_the_reinstall(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            launcher = Path(tmp) / "bin" / "meow-method"
+            launcher.parent.mkdir()
+            launcher.write_text((UNIT / "bin" / "meow-method").read_text(encoding="utf-8"), encoding="utf-8")
+            launcher.chmod(0o755)
+            done = subprocess.run(["sh", str(launcher), "check"], cwd=tmp, capture_output=True, text=True, input="")
+            machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
+            self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+            self.assertIn("not checked", done.stdout)
+            self.assertIn(machine, done.stdout)
+            self.assertIn("reinstall the unit", done.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

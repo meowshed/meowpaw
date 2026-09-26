@@ -1,6 +1,6 @@
 {
   "name": "meow-scm",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Checks a commit message against the convention the repository declares in .meowpaw/profile.toml and against a ban on crediting a tool, before the message is used, and reports an undeclared convention as undeclared, never as met.",
   "author": {
     "name": "Andrew Vasilyev",

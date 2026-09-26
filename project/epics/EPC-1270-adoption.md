@@ -39,8 +39,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1860 an unavailable capability names what would supply it
+- [x] T-001 TSK-1860 an unavailable capability names what would supply it
       closes: REQ-0036, REQ-0038, REQ-0040
+      evidence: five fixtures across four units, in #337.
 
 - [ ] T-002 TSK-1870 each unit stands alone, and a check holds it
       closes: REQ-0012, REQ-0014, REQ-0034

@@ -47,7 +47,7 @@ fn resolve(root: &Path) -> Report {
             path,
             state: "absent",
             error: None,
-            verbs: every("no profile", format!("{PROFILE} doesn't exist")),
+            verbs: every("no profile", format!("{PROFILE} doesn't exist; write it, declaring each verb under [verbs]")),
             ignored: Vec::new(),
         },
         Profile::Unparseable(error) => Report {
@@ -81,13 +81,16 @@ fn resolve(root: &Path) -> Report {
                 .iter()
                 .map(|verb| {
                     let entry = match declared.get(*verb) {
-                        None => Entry::Unresolved { kind: "undeclared", detail: "the profile doesn't name it".into() },
+                        None => Entry::Unresolved {
+                            kind: "undeclared",
+                            detail: "the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml".into(),
+                        },
                         Some(toml::Value::String(command)) if !command.trim().is_empty() => {
                             Entry::Resolved { command: command.clone() }
                         }
                         Some(_) => Entry::Unresolved {
                             kind: "malformed declaration",
-                            detail: "the value isn't one command".into(),
+                            detail: "the value isn't one command; write one command as a string under [verbs]".into(),
                         },
                     };
                     (*verb, entry)
