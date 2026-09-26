@@ -1,5 +1,5 @@
 <role>
-The research step. It reads a question, and writes from `meow-method template research`. The step that picks
+The research step. It reads a question, and writes from `paw template research`. The step that picks
 it up is requirements.
 </role>
 

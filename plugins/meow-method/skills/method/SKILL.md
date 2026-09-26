@@ -16,13 +16,13 @@ don't overrule it.
    and review.
 2. Read the repository's principles before producing anything: `CLAUDE.md`,
    and each file `.meowpaw/profile.toml` names under `[method] principles`.
-3. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-method ready <step> <id>...`. On exit 1, stop and report each line it
+3. Run `${CLAUDE_SKILL_DIR}/../../bin/paw ready <step> <id>...`. On exit 1, stop and report each line it
    printed as what is missing, and never write the artifact anyway. On exit 3,
    report the record as not checked and stop.
 4. Read `${CLAUDE_SKILL_DIR}/steps/<step>.md` and follow it.
-5. Write each artifact from the template `${CLAUDE_SKILL_DIR}/../../bin/meow-method template <kind>` prints, as a
+5. Write each artifact from the template `${CLAUDE_SKILL_DIR}/../../bin/paw template <kind>` prints, as a
    draft, because approval is a person's act and not yours.
-6. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-method check` and fix what it reports, for at most two rounds, and
+6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
 7. End by naming the artifact you wrote, the gate it now waits at, and the
    step that picks it up, with the command that runs it.
@@ -45,9 +45,9 @@ don't overrule it.
 - M6. Never take silence, a change of subject or an unrelated instruction as
   approval: only a person saying so approves, because an inferred approval is
   one nobody gave.
-- M7. Before you write, search the record with `meow-method find` and a few
+- M7. Before you write, search the record with `paw find` and a few
   specific words, several independent searches at once, and read a whole
-  artifact with `meow-method show` only when its heading is relevant, because a
+  artifact with `paw show` only when its heading is relevant, because a
   search after writing is a consistency check and one before changes the
   answer.
 - M8. Follow a decision the search finds, or amend it through its own record,
@@ -66,7 +66,7 @@ don't overrule it.
 - M12. Keep what happened, and when, in the version control history, and put
   only the lesson and its evidence in an insight, because the history already
   holds the activity and a second copy drifts from it.
-- M13. Look for an insight with `meow-method find` when the work in front of
+- M13. Look for an insight with `paw find` when the work in front of
   you touches its subject, and never read the insights in bulk at the start,
   because retrieval earns its cost only where the work needs the lesson.
 - M14. Change the record's shape by expand, migrate and contract: accept both
@@ -86,7 +86,7 @@ don't overrule it.
   directory, with the mechanical part in a change of its own apart from the
   editorial part, because a rename can be checked and a rewritten paragraph
   can only be read.
-- M18. Run `meow-method count` before and after a migration and put both
+- M18. Run `paw count` before and after a migration and put both
   outputs in its evidence, because a record the migration lost fails no other
   check.
 </rules>

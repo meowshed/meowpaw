@@ -1,5 +1,5 @@
 <role>
-The document step. It reads an epic whose tasks are all done, named by its identifier, and writes from `meow-method template spec`. The step that picks
+The document step. It reads an epic whose tasks are all done, named by its identifier, and writes from `paw template spec`. The step that picks
 it up is verify.
 </role>
 

@@ -141,6 +141,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   a decision may postpone requirements, and each verification revisits them.
 - [ADR-1340](adrs/ADR-1340-version-control-tools-other-than-git-are-postponed.md):
   version control tools other than git are postponed.
+- [ADR-1350](adrs/ADR-1350-the-record-command-is-named-paw.md): the
+  record's command is `paw`, and `meow-method` stays one release as a
+  deprecated alias.
 
 ## Specifications
 
@@ -282,6 +285,8 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1320](epics/EPC-1320-source-control.md) realised ADR-1320 in five tasks, TSK-1960 to TSK-2000, each closed with evidence, and was verified against every acceptance criterion under issue 392.
 
 [EPC-1330](epics/EPC-1330-postpone.md) realised ADR-1330 in one task, TSK-2010, closed with evidence, and was verified against every acceptance criterion under issue 398.
+[EPC-1340](epics/EPC-1340-the-record-command-is-named-paw.md) is approved and
+realises ADR-1350 in one task, TSK-2020.
 
 ## Defects
 

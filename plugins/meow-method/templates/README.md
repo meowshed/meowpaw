@@ -2,7 +2,7 @@
 
 One template per kind of artifact, which `meow-method`'s steps write from. A
 repository changes one by putting its own at `.meowpaw/templates/<kind>.md`,
-and `meow-method template <kind>` prints the one in force.
+and `paw template <kind>` prints the one in force.
 
 | Template          | Kind          | Lifetime                             |
 | ----------------- | ------------- | ------------------------------------ |

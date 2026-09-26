@@ -13,7 +13,7 @@ waiting.
 </role>
 
 <steps name="drive the chain">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-method status` and show its output.
+1. Run `${CLAUDE_SKILL_DIR}/../../bin/paw status` and show its output.
 2. Choose what to advance: the record named in `$ARGUMENTS` if one is, and
    otherwise the first decision whose line begins `next:`.
 3. Where nothing begins `next:` and something waits for approval, report the
