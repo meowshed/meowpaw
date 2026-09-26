@@ -1,7 +1,7 @@
 ---
 id: TSK-1370
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1080
 closes: []
