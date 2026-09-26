@@ -37,7 +37,7 @@ would otherwise choose. It first shows what each verb resolves to:
 
 ```text
 fmt        resolved    ./scripts/format --check   (from .meowpaw/profile.toml)
-typecheck  unresolved  undeclared: the profile doesn't name it
+typecheck  unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
 ```
 
 Then it runs the verbs the work needs and reports each as passed, failed or

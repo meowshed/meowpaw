@@ -28,7 +28,33 @@ Nothing. ADR-1270 is approved.
 
 ## Evidence
 
-Not yet.
+An undeclared verb now says to declare it under `[verbs]` in
+`.meowpaw/profile.toml`, a value that isn't one command says to write one,
+and a missing profile says to write it; each stays unresolved. Each of the four launchers, `meow-verbs`, `meow-scm`,
+`meow-git` and `meow-method`, reports a missing binary with the machine's
+system and processor and says to reinstall the unit, and keeps its outcome:
+unresolved, unchecked, unrun or not checked, with its exit status unchanged.
+
+A fixture in each unit copies its launcher alone into an empty directory and
+runs it. All four were seen failing against the launchers before the change,
+and pass after it; they test the launcher script, which the stub program
+doesn't replace. The verbs fixture for an undeclared verb reads the new
+detail from the JSON report.
+
+```text
+$ meow-verbs status          # in a repository with no profile
+typecheck  unresolved  no profile: .meowpaw/profile.toml doesn't exist; write it, declaring each verb under [verbs]
+
+$ meow-verbs status          # with a profile declaring only test
+typecheck  unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
+
+$ sh bin/meow-verbs status   # the launcher alone, with no binary
+fmt        unresolved  no interpreter: no meow binary was found for this machine, Darwin on arm64; reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64
+lint       unresolved  no interpreter: no meow binary was found for this machine, Darwin on arm64; reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64
+```
+
+Every unit's fixtures pass: meow-verbs 13, meow-scm 15, meow-git 17 and
+meow-method 113, and the crate's own tests pass.
 
 ## Left alone
 
