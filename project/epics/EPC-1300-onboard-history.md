@@ -35,8 +35,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1920 the onboard command reads the forge history and recovers what it states
+- [x] T-001 TSK-1920 the onboard command reads the forge history and recovers what it states
       closes: REQ-3110, REQ-3112, REQ-3128
+      evidence: 3 requirements traced to three rules, in #365.
 
 ## Coverage
 

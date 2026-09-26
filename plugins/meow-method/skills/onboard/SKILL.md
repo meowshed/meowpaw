@@ -15,9 +15,12 @@ does as though somebody had decided it must.
    resolve; where `.meowpaw/profile.toml` is missing, stop and say to run
    `/meow-method:init` first.
 2. Read the repository's documentation, any harness it already has, and its
-   code, in that order.
-3. Write the vision, one specification per part of the system, and, where the
-   repository has no `CLAUDE.md`, the constitution, from the templates
+   code, in that order. Where the `meow-github` command exists, run
+   `meow-github history` and read its issues, pull requests and comments as
+   well.
+3. Write the vision, one specification per part of the system, each
+   requirement and decision the documents and the history state, and, where
+   the repository has no `CLAUDE.md`, the constitution, from the templates
    `${CLAUDE_SKILL_DIR}/../../bin/meow-method template <kind>` names.
 4. Write `onboarding.md` at the record's root from
    `${CLAUDE_SKILL_DIR}/../../bin/meow-method template onboarding`, as a
@@ -66,4 +69,16 @@ does as though somebody had decided it must.
   record and the strongest evidence of what was decided.
 - B12. Write every requirement and decision you recover as a draft, because a
   person's approval is what affirms it, never the step that recovered it.
+- B13. Recover a draft requirement for each obligation a document, an issue or
+  a pull request states, citing the file, or the issue or comment by its
+  address, and none from code alone, because a person wrote the obligation
+  down and code states only what the system does.
+- B14. Recover a draft decision for each choice a document, an issue or a pull
+  request records with the alternative it rejected, citing the discussion,
+  and read a pull request closed without merging as a rejected alternative,
+  because code keeps only the option that won.
+- B15. Where the `meow-github` command doesn't exist, report the forge history
+  as unread in the report's gaps and name `meow-github` as the pack that
+  would read it, because history left unread reads as history holding
+  nothing.
 </rules>
