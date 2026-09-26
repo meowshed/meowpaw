@@ -39,8 +39,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-2010 a decision postpones requirements, and each verification revisits them
+- [x] T-001 TSK-2010 a decision postpones requirements, and each verification revisits them
       closes: REQ-0325
+      evidence: four fixtures and V13 in the verify step, in #395.
 
 ## Coverage
 

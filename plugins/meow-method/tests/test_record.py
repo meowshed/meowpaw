@@ -232,12 +232,12 @@ class Checks(unittest.TestCase):
         self.found(repository.run("check", "front-matter"), "front-matter",
                    "project/requirements/REQ-0001-an-obligation.md:7: carries priority, which a requirement never does")
 
-    def test_a_decision_must_address_a_requirement(self):
+    def test_a_decision_must_address_or_postpone_a_requirement(self):
         repository = self.repo()
         repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", "addresses: []")
-        done = repository.run("check", "front-matter")
+        done = repository.run("check", "rules")
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("project/adrs/ADR-0001-a-choice.md:6: addresses is empty, and a decision must fill it", done.stdout)
+        self.assertIn("project/adrs/ADR-0001-a-choice.md:6: addresses no requirement and postpones none", done.stdout)
 
     def test_a_defect_carries_its_triage_and_no_priority(self):
         repository = self.repo()
@@ -365,7 +365,7 @@ class Checks(unittest.TestCase):
         self.verified(repository)
         repository.write("requirements/REQ-0002-another.md",
                          (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8").replace("REQ-0001", "REQ-0002"))
-        self.assertIn("Requirements\n  2 in force: 1 verified, 0 closed and not yet verified, 0 in a task not yet done, 1 checked by nothing\n",
+        self.assertIn("Requirements\n  2 in force: 1 verified, 0 closed and not yet verified, 0 in a task not yet done, 0 postponed, 1 checked by nothing\n",
                       repository.run("status").stdout)
 
     def test_status_withholds_verified_from_an_epic_check_reports_on(self):
@@ -603,6 +603,38 @@ class Checks(unittest.TestCase):
     def test_onboarding_adoption_is_numbered_steps(self):
         self.found(self.onboarded("1. Declare the verbs.", "Declare the verbs.").run("check", "rules"), "rules",
                    "project/onboarding.md:31: has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working")
+
+    def postponing(self, fields="postpones: [REQ-0002]"):
+        repository = self.repo()
+        requirement = (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8")
+        repository.write("requirements/REQ-0002-a-later-one.md", requirement.replace("REQ-0001", "REQ-0002"))
+        decision = (repository.root / "adrs/ADR-0001-a-choice.md").read_text(encoding="utf-8")
+        repository.write("adrs/ADR-0002-not-now.md", decision.replace("ADR-0001", "ADR-0002").replace("addresses: [REQ-0001]", f"addresses: []\n{fields}"))
+        return repository
+
+    def test_a_postponed_requirement_is_derived_and_counted(self):
+        repository = self.postponing()
+        shown = repository.run("show", "REQ-0002")
+        self.assertIn("State\n  postponed by ADR-0002\n", shown.stdout)
+        status = repository.run("status").stdout
+        self.assertIn("ADR-0002", status)
+        self.assertIn("postponing: 1 requirement, revisited at each verification", status)
+        self.assertIn("2 in force: 0 verified, 0 closed and not yet verified, 1 in a task not yet done, 1 postponed, 0 checked by nothing", status)
+        for check in ("rules", "coverage"):
+            done = repository.run("check", check)
+            self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_postponed_requirement_a_task_closes_is_no_longer_postponed(self):
+        repository = self.postponing()
+        repository.edit("tasks/TSK-0001-a-task.md", "    REQ-0001,", "    REQ-0001,\n    REQ-0002,")
+        shown = repository.run("show", "REQ-0002").stdout
+        self.assertIn("State\n  in a task not yet done\n", shown)
+        self.assertNotIn("postponed by", shown)
+
+    def test_a_decision_addressing_and_postponing_nothing_is_reported(self):
+        repository = self.postponing(fields="postpones: []")
+        self.found(repository.run("check", "rules"), "rules",
+                   "project/adrs/ADR-0002-not-now.md:6: addresses no requirement and postpones none, where a decision does one or both")
 
     def test_a_task_added_after_approval_says_why(self):
         repository = self.repo()

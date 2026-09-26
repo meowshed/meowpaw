@@ -48,4 +48,8 @@ it up is review.
 - V12. Name the revision a check ran at by the pull request that last
   merged into the trunk, never by a commit hash, because a squash rebuilds
   the commit and the hash stops resolving.
+- V13. List every requirement an approved decision postpones, with the
+  condition its What would reverse it section gives, and ask the person
+  whether that condition now holds, because a verification is the only point
+  at which anything looks at a postponement again.
 </rules>
