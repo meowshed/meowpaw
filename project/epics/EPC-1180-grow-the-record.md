@@ -49,8 +49,10 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: five fixtures, and the next identifiers on this repository,
       in #253.
 
-- [ ] T-003 TSK-1640 search the record, and search it first
+- [x] T-003 TSK-1640 search the record, and search it first
       closes: REQ-0636, REQ-1600, REQ-1601, REQ-1602, REQ-1604, REQ-1606, REQ-1608
+      evidence: three fixtures, `find` on this repository, and M7 to M9, in
+      #254.
 
 ## Coverage
 

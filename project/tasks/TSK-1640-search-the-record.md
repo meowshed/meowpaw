@@ -28,7 +28,38 @@ Nothing. ADR-1180 is approved.
 
 ## Evidence
 
-Not yet.
+`meow record find <word>...` ranks the record's artifacts by how many of the
+words their identifier, title and conclusion carry, prints one line each,
+identifier, kind, status and heading, at most twenty, and never a body. The
+`method` skill gains three rules:
+
+| Requirement | Carried by                                                             |
+| ----------- | ---------------------------------------------------------------------- |
+| REQ-1600    | M7: search before you write                                            |
+| REQ-1601    | M7: specific words, independent searches at once                       |
+| REQ-1602    | `find` prints headings; M7 reads a body with `show` only when relevant |
+| REQ-1606    | M8: follow or amend a decision found                                   |
+| REQ-1608    | M9: write a durable finding back                                       |
+| REQ-1604    | M9: the record is the only memory the method keeps                     |
+| REQ-0636    | `find` answers growth with search, and nothing is deleted              |
+
+```text
+$ meow-method find approval gate
+REQ-0204 requirement, approved: The command that drives the chain MUST stop at every approval gate, exactly as the individual step would.
+ADR-1130 decision, approved: The chain runs as steps that a program gates
+ADR-1170 decision, approved: An approval is a stored status that a check holds frozen, and a session opens with what waits for one
+BUG-1150 defect, approved: The crate's tests could share a temporary directory, so the gate failed at random
+EPC-1100 epic, approved: The method's chain, gated by the record
+
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 81 tests in 4.848s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=78, errors=3)
+```
+
+The prompt check reports plugins/meow-method/skills/method/SKILL.md:49: <word> is not in the vocabulary SPC-1010 states, and the budget meow-method: 385 of 500 characters on every turn.
 
 ## Left alone
 

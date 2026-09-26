@@ -45,4 +45,15 @@ don't overrule it.
 - M6. Never take silence, a change of subject or an unrelated instruction as
   approval: only a person saying so approves, because an inferred approval is
   one nobody gave.
+- M7. Before you write, search the record with `meow-method find` and a few
+  specific words, several independent searches at once, and read a whole
+  artifact with `meow-method show` only when its heading is relevant, because a
+  search after writing is a consistency check and one before changes the
+  answer.
+- M8. Follow a decision the search finds, or amend it through its own record,
+  and never ignore it, because an ignored decision is one the record says holds
+  and the work says doesn't.
+- M9. Write a durable finding back into the artifact it belongs to, because the
+  record is the only memory the method keeps, and a finding left in the
+  conversation is lost with it.
 </rules>
