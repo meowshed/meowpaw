@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-method index -->
 
-31 decisions in all: 31 approved.
+32 decisions in all: 31 approved, 1 draft.
 
 | Identifier                                                                                           | What it concluded                                                                                      | Status   |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------- |
@@ -48,6 +48,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1280](ADR-1280-onboarding-finishes-by-removing-what-it-placed.md)                               | Onboarding finishes by removing what it placed, once the report is approved                            | approved |
 | [ADR-1290](ADR-1290-a-github-pack-reads-a-repositorys-history.md)                                    | A GitHub pack reads a repository's history, and writes nothing                                         | approved |
 | [ADR-1300](ADR-1300-onboarding-reads-what-the-history-states.md)                                     | Onboarding reads what the documents and the forge history state, and recovers it as drafts             | approved |
+| [ADR-1310](ADR-1310-the-github-pack-projects-an-approved-epic-onto-issues.md)                        | The GitHub pack projects an approved epic's tasks onto issues, and reports where the two disagree      | draft    |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070.
 <!-- /meow-method index -->

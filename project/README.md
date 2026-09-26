@@ -131,6 +131,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1300](adrs/ADR-1300-onboarding-reads-what-the-history-states.md):
   onboarding reads what the documents and the forge history state, and
   recovers it as drafts.
+- [ADR-1310](adrs/ADR-1310-the-github-pack-projects-an-approved-epic-onto-issues.md):
+  the GitHub pack projects an approved epic's tasks onto issues, and reports
+  where the two disagree.
 
 ## Specifications
 
@@ -266,6 +269,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1290](epics/EPC-1290-github-pack.md) realised ADR-1290 in one task, TSK-1910, closed with evidence, and was verified against every acceptance criterion under issue 362.
 
 [EPC-1300](epics/EPC-1300-onboard-history.md) realised ADR-1300 in one task, TSK-1920, closed with evidence, and was verified against every acceptance criterion under issue 368.
+
+[EPC-1310](epics/EPC-1310-project-tasks.md) realises ADR-1310 in three tasks,
+TSK-1930 to TSK-1950, each filed as an issue.
 
 ## Defects
 

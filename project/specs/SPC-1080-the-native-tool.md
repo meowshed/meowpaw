@@ -23,6 +23,28 @@ states:
     REQ-0040,
     REQ-0074,
     REQ-0076,
+    REQ-1350,
+    REQ-1351,
+    REQ-1352,
+    REQ-1353,
+    REQ-1354,
+    REQ-1355,
+    REQ-1356,
+    REQ-1360,
+    REQ-1368,
+    REQ-1372,
+    REQ-1376,
+    REQ-1378,
+    REQ-1380,
+    REQ-1382,
+    REQ-1384,
+    REQ-1386,
+    REQ-1388,
+    REQ-1392,
+    REQ-1394,
+    REQ-1396,
+    REQ-1400,
+    REQ-1402,
     REQ-1485,
     REQ-1720,
     REQ-1722,
@@ -204,6 +226,22 @@ conversation comments and review comments through `gh api` with
 name and fails by name on a missing one (REQ-2556), writes nothing to the
 forge (REQ-2832), and reports a refused or impossible read as unread, naming
 the listing, with no partial document (ADR-1290).
+
+### Projecting the record onto a tracker
+
+The record is the system of record and a tracker a projection of it, and the
+method completes with none (REQ-1372, REQ-1376, REQ-1380). A repository
+declares its tracker as `[tracker] kind` in its profile (REQ-1351).
+`meow-github project <epic>` projects an approved epic's tasks, one issue each,
+citing the requirements and dependencies and marked as a synchronisation's
+write, and records `issue:` and `projected:` on the task, reading each issue
+back (REQ-1350, REQ-1352, REQ-1354, REQ-1356, REQ-1360, REQ-1368, REQ-1382,
+REQ-1384, REQ-1386, REQ-1396). A replay changes nothing, a changed task
+updates its issue, an edited issue is reported and left, a closed issue on an
+unmarked task is reported, the issue's state is the tracker's and never
+written, and `--check` computes the state on demand and writes nothing
+(REQ-1353, REQ-1355, REQ-1378, REQ-1388, REQ-1392, REQ-1394, REQ-1400). The
+docs give the `gh` commands that project a task by hand (REQ-1402) (ADR-1310).
 
 ### Quality attributes
 
