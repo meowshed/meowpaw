@@ -138,7 +138,11 @@ stays, because it runs whatever the model did.
    convention as undeclared, and passes nothing as meeting a convention.
 4. With the interpreter missing, it reports that it couldn't check, and exits
    non-zero.
-5. This repository's last ten commits on `main` pass `check-message`.
+5. Run over this repository's last ten commits on `main`, `check-message`
+   reports each one that breaks the declared convention and passes the rest.
+   When this record was drafted, two of those ten did: the subjects of #119
+   and #107 ran to 78 and 76 characters, past the limit of 72, because the
+   pull request's number is added after the subject is written.
 6. `.claude/skills/commits/` is gone, and a session asked to write a commit
    message loads `meow-scm:commit` and runs the check.
 
