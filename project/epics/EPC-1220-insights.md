@@ -38,8 +38,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1730 the record keeps an insight, its shape checked
+- [x] T-001 TSK-1730 the record keeps an insight, its shape checked
       closes: REQ-0568, REQ-0569, REQ-0571, REQ-0574, REQ-0576
+      evidence: five fixtures, the kind, its rules and its template, in #291.
 
 - [ ] T-002 TSK-1740 the method says when to write an insight and how to find one
       closes: REQ-0570, REQ-0572, REQ-0577, REQ-0578, REQ-0580

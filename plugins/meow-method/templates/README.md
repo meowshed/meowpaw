@@ -15,6 +15,7 @@ and `meow-method template <kind>` prints the one in force.
 | `epic.md`         | Epic          | A record, its marks kept current     |
 | `task.md`         | Task          | A record, its evidence added on done |
 | `bug.md`          | Defect        | A record                             |
+| `insight.md`      | Insight       | A record, written when learned       |
 
 Every template opens with a paragraph or section that lets a reader stop:
 what the artifact covers and what it doesn't. A section may be answered

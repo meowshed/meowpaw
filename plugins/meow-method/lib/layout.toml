@@ -106,3 +106,12 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
 forbidden_fields = ["priority"]
+
+[[kind]]
+name = "insight"
+artifact = "insight"
+prefix = "INS"
+dir = "insights"
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+sections = ["Evidence", "What looked right", "The pattern"]
+rules = ["title-states-claim", "evidence-measured", "ends-with-pattern"]
