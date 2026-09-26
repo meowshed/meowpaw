@@ -309,6 +309,15 @@ class Checks(unittest.TestCase):
         repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
                         f"## Tasks\n\n- [{mark}] T-001 TSK-0001 the task\n      closes: REQ-0001{extra}")
 
+    def test_a_task_marked_parallel_and_done_carries_evidence(self):
+        """BUG-1180: a task marked [P] is read with its mark, so its evidence is checked."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
+                        "## Tasks\n\n- [x] T-001 [P] TSK-0001 the task\n      closes: REQ-0001")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
+        self.found(repository.run("check", "rules"), "rules",
+                   'project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
+
     def test_a_task_marked_done_carries_evidence(self):
         repository = self.repo()
         self.mark(repository, "x")
@@ -842,6 +851,16 @@ class Show(unittest.TestCase):
         done = repository.run("show", "REQ-0001")
         self.assertEqual(done.returncode, 0)
         self.assertIn("REQ-0001 requirement, withdrawn:", done.stdout)
+
+    def test_a_task_marked_parallel_is_read_with_its_mark(self):
+        """BUG-1180, REQ-0584: a task marked [P] derives its requirement's state from its mark."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
+                        "## Tasks\n\n- [x] T-001 [P] TSK-0001 the task\n      closes: REQ-0001")
+        done = repository.run("show", "REQ-0001")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("TSK-0001 done in EPC-0001", done.stdout)
+        self.assertNotIn("in a task not yet done", done.stdout)
 
     def test_an_identifier_with_no_artifact_resolves_to_nothing(self):
         done = self.repo().run("show", "REQ-0999")

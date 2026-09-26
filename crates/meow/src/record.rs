@@ -1139,7 +1139,7 @@ fn section_lines<'a>(doc: &'a Doc, name: &str) -> Vec<(usize, &'a str)> {
 /// Each task entry an epic lists: its line, its mark, its task and the whole
 /// entry with its continuation lines.
 fn entries(epic: &Doc) -> Vec<(usize, char, String, String)> {
-    let head = Regex::new(r"^- \[(.)\] T-\d+ (TSK-\d{4})").expect("entry pattern");
+    let head = Regex::new(r"^- \[(.)\] T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern");
     let mut out: Vec<(usize, char, String, String)> = Vec::new();
     for (i, line) in epic.text.lines().enumerate() {
         if let Some(c) = head.captures(line) {
@@ -1327,9 +1327,9 @@ fn kind_of<'a>(record: &'a Record, doc: &Doc) -> &'a str {
 }
 
 /// Each task an epic lists, with the mark it carries: `x` done, `~` dropped,
-/// and anything else open.
+/// and anything else open. A `[P]` marking a parallel task is read past.
 fn marks(epic: &Doc) -> Vec<(String, char)> {
-    let line = Regex::new(r"(?m)^- \[(.)\] T-\d+ (TSK-\d{4})").expect("mark pattern");
+    let line = Regex::new(r"(?m)^- \[(.)\] T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("mark pattern");
     line.captures_iter(&epic.text)
         .filter_map(|c| Some((c.get(2)?.as_str().to_string(), c.get(1)?.as_str().chars().next()?)))
         .collect()
