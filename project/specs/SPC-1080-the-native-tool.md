@@ -45,6 +45,13 @@ states:
     REQ-1758,
     REQ-1762,
     REQ-1766,
+    REQ-2556,
+    REQ-2558,
+    REQ-2560,
+    REQ-2564,
+    REQ-2826,
+    REQ-2832,
+    REQ-2906,
     REQ-3178,
   ]
 ---
@@ -186,6 +193,17 @@ REQ-0028, REQ-0030). A capability that isn't available is reported as
 unresolved or unchecked, never replaced by a weaker one, and the report names
 what would supply it: the profile's `[verbs]` for a verb, a reinstall for a
 missing binary (REQ-0036, REQ-0038, REQ-0040) (ADR-1270).
+
+### Reading a forge's history
+
+The feature `github` carries `history`, which `meow-github` ships: it reads a
+GitHub repository's issues, pull requests with whether each merged,
+conversation comments and review comments through `gh api` with
+`--paginate --slurp --cache 1h`, and prints them as one JSON document
+(REQ-2826, REQ-2906, REQ-2558, REQ-2560, REQ-2564). It takes each field by
+name and fails by name on a missing one (REQ-2556), writes nothing to the
+forge (REQ-2832), and reports a refused or impossible read as unread, naming
+the listing, with no partial document (ADR-1290).
 
 ### Quality attributes
 
