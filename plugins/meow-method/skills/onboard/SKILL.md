@@ -25,6 +25,9 @@ does as though somebody had decided it must.
 5. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-method check` and fix what it
    reports in what you wrote.
 6. Report the verbs, the gaps and the disposition of every document, and stop.
+   Say that once the report is approved,
+   `${CLAUDE_SKILL_DIR}/../../bin/meow-method onboarding remove` removes what it
+   placed.
 </steps>
 
 <rules name="onboard">
@@ -57,4 +60,10 @@ does as though somebody had decided it must.
 - B10. Stop at the report as a draft, handing over the gaps and the
   disposition of every document, and wait for approval, because a person
   decides what the repository becomes.
+- B11. Migrate a record the repository keeps in a format of its own, such as a
+  folder of decision records or a task list, to the artifact kind that holds
+  it, one artifact per record, because left in its old format it is a second
+  record and the strongest evidence of what was decided.
+- B12. Write every requirement and decision you recover as a draft, because a
+  person's approval is what affirms it, never the step that recovered it.
 </rules>
