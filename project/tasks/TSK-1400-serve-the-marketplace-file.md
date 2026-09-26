@@ -87,10 +87,24 @@ $ cmp <(curl -fsSL https://meow.retran.me/meowpaw/marketplace.json) <(curl -fsSL
 served file matches the release's
 ```
 
-Still to show: a release that raises a unit's version, installed by
-`marketplace update` and `plugin update`. No unit has changed since the last
-release, so it waits for the next change to one. The `marketplace` release's
-notes now give the address, where they gave the download form.
+The `marketplace` release's notes now give the address, where they gave the
+download form.
+
+BUG-1130's fix raised `meow-method` to 0.1.1 (#182), and release run
+36238738539 published it and dispatched site run 36238875657, after which the
+address served `meow-method-v0.1.1/meow-method-0.1.1.zip`. In the container
+that had installed 0.1.0 from the address:
+
+```text
+$ claude plugin marketplace update meowpaw
+✔ Successfully updated marketplace: meowpaw
+$ claude plugin update meow-method@meowpaw
+✔ Plugin "meow-method" updated from 0.1.0 to 0.1.1 for scope user. Restart to apply changes.
+$ meow-method check front-matter      # one planted defect
+front-matter: 1 finding
+```
+
+Nothing was downloaded by hand, which closes REQ-1485.
 
 ## Left alone
 
