@@ -29,7 +29,30 @@ Nothing. ADR-1280 is approved.
 
 ## Evidence
 
-Not yet.
+`meow-method onboarding remove` reads the onboarding report's Documents table.
+Three fixtures, each seen passing against the program and failing against a
+stub that returns nothing, run over a repository holding four documents, one
+for each outcome:
+
+- On an approved report it removes the migrated, discarded and superseded
+  documents, keeps the cited one, and prints exactly `before: 4 documents`,
+  one `removed <path> (<outcome>)` line each, and `after: 1 document`.
+- On a draft report it exits 1, says nothing is removed before a person
+  approves, and all four documents remain.
+- Where the migrated document's destination is an identifier with no file, it
+  exits 1 naming the document and the destination, and all four remain.
+
+It checks every destination before removing anything, so a refusal leaves the
+tree as it was, and it commits nothing.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 116 tests in 7.480s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=112, errors=3)
+```
 
 ## Left alone
 

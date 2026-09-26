@@ -36,8 +36,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1890 remove the documents an approved onboarding report placed
+- [x] T-001 TSK-1890 remove the documents an approved onboarding report placed
       closes: REQ-3118, REQ-3120, REQ-3122, REQ-3124, REQ-3126
+      evidence: three fixtures, the removal and both refusals, in #351.
 
 - [ ] T-002 TSK-1900 the onboard command migrates an existing record and writes drafts
       closes: REQ-3114, REQ-3116
