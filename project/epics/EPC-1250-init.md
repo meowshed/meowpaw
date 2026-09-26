@@ -38,8 +38,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-1810 the init command and the profile template
+- [x] T-001 TSK-1810 the init command and the profile template
       closes: REQ-1560, REQ-1563
+      evidence: the template, the command and a fixture, in #319.
 
 - [ ] T-002 TSK-1820 the init command reports before it writes and chooses nothing
       closes: REQ-1554, REQ-1561, REQ-1562, REQ-1564

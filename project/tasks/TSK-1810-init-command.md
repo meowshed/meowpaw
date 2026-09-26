@@ -28,7 +28,27 @@ Nothing. ADR-1250 is approved.
 
 ## Evidence
 
-Not yet.
+`templates/profile.toml` holds the sections `[verbs]`, `[commits]`, `[git]`,
+`[record]` and `[prose]`, each value commented out with what fills it, so the
+file parses before and after init fills it. `meow-method template profile`
+prints its path, and a repository's own `.meowpaw/templates/profile.toml` wins
+as every template does. A fixture reads the template and finds each section
+and none of fifteen language, tool and extension names; it fails against a
+stub that returns nothing.
+
+`skills/init/SKILL.md` carries `disable-model-invocation: true`, found
+1 time, so only a person starts it. Its rule N1 names the two files it
+writes, `.meowpaw/profile.toml` and a missing `CLAUDE.md`, and forbids
+everything else REQ-1563 lists. The prompt check passes it in the gate.
+
+```text
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 106 tests in 6.792s
+OK
+
+$ MEOW_METHOD_BIN=stub/meow-method python3 -m unittest discover -s plugins/meow-method/tests
+FAILED (failures=103, errors=3)
+```
 
 ## Left alone
 
