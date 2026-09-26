@@ -115,6 +115,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1240](adrs/ADR-1240-a-change-to-the-records-shape-migrates-what-exists.md):
   a change to the record's shape migrates what exists, and a retired name stays
   retired.
+- [ADR-1250](adrs/ADR-1250-init-writes-a-profile-and-a-constitution-from-what-the-repository-holds.md):
+  `/meow-method:init` writes a profile and a constitution from what the
+  repository holds.
 
 ## Specifications
 
@@ -238,6 +241,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1230](epics/EPC-1230-reading-order.md) realised ADR-1230 in three tasks, TSK-1750 to TSK-1770, each closed with evidence, and was verified against every acceptance criterion under issue 306.
 
 [EPC-1240](epics/EPC-1240-migrations.md) realised ADR-1240 in three tasks, TSK-1780 to TSK-1800, each closed with evidence, and was verified against every acceptance criterion under issue 316.
+
+[EPC-1250](epics/EPC-1250-init.md) realises ADR-1250 in three tasks,
+TSK-1810 to TSK-1830, each filed as an issue.
 
 ## Defects
 

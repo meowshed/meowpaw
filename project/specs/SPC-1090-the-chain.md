@@ -167,6 +167,12 @@ states:
     REQ-1254,
     REQ-1256,
     REQ-1258,
+    REQ-1554,
+    REQ-1560,
+    REQ-1561,
+    REQ-1562,
+    REQ-1563,
+    REQ-1564,
     REQ-2130,
     REQ-2131,
     REQ-2132,
@@ -231,11 +237,13 @@ states:
     REQ-2920,
     REQ-2922,
     REQ-2926,
+    REQ-3098,
     REQ-3100,
     REQ-3104,
     REQ-3106,
     REQ-3108,
     REQ-3172,
+    REQ-3180,
   ]
 ---
 
@@ -386,6 +394,18 @@ names: `.meowpaw/templates/<kind>.md` where the repository has it, and the
 unit's `templates/<kind>.md` otherwise (REQ-0526, REQ-0528). The kinds are
 `research`, `requirement`, `adr`, `spec`, `epic`, `task`, `bug`, `vision` and
 `constitution`.
+
+### Bringing a repository in
+
+`/meow-method:init`, a command only a person invokes, writes
+`.meowpaw/profile.toml` from `meow-method template profile` and, where none
+exists, `CLAUDE.md` from the constitution template, and nothing else (REQ-1560,
+REQ-1563). It reports which verbs resolve before anything else (REQ-1554),
+reports an inconsistent convention as its variants and chooses none, records
+the layout and templates it finds (REQ-1561, REQ-1562), and on a second run
+shows what would change and writes nothing without agreement (REQ-1564). An
+empty record's coverage is reported as zero, never complete (REQ-3098), and no
+unit writes into the repository to run itself (REQ-3180) (ADR-1250).
 
 ## Failure paths
 
