@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit)",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-git commit-guard",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-git commit-guard",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push)",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-git push-guard",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push *)",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-git push-guard",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

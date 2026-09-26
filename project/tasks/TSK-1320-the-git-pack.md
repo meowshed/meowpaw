@@ -42,8 +42,40 @@ Nothing. ADR-1090 and SPC-1060 are approved, and `meow-scm` exists.
 
 ## Evidence
 
-Not yet. The task closes on the fixtures passing, each shown first failing,
-and on this repository's own branch being pushed through the hook.
+`plugins/meow-git/` carries the manifest, a budget of 0 characters, the two
+hooks in `hooks/hooks.json`, each on both the bare command and the command with
+arguments, the launcher `bin/meow-git`, the program `lib/meow_git.py` and
+twelve fixtures in `tests/test_git.py`. Each fixture builds a scratch
+repository with a bare remote, and the signature cases sign with throwaway
+keys, so none depends on the owner's key. The page is `docs/meow-git.md`, the
+pack is in the marketplace at 0.1.0, this repository declares
+`trunk = "main"` and `require_signatures = true`, and its `test` verb runs the
+pack's fixtures.
+
+Building it showed a verdict SPC-1060 didn't foresee: with no list of allowed
+signers configured, `git` reports a signed commit's verdict as `N`, "no
+signature". The guard reads the commit object as well, so a signed commit is
+reported as unverifiable there and never as unsigned (REQ-2530).
+
+Each fixture was first seen failing against a launcher that returns nothing,
+then passing against the program. The first stub run found one fixture that
+passed on the exit status alone; the guard now names the branch it let
+through, and the fixture asserts that line:
+
+```text
+$ MEOW_GIT_BIN=stub/meow-git python3 -m unittest discover -s plugins/meow-git/tests
+FAILED (failures=12)
+
+$ python3 -m unittest discover -s plugins/meow-git/tests
+Ran 12 tests in 3.290s
+OK
+
+$ printf '{"cwd": "..."}' | plugins/meow-git/bin/meow-git push-guard   # this branch
+meow-git push-guard: 1 commit checked
+exit 0
+```
+
+REQ-0079, REQ-1292, REQ-1326 and REQ-2530 are closed.
 
 ## Left alone
 
