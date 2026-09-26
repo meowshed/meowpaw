@@ -1,11 +1,11 @@
 ---
 id: TSK-1600
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1170
 closes: [REQ-0392, REQ-0394, REQ-0402]
-issue:
+issue: 243
 ---
 
 # Report what waits for approval when a session starts

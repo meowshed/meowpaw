@@ -1,11 +1,11 @@
 ---
 id: TSK-1610
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1170
 closes: [REQ-0390, REQ-0400]
-issue:
+issue: 244
 ---
 
 # The method skill stops at approval and never infers one
