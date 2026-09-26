@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1110
-checked-at:
+checked-at: "#160"
 ---
 
 # One native tool for every unit's program
@@ -70,7 +70,29 @@ A task is marked in the commit that advances it, never in a later pass.
   crate, and called by the release
   added: the verification under #160 found criterion 2 met only by the
   release run by hand, because T-004 put the matrix there.
+  evidence: Build run 36233014435 on the pull request and release run
+  36233124490 calling it, all six targets built, in #161.
   depends: TSK-1380 - it moves the matrix that task wrote
+
+## Verified
+
+Checked under issue 160 at revision `c00ebc8`, with evidence gathered there and
+not carried over from the tasks. Every criterion is met:
+
+| Criterion                                                    | Evidence at `c00ebc8`                                                                                                                                                             |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. The units' fixtures, unchanged, pass on the Rust binary   | `python3 -m unittest discover` ran 12, 14 and 12 tests for meow-verbs, meow-scm and meow-git, each `OK`; `git diff 409d597 HEAD` over their `tests/` is empty                     |
+| 2. The crate builds for all six targets in CI                | Build run 36233253734, started by the push of `c00ebc8` to `main`, built all six targets                                                                                          |
+| 3. A unit from a published archive runs with no interpreter  | In `debian:bookworm-slim` on aarch64, `python3` and `node` absent, meow-verbs, meow-scm and meow-git installed from the release and ran: `run test` passed, `push-guard` exited 0 |
+| 4. With no binary, every check is unrun                      | Launchers copied without `bin/<target>/`: meow-verbs exits 3 with `test unresolved`, meow-scm exits 3 with `unchecked`, meow-git exits 0 with `unrun`                             |
+| 5. No binary in history, the Python programs gone            | `git log --all --name-only` finds 0 paths under `plugins/*/bin/<target>/`; `git ls-files 'plugins/*.py'` outside `tests/` finds 0                                                 |
+| 6. Each archive's size is published                          | The `marketplace` release lists all six archives with their bytes and SHA-256                                                                                                     |
+| 7. Every requirement in one closed task, nothing outstanding | `tools/check_coverage.py`: EPC-1080 4 of 4, 0 coverage failures; the front matter, identifier, index and link checks report 0 failures                                            |
+
+The install in criterion 3 ran against the release published from `a11d08e`,
+and nothing under `crates/` or `plugins/` changed between that revision and
+`c00ebc8`. `mise run all` exited 101 twice at `c00ebc8`, and then 0 on four
+runs, with no failing task in the passing runs' output. The cause is unknown.
 
 ## Coverage
 
