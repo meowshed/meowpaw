@@ -202,8 +202,7 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1160](epics/EPC-1160-step-obligations.md) realised ADR-1160 in seven tasks, TSK-1520 to TSK-1580, each closed with evidence, and was verified against every acceptance criterion under issue 237.
 
-[EPC-1170](epics/EPC-1170-approvals-held.md) is approved and realises ADR-1170 in three
-tasks, TSK-1590 to TSK-1610, each filed as an issue.
+[EPC-1170](epics/EPC-1170-approvals-held.md) realised ADR-1170 in three tasks, TSK-1590 to TSK-1610, each closed with evidence, and was verified against every acceptance criterion under issue 249.
 
 ## Defects
 
