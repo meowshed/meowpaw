@@ -41,7 +41,7 @@ A run with one finding prints it and each check's count:
 
 ```text
 project/tasks/TSK-0001-a-task.md:4: status done is not one a task stores: draft, approved, withdrawn, rejected, superseded
-front-matter: 1 findings
+front-matter: 1 finding
 identifiers: 0 findings
 relations: 0 findings
 index: 0 findings

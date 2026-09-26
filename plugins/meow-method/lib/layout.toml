@@ -83,7 +83,9 @@ name = "defect"
 artifact = "bug"
 prefix = "BUG"
 dir = "bugs"
-fields = ["violates", "severity", "found"]
+# `violates` is left out where no requirement covers the defect yet, as the
+# defect template says, so it isn't required.
+fields = ["severity", "found"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["What the system does", "What it should do, and why", "Reproduction"]
