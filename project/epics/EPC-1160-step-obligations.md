@@ -46,8 +46,9 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0249, REQ-0250, REQ-0251, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0566, REQ-0613, REQ-2638, REQ-2652, REQ-2694, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862, REQ-2888, REQ-2890
       evidence: 30 requirements traced to labelled rules, in #223.
 
-- [ ] T-003 TSK-1540 the epic step carries its obligations
+- [x] T-003 TSK-1540 the epic step carries its obligations
       closes: REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172
+      evidence: 23 requirements traced to labelled rules, in #224.
 
 - [ ] T-004 TSK-1550 the implement and document steps carry their obligations
       closes: REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0290, REQ-0292, REQ-0298, REQ-0300, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104
