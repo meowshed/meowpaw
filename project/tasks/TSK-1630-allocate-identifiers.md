@@ -1,11 +1,11 @@
 ---
 id: TSK-1630
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1180
 closes: [REQ-0548, REQ-0550]
-issue:
+issue: 253
 ---
 
 # Allocate the next identifier

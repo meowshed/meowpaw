@@ -29,7 +29,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1150](ADR-1150-the-record-answers-what-an-identifier-is-and-what-cites-it.md)                   | The record answers what an identifier is and what cites it, and a closed task carries its evidence     | approved                      |
 | [ADR-1160](ADR-1160-each-step-carries-its-own-obligations.md)                                        | Each step's file carries the obligations of its step, and each template those of its kind              | approved                      |
 | [ADR-1170](ADR-1170-an-approval-is-a-stored-status-a-check-holds-frozen.md)                          | An approval is a stored status that a check holds frozen, and a session opens with what waits for one  | approved                      |
-| [ADR-1180](ADR-1180-the-record-grows-by-program-indexed-allocated-and-searched.md)                   | The record grows by program: its indexes generated, its identifiers allocated and its content searched | draft                         |
+| [ADR-1180](ADR-1180-the-record-grows-by-program-indexed-allocated-and-searched.md)                   | The record grows by program: its indexes generated, its identifiers allocated and its content searched | approved                      |
 
 The design step has run twice against the requirements as they now stand. It
 produced fifty records earlier, and this repository no longer carries them:

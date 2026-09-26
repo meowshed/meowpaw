@@ -1,11 +1,11 @@
 ---
 id: TSK-1620
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-26
 epic: EPC-1180
 closes: [REQ-0522, REQ-0523, REQ-0575, REQ-2870, REQ-2871, REQ-2872, REQ-2873]
-issue:
+issue: 252
 ---
 
 # Generate each kind's index and check it for drift
