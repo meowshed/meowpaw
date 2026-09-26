@@ -4,7 +4,30 @@ artifact: spec
 status: live
 revised: 2026-09-26
 checked-at: "#138"
-states: [REQ-0079, REQ-1292, REQ-1326, REQ-2530]
+states:
+  [
+    REQ-0079,
+    REQ-1292,
+    REQ-1296,
+    REQ-1298,
+    REQ-1306,
+    REQ-1312,
+    REQ-1320,
+    REQ-1322,
+    REQ-1324,
+    REQ-1326,
+    REQ-1328,
+    REQ-2526,
+    REQ-2528,
+    REQ-2530,
+    REQ-2534,
+    REQ-2536,
+    REQ-2538,
+    REQ-2818,
+    REQ-2820,
+    REQ-2822,
+    REQ-3176,
+  ]
 ---
 
 # The git pack
@@ -100,6 +123,22 @@ shipped as a binary inside the pack. Where the pack carries no binary for the
 machine, the launcher reports each check as unrun and lets the command
 through, because a pack that blocked every commit for a missing binary would
 punish the person for something the pack can't check.
+
+### Source-control discipline
+
+A sign-off names the commit's author, which `meow-scm check-message` holds
+where the trailer is required (REQ-1312); a branch name carries no date and no
+author, which the push guard holds (REQ-2818); a line added to the record
+cites a pull request, never a commit hash, which `meow-method check frozen`
+holds (REQ-3176); and every read of source control runs with prompting,
+paging, advice and machine-wide configuration off (REQ-2526, REQ-2528). The
+`commit` skill carries the rest: one task, one branch, one pull request and
+one squashed commit on the trunk; short-lived branches from the one trunk; no
+merge, tag, release or publish without an instruction; one branch in one
+working tree, a locked tree with its reason; a grown branch split; a force
+push over a reviewed branch disclosed; and every commit signed and signed off
+where the repository asks (REQ-1296, REQ-1298, REQ-1306, REQ-1320, REQ-1322,
+REQ-1324, REQ-1328, REQ-2534, REQ-2536, REQ-2538, REQ-2820, REQ-2822) (ADR-1320).
 
 ## Failure paths
 
