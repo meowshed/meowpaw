@@ -1,0 +1,34 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# Finds an interpreter new enough to read TOML and hands over to the program.
+# Where there is none, it reports the message as unchecked, because a message
+# nobody checked must never read as one that passed.
+
+case $0 in
+*/*) here=${0%/*} ;;
+*) here=$(command -v "$0") && here=${here%/*} ;;
+esac
+for candidate in python3.14 python3.13 python3.12 python3.11 python3; do
+  if command -v "$candidate" >/dev/null 2>&1 &&
+    "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
+    exec "$candidate" "$here/../lib/meow_scm.py" "$@"
+  fi
+done
+
+reason="Python 3.11 or later wasn't found"
+case "$1" in
+convention)
+  echo "meow-scm convention: unknown ($reason)"
+  exit 3
+  ;;
+check-message)
+  echo "meow-scm check-message: unchecked ($reason); the message was not checked"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-scm convention | meow-scm check-message [FILE]" >&2
+  exit 2
+  ;;
+esac
