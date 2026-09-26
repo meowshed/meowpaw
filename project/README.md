@@ -87,6 +87,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   the released marketplace is served from `meow.retran.me`.
 - [ADR-1130](adrs/ADR-1130-the-chain-runs-as-steps-a-program-can-gate.md): the
   method's nine steps run as one skill, gated by `meow record`.
+- [ADR-1140](adrs/ADR-1140-a-draft-meets-every-content-rule-a-frozen-record-keeps-its-own.md):
+  each kind's content rules are checked, drafts held to rules the frozen
+  record predates.
 
 ## Specifications
 
@@ -169,7 +172,10 @@ tasks, TSK-1400 and TSK-1410, each closed with evidence, and was verified
 against every acceptance criterion under issue 184.
 
 [EPC-1100](epics/EPC-1100-the-chain.md) is approved and realises ADR-1130 in
-three tasks, TSK-1420 to TSK-1440, each filed as an issue.
+three tasks, TSK-1420 to TSK-1440, each closed with evidence.
+
+[EPC-1110](epics/EPC-1110-content-rules.md) realises ADR-1140 in two tasks,
+TSK-1450 and TSK-1460, each filed as an issue.
 
 ## Defects
 
