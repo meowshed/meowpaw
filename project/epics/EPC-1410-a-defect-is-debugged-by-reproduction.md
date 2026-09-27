@@ -41,9 +41,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2160 add `meow-code:debug` with the debugging rules
+- [x] T-001 TSK-2160 add `meow-code:debug` with the debugging rules
       closes: REQ-1890, REQ-1892, REQ-1894, REQ-1896, REQ-1898, REQ-1900,
       REQ-1902
+      evidence: seven rules traced, and the skill loading first in ten of ten
+      sessions, in #469.
 
 ## Coverage
 
