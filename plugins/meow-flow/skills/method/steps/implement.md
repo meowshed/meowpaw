@@ -10,8 +10,11 @@ it up is document.
    the fix is an amendment reviewed on its own.
 3. Write a check for each requirement the task closes, seen failing first
    against a version that doesn't do the work, so the check can fail.
-4. Run the repository's verbs through `meow-verbs`, and record the command,
-   its exit status and its output under `## Evidence`.
+4. Run the repository's verbs through `meow-verbs`, then
+   `meow-verbs evidence` on them, and cite each result under `## Evidence` as
+   it printed: the verb, the outcome, the record and the tree id. Where
+   `meow-verbs` isn't installed, record the command, its exit status and its
+   output instead.
 5. Mark the task `[x]` in its epic in the same change, with one line of
    evidence.
 </steps>
@@ -31,8 +34,9 @@ it up is document.
 - I6. Where the work turns out to be uncovered by any requirement, stop and
   return to the requirements step.
 - I7. Claim the work done only with evidence: the command that ran, its
-  result, and the identifier of what it closes, because prose asserting
-  success is not evidence.
+  result, its record and tree id where `meow-verbs` recorded it, and the
+  identifier of what it closes, because prose asserting success is not
+  evidence, and a result with no tree id can't show which content it checked.
 - I8. Name in each check the requirement it proves, cover every requirement
   with a check that would fail if it were violated, check a failure path as
   precisely as its success path, and never cite coverage as evidence that a

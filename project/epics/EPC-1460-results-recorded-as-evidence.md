@@ -54,9 +54,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: six fixtures seen failing first, and `meow-verbs evidence`
       current at tree 8c370dc87ab6, in #513.
 
-- [ ] T-002 TSK-2280 cite records and check them before calling work done, in
+- [x] T-002 TSK-2280 cite records and check them before calling work done, in
       `meow-verbs:verify` and the implement step
       closes: REQ-0148
+      evidence: the skill's order, citation and check traced, and
+      `meow-verbs evidence` current at tree 2d628eaf70ea, in #514.
 
 ## Coverage
 
