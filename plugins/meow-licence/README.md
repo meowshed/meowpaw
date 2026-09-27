@@ -2,15 +2,16 @@
 reader: someone choosing or running meow-licence
 answers: what meow-licence does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-licence@0.1.0]
+describes: [meow-licence@0.2.0]
 ---
 
 # meow-licence
 
-`meow-licence` checks that every file your repository tracks is covered by
-the licensing it declares, and reports a repository that declares nothing as
-undeclared, never as covered. It installs on its own, with no other part of
-the `meowpaw` harness.
+`meow-licence` adds the licence header your repository declares to each file
+Claude Code creates, and checks that every file your repository tracks is
+covered by the licensing it declares, and reports a repository that declares
+nothing as undeclared, never as covered. It installs on its own, with no other
+part of the `meowpaw` harness.
 
 ## Install it
 
@@ -43,6 +44,16 @@ header = [
 A licence text, in `LICENSES/` or in a file named `LICENSE`, `LICENCE` or
 `COPYING`, needs no declaration, and neither does `REUSE.toml`.
 
+## Have Claude Code head new files
+
+When Claude Code creates a file in a repository that declares licensing, the
+`meow-licence:header` skill adds the header you declared, in the comment form
+the file's format permits, or in a `<file>.license` file beside a file that
+can't carry a comment. It writes the lines under `[licence]`, or where you
+declare none, copies the header your files already carry. It skips a file an
+annotation in `REUSE.toml` covers, never changes a header a file already
+carries, and where you declare nothing, writes nothing and says so.
+
 ## Run the check
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
@@ -64,7 +75,8 @@ reports licensing alone, and never who wrote a file.
 
 ## What it costs you
 
-Nothing in context on every turn. The check is a native binary shipped inside
+The skill's description costs 281 characters in context on every turn. The
+check is a native binary shipped inside
 the unit, so it needs nothing installed on the machine except git, which it
 reads the tracked files through. On a machine the unit carries no binary for,
 the check reports the repository as unchecked and exits 3.

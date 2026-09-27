@@ -47,7 +47,33 @@ TSK-2110, because the skill ships in the unit it creates.
 
 ## Evidence
 
-Not yet.
+`plugins/meow-licence/skills/header/SKILL.md` carries the skill, with a
+description stating the obligation, five steps and six labelled rules, none
+naming a requirement, a language or a tool:
+
+| Requirement | Carried by        |
+| ----------- | ----------------- |
+| REQ-1008    | L1, and step 3    |
+| REQ-1016    | step 1, and L2    |
+| REQ-1018    | L2                |
+| REQ-1020    | L1 and L3         |
+| REQ-3066    | L4 and L6, step 4 |
+| REQ-3068    | L5                |
+
+`mise run prompts` passes on 53 prompts, and `tools/check_budget.py` measures
+the description at 281 characters against the unit's new ceiling of 380. The
+unit is at 0.2.0, its description and page state the skill and its cost.
+
+In a scratch repository declaring an MIT header under `[licence]`, one Claude
+Code session on Sonnet 5, with only this copy of the unit installed, was asked
+to create `scripts/hello.sh`. It wrote the declared header below the
+interpreter line and ran the check, which reported `2 files, 0 licensing
+findings`. One run shows the skill works, not how reliably.
+
+```text
+$ plugins/meow-verbs/bin/meow-verbs run format lint test
+summary: format passed, lint passed, test passed
+```
 
 ## Left alone
 
