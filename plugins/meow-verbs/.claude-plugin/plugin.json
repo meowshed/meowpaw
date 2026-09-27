@@ -1,7 +1,7 @@
 {
   "name": "meow-verbs",
-  "version": "0.2.1",
-  "description": "Runs a repository's five verification verbs, fmt, lint, typecheck, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a verb with no command as unresolved, never as passed.",
+  "version": "0.2.2",
+  "description": "Runs a repository's five verification verbs, fmt, lint, typecheck, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a verb with no command as unresolved, never as passed. It keeps up to 450 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
