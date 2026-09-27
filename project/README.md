@@ -394,7 +394,8 @@ in two tasks, TSK-2290 and TSK-2300, each closed with evidence, and was
 verified against every acceptance criterion under issue 525.
 
 [EPC-1480](epics/EPC-1480-the-loop-reports-and-refuses.md) realises ADR-1500 in
-one task, TSK-2310.
+one task, TSK-2310, closed with evidence, and was verified against every
+acceptance criterion under issue 531.
 
 ## Defects
 
