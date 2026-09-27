@@ -33,3 +33,8 @@ kind = "github"
 # Where the record lives, for meow-method's checks (SPC-1070).
 [record]
 root = "project"
+
+# The documentation style the document step writes to (SPC-1090): the writing
+# standard meow-prose ships, which CLAUDE.md holds every text to.
+[docs]
+style = "meow-prose"
