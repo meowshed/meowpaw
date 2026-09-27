@@ -1,7 +1,7 @@
 {
   "name": "meow-code",
-  "version": "0.1.1",
-  "description": "Holds how Claude Code changes code and writes a check: the smallest correct change, read before write, the most precise edit, diagnostics before claims, and checks seen failing that could fail. It keeps up to 330 characters in context on every turn.",
+  "version": "0.2.0",
+  "description": "Holds how Claude Code changes code, writes a check and debugs a defect: the smallest correct change, the most precise edit, checks seen failing, and a defect reproduced before any cause is offered. It keeps up to 600 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
