@@ -15,6 +15,22 @@ import unittest
 from pathlib import Path
 
 CHECK = Path(os.environ.get("CHECK_DOCS", Path(__file__).resolve().parent / "check_docs.py"))
+INDEX = """Start here.
+
+<!-- check_docs index -->
+<!-- /check_docs index -->
+
+## Planned
+
+- a second demo.
+
+## Not written
+
+- `tutorial`: the demo has one step.
+- `how-to`: the page carries it.
+- `explanation`: nothing to explain.
+- `troubleshooting`: nothing fails.
+"""
 PAGE = "---\nreader: someone running {unit}\nanswers: what {unit} does\nkind: reference\ndescribes: [{unit}@{version}]\n---\n\n# {unit}\n\n{body}\n"
 
 
@@ -24,7 +40,11 @@ class Tree:
         self.root = Path(self.tmp.name)
         self.unit("meow-demo", "1.0.0")
         (self.root / "docs").mkdir()
-        self.write("docs/README.md", PAGE.format(unit="meow-demo", version="1.0.0", body="Start here.").replace("kind: reference", "kind: introduction"))
+        self.write("docs/README.md", PAGE.format(unit="meow-demo", version="1.0.0", body=INDEX).replace("kind: reference", "kind: introduction"))
+        self.index()
+
+    def index(self):
+        subprocess.run([sys.executable, str(CHECK), "--root", str(self.root), "--write"], capture_output=True, text=True)
 
     def unit(self, name, version, page=True, body="It runs the demo."):
         manifest = self.root / "plugins" / name / ".claude-plugin" / "plugin.json"
@@ -137,10 +157,31 @@ class CheckDocs(unittest.TestCase):
         tree.change_manifest("meow-demo", description="Runs the demo.")
         self.assertFails(tree, "meow-demo: the description doesn't name its ceiling, 1,200 characters")
 
+    def test_a_page_missing_from_the_index_fails(self):
+        """REQ-3154: the index says what every page answers and who it is for."""
+        tree = self.tree()
+        tree.write("docs/usage.md", PAGE.format(unit="meow-demo", version="1.0.0", body="Use it.").replace("kind: reference", "kind: how-to"))
+        self.assertFails(tree, "docs/README.md: the table is out of date; run --write")
+
+    def test_a_kind_neither_carried_nor_recorded_fails(self):
+        """REQ-3140: a kind the project doesn't carry is recorded as absent with its reason."""
+        tree = self.tree()
+        index = tree.root / "docs/README.md"
+        index.write_text(index.read_text(encoding="utf-8").replace("- `explanation`: nothing to explain.\n", ""), encoding="utf-8")
+        self.assertFails(tree, "docs/README.md: no page is explanation, and Not written doesn't list it")
+
+    def test_an_index_without_its_planned_section_fails(self):
+        """REQ-3134: the index says which parts are planned and unbuilt."""
+        tree = self.tree()
+        index = tree.root / "docs/README.md"
+        index.write_text(index.read_text(encoding="utf-8").replace("## Planned\n\n- a second demo.\n\n", ""), encoding="utf-8")
+        self.assertFails(tree, "docs/README.md: has no Planned section")
+
     def test_an_identifier_in_code_is_an_example(self):
         """REQ-3130: a unit that reads the record shows its syntax in code, which isn't a citation."""
         tree = self.tree()
         tree.write("docs/usage.md", PAGE.format(unit="meow-demo", version="1.0.0", body="Run `paw show REQ-0010`.\n\n```text\nTSK-0001 done\n```"))
+        tree.index()
         done = tree.check()
         self.assertEqual(done.returncode, 0, done.stdout)
 

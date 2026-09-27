@@ -59,9 +59,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: three fixtures, and the release copying four fields, in #415.
       depends: TSK-2030 - the homepage points at the page T-001 moves
 
-- [ ] T-003 [P] TSK-2050 generate the index, name what is planned and what is
+- [x] T-003 [P] TSK-2050 generate the index, name what is planned and what is
       not written, and add the tutorial and the troubleshooting page
       closes: REQ-3132, REQ-3134, REQ-3140, REQ-3150, REQ-3154
+      evidence: three fixtures, the generated index, and the tutorial run in an
+      empty directory, in #416.
       depends: TSK-2030 - the index is generated from the front matter T-001
       adds
 
