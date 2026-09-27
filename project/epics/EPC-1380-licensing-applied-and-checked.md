@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1400
-checked-at:
+checked-at: "#458"
 ---
 
 # A licensing unit applies the declared header, and a program checks every file is covered
@@ -58,6 +58,32 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-3060, REQ-3070
       evidence: the copyright fixture and the cost stated in `REUSE.toml`, in
       #446.
+
+## Verified
+
+I checked this under #458 on `main` after #457, gathering the evidence there
+rather than carrying it over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                                                                | Evidence on `main` after #457                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| 1. The check exits 0 here, and fixtures show 1 on an uncovered file, a header missing its identifier and an unused licence text, and 3 on a repository declaring nothing | `meow-licence check` reports 1835 files and 0 findings. The unit's 9 fixtures pass, those four among them |
+| 2. The skill's rules carry REQ-1008, REQ-1018, REQ-1020, REQ-3066 and REQ-3068, traced, and the prompt check passes                                                      | TSK-2120's evidence traces each to L1 to L6, and `check_prompts.py` reports 53 prompts and 0 failures     |
+| 3. A fixture shows `check-message` passing a copyright line                                                                                                              | `test_a_copyright_line_is_not_attribution` passes                                                         |
+| 4. Every requirement lands in exactly one closed task                                                                                                                    | `paw show` derives all 12 requirements ADR-1400 addresses as closed and not yet verified                  |
+
+The skill's behaviour in a session rests on one Sonnet 5 run, recorded in
+TSK-2120: enough to show it works, not how reliably it loads.
+
+### Documentation
+
+The epic's tasks wrote `meow-licence`'s page, and SPC-1080 names the new
+subcommand. The `test` verb checked the pages, running `tools/check_docs.py`,
+which reports 13 pages and 0 failures.
+
+### Postponements
+
+ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
+untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 

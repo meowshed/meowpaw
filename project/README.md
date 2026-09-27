@@ -326,7 +326,8 @@ two tasks, TSK-2090 and TSK-2100, each closed with evidence, and was verified
 against every acceptance criterion under issue 441.
 
 [EPC-1380](epics/EPC-1380-licensing-applied-and-checked.md) realises ADR-1400
-in three tasks, TSK-2110 to TSK-2130.
+in three tasks, TSK-2110 to TSK-2130, each closed with evidence, and was
+verified against every acceptance criterion under issue 458.
 
 [EPC-1390](epics/EPC-1390-the-verbs-are-renamed.md) realises ADR-1410 in one
 task, TSK-2140, closed with evidence, and was verified against every
