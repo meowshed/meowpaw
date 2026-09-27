@@ -47,9 +47,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: nine fixtures and the check passing on this repository, in
       #444.
 
-- [ ] T-002 TSK-2120 give `meow-licence` the skill that adds the declared
+- [x] T-002 TSK-2120 give `meow-licence` the skill that adds the declared
       header
       closes: REQ-1008, REQ-1016, REQ-1018, REQ-1020, REQ-3066, REQ-3068
+      evidence: six rules traced, and a session heading a new file, in #445.
       depends: TSK-2110 - the skill ships in the unit T-001 creates
 
 - [x] T-003 [P] TSK-2130 show the attribution ban passes a copyright line,
