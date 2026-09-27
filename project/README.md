@@ -407,7 +407,8 @@ task, TSK-2320, closed with evidence, and was verified against every
 acceptance criterion under issue 537.
 
 [EPC-1500](epics/EPC-1500-a-verb-over-part-of-the-work.md) realises ADR-1520 in
-one task, TSK-2330.
+one task, TSK-2330, closed with evidence, and was verified against every
+acceptance criterion under issue 543.
 
 ## Defects
 
