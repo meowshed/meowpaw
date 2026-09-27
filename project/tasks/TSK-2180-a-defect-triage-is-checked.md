@@ -58,7 +58,29 @@ adds.
 
 ## Evidence
 
-Not yet.
+The defect kind gains `enters`, checked against the nine steps, and the
+record's program holds the rules ADR-1440 lists: `enters-after-triage` as a
+draft rule, and `enters-fits`, `rejected-says-why` and `closed-names-check` as
+rules on every defect. An epic carries `defect-epic-ordered`, and research, a
+requirement and a decision carry `prompted-by-defect`. Severity was already a
+required field. The defect template carries `enters`, and `meow-flow`'s page
+describes the rules.
+
+Seven fixtures in `Triage`, each naming its requirement, failed against
+`main`'s `paw` and pass against this one. The eighth, severity, passed on both
+and stands as a regression check. This repository's record, whose defects were
+approved before ADR-1440, reports nothing:
+
+```text
+$ MEOW_FLOW_BIN=<main's paw> python3 -m unittest ... -k Triage
+FAILED (7 failures)
+$ python3 -m unittest discover -s plugins/meow-flow/tests
+OK
+$ plugins/meow-flow/bin/paw check
+rules: 0 findings
+$ plugins/meow-verbs/bin/meow-verbs run format lint test
+summary: format passed, lint passed, test passed
+```
 
 ## Left alone
 

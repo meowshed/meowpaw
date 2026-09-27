@@ -1302,6 +1302,59 @@ fn rules(record: &Record) -> Vec<Finding> {
                         out.push(Finding::at(doc, lines.first().map(|(n, _)| n - 1), "has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working".into()));
                     }
                 }
+                "enters-after-triage" => {
+                    // A draft defect whose triage is written names the step it enters at.
+                    let triaged = section_lines(doc, "Triage").iter().any(|(_, l)| !l.trim().is_empty());
+                    if triaged && bare(doc.value("enters")).is_empty() {
+                        out.push(Finding::at(doc, None, "has a Triage section and no enters: naming the step it enters at".into()));
+                    }
+                }
+                "enters-fits" => {
+                    let enters = bare(doc.value("enters"));
+                    let line = doc.field("enters").map(|f| f.line);
+                    if !enters.is_empty() && !STEPS.contains(&enters) {
+                        out.push(Finding::at(doc, line, format!("enters {enters}, which is not a step; the steps are {}", STEPS.join(", "))));
+                    }
+                    if matches!(enters, "implement" | "design") && bare(doc.value("violates")).is_empty() {
+                        out.push(Finding::at(doc, line, format!("enters {enters} and names no requirement it violates, where a defect no requirement covers enters at requirements or research")));
+                    }
+                    if !enters.is_empty() && !section_lines(doc, "Reproduction").iter().any(|(_, l)| !l.trim().is_empty()) {
+                        out.push(Finding::at(doc, line, "is triaged with an empty Reproduction, where a defect is reproduced before it is triaged".into()));
+                    }
+                }
+                "rejected-says-why" => {
+                    if bare(doc.value("status")) == "rejected" && !section_lines(doc, "Triage").iter().any(|(_, l)| !l.trim().is_empty()) {
+                        out.push(Finding::at(doc, None, "is rejected as no defect with an empty Triage, where the reasoning is recorded".into()));
+                    }
+                }
+                "closed-names-check" => {
+                    let tasks = entries(doc);
+                    let closed = !tasks.is_empty() && tasks.iter().all(|(_, mark, _, _)| finished(*mark));
+                    if closed && !section_lines(doc, "Closed by").iter().any(|(_, l)| !l.trim().is_empty()) {
+                        out.push(Finding::at(doc, None, "has every task done and an empty Closed by, where it names the check that stays as a regression check".into()));
+                    }
+                }
+                "defect-epic-ordered" => {
+                    let known = known(record);
+                    let realises = bare(doc.value("realises"));
+                    if known.get(realises).is_some_and(|d| kind_of(record, d) == "defect") {
+                        let tasks = entries(doc);
+                        let ordered = tasks.iter().any(|(_, _, task, entry)| {
+                            entry.contains("depends:") || known.get(task.as_str()).is_some_and(|t| !depends_on(t).is_empty())
+                        });
+                        if tasks.len() < 2 || !ordered {
+                            out.push(Finding::at(doc, doc.field("realises").map(|f| f.line), format!("realises the defect {realises} with {} and no order between them, where a one-task fix is carried by the defect itself", count(tasks.len(), "task"))));
+                        }
+                    }
+                }
+                "prompted-by-defect" => {
+                    let known = known(record);
+                    for id in doc.value("prompted-by").split(|c: char| !(c.is_ascii_alphanumeric() || c == '-')).filter(|w| !w.is_empty()) {
+                        if !known.get(id).is_some_and(|d| kind_of(record, d) == "defect") {
+                            out.push(Finding::at(doc, doc.field("prompted-by").map(|f| f.line), format!("is prompted by {id}, which is not a defect")));
+                        }
+                    }
+                }
                 "one-authority" => {
                     let named = [doc.value("epic"), doc.value("bug")].iter().filter(|v| !bare(v).is_empty()).count();
                     if named != 1 {

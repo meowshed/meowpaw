@@ -68,6 +68,7 @@ index = "research/RES-0001-synthesis.md"
 sections = ["Summary", "Method", "Conclusions", "Sources"]
 first_section = "Summary"
 draft_rules = ["sources-dated", "cites-no-requirement"]
+rules = ["prompted-by-defect"]
 
 [[kind]]
 name = "requirement"
@@ -79,6 +80,7 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "requirements/README.md"
 forbidden_fields = ["priority", "owner", "difficulty"]
 draft_rules = ["judgement-verifier", "one-obligation", "stands-alone", "no-negated-requirement"]
+rules = ["prompted-by-defect"]
 
 [[kind]]
 name = "decision"
@@ -90,7 +92,7 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "adrs/README.md"
 sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]
 draft_sections = ["How I will know it was realised", "What this does not settle"]
-rules = ["alternatives-why-lost", "addresses-or-postpones"]
+rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect"]
 
 [[kind]]
 name = "epic"
@@ -101,7 +103,7 @@ fields = ["realises", "checked-at"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]
-rules = ["realises-one", "done-has-evidence", "added-says-why", "dropped-says-why"]
+rules = ["realises-one", "done-has-evidence", "added-says-why", "dropped-says-why", "defect-epic-ordered"]
 
 [[kind]]
 name = "task"
@@ -129,7 +131,11 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
 forbidden_fields = ["priority"]
-rules = ["done-has-evidence", "added-says-why", "dropped-says-why"]
+# `enters` names the step a defect enters at, required once its Triage is
+# written, which is a draft rule so defects approved before ADR-1440 keep the
+# rules they were approved under.
+rules = ["done-has-evidence", "added-says-why", "dropped-says-why", "enters-fits", "rejected-says-why", "closed-names-check"]
+draft_rules = ["enters-after-triage"]
 
 [[kind]]
 name = "insight"

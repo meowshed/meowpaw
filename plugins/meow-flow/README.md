@@ -105,6 +105,15 @@ defect record carries it under `## Tasks`, with the same marks an epic uses,
 and the task names `bug: BUG-NNNN` in place of `epic`. `paw status` counts the
 tasks decisions authorised and the tasks defects did.
 
+A defect is reproduced before it is triaged, and its triage names in `enters`
+the step it enters at: `implement` or `design` where it violates a requirement,
+`requirements` where the requirement is wrong or none covers the behaviour,
+and `research` where the cause is unknown. `paw check` reports a triaged
+draft with no `enters`, a defect entering at `implement` or `design` with no
+`violates`, a triage with no reproduction, a rejected report with no
+reasoning, a closed defect whose Closed by names no check, an epic for a
+defect that one task would fix, and a `prompted-by` naming no defect.
+
 A step refuses when its input is missing or not approved, because the program
 checks that before the step writes anything:
 
