@@ -41,9 +41,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2110 ship `meow-licence` with its `check`, and cover every
+- [x] T-001 TSK-2110 ship `meow-licence` with its `check`, and cover every
       file this repository tracks
       closes: REQ-1022, REQ-3058, REQ-3062, REQ-3064
+      evidence: nine fixtures and the check passing on this repository, in
+      #444.
 
 - [ ] T-002 TSK-2120 give `meow-licence` the skill that adds the declared
       header

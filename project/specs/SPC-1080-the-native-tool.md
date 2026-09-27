@@ -85,8 +85,8 @@ states:
 This covers `meow`, the one command-line tool every unit's program is a
 subcommand of: where its source lives, how a unit gets a binary built with its
 own features, how a unit's launcher finds and runs it, and how a release ships
-it. What each subcommand does is its unit's specification, which cites this one,
-so this one names none of them.
+it. What each subcommand does is its unit's specification, which cites this
+one, so this one names none of them.
 
 ADR-1110 decides it, EPC-1080 realises it, and the `meow` crate with its
 launchers and release implements it, verified under issue 160.
@@ -107,16 +107,16 @@ launchers and release implements it, verified under issue 160.
 ### One crate, a feature per unit
 
 The crate `crates/meow/` builds one binary, `meow`, whose subcommands are the
-units' programs: `verbs`, `scm`, `git` and `record`. Each subcommand sits behind
-a feature named for its unit, and a unit's binary is built with that unit's
-feature alone, so it carries its own code and nothing of another unit's
-(REQ-0076). The profile reading, the report shapes and the exit codes the
-units share are one module every feature uses.
+units' programs: `verbs`, `scm`, `git`, `record`, `github` and `licence`. Each
+subcommand sits behind a feature named for its unit, and a unit's binary is
+built with that unit's feature alone, so it carries its own code and nothing of
+another unit's (REQ-0076). The profile reading, the report shapes and the exit
+codes the units share are one module every feature uses.
 
 ### The launcher
 
-`plugins/<unit>/bin/<unit>` stays the command a skill or hook runs. It names the
-machine's target from the operating system and the processor, looks for
+`plugins/<unit>/bin/<unit>` stays the command a skill or hook runs. It names
+the machine's target from the operating system and the processor, looks for
 `bin/<target>/meow`, sets its executable bit if the delivery didn't keep it,
 and runs it with the unit's subcommand and the arguments it was given. Where no
 binary exists for the target, it reports every check as unrun and exits as the
