@@ -2,10 +2,14 @@
 id: SPC-1100
 artifact: spec
 status: live
-revised: 2026-09-26
+revised: 2026-09-27
 checked-at: "#398"
 states:
   [
+    REQ-0139,
+    REQ-0141,
+    REQ-0143,
+    REQ-0161,
     REQ-0237,
     REQ-0325,
     REQ-0362,
@@ -64,7 +68,8 @@ This covers how artifacts name one another: the identifiers, the relation
 fields, and resolving an identifier to its artifact and to what cites it. It
 leaves checking that a relation resolves to SPC-1070's relations check.
 
-ADR-1150 and ADR-1180 decide it, EPC-1150 and EPC-1180 realise them, and
+ADR-1150, ADR-1180 and ADR-1470 decide it, EPC-1150, EPC-1180 and EPC-1450
+realise them, and
 `meow-flow` implements it, verified under issue 259.
 
 ## Boundary
@@ -167,6 +172,27 @@ resolves to no artifact in a relation, or in a draft's prose outside code
 spans and fences, and
 `status` counts the requirements nothing checks, which covers both directions
 (REQ-0710).
+
+### Deep coverage, suspect citations and unconnected artifacts
+
+`check coverage` walks each approved or living artifact up its relations to
+the research it rests on, and reports each provider on the way that is still a
+draft, naming the chain (REQ-0139). Where the artifact is itself a draft or
+living, it also reports a withdrawn or superseded provider (ADR-1470).
+
+A citation is suspect when its target's `revised` date is later than the
+citing record's own. An epic or a defect as a target is suspect only when it
+is withdrawn or superseded, because both change after approval by design.
+`check relations` reports a suspect citation in a draft or a living artifact,
+and in an approved one `show` marks it in its `Names` list with the target's
+date (REQ-0141).
+
+`status` reports what only a new record can fix, and fails on none of it: the
+approved artifacts over a rejected provider, the number of suspect citations
+in approved records, and each approved or living artifact that cites nothing
+and that nothing cites (REQ-0143). It also counts the requirements in force by
+their `verification` field, with judgement split by `verifier`, and states the
+share resting on evaluation or judgement (REQ-0161).
 
 ### A requirement's state
 
