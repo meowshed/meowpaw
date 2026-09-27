@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What the unit keeps in context on every turn: the change skill's
+# description, which routes it, with about one sentence of slack.
+permanent_characters = 330
