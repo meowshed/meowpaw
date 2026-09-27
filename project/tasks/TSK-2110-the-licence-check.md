@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1380
 closes: [REQ-1022, REQ-3058, REQ-3062, REQ-3064]
-issue:
+issue: 444
+projected: e970c9c5561b
 ---
 
 # `meow-licence check` fails on a file nothing covers, and this repository covers every file
@@ -39,8 +40,8 @@ subcommand to the native tool behind its own feature, built by
 `REUSE.toml`, the profile's `[licence]` table, headers in a file's first 20
 lines and `.license` files beside a file. Add the unit to the catalogue.
 
-In this repository, extend `REUSE.toml` to cover `crates/`, `.meowpaw/` and
-`LICENSE`, and run the check from the `lint` verb.
+In this repository, extend `REUSE.toml` to cover `crates/meow/Cargo.lock`, and
+run the check from the `lint` verb.
 
 ## Depends on
 

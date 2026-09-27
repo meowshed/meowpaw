@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1380
 closes: [REQ-1008, REQ-1016, REQ-1018, REQ-1020, REQ-3066, REQ-3068]
-issue:
+issue: 445
+projected: f36b18fac81b
 ---
 
 # `meow-licence:header` adds the declared header to a file Claude Code creates

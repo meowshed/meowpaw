@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1380
 closes: [REQ-3060, REQ-3070]
-issue:
+issue: 446
+projected: 3b0236bcaacc
 ---
 
 # The attribution ban passes a copyright line, and a bulk declaration states its cost
