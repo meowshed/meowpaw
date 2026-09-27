@@ -15,6 +15,7 @@ the reader somewhere written for somebody else.
 """
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -29,6 +30,9 @@ RECORD_PATH = re.compile(r"\bproject/(?:adrs|specs|research|requirements|epics|t
 LINK = re.compile(r"\]\((?:<([^>]+)>|([^)\s]+))")
 CODE_SPAN = re.compile(r"`[^`]*`")
 FENCE = re.compile(r"^\s*(```|~~~)")
+START = "<!-- check_docs index -->"
+END = "<!-- /check_docs index -->"
+NOT_WRITTEN = re.compile(r"^- `([a-z-]+)`:", re.M)
 
 
 def front_matter(text):
@@ -153,6 +157,63 @@ def check_catalogue(root, unit):
     return out
 
 
+def table(root):
+    """The index table, one row per page other than the index itself."""
+    index = root / "docs" / "README.md"
+    rows = ["| Page | For | Answers | Kind |", "| --- | --- | --- | --- |"]
+    for path in pages(root):
+        if path == index:
+            continue
+        fields = front_matter(path.read_text(encoding="utf-8")) or {}
+        link = Path(os.path.relpath(path, index.parent)).as_posix()
+        title = path.parent.name if path.name == "README.md" else path.stem
+        rows.append(f"| [{title}]({link}) | {fields.get('reader', '')} | {fields.get('answers', '')} | {fields.get('kind', '')} |")
+    return "\n".join(rows)
+
+
+def section(text, heading):
+    """The body of a `## heading` section, or None where there is none."""
+    found = re.search(rf"^## {re.escape(heading)}\n(.*?)(?=^## |\Z)", text, re.S | re.M)
+    return found.group(1) if found else None
+
+
+def check_index(root):
+    """The index lists every page, names what is planned, and records each kind not written."""
+    index = root / "docs" / "README.md"
+    if not index.is_file():
+        return ["docs/README.md: there is no index"]
+    text = index.read_text(encoding="utf-8")
+    out = []
+    if START not in text or END not in text:
+        out.append(f"docs/README.md: has no {START} block")
+    else:
+        current = text.split(START, 1)[1].split(END, 1)[0].strip()
+        if normalise(current) != normalise(table(root)):
+            out.append("docs/README.md: the table is out of date; run --write")
+    if section(text, "Planned") is None:
+        out.append("docs/README.md: has no Planned section")
+    carried = {(front_matter(path.read_text(encoding="utf-8")) or {}).get("kind") for path in pages(root)}
+    listed = set(NOT_WRITTEN.findall(section(text, "Not written") or ""))
+    for kind in KINDS:
+        if kind not in carried and kind not in listed:
+            out.append(f"docs/README.md: no page is {kind}, and Not written doesn't list it")
+    return out
+
+
+def normalise(table_text):
+    """A table's cells, so a formatter padding the columns changes nothing."""
+    return [[cell.strip() for cell in line.strip().strip("|").split("|")]
+            for line in table_text.splitlines() if line.strip() and not re.match(r"^\|[\s|:-]+\|$", line.strip())]
+
+
+def write_index(root):
+    index = root / "docs" / "README.md"
+    text = index.read_text(encoding="utf-8")
+    head, rest = text.split(START, 1)
+    tail = rest.split(END, 1)[1]
+    index.write_text(f"{head}{START}\n\n{table(root)}\n\n{END}{tail}", encoding="utf-8")
+
+
 def check(root):
     versions = units(root)
     failures = []
@@ -163,14 +224,17 @@ def check(root):
             failures.append(f"{unit}: has no README.md")
     for path in pages(root):
         failures += check_page(root, path, versions)
-    return failures
+    return failures + check_index(root)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parent.parent)
+    parser.add_argument("--write", action="store_true", help="regenerate the index table in docs/README.md")
     args = parser.parse_args()
     root = args.root.resolve()
+    if args.write:
+        write_index(root)
     failures = check(root)
     for failure in failures:
         print(failure)

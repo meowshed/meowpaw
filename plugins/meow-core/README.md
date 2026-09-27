@@ -34,10 +34,11 @@ nothing.
 
 ## What it costs you
 
-While `meow-core` is enabled, its style replaces the output style you selected
-for yourself. That is deliberate: a reply shape that a person can switch off is
-switched off in the report that most needs it. Your recourse is to disable the
-plugin, which takes the rest of the harness with it.
+The unit declares its style as one that replaces the output style you
+selected for yourself, because a reply shape that a person can switch off is
+switched off in the report that most needs it. Claude Code discovers the
+style but doesn't yet apply it by itself, so select it once with
+`/output-style meow-core:meow`, and it stays selected across sessions.
 
 It keeps the platform's own software engineering instructions, so you lose none
 of them by enabling it.
@@ -84,4 +85,4 @@ Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-core/requires.toml`. It relies on these platform behaviours,
 each documented by Claude Code:
 
-- an output style with `force-for-plugin`, which applies the reply shape to every reply: [documentation](https://code.claude.com/docs/en/output-styles.md)
+- an output style with `force-for-plugin`, meant to apply the reply shape to every reply, which Claude Code doesn't yet honour: [documentation](https://code.claude.com/docs/en/output-styles.md)
