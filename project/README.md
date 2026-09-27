@@ -200,6 +200,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1560](adrs/ADR-1560-evidence-stays-bound-to-its-tree-and-the-evidence-behind-each-claim-is-listed.md):
   evidence stays bound to its tree, and the evidence behind each claim is
   listed.
+- [ADR-1570](adrs/ADR-1570-the-harness-reads-git-unescaped-and-releases-a-breaking-change-as-marked.md):
+  the harness reads git unescaped and without locks, keeps to the repository's
+  configuration, and releases a breaking change as it is marked.
 
 ## Specifications
 
@@ -430,6 +433,9 @@ acceptance criterion under issue 555.
 [EPC-1530](epics/EPC-1530-evidence-behind-each-claim.md) realises ADR-1560 in
 one task, TSK-2380, closed with evidence, and was verified against every
 acceptance criterion under issue 565.
+
+[EPC-1540](epics/EPC-1540-git-read-cleanly-and-breaking-changes-released.md)
+realises ADR-1570 in two tasks, TSK-2400 and TSK-2410.
 
 ## Defects
 
