@@ -2,11 +2,11 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""The work item on the forge carries the record's own text.
+"""The work item on the code host carries the record's own text.
 
 A record and its issue say the same thing in two places, and two wordings drift
 (REQ-1360 wants one work item mapped to one record, linked both ways). This
-sends the record's body to the issue named in its front matter, so the forge
+sends the record's body to the issue named in its front matter, so the code host
 mirrors the repository and the repository stays the original.
 
 Run it after a record changes:

@@ -77,7 +77,7 @@ does as though somebody had decided it must.
   request records with the alternative it rejected, citing the discussion,
   and read a pull request closed without merging as a rejected alternative,
   because code keeps only the option that won.
-- B15. Where the `meow-github` command doesn't exist, report the forge history
+- B15. Where the `meow-github` command doesn't exist, report the code host's history
   as unread in the report's gaps and name `meow-github` as the pack that
   would read it, because history left unread reads as history holding
   nothing.

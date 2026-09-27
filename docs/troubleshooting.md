@@ -74,7 +74,7 @@ git switch --create fix/the-change
 `meow-git` checked the branch and each commit the push would publish and
 found a problem, listed under the message. The problem is one of these:
 
-- `branch name: it carries a date` or `the author's name`: the forge already
+- `branch name: it carries a date` or `the author's name`: the code host already
   stores both. Rename the branch for the change, with
   `git branch -m fix/the-change`.
 - `is unsigned`: the repository declares `require_signatures = true`, and a
