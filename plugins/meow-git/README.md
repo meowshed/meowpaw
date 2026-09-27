@@ -72,7 +72,7 @@ it checked nothing and blocks nothing.
 ## Branch names
 
 The push guard refuses a push from a branch whose name carries a date, such as
-`2026-09-26` or `20260926`, or the author's name, because the forge already
+`2026-09-26` or `20260926`, or the author's name, because the code host already
 stores both. Name the branch for the change instead, such as
 `fix/1234-read-the-trunk`; an issue number followed by other numbers isn't
 read as a date.
