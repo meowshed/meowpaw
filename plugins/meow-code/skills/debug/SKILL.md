@@ -17,7 +17,7 @@ a fix proven by a check that never failed proves nothing.
 4. When the hypotheses run out, bisect: halve the inputs, the change or the
    history until the defect's edge is found.
 5. Fix the cause, run the reproduction, and show it failing before the fix
-   and passing after it.
+   and passing after it; stop there, or report the symptom you only treated.
 </steps>
 
 <rules name="debugging">

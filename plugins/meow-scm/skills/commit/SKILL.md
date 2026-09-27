@@ -30,7 +30,8 @@ project gained and when, so every message is written for that question.
    names and run it again.
 4. Use the message only when the check exits 0. Where it exits 3 because the
    convention is undeclared, tell the person the message was checked for
-   attribution alone. Never use a message the check failed.
+   attribution alone. Never use a message the check failed. Stop once the
+   message you use has passed.
 </steps>
 
 <rules name="the message">

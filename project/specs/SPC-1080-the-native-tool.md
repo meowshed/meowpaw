@@ -107,7 +107,8 @@ launchers and release implements it, verified under issue 160.
 ### One crate, a feature per unit
 
 The crate `crates/meow/` builds one binary, `meow`, whose subcommands are the
-units' programs: `verbs`, `scm`, `git`, `record`, `github` and `licence`. Each
+units' programs: `verbs`, `scm`, `git`, `record`, `github`,
+`licence` and `author`. Each
 subcommand sits behind a feature named for its unit, and a unit's binary is
 built with that unit's feature alone, so it carries its own code and nothing of
 another unit's (REQ-0076). The profile reading, the report shapes and the exit

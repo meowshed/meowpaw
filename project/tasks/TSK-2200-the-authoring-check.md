@@ -62,7 +62,36 @@ Nothing. ADR-1450 is approved.
 
 ## Evidence
 
-Not yet.
+`plugins/meow-author/` holds the unit at 0.1.0: a manifest, a page, a budget
+of nothing on every turn, a `requires.toml` and the launcher, which runs the
+native tool's new `author` subcommand, built behind its own feature. The
+check ports `tools/check_prompts.py`, a tag never closed included, and adds
+the conditions SPC-1030 lists for a missing description, a `commands/`
+directory, a supporting file nothing names, a path with no directory variable
+and a procedure with no stopping point. It reads `plugins/` by default and any
+paths it is given, such as `.claude`.
+
+On this repository it first reported three procedures with no stopping point,
+in `meow-code:change`, `meow-code:debug` and `meow-scm:commit`, which now say
+where they stop; `meow-code` is at 0.2.1 and `meow-scm` at 0.4.2. The
+`prompts` task runs the check through `cargo`, because CI runs the gate
+without building the units, and `tools/check_prompts.py` is gone. SPC-1080
+names the subcommand.
+
+Thirteen fixtures, twelve naming their requirement, failed against a program
+that prints nothing and pass against the check:
+
+```text
+$ MEOW_AUTHOR_BIN=/usr/bin/true python3 -m unittest discover -s plugins/meow-author/tests
+FAILED (failures=13)
+$ python3 -m unittest discover -s plugins/meow-author/tests
+Ran 13 tests
+OK
+$ mise run prompts
+55 files, 0 authoring failures
+$ plugins/meow-verbs/bin/meow-verbs run format lint test
+summary: format passed, lint passed, test passed
+```
 
 ## Left alone
 
