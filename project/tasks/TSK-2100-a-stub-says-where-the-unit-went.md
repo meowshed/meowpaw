@@ -40,7 +40,35 @@ directory it empties.
 
 ## Evidence
 
-Not yet.
+`plugins/meow-method/` holds the stub at 0.30.0: a manifest whose description
+says it was renamed and costs nothing on every turn, a page, a budget of 0
+characters, and a `SessionStart` hook running `hooks/notice`, which prints
+that `meow-method` is now `meow-flow`, the two commands that move an install,
+and that the release after `meow-flow` 0.31.0 removes the stub, in 243
+characters. It ships no skill and no program. Its catalogue entry is back, and
+`claude plugin validate` passes on the catalogue and on the stub.
+
+The fixture naming REQ-3004 failed against a notice printing nothing and
+passes against this one:
+
+```text
+$ MEOW_METHOD_NOTICE=/usr/bin/true python3 -m unittest discover -s plugins/meow-method/tests
+FAIL: test_the_notice_says_where_the_unit_went
+FAILED (failures=1)
+$ python3 -m unittest discover -s plugins/meow-method/tests
+Ran 3 tests
+OK
+$ meow-verbs run fmt lint test
+summary: fmt passed, lint passed, test passed
+```
+
+The stub's page links `meow-flow`'s page by its address, because an installed
+stub has no sibling directory to link. `tools/check_standalone.py` read that
+address as a path into another unit, which is a false positive, so it now
+skips addresses, and a fixture that failed before the change holds it. The
+gate caught the defect and this change closes it, so it carries no record of
+its own. The troubleshooting page has an entry for the notice, and SPC-1070
+names the notice in its boundary.
 
 ## Left alone
 

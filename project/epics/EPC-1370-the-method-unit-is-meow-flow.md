@@ -49,9 +49,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: the unit at `plugins/meow-flow/`, validated, and two marker
       fixtures, in #436.
 
-- [ ] T-002 TSK-2100 ship `meow-method` 0.30.0 as a stub that says where the
+- [x] T-002 TSK-2100 ship `meow-method` 0.30.0 as a stub that says where the
       unit went
       closes: REQ-3004
+      evidence: the stub at 0.30.0 and its notice fixture, in #437.
       depends: TSK-2090 - the stub names the unit T-001 creates, and takes
       over the directory T-001 empties
 
