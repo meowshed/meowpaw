@@ -41,7 +41,15 @@ TSK-2420, which ships the unit and `status`.
 
 ## Evidence
 
-Not yet.
+Closes REQ-1316, REQ-2354, REQ-2468, REQ-2474, REQ-2492 and REQ-2504. Of the
+12 fixtures in the `Bind`, `Check` and `WritesNothing` classes, 11 failed
+first against the unit TSK-2430 left. `WritesNothing` passed then too, since a
+program without `bind` or `check` writes nothing either, so it holds REQ-2504
+only now that both commands exist. All 38 in the file pass. The `lint` verb
+now runs `meow-mise check`, which reports 0 findings in the 7 task runs this
+repository's verbs name. `meow-verbs evidence --keep format lint test` exits 0
+on this change's own tree, each result kept in `project/evidence/`, as the
+pull request cites.
 
 ## Left alone
 

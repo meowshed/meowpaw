@@ -61,8 +61,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-2482, REQ-2490, REQ-2506
       evidence: five fixtures seen failing first, against real mise, in #580.
 
-- [ ] T-003 [P] TSK-2440 bind the verbs and check the profile's bindings
+- [x] T-003 [P] TSK-2440 bind the verbs and check the profile's bindings
       closes: REQ-1316, REQ-2354, REQ-2468, REQ-2474, REQ-2492, REQ-2504
+      evidence: 12 fixtures, 11 seen failing first, and `check` passing on
+      this repository's profile, in #581.
 
 ## Coverage
 

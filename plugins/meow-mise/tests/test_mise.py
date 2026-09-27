@@ -263,6 +263,116 @@ SECRET_TOKEN = "never-printed-value"
         self.assertIn("  .nvmrc: possibly inert", idiomatic)
 
 
+BINDABLE = '''[tasks.test]
+run = "echo test"
+
+[tasks.tests]
+run = "echo tests"
+
+[tasks.unit]
+run = "python3 -m pytest"
+
+[tasks.lint]
+run = "echo lint"
+hide = true
+
+[tasks.build]
+run = "echo build"
+sources = ["src.txt"]
+outputs = ["out.txt"]
+'''
+
+
+def profile(verbs):
+    return "[verbs]\n" + "".join(f'{verb} = "{command}"\n' for verb, command in verbs.items())
+
+
+class Bind(Fixture):
+    def setUp(self):
+        self.done = self.repo({"mise.toml": BINDABLE}).run("bind")
+
+    def test_a_verb_binds_to_its_exact_task_with_force(self):
+        """REQ-1316, REQ-2354, REQ-2468: the verb runs the declared task, and a skip can't pass."""
+        self.assertEqual(self.done.returncode, 0, self.done.stdout + self.done.stderr)
+        self.assertIn("[verbs]\n", self.done.stdout)
+        self.assertIn('test = "mise run --force test"', self.done.stdout)
+        self.assertIn('build = "mise run --force build"', self.done.stdout)
+
+    def test_a_near_name_or_a_body_binds_nothing(self):
+        """REQ-2474, REQ-2492: only the exact name, never a near one or what a task runs."""
+        self.assertNotIn("run --force tests", self.done.stdout)
+        self.assertNotIn("run --force unit", self.done.stdout)
+        self.assertIn("# format: no task named format", self.done.stdout)
+        self.assertIn("# check: no task named check", self.done.stdout)
+
+    def test_a_blocked_task_is_left_unbound_with_its_reason(self):
+        self.assertIn("# lint: task lint is blocked: hidden", self.done.stdout)
+        self.assertNotIn("lint = ", self.done.stdout)
+
+    def test_an_unresolved_tree_binds_nothing(self):
+        done = self.repo({"mise.toml": EXEC}).run("bind")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("unresolved: untrusted", done.stdout)
+        self.assertNotIn("[verbs]", done.stdout)
+
+
+class Check(Fixture):
+    def check(self, verbs, files=None):
+        return self.repo({"mise.toml": BINDABLE, ".meowpaw/profile.toml": profile(verbs), **(files or {})}).run("check")
+
+    def test_a_skippable_task_without_force_is_a_finding(self):
+        """REQ-2468: that verb can pass without running."""
+        done = self.check({"test": "mise run build"})
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("  test: task build can skip as fresh and runs without --force", done.stdout)
+
+    def test_a_forced_skippable_task_is_clean(self):
+        done = self.check({"test": "mise run -f build", "build": "mise run --force build"})
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("0 findings", done.stdout)
+
+    def test_each_part_of_a_chain_is_checked(self):
+        done = self.check({"lint": "mise run --force build && mise run lint"})
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("  lint: task lint is blocked: hidden", done.stdout)
+
+    def test_a_missing_task_is_a_finding(self):
+        done = self.check({"test": "mise run nope"})
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("  test: no task named nope", done.stdout)
+
+    def test_a_profile_running_no_task_has_nothing_to_check(self):
+        done = self.check({"test": "./run-tests"})
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("nothing to check", done.stdout)
+
+    def test_no_profile_is_unresolved(self):
+        done = self.repo({"mise.toml": BINDABLE}).run("check")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("unresolved: no profile", done.stdout)
+
+    def test_this_repositorys_profile_is_clean(self):
+        root = UNIT.parent.parent
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("MISE_", "__MISE_"))}
+        done = subprocess.run([str(BIN), "check"], cwd=root, capture_output=True, text=True, env=env,
+                              stdin=subprocess.DEVNULL)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("0 findings", done.stdout)
+
+
+class WritesNothing(Fixture):
+    def test_no_command_changes_the_tree(self):
+        """REQ-2504: the pack writes no file, mise.local.toml least of all."""
+        repository = self.repo({"mise.toml": BINDABLE, ".meowpaw/profile.toml": profile({"test": "mise run test"})})
+        state = lambda: subprocess.run(["git", "status", "--porcelain", "--ignored", "--untracked-files=all"],
+                                       cwd=repository.root, capture_output=True, text=True, env=repository.env).stdout
+        before = state()
+        for command in ("status", "bind", "check"):
+            repository.run(command)
+        self.assertEqual(state(), before)
+        self.assertFalse((repository.root / "mise.local.toml").exists())
+
+
 class Unresolved(Fixture):
     def test_no_marker_runs_no_mise(self):
         """REQ-2472: detection is a static read, and mise never starts."""
