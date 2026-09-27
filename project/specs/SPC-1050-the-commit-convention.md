@@ -40,7 +40,7 @@ verified under issue 130.
 | `.meowpaw/profile.toml`, `[commits]` | The repository's convention: types, subject limit and trailers     |
 | `plugins/meow-scm/bin/meow-scm`      | The program: `convention` and `check-message`                      |
 | `plugins/meow-scm/skills/commit/`    | The skill that writes a message and runs the check before using it |
-| `docs/meow-scm.md`                   | The unit's documentation page                                      |
+| `plugins/meow-scm/README.md`         | The unit's documentation page                                      |
 
 ## Behaviour
 

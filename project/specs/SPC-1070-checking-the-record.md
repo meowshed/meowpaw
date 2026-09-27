@@ -119,7 +119,7 @@ issue 206.
 | `plugins/meow-method/bin/paw`         | The deprecated alias for `paw`, removed in 0.31.0 |
 | `crates/meow/src/record.rs`           | The program's source, `meow record`               |
 | `plugins/meow-method/lib/layout.toml` | The record's layout, as data                      |
-| `docs/meow-method.md`                 | The unit's documentation page                     |
+| `plugins/meow-method/README.md`       | The unit's documentation page                     |
 
 ## Behaviour
 

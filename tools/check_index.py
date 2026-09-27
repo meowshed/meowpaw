@@ -49,6 +49,12 @@ def present() -> set[str]:
             if path in EXEMPT or path.startswith(GENERATED):
                 continue
             out.add(path)
+    # Each unit's page ships inside the unit, which the walk skips as a whole.
+    plugins = os.path.join(ROOT, "plugins")
+    for unit in sorted(os.listdir(plugins)) if os.path.isdir(plugins) else ():
+        page = os.path.join("plugins", unit, "README.md")
+        if os.path.isfile(os.path.join(ROOT, page)):
+            out.add(page)
     return out
 
 

@@ -47,9 +47,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2030 move each unit's page into the unit, give every page its
+- [x] T-001 TSK-2030 move each unit's page into the unit, give every page its
       front matter, and check both in `tools/check_docs.py`
       closes: REQ-2838, REQ-3130, REQ-3136, REQ-3138, REQ-3142, REQ-3148, REQ-3152
+      evidence: nine fixtures and `tools/check_docs.py` in the `test` verb, in
+      #414.
 
 - [ ] T-002 [P] TSK-2040 carry the catalogue fields in every `plugin.json`,
       and copy them into the served entries at release

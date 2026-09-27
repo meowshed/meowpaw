@@ -1,3 +1,10 @@
+---
+reader: someone choosing or running meow-core
+answers: what meow-core does, what it adds to a session and how to run it
+kind: reference
+describes: [meow-core@0.6.0]
+---
+
 # meow-core
 
 `meow-core` is the kernel of the `meowpaw` harness. It ships one thing: the
@@ -78,9 +85,3 @@ in `plugins/meow-core/requires.toml`. It relies on these platform behaviours,
 each documented by Claude Code:
 
 - an output style with `force-for-plugin`, which applies the reply shape to every reply: [documentation](https://code.claude.com/docs/en/output-styles.md)
-
-## Where the rules come from
-
-The decision is `project/adrs/ADR-1000-the-reply-shape-is-a-forced-output-style-in-the-kernel.md`,
-and the part it creates is specified in `project/specs/SPC-1000-the-reply-shape.md`.
-Read the decision for the alternatives and what would reverse it.

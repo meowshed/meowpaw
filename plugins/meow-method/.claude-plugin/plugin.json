@@ -6,7 +6,7 @@
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
   },
-  "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-method.md",
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-method/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
   "keywords": ["record", "requirements", "traceability", "meowpaw"]
