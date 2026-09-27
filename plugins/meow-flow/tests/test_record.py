@@ -1596,5 +1596,34 @@ class Reported(unittest.TestCase):
         self.assertIn("  3 of 5 rest on evaluation or judgement, not on a mechanical check\n", said)
 
 
+class VerificationKind(unittest.TestCase):
+    """ADR-1510: every requirement declares one of the four kinds of check."""
+
+    def test_a_kind_outside_the_four_is_reported_on_drafts_and_approved_records(self):
+        """REQ-1664: a requirement's kind of check is one the harness knows."""
+        for status in ("draft", "approved"):
+            repository = Repository()
+            self.addCleanup(repository.tmp.cleanup)
+            repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", f"status: {status}")
+            repository.edit("requirements/REQ-0001-an-obligation.md", "verification: static", "verification: statc")
+            done = repository.run("check", "rules")
+            self.assertEqual(done.returncode, 1, status + done.stdout + done.stderr)
+            self.assertIn("verification statc is not one of static, behavioural, evaluation and judgement", done.stdout)
+
+    def test_each_of_the_four_passes(self):
+        """REQ-1664: the four kinds are the whole vocabulary."""
+        for kind in ("static", "behavioural", "evaluation"):
+            repository = Repository()
+            self.addCleanup(repository.tmp.cleanup)
+            repository.edit("requirements/REQ-0001-an-obligation.md", "verification: static", f"verification: {kind}")
+            done = repository.run("check", "rules")
+            self.assertEqual(done.returncode, 0, kind + done.stdout + done.stderr)
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("requirements/REQ-0001-an-obligation.md", "verification: static", "verification: judgement\nverifier: agent")
+        done = repository.run("check", "rules")
+        self.assertEqual(done.returncode, 0, "judgement" + done.stdout + done.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
