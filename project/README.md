@@ -298,7 +298,8 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1340](epics/EPC-1340-the-record-command-is-named-paw.md) realised ADR-1350 in one task, TSK-2020, closed with evidence, and was verified against every acceptance criterion under issue 404.
 
 [EPC-1350](epics/EPC-1350-the-documentation-ships-with-its-units.md) realises
-ADR-1370 in four tasks, TSK-2030 to TSK-2060.
+ADR-1370 in four tasks, TSK-2030 to TSK-2060, each closed with evidence, and
+was verified against every acceptance criterion under issue 425.
 
 ## Defects
 

@@ -3,7 +3,7 @@ id: SPC-1110
 artifact: spec
 status: live
 revised: 2026-09-27
-checked-at:
+checked-at: "#425"
 states:
   [
     REQ-2838,
