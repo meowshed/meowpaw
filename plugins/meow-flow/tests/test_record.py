@@ -4,13 +4,14 @@
 """Fixtures for every check and failure path SPC-1070 states, and ADR-1100's checks.
 
 Each fixture writes a small record that every check passes into a temporary
-repository, plants one defect, and runs the launcher there. `MEOW_METHOD_BIN`
+repository, plants one defect, and runs the launcher there. `MEOW_FLOW_BIN`
 names the launcher to test, so the same fixtures can first run against a
 program that returns nothing and be seen failing (REQ-2072).
 """
 
 import hashlib
 import re
+import json
 import os
 import shutil
 import subprocess
@@ -19,7 +20,7 @@ import unittest
 from pathlib import Path
 
 UNIT = Path(__file__).resolve().parent.parent
-BIN = Path(os.environ.get("MEOW_METHOD_BIN", UNIT / "bin" / "paw"))
+BIN = Path(os.environ.get("MEOW_FLOW_BIN", UNIT / "bin" / "paw"))
 
 
 def record(kind, ident, fields, sections, body=""):
@@ -1015,7 +1016,7 @@ class Indexes(unittest.TestCase):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         repository.write("adrs/README.md", "---\nid: index\nartifact: index\nstatus: live\nrevised: 2026-01-01\n---\n\n"
-                         "# Decisions\n\nWritten by hand.\n\n<!-- meow-method index -->\n<!-- /meow-method index -->\n")
+                         "# Decisions\n\nWritten by hand.\n\n<!-- meow-flow index -->\n<!-- /meow-flow index -->\n")
         return repository
 
     def test_index_writes_the_block_and_keeps_the_prose(self):
@@ -1200,14 +1201,28 @@ class ReadOnly(unittest.TestCase):
     def test_writing_an_index_leaves_no_temporary_file(self):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
-        repository.write("adrs/README.md", "# Decisions\n\n<!-- meow-method index -->\n<!-- /meow-method index -->\n")
+        repository.write("adrs/README.md", "# Decisions\n\n<!-- meow-flow index -->\n<!-- /meow-flow index -->\n")
         done = repository.run("index", "adr", "--write")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(sorted(p.name for p in (repository.root / "adrs").iterdir()),
                          ["ADR-0001-a-choice.md", "README.md"])
         written = (repository.root / "adrs" / "README.md").read_text(encoding="utf-8")
         self.assertIn("| [ADR-0001](ADR-0001-a-choice.md) |", written)
-        self.assertIn("<!-- /meow-method index -->", written)
+        self.assertIn("<!-- /meow-flow index -->", written)
+
+    def test_an_index_with_the_old_markers_is_read_and_moved_to_the_new(self):
+        """REQ-3190, ADR-1390: the markers before the rename are read until 0.32.0, and writing moves them."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.write("adrs/README.md", "# Decisions\n\n<!-- meow-method index -->\n<!-- /meow-method index -->\n")
+        done = repository.run("index", "adr", "--write")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        written = (repository.root / "adrs" / "README.md").read_text(encoding="utf-8")
+        self.assertIn("<!-- meow-flow index -->", written)
+        self.assertIn("<!-- /meow-flow index -->", written)
+        self.assertNotIn("meow-method", written)
+        checked = repository.run("check", "index")
+        self.assertEqual(checked.returncode, 0, checked.stdout + checked.stderr)
 
 
 class Where(unittest.TestCase):
@@ -1287,7 +1302,7 @@ class Launcher(unittest.TestCase):
 
 
 class Named(unittest.TestCase):
-    """REQ-3166, ADR-1350: the record's command is paw, and meow-method is a deprecated alias for one release."""
+    """REQ-3168, REQ-3190, ADR-1390: the unit is meow-flow, and its command is paw."""
 
     def repo(self):
         repository = Repository()
@@ -1305,25 +1320,19 @@ class Named(unittest.TestCase):
         self.assertIn("paw show: REQ-0999 resolves to nothing", said)
         self.assertNotIn("meow-method", said)
 
-    def test_the_alias_says_it_is_deprecated_and_runs_paw(self):
-        repository = self.repo()
-        for args in [("check",), ("show", "REQ-0999")]:
-            paw = subprocess.run([str(UNIT / "bin" / "paw"), *args], cwd=repository.path, capture_output=True, text=True)
-            alias = subprocess.run([str(UNIT / "bin" / "meow-method"), *args], cwd=repository.path,
-                                   capture_output=True, text=True)
-            self.assertEqual(alias.returncode, paw.returncode, alias.stderr)
-            self.assertEqual(alias.stdout, paw.stdout)
-            self.assertIn("this command is now paw", alias.stderr)
-            self.assertIn("0.31.0", alias.stderr)
+    def test_the_unit_is_named_meow_flow(self):
+        manifest = json.loads((UNIT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["name"], "meow-flow")
+        self.assertEqual(UNIT.name, "meow-flow")
+        self.assertEqual(sorted(p.name for p in (UNIT / "bin").iterdir() if p.is_file()), ["paw"])
 
-    def test_nothing_the_unit_ships_runs_the_old_name(self):
-        old = re.compile(r"bin/meow-method\b|(?<![/\w:-])meow-method\s+(check|status|ready|template|show|index|new|find|count|onboarding)\b")
+    def test_nothing_the_unit_ships_names_the_old_unit(self):
         found = [f"{path.relative_to(UNIT)}:{number}"
                  for path in sorted(UNIT.rglob("*"))
                  if path.is_file() and path.suffix in {".md", ".json", ".toml", ""} and "tests" not in path.parts
-                 and path != UNIT / "bin" / "meow-method" and path.parent.parent != UNIT / "bin"
+                 and path.parent.parent != UNIT / "bin"
                  for number, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1)
-                 if old.search(line.replace("<!-- meow-method index -->", ""))]
+                 if "meow-method" in line]
         self.assertEqual(found, [])
 
 

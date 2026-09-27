@@ -22,5 +22,5 @@ waiting.
    input.
 5. Stop where that step ends at an approval gate.
 6. Report which step you reached, why you stopped, and what the next
-   invocation of `/meow-method:run` will do.
+   invocation of `/meow-flow:run` will do.
 </steps>

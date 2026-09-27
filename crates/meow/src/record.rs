@@ -1727,8 +1727,10 @@ fn show(rest: &[String]) -> u8 {
     CLEAN
 }
 
-const INDEX_OPEN: &str = "<!-- meow-method index -->";
-const INDEX_CLOSE: &str = "<!-- /meow-method index -->";
+const INDEX_OPEN: &str = "<!-- meow-flow index -->";
+const INDEX_CLOSE: &str = "<!-- /meow-flow index -->";
+/// The markers before the unit was renamed, read until meow-flow 0.32.0 (ADR-1390).
+const OLD_INDEX: (&str, &str) = ("<!-- meow-method index -->", "<!-- /meow-method index -->");
 
 /// A kind by its name or its artifact word, such as `decision` or `adr`.
 fn kind_named(record: &Record, word: &str) -> Option<usize> {
@@ -1837,9 +1839,22 @@ fn normalised(text: &str) -> Vec<String> {
 
 /// The block between the markers in an index file's text, if it has one.
 fn generated_block(text: &str) -> Option<(usize, usize)> {
-    let open = text.find(INDEX_OPEN)? + INDEX_OPEN.len();
-    let close = text[open..].find(INDEX_CLOSE)? + open;
-    Some((open, close))
+    markers(text).map(|(_, open, close, _)| (open, close))
+}
+
+/// Where the block's markers sit, in either form: the opening marker's start,
+/// the block's start and end, and the closing marker's end.
+fn markers(text: &str) -> Option<(usize, usize, usize, usize)> {
+    for (opening, closing) in [(INDEX_OPEN, INDEX_CLOSE), OLD_INDEX] {
+        if let Some(start) = text.find(opening) {
+            let open = start + opening.len();
+            if let Some(found) = text[open..].find(closing) {
+                let close = open + found;
+                return Some((start, open, close, close + closing.len()));
+            }
+        }
+    }
+    None
 }
 
 fn index_command(rest: &[String]) -> u8 {
@@ -1870,11 +1885,12 @@ fn index_command(rest: &[String]) -> u8 {
     }
     let path = root.join(record.layout.kinds[k].index.as_deref().unwrap_or_default());
     let text = std::fs::read_to_string(&path).unwrap_or_default();
-    let Some((open, close)) = generated_block(&text) else {
+    let Some((start, _, _, end)) = markers(&text) else {
         say!("paw index: {} has no {INDEX_OPEN} block to write into", path.display());
         return FOUND;
     };
-    let updated = format!("{}\n\n{}\n{}", &text[..open], block.trim_end(), &text[close..]);
+    // Writing moves an index still carrying the old markers onto the new ones.
+    let updated = format!("{}{INDEX_OPEN}\n\n{}\n{INDEX_CLOSE}{}", &text[..start], block.trim_end(), &text[end..]);
     if updated != text {
         // Written beside the index and renamed into place, so an interrupted
         // write leaves the old index or the new one and never half of either.

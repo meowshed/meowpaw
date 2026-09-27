@@ -7,7 +7,7 @@ describes:
     meow-core@0.6.1,
     meow-git@0.2.2,
     meow-github@0.4.1,
-    meow-method@0.31.0,
+    meow-flow@0.31.0,
     meow-prose-gate@0.1.2,
     meow-scm@0.4.1,
     meow-verbs@0.2.2,
@@ -115,14 +115,8 @@ yourself, or the retry is blocked too, apply the fix the reason names.
 `paw ready implement: not ready` means the step you asked for needs an
 approved input, and `paw` lists what is missing below the message, such as a
 task another one depends on that isn't done. Approve the input or finish the
-task it names, then run the step again. If you run `/meow-method:run` with
+task it names, then run the step again. If you run `/meow-flow:run` with
 nothing newly approved, it says what it is waiting on.
-
-## The command is now paw
-
-`this command is now paw, and 0.31.0 removes the name meow-method` means a
-script or a habit still runs the record's command by its old name. The old
-name works until 0.31.0. Run `paw` in its place.
 
 ## GitHub's client couldn't run
 

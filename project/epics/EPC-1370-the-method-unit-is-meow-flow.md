@@ -43,9 +43,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2090 rename the unit to `meow-flow` everywhere outside the
+- [x] T-001 TSK-2090 rename the unit to `meow-flow` everywhere outside the
       approved records, and migrate the index markers
       closes: REQ-3168, REQ-3190
+      evidence: the unit at `plugins/meow-flow/`, validated, and two marker
+      fixtures, in #436.
 
 - [ ] T-002 TSK-2100 ship `meow-method` 0.30.0 as a stub that says where the
       unit went

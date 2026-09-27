@@ -116,7 +116,7 @@ Every decision below is approved and in force, as amended by the ones after it.
   a change to the record's shape migrates what exists, and a retired name stays
   retired.
 - [ADR-1250](adrs/ADR-1250-init-writes-a-profile-and-a-constitution-from-what-the-repository-holds.md):
-  `/meow-method:init` writes a profile and a constitution from what the
+  `/meow-flow:init` writes a profile and a constitution from what the
   repository holds.
 - [ADR-1260](adrs/ADR-1260-onboarding-recovers-what-a-repository-is-and-places-every-document.md):
   onboarding recovers what a repository is, and places every document it
@@ -187,16 +187,16 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 `meow-git` implements it, verified under issue 392.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
-checked, and `meow-method` implements it, verified under issue 404.
+checked, and `meow-flow` implements it, verified under issue 404.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
-`meow-method` implements it, verified under issue 368.
+`meow-flow` implements it, verified under issue 368.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
 the record contradicts itself, and each requirement's derived state.
-`meow-method` implements it, verified under issue 398.
+`meow-flow` implements it, verified under issue 398.
 
 [SPC-1110](specs/SPC-1110-the-documentation.md) states the documentation the
 harness writes for its users: each unit's page, the introduction, the route
