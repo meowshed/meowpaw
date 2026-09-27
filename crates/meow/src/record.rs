@@ -1353,6 +1353,17 @@ fn rules(record: &Record) -> Vec<Finding> {
                         }
                     }
                 }
+                "verification-kind" => {
+                    // One of the four kinds of check, which `status` counts to report
+                    // how much of the set rests on judgement (ADR-1510).
+                    const KINDS: [&str; 4] = ["static", "behavioural", "evaluation", "judgement"];
+                    if let Some(field) = doc.field("verification") {
+                        let kind = bare(&field.value);
+                        if !KINDS.contains(&kind) {
+                            out.push(Finding::at(doc, Some(field.line), format!("verification {kind} is not one of static, behavioural, evaluation and judgement")));
+                        }
+                    }
+                }
                 "judgement-verifier" => {
                     if let Some(field) = doc.field("verification") {
                         if bare(&field.value) == "judgement" && doc.field("verifier").is_none() {
