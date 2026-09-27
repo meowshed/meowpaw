@@ -187,7 +187,7 @@ fn plural(count: usize) -> &'static str {
     if count > 1 { "s" } else { "" }
 }
 
-/// What a branch name repeats of what the forge stores: a date, or the
+/// What a branch name repeats of what the code host stores: a date, or the
 /// author's name (REQ-2818).
 fn stored_in_name(branch: &str, author: &str) -> Option<String> {
     let chars: Vec<char> = branch.chars().collect();
@@ -237,7 +237,7 @@ fn push_guard(root: &Path) -> u8 {
     let mut failures: Vec<String> = Vec::new();
     if let Some(what) = stored_in_name(&branch, &author) {
         failures.push(format!(
-            "the branch `{branch}`\n    branch name: it carries {what}, which the forge already stores; name the branch for the change"
+            "the branch `{branch}`\n    branch name: it carries {what}, which the code host already stores; name the branch for the change"
         ));
     }
     let scm = find_meow_scm();

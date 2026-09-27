@@ -6,7 +6,7 @@
 //! SPC-1080 states the behaviour. `history` reads four listings through
 //! `gh api`, the interface beneath GitHub's own client, every page of each and
 //! through its cache, and prints one JSON document. It takes each field by
-//! name, so a field the forge stops sending fails by that name, and a listing
+//! name, so a field the code host stops sending fails by that name, and a listing
 //! it can't read leaves the history unread rather than printed in part.
 
 use serde_json::{json, Value};
@@ -69,7 +69,7 @@ fn gh(args: &[&str]) -> Result<Value, String> {
     serde_json::from_slice(&out.stdout).map_err(|e| format!("gh printed no JSON ({e})"))
 }
 
-/// A field of a response, by name, so that one the forge stopped sending fails
+/// A field of a response, by name, so that one the code host stopped sending fails
 /// by that name rather than reading as empty (REQ-2556).
 fn field<'a>(item: &'a Value, name: &str, listing: &str) -> Result<&'a Value, String> {
     item.get(name).ok_or_else(|| format!("a response in the {listing} listing lacks the field `{name}`"))
