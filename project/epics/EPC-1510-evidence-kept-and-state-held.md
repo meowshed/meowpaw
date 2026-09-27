@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1530
-checked-at:
+checked-at: "#559"
 ---
 
 # Cited evidence is kept in the repository, and the ledger is held to the state rules
@@ -67,6 +67,36 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       `interrupted` and `running`
       closes: REQ-2968, REQ-2969
       evidence: three fixtures seen failing first, in #549.
+
+## Verified
+
+I checked this under #559 on `main` after #558, gathering the evidence there
+rather than carrying it over from the tasks. `meow-verbs evidence --keep
+format lint test` exits 0 on this change's own tree, each result kept in
+`project/evidence/`, as the pull request cites. The `Kept`, `State` and
+`Interrupted` fixtures, 21 tests, pass. Every criterion is met:
+
+| Criterion                                                                                                                                                                                                         | Evidence on `main` after #558                                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 1. `--keep` writes a current record with its header and output, refuses a stale one, leaves the tree id unchanged, and obeys `evidence_dir`                                                                       | The `Kept` fixtures pass, under ADR-1550's name and place                                              |
+| 2. Identity, absent lines, running and interrupted, the signal, pruning, purging, the stale lock, the append during a prune, output deleted, the environment switches, `state`, `tree`, bare `--keep` and `--all` | The `State`, `Interrupted` and `Kept` fixtures pass                                                    |
+| 3. The `verify` skill and the implement step cite the kept path                                                                                                                                                   | Step 6 and V7 of the skill and step 4 of the implement step, traced in TSK-2340                        |
+| 4. Every requirement lands in exactly one closed task                                                                                                                                                             | `paw show` derives all 15 requirements ADR-1530 addresses as closed by TSK-2340, TSK-2350 and TSK-2360 |
+
+ADR-1550 changed criterion 1's directory and name from
+`.meowpaw/evidence/<record>.log` to `project/evidence/<record>.txt`; the
+criterion is met as amended.
+
+### Documentation
+
+TSK-2340, TSK-2350 and TSK-2360 described keeping, the ledger's state and the
+interrupted outcome on `meow-verbs`' page, at 0.6.0. The `test` verb checked
+it, running `tools/check_docs.py`.
+
+### Postponements
+
+ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
+untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 
