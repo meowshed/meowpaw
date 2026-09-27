@@ -24,6 +24,11 @@ SCM = UNIT.parent / "meow-scm" / "bin" / "meow-scm"
 SIGNED_OFF = "Signed-off-by: A Person <a@example.org>"
 CONVENTION = '[commits]\nsubject_limit = 72\ntrailers = ["Signed-off-by"]\n[commits.types]\nfix = "patch"\n'
 
+# A verdict must depend on the fixture alone: a machine-wide allowed signers
+# file turns the orphan key's "unverifiable" into "untrusted" (BUG-1190).
+os.environ["GIT_CONFIG_GLOBAL"] = os.devnull
+os.environ["GIT_CONFIG_NOSYSTEM"] = "1"
+
 
 def run(cwd, *args, **kwargs):
     return subprocess.run(list(args), cwd=cwd, capture_output=True, text=True, check=True, **kwargs)
