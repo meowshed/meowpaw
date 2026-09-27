@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! `meow-mise`: what mise resolves in a work tree (SPC-1140).
+//! `meow-mise`: what mise resolves in a work tree, and the verbs bound to its
+//! tasks (SPC-1140).
 //!
 //! The program asks mise and reads the repository's committed files, and it
 //! runs no task, grants no trust and writes nothing (REQ-2466, REQ-2504).
@@ -26,8 +27,10 @@ const CONF_D: [&str; 3] = ["mise/conf.d/", ".mise/conf.d/", ".config/mise/conf.d
 pub fn main(args: &[String]) -> u8 {
     match args.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
         ["status"] => status(),
+        ["bind"] => bind(),
+        ["check"] => check(),
         _ => {
-            eprintln!("usage: meow-mise status");
+            eprintln!("usage: meow-mise status | bind | check");
             2
         }
     }
@@ -48,6 +51,107 @@ fn status() -> u8 {
             UNRESOLVED
         }
     }
+}
+
+const VERBS: [&str; 5] = ["format", "lint", "check", "test", "build"];
+
+/// A `[verbs]` table binding each verb to the task of exactly its name, never
+/// a near one and never by what a task runs (REQ-2474, REQ-2492). It prints
+/// and never writes, because the profile is the repository's (ADR-1070).
+fn bind() -> u8 {
+    let resolved = match resolve() {
+        Ok(resolved) => resolved,
+        Err(Unresolved { reason, .. }) => {
+            println!("meow-mise bind");
+            println!("unresolved: {reason}");
+            return UNRESOLVED;
+        }
+    };
+    println!("# meow-mise bind: paste what follows into .meowpaw/profile.toml");
+    println!("[verbs]");
+    for verb in VERBS {
+        match resolved.tasks.iter().find(|t| t.name == verb) {
+            None => println!("# {verb}: no task named {verb}"),
+            Some(task) if !task.blocks.is_empty() => println!("# {verb}: task {verb} is blocked: {}", task.blocks.join(", ")),
+            // --force, so a task mise would skip as fresh runs, and a pass is never a skip (REQ-2468).
+            Some(task) => println!("{verb} = \"mise run --force {}\"", task.name),
+        }
+    }
+    0
+}
+
+/// Every task a profile's verb runs through `mise run`, with whether it forces the run.
+fn bound_tasks(command: &str) -> Vec<(String, bool)> {
+    let mut found = Vec::new();
+    for part in command.split("&&").flat_map(|p| p.split("||")).flat_map(|p| p.split(';')) {
+        let words: Vec<&str> = part.split_whitespace().collect();
+        if words.len() < 2 || words[0] != "mise" || words[1] != "run" {
+            continue;
+        }
+        let flags: Vec<&str> = words[2..].iter().take_while(|w| w.starts_with('-')).copied().collect();
+        if let Some(name) = words[2..].iter().find(|w| !w.starts_with('-')) {
+            found.push((name.to_string(), flags.iter().any(|f| *f == "--force" || *f == "-f")));
+        }
+    }
+    found
+}
+
+/// What stops each task a profile's verb runs from being run unattended.
+fn check() -> u8 {
+    println!("meow-mise check");
+    let root = profile::repository_root();
+    let verbs = match profile::read(&root) {
+        profile::Profile::Absent => {
+            println!("unresolved: no profile at {}", profile::PROFILE);
+            return UNRESOLVED;
+        }
+        profile::Profile::Unparseable(message) => {
+            println!("unresolved: the profile doesn't parse: {message}");
+            return UNRESOLVED;
+        }
+        profile::Profile::Parsed(table) => table.get("verbs").and_then(toml::Value::as_table).cloned().unwrap_or_default(),
+    };
+    let mut bound = Vec::new();
+    for (verb, value) in &verbs {
+        let command = match value {
+            toml::Value::String(c) => Some(c.as_str()),
+            toml::Value::Table(t) => t.get("command").and_then(toml::Value::as_str),
+            _ => None,
+        };
+        for (task, forced) in command.map(bound_tasks).unwrap_or_default() {
+            bound.push((verb.clone(), task, forced));
+        }
+    }
+    if bound.is_empty() {
+        println!("nothing to check: no verb runs a task through mise run");
+        return 0;
+    }
+    let resolved = match resolve() {
+        Ok(resolved) => resolved,
+        Err(Unresolved { reason, .. }) => {
+            println!("unresolved: {reason}");
+            return UNRESOLVED;
+        }
+    };
+    let mut findings = 0;
+    let checked = bound.len();
+    for (verb, name, forced) in bound {
+        let Some(task) = resolved.tasks.iter().find(|t| t.name == name) else {
+            println!("  {verb}: no task named {name}");
+            findings += 1;
+            continue;
+        };
+        if !task.blocks.is_empty() {
+            println!("  {verb}: task {name} is blocked: {}", task.blocks.join(", "));
+            findings += 1;
+        }
+        if !forced && task.can_skip != Some(false) {
+            println!("  {verb}: task {name} can skip as fresh and runs without --force");
+            findings += 1;
+        }
+    }
+    println!("{findings} findings in {checked} task runs the profile's verbs name");
+    if findings > 0 { 1 } else { 0 }
 }
 
 /// A state the program couldn't read past, with what it had printed so far.

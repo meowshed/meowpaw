@@ -7,8 +7,9 @@ describes: [meow-mise@0.1.0]
 
 # meow-mise
 
-`meow-mise` reports the tasks mise resolves in your repository: where each one
-came from and what would stop a check running it unattended. It never trusts
+`meow-mise` reports the tasks mise resolves in your repository, where each one
+came from and what would stop a check running it unattended, and binds your
+verbs to the tasks you declare. It never trusts
 a configuration, answers a prompt, runs a task or writes a file. It installs
 on its own, with no other part of the `meowpaw` harness.
 
@@ -68,10 +69,34 @@ only, never a value a file holds:
   `idiomatic_version_file_enable_tools` names its tool, and as possibly inert
   where it doesn't, which is mise's default.
 
+## Bind your verbs to your tasks
+
+`meow-mise bind` prints a `[verbs]` table for you to paste into
+`.meowpaw/profile.toml`, and never writes the profile itself:
+
+```toml
+[verbs]
+test = "mise run --force test"
+# lint: task lint is blocked: hidden
+```
+
+It binds a verb only to the task of exactly its name, so a task named `tests`
+or `unit` is never bound to `test`, and only a task that carries no block.
+Every binding runs the task with `--force`, so a task mise would skip as fresh
+runs, and a passing verb is never a skip. Each verb it leaves unbound is a
+comment with the reason.
+
+`meow-mise check` reads your profile's `[verbs]`, finds each `mise run <task>`
+in a verb's command, including each part of a chain joined by `&&`, `||` or
+`;`, and reports every block on that task, a task it can't find, and a task
+that can skip as fresh run without `--force`. It exits 0 on no finding, 1 on a
+finding and 3 when it can't read the profile or mise, so you can run it in
+your own gate.
+
 ## What it reports instead of a list
 
-It exits 0 when it reports the tasks and 3 when it can't, and it never reports
-a state it couldn't read as an empty list:
+`status` exits 0 when it reports the tasks and 3 when it can't, and no command
+ever reports a state it couldn't read as an empty list:
 
 | Line                                  | Means                                                                     |
 | ------------------------------------- | ------------------------------------------------------------------------- |
