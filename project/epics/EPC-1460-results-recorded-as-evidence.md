@@ -48,9 +48,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2270 record each result against its tree id, and report it
+- [x] T-001 TSK-2270 record each result against its tree id, and report it
       with `meow-verbs evidence`
       closes: REQ-0146
+      evidence: six fixtures seen failing first, and `meow-verbs evidence`
+      current at tree 8c370dc87ab6, in #513.
 
 - [ ] T-002 TSK-2280 cite records and check them before calling work done, in
       `meow-verbs:verify` and the implement step
