@@ -75,10 +75,12 @@ A task is marked in the commit that advances it, never in a later pass.
       and the reviewer reporting an injected instruction as a finding, in #68.
       depends: TSK-1120, TSK-1140 - the two prompts it marks are written there
 
-- [ ] T-004 TSK-1260 remove every instruction the loop shows has no effect
-      closes: REQ-1138
-      depends: TSK-1230, TSK-1240, TSK-1250 - it measures the prompts in the
-      form those tasks leave them, on both models
+- [~] T-004 TSK-1260 remove every instruction the loop shows has no effect
+  closes: REQ-1138
+  dropped: ADR-1360 postpones REQ-1138 until each prompt's case set can
+  tell one rule group's effect from noise on both models.
+  depends: TSK-1230, TSK-1240, TSK-1250 - it measures the prompts in the
+  form those tasks leave them, on both models
 
 ## Coverage
 
