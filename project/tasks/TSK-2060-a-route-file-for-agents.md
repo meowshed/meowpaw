@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1350
 closes: [REQ-3144, REQ-3146]
-issue:
+issue: 417
+projected: 7f19fa1958a3
 ---
 
 # An agent finds the documentation through `llms.txt`

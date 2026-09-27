@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1350
 closes: [REQ-3160, REQ-3162, REQ-3164]
-issue:
+issue: 415
+projected: eee63b13e83d
 ---
 
 # Every served catalogue entry carries the fields a reader sees before an install
