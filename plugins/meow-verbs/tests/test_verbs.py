@@ -269,6 +269,83 @@ class Ledger(unittest.TestCase):
         self.assertIn("bound to no tree", done.stdout)
 
 
+class Subset(unittest.TestCase):
+    """ADR-1520: a verb runs over part of the work only through a form the repository declares."""
+
+    PROFILE = ('[verbs]\nlint = "echo linted"\n\n[verbs.test]\ncommand = "echo whole"\n'
+               'subset = "printf \'[%s]\' {targets}"\n')
+
+    def repo(self, profile=None, git=False):
+        repository = Repository(profile or self.PROFILE)
+        self.addCleanup(repository.close)
+        if git:
+            repository.git("init", "-q", "-b", "work")
+        return repository
+
+    def test_a_declared_form_runs_the_targets_quoted(self):
+        """REQ-0140: each target reaches the tool as one argument."""
+        done = self.repo().run("run", "test", "--", "a b", "c;d")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("[a b][c;d]", done.stdout)
+        self.assertNotIn("`echo whole`", done.stdout)
+
+    def test_a_verb_with_no_form_is_unresolved_and_nothing_runs(self):
+        """REQ-0142: the whole command never runs in the part's place."""
+        done = self.repo().run("run", "lint", "--", "a")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("lint: unresolved (no subset form", done.stdout)
+        self.assertNotIn("linted", done.stdout)
+
+    def test_verbs_with_and_without_a_form_run_and_report_each(self):
+        """REQ-0140, REQ-0142: the verb with a form runs, the one without is reported."""
+        done = self.repo().run("run", "test", "lint", "--", "a")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("[a]", done.stdout)
+        self.assertIn("lint: unresolved (no subset form", done.stdout)
+        self.assertIn("summary: test passed, lint unresolved", done.stdout)
+
+    def test_a_string_value_still_resolves_the_whole_verb(self):
+        """ADR-1520: every profile written before keeps its meaning."""
+        done = self.repo().run("run", "lint")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("linted", done.stdout)
+
+    def test_a_double_dash_with_no_target_is_refused(self):
+        """ADR-1520: an empty part could mean the whole work or nothing."""
+        done = self.repo().run("run", "test", "--")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("names no target", done.stderr)
+
+    def test_a_form_without_the_placeholder_is_malformed(self):
+        """REQ-0142: a form with no {targets} would run the whole work as the part."""
+        repo = self.repo('[verbs.test]\ncommand = "echo whole"\nsubset = "echo whole"\n')
+        entry = repo.status()["verbs"]["test"]
+        self.assertEqual((entry["state"], entry["kind"]), ("unresolved", "malformed declaration"))
+
+    def test_status_shows_each_subset_form(self):
+        """ADR-1520: the model sees which verbs run over a part before it asks."""
+        repo = self.repo()
+        verbs = repo.status()["verbs"]
+        self.assertEqual(verbs["test"]["subset"], "printf '[%s]' {targets}")
+        self.assertIsNone(verbs["lint"]["subset"])
+        said = repo.run("status").stdout
+        self.assertIn("subset      printf '[%s]' {targets}", said)
+        self.assertIn("subset      none", said)
+
+    def test_a_subset_record_never_stands_for_the_whole_verb(self):
+        """REQ-0142: evidence for the whole verb reads the latest whole run."""
+        repo = self.repo(git=True)
+        repo.run("run", "test")
+        repo.run("run", "test", "--", "a")
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("test: subset only, passed", done.stdout)
+        self.assertIn("targets a,", done.stdout)
+        self.assertIn("test: passed, record", done.stdout)
+        records = repo.records()
+        self.assertEqual([r["targets"] for r in records], [None, ["a"]])
+
+
 class Launcher(unittest.TestCase):
     """ADR-1270: a launcher with no binary for the machine names the machine and the fix."""
 

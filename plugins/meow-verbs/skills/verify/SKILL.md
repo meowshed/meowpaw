@@ -17,8 +17,10 @@ report at all.
 2. Run the verbs the work needs, naming each one, with `format` first where
    it is among them:
    `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs run test`, or several at once,
-   such as `run format lint test`. Never run a verb's command yourself, and never
-   run a command you chose in place of an unresolved verb.
+   such as `run format lint test`. To run over part of the work, such as one
+   test or one file, add the targets after `--`: `run test -- <target>...`.
+   Never run a verb's command yourself, and never run a command you chose in
+   place of an unresolved verb.
 3. Report each verb as the program reported it: passed, failed or
    unresolved. For a failed verb, lead with its last lines of output and name
    the file and line where they point. For an unresolved verb, give its kind.
@@ -48,6 +50,11 @@ report at all.
   its exit status and its output, and say that nothing binds it to the
   content, because outside a git work tree no record can show which content it
   checked.
+- V6. Where `run` reports `no subset form`, say so and ask the person whether
+  to declare the form or run the whole verb, and run the whole verb only when
+  they say to, reporting it as the whole verb, because a whole run can take far
+  longer than the part, and only the repository knows how its tool takes a
+  part.
 </rules>
 
 <example name="an unresolved verb">
