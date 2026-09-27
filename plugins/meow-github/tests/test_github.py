@@ -227,6 +227,18 @@ class Project(unittest.TestCase):
         self.assertEqual(before[1], self.task(root, "TSK-0001-first.md"))
         self.assertIn("TSK-0001: unchanged, issue #1 at", done.stdout)
 
+    def test_a_task_with_no_issue_field_gets_one_and_a_replay_opens_nothing(self):
+        """REQ-1382, REQ-1386: the mapping is written on the task even where the field was missing, so a replay is no action."""
+        root = self.repository()
+        path = root / "project" / "tasks" / "TSK-0001-first.md"
+        path.write_text(path.read_text(encoding="utf-8").replace("issue:\n", "", 1), encoding="utf-8")
+        self.project(root)
+        self.assertRegex(self.task(root, "TSK-0001-first.md"), r"\nissue: 1\nprojected: [0-9a-f]{12}\n---\n")
+        done = self.project(root)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertEqual(len(self.state(root)["issues"]), 2)
+        self.assertIn("TSK-0001: unchanged, issue #1 at", done.stdout)
+
     def writes(self, root, since=0):
         return [c for c in self.state(root)["calls"][since:] if "-X" in c]
 
