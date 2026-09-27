@@ -1,0 +1,27 @@
+# meowpaw
+
+> A harness for Claude Code: units that make it report what it checked, what it couldn't check and what it decided. Each unit installs on its own, and its page says what it does, what it adds to a session and how to run it.
+
+## Documentation
+
+- [Introduction](docs/README.md): what meowpaw is, a quick start, and every page with its reader
+- [Tutorial](docs/tutorial.md): from an empty repository to a first check Claude Code runs and reports
+- [Troubleshooting](docs/troubleshooting.md): what each message a unit prints means, and what fixes it
+
+## Units
+
+- [meow-core](plugins/meow-core/README.md): the shape of every reply
+- [meow-prose](plugins/meow-prose/README.md): the writing standard, loaded before Claude Code writes
+- [meow-prose-gate](plugins/meow-prose-gate/README.md): a hook that blocks a publish carrying a defect any reader can point to
+- [meow-verbs](plugins/meow-verbs/README.md): the five verification verbs, run as the repository declares them
+- [meow-scm](plugins/meow-scm/README.md): the commit convention, checked before a message is used
+- [meow-git](plugins/meow-git/README.md): refuses a commit on the trunk and checks a branch before it is pushed
+- [meow-method](plugins/meow-method/README.md): runs the method's nine steps and checks the record they write
+- [meow-github](plugins/meow-github/README.md): reads a GitHub repository's history, and writes nothing
+
+## Optional
+
+- [Constitution](CLAUDE.md): the rules this repository is developed under
+- [Vision](project/vision.md): what the harness is for, and what it won't do
+- [Specifications](project/specs/): what each part of the harness must do now
+- [Record](project/README.md): the research, requirements, decisions and tasks behind the harness

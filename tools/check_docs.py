@@ -214,6 +214,34 @@ def write_index(root):
     index.write_text(f"{head}{START}\n\n{table(root)}\n\n{END}{tail}", encoding="utf-8")
 
 
+ROUTE_ITEM = re.compile(r"^- \[[^\]]+\]\(([^)\s]+)\)(?:: .+)?$")
+
+
+def check_route(root):
+    """`llms.txt` routes an agent in the published format, and links what exists."""
+    route = root / "llms.txt"
+    if not route.is_file():
+        return ["llms.txt: there is none"]
+    lines = route.read_text(encoding="utf-8").splitlines()
+    filled = [(number, line) for number, line in enumerate(lines, 1) if line.strip()]
+    out = []
+    if not filled or not filled[0][1].startswith("# "):
+        out.append("llms.txt: lacks its H1")
+    if len(filled) < 2 or not filled[1][1].startswith("> "):
+        out.append("llms.txt: lacks its summary")
+    for number, line in filled[2:]:
+        if line.startswith("## "):
+            continue
+        item = ROUTE_ITEM.match(line)
+        if not item:
+            out.append(f"llms.txt:{number}: neither a heading, the summary nor a link")
+            continue
+        link = item.group(1).split("#")[0]
+        if not link.startswith(("http://", "https://")) and not (root / link).exists():
+            out.append(f"llms.txt:{number}: links to {link}, which doesn't exist")
+    return out
+
+
 def check(root):
     versions = units(root)
     failures = []
@@ -224,7 +252,7 @@ def check(root):
             failures.append(f"{unit}: has no README.md")
     for path in pages(root):
         failures += check_page(root, path, versions)
-    return failures + check_index(root)
+    return failures + check_index(root) + check_route(root)
 
 
 def main():
