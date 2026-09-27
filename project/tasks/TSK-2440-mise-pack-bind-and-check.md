@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1550
 closes: [REQ-1316, REQ-2354, REQ-2468, REQ-2474, REQ-2492, REQ-2504]
-issue:
+issue: 581
+projected: 6646840e88ad
 ---
 
 # Bind the verbs to their tasks and check the profile's bindings
