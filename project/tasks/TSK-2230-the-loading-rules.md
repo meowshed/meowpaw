@@ -18,7 +18,8 @@ closes:
     REQ-2702,
     REQ-2704,
   ]
-issue:
+issue: 494
+projected: fc8ab449b446
 ---
 
 # `meow-author:write` carries the rules on when material loads

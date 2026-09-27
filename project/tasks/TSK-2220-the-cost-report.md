@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1440
 closes: [REQ-1072, REQ-1074]
-issue:
+issue: 493
+projected: b5a1f3492e0d
 ---
 
 # `meow-author cost` reports each unit's cost and use, in the gate
