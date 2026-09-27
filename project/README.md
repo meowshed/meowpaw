@@ -435,7 +435,8 @@ one task, TSK-2380, closed with evidence, and was verified against every
 acceptance criterion under issue 565.
 
 [EPC-1540](epics/EPC-1540-git-read-cleanly-and-breaking-changes-released.md)
-realises ADR-1570 in two tasks, TSK-2400 and TSK-2410.
+realises ADR-1570 in two tasks, TSK-2400 and TSK-2410, each closed with
+evidence, and was verified against every acceptance criterion under issue 575.
 
 ## Defects
 
