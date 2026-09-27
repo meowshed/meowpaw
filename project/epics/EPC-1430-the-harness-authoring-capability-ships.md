@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1450
-checked-at:
+checked-at: "#490"
 ---
 
 # An authoring unit ships how the harness's own material is written, and a check any repository runs
@@ -56,6 +56,33 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: seventeen rules, and the skill loading in ten of ten writes and
       none of ten near misses, in #486.
       depends: TSK-2200 - the skill ships in the unit T-001 creates
+
+## Verified
+
+I checked this under #490 on `main` after #489, gathering the evidence there
+rather than carrying it over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                 | Evidence on `main` after #489                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. The check passes on this repository, and fixtures fail it on each condition                                            | `meow-author check` reports 56 files and 0 failures, and the unit's 13 fixtures pass, one per condition ADR-1450 lists                                                     |
+| 2. The check reads a repository's own `.claude`                                                                           | `test_a_repositorys_own_skills_are_checked` passes, holding a skill outside any unit                                                                                       |
+| 3. The skill carries every rule, traced, and the check passes on it                                                       | The skill carries 17 labelled rules; TSK-2200 and TSK-2210 trace the 23 requirements, the program holding ten of them, and the check passes on the skill                   |
+| 4. The skill loads before the first write in at least four of five per model, and in no more than one of five near misses | Asked to write an agent definition, with only the unit installed: Sonnet 5 loaded it first in 5 of 5, Opus 5.5 in 5 of 5. Asked to change a line of code: 0 of 3 per model |
+| 5. Every requirement lands in exactly one closed task                                                                     | `paw show` derives all 23 requirements ADR-1450 addresses as closed and not yet verified                                                                                   |
+
+The sessions here asked for an agent definition, where the tasks asked for a
+skill, so the skill routed on a second kind of material too.
+
+### Documentation
+
+The tasks wrote `meow-author`'s page, and SPC-1080 names the new subcommand.
+The `test` verb checked the pages, running `tools/check_docs.py`, which
+reports 15 pages and 0 failures.
+
+### Postponements
+
+ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
+untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 
