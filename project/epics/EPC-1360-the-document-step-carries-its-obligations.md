@@ -46,8 +46,9 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       REQ-1958, REQ-1960, REQ-1962, REQ-1964, REQ-2836
       evidence: rules O4 to O13 in `steps/document.md`, traced in #428.
 
-- [ ] T-002 [P] TSK-2080 have the review step follow a changed quick start
+- [x] T-002 [P] TSK-2080 have the review step follow a changed quick start
       closes: REQ-2834
+      evidence: rules W11 and W12 in `steps/review.md`, in #429.
 
 ## Coverage
 
