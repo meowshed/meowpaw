@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1420
 closes: [REQ-0352, REQ-0354, REQ-0374]
-issue:
+issue: 475
+projected: d19c9a72bf15
 ---
 
 # A defect authorises a task directly, and `status` counts work by its authority

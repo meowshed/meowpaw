@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1420
 closes: [REQ-0348, REQ-0350, REQ-3170, REQ-3174]
-issue:
+issue: 477
+projected: 8e1d480d3f9f
 ---
 
 # The implement and verify steps carry the rules on a defect

@@ -15,7 +15,8 @@ closes:
     REQ-0370,
     REQ-0372,
   ]
-issue:
+issue: 476
+projected: ffc44f4fce39
 ---
 
 # `paw check` holds a defect's triage, reproduction and closing
