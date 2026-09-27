@@ -2,7 +2,7 @@
 reader: someone who has meow-method installed and sees its notice
 answers: why meow-method is a stub now, and how to move to meow-flow
 kind: reference
-describes: [meow-method@0.30.0, meow-flow@0.33.1]
+describes: [meow-method@0.30.0, meow-flow@0.33.2]
 ---
 
 # meow-method

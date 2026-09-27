@@ -17,7 +17,8 @@ closes:
     REQ-2967,
     REQ-2970,
   ]
-issue:
+issue: 548
+projected: e38477c34117
 ---
 
 # The ledger holds to the state rules

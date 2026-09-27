@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-verbs
 answers: what meow-verbs does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-verbs@0.5.0]
+describes: [meow-verbs@0.6.0]
 ---
 
 # meow-verbs
@@ -74,6 +74,17 @@ when one failed, went stale or changed the tree during its run, and 3 when one
 has no record, was unresolved or ran outside a git work tree, where no tree id
 exists. The skill runs `format` first, cites records in this form, and calls
 the work done only when `evidence` exits 0 or you accept what it reported.
+
+A result a record cites is kept in the repository, where anyone can check it:
+`meow-verbs evidence --keep [verb...]` copies each current record, with its
+whole output, to `<record>.log` under `.meowpaw/evidence/`, or under the
+`evidence_dir` you declare under `[verbs]`. The file opens with
+`meow-verbs evidence 1` and the record's verb, command, targets, outcome, exit
+status, tree id and time. A stale record isn't kept. The tree id leaves that
+directory out, so keeping a record doesn't make it stale, and
+`meow-verbs tree <commit>` prints a commit's tree id the same way, for
+comparing a kept record with the commit that carries it. Read a kept file
+before you commit it, because it holds whatever the verb printed.
 
 To run a verb over part of the work, such as one test, declare the form it
 takes, with `{targets}` where the part goes:

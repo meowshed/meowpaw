@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1510
 closes: [REQ-2968, REQ-2969]
-issue:
+issue: 549
+projected: 3e6df76eafe3
 ---
 
 # `meow-verbs` records a verb as started and ended, and reports `interrupted` and `running`
