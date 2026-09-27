@@ -155,6 +155,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1390](adrs/ADR-1390-the-method-unit-is-meow-flow-and-meow-method-stays-one-release-as-a-stub.md):
   the method's unit is `meow-flow`, and `meow-method` stays one release as a
   stub that says so.
+- [ADR-1400](adrs/ADR-1400-a-licensing-unit-applies-the-declared-header-and-a-program-checks-every-file-is-covered.md):
+  a licensing unit applies the header a repository declares, and a program
+  checks that every file is covered.
 
 ## Specifications
 
@@ -201,6 +204,10 @@ the record contradicts itself, and each requirement's derived state.
 [SPC-1110](specs/SPC-1110-the-documentation.md) states the documentation the
 harness writes for its users: each unit's page, the introduction, the route
 file for agents, the catalogue fields and the check that holds them.
+
+[SPC-1120](specs/SPC-1120-the-licensing-unit.md) states the licensing unit:
+where a repository declares its licensing, the skill that applies a header and
+the check that every file is covered.
 
 ## Epics and tasks
 
@@ -314,6 +321,9 @@ evidence, and was verified against every acceptance criterion under issue 433.
 [EPC-1370](epics/EPC-1370-the-method-unit-is-meow-flow.md) realises ADR-1390 in
 two tasks, TSK-2090 and TSK-2100, each closed with evidence, and was verified
 against every acceptance criterion under issue 441.
+
+[EPC-1380](epics/EPC-1380-licensing-applied-and-checked.md) realises ADR-1400
+in three tasks, TSK-2110 to TSK-2130.
 
 ## Defects
 
