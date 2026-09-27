@@ -9,6 +9,11 @@ supersedes: []
 
 # 1350. The record's command is `paw`, and `meow-method` stays one release as a deprecated alias
 
+**Amended by ADR-1390.** The unit is `meow-flow`, its skills and commands are
+named for it, and the index markers become `<!-- meow-flow index -->`. The
+`bin/meow-method` alias never shipped, and none ships. The command stays
+`paw`.
+
 ## Decision
 
 `meow-method` ships its command as `bin/paw`. A person, a skill, a hook and
