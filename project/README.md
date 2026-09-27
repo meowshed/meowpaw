@@ -380,7 +380,8 @@ in two tasks, TSK-2240 and TSK-2250, each closed with evidence, and was
 verified against every acceptance criterion under issue 506.
 
 [EPC-1460](epics/EPC-1460-results-recorded-as-evidence.md) realises ADR-1480
-in two tasks, TSK-2270 and TSK-2280.
+in two tasks, TSK-2270 and TSK-2280, each closed with evidence, and was
+verified against every acceptance criterion under issue 517.
 
 ## Defects
 
