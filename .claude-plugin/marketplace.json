@@ -52,6 +52,11 @@
       "name": "meow-github",
       "source": "./plugins/meow-github",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-github/README.md"
+    },
+    {
+      "name": "meow-licence",
+      "source": "./plugins/meow-licence",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-licence/README.md"
     }
   ]
 }

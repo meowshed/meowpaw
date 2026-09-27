@@ -26,10 +26,10 @@ states:
 ## Scope
 
 This covers `meow-licence`, the unit that applies the licence header a
-repository declares and checks that every file the repository tracks is
-covered by a licensing declaration. It states where a repository declares its
-licensing, what the skill does, what the program checks, and how each
-failure reads.
+repository declares and checks that every file the repository tracks is covered
+by a licensing declaration. It states where a repository declares its
+licensing, what the skill does, what the program checks, and how each failure
+reads.
 
 It leaves the attribution ban to SPC-1050, which `meow-scm` implements, and
 states only that a copyright line passes it. It leaves build provenance to the
@@ -52,12 +52,12 @@ ADR-1400 decides this part.
 
 ### Where a repository declares its licensing
 
-A repository declares its licensing in any of three ways, and can combine
-them (REQ-1016). The first is `REUSE.toml` at its root: each
-`[[annotations]]` table names `path`, a glob or a list of globs relative to
-the root, with `SPDX-FileCopyrightText` and `SPDX-License-Identifier`. The
-second is a `[licence]` table in `.meowpaw/profile.toml`, listing the lines of
-the header the skill writes:
+A repository declares its licensing in any of three ways, and can combine them
+(REQ-1016). The first is `REUSE.toml` at its root: each `[[annotations]]` table
+names `path`, a glob or a list of globs relative to the root, with
+`SPDX-FileCopyrightText` and `SPDX-License-Identifier`. The second is a
+`[licence]` table in `.meowpaw/profile.toml`, listing the lines of the header
+the skill writes:
 
 ```toml
 [licence]
@@ -74,11 +74,12 @@ after at most an interpreter line and a short preamble, in whatever comment
 form the file's format permits. A file that can't carry a comment is covered by
 an annotation, or by a file beside it named `<file>.license` that carries the
 header. A licence text, in `LICENSES/` or in a file named `LICENSE`, `LICENCE`
-or `COPYING` with any extension, is the licence itself and needs no
-declaration, a choice I made because a licence text declaring its own licence
-tells a reader nothing. Prose can be declared
-in bulk, and the declaration states its cost beside it: a document lifted out
-of the repository carries no licensing (REQ-3060).
+or `COPYING` with no extension or a text format's, is the licence itself and
+needs no declaration, a choice I made because a licence text declaring its own
+licence tells a reader nothing. `REUSE.toml` and a `.license` file are
+declarations themselves, and need none either. Prose can be declared in bulk,
+and the declaration states its cost beside it: a document lifted out of the
+repository carries no licensing (REQ-3060).
 
 ### The skill
 
@@ -94,8 +95,8 @@ licence (REQ-3066).
 
 ### The check
 
-`meow-licence check` reads the files git tracks under the repository's root
-and prints one line per finding, then a count. A finding is one of:
+`meow-licence check` reads the files git tracks under the repository's root and
+prints one line per finding, then a count. A finding is one of:
 
 - a file that no annotation covers and that carries no header, directly or
   in a `.license` file beside it (REQ-3058);
@@ -106,8 +107,8 @@ and prints one line per finding, then a count. A finding is one of:
   directory (REQ-3062).
 
 It exits 0 when it finds nothing and 1 on a finding. It exits 3 when the
-repository declares no licensing, reported as undeclared, or when it can't
-run, reported as unchecked, and never reports either as covered. It reports
+repository declares no licensing, reported as undeclared, or when it can't run,
+reported as unchecked, and never reports either as covered. It reports
 licensing alone, and never states who wrote a file or where an artifact was
 built, because those are claims a licence declaration can't make (REQ-3064).
 
