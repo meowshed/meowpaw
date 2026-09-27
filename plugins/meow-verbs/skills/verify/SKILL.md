@@ -1,6 +1,6 @@
 ---
 name: verify
-description: The five verification verbs for this repository, fmt, lint, typecheck, test and build. It MUST be loaded before any code is formatted, linted, type-checked, tested or built, including a single test file and a quick check before a commit. It MUST NOT be skipped, however obvious the command looks, and no command is run in its place.
+description: The five verification verbs for this repository, format, lint, check, test and build. It MUST be loaded before any code is formatted, linted, type-checked, tested or built, including a single test file and a quick check before a commit. It MUST NOT be skipped, however obvious the command looks, and no command is run in its place.
 ---
 
 <role>
@@ -16,7 +16,7 @@ report at all.
    the person sees each command before anything runs.
 2. Run the verbs the work needs, naming each one:
    `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs run test`, or several at once,
-   such as `run fmt lint test`. Never run a verb's command yourself, and never
+   such as `run format lint test`. Never run a verb's command yourself, and never
    run a command you chose in place of an unresolved verb.
 3. Report each verb as the program reported it: passed, failed or
    unresolved. For a failed verb, lead with its last lines of output and name

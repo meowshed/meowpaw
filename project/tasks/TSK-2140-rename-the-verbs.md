@@ -44,7 +44,31 @@ Nothing. ADR-1410 is approved.
 
 ## Evidence
 
-Not yet.
+`meow-verbs` 0.3.0 names the verbs `format`, `lint`, `check`, `test` and
+`build` in its program, its launcher's fallback, its skill and description,
+its page and manifest. It reads `fmt` and `typecheck` from a profile or the
+command line with a notice naming 0.4.0, and where both names are declared the
+new one wins and the notice names the key it ignored. This repository's
+profile declares `format`, and the profile template, the tutorial, the
+introduction, the vision, `README.md`, SPC-1040 and `meow-core`'s case name
+the new verbs. The pages describing `meow-verbs` are restamped at 0.3.0.
+
+Seven fixtures failed against `main`'s program and pass against this one:
+
+```text
+$ MEOW_VERBS_BIN=<main's meow-verbs> python3 -m unittest discover -s plugins/meow-verbs/tests
+FAILED (failures=4, errors=3)
+$ python3 -m unittest discover -s plugins/meow-verbs/tests
+OK
+$ plugins/meow-verbs/bin/meow-verbs run format lint test
+summary: format passed, lint passed, test passed
+```
+
+The `meow-verbs` 0.2.0 installed on this machine reports `format` unresolved,
+because it predates the rename, so this repository's own program ran the
+verbs. A search for `fmt` and `typecheck` as verbs finds them only in the
+program's table of old names and its fixtures; `fmt-check` names this
+repository's own task and stays.
 
 ## Left alone
 

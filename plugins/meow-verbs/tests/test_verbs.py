@@ -18,7 +18,7 @@ from pathlib import Path
 
 UNIT = Path(__file__).resolve().parent.parent
 BIN = Path(os.environ.get("MEOW_VERBS_BIN", UNIT / "bin" / "meow-verbs"))
-VERBS = ["fmt", "lint", "typecheck", "test", "build"]
+VERBS = ["format", "lint", "check", "test", "build"]
 
 
 class Repository:
@@ -78,8 +78,8 @@ class Verbs(unittest.TestCase):
         report = self.repo('[verbs]\nlint = ["a", "b"]\ntest = ""\n').status()
         self.assertEqual(report["verbs"]["lint"]["kind"], "malformed declaration")
         self.assertEqual(report["verbs"]["test"]["kind"], "malformed declaration")
-        self.assertEqual(report["verbs"]["fmt"]["kind"], "undeclared")
-        self.assertIn("declare it under [verbs] in .meowpaw/profile.toml", report["verbs"]["fmt"]["detail"])
+        self.assertEqual(report["verbs"]["format"]["kind"], "undeclared")
+        self.assertIn("declare it under [verbs] in .meowpaw/profile.toml", report["verbs"]["format"]["detail"])
 
     def test_a_declared_verb_resolves_and_status_runs_nothing(self):
         repo = self.repo('[verbs]\nlint = "touch ran"\n')
@@ -116,9 +116,9 @@ class Verbs(unittest.TestCase):
         self.assertIn("failed, exit status 127", done.stdout)
 
     def test_a_passing_verb_passes_and_an_unresolved_one_never_does(self):
-        done = self.repo('[verbs]\nfmt = "true"\n').run("run", "fmt", "build")
+        done = self.repo('[verbs]\nformat = "true"\n').run("run", "format", "build")
         self.assertEqual(done.returncode, 3)
-        self.assertIn("summary: fmt passed, build unresolved", done.stdout)
+        self.assertIn("summary: format passed, build unresolved", done.stdout)
 
     def test_run_with_no_verb_is_an_error_and_runs_nothing(self):
         repo = self.repo('[verbs]\nlint = "touch ran"\n')
@@ -126,6 +126,35 @@ class Verbs(unittest.TestCase):
         self.assertEqual(done.returncode, 2)
         self.assertIn("name the verbs to run", done.stderr)
         self.assertFalse((repo.root / "ran").exists())
+
+    def test_the_verbs_are_named_as_decided(self):
+        """REQ-2908: the five verbs are format, lint, check, test and build."""
+        repo = self.repo('[verbs]\nformat = "echo formatted"\ncheck = "true"\n')
+        self.assertEqual(sorted(repo.status()["verbs"]), sorted(VERBS))
+        done = repo.run("run", "format")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("formatted", done.stdout)
+
+    def test_an_old_key_resolves_its_new_verb_with_a_notice(self):
+        """REQ-2908, ADR-1410: a profile declaring fmt keeps resolving for one release."""
+        report = self.repo('[verbs]\nfmt = "true"\n').status()
+        self.assertEqual(report["verbs"]["format"]["state"], "resolved")
+        self.assertNotIn("verbs.fmt", report["ignored"])
+        self.assertTrue(any("`fmt` is now `format`" in notice and "0.4.0" in notice for notice in report["notices"]))
+
+    def test_an_old_name_on_the_command_line_runs_the_new_verb(self):
+        """REQ-2908, ADR-1410: run typecheck runs check, and says so."""
+        done = self.repo('[verbs]\ncheck = "echo checked"\n').run("run", "typecheck")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("`typecheck` is now `check`", done.stdout)
+        self.assertIn("0.4.0", done.stdout)
+        self.assertIn("summary: check passed", done.stdout)
+
+    def test_a_new_key_wins_over_its_old_name(self):
+        """ADR-1410: where both are declared, the new name wins and the notice names the key ignored."""
+        report = self.repo('[verbs]\nformat = "echo new"\nfmt = "echo old"\n').status()
+        self.assertEqual(report["verbs"]["format"]["command"], "echo new")
+        self.assertTrue(any("`fmt` is ignored" in notice for notice in report["notices"]))
 
     def test_a_sixth_verb_is_refused(self):
         done = self.repo('[verbs]\ndeploy = "true"\n').run("run", "deploy")

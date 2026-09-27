@@ -96,7 +96,7 @@ routes through one of the two. The harness derives what sort of work it is,
 because a list of work types somebody maintains is a boundary argument that
 never ends.
 
-Five verbs carry everything mechanical: `fmt`, `lint`, `typecheck`, `test`,
+Five verbs carry everything mechanical: `format`, `lint`, `check`, `test`,
 `build`. A verb resolves from the repository's own declaration, then from an
 installed language pack, and then it stops. The harness reports an unresolved
 verb as unresolved and never as passed, which no other harness surveyed does.

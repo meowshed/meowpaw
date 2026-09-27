@@ -52,7 +52,14 @@ There are five verbs and no others: `format` for formatting, `lint` for static
 analysis, `check` for type checking, which in a compiled language is the
 compiler checking the code without building it, `test` for tests and `build`
 for the build (REQ-0130, REQ-2908). A unit adds no sixth (REQ-0131), because a
-sixth verb is a check with no agreed meaning across repositories.
+sixth verb is a command with no agreed meaning across repositories.
+
+Until `meow-verbs` 0.4.0, the program also reads the names the verbs had
+before, `fmt` for `format` and `typecheck` for `check`. A profile key under an
+old name resolves the new verb, and `status` prints a notice naming the key to
+rename and 0.4.0. Where a profile declares both names, the new one wins and
+the notice names the key it ignored. An old name on the command line runs the
+new verb with the same notice (ADR-1410).
 
 ### Where a verb resolves from
 
@@ -61,7 +68,7 @@ nowhere else (REQ-0134):
 
 ```toml
 [verbs]
-fmt = "mise run fmt-check"
+format = "mise run fmt-check"
 lint = "mise run lint"
 ```
 
