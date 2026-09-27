@@ -42,7 +42,29 @@ TSK-2240.
 
 ## Evidence
 
-Not yet.
+Closes REQ-0143 and REQ-0161. `plugins/meow-verbs/bin/meow-verbs run format lint
+test` exits 0 with `summary: format passed, lint passed, test passed`, and the
+record fixtures run 152 tests, OK. Each criterion's check:
+
+1. `Reported.test_an_approved_unconnected_artifact_is_listed_and_a_draft_is_not`
+   (REQ-0143), seen failing first.
+2. `Reported.test_a_rejected_provider_and_a_frozen_suspect_citation_are_reported`
+   (REQ-0143), seen failing first.
+3. `Reported.test_the_share_resting_on_judgement_is_stated` (REQ-0161), seen
+   failing first.
+4. `plugins/meow-flow/bin/paw status` on the project record prints
+   `61 of 1091 rest on evaluation or judgement`, the three suspect citations
+   ADR-1020, ADR-1350 and TSK-2020, and the five unconnected artifacts
+   BUG-1130, BUG-1150, TSK-1000, TSK-1100 and TSK-1220, matching ADR-1470.
+
+Two additions the decision didn't foresee. The project record has 7 judged
+requirements naming no verifier, approved before a judgement had to name one,
+so the count says so instead of leaving 30 and 5 short of 42. And `check
+coverage` also reports a draft or living artifact over a rejected provider,
+which it can be moved off, following ADR-1470's rule that `check` fails where
+a change can clear the finding; its fixture,
+`Connections.test_a_living_artifact_over_a_rejected_provider_is_reported`, was
+written after the code and not seen failing first.
 
 ## Left alone
 

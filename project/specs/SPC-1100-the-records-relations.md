@@ -177,7 +177,8 @@ spans and fences, and
 `check coverage` walks each approved or living artifact up its relations to
 the research it rests on, and reports each provider on the way that is still a
 draft, naming the chain (REQ-0139). Where the artifact is itself a draft or
-living, it also reports a withdrawn or superseded provider (ADR-1470).
+living, it also reports a withdrawn, superseded or rejected provider
+(ADR-1470).
 
 A citation is suspect when its target's `revised` date is later than the
 citing record's own. An epic or a defect as a target is suspect only when it
@@ -190,8 +191,9 @@ date (REQ-0141).
 approved artifacts over a rejected provider, the number of suspect citations
 in approved records, and each approved or living artifact that cites nothing
 and that nothing cites (REQ-0143). It also counts the requirements in force by
-their `verification` field, with judgement split by `verifier`, and states the
-share resting on evaluation or judgement (REQ-0161).
+their `verification` field, with judgement split by `verifier` and those
+naming none counted, and states the share resting on evaluation or judgement
+(REQ-0161).
 
 ### A requirement's state
 
