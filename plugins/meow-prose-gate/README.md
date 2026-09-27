@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose-gate
 answers: what meow-prose-gate does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose-gate@0.1.1]
+describes: [meow-prose-gate@0.1.2]
 ---
 
 # meow-prose-gate

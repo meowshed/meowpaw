@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-method
 answers: what meow-method does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-method@0.30.1]
+describes: [meow-method@0.30.2]
 ---
 
 # meow-method

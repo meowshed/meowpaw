@@ -50,7 +50,33 @@ extends is the one it writes.
 
 ## Evidence
 
-Not yet.
+Every unit's `plugin.json` carried the five catalogue fields already, and each
+description now names the unit's ceiling from `budget.toml`: up to 4,200
+characters for `meow-core`, 700 for `meow-prose`, 500 for `meow-method`, 450
+for `meow-verbs` and 380 for `meow-scm`, and nothing in context for
+`meow-git`, `meow-github` and `meow-prose-gate`. Each unit moved by a patch
+for its new description, and every page describing it is restamped.
+
+`tools/check_docs.py` checks the catalogue fields, and three new fixtures,
+naming REQ-3160, REQ-3162 and REQ-3164, failed against the check as TSK-2030
+left it and pass against this one:
+
+```text
+$ CHECK_DOCS=check_docs_before.py python3 -m unittest tools/test_check_docs.py
+FAIL: test_a_description_without_the_ceiling_fails
+FAIL: test_a_homepage_outside_the_unit_fails
+FAIL: test_a_manifest_without_its_licence_fails
+FAILED (failures=3)
+$ python3 -m unittest tools/test_check_docs.py
+Ran 12 tests
+OK
+```
+
+The release workflow copies `description`, `repository`, `license` and
+`keywords` from each unit's `plugin.json` into its served entry. Its `jq`
+step, run locally over the committed catalogue, left every entry with all five
+fields and a homepage at `plugins/<unit>/README.md`. The workflow parses as
+YAML; `actionlint` isn't installed here, so it wasn't linted.
 
 ## Left alone
 

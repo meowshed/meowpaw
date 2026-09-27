@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose
 answers: what meow-prose does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose@0.3.4]
+describes: [meow-prose@0.3.5]
 ---
 
 # meow-prose
