@@ -54,9 +54,13 @@ carrying `issue:` is the only thing that has prevented it so far.
 
 ## Closed by
 
-Not yet.
+TSK-2260. The reproduction is now
+`Project.test_a_task_with_no_issue_field_gets_one_and_a_replay_opens_nothing`
+in `plugins/meow-github/tests/test_github.py`, which failed before the fix and
+passes after it, and stays as the regression check.
 
 ## Tasks
 
-- [ ] T-001 TSK-2260 write `issue:` when projecting a task that lacks it, in
+- [x] T-001 TSK-2260 write `issue:` when projecting a task that lacks it, in
       `crates/meow/src/github/project.rs`
+      evidence: the reproduction fixture, seen failing first, in #508.

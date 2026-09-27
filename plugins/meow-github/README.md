@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.4.1]
+describes: [meow-github@0.4.2]
 ---
 
 # meow-github

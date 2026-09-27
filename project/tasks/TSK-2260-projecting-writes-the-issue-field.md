@@ -33,7 +33,12 @@ Nothing. BUG-1210 is approved.
 
 ## Evidence
 
-Not yet.
+Closes REQ-1382 and REQ-1386 again, as BUG-1210 asks.
+`Project.test_a_task_with_no_issue_field_gets_one_and_a_replay_opens_nothing`
+in `plugins/meow-github/tests/test_github.py` failed before the change, with
+the task carrying `projected:` and no `issue:`, and passes after it. The
+`meow-github` fixtures run OK, and `plugins/meow-verbs/bin/meow-verbs run format
+lint test` exits 0 with `summary: format passed, lint passed, test passed`.
 
 ## Left alone
 
