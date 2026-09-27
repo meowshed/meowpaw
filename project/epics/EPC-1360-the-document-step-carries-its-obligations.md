@@ -40,10 +40,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2070 carry the documentation obligations in the document step,
+- [x] T-001 TSK-2070 carry the documentation obligations in the document step,
       and declare this repository's style
       closes: REQ-0287, REQ-0289, REQ-1950, REQ-1952, REQ-1954, REQ-1956,
       REQ-1958, REQ-1960, REQ-1962, REQ-1964, REQ-2836
+      evidence: rules O4 to O13 in `steps/document.md`, traced in #428.
 
 - [ ] T-002 [P] TSK-2080 have the review step follow a changed quick start
       closes: REQ-2834

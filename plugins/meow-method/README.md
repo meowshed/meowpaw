@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-method
 answers: what meow-method does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-method@0.30.2]
+describes: [meow-method@0.31.0]
 ---
 
 # meow-method
@@ -88,6 +88,19 @@ To run one step yourself, ask for it by name, such as "run the design step for `
 | `document`     | an epic with every task done   | your documentation, updated |
 | `verify`       | an epic with every task done   | the epic's verification     |
 | `review`       | a verified epic                | findings, never a file      |
+
+The document step writes to the documentation style you declare in
+`.meowpaw/profile.toml`, as a path to your style guide or the name of an
+installed unit that ships one:
+
+```toml
+[docs]
+style = "docs/style.md"
+```
+
+Where you declare none, it says so and writes to the writing standard in
+force. It names each page's kind before writing it, runs every example it
+writes, and reports which of your verbs checked the documentation.
 
 A step refuses when its input is missing or not approved, because the program
 checks that before the step writes anything:
