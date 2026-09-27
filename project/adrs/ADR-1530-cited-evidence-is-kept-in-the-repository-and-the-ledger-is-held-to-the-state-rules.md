@@ -28,6 +28,10 @@ supersedes: []
 
 ## Decision
 
+**Amended by ADR-1550.** The evidence directory defaults to the record's root
+with `evidence` under it, a kept file is named `<record>.txt`, and `--keep`
+reports a kept file git ignores.
+
 This decision amends ADR-1480 in four places, and the rest of ADR-1480 holds:
 
 - a result a record cites is copied into the repository, where anyone can
