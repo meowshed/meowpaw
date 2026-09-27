@@ -433,31 +433,32 @@ acceptance criterion under issue 565.
 
 ## Defects
 
-| Defect                                                                               | What it was                                                                                                 |
-| ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| [BUG-1000](bugs/BUG-1000-the-constitution-records-state.md)                          | `CLAUDE.md` recorded the project's state, and one claim was false                                           |
-| [BUG-1005](bugs/BUG-1005-the-constitution-cited-deleted-pages.md)                    | `CLAUDE.md` cited deleted pages and overstated what verifies a commit                                       |
-| [BUG-1010](bugs/BUG-1010-checks-walk-into-plugin-and-documentation-files.md)         | Three record checks reported a false positive on a plugin file                                              |
-| [BUG-1020](bugs/BUG-1020-the-marks-were-late.md)                                     | Two closed tasks stayed unmarked and their records carried no evidence                                      |
-| [BUG-1040](bugs/BUG-1040-the-shape-is-not-unconditional.md)                          | The forced style is not applied, so the reply shape is opt-in                                               |
-| [BUG-1090](bugs/BUG-1090-the-record-cites-a-hash.md)                                 | The record cited a commit hash where the pull request survives                                              |
-| [BUG-1100](bugs/BUG-1100-the-reviewer-is-unmeasured-on-most-rules.md)                | The reviewer is unmeasured on most of the rules it holds                                                    |
-| [BUG-1080](bugs/BUG-1080-the-records-cite-replaced-commits.md)                       | The records cited commits that a message rewrite replaced                                                   |
-| [BUG-1070](bugs/BUG-1070-the-records-are-written-below-the-standard.md)              | The records were written below the writing standard the constitution requires                               |
-| [BUG-1060](bugs/BUG-1060-the-unit-field-is-dead.md)                                  | A field the constitution required was dropped from the record and left in the templates                     |
-| [BUG-1050](bugs/BUG-1050-the-specification-direction-was-unchecked.md)               | A requirement the decision addresses was stated in no specification                                         |
-| [BUG-1030](bugs/BUG-1030-eval-results-were-committed.md)                             | A generated eval report reached `main`, because the ignore pattern was anchored at the root                 |
-| [BUG-1110](bugs/BUG-1110-requirements-elaborate-missing-research.md)                 | Eight requirements elaborated research that never existed                                                   |
-| [BUG-1120](bugs/BUG-1120-the-install-instructions-give-no-binary.md)                 | The install instructions gave a unit without its binary                                                     |
-| [BUG-1130](bugs/BUG-1130-meow-method-counts-one-finding-as-findings.md)              | `meow-method` counted one finding as "1 findings"                                                           |
-| [BUG-1140](bugs/BUG-1140-the-guards-act-on-commands-that-neither-commit-nor-push.md) | `meow-git`'s guards acted on commands that neither commit nor push                                          |
-| [BUG-1150](bugs/BUG-1150-the-crate-tests-can-share-a-directory.md)                   | The crate's tests could share a temporary directory, so the gate failed at random                           |
-| [BUG-1160](bugs/BUG-1160-the-record-drifted-from-the-work.md)                        | The record drifted from the work: stale task statuses, a stale mark, and three decisions with no epic       |
-| [BUG-1170](bugs/BUG-1170-a-verification-cited-a-check-that-matched-nothing.md)       | A verification cited a check that matched nothing                                                           |
-| [BUG-1180](bugs/BUG-1180-a-parallel-task-reads-as-open.md)                           | A task marked `[P]` derived as open whatever its mark                                                       |
-| [BUG-1190](bugs/BUG-1190-the-signature-fixture-reads-the-machine.md)                 | The `meow-git` signature fixture read the machine's git configuration                                       |
-| [BUG-1200](bugs/BUG-1200-the-coding-skill-routes-unreliably-on-sonnet.md)            | `meow-code`'s skill loaded before an edit in two of five Sonnet 5 sessions                                  |
-| [BUG-1210](bugs/BUG-1210-projecting-writes-no-issue-field.md)                        | `meow-github project` wrote no `issue:` into a task lacking the field, so a replay opened a duplicate issue |
+| Defect                                                                               | What it was                                                                                                       |
+| ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| [BUG-1000](bugs/BUG-1000-the-constitution-records-state.md)                          | `CLAUDE.md` recorded the project's state, and one claim was false                                                 |
+| [BUG-1005](bugs/BUG-1005-the-constitution-cited-deleted-pages.md)                    | `CLAUDE.md` cited deleted pages and overstated what verifies a commit                                             |
+| [BUG-1010](bugs/BUG-1010-checks-walk-into-plugin-and-documentation-files.md)         | Three record checks reported a false positive on a plugin file                                                    |
+| [BUG-1020](bugs/BUG-1020-the-marks-were-late.md)                                     | Two closed tasks stayed unmarked and their records carried no evidence                                            |
+| [BUG-1040](bugs/BUG-1040-the-shape-is-not-unconditional.md)                          | The forced style is not applied, so the reply shape is opt-in                                                     |
+| [BUG-1090](bugs/BUG-1090-the-record-cites-a-hash.md)                                 | The record cited a commit hash where the pull request survives                                                    |
+| [BUG-1100](bugs/BUG-1100-the-reviewer-is-unmeasured-on-most-rules.md)                | The reviewer is unmeasured on most of the rules it holds                                                          |
+| [BUG-1080](bugs/BUG-1080-the-records-cite-replaced-commits.md)                       | The records cited commits that a message rewrite replaced                                                         |
+| [BUG-1070](bugs/BUG-1070-the-records-are-written-below-the-standard.md)              | The records were written below the writing standard the constitution requires                                     |
+| [BUG-1060](bugs/BUG-1060-the-unit-field-is-dead.md)                                  | A field the constitution required was dropped from the record and left in the templates                           |
+| [BUG-1050](bugs/BUG-1050-the-specification-direction-was-unchecked.md)               | A requirement the decision addresses was stated in no specification                                               |
+| [BUG-1030](bugs/BUG-1030-eval-results-were-committed.md)                             | A generated eval report reached `main`, because the ignore pattern was anchored at the root                       |
+| [BUG-1110](bugs/BUG-1110-requirements-elaborate-missing-research.md)                 | Eight requirements elaborated research that never existed                                                         |
+| [BUG-1120](bugs/BUG-1120-the-install-instructions-give-no-binary.md)                 | The install instructions gave a unit without its binary                                                           |
+| [BUG-1130](bugs/BUG-1130-meow-method-counts-one-finding-as-findings.md)              | `meow-method` counted one finding as "1 findings"                                                                 |
+| [BUG-1140](bugs/BUG-1140-the-guards-act-on-commands-that-neither-commit-nor-push.md) | `meow-git`'s guards acted on commands that neither commit nor push                                                |
+| [BUG-1150](bugs/BUG-1150-the-crate-tests-can-share-a-directory.md)                   | The crate's tests could share a temporary directory, so the gate failed at random                                 |
+| [BUG-1160](bugs/BUG-1160-the-record-drifted-from-the-work.md)                        | The record drifted from the work: stale task statuses, a stale mark, and three decisions with no epic             |
+| [BUG-1170](bugs/BUG-1170-a-verification-cited-a-check-that-matched-nothing.md)       | A verification cited a check that matched nothing                                                                 |
+| [BUG-1180](bugs/BUG-1180-a-parallel-task-reads-as-open.md)                           | A task marked `[P]` derived as open whatever its mark                                                             |
+| [BUG-1190](bugs/BUG-1190-the-signature-fixture-reads-the-machine.md)                 | The `meow-git` signature fixture read the machine's git configuration                                             |
+| [BUG-1200](bugs/BUG-1200-the-coding-skill-routes-unreliably-on-sonnet.md)            | `meow-code`'s skill loaded before an edit in two of five Sonnet 5 sessions                                        |
+| [BUG-1210](bugs/BUG-1210-projecting-writes-no-issue-field.md)                        | `meow-github project` wrote no `issue:` into a task lacking the field, so a replay opened a duplicate issue       |
+| [BUG-1220](bugs/BUG-1220-the-commit-guard-misreads-a-relative-cd.md)                 | `meow-git`'s commit guard resolved a relative `cd` against the session's directory, refusing a commit on a branch |
 
 Nineteen are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
