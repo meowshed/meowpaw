@@ -21,7 +21,8 @@ closes:
     REQ-2496,
     REQ-2500,
   ]
-issue:
+issue: 579
+projected: ace506dd1093
 ---
 
 # Ship the mise pack with `status`'s task listing
@@ -63,7 +64,13 @@ Nothing. ADR-1580 is approved.
 
 ## Evidence
 
-Not yet.
+Closes REQ-2460, REQ-2462, REQ-2464, REQ-2465, REQ-2466, REQ-2467, REQ-2470,
+REQ-2472, REQ-2473, REQ-2476, REQ-2478, REQ-2479, REQ-2496 and REQ-2500. The
+21 fixtures in `plugins/meow-mise/tests/test_mise.py` failed first, 20 of them,
+against a program that reports nothing, and pass against the unit. Most run
+real mise 2026.9.11 in an isolated scratch repository. `meow-verbs evidence
+--keep format lint test` exits 0 on this change's own tree, each result kept
+in `project/evidence/`, as the pull request cites.
 
 ## Left alone
 

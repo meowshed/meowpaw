@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1550
 closes: [REQ-2482, REQ-2490, REQ-2506]
-issue:
+issue: 580
+projected: 3d1d09af6f67
 ---
 
 # Report the pinned tools, the environment's files and idiomatic version files
