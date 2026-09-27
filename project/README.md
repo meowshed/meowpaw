@@ -257,6 +257,10 @@ the check that every file is covered.
 [SPC-1130](specs/SPC-1130-the-coding-unit.md) states the coding unit: how
 the harness changes code and how it writes a check.
 
+[SPC-1140](specs/SPC-1140-the-mise-pack.md) states the mise pack: what it
+reports mise resolving in a work tree, how it binds a verb to a task, and what
+its check finds in a profile.
+
 ## Epics and tasks
 
 [EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) realises ADR-1000
@@ -437,6 +441,9 @@ acceptance criterion under issue 565.
 [EPC-1540](epics/EPC-1540-git-read-cleanly-and-breaking-changes-released.md)
 realises ADR-1570 in two tasks, TSK-2400 and TSK-2410, each closed with
 evidence, and was verified against every acceptance criterion under issue 575.
+
+[EPC-1550](epics/EPC-1550-the-mise-pack.md) realises ADR-1580 in three tasks,
+TSK-2420 to TSK-2440, none started.
 
 ## Defects
 
