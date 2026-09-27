@@ -197,6 +197,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1550](adrs/ADR-1550-evidence-is-kept-beside-the-record-and-a-kept-file-git-ignores-is-reported.md):
   evidence is kept beside the record by default, and a kept file git ignores
   is reported.
+- [ADR-1560](adrs/ADR-1560-evidence-stays-bound-to-its-tree-and-the-evidence-behind-each-claim-is-listed.md):
+  evidence stays bound to its tree, and the evidence behind each claim is
+  listed.
 
 ## Specifications
 
@@ -423,6 +426,9 @@ was verified against every acceptance criterion under issue 559.
 [EPC-1520](epics/EPC-1520-evidence-beside-the-record.md) realises ADR-1550 in
 one task, TSK-2370, closed with evidence, and was verified against every
 acceptance criterion under issue 555.
+
+[EPC-1530](epics/EPC-1530-evidence-behind-each-claim.md) realises ADR-1560 in
+one task, TSK-2380.
 
 ## Defects
 
