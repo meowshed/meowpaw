@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1380
-checked-at:
+checked-at: "#433"
 ---
 
 # The document step writes one kind per page to the declared style, and checks documentation through the verbs
@@ -49,6 +49,37 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 - [x] T-002 [P] TSK-2080 have the review step follow a changed quick start
       closes: REQ-2834
       evidence: rules W11 and W12 in `steps/review.md`, in #429.
+
+## Verified
+
+I checked this under #433 on `main` after #432, gathering the evidence there
+rather than carrying it over from the tasks. Every criterion is met:
+
+| Criterion                                                                                                                      | Evidence on `main` after #432                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. Each requirement is carried by a labelled rule, traced, and no rule names a requirement, a language or a tool               | `steps/document.md` carries 13 labelled rules and `steps/review.md` 12, and a search of both for record identifiers finds 0. TSK-2070 traces its 11 requirements to O4 to O13, and TSK-2080 traces REQ-2834 to W11 |
+| 2. The `prompts` check passes on both step files                                                                               | `check_prompts.py` reports 52 shipped prompts and 0 failures                                                                                                                                                       |
+| 3. The profile declares `[docs] style`, and the document step run on this epic reports the verb that checked its documentation | The profile declares `style = "meow-prose"`. Run on this epic, the document step's report is the next section: the `test` verb checked the one page the epic changed, and passed                                   |
+| 4. Every requirement lands in exactly one closed task                                                                          | `paw check` reports 0 findings, and `paw show` derives all 12 requirements ADR-1380 addresses as closed and not yet verified                                                                                       |
+
+Rule W12 and O5 hold one kind per page as a judgement, so no check covers
+them, and the first review that reads a changed page is the first time
+either runs.
+
+### Documentation
+
+The epic changed one user-facing page: `meow-method`'s, which now says the
+document step reads `[docs] style`. Its kind is reference, it names its
+reader, and it describes `meow-method` 0.31.0. The `test` verb checked it,
+running `tools/check_docs.py`, which reported 11 pages and 0 failures, and
+the page carries no example to run. Nothing else describes the document or
+review step to a user, so nothing else changed.
+
+### Postponements
+
+ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
+untouched by this epic, which measured no prompt and added no version control
+tool. The owner decides whether either condition holds.
 
 ## Coverage
 
