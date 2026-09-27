@@ -127,6 +127,11 @@ fn record_mapping(task: &Record, number: u64, fingerprint: &str) -> std::io::Res
         if line == "---" {
             fences += 1;
             in_front = fences == 1;
+            // A task written without the optional fields gets them here, or a
+            // replay finds no mapping and opens a second issue (BUG-1210).
+            if fences == 2 && !out.iter().any(|l: &String| l.starts_with("issue:")) {
+                out.push(format!("issue: {number}"));
+            }
             if fences == 2 && !out.iter().any(|l: &String| l.starts_with("projected:")) {
                 out.push(format!("projected: {fingerprint}"));
             }
