@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-flow index -->
 
-54 decisions in all: 54 approved.
+55 decisions in all: 55 approved.
 
 | Identifier                                                                                                          | What it concluded                                                                                                | Status   |
 | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- |
@@ -71,6 +71,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1510](ADR-1510-a-requirement-declares-one-of-four-kinds-of-check-and-the-record-holds-it.md)                   | A requirement declares one of four kinds of check, and the record holds it                                       | approved |
 | [ADR-1520](ADR-1520-a-verb-runs-over-part-of-the-work-only-through-a-form-the-repository-declares.md)               | A verb runs over part of the work only through a form the repository declares                                    | approved |
 | [ADR-1530](ADR-1530-cited-evidence-is-kept-in-the-repository-and-the-ledger-is-held-to-the-state-rules.md)          | Cited evidence is kept in the repository, and the ledger is held to the state rules                              | approved |
+| [ADR-1550](ADR-1550-evidence-is-kept-beside-the-record-and-a-kept-file-git-ignores-is-reported.md)                  | Evidence is kept beside the record by default, and a kept file git ignores is reported                           | approved |
 
-Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530.
+Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530; ADR-1530 by ADR-1550.
 <!-- /meow-flow index -->

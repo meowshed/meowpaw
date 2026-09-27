@@ -51,8 +51,8 @@ It leaves binding a verb to a runner's tasks and language packs to later
 decisions, which ADR-1070 names. How the
 unit's skill is written is SPC-1030's.
 
-ADR-1070, ADR-1480, ADR-1520 and ADR-1530 decide it, EPC-1040, EPC-1460,
-EPC-1500 and EPC-1510 realise them, and
+ADR-1070, ADR-1480, ADR-1520, ADR-1530 and ADR-1550 decide it, EPC-1040,
+EPC-1460, EPC-1500, EPC-1510 and EPC-1520 realise them, and
 `meow-verbs` implements it, checked at #115.
 
 ## Boundary
@@ -196,8 +196,11 @@ a record carrying no targets field as a whole run.
 
 `evidence --keep [verb...]` copies each named verb's latest current record, or
 every current one when none is named, into the repository at
-`.meowpaw/evidence/<record>.log`, or under the `evidence_dir` the profile
-declares under `[verbs]` (REQ-2956). The file opens with `meow-verbs evidence 1`,
+`<record root>/evidence/<record>.txt`, which is `project/evidence/` unless the
+profile moves the record with `[record] root`, or under the `evidence_dir` the
+profile declares under `[verbs]` (REQ-2956). It asks git whether each kept file
+is ignored: an ignored one is named with its rule, left in place, and exits 1,
+and where git can't answer it exits 3 (ADR-1550). The file opens with `meow-verbs evidence 1`,
 then the verb, the command, the targets, the outcome, the exit status, the tree
 id and the time, and holds the whole output; that format is a contract, and the
 ledger's own format is private (REQ-2964). A stale record isn't kept. The tree
