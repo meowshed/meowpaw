@@ -20,8 +20,8 @@ proven by a check that couldn't fail costs every reader after you.
    textual only for a literal.
 4. After each edit, read the file's diagnostics before you claim anything
    about it.
-5. Prove the change with a check that fails without it, and take the evidence
-   from the repository's verification verbs.
+5. Prove the change with a check that fails without it, take the evidence
+   from the repository's verification verbs, and stop when they pass.
 </steps>
 
 <rules name="changing code">

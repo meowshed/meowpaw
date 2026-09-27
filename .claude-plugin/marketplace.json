@@ -62,6 +62,11 @@
       "name": "meow-code",
       "source": "./plugins/meow-code",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-code/README.md"
+    },
+    {
+      "name": "meow-author",
+      "source": "./plugins/meow-author",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-author/README.md"
     }
   ]
 }

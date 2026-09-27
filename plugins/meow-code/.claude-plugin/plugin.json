@@ -1,6 +1,6 @@
 {
   "name": "meow-code",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Holds how Claude Code changes code, writes a check and debugs a defect: the smallest correct change, the most precise edit, checks seen failing, and a defect reproduced before any cause is offered. It keeps up to 600 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
