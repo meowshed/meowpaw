@@ -13,7 +13,10 @@ it up is none, the chain ends here.
    kind in its first clause.
 4. Order findings worst first, mark a preference as one, and report a clean
    result as clean in one sentence.
-5. End in one verdict: finished, or the step the work returns to. Write
+5. Where the change touches documentation, judge each changed page against
+   the kind it names, and follow a changed quick start from an empty
+   directory.
+6. End in one verdict: finished, or the step the work returns to. Write
    nothing into the repository, and post to the review system only when
    asked.
 </steps>
@@ -41,4 +44,11 @@ it up is none, the chain ends here.
   into the repository.
 - W10. Name the parts the change touches and the dependencies it adds, because
   a structural regression is invisible in a diff by construction.
+- W11. Follow a changed quick start from an empty directory, and where you
+  can't, report that you read it and didn't run it, because the defect a
+  quick start most often carries is a prerequisite nobody stated, and only
+  following it finds that.
+- W12. Judge each changed page against the kind it names, and report a page
+  that serves two kinds or a how-to that justifies itself as a finding,
+  because no program can tell a page's kind from its text.
 </rules>
