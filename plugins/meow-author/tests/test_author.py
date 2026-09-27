@@ -51,6 +51,9 @@ class Repository:
     def check(self, *paths):
         return subprocess.run([str(BIN), "check", *paths], cwd=self.root, capture_output=True, text=True)
 
+    def run_cost(self):
+        return subprocess.run([str(BIN), "cost"], cwd=self.root, capture_output=True, text=True)
+
 
 def unit(skill=GOOD, extra=None):
     files = {"plugins/meow-demo/skills/demo/SKILL.md": skill, "plugins/meow-demo/skills/demo/notes.md": NOTES}
@@ -125,6 +128,44 @@ class Check(unittest.TestCase):
         self.assertEqual(done.returncode, 3, done.stdout)
         self.assertIn("unchecked", done.stdout)
 
+
+
+class Cost(unittest.TestCase):
+    """ADR-1460: meow-author cost reports each unit's cost against its budget."""
+
+    def repo(self, budget="permanent_characters = 200\n", description="The demo skill. It MUST be loaded before a demo is run.", when=""):
+        skill = GOOD.replace("description: The demo skill. It MUST be loaded before a demo is run.", f"description: {description}" + (f"\nwhen_to_use: {when}" if when else ""))
+        files = unit(skill, {"plugins/meow-demo/.claude-plugin/plugin.json": '{"name": "meow-demo"}\n'})
+        if budget is not None:
+            files["plugins/meow-demo/budget.toml"] = budget
+        repository = Repository(files)
+        self.addCleanup(repository.tmp.cleanup)
+        return repository.run_cost()
+
+    def test_a_unit_within_its_budget_passes_and_names_skill_doctor(self):
+        """REQ-1072: the report gives each unit's cost, and names where its use is reported."""
+        done = self.repo()
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("meow-demo: 55 of 200 characters on every turn", done.stdout)
+        self.assertIn("/skill-doctor", done.stdout)
+
+    def test_a_unit_over_its_budget_fails(self):
+        """REQ-1072, REQ-1074: the cost report fails the gate on an overrun."""
+        done = self.repo(budget="permanent_characters = 10\n")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("meow-demo: loads 55 characters on every turn, 45 over its budget of 10", done.stdout)
+
+    def test_a_unit_with_no_budget_fails(self):
+        """REQ-1074: every unit states the budget it is held to."""
+        done = self.repo(budget=None)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("meow-demo: states no budget in budget.toml", done.stdout)
+
+    def test_a_description_and_when_to_use_over_the_cap_fail(self):
+        """REQ-1072: the platform caps a description and its when_to_use together."""
+        done = self.repo(budget="permanent_characters = 5000\n", description="x" * 1000, when="y" * 600)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("description is 1601 characters, over the cap of 1536", done.stdout)
 
 if __name__ == "__main__":
     unittest.main()

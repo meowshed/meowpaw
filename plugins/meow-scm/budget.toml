@@ -3,5 +3,5 @@
 
 # What this unit may load on every turn, in characters (REQ-1056): the commit
 # skill's description, which routes it. Measured at 263 by
-# tools/check_budget.py on 2026-09-26; the budget adds about one sentence.
+# the budget check on 2026-09-26; the budget adds about one sentence.
 permanent_characters = 380
