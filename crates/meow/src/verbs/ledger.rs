@@ -146,6 +146,13 @@ pub fn keep(root: &Path, record: &Value) -> std::result::Result<PathBuf, String>
 /// elsewhere.
 fn state_dir() -> Option<PathBuf> {
     let set = |name: &str| std::env::var_os(name).filter(|v| !v.is_empty()).map(PathBuf::from);
+    if state_off() {
+        return None;
+    }
+    // `MEOWPAW_STATE_DIR` moves the whole state directory (REQ-2960).
+    if let Some(moved) = set("MEOWPAW_STATE_DIR") {
+        return Some(moved.join("evidence"));
+    }
     let base = set("XDG_STATE_HOME").or_else(|| {
         if cfg!(windows) {
             set("LOCALAPPDATA")
@@ -154,6 +161,180 @@ fn state_dir() -> Option<PathBuf> {
         }
     })?;
     Some(base.join("meowpaw").join("evidence"))
+}
+
+/// Whether `MEOWPAW_STATE=off` forbids every write outside the repository (REQ-2960).
+pub fn state_off() -> bool {
+    std::env::var("MEOWPAW_STATE").is_ok_and(|v| v == "off")
+}
+
+/// Why nothing can be recorded, where nothing can.
+pub fn no_state_reason() -> &'static str {
+    if state_off() {
+        "state writing is off (MEOWPAW_STATE=off)"
+    } else {
+        "no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME"
+    }
+}
+
+/// The repository's identity, the hash of its first commit, which every clone
+/// and work tree of it shares (REQ-0752).
+pub fn repository_identity(root: &Path) -> Option<String> {
+    let done = profile::reading_git().current_dir(root).args(["rev-list", "--max-parents=0", "HEAD"]).output().ok()?;
+    let text = String::from_utf8_lossy(&done.stdout);
+    text.lines().next().filter(|_| done.status.success()).map(str::to_string)
+}
+
+/// The runtime directory a lock lives in: user-owned, and cleaned by the system
+/// (REQ-2958).
+fn runtime_dir() -> PathBuf {
+    std::env::var_os("XDG_RUNTIME_DIR").filter(|v| !v.is_empty()).map(PathBuf::from).unwrap_or_else(std::env::temp_dir)
+}
+
+/// How old a lock may be before it is taken as a dead process's: a rewrite of
+/// one file takes well under this (ADR-1530).
+const STALE_LOCK: std::time::Duration = std::time::Duration::from_secs(60);
+
+/// A held lock on one work tree's ledger, released when dropped (REQ-2967).
+pub struct Lock(PathBuf);
+
+impl Drop for Lock {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.0);
+    }
+}
+
+fn lock_path(root: &Path) -> Option<PathBuf> {
+    let (ledger, _) = ledger_of(root)?;
+    let key = ledger.file_stem()?.to_string_lossy().to_string();
+    Some(runtime_dir().join(format!("meowpaw-{key}.lock")))
+}
+
+/// Takes the ledger's lock, replacing one older than a minute; waits for it
+/// when `wait` is set, and otherwise gives up at once.
+pub fn lock(root: &Path, wait: bool) -> Option<Lock> {
+    let path = lock_path(root)?;
+    let started = SystemTime::now();
+    loop {
+        match std::fs::OpenOptions::new().write(true).create_new(true).open(&path) {
+            Ok(mut file) => {
+                let _ = write!(file, "{}", std::process::id());
+                return Some(Lock(path));
+            }
+            Err(_) => {
+                let age = std::fs::metadata(&path).and_then(|m| m.modified()).ok().and_then(|t| t.elapsed().ok());
+                if age.is_some_and(|a| a > STALE_LOCK) {
+                    let _ = std::fs::remove_file(&path);
+                    continue;
+                }
+                let waited = started.elapsed().unwrap_or_default();
+                if !wait || waited > STALE_LOCK + std::time::Duration::from_secs(5) {
+                    return None;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(50));
+            }
+        }
+    }
+}
+
+/// How long a record is kept: one older names a tree the work has long left
+/// (REQ-2962).
+const RETENTION_DAYS: u64 = 30;
+
+/// Rewrites a ledger through a temporary file renamed into place (REQ-2966).
+fn rewrite(ledger: &Path, lines: &[String]) -> std::io::Result<()> {
+    let partial = ledger.with_extension("jsonl.partial");
+    let mut text = lines.join("\n");
+    if !text.is_empty() {
+        text.push('\n');
+    }
+    std::fs::write(&partial, text)?;
+    std::fs::rename(&partial, ledger)
+}
+
+/// Drops every record older than 30 days and its output file, where the lock
+/// can be taken at once; a held lock skips the prune for the next run.
+pub fn prune(root: &Path) -> usize {
+    let Some((ledger, outputs)) = ledger_of(root) else { return 0 };
+    let Ok(text) = std::fs::read_to_string(&ledger) else { return 0 };
+    let cutoff = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0).saturating_sub(RETENTION_DAYS * 86_400);
+    let old = |line: &str| {
+        serde_json::from_str::<Value>(line).ok().and_then(|v| v.get("time").and_then(Value::as_str).and_then(seconds_of)).is_some_and(|t| t < cutoff)
+    };
+    if !text.lines().any(old) {
+        return 0;
+    }
+    let Some(_held) = lock(root, false) else { return 0 };
+    let Ok(text) = std::fs::read_to_string(&ledger) else { return 0 };
+    let (dropped, kept): (Vec<&str>, Vec<&str>) = text.lines().partition(|l| old(l));
+    for line in &dropped {
+        if let Some(id) = serde_json::from_str::<Value>(line).ok().and_then(|v| v.get("record").and_then(Value::as_str).map(str::to_string)) {
+            let _ = std::fs::remove_file(outputs.join(format!("{id}.log")));
+        }
+    }
+    let kept: Vec<String> = kept.iter().map(|l| l.to_string()).collect();
+    if rewrite(&ledger, &kept).is_ok() { dropped.len() } else { 0 }
+}
+
+/// Drops every record in a work tree's ledger, and their output files.
+pub fn purge(root: &Path) -> std::result::Result<usize, String> {
+    let (ledger, outputs) = ledger_of(root).ok_or(no_state_reason())?;
+    let _held = lock(root, true).ok_or("the ledger's lock is held and fresh; try again in a minute")?;
+    let count = std::fs::read_to_string(&ledger).map(|t| t.lines().count()).unwrap_or(0);
+    let _ = std::fs::remove_dir_all(&outputs);
+    rewrite(&ledger, &[]).map_err(|e| e.to_string())?;
+    Ok(count)
+}
+
+/// Seconds since the epoch of an ISO 8601 time this module wrote.
+fn seconds_of(time: &str) -> Option<u64> {
+    let (date, clock) = time.trim_end_matches('Z').split_once('T')?;
+    let mut d = date.split('-').map(|p| p.parse::<i64>().ok());
+    let (y, m, day) = (d.next()??, d.next()??, d.next()??);
+    let mut c = clock.split(':').map(|p| p.parse::<u64>().ok());
+    let (h, mi, se) = (c.next()??, c.next()??, c.next()??);
+    // Howard Hinnant's days-from-civil, the inverse of `now`.
+    let y = if m <= 2 { y - 1 } else { y };
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let mp = (m + 9) % 12;
+    let doy = (153 * mp + 2) / 5 + day - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    let days = era * 146_097 + doe - 719_468;
+    Some(days as u64 * 86_400 + h * 3_600 + mi * 60 + se)
+}
+
+/// The facts about a work tree's ledger a person reads (REQ-0756).
+pub fn facts(root: &Path) -> Vec<String> {
+    let Some((ledger, _)) = ledger_of(root) else { return vec![no_state_reason().to_string()] };
+    let records = records(root);
+    let times: Vec<String> = records.iter().filter_map(|r| r.get("time").and_then(Value::as_str).map(str::to_string)).collect();
+    vec![
+        format!("ledger: {}", ledger.display()),
+        format!("records: {}", records.len()),
+        format!("oldest: {}", times.iter().min().cloned().unwrap_or_else(|| "none".into())),
+        format!("newest: {}", times.iter().max().cloned().unwrap_or_else(|| "none".into())),
+        format!("evidence directory: {}", evidence_dir(root)),
+        format!("lock: {}", lock_path(root).map(|p| p.display().to_string()).unwrap_or_default()),
+    ]
+}
+
+/// Every other work tree's records that name this repository, by the path
+/// each names (REQ-2970).
+pub fn other_work_trees(root: &Path) -> Vec<(String, Vec<Value>)> {
+    let (Some(identity), Some((mine, _)), Some(dir)) = (repository_identity(root), ledger_of(root), state_dir()) else { return Vec::new() };
+    let mut out = Vec::new();
+    let Ok(entries) = std::fs::read_dir(&dir) else { return out };
+    let mut paths: Vec<PathBuf> = entries.flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|e| e == "jsonl") && *p != mine).collect();
+    paths.sort();
+    for path in paths {
+        let Ok(text) = std::fs::read_to_string(&path) else { continue };
+        let found: Vec<Value> = text.lines().filter_map(|l| serde_json::from_str::<Value>(l).ok()).filter(|v| v.get("repository").and_then(Value::as_str) == Some(identity.as_str())).collect();
+        if let Some(tree) = found.iter().rev().find_map(|v| v.get("work_tree").and_then(Value::as_str).map(str::to_string)) {
+            out.push((tree, found));
+        }
+    }
+    out
 }
 
 fn hex(bytes: &[u8]) -> String {
@@ -202,7 +383,7 @@ pub struct Result<'a> {
 /// Appends one record, and its whole output beside the ledger, returning the
 /// record's identifier or why it couldn't be written.
 pub fn record(root: &Path, result: &Result) -> std::result::Result<String, String> {
-    let (ledger, outputs) = ledger_of(root).ok_or("no state directory: set XDG_STATE_HOME or HOME")?;
+    let (ledger, outputs) = ledger_of(root).ok_or(no_state_reason())?;
     let time = now();
     let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
     let seed = format!("{}\n{}\n{}\n{time}\n{nanos}\n{}", result.verb, result.outcome, result.after, std::process::id());
@@ -217,10 +398,14 @@ pub fn record(root: &Path, result: &Result) -> std::result::Result<String, Strin
         "tree_before": result.before,
         "tree": result.after,
         "targets": result.targets,
+        "repository": repository_identity(root),
+        "work_tree": std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()).display().to_string(),
     });
     std::fs::create_dir_all(&outputs).map_err(|e| format!("can't create {}: {e}", outputs.display()))?;
     std::fs::write(outputs.join(format!("{id}.log")), result.output)
         .map_err(|e| format!("can't write the output: {e}"))?;
+    // Every write takes the lock, so no line is lost to a prune (REQ-0758).
+    let _held = lock(root, true).ok_or("the ledger's lock stayed held; the result wasn't recorded")?;
     let mut file = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
