@@ -1,0 +1,13 @@
+{
+  "name": "meow-code",
+  "version": "0.1.0",
+  "description": "Holds how Claude Code changes code and writes a check: the smallest correct change, read before write, the most precise edit, diagnostics before claims, and checks seen failing that could fail. It keeps up to 330 characters in context on every turn.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-code/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["editing", "testing", "checks", "practice", "meowpaw"]
+}

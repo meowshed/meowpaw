@@ -59,7 +59,46 @@ Nothing. ADR-1420 is approved.
 
 ## Evidence
 
-Not yet.
+`plugins/meow-code/` holds the unit at 0.1.0 with its skill, page, manifest,
+budget and `requires.toml`, and joins the catalogue; `claude plugin validate`
+passes on both. The skill carries eight rules on changing code and five on
+writing a check, each with its reason, and a search of it finds no record
+identifier, language, tool or file extension:
+
+| Requirement | Carried by     |
+| ----------- | -------------- |
+| REQ-0090    | E1, and step 3 |
+| REQ-0092    | E2, and step 1 |
+| REQ-0094    | E3, and step 2 |
+| REQ-0096    | E3             |
+| REQ-0098    | E7             |
+| REQ-1010    | E8             |
+| REQ-1015    | E8             |
+| REQ-2010    | E4, and step 3 |
+| REQ-2012    | E4             |
+| REQ-2014    | E5, and step 1 |
+| REQ-2016    | E6, and step 4 |
+| REQ-2018    | E6, and step 5 |
+| REQ-2070    | C3             |
+| REQ-2072    | C2, and step 5 |
+| REQ-2074    | C5             |
+| REQ-2076    | C1             |
+| REQ-2078    | C4             |
+
+`check_prompts.py` passes on 54 prompts, and `check_budget.py` measures the
+description at 233 characters against a ceiling of 330.
+
+In a scratch repository, one session on each model, with only this copy of
+the unit installed, was asked to change a function. Each loaded the skill
+before any other tool:
+
+```text
+claude-sonnet-5: Skill(meow-code:change) -> Read -> Edit
+claude-opus-5-5: Skill(meow-code:change) -> Read -> Bash(check expecting "hi") -> Edit -> Bash(the same check)
+```
+
+One run per model shows the skill routes; it isn't a measurement of how
+reliably the rules hold.
 
 ## Left alone
 

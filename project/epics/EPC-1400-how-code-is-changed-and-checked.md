@@ -40,11 +40,13 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2150 ship `meow-code` with the skill that holds how code is
+- [x] T-001 TSK-2150 ship `meow-code` with the skill that holds how code is
       changed and how a check is written
       closes: REQ-0090, REQ-0092, REQ-0094, REQ-0096, REQ-0098, REQ-1010,
       REQ-1015, REQ-2010, REQ-2012, REQ-2014, REQ-2016, REQ-2018, REQ-2070,
       REQ-2072, REQ-2074, REQ-2076, REQ-2078
+      evidence: thirteen rules traced, and the skill loading first on both
+      models, in #461.
 
 ## Coverage
 
