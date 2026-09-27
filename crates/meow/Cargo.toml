@@ -18,6 +18,7 @@ record = ["dep:regex"]
 github = ["dep:sha2"]
 licence = ["dep:regex"]
 author = ["dep:regex"]
+mise = ["dep:regex"]
 
 [dependencies]
 toml = { version = "0.8", features = ["preserve_order"] }

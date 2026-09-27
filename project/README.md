@@ -443,7 +443,7 @@ realises ADR-1570 in two tasks, TSK-2400 and TSK-2410, each closed with
 evidence, and was verified against every acceptance criterion under issue 575.
 
 [EPC-1550](epics/EPC-1550-the-mise-pack.md) realises ADR-1580 in three tasks,
-TSK-2420 to TSK-2440, none started.
+TSK-2420 to TSK-2440, with TSK-2420 closed with evidence.
 
 ## Defects
 
