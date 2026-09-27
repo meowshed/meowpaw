@@ -6,6 +6,8 @@ SPDX-PackageDownloadLocation = "https://github.com/meowshed/meowpaw"
 # The corpus is declared in bulk rather than per file. A requirement is fifteen
 # lines; two more for a licence header would be a seventh of the document, and
 # the header would be the first thing a reader met in every one of six hundred.
+# The cost: a document lifted out of the repository carries no licensing,
+# because the declaration stays here.
 [[annotations]]
 path = [
   "project/**",
