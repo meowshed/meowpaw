@@ -66,9 +66,11 @@ in `docs/`. A user-facing page is each unit's `README.md` and every Markdown
 file under `docs/`.
 
 A user-facing page carries no record identifier, no record artifact kind and no
-record status, and it never links to anything under `project/` (REQ-3130,
-REQ-3148). It can link the constitution, `CLAUDE.md`, which sits at the
-repository root.
+record status in its prose or front matter, and it never names or links a
+record's path under `project/` (REQ-3130, REQ-3148). An identifier inside code
+is an example of the record's own syntax, which the pages of the units that
+read the record need, and is no citation. It can link the constitution,
+`CLAUDE.md`, which sits at the repository root.
 
 ### Front matter
 

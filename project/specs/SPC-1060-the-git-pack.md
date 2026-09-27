@@ -52,7 +52,7 @@ verified under issue 138.
 | `.meowpaw/profile.toml`, `[git]`    | The repository's trunk and whether every commit must be signed  |
 | `plugins/meow-git/hooks/hooks.json` | Two `PreToolUse` command hooks, one for commit and one for push |
 | `plugins/meow-git/bin/meow-git`     | The program the hooks run: `commit-guard` and `push-guard`      |
-| `docs/meow-git.md`                  | The pack's documentation page                                   |
+| `plugins/meow-git/README.md`        | The pack's documentation page                                   |
 
 ## Behaviour
 

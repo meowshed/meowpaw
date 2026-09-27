@@ -1323,7 +1323,7 @@ class Named(unittest.TestCase):
                  if path.is_file() and path.suffix in {".md", ".json", ".toml", ""} and "tests" not in path.parts
                  and path != UNIT / "bin" / "meow-method" and path.parent.parent != UNIT / "bin"
                  for number, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1)
-                 if old.search(line)]
+                 if old.search(line.replace("<!-- meow-method index -->", ""))]
         self.assertEqual(found, [])
 
 

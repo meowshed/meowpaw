@@ -1,3 +1,10 @@
+---
+reader: someone choosing or running meow-method
+answers: what meow-method does, what it adds to a session and how to run it
+kind: reference
+describes: [meow-method@0.30.1]
+---
+
 # meow-method
 
 `meow-method` runs the method: nine steps from research to review, each
@@ -68,8 +75,7 @@ your approval, saying what the next run will do. Run it again after you
 approve, and it carries on; run it with nothing approved, and it says what it
 is waiting on.
 
-To run one step yourself, ask for it by name, such as "run the design step for
-REQ-0190", and Claude loads the `method` skill. The steps, in order:
+To run one step yourself, ask for it by name, such as "run the design step for `REQ-0190`", and Claude loads the `method` skill. The steps, in order:
 
 | Step           | Reads                          | Writes                      |
 | -------------- | ------------------------------ | --------------------------- |
@@ -186,11 +192,6 @@ each documented by Claude Code:
 - a `SessionStart` command hook whose output reaches the model before its first reply: [documentation](https://code.claude.com/docs/en/hooks.md)
 - a plugin's `bin/` programs, run by path: [documentation](https://code.claude.com/docs/en/plugins-reference.md)
 
-## Where the rules come from
+## Where it reads the record
 
-The decisions are
-`project/adrs/ADR-1100-the-record-is-checked-by-a-unit-the-harness-ships.md`
-and `project/adrs/ADR-1130-the-chain-runs-as-steps-a-program-can-gate.md`, and
-the unit is specified in `project/specs/SPC-1070-checking-the-record.md` and
-`project/specs/SPC-1090-the-chain.md`.
 The layout it reads each kind by is `plugins/meow-method/lib/layout.toml`.

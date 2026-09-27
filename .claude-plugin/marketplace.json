@@ -11,42 +11,42 @@
     {
       "name": "meow-core",
       "source": "./plugins/meow-core",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-core.md"
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-core/README.md"
     },
     {
       "name": "meow-prose",
       "source": "./plugins/meow-prose",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-prose.md"
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-prose/README.md"
     },
     {
       "name": "meow-prose-gate",
       "source": "./plugins/meow-prose-gate",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-prose-gate.md"
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-prose-gate/README.md"
     },
     {
       "name": "meow-verbs",
       "source": "./plugins/meow-verbs",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-verbs.md"
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-verbs/README.md"
     },
     {
       "name": "meow-scm",
       "source": "./plugins/meow-scm",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-scm.md"
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-scm/README.md"
     },
     {
       "name": "meow-git",
       "source": "./plugins/meow-git",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-git.md"
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-git/README.md"
     },
     {
       "name": "meow-method",
       "source": "./plugins/meow-method",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-method.md"
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-method/README.md"
     },
     {
       "name": "meow-github",
       "source": "./plugins/meow-github",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-github.md"
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-github/README.md"
     }
   ]
 }

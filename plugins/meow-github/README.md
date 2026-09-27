@@ -1,3 +1,10 @@
+---
+reader: someone choosing or running meow-github
+answers: what meow-github does, what it adds to a session and how to run it
+kind: reference
+describes: [meow-github@0.4.0]
+---
+
 # meow-github
 
 `meow-github` reads a GitHub repository's history: every issue and pull
@@ -123,8 +130,3 @@ in `plugins/meow-github/requires.toml`, and GitHub's client, `gh`, signed in.
 It relies on this platform behaviour, documented by Claude Code:
 
 - a plugin's `bin/` programs on the Bash tool's `PATH`: [documentation](https://code.claude.com/docs/en/plugins-reference.md)
-
-## Where the rules come from
-
-ADR-1290 decides the pack, and SPC-1080 states it. RES-0277 records what a
-repository's history holds and what reading it costs.
