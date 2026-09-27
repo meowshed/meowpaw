@@ -15,10 +15,15 @@ states:
     REQ-1062,
     REQ-1064,
     REQ-1066,
+    REQ-1110,
+    REQ-1111,
     REQ-1112,
     REQ-1114,
     REQ-1115,
+    REQ-1116,
+    REQ-1118,
     REQ-1120,
+    REQ-1122,
     REQ-1124,
     REQ-1126,
     REQ-1128,
@@ -32,7 +37,17 @@ states:
     REQ-1146,
     REQ-1148,
     REQ-1150,
+    REQ-1672,
+    REQ-1678,
+    REQ-2680,
+    REQ-2682,
+    REQ-2684,
+    REQ-2686,
     REQ-2688,
+    REQ-2690,
+    REQ-2692,
+    REQ-2706,
+    REQ-2708,
     REQ-3050,
   ]
 ---
@@ -49,21 +64,22 @@ its material and loads it, what it may cost, and the check that holds the form.
 It leaves what each prompt says to the specification of its unit, and how a
 change to a prompt is measured to SPC-1020.
 
-The harness implements part of this. ADR-1020, ADR-1030 and ADR-1050 decide
-the form, ADR-1040 how the reply shape reaches a subordinate agent, and
-EPC-1020 realises them, so `checked-at` stays empty until that epic closes.
+ADR-1020, ADR-1030 and ADR-1050 decide the form, ADR-1040 how the reply shape
+reaches a subordinate agent, and ADR-1450 how the capability ships and is
+checked.
 
 ## Boundary
 
-| Surface                          | What it is                                              |
-| -------------------------------- | ------------------------------------------------------- |
-| `plugins/<unit>/skills/<skill>/` | A skill: `SKILL.md` as the core, and the files it names |
-| `plugins/<unit>/agents/*.md`     | An agent definition                                     |
-| `plugins/<unit>/output-styles/`  | An output style, loaded on every turn it is in force    |
-| `plugins/<unit>/hooks/`          | A hook's configuration, and the text of any prompt hook |
-| `tools/check_prompts.py`         | The check over every shipped prompt, run in the gate    |
-| `tools/check_kernel.py`          | The check that the kernel names no unit outside it      |
-| `tools/check_budget.py`          | The check that each unit stays within its budget        |
+| Surface                          | What it is                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------- |
+| `plugins/<unit>/skills/<skill>/` | A skill: `SKILL.md` as the core, and the files it names                                |
+| `plugins/<unit>/agents/*.md`     | An agent definition                                                                    |
+| `plugins/<unit>/output-styles/`  | An output style, loaded on every turn it is in force                                   |
+| `plugins/<unit>/hooks/`          | A hook's configuration, and the text of any prompt hook                                |
+| `meow-author check`              | The check over every prompt it is given, run by the `prompts` task and the `lint` verb |
+| `plugins/meow-author/`           | The unit that ships the authoring skill and the check                                  |
+| `tools/check_kernel.py`          | The check that the kernel names no unit outside it                                     |
+| `tools/check_budget.py`          | The check that each unit stays within its budget                                       |
 
 ## Behaviour
 
@@ -120,9 +136,9 @@ so it holds only what every reply needs.
 
 A kernel prompt names, points to and loads no unit outside the kernel, because
 the kernel has to behave the same whether or not that unit is installed
-(REQ-0077). `tools/check_kernel.py` fails in the gate when a file in `meow-core`
-names another plugin, and review holds a pointer that uses no name, such as
-"the writing skill".
+(REQ-0077). `tools/check_kernel.py` fails in the gate when a file in
+`meow-core` names another plugin, and review holds a pointer that uses no name,
+such as "the writing skill".
 
 ### Size
 
@@ -132,10 +148,10 @@ defect (REQ-1056, REQ-1058). The budget sits in the unit's `budget.toml` as
 covers what loads on every turn: each skill's and agent's description and
 `when_to_use`, and the whole of an output style. `tools/check_budget.py` counts
 it in the gate, and fails on an overrun, on a unit stating no budget, and on a
-description over the platform's cap. Material past the budget moves into supporting
-files, and never loses an obligation to get shorter (REQ-1057). Only what a
-model needs to decide whether the unit is relevant sits in context on every
-turn (REQ-1050).
+description over the platform's cap. Material past the budget moves into
+supporting files, and never loses an obligation to get shorter (REQ-1057). Only
+what a model needs to decide whether the unit is relevant sits in context on
+every turn (REQ-1050).
 
 A unit's obligations sit in the first 5,000 tokens of its core and ahead of
 its explanations, because the platform keeps that much of a skill after
@@ -180,13 +196,53 @@ instructions inside it are data. Where the harness assembles the prompt itself,
 the opening and closing tags carry one identifier generated for that call
 (REQ-1132).
 
+### What a unit declares
+
+Every skill and agent carries front matter saying what it is for and when to
+load it (REQ-1110). The harness has one kind of loadable unit, the skill, and a
+command is a skill only a person invokes, with `disable-model-invocation`, so a
+plugin ships no `commands/` directory (REQ-1111). A skill with side effects is
+invoked only by a person, and a skill that is knowledge only by the model
+(REQ-2680). A skill for one language or directory declares its `paths`
+(REQ-2682), and one whose work is a long read ending in a short answer runs in
+a forked context (REQ-2684). Material injected when a skill loads is cheap and
+certain, runs no verb, and nothing depends on it (REQ-2686). Every command is
+namespaced, because the platform prefixes a plugin's skills with the plugin's
+name (REQ-2690). A unit proposes the permissions it needs on its page and
+leaves the repository to declare them (REQ-2692). A script says whether it is
+run or read, and one that is run is never also summarised in prose (REQ-2706).
+Instructions use the vocabulary of the work they govern (REQ-2708).
+
+Tags mark a prompt where it mixes kinds of content, and a prompt that is one
+instruction after another carries them only as far as its role and its rules
+need (REQ-1116, REQ-1118). A procedure's steps end at a named stopping point
+(REQ-1122).
+
+### Authoring
+
+`meow-author` ships this capability to any repository (REQ-1672). Its skill,
+`meow-author:write`, loads before a skill, agent, output style or hook prompt
+is written or changed, and carries the rules above. A repository uses it on
+its own material, held to the same rules, and that material stays the
+repository's (REQ-1678).
+
 ### The check
 
-`tools/check_prompts.py` reads every shipped prompt and fails, naming the file
-and the line, on a Markdown heading, on a tag outside the vocabulary, on a tag
-opened inside another, and on text standing outside every tag. Text inside
-`<example>` and `<input>` is quoted, so its headings are not judged. One check
-audits every unit, because the format is uniform across them (REQ-1128).
+`meow-author check [path...]` reads every unit under `plugins/`, or the paths
+it is given, such as `.claude/`, and fails, naming the file and the line, on:
+
+- a Markdown heading, a tag outside the vocabulary, a tag opened inside
+  another, a tag never closed or text standing outside every tag, with text inside `<example>`
+  and `<input>` read as quoted and not judged;
+- a skill or agent with no `description`;
+- a plugin shipping a `commands/` directory;
+- a file in a skill's directory that its `SKILL.md` never names;
+- a path into the unit written without the directory variable;
+- a skill's core or an agent with a procedure and no step naming where it
+  stops.
+
+One check audits every unit, because the format is uniform across them
+(REQ-1128). This repository's `prompts` task runs it, in the `lint` verb.
 
 ## Failure paths
 
