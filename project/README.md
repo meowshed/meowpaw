@@ -400,7 +400,8 @@ one task, TSK-2310, closed with evidence, and was verified against every
 acceptance criterion under issue 531.
 
 [EPC-1490](epics/EPC-1490-verification-kind-held.md) realises ADR-1510 in one
-task, TSK-2320.
+task, TSK-2320, closed with evidence, and was verified against every
+acceptance criterion under issue 537.
 
 ## Defects
 
