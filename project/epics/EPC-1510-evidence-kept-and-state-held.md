@@ -57,10 +57,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: five fixtures, four seen failing first, and the skill traced,
       in #547.
 
-- [ ] T-002 TSK-2350 hold the ledger to the state rules: identity, lock,
+- [x] T-002 TSK-2350 hold the ledger to the state rules: identity, lock,
       prune, purge, `state`, the environment switches and `evidence --all`
       closes: REQ-0752, REQ-0754, REQ-0756, REQ-0758, REQ-2958, REQ-2960,
       REQ-2962, REQ-2966, REQ-2967, REQ-2970
+      evidence: ten fixtures seen failing first, in #548.
 
 - [ ] T-003 TSK-2360 record a verb as started and ended, and report
       `interrupted` and `running`

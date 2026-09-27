@@ -259,6 +259,10 @@ fn run(root: &Path, args: &[String]) -> u8 {
     for notice in &report.notices {
         println!("notice: {notice}\n");
     }
+    let pruned = ledger::prune(root);
+    if pruned > 0 {
+        println!("pruned {pruned} records older than 30 days from the ledger\n");
+    }
     let mut outcomes: Vec<(String, &str)> = Vec::new();
     let mut recorded: Vec<String> = Vec::new();
     let mut keep = |result: ledger::Result| match ledger::record(root, &result) {
@@ -337,9 +341,11 @@ fn run(root: &Path, args: &[String]) -> u8 {
 /// changed during its run, and 3 when one has no record, was unresolved or is
 /// bound to no tree (REQ-0146, REQ-0148).
 fn evidence(root: &Path, args: &[String]) -> u8 {
-    // `--keep` copies each current record into the repository (ADR-1530).
+    // `--keep` copies each current record into the repository, and `--all`
+    // adds the other work trees of the same repository (ADR-1530).
     let keep = args.iter().any(|a| a == "--keep");
-    let names: Vec<String> = args.iter().filter(|a| a.as_str() != "--keep").cloned().collect();
+    let all = args.iter().any(|a| a == "--all");
+    let names: Vec<String> = args.iter().filter(|a| a.as_str() != "--keep" && a.as_str() != "--all").cloned().collect();
     let names = names.as_slice();
     let unknown: Vec<&str> = names.iter().map(String::as_str).filter(|name| !VERBS.contains(name)).collect();
     if !unknown.is_empty() {
@@ -418,12 +424,49 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
             println!("  not kept: only a current record is kept, because any other describes other content than the tree");
         }
     }
+    if all {
+        for (tree, found) in ledger::other_work_trees(root) {
+            println!("\n== work tree {tree}");
+            for verb in VERBS {
+                if let Some(latest) = found.iter().rev().find(|r| text(r, "verb") == verb && r.get("targets").is_none_or(Value::is_null)) {
+                    println!("{verb}: {}, record {}, at tree {}", text(latest, "outcome"), text(latest, "record"), ledger::short(&text(latest, "tree")));
+                }
+            }
+        }
+    }
     if failed {
         FAILED
     } else if unresolved {
         UNRESOLVED
     } else {
         PASSED
+    }
+}
+
+/// Where the ledger is and what it holds, or, with `--purge`, an emptied one
+/// (REQ-0756, REQ-2962).
+fn state(root: &Path, args: &[&str]) -> u8 {
+    match args {
+        [] => {
+            for line in ledger::facts(root) {
+                println!("{line}");
+            }
+            PASSED
+        }
+        ["--purge"] => match ledger::purge(root) {
+            Ok(count) => {
+                println!("purged {count} ledger lines and their output");
+                PASSED
+            }
+            Err(reason) => {
+                eprintln!("meow-verbs state: {reason}");
+                FAILED
+            }
+        },
+        _ => {
+            eprintln!("usage: meow-verbs state [--purge]");
+            USAGE
+        }
     }
 }
 
@@ -434,6 +477,7 @@ pub fn main(args: &[String]) -> u8 {
         ["status"] => status(&root, false),
         ["status", "--json"] => status(&root, true),
         ["run", rest @ ..] => run(&root, &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>()),
+        ["state", rest @ ..] => state(&root, rest),
         ["tree", commit] => match ledger::tree_of_commit(&root, commit) {
             Ok(tree) => {
                 println!("{tree}");
@@ -446,7 +490,7 @@ pub fn main(args: &[String]) -> u8 {
         },
         ["evidence", rest @ ..] => evidence(&root, &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>()),
         _ => {
-            eprintln!("usage: meow-verbs status [--json] | meow-verbs run <verb>... [-- <target>...] | meow-verbs evidence [--keep] [verb...] | meow-verbs tree <commit>");
+            eprintln!("usage: meow-verbs status [--json] | meow-verbs run <verb>... [-- <target>...] | meow-verbs evidence [--keep] [--all] [verb...] | meow-verbs state [--purge] | meow-verbs tree <commit>");
             USAGE
         }
     }
