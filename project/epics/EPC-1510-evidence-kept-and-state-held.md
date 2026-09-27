@@ -50,10 +50,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2340 keep a cited record in the repository, leave the evidence
+- [x] T-001 TSK-2340 keep a cited record in the repository, leave the evidence
       directory out of the tree id, and add `meow-verbs tree`, with the skill
       and the implement step citing the kept path
       closes: REQ-2956, REQ-2964, REQ-3072
+      evidence: five fixtures, four seen failing first, and the skill traced,
+      in #547.
 
 - [ ] T-002 TSK-2350 hold the ledger to the state rules: identity, lock,
       prune, purge, `state`, the environment switches and `evidence --all`

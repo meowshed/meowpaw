@@ -6,6 +6,8 @@
 # are left undeclared: this repository has neither, so both report unresolved.
 
 [verbs]
+# Evidence a record cites is kept beside the record it closes (ADR-1530).
+evidence_dir = "project/evidence"
 format = "mise run fmt-check"
 lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run standalone && mise run budget && plugins/meow-licence/bin/meow-licence check"
 test = "crates/meow/build-units && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py"

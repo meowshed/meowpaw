@@ -20,7 +20,28 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// A tree id, or `none` where the directory isn't a git work tree.
 pub const UNBOUND: &str = "none";
 
-/// The tree id of the working state, or `none` outside a git work tree.
+/// Where kept evidence lives in the repository: `evidence_dir` under `[verbs]`,
+/// or `.meowpaw/evidence` (ADR-1530).
+pub fn evidence_dir(root: &Path) -> String {
+    match profile::read(root) {
+        profile::Profile::Parsed(table) => table
+            .get("verbs")
+            .and_then(|v| v.get("evidence_dir"))
+            .and_then(|v| v.as_str())
+            .map(|d| d.trim_end_matches('/').to_string())
+            .unwrap_or_else(|| ".meowpaw/evidence".to_string()),
+        _ => ".meowpaw/evidence".to_string(),
+    }
+}
+
+fn temporary_index() -> PathBuf {
+    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    std::env::temp_dir().join(format!("meow-index-{}-{nanos}", std::process::id()))
+}
+
+/// The tree id of the working state, leaving the evidence directory out,
+/// because the evidence describes the work and isn't part of it (ADR-1530);
+/// or `none` outside a git work tree.
 pub fn tree_id(root: &Path) -> String {
     let git = |args: &[&str]| profile::reading_git().current_dir(root).args(args).output().ok();
     let inside = git(&["rev-parse", "--is-inside-work-tree"])
@@ -34,21 +55,69 @@ pub fn tree_id(root: &Path) -> String {
     else {
         return UNBOUND.to_string();
     };
-    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
-    let temporary = std::env::temp_dir().join(format!("meow-index-{}-{nanos}", std::process::id()));
+    let temporary = temporary_index();
     if index.is_file() && std::fs::copy(&index, &temporary).is_err() {
         return UNBOUND.to_string();
     }
     let with_index = |args: &[&str]| {
         profile::reading_git().current_dir(root).env("GIT_INDEX_FILE", &temporary).args(args).output().ok()
     };
-    let added = with_index(&["add", "--all", "--", "."]).is_some_and(|o| o.status.success());
+    let excluded = format!(":(exclude){}", evidence_dir(root));
+    let added = with_index(&["add", "--all", "--", ".", &excluded]).is_some_and(|o| o.status.success())
+        && with_index(&["rm", "-r", "--cached", "-q", "--ignore-unmatch", "--", &evidence_dir(root)])
+            .is_some_and(|o| o.status.success());
     let written = with_index(&["write-tree"]).filter(|o| added && o.status.success());
     let _ = std::fs::remove_file(&temporary);
     match written {
         Some(done) => String::from_utf8_lossy(&done.stdout).trim().to_string(),
         None => UNBOUND.to_string(),
     }
+}
+
+/// A commit's tree id with the evidence directory left out, the id a kept
+/// record names for the work that commit holds (ADR-1530).
+pub fn tree_of_commit(root: &Path, commit: &str) -> std::result::Result<String, String> {
+    let temporary = temporary_index();
+    let git = |args: &[&str]| profile::reading_git().current_dir(root).env("GIT_INDEX_FILE", &temporary).args(args).output();
+    let read = git(&["read-tree", commit]).map_err(|e| e.to_string())?;
+    if !read.status.success() {
+        let _ = std::fs::remove_file(&temporary);
+        return Err(format!("{commit} is not a commit here: {}", String::from_utf8_lossy(&read.stderr).trim()));
+    }
+    let dir = evidence_dir(root);
+    let removed = git(&["rm", "-r", "--cached", "-q", "--ignore-unmatch", "--", &dir]).map(|o| o.status.success()).unwrap_or(false);
+    let written = git(&["write-tree"]).ok().filter(|o| removed && o.status.success());
+    let _ = std::fs::remove_file(&temporary);
+    written.map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).ok_or_else(|| "git couldn't write the tree".to_string())
+}
+
+/// A record's whole output, from beside the ledger.
+pub fn output_of(root: &Path, record: &str) -> Option<String> {
+    let (_, outputs) = ledger_of(root)?;
+    std::fs::read_to_string(outputs.join(format!("{record}.log"))).ok()
+}
+
+/// Copies one current record, with its whole output, into the repository's
+/// evidence directory, written through a temporary file renamed into place
+/// (REQ-2956, REQ-2964, REQ-2966).
+pub fn keep(root: &Path, record: &Value) -> std::result::Result<PathBuf, String> {
+    let text = |key: &str| record.get(key).and_then(Value::as_str).unwrap_or("").to_string();
+    let id = text("record");
+    let output = output_of(root, &id).ok_or_else(|| format!("the output of record {id} is gone from the ledger"))?;
+    let targets: Vec<&str> = record.get("targets").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str).collect();
+    let status = record.get("status").and_then(Value::as_i64).map(|s| s.to_string()).unwrap_or_else(|| "none".into());
+    let header = format!(
+        "meow-verbs evidence 1\nrecord: {id}\nverb: {}\ncommand: {}\ntargets: {}\noutcome: {}\nexit status: {status}\ntree: {}\ntime: {}\n\n",
+        text("verb"), text("command"), if targets.is_empty() { "none".to_string() } else { targets.join(" ") },
+        text("outcome"), text("tree"), text("time"),
+    );
+    let dir = root.join(evidence_dir(root));
+    std::fs::create_dir_all(&dir).map_err(|e| format!("can't create {}: {e}", dir.display()))?;
+    let path = dir.join(format!("{id}.log"));
+    let partial = dir.join(format!(".{id}.log.partial"));
+    std::fs::write(&partial, format!("{header}{output}")).map_err(|e| format!("can't write {}: {e}", partial.display()))?;
+    std::fs::rename(&partial, &path).map_err(|e| format!("can't move {} into place: {e}", path.display()))?;
+    Ok(path)
 }
 
 /// The directory holding every work tree's ledger: `$XDG_STATE_HOME` where it

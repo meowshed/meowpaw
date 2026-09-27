@@ -12,9 +12,10 @@ it up is document.
    against a version that doesn't do the work, so the check can fail.
 4. Run the repository's verbs through `meow-verbs`, then
    `meow-verbs evidence` on them, and cite each result under `## Evidence` as
-   it printed: the verb, the outcome, the record and the tree id. Where
-   `meow-verbs` isn't installed, record the command, its exit status and its
-   output instead.
+   it printed: the verb, the outcome, the record and the tree id, and keep
+   each cited record with `meow-verbs evidence --keep`, citing the kept path.
+   Where `meow-verbs` isn't installed, record the command, its exit status and
+   its output instead.
 5. Mark the task `[x]` in its epic in the same change, with one line of
    evidence.
 </steps>
