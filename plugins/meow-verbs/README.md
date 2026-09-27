@@ -2,14 +2,14 @@
 reader: someone choosing or running meow-verbs
 answers: what meow-verbs does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-verbs@0.2.2]
+describes: [meow-verbs@0.3.0]
 ---
 
 # meow-verbs
 
 `meow-verbs` runs your repository's checks the way the repository declared
 them, and reports a check nobody declared as unresolved, never as passed. It
-covers five verbs, `fmt`, `lint`, `typecheck`, `test` and `build`, and it
+covers five verbs, `format`, `lint`, `check`, `test` and `build`, and it
 installs on its own, with no other part of the `meowpaw` harness.
 
 ## Install it
@@ -28,7 +28,7 @@ Each command runs through the shell from that root:
 
 ```toml
 [verbs]
-fmt = "./scripts/format --check"
+format = "./scripts/format --check"
 lint = "./scripts/lint"
 test = "./scripts/run-tests"
 ```
@@ -43,8 +43,8 @@ When Claude Code formats, lints, type-checks, tests or builds, the
 would otherwise choose. It first shows what each verb resolves to:
 
 ```text
-fmt        resolved    ./scripts/format --check   (from .meowpaw/profile.toml)
-typecheck  unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
+format     resolved    ./scripts/format --check   (from .meowpaw/profile.toml)
+check      unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
 ```
 
 Then it runs the verbs the work needs and reports each as passed, failed or

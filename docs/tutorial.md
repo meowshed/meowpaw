@@ -2,7 +2,7 @@
 reader: someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work
 answers: how to get from an empty repository to a first check that Claude Code runs and reports honestly
 kind: tutorial
-describes: [meow-verbs@0.2.2]
+describes: [meow-verbs@0.3.0]
 ---
 
 # Your first verified change
@@ -69,9 +69,9 @@ Claude Code loads the `meow-verbs:verify` skill before it runs anything, and
 shows you what each verb resolves to:
 
 ```text
-fmt        unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
+format     unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
 lint       unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
-typecheck  unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
+check      unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
 test       resolved    ./scripts/test   (from .meowpaw/profile.toml)
 build      unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
 ```

@@ -7,9 +7,9 @@
 # repository's root. Leave out a verb the repository has no command for, and
 # the harness reports it as unresolved.
 [verbs]
-# fmt = "<the command that checks formatting without changing anything>"
+# format = "<the command that checks formatting without changing anything>"
 # lint = "<the command that lints>"
-# typecheck = "<the command that checks types>"
+# check = "<the command that checks types>"
 # test = "<the command that runs the tests>"
 # build = "<the command that builds>"
 
