@@ -48,41 +48,42 @@ ADR-1420 decides this part.
 
 ### When the skill loads
 
-`meow-code:change` loads before Claude Code changes code, by a description
-stating that obligation. It names no language, tool or file extension.
+`meow-code:change` loads before the model changes code, by a description
+stating that the skill must load before any code changes. It names no language,
+tool or file extension.
 
 ### How code is changed
 
 The model makes the smallest change that is correct, and never reformats while
-it changes behaviour (REQ-0090, REQ-0098). It reads a file before writing to
-it (REQ-0092). A question about a symbol goes to a language server where the
+it changes behaviour (REQ-0090, REQ-0098). It reads a file before writing to it
+(REQ-0092). A question about a symbol goes to a language server where the
 session offers one, and an answer from a text search states what the search
-can't cover (REQ-0094, REQ-0096). A symbol is edited semantically, a
-mechanical rewrite structurally and a literal textually, and a change one
-structural edit can make is made as one (REQ-2010, REQ-2012). Reads and edits
-that don't depend on each other are batched (REQ-2014). After an edit the
-model reads the file's diagnostics before claiming anything about it, and its
-evidence comes from the verification verbs, never from diagnostics (REQ-2016,
-REQ-2018). Every publicly reachable declaration carries documentation, and an
-example the language runs as a check is preferred where it runs them
-(REQ-1010, REQ-1015).
+can't cover (REQ-0094, REQ-0096). The model prefers a semantic edit for a
+symbol, a structural edit for a mechanical rewrite and a textual edit only for
+a literal, and makes a change one structural edit can express as that one edit
+(REQ-2010, REQ-2012). Reads and edits that don't depend on each other are
+batched (REQ-2014). After an edit the model reads the file's diagnostics before
+claiming anything about it, and its evidence comes from the verification verbs,
+never from diagnostics (REQ-2016, REQ-2018). Every publicly reachable
+declaration carries documentation, and an example the language runs as a check
+is preferred where it runs them (REQ-1010, REQ-1015).
 
 ### How a check is written
 
-An obligation is checked statically where it can be, behaviourally where it
-can't, and by evaluation only where neither can (REQ-2076). A check is seen to
-fail before the work that makes it pass, where the language and its tooling
-allow (REQ-2072). A weak or tautological assertion is reported as a defect in
-the check, and a check that wouldn't fail if its requirement were violated is
-rewritten, not supplemented (REQ-2070, REQ-2078). Where the repository runs
-mutation testing, the model runs it when asked whether the checks would catch
-a change and reports the survivors, and where it doesn't, says none is
-available (REQ-2074).
+The model checks an obligation statically where it can, behaviourally where
+it can't, and by evaluation only where neither can (REQ-2076). It sees a check
+fail before the work that makes it pass, where the language and the pack
+support it (REQ-2072). It reports a weak or tautological assertion as a defect
+in the check, and rewrites a check that wouldn't fail if its requirement were
+violated, never adding a second one beside it (REQ-2070, REQ-2078). Where the
+ecosystem provides mutation testing, it runs the tool the repository or a pack
+names when asked whether the checks would catch a change, and reports the
+survivors. Where nothing names a tool, it says how to declare one and runs
+nothing in its place (REQ-2074).
 
 ## Failure paths
 
-| Failure                               | What happens                                                         |
-| ------------------------------------- | -------------------------------------------------------------------- |
-| No language server in the session     | The answer comes from a text search, stating what it can't cover     |
-| No mutation testing in the repository | The model says none is available and runs nothing in its place       |
-| A verb the change needs is unresolved | `meow-verbs` reports it unresolved, and the change isn't called done |
+| Failure                           | What happens                                                     |
+| --------------------------------- | ---------------------------------------------------------------- |
+| No language server in the session | The answer comes from a text search, stating what it can't cover |
+| No mutation tool named            | The model says how to declare one and runs nothing in its place  |

@@ -24,7 +24,8 @@ closes:
     REQ-2076,
     REQ-2078,
   ]
-issue:
+issue: 461
+projected: d55b539153c1
 ---
 
 # `meow-code` ships the skill that holds how code is changed and checked
@@ -41,8 +42,8 @@ one branch, one pull request, one review.
    requirement to its rule, and a search of the file.
 2. Given the unit, when `mise run prompts` and `mise run budget` run, then
    both pass. Closed by: their output.
-3. Given a scratch repository and a session on Sonnet 5 with only the unit
-   installed, when Claude Code is asked to change a function, then it loads
+3. Given a scratch repository and a session on each of Sonnet 5 and Opus 5.5
+   with only the unit installed, when Claude Code is asked to change a function, then it loads
    the skill before its first edit. Closed by: the session's transcript.
 
 ## What to do

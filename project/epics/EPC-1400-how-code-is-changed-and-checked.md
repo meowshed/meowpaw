@@ -22,8 +22,9 @@ the tasks below were written:
    skill, traced in the task's evidence, and no rule names a requirement, a
    language, a tool or a file extension.
 2. The prompt check and the budget check pass on the unit.
-3. A Claude Code session on Sonnet 5, with only the unit installed and asked
-   to change code, loads the skill before its first edit.
+3. A Claude Code session on Sonnet 5 and one on Opus 5.5, each with only the
+   unit installed and asked to change code, load the skill before the first
+   edit.
 4. Every requirement ADR-1420 addresses lands in exactly one closed task.
 
 ## Marks

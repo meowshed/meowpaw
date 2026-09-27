@@ -31,7 +31,7 @@ supersedes: []
 ## Decision
 
 A new unit in the practice layer, `meow-code`, ships one skill,
-`meow-code:change`, which loads before Claude Code changes code. It carries
+`meow-code:change`, which loads before the model changes code. It carries
 two groups of labelled rules and names no language, tool or file extension.
 
 How code is changed:
@@ -42,9 +42,9 @@ How code is changed:
 - answer a question about a symbol through a language server where one is
   available, and where an answer comes from a text search, state what the
   search can't cover (REQ-0094, REQ-0096);
-- edit a symbol semantically, a mechanical rewrite structurally and a literal
-  textually, and make a change expressible as one structural edit as one
-  (REQ-2010, REQ-2012);
+- prefer a semantic edit for a symbol, a structural edit for a mechanical
+  rewrite and a textual edit only for a literal, and make a change
+  expressible as one structural edit as one (REQ-2010, REQ-2012);
 - batch reads and edits that don't depend on each other (REQ-2014);
 - read a file's diagnostics after editing it and before claiming anything
   about it, and take evidence from the verification verbs, never from the
@@ -57,39 +57,45 @@ How a check is written:
 - check an obligation statically where it can be, behaviourally where it
   can't, and by evaluation only where neither can (REQ-2076);
 - see a check fail before the work that makes it pass, where the language
-  and its tooling allow (REQ-2072);
+  and the pack support it (REQ-2072);
 - report a weak or tautological assertion as a defect in the check, and
   rewrite a check that wouldn't fail if its requirement were violated rather
   than adding a second one (REQ-2070, REQ-2078);
-- where the repository runs mutation testing, run it when asked whether the
-  checks would catch a change, and report the survivors; where it doesn't,
-  say none is available (REQ-2074).
+- where the ecosystem provides mutation testing, run it through the tool the
+  repository or a pack names when asked whether the checks would catch a
+  change, and report the survivors; where nothing names a tool, say how to
+  declare one and run nothing in its place (REQ-2074).
 
 After this decision a repository that installs `meow-code` gets these rules in
-front of the model whenever it changes code, in or out of the method's chain.
-What still doesn't work: no program checks that a change was the smallest or
-that a check was seen failing, so the rules rest on the model and on review,
-and only a measurement will show how reliably they hold.
+front of the model whenever the model changes code, in or out of the method's
+chain. What still doesn't work: no program checks that a change was the
+smallest or that a check was seen failing, so the rules rest on the model and
+on review, and only a measurement will show how reliably they hold.
 
 ## Why
 
-The rules come from RES-0021 on editing and RES-0032 on checks, each a
-conclusion of that research. They govern every change to code, so they can't
-live in the method's implement step alone: a repository that keeps no record
-still changes code, and REQ-0030 gives the kernel's disciplines to it too.
+The rules come from RES-0021 on editing, from RES-0032 and RES-0066 on
+checks, and from RES-0013 and RES-0020 on documentation. They govern every
+change to code, so they can't live in the method's implement step alone:
+installing the harness never obliges a repository to keep the record
+(REQ-0028), and a repository that keeps none still changes code. The unit is
+`meow-code` and not the `meow-editing` RES-0021 suggests, because it holds how
+a check is written as well as how code is edited.
 
-A skill loaded by a description stating the obligation is how ADR-1050 put
-the writing standard in front of the model before it writes, and changing code
-has the same shape: an activity whose rules must be present when it starts.
-The rules name no language, because which tool edits a symbol or runs a
-mutation test is a pack's knowledge (REQ-0072). The model knows the tools of
+A skill loaded by a description stating the obligation is how ADR-1050 put the
+writing standard in front of the model before it writes, and changing code has
+the same shape: an activity whose rules must be present when it starts. The
+rules name no language, because which tool edits a symbol or runs a mutation
+test is a pack's knowledge (REQ-0072), and whether a language lets a check be
+seen failing first is the pack's to say, as RES-0032 concludes; the rule to try
+applies to every check, so this unit states it. The model knows the tools of
 the session in front of it, such as a language server tool where the platform
 offers one.
 
-The strongest objection: most of these rules can't be checked by a program,
-and a skill the model loads is weaker than a hook that blocks. A hook can't
-tell a smallest change from a larger one either, so the choice is a rule the
-model reads or no rule, and review holds what the model misses (REQ-0147).
+The strongest objection: most of these rules can't be checked by a program, and
+a skill the model loads is weaker than a hook that blocks. A hook can't tell a
+smallest change from a larger one either (REQ-0147), so the choice is a rule
+the model reads or no rule, and review holds what the model misses.
 
 ## Alternatives
 
@@ -102,14 +108,16 @@ model reads or no rule, and review holds what the model misses (REQ-0147).
 
 ## What it costs
 
-Each repository that installs the unit pays for the skill's description, a
-few hundred characters in context on every turn, and the skill's body each
-time code changes. A repository that wants mutation testing run declares how.
+Each repository that installs the unit pays for the skill's description, a few
+hundred characters in context on every turn, and the skill's body each time
+code changes. A repository that wants mutation testing run names the tool where
+no pack does.
 
 ## What would reverse it
 
-- A measurement of changes made with the skill and without it, on Sonnet 5 and
-  Opus 5.5, scoring the same, which would show the rules change nothing.
+I would reverse this if a measurement of changes made with the skill and
+without it, on Sonnet 5 and Opus 5.5, scored the same, because that would show
+the rules change nothing.
 
 ## Consequences
 
@@ -123,8 +131,9 @@ time code changes. A repository that wants mutation testing run declares how.
    skill, traced in the task's evidence, and no rule names a requirement, a
    language, a tool or a file extension.
 2. The prompt check and the budget check pass on the unit.
-3. A Claude Code session on Sonnet 5, with only the unit installed and asked
-   to change code, loads the skill before its first edit.
+3. A Claude Code session on Sonnet 5 and one on Opus 5.5, each with only the
+   unit installed and asked to change code, load the skill before the first
+   edit, since ADR-1050 found the two models route differently.
 4. Every requirement ADR-1420 addresses lands in exactly one closed task.
 
 ## What this does not settle
