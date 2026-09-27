@@ -36,7 +36,25 @@ Nothing. It changes neither the new unit nor its program.
 
 ## Evidence
 
-Not yet.
+`meow-scm`'s fixture `test_a_copyright_line_is_not_attribution` names REQ-3070:
+a message carrying `SPDX-FileCopyrightText: 2026 Anthropic, PBC` passes the
+check, because the ban matches lines crediting a tool with the work, such as
+a co-author trailer, and a copyright line credits nobody with the change. The
+fixture passed against the check as it stood, since the ban already held the
+line apart, so it is a regression check and not a change of behaviour.
+
+`REUSE.toml`'s comment above its prose annotation now states the cost of
+declaring prose in bulk: a document lifted out of the repository carries no
+licensing, because the declaration stays here (REQ-3060).
+
+```text
+$ python3 -m unittest discover -s plugins/meow-scm/tests
+OK
+$ meow-licence check
+1830 files, 0 licensing findings
+$ meow-verbs run fmt lint test
+summary: fmt passed, lint passed, test passed
+```
 
 ## Left alone
 
