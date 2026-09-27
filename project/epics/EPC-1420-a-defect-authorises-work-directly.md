@@ -45,10 +45,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-0352, REQ-0354, REQ-0374
       evidence: six fixtures and `status` counting tasks by authority, in #475.
 
-- [ ] T-002 TSK-2180 hold a defect's triage, reproduction and closing in
+- [x] T-002 TSK-2180 hold a defect's triage, reproduction and closing in
       `paw check`
       closes: REQ-0356, REQ-0358, REQ-0360, REQ-0362, REQ-0364, REQ-0368,
       REQ-0370, REQ-0372
+      evidence: eight fixtures and the rules on this record, in #476.
       depends: TSK-2170 - the rules read the `bug` field and the defect's
       tasks it adds
 

@@ -1398,5 +1398,77 @@ class DefectTasks(unittest.TestCase):
         repository.edit("bugs/BUG-0002-a-second-defect.md", "## Triage\n\nText.", "## Triage\n\nRewritten.")
         self.assertEqual(repository.run("check", "frozen").returncode, 1)
 
+
+class Triage(unittest.TestCase):
+    """ADR-1440: a defect's triage, reproduction and closing, held by paw check."""
+
+    SECTIONS = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
+
+    def check(self, fields, edits=(), extra=None):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        base = {"severity": "minor", "found": "2026-01-01"}
+        base.update(fields)
+        repository.write("bugs/BUG-0003-a-report.md", record("bug", "BUG-0003", base, self.SECTIONS))
+        for old, new in edits:
+            repository.edit("bugs/BUG-0003-a-report.md", old, new)
+        if extra:
+            extra(repository)
+        return repository.run("check", "rules").stdout
+
+    def test_a_triaged_draft_names_where_it_enters(self):
+        """REQ-0360: the triage answer decides which step the defect enters at."""
+        said = self.check({"status": "draft", "violates": "REQ-0001"})
+        self.assertIn("has a Triage section and no enters", said)
+
+    def test_entering_at_implement_needs_a_violated_requirement(self):
+        """REQ-0358: triage first answers whether a requirement in force covers the behaviour."""
+        said = self.check({"enters": "implement"})
+        self.assertIn("enters implement and names no requirement it violates", said)
+
+    def test_a_triaged_defect_carries_a_reproduction(self):
+        """REQ-0364: a defect carries a reproduction before it is triaged."""
+        said = self.check({"enters": "requirements"}, [("## Reproduction\n\nText.", "## Reproduction\n")])
+        self.assertIn("is triaged with an empty Reproduction", said)
+
+    def test_a_rejected_report_records_why(self):
+        """REQ-0370: a defect closed as not a defect records the reasoning."""
+        said = self.check({"status": "rejected"}, [("## Triage\n\nText.", "## Triage\n")])
+        self.assertIn("is rejected as no defect with an empty Triage", said)
+
+    def test_a_closed_defect_names_its_regression_check(self):
+        """REQ-0368: the check that closes a defect remains as a regression check."""
+        def task(repository):
+            repository.write("tasks/TSK-0004-a-fix.md", record(
+                "task", "TSK-0004", {"bug": "BUG-0003", "closes": "[]"},
+                ["What to do", "Depends on", "Evidence", "Left alone"]))
+        said = self.check({"violates": "REQ-0001"}, [("## Closed by\n\nText.", "## Closed by\n\n## Tasks\n\n- [x] T-001 TSK-0004 fix it\n      evidence: it passes.\n")], task)
+        self.assertIn("has every task done and an empty Closed by", said)
+
+    def test_severity_is_required(self):
+        """REQ-0372: severity is recorded on the defect."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.write("bugs/BUG-0003-a-report.md", record("bug", "BUG-0003", {"found": "2026-01-01"}, self.SECTIONS))
+        said = repository.run("check", "front-matter").stdout
+        self.assertIn("BUG-0003-a-report.md", said)
+        self.assertIn("severity", said)
+
+    def test_an_epic_for_a_one_task_defect_is_reported(self):
+        """REQ-0356: an epic is created for a defect only where the fix needs several ordered tasks."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: BUG-0001")
+        said = repository.run("check", "rules").stdout
+        self.assertIn("realises the defect BUG-0001 with 0 tasks and no order between them", said)
+
+    def test_prompted_by_names_a_defect(self):
+        """REQ-0362: a record a defect prompted cites the defect."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("requirements/REQ-0001-an-obligation.md", "topic: a", "topic: a\nprompted-by: ADR-0001")
+        said = repository.run("check", "rules").stdout
+        self.assertIn("is prompted by ADR-0001, which is not a defect", said)
+
 if __name__ == "__main__":
     unittest.main()
