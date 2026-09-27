@@ -42,7 +42,33 @@ Nothing. ADR-1430 is approved.
 
 ## Evidence
 
-Not yet.
+`plugins/meow-code/skills/debug/SKILL.md` carries five steps and seven
+labelled rules, each with its reason, and a search finds no record identifier,
+language or tool in it:
+
+| Requirement | Carried by     |
+| ----------- | -------------- |
+| REQ-1890    | G1, and step 1 |
+| REQ-1892    | G2, and step 2 |
+| REQ-1894    | G3, and step 3 |
+| REQ-1896    | G4, and step 4 |
+| REQ-1898    | G5, and step 5 |
+| REQ-1900    | G6, and step 5 |
+| REQ-1902    | G7             |
+
+`check_prompts.py` passes on 55 prompts, and `check_budget.py` measures the
+unit's two descriptions at 502 characters against its new ceiling of 600. The
+unit is at 0.2.0, and its page states the skill and the cost.
+
+In a scratch repository whose script prints 5 where it should print 4, five
+sessions per model, with only this copy of the unit installed, were asked to
+find why and fix it. The prediction was 5 of 5 on Opus 5.5 and at least 4 of
+5 on Sonnet 5. Every session loaded `meow-code:debug` before any other tool:
+
+```text
+claude-sonnet-5: 5 of 5 loaded first
+claude-opus-5-5: 5 of 5 loaded first, three also loading meow-code:change before the edit
+```
 
 ## Left alone
 
