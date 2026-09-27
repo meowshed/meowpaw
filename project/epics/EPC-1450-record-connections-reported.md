@@ -47,9 +47,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2240 check each chain and each citation's date with
+- [x] T-001 TSK-2240 check each chain and each citation's date with
       `paw check`, and mark a suspect citation in `paw show`
       closes: REQ-0139, REQ-0141
+      evidence: five fixtures seen failing first, and `paw check` passing on
+      the project record, in #502.
 
 - [ ] T-002 TSK-2250 report unconnected artifacts, frozen suspect citations
       and the share resting on judgement in `paw status`

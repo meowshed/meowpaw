@@ -2,7 +2,7 @@
 id: SPC-1070
 artifact: spec
 status: live
-revised: 2026-09-26
+revised: 2026-09-27
 checked-at: "#404"
 states:
   [

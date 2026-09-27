@@ -767,6 +767,19 @@ fn relations(record: &Record) -> Vec<Finding> {
                 }
             }
         }
+        // Only a draft or a living artifact can be revised to clear a suspect
+        // citation; an approved one is frozen, so `show` marks it (ADR-1470).
+        if is_draft(doc) || bare(doc.value("status")) == "live" {
+            for (field, id, why) in suspects(record, &known, doc) {
+                let revised = bare(doc.value("revised"));
+                let message = if why.starts_with("revised") {
+                    format!("{} {id}, {why}, after this record's {revised}, so the citation is suspect", field.key)
+                } else {
+                    format!("{} {id} {why}, so the citation is suspect", field.key)
+                };
+                out.push(Finding::at(doc, Some(field.line), message));
+            }
+        }
         // Only a draft's body is read: an approved record may name an identifier
         // that has no file on purpose, as a defect listing what is missing does.
         if is_draft(doc) {
@@ -943,6 +956,35 @@ fn coverage(record: &Record) -> Vec<Finding> {
             }
         }
     }
+    out.extend(chains(record, &known));
+    out
+}
+
+/// An approved or living artifact resting on a draft anywhere up its chain,
+/// which approving or rejecting the draft clears, and a draft or living one
+/// resting on a withdrawn or superseded provider, which it can still be moved
+/// off (REQ-0139). An approved one over a rejected provider only a new record
+/// can clear, so `status` reports it and this doesn't.
+fn chains(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Finding> {
+    let mut out = Vec::new();
+    for doc in known.values() {
+        let status = bare(doc.value("status"));
+        let settled = matches!(status, "approved" | "live");
+        let open = matches!(status, "draft" | "live");
+        if !settled && !open {
+            continue;
+        }
+        for (path, provider) in providers(record, known, doc) {
+            let theirs = bare(provider.value("status"));
+            let what = match theirs {
+                "draft" if settled => "a draft".to_string(),
+                "withdrawn" | "superseded" if open => format!("which is {theirs}"),
+                _ => continue,
+            };
+            let id = path.last().cloned().unwrap_or_default();
+            out.push(Finding::at(doc, None, format!("rests on {id}, {what}, through {}", path.join(" -> "))));
+        }
+    }
     out
 }
 
@@ -1078,6 +1120,76 @@ fn placement(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
 
 fn is_draft(doc: &Doc) -> bool {
     bare(doc.value("status")) == "draft"
+}
+
+/// Relations that name no provider: a superseded record and a postponed
+/// requirement are what a record moves away from, not what it rests on.
+const NOT_PROVIDERS: [&str; 2] = ["supersedes", "postpones"];
+
+/// Kinds that change after approval by design, an epic as its tasks close and
+/// a defect as its Tasks and Closed by sections fill, so their date says
+/// nothing about a citation and only their status does (ADR-1470).
+const CHANGE_AFTER_APPROVAL: [&str; 2] = ["epic", "defect"];
+
+/// Each provider up a document's chain, once, with the path that reached it,
+/// walked in the order the layout lists its relations (REQ-0139).
+fn providers<'a>(record: &Record, known: &BTreeMap<String, &'a Doc>, doc: &Doc) -> Vec<(Vec<String>, &'a Doc)> {
+    let mut out = Vec::new();
+    let mut seen = BTreeSet::from([bare(doc.id()).to_string()]);
+    let mut path = vec![bare(doc.id()).to_string()];
+    walk_up(record, known, doc, &mut path, &mut seen, &mut out);
+    out
+}
+
+fn walk_up<'a>(
+    record: &Record,
+    known: &BTreeMap<String, &'a Doc>,
+    doc: &Doc,
+    path: &mut Vec<String>,
+    seen: &mut BTreeSet<String>,
+    out: &mut Vec<(Vec<String>, &'a Doc)>,
+) {
+    for key in record.layout.relations.iter().filter(|k| !NOT_PROVIDERS.contains(&k.as_str())) {
+        let Some(field) = doc.field(key) else { continue };
+        for found in record.ids.find_iter(&field.value) {
+            let id = found.as_str();
+            let Some(provider) = known.get(id).copied() else { continue };
+            if !seen.insert(id.to_string()) {
+                continue;
+            }
+            path.push(id.to_string());
+            out.push((path.clone(), provider));
+            walk_up(record, known, provider, path, seen, out);
+            path.pop();
+        }
+    }
+}
+
+/// Why a citation of `target` from `doc` is suspect, where it is: the target
+/// was revised after the citing record, or, for a kind that changes after
+/// approval, was withdrawn or superseded (REQ-0141).
+fn suspect(record: &Record, doc: &Doc, target: &Doc) -> Option<String> {
+    let status = bare(target.value("status"));
+    if CHANGE_AFTER_APPROVAL.contains(&kind_of(record, target)) {
+        return matches!(status, "withdrawn" | "superseded").then(|| format!("is {status}"));
+    }
+    let (theirs, ours) = (bare(target.value("revised")), bare(doc.value("revised")));
+    (!theirs.is_empty() && !ours.is_empty() && theirs > ours).then(|| format!("revised {theirs}"))
+}
+
+/// Each citation in a document's relations that is suspect, with the field it
+/// sits in and why.
+fn suspects<'a>(record: &Record, known: &BTreeMap<String, &'a Doc>, doc: &'a Doc) -> Vec<(&'a Field, String, String)> {
+    let mut out = Vec::new();
+    for key in record.layout.relations.iter().filter(|k| k.as_str() != "supersedes") {
+        let Some(field) = doc.field(key) else { continue };
+        for found in record.ids.find_iter(&field.value) {
+            if let Some(why) = known.get(found.as_str()).and_then(|target| suspect(record, doc, target)) {
+                out.push((field, found.as_str().to_string(), why));
+            }
+        }
+    }
+    out
 }
 
 fn shape(record: &Record) -> Vec<Finding> {
@@ -1763,7 +1875,18 @@ fn show(rest: &[String]) -> u8 {
     let mut named = false;
     for key in &record.layout.relations {
         if let Some(field) = doc.field(key) {
-            let ids: Vec<&str> = record.ids.find_iter(&field.value).map(|m| m.as_str()).collect();
+            let ids: Vec<String> = record
+                .ids
+                .find_iter(&field.value)
+                .map(|m| {
+                    let marked = known.get(m.as_str()).filter(|_| key != "supersedes").and_then(|target| suspect(&record, doc, target));
+                    match marked {
+                        Some(why) if why.starts_with("revised") => format!("{} (suspect: {why}, after this record)", m.as_str()),
+                        Some(why) => format!("{} (suspect: {why})", m.as_str()),
+                        None => m.as_str().to_string(),
+                    }
+                })
+                .collect();
             if !ids.is_empty() {
                 say!("  {key}: {}", ids.join(", "));
                 named = true;
@@ -1826,8 +1949,6 @@ fn show(rest: &[String]) -> u8 {
 
 const INDEX_OPEN: &str = "<!-- meow-flow index -->";
 const INDEX_CLOSE: &str = "<!-- /meow-flow index -->";
-/// The markers before the unit was renamed, read until meow-flow 0.32.0 (ADR-1390).
-const OLD_INDEX: (&str, &str) = ("<!-- meow-method index -->", "<!-- /meow-method index -->");
 
 /// A kind by its name or its artifact word, such as `decision` or `adr`.
 fn kind_named(record: &Record, word: &str) -> Option<usize> {
@@ -1939,19 +2060,13 @@ fn generated_block(text: &str) -> Option<(usize, usize)> {
     markers(text).map(|(_, open, close, _)| (open, close))
 }
 
-/// Where the block's markers sit, in either form: the opening marker's start,
-/// the block's start and end, and the closing marker's end.
+/// Where the block's markers sit: the opening marker's start, the block's
+/// start and end, and the closing marker's end.
 fn markers(text: &str) -> Option<(usize, usize, usize, usize)> {
-    for (opening, closing) in [(INDEX_OPEN, INDEX_CLOSE), OLD_INDEX] {
-        if let Some(start) = text.find(opening) {
-            let open = start + opening.len();
-            if let Some(found) = text[open..].find(closing) {
-                let close = open + found;
-                return Some((start, open, close, close + closing.len()));
-            }
-        }
-    }
-    None
+    let start = text.find(INDEX_OPEN)?;
+    let open = start + INDEX_OPEN.len();
+    let close = open + text[open..].find(INDEX_CLOSE)?;
+    Some((start, open, close, close + INDEX_CLOSE.len()))
 }
 
 fn index_command(rest: &[String]) -> u8 {
