@@ -53,9 +53,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: the trace, and both cases at 1.00 on Sonnet 5 and Opus 5.5, in
       #521.
 
-- [ ] T-002 TSK-2300 dispatch the reviewer before each gate, bound the repair
+- [x] T-002 TSK-2300 dispatch the reviewer before each gate, bound the repair
       and label the verdict, in the method skill and the review step
       closes: REQ-0149, REQ-0151, REQ-0157, REQ-0822, REQ-0823, REQ-2202
+      evidence: the trace, and both dispatch cases at 1.00 on Sonnet 5 and
+      Opus 5.5, in #522.
 
 ## Coverage
 
