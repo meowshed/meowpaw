@@ -383,8 +383,8 @@ own line (REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
 A task is done when its epic marks it `[x]`, and dropped when it is marked
 `[~]`. A task entry may carry `[P]` between its number and its identifier,
 marking it as able to run in parallel (REQ-0265), and it is read with its mark
-like any other. The tasks a task depends on are the `TSK-` identifiers under its
-`## Depends on` section.
+like any other. The tasks a task depends on are the `TSK-` identifiers under
+its `## Depends on` section.
 
 ### The state
 
@@ -474,12 +474,12 @@ refuses on an unapproved report and on a migrated or superseded document whose
 destination names no artifact (REQ-3122, REQ-3124), prints the count before
 and after and each removed path, and commits nothing (REQ-3126) (ADR-1280).
 
-Onboarding reads the forge history through `meow-github history` where that
-pack is installed, and recovers as drafts each obligation and each decision
-with its rejected alternative that a document, an issue or a pull request
-states, citing its address, and none from code alone (REQ-3110, REQ-3112).
-Without the pack it reports the history as unread and names `meow-github`
-(REQ-3128) (ADR-1300).
+Onboarding reads the code host's history through `meow-github history` where
+that pack is installed, and recovers as drafts each obligation and each
+decision with its rejected alternative that a document, an issue or a pull
+request states, citing its address, and none from code alone (REQ-3110,
+REQ-3112). Without the pack it reports the history as unread and names
+`meow-github` (REQ-3128) (ADR-1300).
 
 ## Failure paths
 

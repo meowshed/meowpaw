@@ -80,7 +80,7 @@ a file. A decision record is `approved` when someone accepted it and
 
 `.meowpaw/` belongs to the repository being worked in, and not to the harness.
 The five verbs resolve from the profile, so it can't live in `.github/`: a
-repository on `jj` with no forge still has to declare how you test it.
+repository on `jj` with no code host still has to declare how you test it.
 
 Configuration the harness owns is TOML, because a person reads the profile as
 often as a program does and TOML has one way to write a table. Front matter
@@ -271,11 +271,12 @@ The review before publishing, by `meow-prose:prose`, catches what survived
 that. It is not where the work happens, and a review finding six defects in
 five short texts is your work handed to the next step.
 
-Check the text before it leaves your hands, not after somebody reads it.
-Every document, every commit message, every issue you file and every pull
-request body goes through the standard while it is still an edit. A defect caught here costs one edit. The same
-defect caught after the merge costs an issue, a defect record and a change to
-correct it, and this repository has paid that several times.
+Check the text before it leaves your hands, not after somebody reads it. Every
+document, every commit message, every issue you file and every pull request
+body goes through the standard while it is still an edit. A defect caught here
+costs one edit. The same defect caught after the merge costs an issue, a defect
+record and a change to correct it, and this repository has paid that several
+times.
 
 The test: a rule whose reason is stated survives contact with a case its author
 never foresaw, because the reader can tell whether the reason applies. A rule
