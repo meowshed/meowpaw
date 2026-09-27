@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What the unit must score on each case (REQ-3030), set before the first run
+# (REQ-0159). Each case is a judgement a model makes, so two of three runs is
+# the bar: one run of three can miss a finding without the agent being wrong
+# in kind, and a bar of three of three would fail on that variance alone.
+
+[cases]
+decision-missing-its-reasons = 0.66
+clean-requirement = 0.66

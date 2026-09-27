@@ -47,9 +47,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2290 ship `meow-flow:record-reviewer`, with its questions per
+- [x] T-001 TSK-2290 ship `meow-flow:record-reviewer`, with its questions per
       kind and read-only tools, and its evaluation cases
       closes: REQ-0132, REQ-0147, REQ-0819, REQ-2828, REQ-2830
+      evidence: the trace, and both cases at 1.00 on Sonnet 5 and Opus 5.5, in
+      #521.
 
 - [ ] T-002 TSK-2300 dispatch the reviewer before each gate, bound the repair
       and label the verdict, in the method skill and the review step

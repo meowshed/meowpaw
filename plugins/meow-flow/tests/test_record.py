@@ -1478,6 +1478,15 @@ class Connections(unittest.TestCase):
         self.addCleanup(repository.tmp.cleanup)
         return repository
 
+    def test_an_evaluation_case_may_name_a_record_that_does_not_exist(self):
+        """ADR-1490: an evaluation case's sample record is fixture material, not a document citing the record."""
+        repository = self.repo()
+        case = repository.path / "plugins" / "unit" / "evals" / "a-case" / "prompt.md"
+        case.parent.mkdir(parents=True)
+        case.write_text("Review this record.\n\n---\nid: REQ-0999\n---\n\nREQ-0999 MUST hold.\n", encoding="utf-8")
+        done = repository.run("check", "identifiers")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
     def test_an_approved_task_over_draft_research_names_the_chain(self):
         """REQ-0139: a task whose own links resolve is reported where the research under it is a draft."""
         repository = self.repo()

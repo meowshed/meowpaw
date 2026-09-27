@@ -37,9 +37,10 @@ const CLEAN: u8 = 0;
 const FOUND: u8 = 1;
 const USAGE: u8 = 2;
 const UNCHECKED: u8 = 3;
-/// Directories no walk enters: tooling, build output and the harness's own
-/// templates, whose placeholders are not citations.
-const SKIP: [&str; 4] = ["node_modules", "target", "templates", "_archive"];
+/// Directories no walk enters: tooling, build output, the harness's own
+/// templates, whose placeholders are not citations, and evaluation cases, whose
+/// sample records name identifiers that don't exist on purpose.
+const SKIP: [&str; 5] = ["node_modules", "target", "templates", "_archive", "evals"];
 
 struct Kind {
     name: String,
