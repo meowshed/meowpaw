@@ -345,7 +345,8 @@ ADR-1420 in one task, TSK-2150, closed with evidence, and was verified against
 every acceptance criterion under issue 464.
 
 [EPC-1410](epics/EPC-1410-a-defect-is-debugged-by-reproduction.md) realises
-ADR-1430 in one task, TSK-2160.
+ADR-1430 in one task, TSK-2160, closed with evidence, and was verified against
+every acceptance criterion under issue 472.
 
 ## Defects
 
