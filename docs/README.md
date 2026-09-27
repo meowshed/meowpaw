@@ -7,7 +7,7 @@ describes:
     meow-core@0.6.1,
     meow-git@0.2.2,
     meow-github@0.4.1,
-    meow-method@0.31.0,
+    meow-flow@0.31.0,
     meow-prose-gate@0.1.2,
     meow-prose@0.3.5,
     meow-scm@0.4.1,
@@ -49,9 +49,9 @@ Every page, who it is for and what it answers:
 | Page                                                    | For                                                                                                   | Answers                                                                                         | Kind            |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------- |
 | [meow-core](../plugins/meow-core/README.md)             | someone choosing or running meow-core                                                                 | what meow-core does, what it adds to a session and how to run it                                | reference       |
+| [meow-flow](../plugins/meow-flow/README.md)             | someone choosing or running meow-flow                                                                 | what meow-flow does, what it adds to a session and how to run it                                | reference       |
 | [meow-git](../plugins/meow-git/README.md)               | someone choosing or running meow-git                                                                  | what meow-git does, what it adds to a session and how to run it                                 | reference       |
 | [meow-github](../plugins/meow-github/README.md)         | someone choosing or running meow-github                                                               | what meow-github does, what it adds to a session and how to run it                              | reference       |
-| [meow-method](../plugins/meow-method/README.md)         | someone choosing or running meow-method                                                               | what meow-method does, what it adds to a session and how to run it                              | reference       |
 | [meow-prose](../plugins/meow-prose/README.md)           | someone choosing or running meow-prose                                                                | what meow-prose does, what it adds to a session and how to run it                               | reference       |
 | [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
 | [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
@@ -69,7 +69,7 @@ do without it: `meow-git` checks commit messages with `meow-scm` where that
 unit is installed, and reports the check as unrun where it isn't. Nothing a
 unit installs changes your repository: the only files the harness writes there
 are ones you ask for, such as `.meowpaw/profile.toml`, and keeping a record of
-decisions with `meow-method` is optional.
+decisions with `meow-flow` is optional.
 
 Each unit that runs a program ships it for macOS, Linux and Windows on arm64
 and x86_64, so it needs nothing else installed. A later release reaches you

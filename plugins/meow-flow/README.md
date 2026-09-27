@@ -1,22 +1,19 @@
 ---
-reader: someone choosing or running meow-method
-answers: what meow-method does, what it adds to a session and how to run it
+reader: someone choosing or running meow-flow
+answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-method@0.31.0]
+describes: [meow-flow@0.31.0]
 ---
 
-# meow-method
+# meow-flow
 
-`meow-method` runs the method: nine steps from research to review, each
+`meow-flow` runs the method: nine steps from research to review, each
 writing one artifact from an approved input. It keeps the record those steps
 write, the research, requirements, decisions, specifications, epics, tasks and
 defects, and checks it, reporting each finding with its file and line. It
 installs on its own, with no other part of the `meowpaw` harness.
 
-You run the record's command as `paw`, from the unit's `bin/` directory. Until
-0.30.0 it was `meow-method`, and that name still runs `paw` after a notice on
-standard error. Change any script or profile that calls it, because 0.31.0
-removes the old name.
+You run the record's command as `paw`, from the unit's `bin/` directory.
 
 ## Install it
 
@@ -24,18 +21,18 @@ Add the marketplace and install the unit:
 
 ```bash
 claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
-claude plugin install meow-method@meowpaw
+claude plugin install meow-flow@meowpaw
 ```
 
 ## Bring a repository in
 
-Type `/meow-method:init` in a repository with no `.meowpaw/profile.toml`. It
+Type `/meow-flow:init` in a repository with no `.meowpaw/profile.toml`. It
 reads the repository and writes the profile from the template
 `paw template profile` names, and a `CLAUDE.md` from the constitution
 template where the repository has none. It writes nothing else, and it leaves
 an existing `CLAUDE.md` untouched. Review both files before you commit them.
 
-Then type `/meow-method:onboard` to bring the repository's existing documents
+Then type `/meow-flow:onboard` to bring the repository's existing documents
 into the record. It recovers the vision, the specifications and, where none
 exists, the constitution, each statement ending with the file it came from and
 a confidence. Where `meow-github` is installed it reads the repository's
@@ -69,13 +66,14 @@ is at `project/`.
 
 ## Run the method
 
-Type `/meow-method:run` to be taken to the next approval gate. It reads where
+Type `/meow-flow:run` to be taken to the next approval gate. It reads where
 the record stands, runs the next step, and stops where that step waits for
 your approval, saying what the next run will do. Run it again after you
 approve, and it carries on; run it with nothing approved, and it says what it
 is waiting on.
 
-To run one step yourself, ask for it by name, such as "run the design step for `REQ-0190`", and Claude loads the `method` skill. The steps, in order:
+To run one step yourself, ask for it by name, such as "run the design step for
+`REQ-0190`", and Claude loads the `method` skill. The steps, in order:
 
 | Step           | Reads                          | Writes                      |
 | -------------- | ------------------------------ | --------------------------- |
@@ -111,28 +109,28 @@ paw ready implement: not ready
   TSK-1420, which TSK-1430 depends on, isn't done
 ```
 
-`paw status` prints where the record stands, leading with whatever
-waits for your approval. It counts the requirements in force by the state it
-derives from the tasks closing them: verified, closed and not yet verified, in
-a task not yet done, or checked by nothing. It calls an epic verified only
-while `check` reports nothing on the epic, its decision or its tasks, and
-calls it drifted otherwise. Where the record's root is under no version
-control, it says the record is local to this machine. When a session starts, a hook runs `paw
-status --waiting`, so Claude opens with any draft waiting for you and says
-nothing when none is. `paw show <id>` prints what an identifier
-names and every artifact that cites it, grouped by the field that cites it,
-and for a requirement each task closing it with its mark and its epic's
-verification.
-`paw count` prints each kind's number of artifacts by status and the
-number of identifiers, which a migration runs before and after to show it lost
-nothing. `paw find <word>...` lists the artifacts whose identifier, title or
-conclusion carry the words, headings only and at most twenty.
-`paw new <kind> [--topic <topic>]` prints the next identifier to
-allocate, never one any file already carries. `paw index <kind> --write` regenerates a kind's index between its
-`<!-- meow-method index -->` markers, and `check index` reports one that has
-fallen behind the tree. `paw template <kind>` prints the template a
-step writes from: yours at `.meowpaw/templates/<kind>.md` where you have one,
-and the unit's otherwise.
+`paw status` prints where the record stands, leading with whatever waits for
+your approval. It counts the requirements in force by the state it derives from
+the tasks closing them: verified, closed and not yet verified, in a task not
+yet done, or checked by nothing. It calls an epic verified only while `check`
+reports nothing on the epic, its decision or its tasks, and calls it drifted
+otherwise. Where the record's root is under no version control, it says the
+record is local to this machine. When a session starts, a hook runs `paw status
+--waiting`, so Claude opens with any draft waiting for you and says nothing
+when none is. `paw show <id>` prints what an identifier names and every
+artifact that cites it, grouped by the field that cites it, and for a
+requirement each task closing it with its mark and its epic's verification.
+`paw count` prints each kind's number of artifacts by status and the number of
+identifiers, which a migration runs before and after to show it lost nothing.
+`paw find <word>...` lists the artifacts whose identifier, title or conclusion
+carry the words, headings only and at most twenty. `paw new <kind> [--topic
+<topic>]` prints the next identifier to allocate, never one any file already
+carries. `paw index <kind> --write` regenerates a kind's index between its
+`<!-- meow-flow index -->` markers, and `check index` reports one that has
+fallen behind the tree. An index still carrying the markers from before the
+unit's rename is read until 0.32.0, and `--write` moves it to the new ones.
+`paw template <kind>` prints the template a step writes from: yours at
+`.meowpaw/templates/<kind>.md` where you have one, and the unit's otherwise.
 
 ## Postpone requirements
 
@@ -198,7 +196,7 @@ reports the record as not checked and exits 3.
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
-in `plugins/meow-method/requires.toml`. It relies on these platform behaviours,
+in `plugins/meow-flow/requires.toml`. It relies on these platform behaviours,
 each documented by Claude Code:
 
 - a skill loaded by its description, and one only a person invokes, with `disable-model-invocation`: [documentation](https://code.claude.com/docs/en/skills.md)
@@ -207,4 +205,4 @@ each documented by Claude Code:
 
 ## Where it reads the record
 
-The layout it reads each kind by is `plugins/meow-method/lib/layout.toml`.
+The layout it reads each kind by is `plugins/meow-flow/lib/layout.toml`.

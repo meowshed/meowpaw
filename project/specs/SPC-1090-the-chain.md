@@ -298,14 +298,14 @@ approvals and waiting report are verified under issue 249.
 
 ## Boundary
 
-| Surface                                      | What it is                                              |
-| -------------------------------------------- | ------------------------------------------------------- |
-| `plugins/meow-method/skills/method/SKILL.md` | What every step shares, and how to invoke one           |
-| `plugins/meow-method/skills/method/steps/`   | One file per step, read only for the step being run     |
-| `plugins/meow-method/skills/run/SKILL.md`    | `/meow-method:run`, the command that drives the chain   |
-| `plugins/meow-method/templates/<kind>.md`    | The unit's template for each kind                       |
-| `.meowpaw/templates/<kind>.md`               | A repository's own template, which overrides the unit's |
-| `paw status`, `ready`, `template`            | The chain's state, a step's gate, the template in force |
+| Surface                                    | What it is                                              |
+| ------------------------------------------ | ------------------------------------------------------- |
+| `plugins/meow-flow/skills/method/SKILL.md` | What every step shares, and how to invoke one           |
+| `plugins/meow-flow/skills/method/steps/`   | One file per step, read only for the step being run     |
+| `plugins/meow-flow/skills/run/SKILL.md`    | `/meow-flow:run`, the command that drives the chain     |
+| `plugins/meow-flow/templates/<kind>.md`    | The unit's template for each kind                       |
+| `.meowpaw/templates/<kind>.md`             | A repository's own template, which overrides the unit's |
+| `paw status`, `ready`, `template`          | The chain's state, a step's gate, the template in force |
 
 ## Behaviour
 
@@ -420,7 +420,7 @@ runs it, so a session opens with the pending approval before anything else
 
 ### The driver
 
-`/meow-method:run` runs `status`, and takes the first item that isn't waiting,
+`/meow-flow:run` runs `status`, and takes the first item that isn't waiting,
 or the record a person names (REQ-0202). It runs that item's next step through
 the `method` skill, and stops where the step ends at an approval gate, as the
 step would (REQ-0204). At every stop it reports which step it reached, why it
@@ -439,7 +439,7 @@ unit's `templates/<kind>.md` otherwise (REQ-0526, REQ-0528). The kinds are
 
 ### Bringing a repository in
 
-`/meow-method:init`, a command only a person invokes, writes
+`/meow-flow:init`, a command only a person invokes, writes
 `.meowpaw/profile.toml` from `paw template profile` and, where none
 exists, `CLAUDE.md` from the constitution template, and nothing else (REQ-1560,
 REQ-1563). It reports which verbs resolve before anything else (REQ-1554),
@@ -451,7 +451,7 @@ unit writes into the repository to run itself (REQ-3180) (ADR-1250).
 
 ### Onboarding
 
-`/meow-method:onboard`, run after init, reads the repository's documentation,
+`/meow-flow:onboard`, run after init, reads the repository's documentation,
 any existing harness and its code, and recovers the vision, the specifications
 and a missing constitution, each statement ending with its source file and a
 confidence, and nothing it can't trace (REQ-1540, REQ-1542, REQ-1546,

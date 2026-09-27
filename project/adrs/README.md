@@ -8,10 +8,10 @@ revised: 2026-09-22
 # Decisions
 
 Every decision below is in force, as amended by the ones after it.
-`meow-method index adr --write` generates everything below from the tree, and
-`meow-method check index` reports it when it falls out of date.
+`paw index adr --write` generates everything below from the tree, and
+`paw check index` reports it when it falls out of date.
 
-<!-- meow-method index -->
+<!-- meow-flow index -->
 
 40 decisions in all: 40 approved.
 
@@ -59,4 +59,4 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1390](ADR-1390-the-method-unit-is-meow-flow-and-meow-method-stays-one-release-as-a-stub.md)       | The method's unit is `meow-flow`, and `meow-method` stays one release as a stub that says so                     | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390.
-<!-- /meow-method index -->
+<!-- /meow-flow index -->

@@ -10,11 +10,11 @@ revised: 2026-09-22
 One obligation per file. Identifiers are allocated in blocks per topic with
 gaps, so a later statement joins its neighbours rather than landing at the end.
 Each names the research it was drawn from, and the research names no
-requirement back. `meow-method index requirement --write` generates everything
-below from the tree, and `meow-method check index` reports it when it falls out
+requirement back. `paw index requirement --write` generates everything
+below from the tree, and `paw check index` reports it when it falls out
 of date.
 
-<!-- meow-method index -->
+<!-- meow-flow index -->
 
 1097 requirements in all: 1090 approved, 7 withdrawn.
 
@@ -1161,4 +1161,4 @@ By topic:
 - universality: REQ-0070, REQ-0072, REQ-0074, REQ-0076, REQ-0077, REQ-0078, REQ-0079, REQ-0080, REQ-0082, REQ-0083, REQ-0084, REQ-0085, REQ-0086, REQ-0088, REQ-0090, REQ-0092, REQ-0094, REQ-0096, REQ-0098, REQ-3040, REQ-3042, REQ-3043, REQ-3044, REQ-3046, REQ-3048, REQ-3050, REQ-3052, REQ-3054, REQ-3056
 - verification: REQ-0130, REQ-0131, REQ-0132, REQ-0133, REQ-0134, REQ-0135, REQ-0136, REQ-0137, REQ-0139, REQ-0140, REQ-0141, REQ-0142, REQ-0143, REQ-0144, REQ-0145, REQ-0146, REQ-0147, REQ-0148, REQ-0149, REQ-0150, REQ-0151, REQ-0153, REQ-0154, REQ-0156, REQ-0157, REQ-0158, REQ-0159, REQ-0160, REQ-0161, REQ-2828, REQ-2830
 
-<!-- /meow-method index -->
+<!-- /meow-flow index -->
