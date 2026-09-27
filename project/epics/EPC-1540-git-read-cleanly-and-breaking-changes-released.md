@@ -51,9 +51,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: two path fixtures and the configuration scan seen failing
       first, in #571.
 
-- [ ] T-002 [P] TSK-2410 refuse a release of a breaking change without the
+- [x] T-002 [P] TSK-2410 refuse a release of a breaking change without the
       version showing it
       closes: REQ-3192
+      evidence: six tests of the new check, and the check passing on this
+      repository, in #572.
 
 ## Coverage
 
