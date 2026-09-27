@@ -45,9 +45,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2380 bind no result to a dirty submodule, and list the
+- [x] T-001 TSK-2380 bind no result to a dirty submodule, and list the
       evidence a change adds with `evidence --kept`
       closes: REQ-0452, REQ-0454, REQ-0456
+      evidence: eight fixtures seen failing first, in #563.
 
 ## Coverage
 

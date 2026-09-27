@@ -45,7 +45,8 @@ class Repository:
     def git(self, *args):
         # The machine's own git configuration and ignore file stay out, so a
         # fixture gives one verdict on every machine (BUG-1190).
-        return subprocess.run(["git", "-c", "user.name=a", "-c", "user.email=a@b", *args], cwd=self.root,
+        return subprocess.run(["git", "-c", "user.name=a", "-c", "user.email=a@b", "-c", "protocol.file.allow=always",
+                               *args], cwd=self.root,
                               capture_output=True, text=True, check=True,
                               env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1",
                                    "XDG_CONFIG_HOME": str(self.state)})
@@ -629,6 +630,131 @@ class Interrupted(unittest.TestCase):
         self.assertIn("summary: test interrupted", done.stdout)
         self.assertEqual(repo.records()[-1]["outcome"], "interrupted")
         self.assertEqual(repo.run("evidence", "test").returncode, 4)
+
+
+class Claims(unittest.TestCase):
+    """ADR-1560: evidence stays bound to its tree, and the evidence behind a change is listed."""
+
+    PROFILE = '[verbs]\ntest = "echo tested"\nlint = "echo broken; exit 1"\n\n[git]\ntrunk = "work"\n'
+
+    def repo(self, profile=None):
+        repository = Repository(profile or self.PROFILE)
+        self.addCleanup(repository.close)
+        repository.git("init", "-q", "-b", "work")
+        repository.git("add", "-A")
+        repository.git("commit", "-q", "-m", "first")
+        return repository
+
+    def with_submodule(self, repo):
+        sub = repo.state / "sub-origin"
+        sub.mkdir()
+        run = lambda *a: subprocess.run(["git", "-c", "user.name=a", "-c", "user.email=a@b", *a], cwd=sub, check=True,
+                                        capture_output=True, env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull})
+        run("init", "-q", "-b", "work")
+        (sub / "a.txt").write_text("a\n", encoding="utf-8")
+        run("add", "-A")
+        run("commit", "-q", "-m", "s")
+        repo.git("submodule", "add", "-q", str(sub), "sub")
+        repo.git("commit", "-q", "-m", "sub")
+        return repo.root / "sub"
+
+    def test_a_dirty_submodule_binds_no_result(self):
+        """REQ-0452: a result collected with an uncommitted submodule edit names no tree."""
+        repo = self.repo()
+        sub = self.with_submodule(repo)
+        (sub / "a.txt").write_text("changed\n", encoding="utf-8")
+        repo.run("run", "test")
+        self.assertEqual(repo.records()[-1]["tree"], "none")
+
+    def test_an_edit_in_a_submodule_leaves_no_result_current(self):
+        """REQ-0454: any modification, a submodule's included, invalidates earlier evidence."""
+        repo = self.repo()
+        sub = self.with_submodule(repo)
+        repo.run("run", "test")
+        self.assertEqual(repo.run("evidence", "test").returncode, 0)
+        (sub / "a.txt").write_text("changed\n", encoding="utf-8")
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("the submodule sub has uncommitted changes", done.stdout)
+
+    def branch(self, repo):
+        repo.run("run", "test")
+        repo.run("evidence", "--keep", "test")
+        repo.git("add", "-A")
+        repo.git("commit", "-q", "-m", "trunk evidence")
+        repo.git("checkout", "-q", "-b", "change")
+        (repo.root / "work.txt").write_text("w\n", encoding="utf-8")
+
+    def test_the_listing_names_only_what_the_work_adds(self):
+        """REQ-0456: the evidence behind this change, joined to each claim by its record."""
+        repo = self.repo()
+        self.branch(repo)
+        repo.run("run", "test")
+        record = repo.records()[-1]["record"]
+        repo.run("evidence", "--keep", "test")
+        done = repo.run("evidence", "--kept")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertEqual(done.stdout.count("project/evidence/"), 1, done.stdout)
+        self.assertIn(f"test passed, record {record}, differs from HEAD", done.stdout)
+        repo.git("add", "-A")
+        repo.git("commit", "-q", "-m", "change")
+        done = repo.run("evidence", "--kept")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn(f"test passed, record {record}, matches HEAD", done.stdout)
+
+    def test_a_superseded_file_is_listed_and_not_counted(self):
+        """REQ-0456: only the latest kept result per verb stands for the change."""
+        repo = self.repo()
+        self.branch(repo)
+        repo.run("run", "test")
+        repo.run("evidence", "--keep", "test")
+        (repo.root / "work.txt").write_text("again\n", encoding="utf-8")
+        repo.run("run", "test")
+        repo.run("evidence", "--keep", "test")
+        repo.git("add", "-A")
+        repo.git("commit", "-q", "-m", "change")
+        done = repo.run("evidence", "--kept")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("superseded", done.stdout)
+
+    def test_a_failed_result_fails_the_listing(self):
+        """REQ-0456: a kept failure is never a pass."""
+        repo = self.repo()
+        self.branch(repo)
+        repo.run("run", "lint")
+        repo.run("evidence", "--keep", "lint")
+        repo.git("add", "-A")
+        repo.git("commit", "-q", "-m", "change")
+        self.assertEqual(repo.run("evidence", "--kept").returncode, 1)
+
+    def test_an_empty_listing_is_unresolved(self):
+        """REQ-0456: no evidence is never a pass."""
+        repo = self.repo()
+        self.branch(repo)
+        done = repo.run("evidence", "--kept")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("no kept evidence in this work", done.stdout)
+
+    def test_with_no_trunk_every_file_is_listed_with_a_note(self):
+        """REQ-0456: where the work's base is unknown, the listing says so."""
+        repo = self.repo('[verbs]\ntest = "echo tested"\n')
+        repo.run("run", "test")
+        repo.run("evidence", "--keep", "test")
+        done = repo.run("evidence", "--kept")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("no trunk is declared under [git]", done.stdout)
+
+    def test_outside_git_each_file_is_bound_to_nothing(self):
+        """REQ-0456: evidence with no tree is never current."""
+        repository = Repository(self.PROFILE)
+        self.addCleanup(repository.close)
+        kept = repository.root / "project" / "evidence"
+        kept.mkdir(parents=True)
+        (kept / "abc.txt").write_text("meow-verbs evidence 1\nrecord: abc\nverb: test\noutcome: passed\n"
+                                      "tree: none\ntime: 2026-01-01T00:00:00Z\n\nok\n", encoding="utf-8")
+        done = repository.run("evidence", "--kept")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("bound to no tree", done.stdout)
 
 
 class Launcher(unittest.TestCase):
