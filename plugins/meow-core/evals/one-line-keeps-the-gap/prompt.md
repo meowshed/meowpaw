@@ -15,6 +15,6 @@ gate @ #212
   lint       pass
   test       pass        318/318
   build      pass
-  typecheck  unresolved  no command declared for this verb
+  check      unresolved  no command declared for this verb
   audit      skipped     --skip-audit passed on the command line
 ```
