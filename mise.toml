@@ -36,7 +36,7 @@ run = "python3 tools/check_standalone.py && python3 -m unittest tools/test_check
 
 [tasks.budget]
 description = "Check every unit stays within the budget it states for every turn"
-run = "python3 tools/check_budget.py"
+run = "cargo run --quiet --release --manifest-path crates/meow/Cargo.toml --target-dir target/author --no-default-features --features author -- author cost"
 
 [tasks.build]
 description = "Build each unit's binary of the native tool for this machine"

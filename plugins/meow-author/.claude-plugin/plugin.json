@@ -1,7 +1,7 @@
 {
   "name": "meow-author",
-  "version": "0.2.0",
-  "description": "Holds how Claude Code writes skills, agents, output styles, commands and prompt hooks, and checks them in a repository's plugins or its own .claude directory for fixed tags, a description, every supporting file named and a stated stopping point. It keeps up to 400 characters in context on every turn.",
+  "version": "0.3.0",
+  "description": "Holds how Claude Code writes skills, agents, output styles, commands and prompt hooks, checks them in a repository's plugins or its own .claude directory for fixed tags, a description, every supporting file named and a stated stopping point, and reports each unit's context cost. It keeps up to 400 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
