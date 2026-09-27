@@ -160,7 +160,7 @@ Every decision below is approved and in force, as amended by the ones after it.
   checks that every file is covered.
 - [ADR-1410](adrs/ADR-1410-the-verbs-are-format-lint-check-test-and-build.md):
   the verbs are `format`, `lint`, `check`, `test` and `build`, and the old
-  names are read one release.
+  names are read for one release.
 
 ## Specifications
 

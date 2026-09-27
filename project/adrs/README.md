@@ -58,7 +58,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1380](ADR-1380-the-document-step-writes-one-kind-per-page-and-checks-through-the-verbs.md)                 | The document step writes one kind per page to the declared style, and checks documentation through the verbs     | approved |
 | [ADR-1390](ADR-1390-the-method-unit-is-meow-flow-and-meow-method-stays-one-release-as-a-stub.md)                | The method's unit is `meow-flow`, and `meow-method` stays one release as a stub that says so                     | approved |
 | [ADR-1400](ADR-1400-a-licensing-unit-applies-the-declared-header-and-a-program-checks-every-file-is-covered.md) | A licensing unit applies the header a repository declares, and a program checks that every file is covered       | approved |
-| [ADR-1410](ADR-1410-the-verbs-are-format-lint-check-test-and-build.md)                                          | The verbs are `format`, `lint`, `check`, `test` and `build`, and the old names are read one release              | approved |
+| [ADR-1410](ADR-1410-the-verbs-are-format-lint-check-test-and-build.md)                                          | The verbs are `format`, `lint`, `check`, `test` and `build`, and the old names are read for one release          | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390.
 <!-- /meow-flow index -->

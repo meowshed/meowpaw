@@ -49,10 +49,10 @@ checked at #115.
 ### The verbs
 
 There are five verbs and no others: `format` for formatting, `lint` for static
-analysis, `check` for the checks a compiler or a type checker makes without
-producing anything, `test` for tests and `build` for the build (REQ-0130,
-REQ-2908). A unit adds no sixth (REQ-0131), because a sixth verb is a
-check with no agreed meaning across repositories.
+analysis, `check` for type checking, which in a compiled language is the
+compiler checking the code without building it, `test` for tests and `build`
+for the build (REQ-0130, REQ-2908). A unit adds no sixth (REQ-0131), because a
+sixth verb is a check with no agreed meaning across repositories.
 
 ### Where a verb resolves from
 

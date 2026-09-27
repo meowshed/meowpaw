@@ -27,7 +27,7 @@ for an interpreter already on the machine. What the program does stands.
 
 **Amended by ADR-1410.** The verbs are named `format`, `lint`, `check`,
 `test` and `build`: `format` replaces `fmt` and `check` replaces `typecheck`,
-each with its meaning, and `meow-verbs` 0.3.0 reads the old names for one
+which keeps its meaning of type checking, and `meow-verbs` 0.3.0 reads the old names for one
 release.
 
 ## Decision
