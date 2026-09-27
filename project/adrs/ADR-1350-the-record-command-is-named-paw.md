@@ -11,8 +11,9 @@ supersedes: []
 
 **Amended by ADR-1390.** The unit is `meow-flow`, its skills and commands are
 named for it, and the index markers become `<!-- meow-flow index -->`. The
-`bin/meow-method` alias never shipped, and none ships. The command stays
-`paw`.
+`bin/meow-method` alias never shipped, and none ships. `meow-method` 0.30.0
+ships as a stub that says where the unit went, and `meow-flow` ships at
+0.31.0. The command stays `paw`.
 
 ## Decision
 
