@@ -46,7 +46,32 @@ Nothing. ADR-1390 is approved.
 
 ## Evidence
 
-Not yet.
+The unit is `plugins/meow-flow/`, named `meow-flow` in its manifest at 0.31.0
+and in the committed catalogue, with `/meow-flow:run`, `/meow-flow:init` and
+`/meow-flow:onboard`. `bin/meow-method`, which never shipped, is gone, and
+`bin/paw` is the unit's one launcher. `claude plugin validate` passes on the
+catalogue and on the unit, and `plugins/meow-flow/bin/paw check` exits 0. I
+didn't install the unit into the owner's Claude Code, because that changes
+their configuration, so installation rests on the validator.
+
+`paw` writes `<!-- meow-flow index -->` and reads the old markers until
+0.32.0, and this repository's indexes carry the new ones. Two fixtures, run
+against `main`'s `paw`, failed, and pass against this one:
+
+```text
+$ MEOW_FLOW_BIN=<main's paw> python3 -m unittest ... -k old_markers -k writing_an_index
+FAIL: test_an_index_with_the_old_markers_is_read_and_moved_to_the_new
+FAIL: test_writing_an_index_leaves_no_temporary_file
+FAILED (failures=2)
+$ meow-verbs run fmt lint test
+summary: fmt passed, lint passed, test passed
+```
+
+A search for `meow-method` outside the approved records finds it only where
+ADR-1390 allows it: the old markers in the program, a fixture and SPC-1100,
+the stub in SPC-1070, and the titles of approved records quoted in the
+indexes. `test_nothing_the_unit_ships_names_the_old_unit` holds the unit's
+own files to that. SPC-1070 states REQ-3190.
 
 ## Left alone
 

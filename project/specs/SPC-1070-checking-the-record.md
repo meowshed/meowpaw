@@ -114,14 +114,13 @@ issue 206.
 
 ## Boundary
 
-| Surface                               | What it is                                        |
-| ------------------------------------- | ------------------------------------------------- |
-| `.meowpaw/profile.toml`, `[record]`   | Where the record lives                            |
-| `plugins/meow-method/bin/paw`         | The program: `check` and `check <name>`           |
-| `plugins/meow-method/bin/paw`         | The deprecated alias for `paw`, removed in 0.31.0 |
-| `crates/meow/src/record.rs`           | The program's source, `meow record`               |
-| `plugins/meow-method/lib/layout.toml` | The record's layout, as data                      |
-| `plugins/meow-method/README.md`       | The unit's documentation page                     |
+| Surface                             | What it is                              |
+| ----------------------------------- | --------------------------------------- |
+| `.meowpaw/profile.toml`, `[record]` | Where the record lives                  |
+| `plugins/meow-flow/bin/paw`         | The program: `check` and `check <name>` |
+| `crates/meow/src/record.rs`         | The program's source, `meow record`     |
+| `plugins/meow-flow/lib/layout.toml` | The record's layout, as data            |
+| `plugins/meow-flow/README.md`       | The unit's documentation page           |
 
 ## Behaviour
 
@@ -271,11 +270,10 @@ of requirements in the record and in the repository's other Markdown, as
 
 ## Failure paths
 
-| Condition                            | What happens                                                                               |
-| ------------------------------------ | ------------------------------------------------------------------------------------------ |
-| No profile, or no `[record]` table   | The record is looked for at `project/`                                                     |
-| `root` doesn't exist                 | Nothing is checked; the missing path is named, exit 1                                      |
-| A file of no known kind under `root` | Reported as an artifact of no known kind                                                   |
-| An unknown check named               | An error naming the seven checks, exit 2                                                   |
-| No binary for the machine            | The record is reported as not checked, exit 3                                              |
-| Run as `meow-method`                 | A notice on standard error names `paw` and 0.31.0, then `paw` runs with the same arguments |
+| Condition                            | What happens                                          |
+| ------------------------------------ | ----------------------------------------------------- |
+| No profile, or no `[record]` table   | The record is looked for at `project/`                |
+| `root` doesn't exist                 | Nothing is checked; the missing path is named, exit 1 |
+| A file of no known kind under `root` | Reported as an artifact of no known kind              |
+| An unknown check named               | An error naming the seven checks, exit 2              |
+| No binary for the machine            | The record is reported as not checked, exit 3         |
