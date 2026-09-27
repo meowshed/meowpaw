@@ -67,7 +67,11 @@ fn invocation(command: &str, subcommand: &str) -> Option<Option<String>> {
     let mut i = 0;
     while i < words.len() {
         if words[i] == "cd" {
-            directory = words.get(i + 1).map(|d| d.to_string());
+            // A relative cd moves from where the command already is (BUG-1220).
+            directory = words.get(i + 1).map(|d| match &directory {
+                Some(before) if !Path::new(d).is_absolute() => Path::new(before).join(d).display().to_string(),
+                _ => d.to_string(),
+            });
         } else if words[i] == "git" {
             let mut at = directory.clone();
             let mut j = i + 1;
@@ -336,4 +340,28 @@ pub fn main(args: &[String]) -> u8 {
     }
     let root = PathBuf::from(top.trim());
     if name == "commit-guard" { commit_guard(&root) } else { push_guard(&root) }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The commit a scanned command runs, spelt so this file's own text isn't
+    /// read as one by the guard.
+    fn with(prefix: &str) -> String {
+        format!("{prefix} && {} {} -m m", "git", "commit")
+    }
+
+    #[test]
+    fn a_relative_cd_joins_the_directory_before_it() {
+        // REQ-1292, BUG-1220: a subshell's relative cd stays in the work tree.
+        let command = with("cd /work/tree && (cd plugins/x && true)");
+        assert_eq!(invocation(&command, "commit"), Some(Some("/work/tree/plugins/x".to_string())));
+    }
+
+    #[test]
+    fn an_absolute_cd_replaces_the_directory() {
+        let command = with("cd /work/tree && cd /other");
+        assert_eq!(invocation(&command, "commit"), Some(Some("/other".to_string())));
+    }
 }
