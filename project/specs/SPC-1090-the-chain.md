@@ -2,10 +2,15 @@
 id: SPC-1090
 artifact: spec
 status: live
-revised: 2026-09-26
+revised: 2026-09-27
 checked-at: "#368"
 states:
   [
+    REQ-0132,
+    REQ-0147,
+    REQ-0149,
+    REQ-0151,
+    REQ-0157,
     REQ-0190,
     REQ-0192,
     REQ-0194,
@@ -161,6 +166,9 @@ states:
     REQ-0564,
     REQ-0566,
     REQ-0613,
+    REQ-0819,
+    REQ-0822,
+    REQ-0823,
     REQ-1230,
     REQ-1231,
     REQ-1232,
@@ -213,6 +221,7 @@ states:
     REQ-2138,
     REQ-2139,
     REQ-2140,
+    REQ-2202,
     REQ-2256,
     REQ-2258,
     REQ-2260,
@@ -244,6 +253,8 @@ states:
     REQ-2782,
     REQ-2794,
     REQ-2796,
+    REQ-2828,
+    REQ-2830,
     REQ-2834,
     REQ-2836,
     REQ-2858,
@@ -308,18 +319,20 @@ later decision.
 ADR-1130 decides it, and EPC-1100 realised it, verified under issue 202.
 ADR-1160 adds each step's obligations, and EPC-1160 realised them, verified
 under issue 237 with their measurement by evaluation still to come. ADR-1170's
-approvals and waiting report are verified under issue 249.
+approvals and waiting report are verified under issue 249. ADR-1490 adds the
+review a record gets before its gate, and EPC-1470 realises it.
 
 ## Boundary
 
-| Surface                                    | What it is                                              |
-| ------------------------------------------ | ------------------------------------------------------- |
-| `plugins/meow-flow/skills/method/SKILL.md` | What every step shares, and how to invoke one           |
-| `plugins/meow-flow/skills/method/steps/`   | One file per step, read only for the step being run     |
-| `plugins/meow-flow/skills/run/SKILL.md`    | `/meow-flow:run`, the command that drives the chain     |
-| `plugins/meow-flow/templates/<kind>.md`    | The unit's template for each kind                       |
-| `.meowpaw/templates/<kind>.md`             | A repository's own template, which overrides the unit's |
-| `paw status`, `ready`, `template`          | The chain's state, a step's gate, the template in force |
+| Surface                                       | What it is                                              |
+| --------------------------------------------- | ------------------------------------------------------- |
+| `plugins/meow-flow/skills/method/SKILL.md`    | What every step shares, and how to invoke one           |
+| `plugins/meow-flow/skills/method/steps/`      | One file per step, read only for the step being run     |
+| `plugins/meow-flow/skills/run/SKILL.md`       | `/meow-flow:run`, the command that drives the chain     |
+| `plugins/meow-flow/agents/record-reviewer.md` | The agent that reviews a record before its gate         |
+| `plugins/meow-flow/templates/<kind>.md`       | The unit's template for each kind                       |
+| `.meowpaw/templates/<kind>.md`                | A repository's own template, which overrides the unit's |
+| `paw status`, `ready`, `template`             | The chain's state, a step's gate, the template in force |
 
 ## Behaviour
 
@@ -465,6 +478,32 @@ naming the artifact, its kind and the gate it waits at, and prints nothing when
 nothing waits or the repository has no record (REQ-0392). A `SessionStart` hook
 runs it, so a session opens with the pending approval before anything else
 (REQ-0394).
+
+### The review before a gate
+
+Before it reports the gate a record waits at, the method skill dispatches
+`meow-flow:record-reviewer`, naming the record's path and nothing else, so the
+agent, which starts with no context of its own, isn't told who wrote it
+(REQ-0149, REQ-0151). The agent has `Read`, `Grep` and `Glob` alone (REQ-0819).
+It works through a fixed set of questions for the record's kind, plus two for
+every kind: does the record mix two kinds, and does each rule state its reason
+(REQ-2828, REQ-2830). It asks nothing `paw check` settles and reports each
+finding as its judgement (REQ-0132, REQ-0147). Its report opens with
+`Agent review, not a person's approval; the reviewer may share the author's model family.`
+(REQ-0157).
+
+The skill fixes what the agent finds and dispatches a fresh one, at most
+twice (REQ-0822). A finding still open after the second round, or one the
+author rejects, goes into the record under `## Open review findings` with the
+author's reason, and the gate report names that section (REQ-0823). The gate
+report says the record was reviewed by an agent and is unreviewed by a person.
+Where no agent can be dispatched, the skill reviews nothing itself and reports
+the record as unreviewed by an agent or a person; a review of its own work a
+person asks for is reported as self-assessed (REQ-2202) (ADR-1490).
+
+The review step dispatches a review of work the session produced to an agent
+with read-only tools, and its verdict names itself as an agent's (REQ-0149,
+REQ-0157).
 
 ### The driver
 
