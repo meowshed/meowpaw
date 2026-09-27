@@ -38,10 +38,10 @@ states:
 ## Scope
 
 This covers `meow-code`, the practice-layer unit that carries how the harness
-changes code and how it writes a check. It leaves which tool serves which
-language to packs, and running the checks to `meow-verbs`.
+changes code, writes a check and debugs a defect. It leaves which tool serves
+which language to packs, and running the checks to `meow-verbs`.
 
-ADR-1420 decides this part.
+ADR-1420 and ADR-1430 decide this part.
 
 ## Boundary
 
@@ -54,11 +54,13 @@ ADR-1420 decides this part.
 
 ## Behaviour
 
-### When the skill loads
+### When the skills load
 
 `meow-code:change` loads before the model changes code, by a description
-stating that the skill must load before any code changes. It names no language,
-tool or file extension.
+stating that the skill must load before any code changes.
+`meow-code:debug` loads before the model looks for the cause of a defect, by a
+description stating that. Neither skill names a language, a tool or a file
+extension.
 
 ### How code is changed
 
@@ -95,11 +97,11 @@ nothing in its place (REQ-2074).
 model reproduces the defect first, as small as it can make it, and keeps the
 reproduction (REQ-1890). It records what the system actually does before it
 offers a cause (REQ-1892). It holds one falsifiable hypothesis at a time and
-tests it by trying to refute it (REQ-1894), and bisects once the hypotheses
-run out (REQ-1896). The evidence that closes the defect is the reproduction
-failing before the change and passing after it (REQ-1898). It fixes the
-cause, and says so where it treated only the symptom (REQ-1900). Where the
-defect shows a requirement to be wrong, it routes the defect through an
+tests it by trying to refute it (REQ-1894), and bisects once the hypotheses run
+out (REQ-1896). The evidence that closes the defect is the reproduction failing
+before the change and passing after it (REQ-1898). The model fixes the cause,
+and says so where it treated only the symptom (REQ-1900). Where the defect
+shows a requirement to be wrong, the model routes the defect through an
 amendment and patches nothing (REQ-1902).
 
 ## Failure paths

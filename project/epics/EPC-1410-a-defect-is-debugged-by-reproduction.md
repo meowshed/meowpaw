@@ -24,7 +24,8 @@ the tasks below were written:
 2. The prompt check and the budget check pass on the unit.
 3. Five sessions on each of Sonnet 5 and Opus 5.5, with only the unit
    installed and asked to find why a script prints the wrong value, load the
-   debugging skill before their first edit in at least four of five.
+   debugging skill before any other tool in at least four of the five on each
+   model.
 4. Every requirement ADR-1430 addresses lands in exactly one closed task.
 
 ## Marks

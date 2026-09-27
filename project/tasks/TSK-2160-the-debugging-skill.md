@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1410
 closes: [REQ-1890, REQ-1892, REQ-1894, REQ-1896, REQ-1898, REQ-1900, REQ-1902]
-issue:
+issue: 469
+projected: f86ed865c8fa
 ---
 
 # `meow-code:debug` holds how a defect is debugged
@@ -23,8 +24,8 @@ request, one review.
    pass. Closed by: their output.
 3. Given a scratch repository with a script printing a wrong value, and five
    sessions on each model with only the unit installed asked to find why and
-   fix it, then the debugging skill loads before the first edit in at least
-   four of five on each. Closed by: the runs' tool calls. Predicted: 5 of 5 on
+   fix it, then the debugging skill loads before any other tool in at least four
+   of five on each. Closed by: the runs' tool calls. Predicted: 5 of 5 on
    Opus 5.5 and at least 4 of 5 on Sonnet 5, as `meow-code:change` measured
    after BUG-1200.
 

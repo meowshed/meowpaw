@@ -32,8 +32,8 @@ After this decision a model debugging in a repository with `meow-code`
 installed reproduces before it theorises and closes a defect on evidence that
 could have failed. What still doesn't work: no program checks that a
 reproduction was kept or seen failing, so the rules rest on the model and on
-review, and the method's own path for a defect, its triage and its record, is
-a later decision.
+review. The method's own path for a defect, its triage and its record, is a
+later decision.
 
 ## Why
 
@@ -42,15 +42,19 @@ from RES-0055 and RES-0021. A defect gets debugged whether or not the
 repository keeps a record, so the rules sit in the practice layer beside how
 code is changed, where `meow-code` already is (ADR-1420).
 
-A second skill, not more rules in `meow-code:change`, because debugging is a
-different activity with its own trigger: a skill loads by its description,
+I chose a second skill over more rules in `meow-code:change` because
+debugging has its own trigger. A skill loads by its description,
 and one description can't name both "before any code changes" and "before
 looking for a cause" without loading its whole body for either.
 
-The strongest objection: every rule here is behavioural, and none can be
-checked by a program, so a model under pressure skips them. A measurement of
-debugging with the skill and without it is what settles that, and it comes
-with the unit's evaluation cases.
+The strongest objection: every rule here but REQ-1898 is behavioural, so no
+program holds a model under pressure to them. REQ-1898 is declared static, and
+its static half, a defect record carrying the reproduction's result before the
+fix and after it, belongs to the method's path for a defect, a later decision;
+this skill carries the half the model does. A measurement of debugging with
+the skill and without it settles whether the rules change anything, and the
+unit's evaluation cases will carry it, because a scored comparison needs a
+case set these five sessions are not.
 
 ## Alternatives
 
@@ -62,8 +66,8 @@ with the unit's evaluation cases.
 
 ## What it costs
 
-The skill's description adds a few hundred characters in context on every
-turn to `meow-code`, and its body loads when the model debugs.
+The skill's description adds about 230 characters to what `meow-code` keeps
+in context on every turn, and its body loads when the model debugs.
 
 ## What would reverse it
 
@@ -85,7 +89,8 @@ rules change nothing.
 2. The prompt check and the budget check pass on the unit.
 3. Five sessions on each of Sonnet 5 and Opus 5.5, with only the unit
    installed and asked to find why a script prints the wrong value, load the
-   debugging skill before their first edit in at least four of five.
+   debugging skill before any other tool in at least four of the five on each
+   model.
 4. Every requirement ADR-1430 addresses lands in exactly one closed task.
 
 ## What this does not settle
