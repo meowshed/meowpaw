@@ -144,6 +144,11 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1350](adrs/ADR-1350-the-record-command-is-named-paw.md): the
   record's command is `paw`, and `meow-method` stays one release as a
   deprecated alias.
+- [ADR-1360](adrs/ADR-1360-removing-an-instruction-is-postponed-until-the-cases-can-see-one.md):
+  removing an instruction is postponed until the cases can see one.
+- [ADR-1370](adrs/ADR-1370-each-unit-ships-its-own-page-and-a-program-holds-the-documentation-to-the-tree.md):
+  each unit ships its own page, and a program holds the documentation to the
+  tree.
 
 ## Specifications
 
@@ -187,6 +192,10 @@ relations, resolving an identifier to its artifact and to what cites it, where
 the record contradicts itself, and each requirement's derived state.
 `meow-method` implements it, verified under issue 398.
 
+[SPC-1110](specs/SPC-1110-the-documentation.md) states the documentation the
+harness writes for its users: each unit's page, the introduction, the route
+file for agents, the catalogue fields and the check that holds them.
+
 ## Epics and tasks
 
 [EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) realises ADR-1000
@@ -202,9 +211,10 @@ lands in exactly one task except REQ-3034, which the epic defers with its
 reason.
 
 [EPC-1020](epics/EPC-1020-every-shipped-prompt-tagged-and-loaded.md) realises
-ADR-1020 in four tasks, TSK-1230 to TSK-1260. Three are closed. TSK-1260,
-which removes every instruction the loop shows has no effect, is postponed by
-the owner until the case sets can see a single rule, and the task records why.
+ADR-1020 in four tasks, TSK-1230 to TSK-1260. Three are closed, and ADR-1360
+drops TSK-1260 while it postpones the requirement that task closes. The epic
+was verified under issue 409, with criterion 5 resting on TSK-1230's
+measurement.
 
 [EPC-1030](epics/EPC-1030-the-writing-standard-loaded-by-its-description.md)
 realised ADR-1050 in one task, TSK-1270, closed in #85, and was verified
@@ -286,6 +296,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 
 [EPC-1330](epics/EPC-1330-postpone.md) realised ADR-1330 in one task, TSK-2010, closed with evidence, and was verified against every acceptance criterion under issue 398.
 [EPC-1340](epics/EPC-1340-the-record-command-is-named-paw.md) realised ADR-1350 in one task, TSK-2020, closed with evidence, and was verified against every acceptance criterion under issue 404.
+
+[EPC-1350](epics/EPC-1350-the-documentation-ships-with-its-units.md) realises
+ADR-1370 in four tasks, TSK-2030 to TSK-2060.
 
 ## Defects
 
