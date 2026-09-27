@@ -11,6 +11,11 @@ supersedes: []
 
 ## Decision
 
+**Amended by ADR-1530.** A result a record cites is kept in the repository,
+where anyone can check it; the tree id leaves the evidence directory out; the
+ledger is pruned and purged under a lock; and `interrupted` joins the exit
+convention as 4.
+
 `meow-verbs run` records every verb it runs in a ledger outside the
 repository, bound to the tree the verb ran on. A new command,
 `meow-verbs evidence`, says for each verb whether its latest result still

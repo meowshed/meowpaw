@@ -20,7 +20,22 @@ states:
     REQ-0154,
     REQ-0156,
     REQ-0158,
+    REQ-0752,
+    REQ-0754,
+    REQ-0756,
+    REQ-0758,
     REQ-2908,
+    REQ-2956,
+    REQ-2958,
+    REQ-2960,
+    REQ-2962,
+    REQ-2964,
+    REQ-2966,
+    REQ-2967,
+    REQ-2968,
+    REQ-2969,
+    REQ-2970,
+    REQ-3072,
   ]
 ---
 
@@ -36,8 +51,8 @@ It leaves binding a verb to a runner's tasks and language packs to later
 decisions, which ADR-1070 names. How the
 unit's skill is written is SPC-1030's.
 
-ADR-1070, ADR-1480 and ADR-1520 decide it, EPC-1040, EPC-1460 and EPC-1500
-realise them, and
+ADR-1070, ADR-1480, ADR-1520 and ADR-1530 decide it, EPC-1040, EPC-1460,
+EPC-1500 and EPC-1510 realise them, and
 `meow-verbs` implements it, checked at #115.
 
 ## Boundary
@@ -176,6 +191,42 @@ A record from a subset run carries its targets, and `evidence` never counts it
 as current for the whole verb: it reads the latest record run without
 targets, prints the latest subset record beside it as `subset only`, and reads
 a record carrying no targets field as a whole run.
+
+### Evidence kept in the repository
+
+`evidence --keep [verb...]` copies each named verb's latest current record, or
+every current one when none is named, into the repository at
+`.meowpaw/evidence/<record>.log`, or under the `evidence_dir` the profile
+declares under `[verbs]` (REQ-2956). The file opens with `meow-verbs evidence 1`,
+then the verb, the command, the targets, the outcome, the exit status, the tree
+id and the time, and holds the whole output; that format is a contract, and the
+ledger's own format is private (REQ-2964). A stale record isn't kept. The tree
+id leaves the evidence directory out, and `meow-verbs tree <commit>` prints a
+commit's tree id the same way (ADR-1530).
+
+### The ledger as run state
+
+The ledger is run state, kept outside the repository (REQ-3072). Each record
+names the repository's identity, the hash of its first commit (REQ-0752). A
+missing ledger or an unparseable line reads as absent (REQ-0754).
+`meow-verbs state` prints where the ledger is, its record count, the oldest
+and newest, and the evidence directory (REQ-0756). Every write takes a lock in
+`$XDG_RUNTIME_DIR`, or the user's temporary directory where that is unset, and
+a lock older than a minute is replaced (REQ-0758, REQ-2958, REQ-2967).
+`MEOWPAW_STATE_DIR` moves the state directory and `MEOWPAW_STATE=off` writes
+nothing outside the repository (REQ-2960). The first `run` finding a record
+older than 30 days drops those records and their output files, skipping the
+prune when the lock is held, and `state --purge` drops all (REQ-2962). Rewrites
+go through a temporary file renamed into place, and a reader skips a line cut
+short (REQ-2966).
+
+A verb's run is recorded as started, with its process id, start time and host,
+and ended in a second line; a start with no end reads as `running` while that
+process lives and `interrupted` otherwise, and a verb ended by a signal is
+`interrupted` (REQ-2968, REQ-2969). `run` and `evidence` exit 1 where a verb
+failed or went stale, else 4 where one was interrupted or is running, else 3
+where one was unresolved, else 0. `evidence --all` adds every work tree whose
+records name the same repository (REQ-2970).
 
 ### The skill
 
