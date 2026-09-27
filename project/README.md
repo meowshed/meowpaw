@@ -420,7 +420,8 @@ acceptance criterion under issue 543.
 three tasks, TSK-2340, TSK-2350 and TSK-2360.
 
 [EPC-1520](epics/EPC-1520-evidence-beside-the-record.md) realises ADR-1550 in
-one task, TSK-2370.
+one task, TSK-2370, closed with evidence, and was verified against every
+acceptance criterion under issue 555.
 
 ## Defects
 
