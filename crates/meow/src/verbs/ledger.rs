@@ -105,6 +105,8 @@ pub struct Result<'a> {
     pub before: &'a str,
     pub after: &'a str,
     pub output: &'a str,
+    /// The part of the work a subset run covered, or `None` for the whole.
+    pub targets: Option<&'a [String]>,
 }
 
 /// Appends one record, and its whole output beside the ledger, returning the
@@ -124,6 +126,7 @@ pub fn record(root: &Path, result: &Result) -> std::result::Result<String, Strin
         "time": time,
         "tree_before": result.before,
         "tree": result.after,
+        "targets": result.targets,
     });
     std::fs::create_dir_all(&outputs).map_err(|e| format!("can't create {}: {e}", outputs.display()))?;
     std::fs::write(outputs.join(format!("{id}.log")), result.output)

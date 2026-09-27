@@ -106,7 +106,8 @@ answer to what a verb means.
 
 `meow-verbs status` reports all five verbs and runs none of them (REQ-0150).
 For a resolved verb it gives the command and the file it came from. For an
-unresolved verb it gives the kind, one of five (REQ-0154):
+unresolved verb it gives the kind, one of five, and a run over part of the
+work adds a sixth (REQ-0154, REQ-0142):
 
 | Kind                  | Means                                                                    |
 | --------------------- | ------------------------------------------------------------------------ |
@@ -115,6 +116,7 @@ unresolved verb it gives the kind, one of five (REQ-0154):
 | profile unparseable   | The profile exists and can't be read; the parser's message is shown      |
 | malformed declaration | The profile names the verb with a value that isn't one command           |
 | no interpreter        | The program can't run on this machine: the unit carries no binary for it |
+| no subset form        | A run over part of the work names a verb that declares no `subset`       |
 
 A key under `[verbs]` that is not one of the five, and a table the unit
 doesn't read, are listed as ignored, so the person learns why a setting had no

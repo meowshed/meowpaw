@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-verbs
 answers: what meow-verbs does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-verbs@0.4.0]
+describes: [meow-verbs@0.5.0]
 ---
 
 # meow-verbs
@@ -75,9 +75,25 @@ has no record, was unresolved or ran outside a git work tree, where no tree id
 exists. The skill runs `format` first, cites records in this form, and calls
 the work done only when `evidence` exits 0 or you accept what it reported.
 
-An unresolved verb is one of five kinds: undeclared, no profile, a profile
-that doesn't parse, a declaration that isn't one command, and no interpreter
-to run the program.
+To run a verb over part of the work, such as one test, declare the form it
+takes, with `{targets}` where the part goes:
+
+```toml
+[verbs.test]
+command = "./scripts/test"
+subset = "./scripts/test {targets}"
+```
+
+Then `meow-verbs run test -- tests/login` runs the subset form, with each
+target quoted for the shell. A verb with no `subset` reports `no subset form`
+and runs nothing, because running the whole work under the part's name would
+tell you something narrower passed than did. `evidence` never counts a subset
+run as the whole verb's result, and prints it beside that result as
+`subset only`.
+
+An unresolved verb is one of six kinds: undeclared, no profile, a profile
+that doesn't parse, a declaration that isn't one command, no interpreter to
+run the program, and, for a run over part of the work, no subset form.
 
 ## What it costs you
 
