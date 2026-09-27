@@ -8,6 +8,8 @@ states:
   [
     REQ-0077,
     REQ-1050,
+    REQ-1052,
+    REQ-1054,
     REQ-1056,
     REQ-1057,
     REQ-1058,
@@ -15,6 +17,12 @@ states:
     REQ-1062,
     REQ-1064,
     REQ-1066,
+    REQ-1068,
+    REQ-1070,
+    REQ-1072,
+    REQ-1074,
+    REQ-1076,
+    REQ-1078,
     REQ-1110,
     REQ-1111,
     REQ-1112,
@@ -46,6 +54,11 @@ states:
     REQ-2688,
     REQ-2690,
     REQ-2692,
+    REQ-2696,
+    REQ-2698,
+    REQ-2700,
+    REQ-2702,
+    REQ-2704,
     REQ-2706,
     REQ-2708,
     REQ-3050,
@@ -70,16 +83,16 @@ checked.
 
 ## Boundary
 
-| Surface                          | What it is                                                                             |
-| -------------------------------- | -------------------------------------------------------------------------------------- |
-| `plugins/<unit>/skills/<skill>/` | A skill: `SKILL.md` as the core, and the files it names                                |
-| `plugins/<unit>/agents/*.md`     | An agent definition                                                                    |
-| `plugins/<unit>/output-styles/`  | An output style, loaded on every turn it is in force                                   |
-| `plugins/<unit>/hooks/`          | A hook's configuration, and the text of any prompt hook                                |
-| `meow-author check`              | The check over every prompt it is given, run by the `prompts` task and the `lint` verb |
-| `plugins/meow-author/`           | The unit that ships the authoring skill and the check                                  |
-| `tools/check_kernel.py`          | The check that the kernel names no unit outside it                                     |
-| `tools/check_budget.py`          | The check that each unit stays within its budget                                       |
+| Surface                          | What it is                                                                               |
+| -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `plugins/<unit>/skills/<skill>/` | A skill: `SKILL.md` as the core, and the files it names                                  |
+| `plugins/<unit>/agents/*.md`     | An agent definition                                                                      |
+| `plugins/<unit>/output-styles/`  | An output style, loaded on every turn it is in force                                     |
+| `plugins/<unit>/hooks/`          | A hook's configuration, and the text of any prompt hook                                  |
+| `meow-author check`              | The check over every prompt it is given, run by the `prompts` task and the `lint` verb   |
+| `plugins/meow-author/`           | The unit that ships the authoring skill and the check                                    |
+| `tools/check_kernel.py`          | The check that the kernel names no unit outside it                                       |
+| `meow-author cost`               | The report of each unit's cost against its budget, and its use, run by the `budget` task |
 
 ## Behaviour
 
@@ -146,7 +159,7 @@ Each unit states a size budget and is measured against it, and an overrun is a
 defect (REQ-1056, REQ-1058). The budget sits in the unit's `budget.toml` as
 `permanent_characters`, with the measurement it was set from beside it, and
 covers what loads on every turn: each skill's and agent's description and
-`when_to_use`, and the whole of an output style. `tools/check_budget.py` counts
+`when_to_use`, and the whole of an output style. `meow-author cost` counts
 it in the gate, and fails on an overrun, on a unit stating no budget, and on a
 description over the platform's cap. Material past the budget moves into
 supporting files, and never loses an obligation to get shorter (REQ-1057). Only
@@ -157,6 +170,34 @@ A unit's obligations sit in the first 5,000 tokens of its core and ahead of
 its explanations, because the platform keeps that much of a skill after
 compaction, so a truncation costs an explanation and never a rule (REQ-1064,
 REQ-1066).
+
+### When material loads
+
+Material needed only once a capability is chosen loads at that point, and
+material for an unusual case loads only in that case, never carried by material
+that is always loaded (REQ-1052, REQ-1054). One capability is one skill, and a
+skill belongs to one discipline, split where it spans two (REQ-1068, REQ-1070).
+A rule carries its reason beside it where the rule is counter-intuitive or the
+model's default is wrong, and otherwise the reason lives in material loaded on
+demand (REQ-1076). Moving explanation out of always-loaded material is shown
+not to change behaviour by the loop SPC-1020 states, not by assertion
+(REQ-1078). Instruction that applies only to certain files is a path-scoped
+rule, and splitting always-loaded material into imported files is no saving,
+because the platform expands imports at launch (REQ-2696, REQ-2698). Nothing
+loads because it might be relevant, no obligation sits in a file read at the
+model's discretion, and mutually exclusive branches sit in separate files
+(REQ-2700, REQ-2702, REQ-2704).
+
+### The cost report
+
+`meow-author cost` reports, for each unit under `plugins/`, the characters it
+keeps in context on every turn against the budget its `budget.toml` states. It
+fails on a unit over its budget, a unit with no budget and a description and
+its `when_to_use` together over the cap (REQ-1072). This repository's `budget`
+task runs it, so the report is part of every verification (REQ-1074). How
+often each skill is used comes from the platform's `/skill-doctor`, which the
+report names, and the harness reads none of the platform's private files
+(REQ-1072).
 
 ### Descriptions and loading
 

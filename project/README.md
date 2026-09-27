@@ -171,6 +171,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1450](adrs/ADR-1450-an-authoring-unit-ships-how-the-harness-material-is-written-and-a-check-any-repository-runs.md):
   an authoring unit ships how the harness's own material is written, and a
   check any repository runs.
+- [ADR-1460](adrs/ADR-1460-material-loads-only-when-needed-and-meow-author-reports-its-cost-and-use.md):
+  material loads only when it is needed, and `meow-author` reports each unit's
+  cost and use.
 
 ## Specifications
 
@@ -361,6 +364,9 @@ was verified against every acceptance criterion under issue 482.
 [EPC-1430](epics/EPC-1430-the-harness-authoring-capability-ships.md) realises
 ADR-1450 in two tasks, TSK-2200 and TSK-2210, each closed with evidence, and
 was verified against every acceptance criterion under issue 490.
+
+[EPC-1440](epics/EPC-1440-context-cost-held-and-reported.md) realises ADR-1460
+in two tasks, TSK-2220 and TSK-2230.
 
 ## Defects
 
