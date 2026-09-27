@@ -5,6 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1450
 closes: [REQ-0143, REQ-0161]
+issue: 503
+projected: 6fbe4daa2dd8
 ---
 
 # `paw status` reports unconnected artifacts, frozen suspect citations and the share resting on judgement
