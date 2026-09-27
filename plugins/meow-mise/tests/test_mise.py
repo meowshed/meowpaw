@@ -202,6 +202,67 @@ class Trust(Fixture):
         self.assertIn("templates calling exec, evaluated by the listing: mise.toml", done.stdout)
 
 
+class Carried(Fixture):
+    """What mise carries beyond tasks, named and never read out."""
+
+    CONFIG = '''[tools]
+python = "3.14"
+node = { version = "22" }
+
+[env]
+_.file = ".env"
+_.source = ["scripts/env.sh"]
+SECRET_TOKEN = "never-printed-value"
+'''
+
+    def section(self, output, heading):
+        lines = output.splitlines()
+        start = next(i for i, line in enumerate(lines) if line.startswith(heading))
+        block = []
+        for line in lines[start + 1:]:
+            if not line.startswith("  "):
+                break
+            block.append(line)
+        return "\n".join(block)
+
+    def test_pinned_tools_and_the_lock_are_named(self):
+        """REQ-2482: the toolchain a committed file pins, and whether a lock records it."""
+        done = self.repo({"mise.toml": self.CONFIG, "mise.lock": "", ".python-version": "3.13\n"}, trusted=True).run("status")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        tools = self.section(done.stdout, "tools pinned by committed files:")
+        self.assertIn("  python = 3.14 (mise.toml)", tools)
+        self.assertIn("  node = 22 (mise.toml)", tools)
+        self.assertIn("  mise.lock: committed", tools)
+
+    def test_a_missing_lock_is_named(self):
+        done = self.repo({"mise.toml": '[tools]\npython = "3.14"\n'}).run("status")
+        self.assertIn("  mise.lock: not committed", self.section(done.stdout, "tools pinned by committed files:"))
+
+    def test_the_environment_files_are_named_and_no_value_printed(self):
+        """REQ-2490: the files mise loads the environment from, with contents unread."""
+        repository = self.repo({"mise.toml": self.CONFIG}, trusted=True)
+        done = repository.run("status")
+        loaded = self.section(done.stdout, "configuration and environment loaded from:")
+        self.assertIn("  mise.toml", loaded)
+        self.assertIn("  .env (_.file in mise.toml)", loaded)
+        self.assertIn("  scripts/env.sh (_.source in mise.toml)", loaded)
+        self.assertNotIn("never-printed-value", done.stdout)
+        self.assertNotIn("SECRET_TOKEN", done.stdout)
+
+    def test_an_idiomatic_file_is_possibly_inert_by_default(self):
+        """REQ-2506: mise leaves an idiomatic version file unread unless a setting names its tool."""
+        done = self.repo({"mise.toml": '[tools]\npython = "3.14"\n', ".python-version": "3.13\n"}).run("status")
+        self.assertIn("  .python-version: possibly inert, since idiomatic_version_file_enable_tools doesn't name python",
+                      self.section(done.stdout, "idiomatic version files:"))
+
+    def test_an_enabled_idiomatic_file_is_read(self):
+        repository = self.repo({"mise.toml": '[settings]\nidiomatic_version_file_enable_tools = ["python"]\n',
+                                ".python-version": "3.13\n", ".nvmrc": "22\n"}, trusted=True)
+        idiomatic = self.section(repository.run("status").stdout, "idiomatic version files:")
+        self.assertIn("  .python-version: read by mise", idiomatic)
+        self.assertIn("  .nvmrc: possibly inert", idiomatic)
+
+
 class Unresolved(Fixture):
     def test_no_marker_runs_no_mise(self):
         """REQ-2472: detection is a static read, and mise never starts."""
