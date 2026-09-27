@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-flow index -->
 
-51 decisions in all: 51 approved.
+52 decisions in all: 52 approved.
 
 | Identifier                                                                                                          | What it concluded                                                                                                | Status   |
 | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- |
@@ -68,6 +68,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1480](ADR-1480-meow-verbs-records-each-result-against-the-tree-it-ran-on.md)                                   | `meow-verbs` records each result against the tree it ran on, and evidence cites the record                       | approved |
 | [ADR-1490](ADR-1490-a-record-is-reviewed-by-an-agent-that-did-not-write-it.md)                                      | A record is reviewed by an agent that didn't write it, and its verdict is labelled as an agent's                 | approved |
 | [ADR-1500](ADR-1500-the-evaluation-loop-reports-what-a-measurement-rests-on-and-refuses-what-it-cannot-hold.md)     | The evaluation loop reports what a measurement rests on, and refuses what it can't hold                          | approved |
+| [ADR-1510](ADR-1510-a-requirement-declares-one-of-four-kinds-of-check-and-the-record-holds-it.md)                   | A requirement declares one of four kinds of check, and the record holds it                                       | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390.
 <!-- /meow-flow index -->
