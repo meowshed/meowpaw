@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-flow index -->
 
-46 decisions in all: 46 approved.
+47 decisions in all: 47 approved.
 
 | Identifier                                                                                                          | What it concluded                                                                                                | Status   |
 | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- |
@@ -63,6 +63,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1430](ADR-1430-a-debugging-skill-reproduces-first-and-tests-one-hypothesis-at-a-time.md)                       | A debugging skill reproduces first and tests one hypothesis at a time                                            | approved |
 | [ADR-1440](ADR-1440-a-defect-authorises-work-directly-and-enters-the-chain-where-its-triage-says.md)                | A defect authorises work directly, and enters the chain where its triage says                                    | approved |
 | [ADR-1450](ADR-1450-an-authoring-unit-ships-how-the-harness-material-is-written-and-a-check-any-repository-runs.md) | An authoring unit ships how the harness's own material is written, and a check any repository runs               | approved |
+| [ADR-1460](ADR-1460-material-loads-only-when-needed-and-meow-author-reports-its-cost-and-use.md)                    | Material loads only when it is needed, and `meow-author` reports each unit's cost and use                        | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390.
 <!-- /meow-flow index -->
