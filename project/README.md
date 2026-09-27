@@ -387,7 +387,8 @@ in two tasks, TSK-2270 and TSK-2280, each closed with evidence, and was
 verified against every acceptance criterion under issue 517.
 
 [EPC-1470](epics/EPC-1470-records-reviewed-by-an-agent.md) realises ADR-1490
-in two tasks, TSK-2290 and TSK-2300.
+in two tasks, TSK-2290 and TSK-2300, each closed with evidence, and was
+verified against every acceptance criterion under issue 525.
 
 ## Defects
 
