@@ -62,8 +62,13 @@ jobs:
             sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
             bytes=$(wc -c < "dist/$zip")
             printf '| %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$bytes" "$sha" >> dist/notes.md
+            # A served entry is an archive, so the platform shows only its own
+            # fields before an install; plugin.json is where they are written.
             jq --arg name "$name" --arg url "$BASE/$tag/$zip" --arg sha "$sha" \
-              '(.plugins[] | select(.name == $name) | .source) = {source: "archive", url: $url, sha256: $sha}' \
+              --slurpfile unit "$dir/.claude-plugin/plugin.json" \
+              '(.plugins[] | select(.name == $name)) |= (.source = {source: "archive", url: $url, sha256: $sha}
+                 | .description = $unit[0].description | .repository = $unit[0].repository
+                 | .license = $unit[0].license | .keywords = $unit[0].keywords)' \
               dist/marketplace.json > dist/next.json
             mv dist/next.json dist/marketplace.json
           done

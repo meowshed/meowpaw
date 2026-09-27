@@ -29,9 +29,24 @@ class Tree:
     def unit(self, name, version, page=True, body="It runs the demo."):
         manifest = self.root / "plugins" / name / ".claude-plugin" / "plugin.json"
         manifest.parent.mkdir(parents=True)
-        manifest.write_text(json.dumps({"name": name, "version": version}), encoding="utf-8")
+        manifest.write_text(json.dumps(self.manifest(name, version)), encoding="utf-8")
+        (manifest.parent.parent / "budget.toml").write_text("permanent_characters = 1200\n", encoding="utf-8")
         if page:
             self.write(f"plugins/{name}/README.md", PAGE.format(unit=name, version=version, body=body))
+
+    @staticmethod
+    def manifest(name, version, **changes):
+        data = {"name": name, "version": version,
+                "description": "Runs the demo. It keeps up to 1,200 characters in context on every turn.",
+                "homepage": f"https://example.org/blob/main/plugins/{name}/README.md",
+                "repository": "https://example.org", "license": "Apache-2.0", "keywords": ["demo"]}
+        data.update(changes)
+        return {key: value for key, value in data.items() if value is not None}
+
+    def change_manifest(self, name, **changes):
+        manifest = self.root / "plugins" / name / ".claude-plugin" / "plugin.json"
+        data = {**json.loads(manifest.read_text(encoding="utf-8")), **changes}
+        manifest.write_text(json.dumps({key: value for key, value in data.items() if value is not None}), encoding="utf-8")
 
     def write(self, rel, text):
         path = self.root / rel
@@ -74,8 +89,7 @@ class CheckDocs(unittest.TestCase):
     def test_a_page_describing_an_older_version_fails(self):
         """REQ-2838 and REQ-3152: a version bump fails until the page is restamped."""
         tree = self.tree()
-        manifest = tree.root / "plugins/meow-demo/.claude-plugin/plugin.json"
-        manifest.write_text(json.dumps({"name": "meow-demo", "version": "1.1.0"}), encoding="utf-8")
+        tree.change_manifest("meow-demo", version="1.1.0")
         self.assertFails(tree, "plugins/meow-demo/README.md: describes meow-demo@1.0.0, the unit is at 1.1.0")
 
     def test_a_page_citing_a_record_identifier_fails(self):
@@ -104,6 +118,24 @@ class CheckDocs(unittest.TestCase):
         page = tree.root / "docs/README.md"
         page.write_text(page.read_text(encoding="utf-8").replace("describes: [meow-demo@1.0.0]", "describes:\n  [\n    meow-demo@0.9.0,\n  ]"), encoding="utf-8")
         self.assertFails(tree, "docs/README.md: describes meow-demo@0.9.0, the unit is at 1.0.0")
+
+    def test_a_manifest_without_its_licence_fails(self):
+        """REQ-3162: an entry carries every field the platform shows before an install."""
+        tree = self.tree()
+        tree.change_manifest("meow-demo", license=None)
+        self.assertFails(tree, "meow-demo: plugin.json lacks license")
+
+    def test_a_homepage_outside_the_unit_fails(self):
+        """REQ-3160: the entry links to the unit's own page."""
+        tree = self.tree()
+        tree.change_manifest("meow-demo", homepage="https://example.org/blob/main/docs/meow-demo.md")
+        self.assertFails(tree, "meow-demo: homepage doesn't point at plugins/meow-demo/README.md")
+
+    def test_a_description_without_the_ceiling_fails(self):
+        """REQ-3164: the description says what keeping the unit installed costs."""
+        tree = self.tree()
+        tree.change_manifest("meow-demo", description="Runs the demo.")
+        self.assertFails(tree, "meow-demo: the description doesn't name its ceiling, 1,200 characters")
 
     def test_an_identifier_in_code_is_an_example(self):
         """REQ-3130: a unit that reads the record shows its syntax in code, which isn't a citation."""

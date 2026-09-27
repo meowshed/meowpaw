@@ -53,9 +53,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: nine fixtures and `tools/check_docs.py` in the `test` verb, in
       #414.
 
-- [ ] T-002 [P] TSK-2040 carry the catalogue fields in every `plugin.json`,
+- [x] T-002 [P] TSK-2040 carry the catalogue fields in every `plugin.json`,
       and copy them into the served entries at release
       closes: REQ-3160, REQ-3162, REQ-3164
+      evidence: three fixtures, and the release copying four fields, in #415.
       depends: TSK-2030 - the homepage points at the page T-001 moves
 
 - [ ] T-003 [P] TSK-2050 generate the index, name what is planned and what is
