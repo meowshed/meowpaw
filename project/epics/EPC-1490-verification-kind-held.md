@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1510
-checked-at:
+checked-at: "#537"
 ---
 
 # A requirement declares one of four kinds of check, and the record holds it
@@ -41,6 +41,28 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-1664
       evidence: two fixtures, the first seen failing, and `paw check` passing
       on the project record, in #535.
+
+## Verified
+
+I checked this under #537 on `main` after #536, gathering the evidence there
+rather than carrying it over from the task. `meow-verbs evidence format lint
+test` exits 0, each current at tree `3b9d49e82385`. Every criterion is met:
+
+| Criterion                                                                                                | Evidence on `main` after #536                        |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 1. `paw check rules` fails on a kind outside the four, draft or approved, and passes on each of the four | The two `VerificationKind` fixtures pass             |
+| 2. `paw check` passes on the project record                                                              | The `test` verb runs it, 0 findings                  |
+| 3. REQ-1664 lands in exactly one closed task                                                             | `paw show REQ-1664` derives it as closed by TSK-2320 |
+
+### Documentation
+
+TSK-2320 named the rule on `meow-flow`'s page, at 0.33.1. The `test` verb
+checked it, running `tools/check_docs.py`.
+
+### Postponements
+
+ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
+untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 
