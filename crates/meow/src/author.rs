@@ -24,8 +24,9 @@ const SKIPPED: [&str; 3] = ["evals", "tests", "__pycache__"];
 pub fn main(args: &[String]) -> u8 {
     match args.split_first() {
         Some((command, paths)) if command == "check" => check(paths),
+        Some((command, rest)) if command == "cost" => cost(rest),
         _ => {
-            eprintln!("usage: meow-author check [path...]");
+            eprintln!("usage: meow-author check [path...] | meow-author cost");
             USAGE
         }
     }
@@ -277,6 +278,101 @@ fn stops(text: &str) -> bool {
         let last = item.find_iter(steps).last().map(|m| &steps[m.start()..]).unwrap_or(steps);
         stopping.is_match(last)
     })
+}
+
+/// The platform's cap on a skill's or agent's description, in characters.
+const CAP: usize = 1536;
+
+/// `meow-author cost`: what each unit keeps in context on every turn against
+/// its budget, with each skill's use left to the platform's `/skill-doctor`
+/// (ADR-1460).
+fn cost(args: &[String]) -> u8 {
+    if !args.is_empty() {
+        eprintln!("usage: meow-author cost");
+        return USAGE;
+    }
+    let root = profile::repository_root();
+    let mut units: Vec<PathBuf> = std::fs::read_dir(root.join("plugins"))
+        .map(|entries| entries.flatten().map(|e| e.path()).filter(|p| p.join(".claude-plugin").join("plugin.json").is_file()).collect())
+        .unwrap_or_default();
+    units.sort();
+    if units.is_empty() {
+        println!("meow-author cost: unchecked: no unit was found under plugins/");
+        return UNCHECKED;
+    }
+    let mut failures = Vec::new();
+    for unit in &units {
+        let name = unit.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+        let pieces = permanent(unit);
+        for (path, size) in &pieces {
+            if path.extension().is_some_and(|e| e == "md") && !path.to_string_lossy().contains("output-styles") && *size > CAP {
+                failures.push(format!("{}: description is {size} characters, over the cap of {CAP}", shown(&root, path)));
+            }
+        }
+        let total: usize = pieces.iter().map(|(_, size)| size).sum();
+        match ceiling(unit) {
+            Some(budget) => {
+                println!("{name}: {total} of {budget} characters on every turn");
+                if total > budget {
+                    failures.push(format!("{name}: loads {total} characters on every turn, {} over its budget of {budget}", total - budget));
+                }
+            }
+            None => {
+                println!("{name}: {total} characters on every turn, and no budget");
+                failures.push(format!("{name}: states no budget in budget.toml"));
+            }
+        }
+    }
+    for failure in &failures {
+        println!("{failure}");
+    }
+    println!("{} units, {} budget failure{}", units.len(), failures.len(), if failures.len() == 1 { "" } else { "s" });
+    println!("How often each skill is used: run /skill-doctor in Claude Code, which reports each skill's cost and invocations.");
+    if failures.is_empty() { CLEAN } else { FOUND }
+}
+
+/// Each piece of a unit that loads on every turn, with its characters: the
+/// description and `when_to_use` of each skill and agent the model can load,
+/// and the whole of each output style.
+fn permanent(unit: &Path) -> Vec<(PathBuf, usize)> {
+    let mut pieces = Vec::new();
+    let mut listed = Vec::new();
+    if let Ok(skills) = std::fs::read_dir(unit.join("skills")) {
+        for skill in skills.flatten() {
+            listed.push(skill.path().join("SKILL.md"));
+        }
+    }
+    let mut agents = Vec::new();
+    walk(&unit.join("agents"), &mut agents);
+    listed.extend(agents.into_iter().filter(|p| p.extension().is_some_and(|e| e == "md")));
+    listed.sort();
+    for path in listed {
+        let Ok(text) = std::fs::read_to_string(&path) else { continue };
+        // A skill only a person can invoke isn't listed to the model.
+        if field(&text, "disable-model-invocation") == "true" {
+            continue;
+        }
+        let words: Vec<String> = ["description", "when_to_use"]
+            .iter()
+            .map(|key| field(&text, key).trim_matches(|c| c == '"' || c == '\'').to_string())
+            .filter(|v| !v.is_empty())
+            .collect();
+        pieces.push((path, words.join(" ").chars().count()));
+    }
+    let mut styles = Vec::new();
+    walk(&unit.join("output-styles"), &mut styles);
+    styles.sort();
+    for path in styles {
+        let size = std::fs::read_to_string(&path).map(|t| t.chars().count()).unwrap_or(0);
+        pieces.push((path, size));
+    }
+    pieces
+}
+
+fn ceiling(unit: &Path) -> Option<usize> {
+    let text = std::fs::read_to_string(unit.join("budget.toml")).ok()?;
+    let table: toml::Table = text.parse().ok()?;
+    table.get("permanent_characters")?.as_integer().map(|n| n as usize)
 }
 
 #[cfg(test)]

@@ -32,8 +32,12 @@ check)
   echo "meow-author check: unchecked: $reason"
   exit 3
   ;;
+cost)
+  echo "meow-author cost: unchecked: $reason"
+  exit 3
+  ;;
 *)
-  echo "usage: meow-author check [path...]" >&2
+  echo "usage: meow-author check [path...] | meow-author cost" >&2
   exit 2
   ;;
 esac

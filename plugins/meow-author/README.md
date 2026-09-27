@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.2.0]
+describes: [meow-author@0.3.0]
 ---
 
 # meow-author
@@ -55,6 +55,22 @@ file and the line, on:
 
 It exits 0 when it finds nothing, 1 on a finding, and 3 when there is nothing
 to check or its binary is missing for your machine.
+
+## Report what each unit costs
+
+`meow-author cost` reports, for each plugin under `plugins/`, the characters it
+keeps in context on every turn against the budget its `budget.toml` states:
+
+```bash
+meow-author cost
+```
+
+It counts each skill's and agent's description and `when_to_use`, and the
+whole of each output style, and fails on a plugin over its budget, a plugin
+with no `budget.toml`, and a description and its `when_to_use` together over
+the platform's cap of 1,536 characters. How often each skill is used comes
+from `/skill-doctor` in Claude Code, which the report names; the unit reads
+none of Claude Code's own files.
 
 ## What it costs you
 
