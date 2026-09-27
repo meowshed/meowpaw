@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1430
-checked-at:
+checked-at: "#472"
 ---
 
 # A debugging skill reproduces first and tests one hypothesis at a time
@@ -46,6 +46,32 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       REQ-1902
       evidence: seven rules traced, and the skill loading first in ten of ten
       sessions, in #469.
+
+## Verified
+
+I checked this under #472 on `main` after #471, gathering the evidence there
+rather than carrying it over from the task. Every criterion is met:
+
+| Criterion                                                                                          | Evidence on `main` after #471                                                                                                             |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Each requirement is carried by a labelled rule, traced, naming no requirement, language or tool | The skill carries 7 labelled rules, TSK-2160 traces the 7 requirements to them, and a search of the skill for record identifiers finds 0  |
+| 2. The prompt and budget checks pass                                                               | `check_prompts.py` reports 55 prompts and 0 failures, and `check_budget.py` measures the unit at 502 of 600 characters                    |
+| 3. Five sessions per model load the debugging skill before any other tool in at least four         | Asked why a script prints 5 where it should print 4, with only the unit installed: Sonnet 5 loaded it first in 5 of 5, Opus 5.5 in 5 of 5 |
+| 4. Every requirement lands in exactly one closed task                                              | `paw show` derives all 7 requirements ADR-1430 addresses as closed and not yet verified                                                   |
+
+The sessions measure routing, by hand. Whether the rules change how the model
+debugs needs the unit's evaluation cases, as ADR-1430 says.
+
+### Documentation
+
+TSK-2160 added the skill to `meow-code`'s page and restamped it at 0.2.0. The
+`test` verb checked it, running `tools/check_docs.py`, which reports 14 pages
+and 0 failures.
+
+### Postponements
+
+ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
+untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 
