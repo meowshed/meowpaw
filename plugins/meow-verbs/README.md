@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-verbs
 answers: what meow-verbs does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-verbs@0.7.0]
+describes: [meow-verbs@0.7.1]
 ---
 
 # meow-verbs
