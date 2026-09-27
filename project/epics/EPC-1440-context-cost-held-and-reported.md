@@ -47,9 +47,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: four fixtures, and the `budget` task running the shipped report,
       in #493.
 
-- [ ] T-002 [P] TSK-2230 carry the loading rules in `meow-author:write`
+- [x] T-002 [P] TSK-2230 carry the loading rules in `meow-author:write`
       closes: REQ-1052, REQ-1054, REQ-1068, REQ-1070, REQ-1076, REQ-1078,
       REQ-2696, REQ-2698, REQ-2700, REQ-2702, REQ-2704
+      evidence: eleven rules traced, in #494.
 
 ## Coverage
 

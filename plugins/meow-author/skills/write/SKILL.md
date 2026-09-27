@@ -18,7 +18,10 @@ states where it stops.
 3. Write the body in the five tags, `<role>`, `<rules>`, `<steps>`,
    `<example>` and `<input>`, with every obligation a numbered list item under
    `<rules>` and every file it relies on named in the core.
-4. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-author check` on the directory you
+4. Where the material adds to what loads on every turn, run
+   `${CLAUDE_SKILL_DIR}/../../bin/meow-author cost`, and before cutting or
+   keeping a unit, read its use in `/skill-doctor`.
+5. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-author check` on the directory you
    wrote in, fix each line it names, and stop when it passes.
 </steps>
 
@@ -71,4 +74,34 @@ states where it stops.
   model retrieves an instruction by the words a request uses.
 - B9. Keep the form uniform with every other unit's, so one check audits all
   of them.
+</rules>
+
+<rules name="when material loads">
+- C1. Load material needed only once a capability is chosen at that point, and
+  not before, because material loaded early costs every turn that never
+  chooses it.
+- C2. Load material for an unusual case only in that case, and never carry it
+  in material that is always loaded, because the common case pays for it
+  otherwise.
+- C3. Express one capability as one skill, not several overlapping ones,
+  because invoking an overlapping set loads every body in it.
+- C4. Keep each skill to one discipline, and split one that spans two,
+  because a skill spanning two is loaded whole for either.
+- C5. Give a rule its reason beside it where the rule is counter-intuitive or
+  the model's default is wrong, and otherwise keep the reason in material
+  loaded on demand, because an always-loaded reason is paid on every turn.
+- C6. Measure a change that moves explanation out of always-loaded material,
+  with and without it, before shipping it, because a shorter prompt that
+  changes behaviour is a regression and no saving.
+- C7. Carry instruction that applies only to certain files in a path-scoped
+  rule, not in always-loaded material, because a path-scoped rule loads only
+  when those files are touched.
+- C8. Count splitting always-loaded material into imported files as no
+  saving, because the platform expands imports at launch.
+- C9. Load nothing because it might be relevant, because a nearly relevant
+  unit distracts the model and costs its context.
+- C10. Put no obligation in a file the model reads at its own discretion,
+  because an obligation it may skip is one it will skip.
+- C11. Put mutually exclusive branches of an instruction in separate files,
+  because a file holding both loads both whenever either is needed.
 </rules>
