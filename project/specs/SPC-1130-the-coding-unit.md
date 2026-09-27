@@ -3,7 +3,7 @@ id: SPC-1130
 artifact: spec
 status: live
 revised: 2026-09-27
-checked-at:
+checked-at: "#464"
 states:
   [
     REQ-0090,
