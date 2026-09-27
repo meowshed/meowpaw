@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-09-26
+revised: 2026-09-27
 checked-at: "#378"
 states:
   [
@@ -75,6 +75,7 @@ states:
     REQ-2832,
     REQ-2906,
     REQ-3178,
+    REQ-3192,
   ]
 ---
 
@@ -165,6 +166,12 @@ claude plugin marketplace add ./marketplace.json
 ```
 
 A later release reaches that fallback when the file is downloaded again.
+
+Before it packs a unit, the release refuses one whose commits since its last
+release include one marked breaking, with `!` or a `BREAKING CHANGE:` footer,
+unless its version raises the major number, or the minor while the major is
+zero (REQ-3192). A commit belongs to each unit whose directory it touches, and
+one touching `crates/meow/` to every unit that ships the binary (ADR-1570).
 
 A person installs a released unit from that marketplace and never needs Rust,
 Python or Node.js. The repository's own `marketplace.json` keeps its relative
