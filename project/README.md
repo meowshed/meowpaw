@@ -168,6 +168,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1440](adrs/ADR-1440-a-defect-authorises-work-directly-and-enters-the-chain-where-its-triage-says.md):
   a defect authorises work directly, and enters the chain where its triage
   says.
+- [ADR-1450](adrs/ADR-1450-an-authoring-unit-ships-how-the-harness-material-is-written-and-a-check-any-repository-runs.md):
+  an authoring unit ships how the harness's own material is written, and a
+  check any repository runs.
 
 ## Specifications
 
@@ -354,6 +357,9 @@ every acceptance criterion under issue 472.
 [EPC-1420](epics/EPC-1420-a-defect-authorises-work-directly.md) realises
 ADR-1440 in three tasks, TSK-2170 to TSK-2190, each closed with evidence, and
 was verified against every acceptance criterion under issue 482.
+
+[EPC-1430](epics/EPC-1430-the-harness-authoring-capability-ships.md) realises
+ADR-1450 in two tasks, TSK-2200 and TSK-2210.
 
 ## Defects
 
