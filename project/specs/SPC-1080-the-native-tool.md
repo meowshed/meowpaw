@@ -172,6 +172,8 @@ release include one marked breaking, with `!` or a `BREAKING CHANGE:` footer,
 unless its version raises the major number, or the minor while the major is
 zero (REQ-3192). A commit belongs to each unit whose directory it touches, and
 one touching `crates/meow/` to every unit that ships the binary (ADR-1570).
+`tools/check_release.py` makes the check, and the workflow runs it before
+packing, with the full history so it can read each unit's tags.
 
 A person installs a released unit from that marketplace and never needs Rust,
 Python or Node.js. The repository's own `marketplace.json` keeps its relative
