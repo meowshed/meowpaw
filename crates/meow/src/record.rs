@@ -993,7 +993,7 @@ fn chains(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Finding> {
 /// relative to its root.
 fn documents(root: &Path, repository: &Path) -> Vec<String> {
     let Ok(out) = profile::reading_git()
-        .args(["ls-files", "--cached", "--others", "--exclude-standard"])
+        .args(["ls-files", "-z", "--cached", "--others", "--exclude-standard"])
         .current_dir(repository)
         .output()
     else {
@@ -1001,8 +1001,10 @@ fn documents(root: &Path, repository: &Path) -> Vec<String> {
     };
     let record = root.strip_prefix(repository).ok().map(|p| p.to_string_lossy().replace('\\', "/"));
     let text = String::from_utf8_lossy(&out.stdout);
+    // NUL-separated, so a path git would escape reads as it is (REQ-2522).
     let mut paths: Vec<String> = text
-        .lines()
+        .split('\0')
+        .filter(|p| !p.is_empty())
         .filter(|p| [".md", ".markdown", ".txt", ".rst", ".adoc", ".org"].iter().any(|e| p.to_lowercase().ends_with(e)))
         .filter(|p| !p.starts_with(".meowpaw/"))
         .filter(|p| record.as_deref().is_none_or(|r| !r.is_empty() && !p.starts_with(&format!("{r}/"))))
@@ -2364,6 +2366,21 @@ fn find(rest: &[String]) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_document_with_an_unusual_name_is_listed_as_it_is() {
+        // REQ-2522: a path git would escape reaches the check as the path it is.
+        let dir = std::env::temp_dir().join(format!("meow-docs-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let init = profile::reading_git().current_dir(&dir).args(["init", "-q"]).output().unwrap();
+        assert!(init.status.success());
+        let name = "we\"ird\nnamé.md";
+        std::fs::write(dir.join(name), "text\n").unwrap();
+        let listed = documents(&dir.join("project"), &dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(listed, vec![name.to_string()]);
+    }
 
     #[test]
     fn a_flowed_list_is_one_field() {

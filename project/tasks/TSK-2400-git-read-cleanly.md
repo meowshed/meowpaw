@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1540
 closes: [REQ-2522, REQ-2524, REQ-2540]
-issue:
+issue: 571
+projected: 207489a53595
 ---
 
 # The native tool reads paths with `-z`, reads git only through the lock-free helper, and writes no global configuration
@@ -38,7 +39,23 @@ Nothing. ADR-1570 is approved.
 
 ## Evidence
 
-Not yet.
+Closes REQ-2522, REQ-2524 and REQ-2540. `meow-verbs evidence --keep format
+lint test` exits 0 on this change's own tree, each result kept in
+`project/evidence/`, as the pull request cites. Each criterion's check:
+
+1. `record::tests::a_document_with_an_unusual_name_is_listed_as_it_is` failed
+   before the change and passes after it, and
+   `Kept.test_an_unusual_evidence_path_is_read_as_it_is` failed on `main`'s
+   program and passes on this one (REQ-2522). `check-ignore` takes `-z` only
+   with `--stdin`, so the kept file's path now goes to it on standard input.
+2. `profile::tests::a_read_takes_no_optional_lock` and
+   `profile::tests::git_starts_only_in_the_reading_helper` pass; both hold what
+   was already so (REQ-2524).
+3. `profile::tests::nothing_the_harness_ships_writes_global_git_configuration`
+   failed on a planted line under `plugins/` naming the global flag, and passes
+   without it, having scanned more than twenty files (REQ-2540).
+
+`meow-flow` moves to 0.33.3 and `meow-verbs` to 0.7.1.
 
 ## Left alone
 

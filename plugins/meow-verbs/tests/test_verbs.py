@@ -439,6 +439,17 @@ class Kept(unittest.TestCase):
         done = repository.run("evidence", "--keep", "test")
         self.assertEqual(done.returncode, 3, done.stdout)
 
+    def test_an_unusual_evidence_path_is_read_as_it_is(self):
+        """REQ-2522: a path git would escape reaches the listing as the path it is."""
+        repo = self.repo(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "pro\\"of \u00e9\\nx"\n'))
+        repo.run("run", "test")
+        done = repo.run("evidence", "--keep", "test")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        weird = repo.root / 'pro"of \u00e9\nx'
+        self.assertEqual(len(list(weird.glob("*.txt"))), 1)
+        listed = repo.run("evidence", "--kept")
+        self.assertIn('pro"of \u00e9\nx/', listed.stdout)
+
     def test_a_commit_tree_matches_the_kept_record(self):
         """REQ-2956: a reviewer compares a kept record with the commit that carries it."""
         repo = self.repo()
