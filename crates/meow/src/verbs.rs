@@ -27,8 +27,11 @@ const FAILED: u8 = 1;
 const USAGE: u8 = 2;
 const UNRESOLVED: u8 = 3;
 
+/// Where a verb's subset form puts the part of the work (ADR-1520).
+const TARGETS: &str = "{targets}";
+
 enum Entry {
-    Resolved { command: String },
+    Resolved { command: String, subset: Option<String> },
     Unresolved { kind: &'static str, detail: String },
 }
 
@@ -96,8 +99,9 @@ fn resolve(root: &Path) -> Report {
                             detail: "the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml".into(),
                         },
                         Some(toml::Value::String(command)) if !command.trim().is_empty() => {
-                            Entry::Resolved { command: command.clone() }
+                            Entry::Resolved { command: command.clone(), subset: None }
                         }
+                        Some(toml::Value::Table(table)) => from_table(table),
                         Some(_) => Entry::Unresolved {
                             kind: "malformed declaration",
                             detail: "the value isn't one command; write one command as a string under [verbs]".into(),
@@ -111,13 +115,42 @@ fn resolve(root: &Path) -> Report {
     }
 }
 
+/// A verb declared as a table: `command` for the whole work, and an optional
+/// `subset` with `{targets}` where the part goes (ADR-1520).
+fn from_table(table: &toml::Table) -> Entry {
+    let malformed = |detail: &str| Entry::Unresolved { kind: "malformed declaration", detail: detail.into() };
+    let Some(command) = table.get("command").and_then(|v| v.as_str()).filter(|c| !c.trim().is_empty()) else {
+        return malformed("the table has no `command`; write the whole command as a string under `command`");
+    };
+    let subset = match table.get("subset") {
+        None => None,
+        Some(toml::Value::String(form)) if form.contains(TARGETS) => Some(form.clone()),
+        Some(toml::Value::String(_)) => {
+            return malformed("`subset` has no {targets}, so it would run the whole work under the part's name");
+        }
+        Some(_) => return malformed("`subset` isn't one command; write it as a string holding {targets}"),
+    };
+    Entry::Resolved { command: command.to_string(), subset }
+}
+
+/// A target quoted so the shell passes it to the tool as one argument.
+fn quoted(target: &str) -> String {
+    if cfg!(windows) {
+        format!("\"{}\"", target.replace('"', "\\\""))
+    } else {
+        format!("'{}'", target.replace('\'', "'\\''"))
+    }
+}
+
 fn status(root: &Path, as_json: bool) -> u8 {
     let report = resolve(root);
     if as_json {
         let mut verbs = Map::new();
         for (verb, entry) in &report.verbs {
             let value = match entry {
-                Entry::Resolved { command } => json!({"state": "resolved", "command": command, "source": PROFILE}),
+                Entry::Resolved { command, subset } => {
+                    json!({"state": "resolved", "command": command, "subset": subset, "source": PROFILE})
+                }
                 Entry::Unresolved { kind, detail } => json!({"state": "unresolved", "kind": kind, "detail": detail}),
             };
             verbs.insert(verb.to_string(), value);
@@ -138,7 +171,13 @@ fn status(root: &Path, as_json: bool) -> u8 {
     println!("meow-verbs status, profile {where_}\n");
     for (verb, entry) in &report.verbs {
         match entry {
-            Entry::Resolved { command } => println!("{verb:<10} resolved    {command}   (from {PROFILE})"),
+            Entry::Resolved { command, subset } => {
+                println!("{verb:<10} resolved    {command}   (from {PROFILE})");
+                match subset {
+                    Some(form) => println!("{:<10} subset      {form}", ""),
+                    None => println!("{:<10} subset      none: `run {verb} -- <targets>` reports no subset form", ""),
+                }
+            }
             Entry::Unresolved { kind, detail } => println!("{verb:<10} unresolved  {kind}: {detail}"),
         }
     }
@@ -196,7 +235,16 @@ fn signal_code(_: std::process::ExitStatus) -> i32 {
     -1
 }
 
-fn run(root: &Path, names: &[String]) -> u8 {
+fn run(root: &Path, args: &[String]) -> u8 {
+    // Everything after `--` is the part of the work to run over (ADR-1520).
+    let (names, targets): (&[String], Option<&[String]>) = match args.iter().position(|a| a == "--") {
+        Some(i) => (&args[..i], Some(&args[i + 1..])),
+        None => (args, None),
+    };
+    if targets.is_some_and(|t| t.is_empty()) {
+        eprintln!("meow-verbs run: `--` names no target, which could mean the whole work or nothing; name the targets or drop `--`");
+        return USAGE;
+    }
     if names.is_empty() {
         eprintln!("meow-verbs run: name the verbs to run, from: {}", VERBS.join(" "));
         return USAGE;
@@ -224,17 +272,31 @@ fn run(root: &Path, names: &[String]) -> u8 {
                 println!("== {name}: unresolved ({kind}: {detail}), not run\n");
                 outcomes.push((name.clone(), "unresolved"));
                 let tree = ledger::tree_id(root);
-                keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "" });
+                keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "", targets });
                 continue;
             }
-            Entry::Resolved { command } => command,
+            Entry::Resolved { command, subset } => match (targets, subset) {
+                (None, _) => command.clone(),
+                (Some(parts), Some(form)) => {
+                    form.replace(TARGETS, &parts.iter().map(|t| quoted(t)).collect::<Vec<_>>().join(" "))
+                }
+                (Some(_), None) => {
+                    let detail = format!("the profile declares no `subset` for {name}; declare one under [verbs.{name}] with {TARGETS}, or run the whole verb");
+                    println!("== {name}: unresolved (no subset form: {detail}), not run\n");
+                    outcomes.push((name.clone(), "unresolved"));
+                    let tree = ledger::tree_id(root);
+                    keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "", targets });
+                    continue;
+                }
+            },
         };
+        let command = &command;
         let before = ledger::tree_id(root);
         let started = Instant::now();
         let (code, output) = execute(root, command);
         let after = ledger::tree_id(root);
         let outcome = if code == 0 { "passed" } else { "failed" };
-        keep(ledger::Result { verb: name, command: Some(command), outcome, status: Some(code), before: &before, after: &after, output: &output });
+        keep(ledger::Result { verb: name, command: Some(command), outcome, status: Some(code), before: &before, after: &after, output: &output, targets });
         let seconds = started.elapsed().as_secs_f64();
         println!("== {name}: `{command}`");
         if code == 0 {
@@ -294,8 +356,15 @@ fn evidence(root: &Path, names: &[String]) -> u8 {
     let now = ledger::tree_id(root);
     let (mut failed, mut unresolved) = (false, false);
     for verb in &wanted {
-        let Some(latest) = records.iter().rev().find(|r| text(r, "verb") == *verb) else {
-            println!("{verb}: no record");
+        // A subset record never stands for the whole verb (ADR-1520); a record
+        // from before targets were kept has none, and was a whole run.
+        let whole = |r: &&Value| r.get("targets").is_none_or(Value::is_null);
+        if let Some(part) = records.iter().rev().find(|r| text(r, "verb") == *verb).filter(|r| !whole(r)) {
+            let parts: Vec<&str> = part["targets"].as_array().into_iter().flatten().filter_map(Value::as_str).collect();
+            println!("{verb}: subset only, {}, record {}, targets {}, at tree {}", text(part, "outcome"), text(part, "record"), parts.join(" "), ledger::short(&text(part, "tree")));
+        }
+        let Some(latest) = records.iter().rev().filter(|r| text(r, "verb") == *verb).find(whole) else {
+            println!("{verb}: no record of a whole run");
             unresolved = true;
             continue;
         };

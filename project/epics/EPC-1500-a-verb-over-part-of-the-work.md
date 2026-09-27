@@ -45,9 +45,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2330 run a verb over part of the work through its declared
+- [x] T-001 TSK-2330 run a verb over part of the work through its declared
       form, in `meow-verbs` and its `verify` skill
       closes: REQ-0140, REQ-0142
+      evidence: eight fixtures seen failing first, and the skill traced, in
+      #541.
 
 ## Coverage
 
