@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-method index -->
 
-39 decisions in all: 39 approved.
+40 decisions in all: 40 approved.
 
 | Identifier                                                                                             | What it concluded                                                                                                | Status   |
 | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | -------- |
@@ -56,6 +56,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1360](ADR-1360-removing-an-instruction-is-postponed-until-the-cases-can-see-one.md)               | Removing an instruction is postponed until the cases can see one                                                 | approved |
 | [ADR-1370](ADR-1370-each-unit-ships-its-own-page-and-a-program-holds-the-documentation-to-the-tree.md) | Each unit ships its own page, and a program holds the documentation to the tree                                  | approved |
 | [ADR-1380](ADR-1380-the-document-step-writes-one-kind-per-page-and-checks-through-the-verbs.md)        | The document step writes one kind per page to the declared style, and checks documentation through the verbs     | approved |
+| [ADR-1390](ADR-1390-the-method-unit-is-meow-flow-and-meow-method-stays-one-release-as-a-stub.md)       | The method's unit is `meow-flow`, and `meow-method` stays one release as a stub that says so                     | approved |
 
-Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070.
+Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390.
 <!-- /meow-method index -->
