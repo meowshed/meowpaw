@@ -366,8 +366,9 @@ ADR-1420 in one task, TSK-2150.
 | [BUG-1170](bugs/BUG-1170-a-verification-cited-a-check-that-matched-nothing.md)       | A verification cited a check that matched nothing                                                     |
 | [BUG-1180](bugs/BUG-1180-a-parallel-task-reads-as-open.md)                           | A task marked `[P]` derived as open whatever its mark                                                 |
 | [BUG-1190](bugs/BUG-1190-the-signature-fixture-reads-the-machine.md)                 | The `meow-git` signature fixture read the machine's git configuration                                 |
+| [BUG-1200](bugs/BUG-1200-the-coding-skill-routes-unreliably-on-sonnet.md)            | `meow-code`'s skill loaded before an edit in two of five Sonnet 5 sessions                            |
 
-Eighteen are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Nineteen are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.

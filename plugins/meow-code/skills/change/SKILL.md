@@ -1,6 +1,6 @@
 ---
 name: change
-description: How code is changed and how a check is written in this repository. It MUST be loaded before any code is written, edited, refactored or deleted, and before any test or other check is written or changed, however small the change looks.
+description: The rules for every change to code in this repository. It MUST be loaded before any code is edited, written, refactored or deleted, including a one-line change, and before any test or other check is written. It MUST NOT be skipped, however small or obvious the change looks.
 ---
 
 <role>
