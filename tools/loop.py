@@ -56,6 +56,11 @@ MODELS = ["claude-sonnet-5", "claude-opus-5-5"]
 JUDGE = "claude-opus-5-5"
 RUNS = 5
 PROBE = "Reply with the word ok."
+# ADR-1500: a case whose interval lies within this of zero scores the same
+# without the unit, stated here so it is fixed before any run.
+MARGIN = 0.10
+# REQ-3026: the platform's default run count, which supports no claim.
+PLATFORM_RUNS = 3
 
 
 def front_matter(path):
@@ -79,6 +84,77 @@ def thresholds(unit):
     if not path.exists():
         return {}
     return tomllib.loads(path.read_text(encoding="utf-8")).get("cases", {})
+
+
+def git(unit, *args):
+    return subprocess.run(["git", *args], cwd=unit, capture_output=True, text=True)
+
+
+def threshold_commit(unit):
+    """The commit the unit's thresholds were last committed at, with its time,
+    or why the loop can't run: the file differs from that commit (REQ-0159)."""
+    path = unit / "evals" / "thresholds.toml"
+    if not path.exists():
+        return None, None
+    rel = str(path.relative_to(unit))
+    tracked = git(unit, "ls-files", "--error-unmatch", rel).returncode == 0
+    if not tracked or git(unit, "diff", "--quiet", "HEAD", "--", rel).returncode != 0:
+        return None, (f"{path} differs from the last commit; commit the thresholds before the run "
+                      f"that judges against them (REQ-0159)")
+    line = git(unit, "log", "-1", "--format=%h %cI", "--", rel).stdout.strip()
+    return line or None, None
+
+
+def baseline_graders(unit):
+    """Each grader of `type: baseline`, a judged comparison whose order the
+    runner doesn't document and the harness can't shuffle (REQ-0153)."""
+    found = []
+    for grader in sorted((unit / "evals").glob("*/graders/*.md")):
+        if front_matter(grader).get("type", "").strip() == "baseline":
+            found.append(grader)
+    return found
+
+
+def family(model):
+    """The family a model identifier names, such as `claude` for `claude-opus-5-5`."""
+    return model.split("-", 1)[0] if "-" in model else model
+
+
+def judge_line(judge, models, runs):
+    """What the header says about the judge and the run count (REQ-0160, REQ-3026, REQ-3028)."""
+    lines = [f"Judge {judge}, of the {family(judge)} family; {runs} runs per arm."]
+    if all(family(m) == family(judge) for m in models):
+        lines.append("The judge is from the candidates' own family, so every judged score, a verdict "
+                     "included, is a smoke check and no evidence for a claim (REQ-3028).")
+    else:
+        lines.append("The judge is from another family, so the result is no smoke check by family, and "
+                     "still no claim, because which judge counts as stronger is unsettled (REQ-3028).")
+    if judge in models:
+        lines.append(f"The judge is also a candidate model, {judge}.")
+    if runs <= PLATFORM_RUNS:
+        lines.append(f"{runs} runs per arm supports no claim (REQ-3026).")
+    return lines
+
+
+def label(delta, se):
+    """Whether a case separates the arms, scores the same, or can't yet be told (REQ-3022)."""
+    if delta != delta:
+        return "no arm without the unit"
+    low, high = delta - 2 * se, delta + 2 * se
+    if -MARGIN <= low and high <= MARGIN:
+        return "delete: scores the same without the unit"
+    if low > 0 or high < 0:
+        return "separates"
+    return "undetermined: run more"
+
+
+def rate(passes):
+    """A pass rate and its standard error, from a list of booleans."""
+    n = len(passes)
+    if not n:
+        return float("nan"), 0.0, 0
+    p = sum(passes) / n
+    return p, math.sqrt(p * (1 - p) / n), n
 
 
 def variant(unit, overlay, into):
@@ -127,8 +203,6 @@ def evaluate(root, args, out, mode, model):
            "--trust-plugin", "--no-publish", "--threshold", "0",
            "--json", str(report), "--output-dir", str(out),
            "--allow-tools", f"Read(/{root.resolve()}/**)", *args.allow_tools]
-    if mode == "classifier":
-        cmd += ["--ablation", "none"]
     if args.cases:
         cmd += ["--case", args.cases]
     for tag in args.tags or []:
@@ -160,11 +234,15 @@ def summarise(result):
             errors += sum(1 for r in runs if r.get("error"))
             arms[arm] = [r["score"] for r in runs if not r.get("error") and r.get("score") is not None]
         w, wo = arms["with"], arms["without"]
+        delta = mean(w) - mean(wo) if wo else float("nan")
+        variance = (var(w) / len(w) if w else 0) + (var(wo) / len(wo) if wo else 0)
         cases[case["name"]] = {
             "with": mean(w),
             "without": mean(wo),
-            "delta": mean(w) - mean(wo) if wo else float("nan"),
-            "var": (var(w) / len(w) if w else 0) + (var(wo) / len(wo) if wo else 0),
+            "delta": delta,
+            "var": variance,
+            "se": math.sqrt(variance),
+            "label": label(delta, math.sqrt(variance)),
             "runs": len(w),
         }
     k = len(cases)
@@ -175,17 +253,34 @@ def summarise(result):
 
 
 def classify(result, unit):
-    kinds = {"defect": [], "clean": []}
-    errors = 0
+    """Per kind and per case: the pass rate with the unit and without it, each
+    with its error, and the delta (REQ-0160, REQ-3022)."""
+    kinds = {k: {"with": [], "without": []} for k in ("defect", "clean")}
+    cases, errors = {}, 0
     for case in result["cases"]:
-        runs = case["arms"].get("with") or []
-        errors += sum(1 for r in runs if r.get("error"))
+        arms = {}
+        for arm in ("with", "without"):
+            runs = case["arms"].get(arm) or []
+            errors += sum(1 for r in runs if r.get("error"))
+            arms[arm] = [bool(r["passed"]) for r in runs if not r.get("error")]
         for kind in kinds:
             if kind in tags(unit, case["name"]):
-                kinds[kind] += [r["passed"] for r in runs if not r.get("error")]
-    return {"defect": mean(kinds["defect"]), "clean": mean(kinds["clean"]),
-            "n": {k: len(v) for k, v in kinds.items()}, "errors": errors,
+                for arm in arms:
+                    kinds[kind][arm] += arms[arm]
+        cases[case["name"]] = compare(arms["with"], arms["without"])
+    return {"kinds": {k: compare(v["with"], v["without"]) for k, v in kinds.items()},
+            "cases": cases, "errors": errors,
             "partial": result.get("partial", False), "cost": result.get("costUsd", 0)}
+
+
+def compare(with_, without):
+    """Two arms' pass rates, their errors and the delta's, as the report prints them."""
+    w, w_se, n = rate(with_)
+    wo, wo_se, _ = rate(without)
+    delta = w - wo if without else float("nan")
+    se = math.sqrt(w_se ** 2 + wo_se ** 2)
+    return {"with": w, "with_se": w_se, "without": wo, "without_se": wo_se,
+            "delta": delta, "se": se, "runs": n, "label": label(delta, se)}
 
 
 def verdict(base, cand):
@@ -215,25 +310,39 @@ def table_delta(rows, limits):
     return "\n".join(lines)
 
 
+def meets(score, limit):
+    """Whether a case reached the minimum its committed threshold states (REQ-0159)."""
+    if limit is None:
+        return "no threshold set before the run"
+    return "yes" if score >= limit else "no"
+
+
 def per_case(base, limits):
     lines = ["", f"Per case, for the baseline on {base['model']}:", "",
-              "| Case | With | Without | Delta | Threshold | Meets it | Separates |",
-              "| --- | --- | --- | --- | --- | --- | --- |"]
+              "| Case | Runs | With | Without | Delta | 2SE | Threshold | Meets it | Label |",
+              "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for name, c in base["cases"].items():
         limit = limits.get(name)
-        meets = "no threshold set" if limit is None else ("yes" if c["with"] >= limit else "no")
-        separates = "no, cannot discriminate" if c["with"] == c["without"] else "yes"
-        lines.append(f"| {name} | {c['with']:.2f} | {c['without']:.2f} | {c['delta']:+.2f} | "
-                     f"{limit if limit is not None else '-'} | {meets} | {separates} |")
+        se = c["se"]
+        lines.append(f"| {name} | {c['runs']} | {c['with']:.2f} | {c['without']:.2f} | {c['delta']:+.2f} | "
+                     f"{2 * se:.2f} | {limit if limit is not None else '-'} | {meets(c['with'], limit)} | "
+                     f"{c['label']} |")
     return lines
 
 
-def table_classifier(rows):
-    lines = ["| Candidate | Model | Change | Defects blocked | Clean passed | Tokens | Errors | Verdict |",
-             "| --- | --- | --- | --- | --- | --- | --- | --- |"]
+def table_classifier(rows, limits):
+    lines = ["| Candidate | Model | Change | Kind | With | Without | Delta | 2SE | Runs | Label | Tokens | Errors |",
+             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
-        lines.append(f"| {r['name']} | {r['model']} | {r['change']} | {r['defect']:.2f} (n={r['n']['defect']}) | "
-                     f"{r['clean']:.2f} (n={r['n']['clean']}) | {r['tokens']} | {r['errors']} | {r['verdict']} |")
+        for kind, k in r["kinds"].items():
+            if not k["runs"]:
+                continue
+            lines.append(f"| {r['name']} | {r['model']} | {r['change']} | {kind} | "
+                         f"{k['with']:.2f} ±{2 * k['with_se']:.2f} | {k['without']:.2f} ±{2 * k['without_se']:.2f} | "
+                         f"{k['delta']:+.2f} | {2 * k['se']:.2f} | {k['runs']} | {k['label']} | "
+                         f"{r['tokens']} | {r['errors']} |")
+    for base in (r for r in rows if r["name"] == "baseline"):
+        lines += per_case(base, limits)
     return "\n".join(lines)
 
 
@@ -247,6 +356,15 @@ def loop(unit, args, entries):
             break
         except FileExistsError:
             out = out.with_name(f"loop-{stamp}-{n}")
+
+    commit, refusal = threshold_commit(unit)
+    if refusal:
+        sys.exit(f"{unit.name}: {refusal}")
+    comparisons = baseline_graders(unit)
+    if comparisons:
+        names = ", ".join(str(g.relative_to(unit)) for g in comparisons)
+        sys.exit(f"{unit.name}: {names} is a judged comparison whose order the runner doesn't document "
+                 f"and the harness can't shuffle (REQ-0153); rewrite it to judge one output")
 
     rows = []
     with tempfile.TemporaryDirectory() as tmp:
@@ -268,7 +386,7 @@ def loop(unit, args, entries):
     if args.mode == "classifier":
         for r in rows:
             r["verdict"] = "baseline" if r["name"] == "baseline" else "see rates"
-        text = table_classifier(rows)
+        text = table_classifier(rows, thresholds(unit))
     else:
         for r in rows:
             r["verdict"] = "baseline" if r["name"] == "baseline" else verdict(baselines[r["model"]], r)
@@ -280,11 +398,13 @@ def loop(unit, args, entries):
                         r["verdict"] = "holds here, loses on another model"
         text = table_delta(rows, thresholds(unit))
 
-    head = (f"{unit.name} at {stamp}: models {', '.join(args.models)}, judge {args.judge}, "
-            f"{args.runs} runs per arm, ${sum(r['cost'] for r in rows):.2f}.\n"
-            f"The judge is from the model's own family, so every judged score is a "
-            f"smoke check (REQ-3028). A regression is a fall in the delta, never in the "
-            f"absolute score (REQ-3036).")
+    head = "\n".join([
+        f"{unit.name} at {stamp}: models {', '.join(args.models)}, ${sum(r['cost'] for r in rows):.2f}.",
+        *judge_line(args.judge, args.models, args.runs),
+        (f"Thresholds as committed at {commit}, before this run (REQ-0159)." if commit
+         else "No thresholds file: no case gets a verdict (REQ-0159)."),
+        "A regression is a fall in the delta, never in the absolute score (REQ-3036).",
+    ])
     if any(r["partial"] for r in rows):
         head += "\nPartial: a cost ceiling or a usage limit stopped a run early."
     text = f"{head}\n\n{text}\n"

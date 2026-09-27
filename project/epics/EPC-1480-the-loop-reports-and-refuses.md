@@ -46,10 +46,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2310 make `tools/loop.py` report what each result rests on and
+- [x] T-001 TSK-2310 make `tools/loop.py` report what each result rests on and
       refuse what it can't hold, with its unit tests
       closes: REQ-0153, REQ-0159, REQ-0160, REQ-1759, REQ-3022, REQ-3026,
       REQ-3028
+      evidence: 18 unit tests, 17 seen failing first, and a two-arm run on
+      `meow-flow`, in #529.
 
 ## Coverage
 
