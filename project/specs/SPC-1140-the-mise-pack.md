@@ -3,7 +3,7 @@ id: SPC-1140
 artifact: spec
 status: live
 revised: 2026-09-27
-checked-at:
+checked-at: "#577"
 states:
   [
     REQ-1316,
@@ -45,7 +45,8 @@ It leaves running a verb to SPC-1040, which `meow-verbs` implements: a bound
 verb is a command in the profile like any other. Packs for other runners are
 not written yet.
 
-ADR-1580 decides this part.
+ADR-1580 decides this part, EPC-1550 realises it, and `meow-mise` implements
+it, checked at #577.
 
 ## Boundary
 

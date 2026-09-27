@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1580
-checked-at:
+checked-at: "#577"
 ---
 
 # A mise pack reads the tasks a repository declares, and binds a verb only to a task that can run unattended
@@ -65,6 +65,38 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-1316, REQ-2354, REQ-2468, REQ-2474, REQ-2492, REQ-2504
       evidence: 12 fixtures, 11 seen failing first, and `check` passing on
       this repository's profile, in #581.
+
+## Verified
+
+I checked this under #577 on `main` after #584, gathering the evidence there
+rather than carrying it over from the tasks. `meow-verbs evidence --keep
+format lint test` exits 0 on this change's own tree, each result kept in
+`project/evidence/`, as the pull request cites. The 38 fixtures in
+`plugins/meow-mise/tests/test_mise.py` run 38, OK, against mise 2026.9.11.
+`meow-mise check` on this repository prints `0 findings in 7 task runs the
+profile's verbs name` and exits 0. Every criterion is met:
+
+| Criterion                                                                                                                    | Evidence on `main` after #584                                                                                                                                                                                                              |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. `status` reports each kind of task as decided                                                                             | The 11 fixtures in the `Status` class pass: a committed task with no block, hidden, confirm as a TOML key and a file task header, a required argument, a task that can skip, a parent directory's task and a `mise.local.toml` replacement |
+| 2. An untrusted template is `untrusted` with exit status 3 and stays untrusted                                               | `Trust.test_an_untrusted_template_is_unresolved_and_stays_untrusted` passes                                                                                                                                                                |
+| 3. A stand-in's unrecognised listing and `unexpected argument` are unresolved with exit status 3                             | The four stand-in fixtures in `Unresolved` pass, among them `test_an_unrecognised_listing_is_never_empty` and `test_an_older_mise_is_an_environment_failure`                                                                               |
+| 4. `bind` binds `test` with `--force`, nothing to a near name, and leaves blocked tasks unbound; no command changes the tree | The four fixtures in `Bind` and `WritesNothing.test_no_command_changes_the_tree` pass                                                                                                                                                      |
+| 5. `check` exits 1 on a skippable task without `--force`, and 0 on this repository                                           | `Check.test_a_skippable_task_without_force_is_a_finding` and `Check.test_this_repositorys_profile_is_clean` pass, and the `lint` verb runs `check`                                                                                         |
+| 6. Every requirement lands in exactly one closed task, and the ten postponed read as postponed                               | `paw show` derives each of the 23 as closed by one of TSK-2420, TSK-2430 and TSK-2440, and the ten as postponed by ADR-1580                                                                                                                |
+
+### Documentation
+
+`plugins/meow-mise/README.md` describes the three commands and every
+unresolved line, and the documentation index lists the unit. The `test` verb
+checked the pages, running `tools/check_docs.py`.
+
+### Postponements
+
+ADR-1580 postpones six requirements until the go-task pack, two until the make
+pack, REQ-2484 until the first language pack and REQ-2502 until a pack writes a
+tool version. None of those conditions holds today. The owner decides whether
+any does.
 
 ## Coverage
 
