@@ -174,6 +174,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1460](adrs/ADR-1460-material-loads-only-when-needed-and-meow-author-reports-its-cost-and-use.md):
   material loads only when it is needed, and `meow-author` reports each unit's
   cost and use.
+- [ADR-1470](adrs/ADR-1470-the-record-reports-deep-coverage-suspect-citations-and-unconnected-artifacts.md):
+  the record reports deep coverage, suspect citations and unconnected
+  artifacts.
 
 ## Specifications
 
@@ -368,6 +371,9 @@ was verified against every acceptance criterion under issue 490.
 [EPC-1440](epics/EPC-1440-context-cost-held-and-reported.md) realises ADR-1460
 in two tasks, TSK-2220 and TSK-2230, each closed with evidence, and was
 verified against every acceptance criterion under issue 498.
+
+[EPC-1450](epics/EPC-1450-record-connections-reported.md) realises ADR-1470
+in two tasks, TSK-2240 and TSK-2250.
 
 ## Defects
 
