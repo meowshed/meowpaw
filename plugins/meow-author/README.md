@@ -2,15 +2,15 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.1.0]
+describes: [meow-author@0.2.0]
 ---
 
 # meow-author
 
-`meow-author` checks the skills, agents, output styles and prompt hooks you
-write for Claude Code, in a plugin or in your repository's own `.claude/`, for
-the form the `meowpaw` harness holds its own units to. It installs on its own,
-with no other part of the harness.
+`meow-author` holds how Claude Code writes skills, agents, output styles,
+commands and prompt hooks, and checks what you write, in a plugin or in your
+repository's own `.claude/`, for the form the `meowpaw` harness holds its own
+units to. It installs on its own, with no other part of the harness.
 
 ## Install it
 
@@ -20,6 +20,15 @@ Add the marketplace and install the unit:
 claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
 claude plugin install meow-author@meowpaw
 ```
+
+## What it adds to a session
+
+Before Claude Code creates or edits a skill, an agent definition, an output
+style, a command or a hook prompt, it loads the `meow-author:write` skill. The
+skill has it declare what the material is for and who invokes it, write the
+body in the five tags with every obligation a numbered rule, name every
+supporting file, end every procedure at a stopping point, and run the check
+before it stops.
 
 ## Run the check
 
@@ -49,7 +58,8 @@ to check or its binary is missing for your machine.
 
 ## What it costs you
 
-Nothing in context on every turn. The check is a native binary shipped inside
+The skill's description costs 293 characters in context on every turn. The
+check is a native binary shipped inside
 the unit, so it needs nothing installed on the machine.
 
 ## What it needs
