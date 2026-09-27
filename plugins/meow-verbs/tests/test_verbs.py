@@ -36,14 +36,18 @@ class Repository:
             (self.root / ".meowpaw" / "profile.toml").write_text(profile, encoding="utf-8")
 
     def run(self, *args, env=None):
-        env = {**(os.environ if env is None else env), "XDG_STATE_HOME": str(self.state)}
+        env = {**(os.environ if env is None else env), "XDG_STATE_HOME": str(self.state),
+               "XDG_CONFIG_HOME": str(self.state), "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
         return subprocess.run([str(BIN), *args], cwd=self.root, capture_output=True,
                               text=True, env=env)
 
     def git(self, *args):
+        # The machine's own git configuration and ignore file stay out, so a
+        # fixture gives one verdict on every machine (BUG-1190).
         return subprocess.run(["git", "-c", "user.name=a", "-c", "user.email=a@b", *args], cwd=self.root,
                               capture_output=True, text=True, check=True,
-                              env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"})
+                              env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1",
+                                   "XDG_CONFIG_HOME": str(self.state)})
 
     def records(self):
         ledgers = list((self.state / "meowpaw" / "evidence").glob("*.jsonl"))
@@ -344,6 +348,75 @@ class Subset(unittest.TestCase):
         self.assertIn("test: passed, record", done.stdout)
         records = repo.records()
         self.assertEqual([r["targets"] for r in records], [None, ["a"]])
+
+
+class Kept(unittest.TestCase):
+    """ADR-1530: a cited record is kept in the repository, outside the tree id."""
+
+    PROFILE = '[verbs]\ntest = "echo tested"\n'
+
+    def repo(self, profile=None):
+        repository = Repository(profile or self.PROFILE)
+        self.addCleanup(repository.close)
+        repository.git("init", "-q", "-b", "work")
+        return repository
+
+    def test_a_current_record_is_kept_with_its_header_and_output(self):
+        """REQ-2956, REQ-2964: the kept file is the contract a person reads."""
+        repo = self.repo()
+        repo.run("run", "test")
+        record = repo.records()[-1]
+        done = repo.run("evidence", "--keep", "test")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        kept = repo.root / ".meowpaw" / "evidence" / f"{record['record']}.log"
+        self.assertIn(f"kept: .meowpaw/evidence/{record['record']}.log", done.stdout)
+        text = kept.read_text(encoding="utf-8")
+        self.assertTrue(text.startswith("meow-verbs evidence 1\n"), text)
+        for line in (f"record: {record['record']}", "verb: test", "command: echo tested", "outcome: passed",
+                     "exit status: 0", f"tree: {record['tree']}"):
+            self.assertIn(line + "\n", text)
+        self.assertTrue(text.endswith("\n\ntested\n"), text)
+
+    def test_keeping_a_record_leaves_it_current(self):
+        """REQ-2956: the evidence directory is not part of the work it describes."""
+        repo = self.repo()
+        repo.run("run", "test")
+        repo.run("evidence", "--keep", "test")
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("current at tree", done.stdout)
+
+    def test_a_stale_record_is_not_kept(self):
+        """REQ-2956: a record describing other content than the tree isn't evidence for it."""
+        repo = self.repo()
+        repo.run("run", "test")
+        (repo.root / "edited.txt").write_text("a\n", encoding="utf-8")
+        done = repo.run("evidence", "--keep", "test")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("not kept", done.stdout)
+        self.assertFalse((repo.root / ".meowpaw" / "evidence").exists())
+
+    def test_the_declared_directory_is_used_and_left_out(self):
+        """REQ-2956: a repository chooses where its evidence lives."""
+        repo = self.repo(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "project/evidence"\n'))
+        repo.run("run", "test")
+        repo.run("evidence", "--keep")
+        self.assertEqual(len(list((repo.root / "project" / "evidence").glob("*.log"))), 1)
+        self.assertNotIn("verbs.evidence_dir", repo.status()["ignored"])
+        self.assertEqual(repo.run("evidence", "test").returncode, 0)
+
+    def test_a_commit_tree_matches_the_kept_record(self):
+        """REQ-2956: a reviewer compares a kept record with the commit that carries it."""
+        repo = self.repo()
+        repo.run("run", "test")
+        record = repo.records()[-1]
+        repo.run("evidence", "--keep", "test")
+        repo.git("add", "-A")
+        repo.git("commit", "-q", "-m", "c")
+        done = repo.run("tree", "HEAD")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(done.stdout.strip(), record["tree"])
+        self.assertNotEqual(repo.git("rev-parse", "HEAD^{tree}").stdout.strip(), record["tree"])
 
 
 class Launcher(unittest.TestCase):
