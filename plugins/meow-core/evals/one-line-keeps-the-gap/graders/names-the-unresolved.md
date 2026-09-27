@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: "unresolved|typecheck"
+pattern: "unresolved|`check`"
 flags: i
 match: contains
 target: last_message

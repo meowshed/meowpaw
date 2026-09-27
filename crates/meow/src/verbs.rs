@@ -17,7 +17,10 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::Instant;
 
-const VERBS: [&str; 5] = ["fmt", "lint", "typecheck", "test", "build"];
+const VERBS: [&str; 5] = ["format", "lint", "check", "test", "build"];
+/// The names before ADR-1410, read until meow-verbs 0.4.0 with a notice.
+const OLD: [(&str, &str); 2] = [("fmt", "format"), ("typecheck", "check")];
+const REMOVED_IN: &str = "0.4.0";
 const TAIL: usize = 20;
 const PASSED: u8 = 0;
 const FAILED: u8 = 1;
@@ -35,6 +38,16 @@ struct Report {
     error: Option<String>,
     verbs: Vec<(&'static str, Entry)>,
     ignored: Vec<String>,
+    notices: Vec<String>,
+}
+
+/// The verb an old name now stands for, if it is one.
+fn renamed(name: &str) -> Option<&'static str> {
+    OLD.iter().find(|(old, _)| *old == name).map(|(_, new)| *new)
+}
+
+fn old_name(verb: &str) -> Option<&'static str> {
+    OLD.iter().find(|(_, new)| *new == verb).map(|(old, _)| *old)
 }
 
 fn resolve(root: &Path) -> Report {
@@ -49,6 +62,7 @@ fn resolve(root: &Path) -> Report {
             error: None,
             verbs: every("no profile", format!("{PROFILE} doesn't exist; write it, declaring each verb under [verbs]")),
             ignored: Vec::new(),
+            notices: Vec::new(),
         },
         Profile::Unparseable(error) => Report {
             path,
@@ -56,6 +70,7 @@ fn resolve(root: &Path) -> Report {
             error: Some(error.clone()),
             verbs: every("profile unparseable", error),
             ignored: Vec::new(),
+            notices: Vec::new(),
         },
         Profile::Parsed(data) => {
             let mut ignored: Vec<String> =
@@ -71,16 +86,37 @@ fn resolve(root: &Path) -> Report {
                         error: None,
                         verbs: every("malformed declaration", "`verbs` isn't a table".to_string()),
                         ignored,
+                        notices: Vec::new(),
                     };
                 }
             };
             ignored.extend(
-                declared.keys().filter(|key| !VERBS.contains(&key.as_str())).map(|key| format!("verbs.{key}")),
+                declared
+                    .keys()
+                    .filter(|key| !VERBS.contains(&key.as_str()) && renamed(key).is_none())
+                    .map(|key| format!("verbs.{key}")),
             );
+            let mut notices = Vec::new();
             let verbs = VERBS
                 .iter()
                 .map(|verb| {
-                    let entry = match declared.get(*verb) {
+                    let old = old_name(verb).filter(|old| declared.contains_key(*old));
+                    let value = match (declared.get(*verb), old) {
+                        (Some(value), Some(old)) => {
+                            notices.push(format!(
+                                "`{old}` is ignored: `{verb}` is declared, and meow-verbs {REMOVED_IN} stops reading `{old}`; remove it"
+                            ));
+                            Some(value)
+                        }
+                        (None, Some(old)) => {
+                            notices.push(format!(
+                                "`{old}` is now `{verb}`: rename the key under [verbs]; meow-verbs {REMOVED_IN} stops reading `{old}`"
+                            ));
+                            declared.get(old)
+                        }
+                        (value, None) => value,
+                    };
+                    let entry = match value {
                         None => Entry::Unresolved {
                             kind: "undeclared",
                             detail: "the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml".into(),
@@ -96,7 +132,7 @@ fn resolve(root: &Path) -> Report {
                     (*verb, entry)
                 })
                 .collect();
-            Report { path, state: "present", error: None, verbs, ignored }
+            Report { path, state: "present", error: None, verbs, ignored, notices }
         }
     }
 }
@@ -119,6 +155,7 @@ fn status(root: &Path, as_json: bool) -> u8 {
             "error": report.error,
             "verbs": verbs,
             "ignored": report.ignored,
+            "notices": report.notices,
         });
         println!("{}", serde_json::to_string_pretty(&out).unwrap_or_default());
         return PASSED;
@@ -133,6 +170,9 @@ fn status(root: &Path, as_json: bool) -> u8 {
     }
     if !report.ignored.is_empty() {
         println!("\nNot read by meow-verbs: {}", report.ignored.join(", "));
+    }
+    for notice in &report.notices {
+        println!("\nnotice: {notice}");
     }
     PASSED
 }
@@ -187,6 +227,17 @@ fn run(root: &Path, names: &[String]) -> u8 {
         eprintln!("meow-verbs run: name the verbs to run, from: {}", VERBS.join(" "));
         return USAGE;
     }
+    let mut notices = Vec::new();
+    let names: Vec<String> = names
+        .iter()
+        .map(|name| match renamed(name) {
+            Some(new) => {
+                notices.push(format!("`{name}` is now `{new}`; meow-verbs {REMOVED_IN} stops reading `{name}`"));
+                new.to_string()
+            }
+            None => name.clone(),
+        })
+        .collect();
     let unknown: Vec<&str> = names.iter().map(String::as_str).filter(|name| !VERBS.contains(name)).collect();
     if !unknown.is_empty() {
         eprintln!("meow-verbs run: {} isn't a verb; the five are {}", unknown.join(", "), VERBS.join(" "));
@@ -194,8 +245,11 @@ fn run(root: &Path, names: &[String]) -> u8 {
     }
 
     let report = resolve(root);
+    for notice in notices.iter().chain(&report.notices) {
+        println!("notice: {notice}\n");
+    }
     let mut outcomes: Vec<(String, &str)> = Vec::new();
-    for name in names {
+    for name in &names {
         let entry = &report.verbs.iter().find(|(verb, _)| verb == name).expect("a known verb").1;
         let command = match entry {
             Entry::Unresolved { kind, detail } => {

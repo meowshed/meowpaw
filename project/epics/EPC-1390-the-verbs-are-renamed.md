@@ -40,9 +40,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2140 rename the verbs in `meow-verbs` and everywhere they are
+- [x] T-001 TSK-2140 rename the verbs in `meow-verbs` and everywhere they are
       named, reading the old two for one release
       closes: REQ-2908
+      evidence: seven fixtures and the verbs run under their new names, in
+      #451.
 
 ## Coverage
 

@@ -11,7 +11,7 @@ describes:
     meow-prose-gate@0.1.2,
     meow-prose@0.3.5,
     meow-scm@0.4.1,
-    meow-verbs@0.2.2,
+    meow-verbs@0.3.0,
   ]
 ---
 
@@ -83,8 +83,8 @@ turn on auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.
 These parts are planned, and no unit ships them yet, so no page describes
 them:
 
-- packs that resolve the five verbs `meow-verbs` runs, `fmt`, `lint`,
-  `typecheck`, `test` and `build`, for a language or a task runner without
+- packs that resolve the five verbs `meow-verbs` runs, `format`, `lint`,
+  `check`, `test` and `build`, for a language or a task runner without
   your declaring each command;
 - packs for version control tools other than git, and for trackers other than
   GitHub;
