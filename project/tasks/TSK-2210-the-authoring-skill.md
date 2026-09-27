@@ -18,7 +18,8 @@ closes:
     REQ-2706,
     REQ-2708,
   ]
-issue:
+issue: 486
+projected: fce213312e95
 ---
 
 # `meow-author:write` carries the rules a program can't settle

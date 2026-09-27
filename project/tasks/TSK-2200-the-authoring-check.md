@@ -19,7 +19,8 @@ closes:
     REQ-1678,
     REQ-2688,
   ]
-issue:
+issue: 485
+projected: f5a6d085e3b8
 ---
 
 # `meow-author check` holds the form of any repository's skills and agents
