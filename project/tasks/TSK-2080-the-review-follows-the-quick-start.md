@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1360
 closes: [REQ-2834]
-issue:
+issue: 429
+projected: f4dc85e00095
 ---
 
 # The review step follows a changed quick start, or says it only read it
@@ -26,7 +27,9 @@ request, one review.
 ## What to do
 
 Add the rule to `steps/review.md`, and a line to the step's numbered steps
-where a change touches a quick start.
+where a change touches a quick start. Add the second rule ADR-1380 gives the
+review step, judging each changed page against the kind it names, which
+holds REQ-1952 and REQ-1954 as a judgement beside the document step's rules.
 
 ## Depends on
 

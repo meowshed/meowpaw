@@ -18,7 +18,8 @@ closes:
     REQ-1964,
     REQ-2836,
   ]
-issue:
+issue: 428
+projected: 52111e261d21
 ---
 
 # The document step carries its obligations on a repository's documentation
