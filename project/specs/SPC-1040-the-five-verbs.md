@@ -2,7 +2,7 @@
 id: SPC-1040
 artifact: spec
 status: live
-revised: 2026-09-24
+revised: 2026-09-27
 checked-at: "#115"
 states:
   [

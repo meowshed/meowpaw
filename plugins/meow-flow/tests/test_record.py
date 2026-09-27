@@ -340,6 +340,8 @@ class Checks(unittest.TestCase):
         repository = self.repo()
         self.mark(repository, "x")
         repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
+        # A living specification stating a withdrawn requirement is a finding of its own (ADR-1470).
+        repository.edit("specs/SPC-0001-a-part.md", "states: [REQ-0001]", "states: []")
         self.found(repository.run("check", "coverage"), "coverage",
                    "project/tasks/TSK-0001-a-task.md:7: closes REQ-0001, which is withdrawn, in EPC-0001, which is not verified")
         repository.edit("epics/EPC-0001-a-plan.md", 'checked-at: ', 'checked-at: "#1"')
@@ -779,6 +781,8 @@ class Chain(unittest.TestCase):
         self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
         self.mark_done(repository)
         self.assertIn("next: document, then verify EPC-0001 (1 task done)", repository.run("status").stdout)
+        # A verified epic resting on draft research has drifted (ADR-1470).
+        repository.edit("research/RES-0002-a-finding.md", "status: draft", "status: approved")
         repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#7"')
         self.assertIn("realised: EPC-0001 verified under #7", repository.run("status").stdout)
 
@@ -1210,19 +1214,14 @@ class ReadOnly(unittest.TestCase):
         self.assertIn("| [ADR-0001](ADR-0001-a-choice.md) |", written)
         self.assertIn("<!-- /meow-flow index -->", written)
 
-    def test_an_index_with_the_old_markers_is_read_and_moved_to_the_new(self):
-        """REQ-3190, ADR-1390: the markers before the rename are read until 0.32.0, and writing moves them."""
+    def test_an_index_with_the_old_markers_is_no_longer_read(self):
+        """REQ-3190, ADR-1390: from 0.32.0 the markers before the rename are not read, and writing names the new ones."""
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         repository.write("adrs/README.md", "# Decisions\n\n<!-- meow-method index -->\n<!-- /meow-method index -->\n")
         done = repository.run("index", "adr", "--write")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        written = (repository.root / "adrs" / "README.md").read_text(encoding="utf-8")
-        self.assertIn("<!-- meow-flow index -->", written)
-        self.assertIn("<!-- /meow-flow index -->", written)
-        self.assertNotIn("meow-method", written)
-        checked = repository.run("check", "index")
-        self.assertEqual(checked.returncode, 0, checked.stdout + checked.stderr)
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("has no <!-- meow-flow index --> block to write into", done.stdout)
 
 
 class Where(unittest.TestCase):
@@ -1469,6 +1468,70 @@ class Triage(unittest.TestCase):
         repository.edit("requirements/REQ-0001-an-obligation.md", "topic: a", "topic: a\nprompted-by: ADR-0001")
         said = repository.run("check", "rules").stdout
         self.assertIn("is prompted by ADR-0001, which is not a defect", said)
+
+
+class Connections(unittest.TestCase):
+    """ADR-1470: each chain is checked to its research, and each citation against its target's date."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def test_an_approved_task_over_draft_research_names_the_chain(self):
+        """REQ-0139: a task whose own links resolve is reported where the research under it is a draft."""
+        repository = self.repo()
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
+        done = repository.run("check", "coverage")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("project/tasks/TSK-0001-a-task.md: rests on RES-0002, a draft, through "
+                      "TSK-0001 -> EPC-0001 -> ADR-0001 -> REQ-0001 -> RES-0002", done.stdout)
+
+    def test_a_draft_over_a_withdrawn_requirement_is_reported(self):
+        """REQ-0139: a draft still being written can be moved off a withdrawn provider."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: draft")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
+        done = repository.run("check", "coverage")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("project/adrs/ADR-0001-a-choice.md: rests on REQ-0001, which is withdrawn, through "
+                      "ADR-0001 -> REQ-0001", done.stdout)
+
+    def test_a_draft_citing_a_later_revision_is_suspect(self):
+        """REQ-0141: a draft citing an artifact revised after it is reported, and so is a living one."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: draft")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "revised: 2026-01-01", "revised: 2026-02-01")
+        done = repository.run("check", "relations")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("project/adrs/ADR-0001-a-choice.md:6: addresses REQ-0001, revised 2026-02-01, "
+                      "after this record's 2026-01-01, so the citation is suspect", done.stdout)
+        self.assertIn("project/specs/SPC-0001-a-part.md:6: states REQ-0001, revised 2026-02-01", done.stdout)
+        self.assertIn("relations: 2 findings", done.stdout)
+
+    def test_an_approved_record_citing_a_later_revision_is_marked_by_show(self):
+        """REQ-0141: a frozen record can't be revised, so show marks its suspect citation and check passes."""
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "revised: 2026-01-01", "revised: 2026-02-01")
+        repository.edit("specs/SPC-0001-a-part.md", "revised: 2026-01-01", "revised: 2026-03-01")
+        done = repository.run("check", "relations")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        shown = repository.run("show", "ADR-0001").stdout
+        self.assertIn("  addresses: REQ-0001 (suspect: revised 2026-02-01, after this record)", shown)
+
+    def test_an_epic_is_suspect_by_its_status_and_not_its_date(self):
+        """REQ-0141: an epic changes as its tasks close, so only its withdrawal makes a citation suspect."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        repository.edit("epics/EPC-0001-a-plan.md", "revised: 2026-01-01", "revised: 2026-02-01")
+        done = repository.run("check", "relations")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        repository.edit("epics/EPC-0001-a-plan.md", "status: approved", "status: withdrawn")
+        done = repository.run("check", "relations")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("project/tasks/TSK-0001-a-task.md:6: epic EPC-0001 is withdrawn, so the citation is suspect",
+                      done.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
