@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-code
 answers: what meow-code does, what it adds to a session and how to use it
 kind: reference
-describes: [meow-code@0.2.0]
+describes: [meow-code@0.2.1]
 ---
 
 # meow-code

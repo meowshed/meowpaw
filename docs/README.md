@@ -10,7 +10,7 @@ describes:
     meow-flow@0.31.1,
     meow-prose-gate@0.1.2,
     meow-prose@0.3.5,
-    meow-scm@0.4.1,
+    meow-scm@0.4.2,
     meow-verbs@0.3.0,
   ]
 ---
@@ -48,6 +48,7 @@ Every page, who it is for and what it answers:
 
 | Page                                                    | For                                                                                                   | Answers                                                                                         | Kind            |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------- |
+| [meow-author](../plugins/meow-author/README.md)         | someone choosing or running meow-author                                                               | what meow-author does, what it adds to a session and how to run it                              | reference       |
 | [meow-code](../plugins/meow-code/README.md)             | someone choosing or running meow-code                                                                 | what meow-code does, what it adds to a session and how to use it                                | reference       |
 | [meow-core](../plugins/meow-core/README.md)             | someone choosing or running meow-core                                                                 | what meow-core does, what it adds to a session and how to run it                                | reference       |
 | [meow-flow](../plugins/meow-flow/README.md)             | someone choosing or running meow-flow                                                                 | what meow-flow does, what it adds to a session and how to run it                                | reference       |

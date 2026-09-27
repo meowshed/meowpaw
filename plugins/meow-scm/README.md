@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-scm
 answers: what meow-scm does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-scm@0.4.1]
+describes: [meow-scm@0.4.2]
 ---
 
 # meow-scm
