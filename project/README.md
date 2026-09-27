@@ -312,7 +312,8 @@ realised ADR-1380 in two tasks, TSK-2070 and TSK-2080, each closed with
 evidence, and was verified against every acceptance criterion under issue 433.
 
 [EPC-1370](epics/EPC-1370-the-method-unit-is-meow-flow.md) realises ADR-1390 in
-two tasks, TSK-2090 and TSK-2100.
+two tasks, TSK-2090 and TSK-2100, each closed with evidence, and was verified
+against every acceptance criterion under issue 441.
 
 ## Defects
 
