@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1470
 closes: [REQ-0149, REQ-0151, REQ-0157, REQ-0822, REQ-0823, REQ-2202]
-issue:
+issue: 522
+projected: 208d11ab0a07
 ---
 
 # The method skill dispatches the reviewer before each gate, and the review step dispatches a review of the session's own work

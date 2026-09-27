@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.32.1]
+describes: [meow-flow@0.33.0]
 ---
 
 # meow-flow
@@ -153,6 +153,26 @@ the unit's rename isn't read, and `--write` names the markers it needs.
 `paw template <kind>` prints the template a step writes from: yours at
 `.meowpaw/templates/<kind>.md` where you have one, and the unit's otherwise.
 
+## Have a record reviewed
+
+`meow-flow:record-reviewer` is an agent that reviews one record against fixed
+questions for its kind, such as whether each alternative in a decision says why
+it lost, and whether each rule in any record states its reason. It reads the
+record and what the record cites, with `Read`, `Grep` and `Glob` alone, and
+edits nothing. It asks nothing `paw check` already settles. Its report opens
+with this line, because it is a model's judgement, which covers more than a
+person's and can't say whether the work should exist:
+
+```text
+Agent review, not a person's approval; the reviewer may share the author's model family.
+```
+
+Ask Claude to use it on a path:
+
+```text
+Use the meow-flow:record-reviewer agent on project/adrs/ADR-0100-cache-in-redis.md
+```
+
 ## Postpone requirements
 
 A decision can postpone requirements you choose not to realise now. Give it
@@ -208,8 +228,8 @@ exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
 ## What it costs you
 
-The `method` skill's description, 385 characters, on every turn, so Claude
-knows when to load it. The driver costs nothing until you type it. The
+The `method` skill's description and the `record-reviewer` agent's, 487
+characters together, on every turn, so Claude knows when to load either. The driver costs nothing until you type it. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, it
 reports the record as not checked and exits 3.
