@@ -191,6 +191,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1520](adrs/ADR-1520-a-verb-runs-over-part-of-the-work-only-through-a-form-the-repository-declares.md):
   a verb runs over part of the work only through a form the repository
   declares.
+- [ADR-1530](adrs/ADR-1530-cited-evidence-is-kept-in-the-repository-and-the-ledger-is-held-to-the-state-rules.md):
+  cited evidence is kept in the repository, and the ledger is held to the
+  state rules.
 
 ## Specifications
 
@@ -409,6 +412,9 @@ acceptance criterion under issue 537.
 [EPC-1500](epics/EPC-1500-a-verb-over-part-of-the-work.md) realises ADR-1520 in
 one task, TSK-2330, closed with evidence, and was verified against every
 acceptance criterion under issue 543.
+
+[EPC-1510](epics/EPC-1510-evidence-kept-and-state-held.md) realises ADR-1530 in
+three tasks, TSK-2340, TSK-2350 and TSK-2360.
 
 ## Defects
 
