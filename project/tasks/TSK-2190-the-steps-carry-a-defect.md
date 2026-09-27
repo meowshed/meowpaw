@@ -39,7 +39,22 @@ Nothing. It changes only step files.
 
 ## Evidence
 
-Not yet.
+`steps/implement.md` gains I13 to I15 and `steps/verify.md` gains V14, each
+with its reason, and a search of both files finds no record identifier:
+
+| Requirement | Carried by                  |
+| ----------- | --------------------------- |
+| REQ-0348    | I13 in `steps/implement.md` |
+| REQ-0350    | I14 in `steps/implement.md` |
+| REQ-3174    | I15 in `steps/implement.md` |
+| REQ-3170    | V14 in `steps/verify.md`    |
+
+```text
+$ python3 tools/check_prompts.py
+55 shipped prompts, 0 failures
+$ plugins/meow-verbs/bin/meow-verbs run format lint test
+summary: format passed, lint passed, test passed
+```
 
 ## Left alone
 
