@@ -183,6 +183,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1490](adrs/ADR-1490-a-record-is-reviewed-by-an-agent-that-did-not-write-it.md):
   a record is reviewed by an agent that didn't write it, and its verdict is
   labelled as an agent's.
+- [ADR-1500](adrs/ADR-1500-the-evaluation-loop-reports-what-a-measurement-rests-on-and-refuses-what-it-cannot-hold.md):
+  the evaluation loop reports what a measurement rests on, and refuses what it
+  can't hold.
 
 ## Specifications
 
@@ -389,6 +392,9 @@ verified against every acceptance criterion under issue 517.
 [EPC-1470](epics/EPC-1470-records-reviewed-by-an-agent.md) realises ADR-1490
 in two tasks, TSK-2290 and TSK-2300, each closed with evidence, and was
 verified against every acceptance criterion under issue 525.
+
+[EPC-1480](epics/EPC-1480-the-loop-reports-and-refuses.md) realises ADR-1500 in
+one task, TSK-2310.
 
 ## Defects
 
