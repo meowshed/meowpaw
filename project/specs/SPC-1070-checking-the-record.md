@@ -78,6 +78,7 @@ states:
     REQ-2914,
     REQ-2923,
     REQ-2924,
+    REQ-3004,
     REQ-3008,
     REQ-3009,
     REQ-3010,
@@ -89,7 +90,8 @@ states:
     REQ-3019,
     REQ-3020,
     REQ-3102,
-    REQ-3166,
+    REQ-3168,
+    REQ-3190,
   ]
 ---
 
@@ -251,10 +253,13 @@ checks over the harness's own units stay.
 The program is `meow record`, the `record` subcommand of the native tool, built
 with the unit's own feature as SPC-1080 states. A person runs it as `paw`, the
 name of the unit's launcher, and every usage line and message it prints names
-it `paw` (REQ-3166). The unit keeps the name `meow-method`. The launcher runs
-the binary for the machine, and the binary reads `lib/layout.toml` from the unit it ships
-in. Where there is no binary for the machine, or the layout can't be read, the
-record is reported as not checked and the program exits 3, never 0.
+it `paw` (REQ-3168). The unit is `meow-flow` (REQ-3190), and `meow-method`
+stays in the catalogue for one release as a stub whose `SessionStart` hook says
+the unit is now `meow-flow` and how to move an install, removed in the release
+after (REQ-3004). The launcher runs the binary for the machine, and the binary
+reads `lib/layout.toml` from the unit it ships in. Where there is no binary for
+the machine, or the layout can't be read, the record is reported as not checked
+and the program exits 3, never 0.
 
 The checks are named `front-matter`, `identifiers`, `relations`, `index`,
 `coverage` and `shape`. Each finding is printed as `<file>:<line>: <what>`, or
