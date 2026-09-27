@@ -47,7 +47,38 @@ TSK-2030, because the table is generated from the front matter it adds.
 
 ## Evidence
 
-Not yet.
+`docs/README.md` opens with what `meowpaw` is and a quick start, carries the
+table `tools/check_docs.py --write` generates between its markers, and has a
+`## Planned` section and a `## Not written` section recording `how-to` and
+`explanation` with their reasons. `docs/tutorial.md` takes a reader from an
+empty repository to a check `meow-verbs` runs, and I ran its steps in an
+empty directory first: `meow-verbs status` and `run test` printed what the
+page shows, and `run lint` exited 3. `docs/troubleshooting.md` has one entry
+per message a unit prints, each quoted from the program.
+
+Three new fixtures, naming REQ-3154, REQ-3140 and REQ-3134, failed against the
+check as TSK-2040 left it and pass against this one:
+
+```text
+$ CHECK_DOCS=check_docs_before.py python3 -m unittest tools/test_check_docs.py
+FAIL: test_a_kind_neither_carried_nor_recorded_fails
+FAIL: test_a_page_missing_from_the_index_fails
+FAIL: test_an_index_without_its_planned_section_fails
+FAILED (failures=3)
+$ python3 -m unittest tools/test_check_docs.py
+Ran 15 tests
+OK
+```
+
+The prose reviewer read the three pages for criterion 3 and found five claims
+that didn't match what ships, all corrected here: only five units ship a
+program, `meow-git` does use `meow-scm` where it is installed, the tutorial
+needs macOS or Linux, the quick start warns before it replaces a profile, and
+the reinstall command names the unit that failed. It judged every repetition
+justified, because each saves the reader a trip from the page they are on
+(REQ-3150). It also found `meow-core`'s page claiming its style applies
+itself, which BUG-1040 records it doesn't, and that page now says to select
+the style (REQ-3132).
 
 ## Left alone
 

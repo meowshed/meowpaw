@@ -15,45 +15,84 @@ describes:
   ]
 ---
 
-# Documentation
+# meowpaw
 
-How to use what `meowpaw` ships. The record of what must be true and why lives
-under `project/`, and this hierarchy stays separate from it.
+`meowpaw` is a harness for Claude Code: units you install into Claude Code that
+make it report what it checked, what it couldn't check and what it decided, so
+you can trust a report without re-reading the work behind it. Each unit
+installs on its own.
 
-| Page                                                    | What it covers                                                                     |
-| ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [meow-core](../plugins/meow-core/README.md)             | The kernel, and the reply shape it imposes                                         |
-| [meow-prose](../plugins/meow-prose/README.md)           | The writing standard, loaded before Claude writes                                  |
-| [meow-prose-gate](../plugins/meow-prose-gate/README.md) | A hook that blocks a publish carrying a defect any reader can point to             |
-| [meow-verbs](../plugins/meow-verbs/README.md)           | The five verification verbs, run as the repository declared them                   |
-| [meow-scm](../plugins/meow-scm/README.md)               | The commit convention, checked before a message is used                            |
-| [meow-git](../plugins/meow-git/README.md)               | A pack that refuses a commit on the trunk and checks a branch before it is pushed  |
-| [meow-method](../plugins/meow-method/README.md)         | Runs the method's nine steps, and checks the record they write                     |
-| [meow-github](../plugins/meow-github/README.md)         | Reads a GitHub repository's issues, pull requests and comments, and writes nothing |
+## Quick start
 
-Each unit ships its page inside itself, and a unit's catalogue entry links to
-that page.
-
-## Adopt any part of it
-
-Each unit is a working harness on its own, and you can install any
-combination of them. No unit runs another unit's files, which a check holds,
-so removing one leaves the rest working. A unit that could do more with
-another installed says so and names it, and reports what it can't do without
-it. Nothing a unit installs changes your repository: the only files the
-harness writes there are ones you ask for, such as `.meowpaw/profile.toml`,
-and the record is optional.
-
-## Install
-
-Add the marketplace and install the units you want by name:
+Add the marketplace, install `meow-verbs`, which runs your repository's
+checks, and declare one check. Run this from the repository's root. If
+`.meowpaw/profile.toml` already exists, add the `[verbs]` table to it by hand
+instead of running the last line, because that line replaces the file:
 
 ```bash
 claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
 claude plugin install meow-verbs@meowpaw
+mkdir -p .meowpaw && printf '[verbs]\ntest = "./scripts/test"\n' > .meowpaw/profile.toml
 ```
 
-Each unit comes with its binaries for macOS, Linux and Windows on ARM64 and
-x64, so it needs neither Rust, Python nor Node.js. A later release reaches you when you run
-`claude plugin marketplace update meowpaw`, or by itself once you turn on
-auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.
+Replace `./scripts/test` with the command your repository runs its tests
+with. Claude Code then runs that command when it tests, and reports every
+check you didn't declare as unresolved. The [tutorial](tutorial.md) walks
+through the same steps in an empty repository.
+
+## Pages
+
+Every page, who it is for and what it answers:
+
+<!-- check_docs index -->
+
+| Page                                                    | For                                                                                                   | Answers                                                                                         | Kind            |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------- |
+| [meow-core](../plugins/meow-core/README.md)             | someone choosing or running meow-core                                                                 | what meow-core does, what it adds to a session and how to run it                                | reference       |
+| [meow-git](../plugins/meow-git/README.md)               | someone choosing or running meow-git                                                                  | what meow-git does, what it adds to a session and how to run it                                 | reference       |
+| [meow-github](../plugins/meow-github/README.md)         | someone choosing or running meow-github                                                               | what meow-github does, what it adds to a session and how to run it                              | reference       |
+| [meow-method](../plugins/meow-method/README.md)         | someone choosing or running meow-method                                                               | what meow-method does, what it adds to a session and how to run it                              | reference       |
+| [meow-prose](../plugins/meow-prose/README.md)           | someone choosing or running meow-prose                                                                | what meow-prose does, what it adds to a session and how to run it                               | reference       |
+| [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
+| [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
+| [meow-verbs](../plugins/meow-verbs/README.md)           | someone choosing or running meow-verbs                                                                | what meow-verbs does, what it adds to a session and how to run it                               | reference       |
+| [troubleshooting](troubleshooting.md)                   | someone whose meowpaw unit just refused, blocked or reported something they didn't expect             | what each message a unit prints means, why it appeared and what fixes it                        | troubleshooting |
+| [tutorial](tutorial.md)                                 | someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work | how to get from an empty repository to a first check that Claude Code runs and reports honestly | tutorial        |
+
+<!-- /check_docs index -->
+
+## Adopt any part of it
+
+You can install any combination of units, and no unit needs another to work. A
+unit that does more with another installed says so, and reports what it can't
+do without it: `meow-git` checks commit messages with `meow-scm` where that
+unit is installed, and reports the check as unrun where it isn't. Nothing a
+unit installs changes your repository: the only files the harness writes there
+are ones you ask for, such as `.meowpaw/profile.toml`, and keeping a record of
+decisions with `meow-method` is optional.
+
+Each unit that runs a program ships it for macOS, Linux and Windows on arm64
+and x86_64, so it needs nothing else installed. A later release reaches you
+when you run `claude plugin marketplace update meowpaw`, or by itself once you
+turn on auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.
+
+## Planned
+
+These parts are planned, and no unit ships them yet, so no page describes
+them:
+
+- packs that resolve the five verbs `meow-verbs` runs, `fmt`, `lint`,
+  `typecheck`, `test` and `build`, for a language or a task runner without
+  your declaring each command;
+- packs for version control tools other than git, and for trackers other than
+  GitHub;
+- runs that carry the method forward unattended, within the gates a
+  repository declares.
+
+## Not written
+
+- `how-to`: each unit's page carries the tasks for that unit, and the
+  tutorial walks through the first one, so a separate guide would repeat them.
+- `explanation`: the reasons behind each unit's design are written for the
+  people building the harness, and each unit's page states what a user needs
+  of them.

@@ -149,8 +149,9 @@ It fails when:
 - `llms.txt` lacks its H1 or summary, links to a path that doesn't exist, or
   carries a line that is neither a heading, the summary nor a link.
 
-`python3 tools/check_docs.py --write` rewrites the generated table in
-`docs/README.md` from the pages and changes nothing else.
+`python3 tools/check_docs.py --write` rewrites the table between the
+`<!-- check_docs index -->` and `<!-- /check_docs index -->` markers in
+`docs/README.md` from the pages, and changes nothing else.
 
 ## Failure paths
 
