@@ -50,7 +50,7 @@ program before the change and four failed. Each criterion's check:
 This repository declares `evidence_dir = "project/evidence"`, at the owner's
 request, so its evidence sits beside the record it closes.
 
-Two things this task found, which ADR-1540 takes up: the owner asked for
+Two things this task found, which ADR-1550 takes up: the owner asked for
 `project/evidence` as the default, and a kept `.log` file is ignored by the
 common `*.log` rule in a user's global git ignore, as it is on this machine,
 so it would silently stay out of the commit. The fixtures now read no global

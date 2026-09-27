@@ -194,6 +194,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1530](adrs/ADR-1530-cited-evidence-is-kept-in-the-repository-and-the-ledger-is-held-to-the-state-rules.md):
   cited evidence is kept in the repository, and the ledger is held to the
   state rules.
+- [ADR-1550](adrs/ADR-1550-evidence-is-kept-beside-the-record-and-a-kept-file-git-ignores-is-reported.md):
+  evidence is kept beside the record by default, and a kept file git ignores
+  is reported.
 
 ## Specifications
 
@@ -415,6 +418,9 @@ acceptance criterion under issue 543.
 
 [EPC-1510](epics/EPC-1510-evidence-kept-and-state-held.md) realises ADR-1530 in
 three tasks, TSK-2340, TSK-2350 and TSK-2360.
+
+[EPC-1520](epics/EPC-1520-evidence-beside-the-record.md) realises ADR-1550 in
+one task, TSK-2370.
 
 ## Defects
 
