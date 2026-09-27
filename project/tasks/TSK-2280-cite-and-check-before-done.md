@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1460
 closes: [REQ-0148]
-issue:
+issue: 514
+projected: 61f4dbb663ed
 ---
 
 # `meow-verbs:verify` and the implement step cite records and check them before calling work done

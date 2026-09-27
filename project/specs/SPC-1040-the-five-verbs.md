@@ -57,12 +57,10 @@ compiler checking the code without building it, `test` for tests and `build`
 for the build (REQ-0130, REQ-2908). A unit adds no sixth (REQ-0131), because a
 sixth verb is a command with no agreed meaning across repositories.
 
-Until `meow-verbs` 0.4.0, the program also reads the names the verbs had
-before, `fmt` for `format` and `typecheck` for `check`. A profile key under an
-old name resolves the new verb, and `status` prints a notice naming the key to
-rename and 0.4.0. Where a profile declares both names, the new one wins and
-the notice names the key it ignored. An old name on the command line runs the
-new verb with the same notice (ADR-1410).
+From `meow-verbs` 0.4.0 the program no longer reads the names the verbs had
+before ADR-1410, `fmt` for `format` and `typecheck` for `check`: a profile key
+under an old name is listed as ignored, and an old name on the command line
+isn't a verb.
 
 ### Where a verb resolves from
 
@@ -130,7 +128,8 @@ ones went unmentioned.
 `run` records each verb it runs, an unresolved one included, in a ledger
 outside the repository: the verb, the command, the outcome, the exit status,
 the time and the tree id, with the whole output in a file named for the
-record, and prints `recorded: <record> at tree <tree id>` under its summary
+record. Under its summary it prints one line per verb:
+`recorded: <verb> <record> at tree <tree id>`
 (REQ-0146) (ADR-1480). The ledger is `<state>/meowpaw/evidence/<key>.jsonl`,
 where `<state>` is `$XDG_STATE_HOME` where it is set, and otherwise
 `%LOCALAPPDATA%` on Windows and `~/.local/state` elsewhere, and `<key>` is a
