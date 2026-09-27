@@ -9,6 +9,8 @@
 //! unit's specification.
 
 mod profile;
+#[cfg(feature = "author")]
+mod author;
 #[cfg(feature = "github")]
 mod github;
 #[cfg(feature = "git")]
@@ -43,6 +45,8 @@ fn main() -> ExitCode {
         "github" => github::main(rest),
         #[cfg(feature = "licence")]
         "licence" => licence::main(rest),
+        #[cfg(feature = "author")]
+        "author" => author::main(rest),
         _ => {
             eprintln!("usage: meow <subcommand> ..., where this build carries: {}", carried().join(", "));
             2
@@ -71,6 +75,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "licence") {
         names.push("licence");
+    }
+    if cfg!(feature = "author") {
+        names.push("author");
     }
     names
 }

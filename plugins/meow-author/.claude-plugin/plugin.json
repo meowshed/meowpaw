@@ -1,0 +1,13 @@
+{
+  "name": "meow-author",
+  "version": "0.1.0",
+  "description": "Checks the skills, agents, output styles and prompt hooks a repository writes, in its plugins or its own .claude directory, for the form the meowpaw harness holds its own to: fixed tags, a description, every supporting file named, and a stated stopping point. It keeps nothing in context on every turn.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-author/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["authoring", "skills", "prompts", "meowpaw"]
+}

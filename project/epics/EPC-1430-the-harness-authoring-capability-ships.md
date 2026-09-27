@@ -42,10 +42,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2200 ship `meow-author check`, run it in this repository's
+- [x] T-001 TSK-2200 ship `meow-author check`, run it in this repository's
       gate, and retire `tools/check_prompts.py`
       closes: REQ-1110, REQ-1111, REQ-1112, REQ-1114, REQ-1120, REQ-1122,
       REQ-1124, REQ-1128, REQ-1142, REQ-1672, REQ-1678, REQ-2688
+      evidence: thirteen fixtures, and the shipped check passing on this
+      repository in the `prompts` task, in #485.
 
 - [ ] T-002 TSK-2210 give `meow-author` the skill that carries the rules a
       program can't settle

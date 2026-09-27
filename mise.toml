@@ -23,8 +23,8 @@ description = "Check every output style the harness ships"
 run = "python3 tools/check_style.py"
 
 [tasks.prompts]
-description = "Check every shipped prompt uses the tag vocabulary"
-run = "python3 tools/check_prompts.py"
+description = "Check every shipped prompt with meow-author, the check the harness ships"
+run = "cargo run --quiet --release --manifest-path crates/meow/Cargo.toml --target-dir target/author --no-default-features --features author -- author check"
 
 [tasks.kernel]
 description = "Check the kernel names no unit outside it"
