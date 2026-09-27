@@ -8,6 +8,7 @@ states:
   [
     REQ-0237,
     REQ-0325,
+    REQ-0362,
     REQ-0510,
     REQ-0516,
     REQ-0518,
@@ -83,12 +84,14 @@ citation says what it cites without resolving it (REQ-0638, REQ-0640).
 
 ### Relations
 
-An artifact names what it came from in its front matter, as bare identifiers
-in one of the fields `relations` lists: `elaborates`, `addresses`,
-`supersedes`, `realises`, `epic`, `closes`, `states` and `violates` (REQ-0644,
-REQ-0646). Only that upward direction is written, and a decision names the
-requirements it addresses, never the reverse (REQ-0237, REQ-0648). Every
-identifier in a relation resolves to an artifact that exists (REQ-0654).
+An artifact names what it came from in its front matter, as bare identifiers in
+one of the fields `relations` lists: `elaborates`, `addresses`, `postpones`,
+`supersedes`, `realises`, `epic`, `bug`, `closes`, `states`, `violates` and
+`prompted-by` (REQ-0644, REQ-0646). A research record, a requirement or a
+decision a defect prompted names it in `prompted-by` (REQ-0362) (ADR-1440).
+Only that upward direction is written, and a decision names the requirements it
+addresses, never the reverse (REQ-0237, REQ-0648). Every identifier in a
+relation resolves to an artifact that exists (REQ-0654).
 
 ### Resolving an identifier
 
