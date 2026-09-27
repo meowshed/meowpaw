@@ -49,7 +49,40 @@ Nothing. ADR-1400 is approved.
 
 ## Evidence
 
-Not yet.
+`plugins/meow-licence/` holds the unit at 0.1.0: a manifest, a page, a budget
+of nothing on every turn, a `requires.toml` and the launcher `bin/meow-licence`,
+which runs the native tool's new `licence` subcommand, built behind its own
+feature by `crates/meow/build-units`. The catalogue lists the unit, and
+`claude plugin validate` passes on the catalogue and on the unit. SPC-1080
+names the new subcommand.
+
+Nine fixtures, eight naming their requirement, failed against a program that
+prints nothing, apart from the one showing the report names no author, which
+a silent program also meets; it fails only if the check starts echoing a
+copyright holder. All nine pass against the check:
+
+```text
+$ MEOW_LICENCE_BIN=/usr/bin/true python3 -m unittest discover -s plugins/meow-licence/tests
+FAILED (failures=8)
+$ python3 -m unittest discover -s plugins/meow-licence/tests
+Ran 9 tests
+OK
+$ plugins/meow-licence/bin/meow-licence check
+1823 files, 0 licensing findings
+$ meow-verbs run fmt lint test
+summary: fmt passed, lint passed, test passed
+```
+
+On this repository the check first reported two files, not the one ADR-1400
+names: `crates/meow/Cargo.lock` and `.meowpaw/profile.toml`. The lock file is
+generated, so `REUSE.toml` covers it, and the profile carries a header. The
+`lint` verb runs the check, and the `test` verb its fixtures.
+
+Two cases the specification left open are settled in SPC-1120: `REUSE.toml`
+and a `.license` file are declarations and need none, and a licence text is a
+file named `LICENSE`, `LICENCE` or `COPYING` with no extension or a text
+format's, so a source file named `licence.rs` still needs its header. A crate
+test failed on the first version, which exempted that file.
 
 ## Left alone
 
