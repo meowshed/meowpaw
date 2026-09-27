@@ -28,7 +28,23 @@ TSK-2350, whose lock every write takes.
 
 ## Evidence
 
-Not yet.
+Closes REQ-2968 and REQ-2969. `meow-verbs evidence format lint test` exits 0
+on this change's own tree, each result kept in `project/evidence/`, as the
+pull request cites.
+
+The three `Interrupted` fixtures failed on the program before the change, and
+the `meow-verbs` suite now runs 51 tests, OK:
+
+1. `test_a_started_run_whose_process_lives_is_running` and
+   `test_a_started_run_whose_process_is_gone_is_interrupted`: a start with no
+   end reads as `running` while its process, matched by id and start time on
+   this host, lives, and as `interrupted` otherwise, each exiting 4 (REQ-2968).
+2. `test_a_verb_ended_by_a_signal_is_interrupted`: a verb ended by SIGTERM is
+   recorded as `interrupted`, and `run` and `evidence` exit 4 (REQ-2969).
+
+The `verify` skill's V2 and `meow-verbs`' page state the fourth outcome and
+exit status. The fixtures' ledger reader now pairs a started line with its end,
+as the program does.
 
 ## Left alone
 

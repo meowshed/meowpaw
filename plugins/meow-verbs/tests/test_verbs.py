@@ -53,7 +53,13 @@ class Repository:
     def records(self):
         ledgers = list((self.state / "meowpaw" / "evidence").glob("*.jsonl"))
         assert len(ledgers) == 1, ledgers
-        return [json.loads(line) for line in ledgers[0].read_text(encoding="utf-8").splitlines()]
+        lines = [json.loads(line) for line in ledgers[0].read_text(encoding="utf-8").splitlines()]
+        # One record per identifier, at the line that last changed it, as the
+        # program reads them: a started line is replaced by its end.
+        out = []
+        for line in lines:
+            out = [r for r in out if r.get("record") != line.get("record")] + [line]
+        return out
 
     def status(self):
         done = self.run("status", "--json")
@@ -575,6 +581,54 @@ class State(unittest.TestCase):
         self.assertNotIn("== work tree", alone)
         together = repo.run("evidence", "--all", "test").stdout
         self.assertIn(f"== work tree {second.resolve()}", together)
+
+
+class Interrupted(unittest.TestCase):
+    """ADR-1530: a run is recorded as started, and one cut short says so."""
+
+    def repo(self, profile='[verbs]\ntest = "echo tested"\n'):
+        repository = Repository(profile)
+        self.addCleanup(repository.close)
+        repository.git("init", "-q", "-b", "work")
+        return repository
+
+    def started(self, repo, pid, process_start):
+        repo.run("run", "test")
+        ledger = next((repo.state / "meowpaw" / "evidence").glob("*.jsonl"))
+        host = subprocess.run(["hostname"], capture_output=True, text=True).stdout.strip()
+        line = {"record": "5tarted00000", "phase": "started", "verb": "test", "command": "echo tested",
+                "tree_before": "x", "time": "2099-01-01T00:00:00Z", "pid": pid, "process_start": process_start,
+                "host": host}
+        with ledger.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(line) + "\n")
+
+    def test_a_started_run_whose_process_lives_is_running(self):
+        """REQ-2968: another session's run in progress isn't a result, and isn't cut short."""
+        repo = self.repo()
+        pid = os.getpid()
+        lstart = subprocess.run(["ps", "-o", "lstart=", "-p", str(pid)], capture_output=True, text=True).stdout.strip()
+        self.started(repo, pid, lstart)
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 4, done.stdout)
+        self.assertIn("test: running, record 5tarted00000, still running in another session", done.stdout)
+
+    def test_a_started_run_whose_process_is_gone_is_interrupted(self):
+        """REQ-2968: a run cut short is reported as interrupted, never as a result, and nothing retries it."""
+        repo = self.repo()
+        self.started(repo, 999999, "Thu Jan  1 00:00:00 1970")
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 4, done.stdout)
+        self.assertIn("test: interrupted, record 5tarted00000, cut short; run it again", done.stdout)
+
+    def test_a_verb_ended_by_a_signal_is_interrupted(self):
+        """REQ-2969: interrupted is a fourth outcome beside passed, failed and unresolved."""
+        repo = self.repo('[verbs]\ntest = "kill -TERM $$"\n')
+        done = repo.run("run", "test")
+        self.assertEqual(done.returncode, 4, done.stdout)
+        self.assertIn("interrupted by signal 15", done.stdout)
+        self.assertIn("summary: test interrupted", done.stdout)
+        self.assertEqual(repo.records()[-1]["outcome"], "interrupted")
+        self.assertEqual(repo.run("evidence", "test").returncode, 4)
 
 
 class Launcher(unittest.TestCase):
