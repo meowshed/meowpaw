@@ -161,6 +161,8 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1410](adrs/ADR-1410-the-verbs-are-format-lint-check-test-and-build.md):
   the verbs are `format`, `lint`, `check`, `test` and `build`, and the old
   names are read for one release.
+- [ADR-1420](adrs/ADR-1420-a-coding-unit-holds-how-code-is-changed-and-how-a-check-is-written.md):
+  a coding unit holds how code is changed and how a check is written.
 
 ## Specifications
 
@@ -211,6 +213,9 @@ file for agents, the catalogue fields and the check that holds them.
 [SPC-1120](specs/SPC-1120-the-licensing-unit.md) states the licensing unit:
 where a repository declares its licensing, the skill that applies a header and
 the check that every file is covered.
+
+[SPC-1130](specs/SPC-1130-the-coding-unit.md) states the coding unit: how
+the harness changes code and how it writes a check.
 
 ## Epics and tasks
 
@@ -332,6 +337,9 @@ verified against every acceptance criterion under issue 458.
 [EPC-1390](epics/EPC-1390-the-verbs-are-renamed.md) realises ADR-1410 in one
 task, TSK-2140, closed with evidence, and was verified against every
 acceptance criterion under issue 455.
+
+[EPC-1400](epics/EPC-1400-how-code-is-changed-and-checked.md) realises
+ADR-1420 in one task, TSK-2150.
 
 ## Defects
 
