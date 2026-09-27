@@ -47,7 +47,33 @@ Nothing. It changes only the skill.
 
 ## Evidence
 
-Not yet.
+`meow-author:write` gains a step pointing at `meow-author cost` and
+`/skill-doctor`, and a rules group, "when material loads", of eleven labelled
+rules, each with its reason and none naming a requirement, a language or a
+tool:
+
+| Requirement | Carried by |
+| ----------- | ---------- |
+| REQ-1052    | C1         |
+| REQ-1054    | C2         |
+| REQ-1068    | C3         |
+| REQ-1070    | C4         |
+| REQ-1076    | C5         |
+| REQ-1078    | C6         |
+| REQ-2696    | C7         |
+| REQ-2698    | C8         |
+| REQ-2700    | C9         |
+| REQ-2702    | C10        |
+| REQ-2704    | C11        |
+
+The skill's description is unchanged, so its measured routing stands.
+
+```text
+$ plugins/meow-author/bin/meow-author check plugins/meow-author
+1 files, 0 authoring failures
+$ plugins/meow-verbs/bin/meow-verbs run format lint test
+summary: format passed, lint passed, test passed
+```
 
 ## Left alone
 
