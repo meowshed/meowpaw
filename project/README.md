@@ -149,6 +149,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1370](adrs/ADR-1370-each-unit-ships-its-own-page-and-a-program-holds-the-documentation-to-the-tree.md):
   each unit ships its own page, and a program holds the documentation to the
   tree.
+- [ADR-1380](adrs/ADR-1380-the-document-step-writes-one-kind-per-page-and-checks-through-the-verbs.md):
+  the document step writes one kind per page to the declared style, and
+  checks documentation through the verbs.
 
 ## Specifications
 
@@ -300,6 +303,9 @@ fix; EPC-1120 names its measurement on both models as unmet.
 [EPC-1350](epics/EPC-1350-the-documentation-ships-with-its-units.md) realises
 ADR-1370 in four tasks, TSK-2030 to TSK-2060, each closed with evidence, and
 was verified against every acceptance criterion under issue 425.
+
+[EPC-1360](epics/EPC-1360-the-document-step-carries-its-obligations.md)
+realises ADR-1380 in two tasks, TSK-2070 and TSK-2080.
 
 ## Defects
 
