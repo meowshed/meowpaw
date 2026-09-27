@@ -12,6 +12,8 @@ states:
     REQ-0135,
     REQ-0136,
     REQ-0144,
+    REQ-0146,
+    REQ-0148,
     REQ-0150,
     REQ-0154,
     REQ-0156,
@@ -28,21 +30,22 @@ This covers the five verification verbs a repository declares and the unit
 that resolves, reports and runs them, `meow-verbs`. It states where a verb
 resolves from, what an unresolved verb reports, and what a run records.
 
-It leaves binding a verb to a runner's tasks, language packs, running a verb
-over part of the work and keeping results for evidence to later decisions,
-which ADR-1070 names. How the unit's skill is written is SPC-1030's.
+It leaves binding a verb to a runner's tasks, language packs and running a
+verb over part of the work to later decisions, which ADR-1070 names. How the
+unit's skill is written is SPC-1030's.
 
-ADR-1070 decides it, EPC-1040 realises it, and `meow-verbs` implements it,
-checked at #115.
+ADR-1070 and ADR-1480 decide it, EPC-1040 and EPC-1460 realise them, and
+`meow-verbs` implements it, checked at #115.
 
 ## Boundary
 
-| Surface                             | What it is                                                     |
-| ----------------------------------- | -------------------------------------------------------------- |
-| `.meowpaw/profile.toml`, `[verbs]`  | The repository's declaration: one command per verb it declares |
-| `plugins/meow-verbs/bin/meow-verbs` | The program: `status` and `run <verb>...`                      |
-| `plugins/meow-verbs/skills/verify/` | The skill that tells the model to use the program, not a guess |
-| `plugins/meow-verbs/README.md`      | The unit's documentation page                                  |
+| Surface                             | What it is                                                      |
+| ----------------------------------- | --------------------------------------------------------------- |
+| `.meowpaw/profile.toml`, `[verbs]`  | The repository's declaration: one command per verb it declares  |
+| `plugins/meow-verbs/bin/meow-verbs` | The program: `status`, `run <verb>...` and `evidence [verb...]` |
+| `<state>/meowpaw/evidence/`         | The ledger of recorded results, outside the repository          |
+| `plugins/meow-verbs/skills/verify/` | The skill that tells the model to use the program, not a guess  |
+| `plugins/meow-verbs/README.md`      | The unit's documentation page                                   |
 
 ## Behaviour
 
@@ -122,6 +125,33 @@ exits with 0 only when every named verb ran and passed: 1 when any failed, and
 error, because a run of every declared verb would pass while the undeclared
 ones went unmentioned.
 
+### What `run` records
+
+`run` records each verb it runs, an unresolved one included, in a ledger
+outside the repository: the verb, the command, the outcome, the exit status,
+the time and the tree id, with the whole output in a file named for the
+record, and prints `recorded: <record> at tree <tree id>` under its summary
+(REQ-0146) (ADR-1480). The ledger is `<state>/meowpaw/evidence/<key>.jsonl`,
+where `<state>` is `$XDG_STATE_HOME` where it is set, and otherwise
+`%LOCALAPPDATA%` on Windows and `~/.local/state` elsewhere, and `<key>` is a
+hash of the work tree's absolute path. `meow-verbs` only appends to it.
+
+The tree id is git's hash of the working state as a tree object, untracked
+files included and ignored ones left out, built through a temporary index so
+the repository's own index is untouched. It equals the tree of a commit that
+adds every file it counted. The program takes it before and after each verb,
+and a record whose two ids differ is marked as changed during the run. Outside
+a git work tree the tree id is `none`.
+
+### What `evidence` reports
+
+`meow-verbs evidence [verb...]` prints the latest record for each named verb,
+or every verb with a record when none is named: its outcome, its identifier,
+and `current` or `stale` with the tree it ran on and the tree now. The latest
+record decides. It exits 0 when every named verb's latest record passed on the
+current tree; 1 when one failed, is stale or changed during its run; and 3
+when one has no record, was unresolved or is bound to no tree (REQ-0148).
+
 ### The skill
 
 `meow-verbs:verify` carries the obligation to use the program whenever the
@@ -129,7 +159,10 @@ model would format, lint, type-check, test or build, in the description form
 SPC-1030 states. It runs `status` before the first `run` in a session, so the
 commands the profile names are on screen before anything executes, and it
 reports each verb with the kind of result the program gave, never rounding an
-unresolved verb into a pass.
+unresolved verb into a pass. It runs `format` before the other verbs, cites a
+result as `evidence` prints it, and calls the work done only when `evidence`
+on the verbs the change needs exits 0 or a person accepts what it reported
+(REQ-0146, REQ-0148).
 
 ### The program
 
