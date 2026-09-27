@@ -152,6 +152,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1380](adrs/ADR-1380-the-document-step-writes-one-kind-per-page-and-checks-through-the-verbs.md):
   the document step writes one kind per page to the declared style, and
   checks documentation through the verbs.
+- [ADR-1390](adrs/ADR-1390-the-method-unit-is-meow-flow-and-meow-method-stays-one-release-as-a-stub.md):
+  the method's unit is `meow-flow`, and `meow-method` stays one release as a
+  stub that says so.
 
 ## Specifications
 
@@ -307,6 +310,9 @@ was verified against every acceptance criterion under issue 425.
 [EPC-1360](epics/EPC-1360-the-document-step-carries-its-obligations.md)
 realised ADR-1380 in two tasks, TSK-2070 and TSK-2080, each closed with
 evidence, and was verified against every acceptance criterion under issue 433.
+
+[EPC-1370](epics/EPC-1370-the-method-unit-is-meow-flow.md) realises ADR-1390 in
+two tasks, TSK-2090 and TSK-2100.
 
 ## Defects
 
