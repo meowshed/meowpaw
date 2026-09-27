@@ -404,6 +404,11 @@ uncovered is still open only where that defect is recorded. Where the defect
 contradicts an acceptance criterion, the step names both and says why closing
 is right (REQ-3170) (ADR-1440).
 
+The implement step cites each verb's result under a task's Evidence as
+`meow-verbs evidence` prints it, with the record and the tree id, and records
+the command, its exit status and its output where `meow-verbs` isn't
+installed, because `meow-flow` works without it (REQ-0146) (ADR-1480).
+
 ### The gate
 
 Before it writes, a step runs `paw ready <step> <id>...` with the

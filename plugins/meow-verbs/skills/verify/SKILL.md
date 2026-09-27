@@ -14,7 +14,8 @@ report at all.
 1. Before the first run in a session, run
    `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs status` and show its output, so
    the person sees each command before anything runs.
-2. Run the verbs the work needs, naming each one:
+2. Run the verbs the work needs, naming each one, with `format` first where
+   it is among them:
    `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs run test`, or several at once,
    such as `run format lint test`. Never run a verb's command yourself, and never
    run a command you chose in place of an unresolved verb.
@@ -24,15 +25,29 @@ report at all.
 4. Where a verb the work needs is unresolved, tell the person how to declare
    it, and stop there. Stop, because only the repository knows what the verb
    means for it.
+5. Before you call the work done, run
+   `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs evidence` with the verbs the work
+   needs. On exit 0, cite each result as it printed. On anything else, report
+   what it printed and stop until the person accepts it or the verbs pass.
 </steps>
 
 <rules name="reporting">
-- V1. Call the work done only when every verb it needs passed, or when the
-  person has said they accept a verb that failed or stayed unresolved, because
-  a claim of done over a failing check is the substitution this unit exists to
-  stop.
+- V1. Call the work done only when `meow-verbs evidence` on every verb it
+  needs exits 0, or when the person has said they accept what it reported,
+  because a claim of done over a failing, unresolved or stale check is the
+  substitution this unit exists to stop.
 - V2. Report the program's exit status beside its summary: 0 when every named
   verb passed, 1 when one failed and 3 when one was unresolved.
+- V3. Cite a result as `evidence` prints it, with the verb, the outcome, the
+  record and the tree id, and never restate the output in your own words,
+  because the tree id is what shows the result is about the content in front
+  of the reader.
+- V4. Run `format` before the other verbs, because a formatter that rewrites
+  files leaves every result taken before it stale.
+- V5. Where `evidence` reports a result bound to no tree, report the command,
+  its exit status and its output, and say that nothing binds it to the
+  content, because outside a git work tree no record can show which content it
+  checked.
 </rules>
 
 <example name="an unresolved verb">
