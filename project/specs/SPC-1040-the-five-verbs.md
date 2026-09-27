@@ -16,6 +16,7 @@ states:
     REQ-0154,
     REQ-0156,
     REQ-0158,
+    REQ-2908,
   ]
 ---
 
@@ -47,10 +48,11 @@ checked at #115.
 
 ### The verbs
 
-There are five verbs and no others: `fmt` for formatting, `lint` for static
-analysis, `typecheck` for type checking, `test` for tests and `build` for the
-build (REQ-0130). A unit adds no sixth (REQ-0131), because a sixth verb is a
-check with no agreed meaning across repositories.
+There are five verbs and no others: `format` for formatting, `lint` for static
+analysis, `check` for type checking, which in a compiled language is the
+compiler checking the code without building it, `test` for tests and `build`
+for the build (REQ-0130, REQ-2908). A unit adds no sixth (REQ-0131), because a
+sixth verb is a check with no agreed meaning across repositories.
 
 ### Where a verb resolves from
 

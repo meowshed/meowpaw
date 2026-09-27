@@ -158,6 +158,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1400](adrs/ADR-1400-a-licensing-unit-applies-the-declared-header-and-a-program-checks-every-file-is-covered.md):
   a licensing unit applies the header a repository declares, and a program
   checks that every file is covered.
+- [ADR-1410](adrs/ADR-1410-the-verbs-are-format-lint-check-test-and-build.md):
+  the verbs are `format`, `lint`, `check`, `test` and `build`, and the old
+  names are read for one release.
 
 ## Specifications
 
@@ -324,6 +327,9 @@ against every acceptance criterion under issue 441.
 
 [EPC-1380](epics/EPC-1380-licensing-applied-and-checked.md) realises ADR-1400
 in three tasks, TSK-2110 to TSK-2130.
+
+[EPC-1390](epics/EPC-1390-the-verbs-are-renamed.md) realises ADR-1410 in one
+task, TSK-2140.
 
 ## Defects
 
