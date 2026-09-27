@@ -52,9 +52,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-1008, REQ-1016, REQ-1018, REQ-1020, REQ-3066, REQ-3068
       depends: TSK-2110 - the skill ships in the unit T-001 creates
 
-- [ ] T-003 [P] TSK-2130 show the attribution ban passes a copyright line,
+- [x] T-003 [P] TSK-2130 show the attribution ban passes a copyright line,
       and state the cost of declaring prose in bulk
       closes: REQ-3060, REQ-3070
+      evidence: the copyright fixture and the cost stated in `REUSE.toml`, in
+      #446.
 
 ## Coverage
 

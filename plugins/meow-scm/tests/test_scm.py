@@ -103,6 +103,14 @@ class Convention(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("meets the declared convention", done.stdout)
 
+    def test_a_copyright_line_is_not_attribution(self):
+        """REQ-3070: a copyright line, even one naming a vendor, credits no tool with the work."""
+        message = ("fix: vendor the upstream example file\n\nIt keeps its header, SPDX-FileCopyrightText: 2026 "
+                   f"Anthropic, PBC, from its source.\n\n{SIGNED}\n")
+        done = self.repo().check(message)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("meets the declared convention", done.stdout)
+
     def test_no_commits_table_leaves_the_convention_undeclared(self):
         done = self.repo(profile='[verbs]\ntest = "true"\n').check("Whatever I like\n")
         self.assertEqual(done.returncode, 3)
