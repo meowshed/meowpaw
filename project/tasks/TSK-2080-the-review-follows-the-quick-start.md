@@ -38,7 +38,19 @@ either order.
 
 ## Evidence
 
-Not yet.
+`steps/review.md` carries two new labelled rules and a numbered step for a
+change that touches documentation. W11 carries REQ-2834: follow a changed
+quick start from an empty directory, and report it as read and not run where
+that can't be done. W12 judges each changed page against the kind it names,
+holding REQ-1952 and REQ-1954 as a judgement beside the document step's O5
+and O6, which close them. A search of the file for record identifiers finds 0.
+
+```text
+$ python3 tools/check_prompts.py
+52 shipped prompts, 0 failures
+$ meow-verbs run fmt lint test
+summary: fmt passed, lint passed, test passed
+```
 
 ## Left alone
 
