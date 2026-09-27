@@ -177,6 +177,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1470](adrs/ADR-1470-the-record-reports-deep-coverage-suspect-citations-and-unconnected-artifacts.md):
   the record reports deep coverage, suspect citations and unconnected
   artifacts.
+- [ADR-1480](adrs/ADR-1480-meow-verbs-records-each-result-against-the-tree-it-ran-on.md):
+  `meow-verbs` records each result against the tree it ran on, and evidence
+  cites the record.
 
 ## Specifications
 
@@ -375,6 +378,9 @@ verified against every acceptance criterion under issue 498.
 [EPC-1450](epics/EPC-1450-record-connections-reported.md) realises ADR-1470
 in two tasks, TSK-2240 and TSK-2250, each closed with evidence, and was
 verified against every acceptance criterion under issue 506.
+
+[EPC-1460](epics/EPC-1460-results-recorded-as-evidence.md) realises ADR-1480
+in two tasks, TSK-2270 and TSK-2280.
 
 ## Defects
 
