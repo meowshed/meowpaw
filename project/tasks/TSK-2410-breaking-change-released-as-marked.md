@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1540
 closes: [REQ-3192]
-issue:
+issue: 572
+projected: cbe5fcd311d7
 ---
 
 # The release refuses a breaking change without the version showing it

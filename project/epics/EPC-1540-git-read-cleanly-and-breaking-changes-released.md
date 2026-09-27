@@ -45,9 +45,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2400 read paths with `-z`, hold the lock-free helper and the
+- [x] T-001 TSK-2400 read paths with `-z`, hold the lock-free helper and the
       configuration rule with unit tests
       closes: REQ-2522, REQ-2524, REQ-2540
+      evidence: two path fixtures and the configuration scan seen failing
+      first, in #571.
 
 - [ ] T-002 [P] TSK-2410 refuse a release of a breaking change without the
       version showing it

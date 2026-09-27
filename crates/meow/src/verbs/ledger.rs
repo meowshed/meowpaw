@@ -39,16 +39,31 @@ pub fn evidence_dir(root: &Path) -> String {
 /// Whether git ignores a kept file: `Ok(None)` when it doesn't, `Ok(Some(rule))`
 /// when it does, and `Err` when git can't answer (ADR-1550).
 pub fn ignored_by(root: &Path, path: &Path) -> std::result::Result<Option<String>, String> {
-    let done = profile::reading_git()
+    // git takes `-z` here only with the path on standard input, NUL-terminated,
+    // so a path it would escape is read as it is (REQ-2522).
+    let mut child = profile::reading_git()
         .current_dir(root)
-        .args(["check-ignore", "-v", "--"])
-        .arg(path)
-        .output()
+        .args(["check-ignore", "-v", "-z", "--stdin"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
         .map_err(|e| e.to_string())?;
+    if let Some(mut input) = child.stdin.take() {
+        let mut bytes = path.as_os_str().to_string_lossy().into_owned().into_bytes();
+        bytes.push(0);
+        input.write_all(&bytes).map_err(|e| e.to_string())?;
+    }
+    let done = child.wait_with_output().map_err(|e| e.to_string())?;
     match done.status.code() {
         Some(0) => {
-            let line = String::from_utf8_lossy(&done.stdout);
-            let rule = line.split('\t').next().unwrap_or("").to_string();
+            // The fields are the source, the line number, the pattern and the path.
+            let text = String::from_utf8_lossy(&done.stdout);
+            let fields: Vec<&str> = text.split('\0').collect();
+            let rule = match (fields.first(), fields.get(1)) {
+                (Some(source), Some(line)) => format!("{source}:{line}"),
+                _ => String::new(),
+            };
             Ok(Some(rule))
         }
         Some(1) => Ok(None),
@@ -149,8 +164,10 @@ pub fn kept_by_this_work(root: &Path) -> (Vec<PathBuf>, Option<String>) {
     let Some(base) = git(&["merge-base", "HEAD", &trunk]).map(|b| b.trim().to_string()) else {
         return (all(), Some(format!("the branch has no base on {trunk}")));
     };
-    let mut names: Vec<String> = git(&["diff", "--name-only", "--diff-filter=A", &base, "--", &dir]).unwrap_or_default().lines().map(str::to_string).collect();
-    names.extend(git(&["ls-files", "--others", "--exclude-standard", "--", &dir]).unwrap_or_default().lines().map(str::to_string));
+    // NUL-separated, so a path git would escape reads as it is (REQ-2522).
+    let split = |text: String| text.split('\0').filter(|n| !n.is_empty()).map(str::to_string).collect::<Vec<_>>();
+    let mut names: Vec<String> = split(git(&["diff", "-z", "--name-only", "--diff-filter=A", &base, "--", &dir]).unwrap_or_default());
+    names.extend(split(git(&["ls-files", "-z", "--others", "--exclude-standard", "--", &dir]).unwrap_or_default()));
     names.sort();
     names.dedup();
     (names.into_iter().filter(|n| n.ends_with(".txt")).map(|n| root.join(n)).collect(), None)
