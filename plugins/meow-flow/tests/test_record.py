@@ -1497,6 +1497,16 @@ class Connections(unittest.TestCase):
         self.assertIn("project/adrs/ADR-0001-a-choice.md: rests on REQ-0001, which is withdrawn, through "
                       "ADR-0001 -> REQ-0001", done.stdout)
 
+    def test_a_living_artifact_over_a_rejected_provider_is_reported(self):
+        """REQ-0139: a living artifact can be moved off a rejected provider, so check reports it."""
+        repository = self.repo()
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: rejected")
+        done = repository.run("check", "coverage")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("project/specs/SPC-0001-a-part.md: rests on RES-0002, which is rejected, through "
+                      "SPC-0001 -> REQ-0001 -> RES-0002", done.stdout)
+        self.assertNotIn("project/adrs/ADR-0001-a-choice.md: rests on", done.stdout)
+
     def test_a_draft_citing_a_later_revision_is_suspect(self):
         """REQ-0141: a draft citing an artifact revised after it is reported, and so is a living one."""
         repository = self.repo()
@@ -1531,6 +1541,50 @@ class Connections(unittest.TestCase):
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("project/tasks/TSK-0001-a-task.md:6: epic EPC-0001 is withdrawn, so the citation is suspect",
                       done.stdout)
+
+
+class Reported(unittest.TestCase):
+    """ADR-1470: status reports what only a new record can fix, and fails on none of it."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def test_an_approved_unconnected_artifact_is_listed_and_a_draft_is_not(self):
+        """REQ-0143: an artifact nothing cites and that cites nothing is reported, once it is approved."""
+        repository = self.repo()
+        sections = ["Summary", "Method", "Conclusions", "Sources"]
+        repository.write("research/RES-0003-alone.md", record("research", "RES-0003", {}, sections))
+        repository.write("research/RES-0004-being-written.md", record("research", "RES-0004", {"status": "draft"}, sections))
+        done = repository.run("status")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("  unconnected, citing nothing and cited by nothing: RES-0003\n", done.stdout)
+
+    def test_a_rejected_provider_and_a_frozen_suspect_citation_are_reported(self):
+        """REQ-0143: what only a new record can fix is reported by status and fails nothing."""
+        repository = self.repo()
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: rejected")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "revised: 2026-01-01", "revised: 2026-02-01")
+        done = repository.run("status")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("  RES-0002, rejected, under 5 approved artifacts: ADR-0001, BUG-0001, EPC-0001, REQ-0001, "
+                      "TSK-0001\n", done.stdout)
+        self.assertIn("  3 suspect citations in approved artifacts: ADR-0001 addresses REQ-0001, BUG-0001 violates "
+                      "REQ-0001, TSK-0001 closes REQ-0001\n", done.stdout)
+
+    def test_the_share_resting_on_judgement_is_stated(self):
+        """REQ-0161: the requirements in force are counted by how they are verified."""
+        repository = self.repo()
+        for number, verification in ((2, "behavioural"), (3, "evaluation"), (4, "judgement\nverifier: agent"),
+                                     (5, "judgement\nverifier: person")):
+            repository.write(f"requirements/REQ-000{number}-more.md", record(
+                "requirement", f"REQ-000{number}",
+                {"topic": "a", "class": "functional", "verification": verification, "elaborates": "RES-0002"}, []))
+        said = repository.run("status").stdout
+        self.assertIn("  by verification: 1 static, 1 behavioural, 1 evaluation, 2 judgement "
+                      "(1 by an agent, 1 by a person)\n", said)
+        self.assertIn("  3 of 5 rest on evaluation or judgement, not on a mechanical check\n", said)
 
 
 if __name__ == "__main__":
