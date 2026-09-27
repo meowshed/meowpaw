@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.31.0]
+describes: [meow-flow@0.31.1]
 ---
 
 # meow-flow
@@ -99,6 +99,11 @@ style = "docs/style.md"
 Where you declare none, it says so and writes to the writing standard in
 force. It names each page's kind before writing it, runs every example it
 writes, and reports which of your verbs checked the documentation.
+
+A defect authorises work as a decision does. Where the fix is one task, the
+defect record carries it under `## Tasks`, with the same marks an epic uses,
+and the task names `bug: BUG-NNNN` in place of `epic`. `paw status` counts the
+tasks decisions authorised and the tasks defects did.
 
 A step refuses when its input is missing or not approved, because the program
 checks that before the step writes anything:

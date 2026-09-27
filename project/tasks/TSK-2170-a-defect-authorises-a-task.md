@@ -47,7 +47,33 @@ Nothing. ADR-1440 is approved.
 
 ## Evidence
 
-Not yet.
+A task names its authorising record in `epic` or `bug`, and the layout no
+longer requires `epic`; `one-authority` reports a draft task naming neither or
+both. It is a draft rule because three planning tasks approved before
+ADR-1440, TSK-1000, TSK-1100 and TSK-1220, carry an empty `epic`. The layout
+adds `bug` and `prompted-by` to the relations, and a defect's `## Tasks`
+section carries the epic's marks and rules. The record's program derives a
+task's state and readiness from whichever record authorises it, lets
+`check frozen` accept changes to an approved defect's Tasks and Closed by
+sections, skips an epic realising a defect in the coverage of decisions, and
+prints the tasks each kind authorised in `status`. The task and defect
+templates and `meow-flow`'s page describe it, and the unit is at 0.31.1, a
+patch, because ADR-1390 holds 0.32.0 for removing the old index markers.
+
+Six fixtures in `DefectTasks`, each naming its requirement or ADR-1440, failed
+against `main`'s `paw` and pass against this one:
+
+```text
+$ MEOW_FLOW_BIN=<main's paw> python3 -m unittest ... -k DefectTasks
+FAILED (6 failures)
+$ python3 -m unittest discover -s plugins/meow-flow/tests
+OK
+$ plugins/meow-flow/bin/paw status
+Tasks
+  116 in all: 116 authorised by decisions, 0 by defects
+$ plugins/meow-verbs/bin/meow-verbs run format lint test
+summary: format passed, lint passed, test passed
+```
 
 ## Left alone
 

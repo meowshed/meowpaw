@@ -1336,5 +1336,67 @@ class Named(unittest.TestCase):
         self.assertEqual(found, [])
 
 
+
+class DefectTasks(unittest.TestCase):
+    """ADR-1440: a defect authorises a task directly, with no epic."""
+
+    def repo(self, bug_status="approved", mark="x"):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        bug = record("bug", "BUG-0002", {"status": bug_status, "violates": "REQ-0001", "severity": "minor",
+                                          "found": "2026-01-01"},
+                     ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"])
+        bug += f"\n## Tasks\n\n- [{mark}] T-001 TSK-0002 restore the obligation\n      evidence: the reproduction passes.\n"
+        repository.write("bugs/BUG-0002-a-second-defect.md", bug)
+        repository.write("tasks/TSK-0002-a-fix.md", record(
+            "task", "TSK-0002", {"bug": "BUG-0002", "closes": "[REQ-0001]"},
+            ["What to do", "Depends on", "Evidence", "Left alone"]).replace(
+            "## Depends on\n\nText.", "## Depends on\n\nNothing."))
+        return repository
+
+    def test_a_task_a_defect_marks_done_is_done(self):
+        """REQ-0354: a defect carries its own task, and the task's state derives from its mark."""
+        done = self.repo().run("show", "REQ-0001")
+        self.assertIn("TSK-0002 done in BUG-0002", done.stdout)
+
+    def test_a_task_under_an_approved_defect_is_ready(self):
+        """REQ-0352: a defect record authorises work exactly as a decision record does."""
+        done = self.repo(mark=" ").run("ready", "implement", "TSK-0002")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_task_under_a_draft_defect_is_not_ready(self):
+        """REQ-0352: a draft defect authorises nothing yet."""
+        done = self.repo(bug_status="draft", mark=" ").run("ready", "implement", "TSK-0002")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("BUG-0002, the defect of TSK-0002, is draft and not approved", done.stdout)
+
+    def test_status_counts_tasks_by_their_authority(self):
+        """REQ-0374: the proportion of work defects authorise is reported."""
+        done = self.repo().run("status")
+        self.assertIn("2 in all: 1 authorised by decisions, 1 by defects", done.stdout)
+
+    def test_a_draft_task_naming_no_authority_is_reported(self):
+        """ADR-1440: a task names exactly one epic or one defect."""
+        repository = self.repo()
+        repository.write("tasks/TSK-0003-a-stray.md", record(
+            "task", "TSK-0003", {"status": "draft", "closes": "[REQ-0001]"},
+            ["What to do", "Depends on", "Evidence", "Left alone", "Acceptance criteria"]))
+        done = repository.run("check", "rules")
+        self.assertIn("TSK-0003-a-stray.md", done.stdout)
+        self.assertIn("names 0 authorising records", done.stdout)
+
+    def test_a_defects_marks_change_after_approval(self):
+        """ADR-1440: an approved defect's Tasks section changes as an epic's marks do."""
+        repository = self.repo(mark=" ")
+        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                                     "commit", "-q", "-m", "base"]):
+            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
+        repository.edit("bugs/BUG-0002-a-second-defect.md", "- [ ] T-001", "- [x] T-001")
+        repository.edit("bugs/BUG-0002-a-second-defect.md", "## Closed by\n\nText.", "## Closed by\n\nThe reproduction, now a check.")
+        done = repository.run("check", "frozen")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        repository.edit("bugs/BUG-0002-a-second-defect.md", "## Triage\n\nText.", "## Triage\n\nRewritten.")
+        self.assertEqual(repository.run("check", "frozen").returncode, 1)
+
 if __name__ == "__main__":
     unittest.main()

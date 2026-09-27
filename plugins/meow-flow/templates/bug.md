@@ -46,3 +46,11 @@ priority: when to fix it is the tracker's question, not the record's.
 The reproduction, now passing, and where it lives as a regression check. The
 fix is a task of its own, or a change reviewed on its own, never an edit made
 inside this record.
+
+## Tasks
+
+Where the fix is one task, this defect carries it, and the task names
+`bug: BUG-NNNN`; where it needs several with an order between them, an epic
+realises this defect instead. Delete this section where neither applies.
+
+- [ ] T-001 TSK-NNNN <what, with the path it touches>

@@ -40,9 +40,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2170 let a defect authorise a task directly, and count work by
+- [x] T-001 TSK-2170 let a defect authorise a task directly, and count work by
       its authority
       closes: REQ-0352, REQ-0354, REQ-0374
+      evidence: six fixtures and `status` counting tasks by authority, in #475.
 
 - [ ] T-002 TSK-2180 hold a defect's triage, reproduction and closing in
       `paw check`
