@@ -339,7 +339,8 @@ task, TSK-2140, closed with evidence, and was verified against every
 acceptance criterion under issue 455.
 
 [EPC-1400](epics/EPC-1400-how-code-is-changed-and-checked.md) realises
-ADR-1420 in one task, TSK-2150.
+ADR-1420 in one task, TSK-2150, closed with evidence, and was verified against
+every acceptance criterion under issue 464.
 
 ## Defects
 
