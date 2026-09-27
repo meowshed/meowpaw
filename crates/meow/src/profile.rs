@@ -80,6 +80,65 @@ mod tests {
         (dir, read)
     }
 
+    /// Every file under `dir` with one of `extensions`, recursively.
+    fn files(dir: &Path, extensions: &[&str], out: &mut Vec<PathBuf>) {
+        let Ok(entries) = std::fs::read_dir(dir) else { return };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().to_string();
+            if path.is_dir() && !["target", "evals", "tests", ".git"].contains(&name.as_str()) {
+                files(&path, extensions, out);
+            } else if extensions.iter().any(|e| name.ends_with(e)) {
+                out.push(path);
+            }
+        }
+    }
+
+    #[test]
+    fn a_read_takes_no_optional_lock() {
+        // REQ-2524: a read never takes the index lock or refreshes the index.
+        let git = reading_git();
+        let set = git.get_envs().any(|(k, v)| k == "GIT_OPTIONAL_LOCKS" && v == Some(std::ffi::OsStr::new("0")));
+        assert!(set, "the reading helper doesn't set GIT_OPTIONAL_LOCKS=0");
+    }
+
+    #[test]
+    fn git_starts_only_in_the_reading_helper() {
+        // REQ-2524: a git started elsewhere would read without the helper's settings.
+        let pattern = format!("Command::new({:?})", "git");
+        let mut sources = Vec::new();
+        files(&Path::new(env!("CARGO_MANIFEST_DIR")).join("src"), &[".rs"], &mut sources);
+        let outside: Vec<String> = sources
+            .iter()
+            .filter(|p| p.file_name().is_some_and(|n| n != "profile.rs"))
+            .filter(|p| std::fs::read_to_string(p).unwrap_or_default().contains(&pattern))
+            .map(|p| p.display().to_string())
+            .collect();
+        assert!(outside.is_empty(), "git started outside the reading helper in {outside:?}");
+    }
+
+    #[test]
+    fn nothing_the_harness_ships_writes_global_git_configuration() {
+        // REQ-2540: configuration outside the repository reaches every repository on the machine.
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
+        let mut scanned = Vec::new();
+        files(&Path::new(env!("CARGO_MANIFEST_DIR")).join("src"), &[".rs"], &mut scanned);
+        files(&root.join("plugins"), &[".md", ".json", ".toml"], &mut scanned);
+        files(&root.join(".github"), &[".yml", ".yaml"], &mut scanned);
+        let command = ["git", "config"].join(" ");
+        let scopes = [["--", "global"].concat(), ["--", "system"].concat()];
+        let mut found = Vec::new();
+        for path in &scanned {
+            for (n, line) in std::fs::read_to_string(path).unwrap_or_default().lines().enumerate() {
+                if line.contains(&command) && scopes.iter().any(|s| line.contains(s.as_str())) {
+                    found.push(format!("{}:{}", path.display(), n + 1));
+                }
+            }
+        }
+        assert!(scanned.len() > 20, "scanned only {} files, so the scan found nothing to judge", scanned.len());
+        assert!(found.is_empty(), "global or system git configuration written at {found:?}");
+    }
+
     #[test]
     fn a_missing_profile_is_absent() {
         assert!(matches!(with_profile(None).1, Profile::Absent));
