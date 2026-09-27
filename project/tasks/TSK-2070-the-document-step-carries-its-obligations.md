@@ -56,7 +56,38 @@ Nothing. ADR-1380 is approved.
 
 ## Evidence
 
-Not yet.
+Each requirement this task closes is carried by a labelled rule in
+`steps/document.md`, and the step's numbered steps read the declared style,
+name the kind first, and run the examples and the verbs after editing. No rule
+names a requirement, a language or a tool: a search of the file for record
+identifiers finds 0.
+
+| Requirement | Carried by              |
+| ----------- | ----------------------- |
+| REQ-0287    | O12 and O13, and step 4 |
+| REQ-0289    | O12                     |
+| REQ-1950    | O4, and step 2          |
+| REQ-1952    | O5                      |
+| REQ-1954    | O6                      |
+| REQ-1956    | O9                      |
+| REQ-1958    | O7                      |
+| REQ-1960    | O8                      |
+| REQ-1962    | O10, and step 1         |
+| REQ-1964    | O11                     |
+| REQ-2836    | O13, and step 4         |
+
+This repository declares `[docs] style = "meow-prose"` in its profile, and
+`meow-verbs status` still resolves the three verbs it did, listing `[docs]`
+among the tables it doesn't read. `meow-method`'s page says the step reads the
+declaration, and the unit moves to 0.31.0 for the new behaviour, with its
+pages restamped.
+
+```text
+$ python3 tools/check_prompts.py
+52 shipped prompts, 0 failures
+$ meow-verbs run fmt lint test
+summary: fmt passed, lint passed, test passed
+```
 
 ## Left alone
 
