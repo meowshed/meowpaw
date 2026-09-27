@@ -13,6 +13,8 @@ mod profile;
 mod github;
 #[cfg(feature = "git")]
 mod git;
+#[cfg(feature = "licence")]
+mod licence;
 #[cfg(feature = "record")]
 mod record;
 #[cfg(feature = "scm")]
@@ -39,6 +41,8 @@ fn main() -> ExitCode {
         "record" => record::main(rest),
         #[cfg(feature = "github")]
         "github" => github::main(rest),
+        #[cfg(feature = "licence")]
+        "licence" => licence::main(rest),
         _ => {
             eprintln!("usage: meow <subcommand> ..., where this build carries: {}", carried().join(", "));
             2
@@ -64,6 +68,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "github") {
         names.push("github");
+    }
+    if cfg!(feature = "licence") {
+        names.push("licence");
     }
     names
 }

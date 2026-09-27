@@ -1,0 +1,13 @@
+{
+  "name": "meow-licence",
+  "version": "0.1.0",
+  "description": "Checks that every file a repository tracks is covered by the licensing it declares in REUSE.toml, in .meowpaw/profile.toml or in its files' headers, and reports an undeclared repository as undeclared, never as covered. It keeps nothing in context on every turn.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-licence/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["licence", "license", "reuse", "spdx", "meowpaw"]
+}
