@@ -126,6 +126,18 @@ states:
     REQ-0337,
     REQ-0339,
     REQ-0341,
+    REQ-0348,
+    REQ-0350,
+    REQ-0352,
+    REQ-0354,
+    REQ-0356,
+    REQ-0358,
+    REQ-0360,
+    REQ-0364,
+    REQ-0368,
+    REQ-0370,
+    REQ-0372,
+    REQ-0374,
     REQ-0390,
     REQ-0392,
     REQ-0394,
@@ -276,7 +288,9 @@ states:
     REQ-3124,
     REQ-3126,
     REQ-3128,
+    REQ-3170,
     REQ-3172,
+    REQ-3174,
     REQ-3180,
   ]
 ---
@@ -360,6 +374,35 @@ to the repository's own style guide, or the name of an installed unit that
 ships one. Where the profile declares none, the step says so and writes to the
 writing standard in force. It reports which verb checked the documentation it
 changed, and reports the documentation as unchecked where no verb covers it.
+
+### A defect's path
+
+A defect record authorises work as a decision does (REQ-0352), and its path
+begins with a reproduction (REQ-0348). A task names its authorising record in
+exactly one of `epic` and `bug`. A task a defect authorises restores a
+requirement already in force, so its `closes` may be empty (REQ-0350), and the
+defect carries a `## Tasks` section with an epic's marks, from which the
+task's state derives (REQ-0354). An epic realises a defect only where the fix
+needs at least two tasks with an order between them (REQ-0356).
+
+A defect carries a reproduction before it is triaged (REQ-0364). Its triage
+answers first whether a requirement in force covers the behaviour, in
+`violates` or in its Triage section (REQ-0358), and names in `enters` the step
+the defect enters at: `implement` where the code fails a requirement in force,
+`design` where the design fails it, `requirements` where the requirement is
+wrong or none covers the behaviour, and `research` where the cause is unknown
+(REQ-0360). The defect records its severity (REQ-0372). A defect closed as not
+a defect is stored `rejected` with its reasoning under Triage (REQ-0370), and a
+closed defect's Closed by names the check that stays as a regression check
+(REQ-0368). `paw status` counts the tasks decisions authorised and the tasks
+defects did (REQ-0374).
+
+The implement step begins a defect's task by running its reproduction and
+seeing it fail, and a defect a gate caught and the same change closed needs no
+record of its own (REQ-3174). The verify step closes an epic while a defect it
+uncovered is still open only where that defect is recorded. Where the defect
+contradicts an acceptance criterion, the step names both and says why closing
+is right (REQ-3170) (ADR-1440).
 
 ### The gate
 

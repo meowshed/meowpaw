@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-flow index -->
 
-44 decisions in all: 44 approved.
+45 decisions in all: 45 approved.
 
 | Identifier                                                                                                      | What it concluded                                                                                                | Status   |
 | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------- |
@@ -61,6 +61,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1410](ADR-1410-the-verbs-are-format-lint-check-test-and-build.md)                                          | The verbs are `format`, `lint`, `check`, `test` and `build`, and the old names are read for one release          | approved |
 | [ADR-1420](ADR-1420-a-coding-unit-holds-how-code-is-changed-and-how-a-check-is-written.md)                      | A coding unit holds how code is changed and how a check is written                                               | approved |
 | [ADR-1430](ADR-1430-a-debugging-skill-reproduces-first-and-tests-one-hypothesis-at-a-time.md)                   | A debugging skill reproduces first and tests one hypothesis at a time                                            | approved |
+| [ADR-1440](ADR-1440-a-defect-authorises-work-directly-and-enters-the-chain-where-its-triage-says.md)            | A defect authorises work directly, and enters the chain where its triage says                                    | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390.
 <!-- /meow-flow index -->
