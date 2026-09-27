@@ -1,0 +1,13 @@
+{
+  "name": "meow-method",
+  "version": "0.30.0",
+  "description": "Renamed to meow-flow. This stub tells each session how to move an install to meow-flow, and carries no skill and no program. It keeps nothing in context on every turn, and prints a short notice when a session starts.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-method/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["meowpaw", "renamed", "meow-flow"]
+}

@@ -40,6 +40,11 @@ class Standalone(unittest.TestCase):
         out, _ = findings(root)
         self.assertEqual(out, ["plugins/meow-a/bin/meow-a:1: runs a file of meow-b, another unit"])
 
+    def test_a_link_to_another_units_page_runs_nothing(self):
+        """REQ-0012: a page linking another unit's page by address depends on nothing it runs."""
+        root = self.plugins({"meow-a/README.md": "See [its page](https://example.org/blob/main/plugins/meow-b/README.md).\n"})
+        self.assertEqual(findings(root), ([], 1))
+
     def test_fixtures_are_not_shipped_behaviour(self):
         root = self.plugins({"meow-a/tests/test_a.py": "PATH = 'plugins/meow-b/'\n",
                              "meow-a/bin/meow-a": "exec plugins/meow-b/bin/meow-b\n"})

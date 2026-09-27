@@ -8,6 +8,7 @@ describes:
     meow-git@0.2.2,
     meow-github@0.4.1,
     meow-flow@0.31.0,
+    meow-method@0.30.0,
     meow-prose-gate@0.1.2,
     meow-scm@0.4.1,
     meow-verbs@0.2.2,
@@ -117,6 +118,17 @@ approved input, and `paw` lists what is missing below the message, such as a
 task another one depends on that isn't done. Approve the input or finish the
 task it names, then run the step again. If you run `/meow-flow:run` with
 nothing newly approved, it says what it is waiting on.
+
+## meow-method is now meow-flow
+
+`meow-method is now meow-flow` means the unit you installed as `meow-method`
+was renamed, and the copy under the old name is a stub with no skill and no
+`paw`. Move the install:
+
+```bash
+claude plugin install meow-flow@meowpaw
+claude plugin uninstall meow-method@meowpaw
+```
 
 ## GitHub's client couldn't run
 
