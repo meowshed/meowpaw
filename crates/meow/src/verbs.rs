@@ -87,7 +87,7 @@ fn resolve(root: &Path) -> Report {
             ignored.extend(
                 declared
                     .keys()
-                    .filter(|key| !VERBS.contains(&key.as_str()))
+                    .filter(|key| !VERBS.contains(&key.as_str()) && key.as_str() != "evidence_dir")
                     .map(|key| format!("verbs.{key}")),
             );
             let verbs = VERBS
@@ -336,7 +336,11 @@ fn run(root: &Path, args: &[String]) -> u8 {
 /// now: 0 when every one passed on it, 1 when one failed, went stale or
 /// changed during its run, and 3 when one has no record, was unresolved or is
 /// bound to no tree (REQ-0146, REQ-0148).
-fn evidence(root: &Path, names: &[String]) -> u8 {
+fn evidence(root: &Path, args: &[String]) -> u8 {
+    // `--keep` copies each current record into the repository (ADR-1530).
+    let keep = args.iter().any(|a| a == "--keep");
+    let names: Vec<String> = args.iter().filter(|a| a.as_str() != "--keep").cloned().collect();
+    let names = names.as_slice();
     let unknown: Vec<&str> = names.iter().map(String::as_str).filter(|name| !VERBS.contains(name)).collect();
     if !unknown.is_empty() {
         eprintln!("meow-verbs evidence: {} isn't a verb; the five are {}", unknown.join(", "), VERBS.join(" "));
@@ -385,6 +389,19 @@ fn evidence(root: &Path, names: &[String]) -> u8 {
         } else {
             println!("{head}, current at tree {}", ledger::short(&tree));
             failed |= outcome != "passed";
+            if keep {
+                match ledger::keep(root, latest) {
+                    Ok(path) => println!("  kept: {}", path.strip_prefix(root).unwrap_or(&path).display()),
+                    Err(reason) => {
+                        println!("  not kept: {reason}");
+                        failed = true;
+                    }
+                }
+            }
+            continue;
+        }
+        if keep {
+            println!("  not kept: only a current record is kept, because any other describes other content than the tree");
         }
     }
     if failed {
@@ -403,9 +420,19 @@ pub fn main(args: &[String]) -> u8 {
         ["status"] => status(&root, false),
         ["status", "--json"] => status(&root, true),
         ["run", rest @ ..] => run(&root, &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>()),
+        ["tree", commit] => match ledger::tree_of_commit(&root, commit) {
+            Ok(tree) => {
+                println!("{tree}");
+                PASSED
+            }
+            Err(reason) => {
+                eprintln!("meow-verbs tree: {reason}");
+                FAILED
+            }
+        },
         ["evidence", rest @ ..] => evidence(&root, &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>()),
         _ => {
-            eprintln!("usage: meow-verbs status [--json] | meow-verbs run <verb>... | meow-verbs evidence [verb...]");
+            eprintln!("usage: meow-verbs status [--json] | meow-verbs run <verb>... [-- <target>...] | meow-verbs evidence [--keep] [verb...] | meow-verbs tree <commit>");
             USAGE
         }
     }
