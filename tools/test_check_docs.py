@@ -31,6 +31,14 @@ INDEX = """Start here.
 - `explanation`: nothing to explain.
 - `troubleshooting`: nothing fails.
 """
+ROUTE = """# demo
+
+> A demo harness.
+
+## Documentation
+
+- [Introduction](docs/README.md): where to start
+"""
 PAGE = "---\nreader: someone running {unit}\nanswers: what {unit} does\nkind: reference\ndescribes: [{unit}@{version}]\n---\n\n# {unit}\n\n{body}\n"
 
 
@@ -41,6 +49,7 @@ class Tree:
         self.unit("meow-demo", "1.0.0")
         (self.root / "docs").mkdir()
         self.write("docs/README.md", PAGE.format(unit="meow-demo", version="1.0.0", body=INDEX).replace("kind: reference", "kind: introduction"))
+        self.write("llms.txt", ROUTE)
         self.index()
 
     def index(self):
@@ -176,6 +185,24 @@ class CheckDocs(unittest.TestCase):
         index = tree.root / "docs/README.md"
         index.write_text(index.read_text(encoding="utf-8").replace("## Planned\n\n- a second demo.\n\n", ""), encoding="utf-8")
         self.assertFails(tree, "docs/README.md: has no Planned section")
+
+    def test_a_route_link_to_a_missing_file_fails(self):
+        """REQ-3144: the route file links the documentation, and a link resolves."""
+        tree = self.tree()
+        tree.write("llms.txt", ROUTE + "- [Gone](docs/gone.md)\n")
+        self.assertFails(tree, "llms.txt:8: links to docs/gone.md, which doesn't exist")
+
+    def test_a_route_file_without_its_heading_fails(self):
+        """REQ-3144: the route file follows the published format, H1 first."""
+        tree = self.tree()
+        tree.write("llms.txt", ROUTE.replace("# demo\n\n", ""))
+        self.assertFails(tree, "llms.txt: lacks its H1")
+
+    def test_prose_in_the_route_file_fails(self):
+        """REQ-3146: the route file links material and restates none of it."""
+        tree = self.tree()
+        tree.write("llms.txt", ROUTE + "\nThe demo runs checks and reports them.\n")
+        self.assertFails(tree, "llms.txt:9: neither a heading, the summary nor a link")
 
     def test_an_identifier_in_code_is_an_example(self):
         """REQ-3130: a unit that reads the record shows its syntax in code, which isn't a citation."""

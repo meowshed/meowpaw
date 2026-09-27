@@ -67,8 +67,9 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-2030 - the index is generated from the front matter T-001
       adds
 
-- [ ] T-004 [P] TSK-2060 write `llms.txt` and check its links
+- [x] T-004 [P] TSK-2060 write `llms.txt` and check its links
       closes: REQ-3144, REQ-3146
+      evidence: three fixtures and `llms.txt` at the root, in #417.
       depends: TSK-2030 - the route file links the pages at the paths T-001
       gives them
 
