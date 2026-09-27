@@ -20,17 +20,38 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// A tree id, or `none` where the directory isn't a git work tree.
 pub const UNBOUND: &str = "none";
 
+/// The record's default root, a copy of `meow-flow`'s, since neither unit may
+/// depend on the other; change both together (ADR-1550).
+const RECORD_ROOT: &str = "project";
+
 /// Where kept evidence lives in the repository: `evidence_dir` under `[verbs]`,
-/// or `.meowpaw/evidence` (ADR-1530).
+/// or `evidence` under the record's root (ADR-1550).
 pub fn evidence_dir(root: &Path) -> String {
-    match profile::read(root) {
-        profile::Profile::Parsed(table) => table
-            .get("verbs")
-            .and_then(|v| v.get("evidence_dir"))
-            .and_then(|v| v.as_str())
-            .map(|d| d.trim_end_matches('/').to_string())
-            .unwrap_or_else(|| ".meowpaw/evidence".to_string()),
-        _ => ".meowpaw/evidence".to_string(),
+    let table = match profile::read(root) {
+        profile::Profile::Parsed(table) => table,
+        _ => toml::Table::new(),
+    };
+    let text = |section: &str, key: &str| table.get(section).and_then(|v| v.get(key)).and_then(|v| v.as_str()).map(|d| d.trim_end_matches('/').to_string());
+    text("verbs", "evidence_dir").unwrap_or_else(|| format!("{}/evidence", text("record", "root").unwrap_or_else(|| RECORD_ROOT.to_string())))
+}
+
+/// Whether git ignores a kept file: `Ok(None)` when it doesn't, `Ok(Some(rule))`
+/// when it does, and `Err` when git can't answer (ADR-1550).
+pub fn ignored_by(root: &Path, path: &Path) -> std::result::Result<Option<String>, String> {
+    let done = profile::reading_git()
+        .current_dir(root)
+        .args(["check-ignore", "-v", "--"])
+        .arg(path)
+        .output()
+        .map_err(|e| e.to_string())?;
+    match done.status.code() {
+        Some(0) => {
+            let line = String::from_utf8_lossy(&done.stdout);
+            let rule = line.split('\t').next().unwrap_or("").to_string();
+            Ok(Some(rule))
+        }
+        Some(1) => Ok(None),
+        _ => Err(String::from_utf8_lossy(&done.stderr).trim().to_string()),
     }
 }
 
@@ -113,8 +134,8 @@ pub fn keep(root: &Path, record: &Value) -> std::result::Result<PathBuf, String>
     );
     let dir = root.join(evidence_dir(root));
     std::fs::create_dir_all(&dir).map_err(|e| format!("can't create {}: {e}", dir.display()))?;
-    let path = dir.join(format!("{id}.log"));
-    let partial = dir.join(format!(".{id}.log.partial"));
+    let path = dir.join(format!("{id}.txt"));
+    let partial = dir.join(format!(".{id}.txt.partial"));
     std::fs::write(&partial, format!("{header}{output}")).map_err(|e| format!("can't write {}: {e}", partial.display()))?;
     std::fs::rename(&partial, &path).map_err(|e| format!("can't move {} into place: {e}", path.display()))?;
     Ok(path)

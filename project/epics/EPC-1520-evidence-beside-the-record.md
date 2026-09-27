@@ -39,9 +39,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2370 keep evidence at `<record root>/evidence/<record>.txt`
+- [x] T-001 TSK-2370 keep evidence at `<record root>/evidence/<record>.txt`
       and report a kept file git ignores or can't check
       closes: REQ-2956
+      evidence: four fixtures seen failing first, and this task's results kept
+      in `project/evidence/`, in #553.
 
 ## Coverage
 
