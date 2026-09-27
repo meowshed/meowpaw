@@ -180,6 +180,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1480](adrs/ADR-1480-meow-verbs-records-each-result-against-the-tree-it-ran-on.md):
   `meow-verbs` records each result against the tree it ran on, and evidence
   cites the record.
+- [ADR-1490](adrs/ADR-1490-a-record-is-reviewed-by-an-agent-that-did-not-write-it.md):
+  a record is reviewed by an agent that didn't write it, and its verdict is
+  labelled as an agent's.
 
 ## Specifications
 
@@ -382,6 +385,9 @@ verified against every acceptance criterion under issue 506.
 [EPC-1460](epics/EPC-1460-results-recorded-as-evidence.md) realises ADR-1480
 in two tasks, TSK-2270 and TSK-2280, each closed with evidence, and was
 verified against every acceptance criterion under issue 517.
+
+[EPC-1470](epics/EPC-1470-records-reviewed-by-an-agent.md) realises ADR-1490
+in two tasks, TSK-2290 and TSK-2300.
 
 ## Defects
 
