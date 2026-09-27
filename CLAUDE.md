@@ -90,7 +90,7 @@ Templates ship inside the plugin that owns them and are read from
 `${CLAUDE_PLUGIN_ROOT}`, so a repository gets them from the installed harness
 and never from a copy that drifts. A repository that wants one changed puts its
 own in `.meowpaw/templates/`, which overrides. The record's templates ship with
-`meow-method`, and `paw template <kind>` prints the one in force.
+`meow-flow`, and `paw template <kind>` prints the one in force.
 
 One artifact per file, named for its identifier, in a directory named for its
 kind. A directory appears when its first artifact does. A record is found by
@@ -395,13 +395,13 @@ mise run all          # fmt-check, lint, style, prompts, kernel, standalone and 
 | `standalone` | A unit's file runs a path outside the unit's own directory      |
 | `budget`     | A unit loads more on every turn than its `budget.toml` states   |
 
-The record is checked by `meow-method`, a unit the harness ships, because a
+The record is checked by `meow-flow`, a unit the harness ships, because a
 harness checked by a mechanism it doesn't ship hasn't been shown to work. It
 checks front matter, identifiers, relations, each kind's index, coverage and
 shape, where `.meowpaw/profile.toml` declares the record:
 
 ```bash
-plugins/meow-method/bin/paw check
+plugins/meow-flow/bin/paw check
 ```
 
 Four checks stay in `tools/` as Python scripts, because they read this

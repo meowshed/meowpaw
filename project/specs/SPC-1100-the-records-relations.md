@@ -64,7 +64,7 @@ fields, and resolving an identifier to its artifact and to what cites it. It
 leaves checking that a relation resolves to SPC-1070's relations check.
 
 ADR-1150 and ADR-1180 decide it, EPC-1150 and EPC-1180 realise them, and
-`meow-method` implements it, verified under issue 259.
+`meow-flow` implements it, verified under issue 259.
 
 ## Boundary
 
@@ -123,8 +123,11 @@ artifact, what it concluded, taken from its own summary or statement, and its
 stored status only (REQ-0522, REQ-2870, REQ-2872, REQ-2873). Once a kind holds
 more than 36 artifacts, a view grouped by topic follows, where the kind has a
 `topic` field (REQ-2871). With `--write`, it replaces the block between
-`<!-- meow-method index -->` and `<!-- /meow-method index -->` in the kind's
-index file, and leaves the rest of the file as its author wrote it. `check
+`<!-- meow-flow index -->` and `<!-- /meow-flow index -->` in the kind's
+index file, and leaves the rest of the file as its author wrote it. An index
+carrying `<!-- meow-method index -->`, the markers from before the unit's
+rename, is read until `meow-flow` 0.32.0, and `--write` moves it to the new
+markers (ADR-1390). `check
 index` reports a generated block that differs from what `index` prints, so a
 change adding or removing an artifact without its index fails in that change
 (REQ-0523, REQ-0575).

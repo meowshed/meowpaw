@@ -16,7 +16,7 @@
 - [meow-verbs](plugins/meow-verbs/README.md): the five verification verbs, run as the repository declares them
 - [meow-scm](plugins/meow-scm/README.md): the commit convention, checked before a message is used
 - [meow-git](plugins/meow-git/README.md): refuses a commit on the trunk and checks a branch before it is pushed
-- [meow-method](plugins/meow-method/README.md): runs the method's nine steps and checks the record they write
+- [meow-flow](plugins/meow-flow/README.md): runs the method's nine steps and checks the record they write
 - [meow-github](plugins/meow-github/README.md): reads a GitHub repository's history, and writes nothing
 
 ## Optional

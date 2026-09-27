@@ -13,7 +13,7 @@ does as though somebody had decided it must.
 <steps name="onboard">
 1. Run `meow-verbs status` where that unit is installed, and note which verbs
    resolve; where `.meowpaw/profile.toml` is missing, stop and say to run
-   `/meow-method:init` first.
+   `/meow-flow:init` first.
 2. Read the repository's documentation, any harness it already has, and its
    code, in that order. Where the `meow-github` command exists, run
    `meow-github history` and read its issues, pull requests and comments as

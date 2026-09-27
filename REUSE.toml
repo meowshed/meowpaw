@@ -10,7 +10,7 @@ SPDX-PackageDownloadLocation = "https://github.com/meowshed/meowpaw"
 path = [
   "project/**",
   "docs/**",
-  "plugins/meow-method/templates/**",
+  "plugins/meow-flow/templates/**",
   "README.md",
   "llms.txt",
   "CLAUDE.md",
