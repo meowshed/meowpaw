@@ -10,7 +10,7 @@
 fields = ["id", "artifact", "status", "revised"]
 
 # The front matter fields whose values name other artifacts.
-relations = ["elaborates", "addresses", "postpones", "supersedes", "realises", "epic", "closes", "states", "violates"]
+relations = ["elaborates", "addresses", "postpones", "supersedes", "realises", "epic", "bug", "closes", "states", "violates", "prompted-by"]
 
 # Per kind: `sections` every record carries, `draft_sections` a draft carries
 # as well, `first_section` it opens with, `required_values` fields it must
@@ -108,7 +108,11 @@ name = "task"
 artifact = "task"
 prefix = "TSK"
 dir = "tasks"
-fields = ["epic", "closes"]
+# A task names the epic or the defect that authorises it, exactly one of the
+# two, which `one-authority` checks on drafts: three planning tasks approved
+# before ADR-1440 name neither, and keep the rules they were approved under.
+fields = ["closes"]
+draft_rules = ["one-authority"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 sections = ["What to do", "Depends on", "Evidence", "Left alone"]
 draft_sections = ["Acceptance criteria"]
@@ -125,6 +129,7 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
 forbidden_fields = ["priority"]
+rules = ["done-has-evidence", "added-says-why", "dropped-says-why"]
 
 [[kind]]
 name = "insight"

@@ -275,7 +275,7 @@ fn closing_tasks(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> V
         if !requirements_in(record, task.value("closes")).contains(id) {
             continue;
         }
-        let epic_id = bare(task.value("epic")).to_string();
+        let epic_id = authority_of(task).to_string();
         let epic = known.get(epic_id.as_str());
         let mark = epic.and_then(|e| marks(e).into_iter().find(|(t, _)| t == bare(task.id())).map(|(_, m)| m)).unwrap_or(' ');
         let checked = epic.map(|e| bare(e.value("checked-at")).to_string()).unwrap_or_default();
@@ -359,6 +359,7 @@ fn check_frozen(rest: &[String]) -> u8 {
         let allowed = match kind.name.as_str() {
             "epic" => bare(old.value("checked-at")).is_empty(),
             "task" => frozen_part(&before) == frozen_part(&doc.text),
+            "defect" => defect_frozen_part(&before) == defect_frozen_part(&doc.text),
             _ => false,
         };
         if !allowed {
@@ -423,6 +424,24 @@ fn frozen_part(text: &str) -> String {
             in_evidence = heading.trim() == "Evidence";
         }
         if in_evidence || line.starts_with("issue:") || line.starts_with("projected:") || line.starts_with("revised:") {
+            continue;
+        }
+        out.push(line);
+    }
+    out.join("\n")
+}
+
+/// A defect's text without what may change after approval: the marks of the
+/// tasks it carries, what closed it, its issue and its revision date
+/// (ADR-1440).
+fn defect_frozen_part(text: &str) -> String {
+    let mut out = Vec::new();
+    let mut open = false;
+    for line in text.lines() {
+        if let Some(heading) = line.strip_prefix("## ") {
+            open = matches!(heading.trim(), "Tasks" | "Closed by");
+        }
+        if open || line.starts_with("issue:") || line.starts_with("revised:") {
             continue;
         }
         out.push(line);
@@ -874,6 +893,10 @@ fn coverage(record: &Record) -> Vec<Finding> {
         let epic_id = bare(epic.id());
         let realises = bare(epic.value("realises"));
         let Some(decision) = decisions.iter().find(|d| bare(d.id()) == realises) else {
+            // An epic may realise a defect, which addresses no requirement to cover.
+            if known.get(realises).is_some_and(|d| kind_of(record, d) == "defect") {
+                continue;
+            }
             out.push(Finding::at(epic, epic.field("realises").map(|f| f.line), format!("realises {realises}, which is not a decision")));
             continue;
         };
@@ -1279,6 +1302,13 @@ fn rules(record: &Record) -> Vec<Finding> {
                         out.push(Finding::at(doc, lines.first().map(|(n, _)| n - 1), "has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working".into()));
                     }
                 }
+                "one-authority" => {
+                    let named = [doc.value("epic"), doc.value("bug")].iter().filter(|v| !bare(v).is_empty()).count();
+                    if named != 1 {
+                        let field = doc.field("epic").or_else(|| doc.field("bug"));
+                        out.push(Finding::at(doc, field.map(|f| f.line), format!("names {named} authorising records, where a task names exactly one epic or one defect")));
+                    }
+                }
                 "addresses-or-postpones" => {
                     let named = requirements_in(record, doc.value("addresses")).len() + requirements_in(record, doc.value("postpones")).len();
                     if named == 0 {
@@ -1335,6 +1365,13 @@ fn marks(epic: &Doc) -> Vec<(String, char)> {
         .collect()
 }
 
+/// The record that authorises a task: the epic it names, or the defect that
+/// carries it directly (ADR-1440).
+fn authority_of(task: &Doc) -> &str {
+    let epic = bare(task.value("epic"));
+    if epic.is_empty() { bare(task.value("bug")) } else { epic }
+}
+
 fn finished(mark: char) -> bool {
     mark == 'x' || mark == '~'
 }
@@ -1352,7 +1389,7 @@ fn depends_on(task: &Doc) -> Vec<String> {
 /// Whether a task is marked done or dropped by the epic it names.
 fn task_finished(known: &BTreeMap<String, &Doc>, task: &str) -> bool {
     let Some(doc) = known.get(task) else { return false };
-    let Some(epic) = known.get(bare(doc.value("epic"))) else { return false };
+    let Some(epic) = known.get(authority_of(doc)) else { return false };
     marks(epic).iter().any(|(id, mark)| id == task && finished(*mark))
 }
 
@@ -1408,11 +1445,13 @@ fn ready(rest: &[String]) -> u8 {
                 }
             }
             "implement" => {
-                let epic_id = bare(doc.value("epic"));
+                let epic_id = authority_of(doc);
+                let what = if bare(doc.value("epic")).is_empty() { "the defect" } else { "the epic" };
                 match known.get(epic_id) {
                     Some(epic) if approved(epic) => {}
-                    Some(epic) => missing.push(format!("{epic_id}, the epic of {id}, is {} and not approved", bare(epic.value("status")))),
-                    None => missing.push(format!("{epic_id}, the epic of {id}, has no file")),
+                    Some(epic) => missing.push(format!("{epic_id}, {what} of {id}, is {} and not approved", bare(epic.value("status")))),
+                    None if epic_id.is_empty() => missing.push(format!("{id} names no epic and no defect")),
+                    None => missing.push(format!("{epic_id}, {what} of {id}, has no file")),
                 }
                 for dependency in depends_on(doc) {
                     if !task_finished(&known, &dependency) {
@@ -1573,6 +1612,11 @@ fn status(rest: &[String]) -> u8 {
         say!("  {id} {}", title(decision));
         say!("    {}", position(&record, &known, &findings, decision));
     }
+    say!();
+    say!("Tasks");
+    let tasks = of_kind(&record, "task");
+    let by_defect = tasks.iter().filter(|t| !bare(t.value("bug")).is_empty() || known.get(bare(t.value("epic"))).is_some_and(|e| known.get(bare(e.value("realises"))).is_some_and(|d| kind_of(&record, d) == "defect"))).count();
+    say!("  {} in all: {} authorised by decisions, {} by defects", tasks.len(), tasks.len() - by_defect, by_defect);
     say!();
     say!("Requirements");
     let states = ["verified", "closed and not yet verified", "in a task not yet done", "postponed", "checked by nothing"];
