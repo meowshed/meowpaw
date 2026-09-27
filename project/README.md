@@ -305,7 +305,8 @@ ADR-1370 in four tasks, TSK-2030 to TSK-2060, each closed with evidence, and
 was verified against every acceptance criterion under issue 425.
 
 [EPC-1360](epics/EPC-1360-the-document-step-carries-its-obligations.md)
-realises ADR-1380 in two tasks, TSK-2070 and TSK-2080.
+realised ADR-1380 in two tasks, TSK-2070 and TSK-2080, each closed with
+evidence, and was verified against every acceptance criterion under issue 433.
 
 ## Defects
 
