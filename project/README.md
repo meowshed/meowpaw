@@ -165,6 +165,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   a coding unit holds how code is changed and how a check is written.
 - [ADR-1430](adrs/ADR-1430-a-debugging-skill-reproduces-first-and-tests-one-hypothesis-at-a-time.md):
   a debugging skill reproduces first and tests one hypothesis at a time.
+- [ADR-1440](adrs/ADR-1440-a-defect-authorises-work-directly-and-enters-the-chain-where-its-triage-says.md):
+  a defect authorises work directly, and enters the chain where its triage
+  says.
 
 ## Specifications
 
@@ -347,6 +350,9 @@ every acceptance criterion under issue 464.
 [EPC-1410](epics/EPC-1410-a-defect-is-debugged-by-reproduction.md) realises
 ADR-1430 in one task, TSK-2160, closed with evidence, and was verified against
 every acceptance criterion under issue 472.
+
+[EPC-1420](epics/EPC-1420-a-defect-authorises-work-directly.md) realises
+ADR-1440 in three tasks, TSK-2170 to TSK-2190.
 
 ## Defects
 
