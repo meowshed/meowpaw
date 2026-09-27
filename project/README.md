@@ -352,7 +352,8 @@ ADR-1430 in one task, TSK-2160, closed with evidence, and was verified against
 every acceptance criterion under issue 472.
 
 [EPC-1420](epics/EPC-1420-a-defect-authorises-work-directly.md) realises
-ADR-1440 in three tasks, TSK-2170 to TSK-2190.
+ADR-1440 in three tasks, TSK-2170 to TSK-2190, each closed with evidence, and
+was verified against every acceptance criterion under issue 482.
 
 ## Defects
 
