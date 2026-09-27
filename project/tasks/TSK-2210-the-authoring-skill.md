@@ -55,7 +55,37 @@ TSK-2200, because the skill ships in the unit it creates.
 
 ## Evidence
 
-Not yet.
+`plugins/meow-author/skills/write/SKILL.md` carries four steps and seventeen
+labelled rules in two groups, every rule ADR-1450 lists, each with its reason;
+the program checks ten of them as well. The rules this task closes:
+
+| Requirement | Carried by |
+| ----------- | ---------- |
+| REQ-1116    | B2         |
+| REQ-1118    | B2         |
+| REQ-1126    | B5         |
+| REQ-2680    | A3         |
+| REQ-2682    | A4         |
+| REQ-2684    | A5         |
+| REQ-2686    | A6         |
+| REQ-2690    | A7         |
+| REQ-2692    | A8         |
+| REQ-2706    | B7         |
+| REQ-2708    | B8         |
+
+`meow-author check` passes on the skill, `check_budget.py` measures its
+description at 293 characters against the new ceiling of 400, and the unit is
+at 0.2.0 with its page stating the skill and its cost.
+
+Five sessions per model, with only the unit installed, were asked to add a
+skill, and five to change a line of code:
+
+```text
+claude-sonnet-5: loaded before the first write in 5 of 5; near misses 0 of 5
+claude-opus-5-5: loaded before the first write in 5 of 5; near misses 0 of 5
+$ plugins/meow-verbs/bin/meow-verbs run format lint test
+summary: format passed, lint passed, test passed
+```
 
 ## Left alone
 
