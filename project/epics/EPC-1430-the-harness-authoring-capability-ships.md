@@ -49,10 +49,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: thirteen fixtures, and the shipped check passing on this
       repository in the `prompts` task, in #485.
 
-- [ ] T-002 TSK-2210 give `meow-author` the skill that carries the rules a
+- [x] T-002 TSK-2210 give `meow-author` the skill that carries the rules a
       program can't settle
       closes: REQ-1116, REQ-1118, REQ-1126, REQ-2680, REQ-2682, REQ-2684,
       REQ-2686, REQ-2690, REQ-2692, REQ-2706, REQ-2708
+      evidence: seventeen rules, and the skill loading in ten of ten writes and
+      none of ten near misses, in #486.
       depends: TSK-2200 - the skill ships in the unit T-001 creates
 
 ## Coverage
