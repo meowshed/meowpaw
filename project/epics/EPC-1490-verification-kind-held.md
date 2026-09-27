@@ -37,8 +37,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2320 add the `verification-kind` rule to `paw check rules`
+- [x] T-001 TSK-2320 add the `verification-kind` rule to `paw check rules`
       closes: REQ-1664
+      evidence: two fixtures, the first seen failing, and `paw check` passing
+      on the project record, in #535.
 
 ## Coverage
 

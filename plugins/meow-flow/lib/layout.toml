@@ -80,7 +80,7 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "requirements/README.md"
 forbidden_fields = ["priority", "owner", "difficulty"]
 draft_rules = ["judgement-verifier", "one-obligation", "stands-alone", "no-negated-requirement"]
-rules = ["prompted-by-defect"]
+rules = ["prompted-by-defect", "verification-kind"]
 
 [[kind]]
 name = "decision"

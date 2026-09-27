@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1490
 closes: [REQ-1664]
-issue:
+issue: 535
+projected: 2938ffea9b6a
 ---
 
 # `paw check rules` holds each requirement's `verification` to the four kinds
@@ -36,7 +37,24 @@ Nothing. ADR-1510 is approved.
 
 ## Evidence
 
-Not yet.
+Closes REQ-1664. `meow-verbs evidence format lint test` exits 0:
+
+```text
+format: passed, record 79fc1c75e4e9, current at tree 3190db84228c
+lint: passed, record a06a0df28889, current at tree 3190db84228c
+test: passed, record 4604deb7850e, current at tree 3190db84228c
+```
+
+Each criterion's check:
+
+1. `VerificationKind.test_a_kind_outside_the_four_is_reported_on_drafts_and_approved_records`,
+   seen failing on the program before the rule.
+2. `VerificationKind.test_each_of_the_four_passes`, which passed before the
+   rule as well, since it holds that the rule adds no false finding.
+3. The `test` verb runs `paw check` on the project record, which reports 0
+   findings, withdrawn requirements included.
+
+`meow-flow` moves to 0.33.1.
 
 ## Left alone
 
