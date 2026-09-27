@@ -53,9 +53,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: five fixtures seen failing first, and `paw check` passing on
       the project record, in #502.
 
-- [ ] T-002 TSK-2250 report unconnected artifacts, frozen suspect citations
+- [x] T-002 TSK-2250 report unconnected artifacts, frozen suspect citations
       and the share resting on judgement in `paw status`
       closes: REQ-0143, REQ-0161
+      evidence: three fixtures seen failing first, and `paw status` on the
+      project record matching ADR-1470's counts, in #503.
 
 ## Coverage
 

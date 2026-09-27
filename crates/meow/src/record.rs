@@ -962,8 +962,8 @@ fn coverage(record: &Record) -> Vec<Finding> {
 
 /// An approved or living artifact resting on a draft anywhere up its chain,
 /// which approving or rejecting the draft clears, and a draft or living one
-/// resting on a withdrawn or superseded provider, which it can still be moved
-/// off (REQ-0139). An approved one over a rejected provider only a new record
+/// resting on a withdrawn, superseded or rejected provider, which it can
+/// still be moved off (REQ-0139). An approved one over a rejected provider only a new record
 /// can clear, so `status` reports it and this doesn't.
 fn chains(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Finding> {
     let mut out = Vec::new();
@@ -978,7 +978,7 @@ fn chains(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Finding> {
             let theirs = bare(provider.value("status"));
             let what = match theirs {
                 "draft" if settled => "a draft".to_string(),
-                "withdrawn" | "superseded" if open => format!("which is {theirs}"),
+                "withdrawn" | "superseded" | "rejected" if open => format!("which is {theirs}"),
                 _ => continue,
             };
             let id = path.last().cloned().unwrap_or_default();
@@ -1797,8 +1797,98 @@ fn status(rest: &[String]) -> u8 {
         say!("  none in force, so coverage is zero, not complete");
     } else {
         say!("  {} in force: {}", in_force.len(), parts.join(", "));
+        verification_share(&in_force);
+    }
+    say!();
+    say!("Only a new record can fix");
+    let fixes = frozen_findings(&record, &known);
+    if fixes.is_empty() {
+        say!("  nothing");
+    }
+    for line in fixes {
+        say!("  {line}");
     }
     CLEAN
+}
+
+/// How the requirements in force are verified, and the share resting on
+/// evaluation or judgement rather than a mechanical check (REQ-0161).
+fn verification_share(in_force: &[&Doc]) {
+    let kinds = ["static", "behavioural", "evaluation", "judgement"];
+    let mut tally = [0usize; 4];
+    let (mut agent, mut person, mut unstated) = (0, 0, 0);
+    for requirement in in_force {
+        let verification = bare(requirement.value("verification"));
+        match kinds.iter().position(|k| *k == verification) {
+            Some(i) => tally[i] += 1,
+            None => unstated += 1,
+        }
+        if verification == "judgement" {
+            match bare(requirement.value("verifier")) {
+                "agent" => agent += 1,
+                "person" => person += 1,
+                _ => {}
+            }
+        }
+    }
+    let mut parts: Vec<String> = kinds.iter().zip(tally).map(|(k, n)| format!("{n} {k}")).collect();
+    if unstated > 0 {
+        parts.push(format!("{unstated} unstated"));
+    }
+    // Requirements approved before a judgement had to name its verifier name none.
+    let unnamed = tally[3] - agent - person;
+    let named = if unnamed > 0 { format!(", {unnamed} naming none") } else { String::new() };
+    say!("  by verification: {} ({agent} by an agent, {person} by a person{named})", parts.join(", "));
+    say!("  {} of {} rest on evaluation or judgement, not on a mechanical check", tally[2] + tally[3], in_force.len());
+}
+
+/// What `check` leaves to `status` because the artifact is approved and
+/// frozen: a rejected provider under it, a citation of a target revised or
+/// retired since, and an artifact nothing connects (REQ-0143, ADR-1470).
+fn frozen_findings(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut under_rejected: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut suspected = Vec::new();
+    let mut cited = BTreeSet::new();
+    let mut citing = BTreeSet::new();
+    for doc in known.values() {
+        for key in &record.layout.relations {
+            if let Some(field) = doc.field(key) {
+                for found in record.ids.find_iter(&field.value).filter(|m| known.contains_key(m.as_str())) {
+                    cited.insert(found.as_str().to_string());
+                    citing.insert(bare(doc.id()).to_string());
+                }
+            }
+        }
+        if !approved(doc) {
+            continue;
+        }
+        for (path, provider) in providers(record, known, doc) {
+            if bare(provider.value("status")) == "rejected" {
+                under_rejected.entry(path.last().cloned().unwrap_or_default()).or_default().insert(bare(doc.id()).to_string());
+            }
+        }
+        for (field, id, _) in suspects(record, known, doc) {
+            suspected.push(format!("{} {} {id}", bare(doc.id()), field.key));
+        }
+    }
+    for (provider, under) in under_rejected {
+        let noun = if under.len() == 1 { "artifact" } else { "artifacts" };
+        out.push(format!("{provider}, rejected, under {} approved {noun}: {}", under.len(), under.into_iter().collect::<Vec<_>>().join(", ")));
+    }
+    if !suspected.is_empty() {
+        let noun = if suspected.len() == 1 { "citation" } else { "citations" };
+        out.push(format!("{} suspect {noun} in approved artifacts: {}", suspected.len(), suspected.join(", ")));
+    }
+    let alone: Vec<&str> = known
+        .iter()
+        .filter(|(id, doc)| matches!(bare(doc.value("status")), "approved" | "live") && !cited.contains(*id) && !citing.contains(*id))
+        .map(|(id, _)| id.as_str())
+        .collect();
+    if !alone.is_empty() {
+        out.push(format!("unconnected, citing nothing and cited by nothing: {}", alone.join(", ")));
+    }
+    out
 }
 
 fn template(rest: &[String]) -> u8 {
