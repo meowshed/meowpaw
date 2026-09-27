@@ -51,7 +51,36 @@ Nothing. ADR-1370 is approved.
 
 ## Evidence
 
-Not yet.
+Each unit's page moved to `plugins/<unit>/README.md`, and `docs/` holds only
+`README.md`. Every page opens with `reader`, `answers`, `kind` and
+`describes`, stamped at each unit's version in `plugin.json`. Each page's
+"Where the rules come from" section, which only sent the reader into the
+record, is gone, and the two measurements the pages cited now state their
+facts without the citation. The homepages in `plugin.json` and the committed
+catalogue point at the moved pages, and SPC-1040 to SPC-1070 name them.
+
+`tools/check_docs.py` holds the pages, and the `test` verb runs it and its
+fixtures. Six of the nine fixtures in `tools/test_check_docs.py`, each naming
+its requirement, failed against a program that reports nothing, and all nine
+pass against the check:
+
+```text
+$ CHECK_DOCS=stub.py python3 -m unittest tools/test_check_docs.py
+FAILED (failures=6)
+$ python3 -m unittest tools/test_check_docs.py
+Ran 9 tests
+OK
+$ python3 tools/check_docs.py
+9 pages, 0 documentation failures
+$ meow-verbs run fmt lint test
+summary: fmt passed, lint passed, test passed
+```
+
+A record identifier inside code counts as an example of the record's syntax,
+which `meow-method` and `meow-github` show on their pages, and SPC-1110 says
+so. `meow-method`'s check for its old command name read the index marker on
+its page once the page shipped inside the unit, so it skips the marker
+ADR-1350 keeps. `CLAUDE.md` names four checks in `tools/`.
 
 ## Left alone
 

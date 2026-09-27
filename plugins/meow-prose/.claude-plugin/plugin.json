@@ -6,7 +6,7 @@
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
   },
-  "homepage": "https://github.com/meowshed/meowpaw/blob/main/docs/meow-prose.md",
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-prose/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
   "keywords": ["writing", "prose", "style", "documentation", "meowpaw"]

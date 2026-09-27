@@ -1,3 +1,10 @@
+---
+reader: someone choosing or running meow-verbs
+answers: what meow-verbs does, what it adds to a session and how to run it
+kind: reference
+describes: [meow-verbs@0.2.1]
+---
+
 # meow-verbs
 
 `meow-verbs` runs your repository's checks the way the repository declared
@@ -65,9 +72,3 @@ each documented by Claude Code:
 
 - a skill loaded by its description: [documentation](https://code.claude.com/docs/en/skills.md)
 - a plugin's `bin/` programs, run by path: [documentation](https://code.claude.com/docs/en/plugins-reference.md)
-
-## Where the rules come from
-
-The decision is
-`project/adrs/ADR-1070-the-five-verbs-resolve-from-the-profile.md`, and the
-unit is specified in `project/specs/SPC-1040-the-five-verbs.md`.

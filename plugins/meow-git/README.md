@@ -1,3 +1,10 @@
+---
+reader: someone choosing or running meow-git
+answers: what meow-git does, what it adds to a session and how to run it
+kind: reference
+describes: [meow-git@0.2.1]
+---
+
 # meow-git
 
 `meow-git` is a pack for repositories that use `git`. It refuses a commit on
@@ -77,9 +84,3 @@ in `plugins/meow-git/requires.toml`. It relies on these platform behaviours,
 each documented by Claude Code:
 
 - `PreToolUse` command hooks filtered by an `if` rule, which Claude Code applies as a best-effort filter: [documentation](https://code.claude.com/docs/en/hooks.md)
-
-## Where the rules come from
-
-The decision is
-`project/adrs/ADR-1090-a-git-pack-enforces-the-convention-at-push.md`, and the
-pack is specified in `project/specs/SPC-1060-the-git-pack.md`.
