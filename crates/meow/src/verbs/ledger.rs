@@ -65,6 +65,11 @@ fn temporary_index() -> PathBuf {
 /// because the evidence describes the work and isn't part of it (ADR-1530);
 /// or `none` outside a git work tree.
 pub fn tree_id(root: &Path) -> String {
+    // An edit inside a submodule changes nothing in the parent's tree, so a
+    // dirty submodule binds no result at all (ADR-1560).
+    if dirty_submodule(root).is_some() {
+        return UNBOUND.to_string();
+    }
     let git = |args: &[&str]| profile::reading_git().current_dir(root).args(args).output().ok();
     let inside = git(&["rev-parse", "--is-inside-work-tree"])
         .is_some_and(|o| o.status.success() && String::from_utf8_lossy(&o.stdout).trim() == "true");
@@ -94,6 +99,61 @@ pub fn tree_id(root: &Path) -> String {
         Some(done) => String::from_utf8_lossy(&done.stdout).trim().to_string(),
         None => UNBOUND.to_string(),
     }
+}
+
+/// The first submodule with uncommitted changes, untracked files included and
+/// ignored ones left out, as the parent counts them (ADR-1560).
+pub fn dirty_submodule(root: &Path) -> Option<String> {
+    if !root.join(".gitmodules").is_file() {
+        return None;
+    }
+    let done = profile::reading_git()
+        .current_dir(root)
+        .args(["submodule", "foreach", "--quiet", "--recursive", "test -z \"$(git status --porcelain)\" || echo \"$displaypath\""])
+        .output()
+        .ok()?;
+    String::from_utf8_lossy(&done.stdout).lines().next().map(str::to_string)
+}
+
+/// A kept file's header fields, as `keep` wrote them.
+pub fn header_of(path: &Path) -> Option<Value> {
+    let text = std::fs::read_to_string(path).ok()?;
+    let mut lines = text.lines();
+    if lines.next()? != "meow-verbs evidence 1" {
+        return None;
+    }
+    let mut fields = serde_json::Map::new();
+    for line in lines.take_while(|l| !l.is_empty()) {
+        if let Some((key, value)) = line.split_once(": ") {
+            fields.insert(key.to_string(), Value::from(value));
+        }
+    }
+    Some(Value::Object(fields))
+}
+
+/// The kept files this work adds against the branch's base on the trunk, or
+/// every kept file with the reason it couldn't tell (REQ-0456).
+pub fn kept_by_this_work(root: &Path) -> (Vec<PathBuf>, Option<String>) {
+    let dir = evidence_dir(root);
+    let all = || {
+        let mut found: Vec<PathBuf> = std::fs::read_dir(root.join(&dir)).map(|e| e.flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == "txt")).collect()).unwrap_or_default();
+        found.sort();
+        found
+    };
+    let trunk = match profile::read(root) {
+        profile::Profile::Parsed(table) => table.get("git").and_then(|g| g.get("trunk")).and_then(|t| t.as_str()).map(str::to_string),
+        _ => None,
+    };
+    let Some(trunk) = trunk else { return (all(), Some("no trunk is declared under [git]".into())) };
+    let git = |args: &[&str]| profile::reading_git().current_dir(root).args(args).output().ok().filter(|o| o.status.success()).map(|o| String::from_utf8_lossy(&o.stdout).to_string());
+    let Some(base) = git(&["merge-base", "HEAD", &trunk]).map(|b| b.trim().to_string()) else {
+        return (all(), Some(format!("the branch has no base on {trunk}")));
+    };
+    let mut names: Vec<String> = git(&["diff", "--name-only", "--diff-filter=A", &base, "--", &dir]).unwrap_or_default().lines().map(str::to_string).collect();
+    names.extend(git(&["ls-files", "--others", "--exclude-standard", "--", &dir]).unwrap_or_default().lines().map(str::to_string));
+    names.sort();
+    names.dedup();
+    (names.into_iter().filter(|n| n.ends_with(".txt")).map(|n| root.join(n)).collect(), None)
 }
 
 /// A commit's tree id with the evidence directory left out, the id a kept
