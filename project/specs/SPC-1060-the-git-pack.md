@@ -2,7 +2,7 @@
 id: SPC-1060
 artifact: spec
 status: live
-revised: 2026-09-26
+revised: 2026-09-27
 checked-at: "#392"
 states:
   [
@@ -17,12 +17,15 @@ states:
     REQ-1324,
     REQ-1326,
     REQ-1328,
+    REQ-2522,
+    REQ-2524,
     REQ-2526,
     REQ-2528,
     REQ-2530,
     REQ-2534,
     REQ-2536,
     REQ-2538,
+    REQ-2540,
     REQ-2818,
     REQ-2820,
     REQ-2822,
@@ -125,6 +128,14 @@ through, because a pack that blocked every commit for a missing binary would
 punish the person for something the pack can't check.
 
 ### Source-control discipline
+
+Every list of paths the native tool reads from git is NUL-separated with `-z`,
+so an unusual path reads as it is (REQ-2522). Every git read goes through one
+helper, which sets `GIT_OPTIONAL_LOCKS=0`, and a unit test fails on git started
+anywhere else in the native tool (REQ-2524). The harness writes git
+configuration only inside the repository, and a unit test fails where the
+native tool, a shipped prompt or a workflow names `git config` with `--global`
+or `--system` (REQ-2540) (ADR-1570).
 
 A sign-off names the commit's author, which `meow-scm check-message` holds
 where the trailer is required (REQ-1312); a branch name carries no date and no
