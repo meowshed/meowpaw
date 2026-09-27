@@ -1,7 +1,7 @@
 {
   "name": "meow-licence",
-  "version": "0.1.0",
-  "description": "Checks that every file a repository tracks is covered by the licensing it declares in REUSE.toml, in .meowpaw/profile.toml or in its files' headers, and reports an undeclared repository as undeclared, never as covered. It keeps nothing in context on every turn.",
+  "version": "0.2.0",
+  "description": "Adds the licence header a repository declares to each file Claude Code creates, never rewrites one, and checks that every tracked file is covered by the licensing declared in REUSE.toml, in .meowpaw/profile.toml or in its files' headers. It keeps up to 380 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
