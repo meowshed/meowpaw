@@ -361,6 +361,9 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
     // adds the other work trees of the same repository (ADR-1530).
     let keep = args.iter().any(|a| a == "--keep");
     let all = args.iter().any(|a| a == "--all");
+    if args.iter().any(|a| a == "--kept") {
+        return kept(root);
+    }
     let names: Vec<String> = args.iter().filter(|a| a.as_str() != "--keep" && a.as_str() != "--all").cloned().collect();
     let names = names.as_slice();
     let unknown: Vec<&str> = names.iter().map(String::as_str).filter(|name| !VERBS.contains(name)).collect();
@@ -408,7 +411,10 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
             println!("{head}, not run");
             unresolved = true;
         } else if tree == ledger::UNBOUND || now == ledger::UNBOUND {
-            println!("{head}, bound to no tree: this isn't a git work tree");
+            match ledger::dirty_submodule(root) {
+                Some(sub) => println!("{head}, bound to no tree: the submodule {sub} has uncommitted changes"),
+                None => println!("{head}, bound to no tree: this isn't a git work tree"),
+            }
             unresolved = true;
         } else if before != tree {
             println!("{head}, stale: the tree changed during its run, from {} to {}", ledger::short(&before), ledger::short(&tree));
@@ -469,6 +475,68 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
     }
 }
 
+/// The evidence behind the current work's claims: each kept file it adds,
+/// the latest per verb counted, and whether each matches `HEAD` (REQ-0456).
+fn kept(root: &Path) -> u8 {
+    let (files, doubt) = ledger::kept_by_this_work(root);
+    if let Some(reason) = &doubt {
+        println!("listing every kept file: {reason}, so this couldn't tell which belong to this work");
+    }
+    let head = ledger::tree_of_commit(root, "HEAD").ok();
+    let mut entries: Vec<(std::path::PathBuf, Value)> = files.into_iter().filter_map(|p| ledger::header_of(&p).map(|h| (p, h))).collect();
+    // Times are to the second, so two results kept within one second are
+    // ordered by when each file was written.
+    entries.sort_by_key(|(p, h)| {
+        let written = std::fs::metadata(p).and_then(|m| m.modified()).ok();
+        (h.get("time").and_then(Value::as_str).unwrap_or("").to_string(), written)
+    });
+    let field = |h: &Value, key: &str| h.get(key).and_then(Value::as_str).unwrap_or("").to_string();
+    let latest: std::collections::BTreeMap<String, String> =
+        entries.iter().map(|(_, h)| (field(h, "verb"), field(h, "record"))).collect();
+    let (mut failed, mut interrupted, mut unresolved) = (false, false, doubt.is_some() || entries.is_empty());
+    if entries.is_empty() {
+        println!("no kept evidence in this work");
+    }
+    for (path, h) in &entries {
+        let (record, verb, outcome, tree) = (field(h, "record"), field(h, "verb"), field(h, "outcome"), field(h, "tree"));
+        let shown = path.strip_prefix(root).unwrap_or(path).display().to_string();
+        if latest.get(&verb) != Some(&record) {
+            println!("{shown}: {verb} {outcome}, record {record}, superseded");
+            continue;
+        }
+        let state = match &head {
+            _ if tree == ledger::UNBOUND => {
+                unresolved = true;
+                "bound to no tree".to_string()
+            }
+            Some(h) if *h == tree => "matches HEAD".to_string(),
+            Some(_) => {
+                failed = true;
+                format!("differs from HEAD: ran on tree {}", ledger::short(&tree))
+            }
+            None => {
+                unresolved = true;
+                "bound to no tree: HEAD has no tree to compare".to_string()
+            }
+        };
+        match outcome.as_str() {
+            "passed" => {}
+            "interrupted" | "running" => interrupted = true,
+            _ => failed = true,
+        }
+        println!("{shown}: {verb} {outcome}, record {record}, {state}");
+    }
+    if failed {
+        FAILED
+    } else if interrupted {
+        INTERRUPTED
+    } else if unresolved {
+        UNRESOLVED
+    } else {
+        PASSED
+    }
+}
+
 /// Where the ledger is and what it holds, or, with `--purge`, an emptied one
 /// (REQ-0756, REQ-2962).
 fn state(root: &Path, args: &[&str]) -> u8 {
@@ -516,7 +584,7 @@ pub fn main(args: &[String]) -> u8 {
         },
         ["evidence", rest @ ..] => evidence(&root, &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>()),
         _ => {
-            eprintln!("usage: meow-verbs status [--json] | meow-verbs run <verb>... [-- <target>...] | meow-verbs evidence [--keep] [--all] [verb...] | meow-verbs state [--purge] | meow-verbs tree <commit>");
+            eprintln!("usage: meow-verbs status [--json] | meow-verbs run <verb>... [-- <target>...] | meow-verbs evidence [--keep] [--all] [--kept] [verb...] | meow-verbs state [--purge] | meow-verbs tree <commit>");
             USAGE
         }
     }

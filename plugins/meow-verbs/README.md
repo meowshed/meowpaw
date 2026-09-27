@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-verbs
 answers: what meow-verbs does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-verbs@0.6.0]
+describes: [meow-verbs@0.7.0]
 ---
 
 # meow-verbs
@@ -91,6 +91,14 @@ that directory out, so keeping a record doesn't make it stale, and
 `meow-verbs tree <commit>` prints a commit's tree id the same way, for
 comparing a kept record with the commit that carries it. Read a kept file
 before you commit it, because it holds whatever the verb printed.
+
+`meow-verbs evidence --kept` lists the evidence behind your change's claims:
+each kept file the branch adds against its base on the `trunk` you declare
+under `[git]`, committed or not, with its record, which is what a task cites,
+its outcome and whether it matches `HEAD`. Only the latest file per verb
+counts, and an earlier one shows as `superseded`. It exits 0 when every counted
+file passed and matches `HEAD`. Where a submodule has uncommitted changes, no
+result is bound to a tree, and `evidence` names the submodule.
 
 The ledger itself is your machine's run state, kept outside the repository.
 `meow-verbs state` prints where it is, how many records it holds, the oldest
