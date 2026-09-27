@@ -366,7 +366,8 @@ ADR-1450 in two tasks, TSK-2200 and TSK-2210, each closed with evidence, and
 was verified against every acceptance criterion under issue 490.
 
 [EPC-1440](epics/EPC-1440-context-cost-held-and-reported.md) realises ADR-1460
-in two tasks, TSK-2220 and TSK-2230.
+in two tasks, TSK-2220 and TSK-2230, each closed with evidence, and was
+verified against every acceptance criterion under issue 498.
 
 ## Defects
 
