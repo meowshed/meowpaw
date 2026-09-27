@@ -89,6 +89,14 @@ that directory out, so keeping a record doesn't make it stale, and
 comparing a kept record with the commit that carries it. Read a kept file
 before you commit it, because it holds whatever the verb printed.
 
+The ledger itself is your machine's run state, kept outside the repository.
+`meow-verbs state` prints where it is, how many records it holds, the oldest
+and newest, the evidence directory and the lock, and `state --purge` empties
+it. A run drops records older than 30 days. `MEOWPAW_STATE_DIR` moves the state
+directory, and `MEOWPAW_STATE=off` writes nothing outside the repository, in
+which case nothing is recorded and nothing can be kept. `evidence --all` adds
+the other work trees of the same repository, each by its path.
+
 To run a verb over part of the work, such as one test, declare the form it
 takes, with `{targets}` where the part goes:
 

@@ -37,6 +37,7 @@ class Repository:
 
     def run(self, *args, env=None):
         env = {**(os.environ if env is None else env), "XDG_STATE_HOME": str(self.state),
+               "XDG_RUNTIME_DIR": str(self.state),
                "XDG_CONFIG_HOME": str(self.state), "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
         return subprocess.run([str(BIN), *args], cwd=self.root, capture_output=True,
                               text=True, env=env)
@@ -443,6 +444,137 @@ class Kept(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(done.stdout.strip(), record["tree"])
         self.assertNotEqual(repo.git("rev-parse", "HEAD^{tree}").stdout.strip(), record["tree"])
+
+
+class State(unittest.TestCase):
+    """ADR-1530: the ledger is run state and holds to the state rules."""
+
+    PROFILE = '[verbs]\ntest = "echo tested"\n'
+
+    def repo(self, commit=True):
+        repository = Repository(self.PROFILE)
+        self.addCleanup(repository.close)
+        repository.git("init", "-q", "-b", "work")
+        if commit:
+            repository.git("add", "-A")
+            repository.git("commit", "-q", "-m", "first")
+        return repository
+
+    def ledger(self, repo):
+        return next((repo.state / "meowpaw" / "evidence").glob("*.jsonl"))
+
+    def old_line(self, record="0ld000000000"):
+        return json.dumps({"record": record, "verb": "test", "outcome": "passed", "time": "2020-01-01T00:00:00Z",
+                           "tree": "x", "tree_before": "x"})
+
+    def test_each_record_names_the_repository_and_work_tree(self):
+        """REQ-0752: state can be found by the work tree and by the repository."""
+        repo = self.repo()
+        repo.run("run", "test")
+        record = repo.records()[-1]
+        self.assertEqual(record["repository"], repo.git("rev-list", "--max-parents=0", "HEAD").stdout.strip())
+        self.assertEqual(record["work_tree"], str(repo.root.resolve()))
+
+    def test_a_corrupt_line_reads_as_absent(self):
+        """REQ-0754: a line that doesn't parse is never a result."""
+        repo = self.repo()
+        repo.run("run", "test")
+        with self.ledger(repo).open("a", encoding="utf-8") as f:
+            f.write('{"record": "cut sho')
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("records: 1", repo.run("state").stdout)
+
+    def test_state_prints_the_ledger_facts(self):
+        """REQ-0756: a person can read where state is and what it holds."""
+        repo = self.repo()
+        repo.run("run", "test")
+        said = repo.run("state").stdout
+        for fact in ("ledger: ", "records: 1", "oldest: ", "newest: ", "evidence directory: project/evidence", "lock: "):
+            self.assertIn(fact, said)
+
+    def test_old_records_and_their_output_are_pruned(self):
+        """REQ-2962: retention is bounded."""
+        repo = self.repo()
+        repo.run("run", "test")
+        ledger = self.ledger(repo)
+        output = ledger.with_suffix("") / "0ld000000000.log"
+        output.write_text("old\n", encoding="utf-8")
+        with ledger.open("a", encoding="utf-8") as f:
+            f.write(self.old_line() + "\n")
+        done = repo.run("run", "test")
+        self.assertIn("pruned 1 records older than 30 days", done.stdout)
+        self.assertNotIn("0ld000000000", ledger.read_text(encoding="utf-8"))
+        self.assertFalse(output.exists())
+        self.assertFalse(list(ledger.parent.glob("*.partial")))
+
+    def test_purge_empties_the_ledger(self):
+        """REQ-2962: state is purgeable."""
+        repo = self.repo()
+        repo.run("run", "test")
+        done = repo.run("state", "--purge")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("records: 0", repo.run("state").stdout)
+
+    def test_a_fresh_lock_holds_the_prune_and_the_append_waits(self):
+        """REQ-0758, REQ-2958, REQ-2967: a read-modify-write takes a lock in the runtime directory."""
+        repo = self.repo()
+        repo.run("run", "test")
+        ledger = self.ledger(repo)
+        with ledger.open("a", encoding="utf-8") as f:
+            f.write(self.old_line() + "\n")
+        lock = repo.state / f"meowpaw-{ledger.stem}.lock"
+        lock.write_text("1", encoding="utf-8")
+        env = {**os.environ, "XDG_STATE_HOME": str(repo.state), "XDG_RUNTIME_DIR": str(repo.state),
+               "XDG_CONFIG_HOME": str(repo.state), "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+        running = subprocess.Popen([str(BIN), "run", "test"], cwd=repo.root, env=env, stdout=subprocess.PIPE, text=True)
+        import time
+        time.sleep(1.0)
+        self.assertIsNone(running.poll(), "the append waited for the lock")
+        lock.unlink()
+        out, _ = running.communicate(timeout=30)
+        self.assertNotIn("pruned", out)
+        self.assertIn("0ld000000000", ledger.read_text(encoding="utf-8"))
+        self.assertEqual(len([r for r in repo.records() if r.get("verb") == "test"]), 3)
+
+    def test_a_stale_lock_is_replaced(self):
+        """REQ-2967: a lock a dead process left holds nothing back past a minute."""
+        repo = self.repo()
+        repo.run("run", "test")
+        lock = repo.state / f"meowpaw-{self.ledger(repo).stem}.lock"
+        lock.write_text("1", encoding="utf-8")
+        os.utime(lock, (0, 0))
+        done = repo.run("run", "test")
+        self.assertIn("recorded: test", done.stdout)
+        self.assertFalse(lock.exists())
+
+    def test_state_off_writes_nothing_outside_the_repository(self):
+        """REQ-2960: writing state is suppressible."""
+        repo = self.repo()
+        done = repo.run("run", "test", env={**os.environ, "MEOWPAW_STATE": "off"})
+        self.assertIn("not recorded: test (state writing is off (MEOWPAW_STATE=off))", done.stdout)
+        self.assertFalse((repo.state / "meowpaw").exists())
+
+    def test_the_state_directory_moves(self):
+        """REQ-2960: the state directory is configurable."""
+        repo = self.repo()
+        moved = repo.state / "elsewhere"
+        repo.run("run", "test", env={**os.environ, "MEOWPAW_STATE_DIR": str(moved)})
+        self.assertEqual(len(list((moved / "evidence").glob("*.jsonl"))), 1)
+
+    def test_all_adds_the_other_work_trees(self):
+        """REQ-2970: aggregation across work trees is offered, never assumed."""
+        repo = self.repo()
+        second = repo.state / "second"
+        repo.git("worktree", "add", "-q", "-b", "other", str(second))
+        repo.run("run", "test")
+        env = {**os.environ, "XDG_STATE_HOME": str(repo.state), "XDG_RUNTIME_DIR": str(repo.state),
+               "XDG_CONFIG_HOME": str(repo.state), "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+        subprocess.run([str(BIN), "run", "test"], cwd=second, env=env, capture_output=True, check=False)
+        alone = repo.run("evidence", "test").stdout
+        self.assertNotIn("== work tree", alone)
+        together = repo.run("evidence", "--all", "test").stdout
+        self.assertIn(f"== work tree {second.resolve()}", together)
 
 
 class Launcher(unittest.TestCase):
