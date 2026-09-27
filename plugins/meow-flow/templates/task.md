@@ -1,10 +1,10 @@
 ---
 id: TSK-NNNN
 artifact: task
-status: draft # draft, then approved; done is derived from the epic's mark
+status: draft # draft, then approved; done is derived from the authorising record's mark
 revised: YYYY-MM-DD
-epic: EPC-NNNN
-closes: [REQ-NNNN] # required: a task that closes nothing has no authority
+epic: EPC-NNNN # or bug: BUG-NNNN, where a defect carries this task itself; name one
+closes: [REQ-NNNN] # the requirements it closes; a defect's task restores one and may close none
 issue: # the tracker's number, where the repository uses one
 ---
 
