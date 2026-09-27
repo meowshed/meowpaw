@@ -51,4 +51,12 @@ it up is none, the chain ends here.
 - W12. Judge each changed page against the kind it names, and report a page
   that serves two kinds or a how-to that justifies itself as a finding,
   because no program can tell a page's kind from its text.
+- W13. Where this session produced the work under review, dispatch the review
+  to an agent with read-only tools, naming what to review and not who wrote
+  it, and where none can be dispatched, report the verdict as self-assessed,
+  because a model judging its own output is biased in a direction capability
+  doesn't correct.
+- W14. Name the verdict as an agent's, never as a person's approval, because
+  an agent covers more than a person and can't answer whether the work should
+  exist.
 </rules>
