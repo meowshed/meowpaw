@@ -188,6 +188,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   can't hold.
 - [ADR-1510](adrs/ADR-1510-a-requirement-declares-one-of-four-kinds-of-check-and-the-record-holds-it.md):
   a requirement declares one of four kinds of check, and the record holds it.
+- [ADR-1520](adrs/ADR-1520-a-verb-runs-over-part-of-the-work-only-through-a-form-the-repository-declares.md):
+  a verb runs over part of the work only through a form the repository
+  declares.
 
 ## Specifications
 
@@ -402,6 +405,9 @@ acceptance criterion under issue 531.
 [EPC-1490](epics/EPC-1490-verification-kind-held.md) realises ADR-1510 in one
 task, TSK-2320, closed with evidence, and was verified against every
 acceptance criterion under issue 537.
+
+[EPC-1500](epics/EPC-1500-a-verb-over-part-of-the-work.md) realises ADR-1520 in
+one task, TSK-2330.
 
 ## Defects
 
