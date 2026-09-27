@@ -40,7 +40,11 @@ TSK-2420, which ships the unit and `status`.
 
 ## Evidence
 
-Not yet.
+Closes REQ-2482, REQ-2490 and REQ-2506. The five fixtures in the `Carried`
+class of `plugins/meow-mise/tests/test_mise.py` failed first against the unit
+TSK-2420 shipped, and pass now, with the whole file's 26. `meow-verbs evidence
+--keep format lint test` exits 0 on this change's own tree, each result kept
+in `project/evidence/`, as the pull request cites.
 
 ## Left alone
 

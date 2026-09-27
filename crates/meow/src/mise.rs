@@ -59,6 +59,7 @@ struct Unresolved {
 struct Resolved {
     report: Vec<String>,
     tasks: Vec<Task>,
+    carried: Vec<String>,
 }
 
 pub struct Task {
@@ -179,7 +180,10 @@ fn resolve() -> Result<Resolved, Unresolved> {
     });
     let declared = declared_by_commits(&tree);
     let tasks = entries.iter().map(|entry| task(&tree, &declared, entry)).collect();
-    Ok(Resolved { report, tasks })
+    let mut carried = pinned_tools(&tree);
+    carried.extend(environment_files(&tree));
+    carried.extend(idiomatic_files(&tree));
+    Ok(Resolved { report, tasks, carried })
 }
 
 /// A listing's failure, named for what it is and never read as an empty list.
@@ -325,6 +329,108 @@ fn required_arguments(tree: &Tree, entry: &serde_json::Map<String, Value>, name:
     Some(needed)
 }
 
+/// The committed configuration files, each parsed, in the order git lists them.
+fn committed_tables(tree: &Tree) -> Vec<(&String, toml::Table)> {
+    tree.committed_configuration()
+        .into_iter()
+        .filter_map(|file| std::fs::read_to_string(tree.root.join(file)).ok()?.parse::<toml::Table>().ok().map(|t| (file, t)))
+        .collect()
+}
+
+/// The toolchain each committed file pins, and whether a lock records it (REQ-2482).
+fn pinned_tools(tree: &Tree) -> Vec<String> {
+    let mut lines = vec!["tools pinned by committed files:".to_string()];
+    for (file, table) in committed_tables(tree) {
+        let Some(toml::Value::Table(tools)) = table.get("tools") else { continue };
+        for (tool, request) in tools {
+            let version = match request {
+                toml::Value::String(v) => v.clone(),
+                toml::Value::Table(t) => t.get("version").and_then(toml::Value::as_str).unwrap_or("unstated").to_string(),
+                toml::Value::Array(a) => a.iter().filter_map(toml::Value::as_str).collect::<Vec<_>>().join(", "),
+                other => other.to_string(),
+            };
+            lines.push(format!("  {tool} = {version} ({file})"));
+        }
+    }
+    let lock = if tree.tracked.contains("mise.lock") {
+        "committed"
+    } else if tree.root.join("mise.lock").is_file() {
+        "present and not committed"
+    } else {
+        "not committed"
+    };
+    lines.push(format!("  mise.lock: {lock}"));
+    lines
+}
+
+/// The files mise loads configuration and environment from, by path only,
+/// since what they hold stays unread (REQ-2490).
+fn environment_files(tree: &Tree) -> Vec<String> {
+    let mut lines = vec!["configuration and environment loaded from:".to_string()];
+    match mise(&tree.root, &["config", "ls", "--json"]).ok().filter(|d| d.status.success()) {
+        Some(done) => match serde_json::from_slice::<Value>(&done.stdout) {
+            Ok(Value::Array(files)) => {
+                for path in files.iter().filter_map(|f| f.get("path").and_then(Value::as_str)) {
+                    lines.push(format!("  {}", tree.display(Path::new(path))));
+                }
+            }
+            _ => lines.push("  unknown: mise config ls printed a shape this program can't read".into()),
+        },
+        None => lines.push("  unknown: mise config ls failed".into()),
+    }
+    for (file, table) in committed_tables(tree) {
+        let Some(directives) = table.get("env").and_then(|e| e.get("_")).and_then(toml::Value::as_table) else { continue };
+        for key in ["file", "source"] {
+            let values = match directives.get(key) {
+                Some(toml::Value::Array(items)) => items.clone(),
+                Some(one) => vec![one.clone()],
+                None => Vec::new(),
+            };
+            for value in values {
+                let path = match &value {
+                    toml::Value::String(p) => Some(p.clone()),
+                    toml::Value::Table(t) => t.get("path").and_then(toml::Value::as_str).map(str::to_string),
+                    _ => None,
+                };
+                lines.push(format!("  {} (_.{key} in {file})", path.unwrap_or_else(|| "a path this program can't read".into())));
+            }
+        }
+    }
+    lines
+}
+
+/// Each idiomatic version file at the root, which mise reads only for a tool
+/// its setting names (REQ-2506).
+fn idiomatic_files(tree: &Tree) -> Vec<String> {
+    const FILES: [(&str, &str); 7] = [
+        (".python-version", "python"),
+        (".node-version", "node"),
+        (".nvmrc", "node"),
+        (".ruby-version", "ruby"),
+        (".go-version", "go"),
+        (".java-version", "java"),
+        (".terraform-version", "terraform"),
+    ];
+    let present: Vec<&(&str, &str)> = FILES.iter().filter(|(file, _)| tree.root.join(file).is_file()).collect();
+    if present.is_empty() {
+        return Vec::new();
+    }
+    let enabled: Option<Vec<String>> = mise(&tree.root, &["settings", "get", "idiomatic_version_file_enable_tools"])
+        .ok()
+        .filter(|d| d.status.success())
+        .and_then(|d| serde_json::from_slice(&d.stdout).ok());
+    let mut lines = vec!["idiomatic version files:".to_string()];
+    for (file, tool) in present {
+        let state = match &enabled {
+            Some(tools) if tools.iter().any(|t| t == tool) => "read by mise".to_string(),
+            Some(_) => format!("possibly inert, since idiomatic_version_file_enable_tools doesn't name {tool}"),
+            None => format!("possibly inert, since mise didn't say whether it reads {tool}'s file"),
+        };
+        lines.push(format!("  {file}: {state}"));
+    }
+    lines
+}
+
 fn print_resolved(resolved: &Resolved) {
     for line in &resolved.report {
         println!("{line}");
@@ -346,5 +452,8 @@ fn print_resolved(resolved: &Resolved) {
             Some(false) => {}
             None => println!("    can skip as fresh: unknown, since the listing doesn't say"),
         }
+    }
+    for line in &resolved.carried {
+        println!("{line}");
     }
 }
