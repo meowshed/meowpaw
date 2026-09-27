@@ -52,4 +52,9 @@ it up is review.
   condition its What would reverse it section gives, and ask the person
   whether that condition now holds, because a verification is the only point
   at which anything looks at a postponement again.
+- V14. Close an epic while a defect it uncovered is still open only where that
+  defect is recorded, and where the defect contradicts an acceptance
+  criterion, name the criterion and the defect and say why closing is right,
+  because an epic reported realised while its own criterion fails is the
+  unearned answer the method exists to prevent.
 </rules>

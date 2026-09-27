@@ -51,9 +51,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-2170 - the rules read the `bug` field and the defect's
       tasks it adds
 
-- [ ] T-003 [P] TSK-2190 carry the rules on a defect in the implement and
+- [x] T-003 [P] TSK-2190 carry the rules on a defect in the implement and
       verify steps
       closes: REQ-0348, REQ-0350, REQ-3170, REQ-3174
+      evidence: rules I13 to I15 and V14, traced, in #477.
 
 ## Coverage
 

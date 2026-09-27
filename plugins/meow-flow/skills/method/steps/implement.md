@@ -48,4 +48,14 @@ it up is document.
 - I12. Where the task predicts a measurable outcome, write the predicted number
   under Acceptance criteria before the work starts, because a prediction
   written after the result fits it, and an approved task holds it frozen.
+- I13. Begin a task a defect authorises by running the defect's reproduction
+  and seeing it fail, because a fix proven against a reproduction never seen
+  failing proves the defect was never there.
+- I14. Treat a defect's task as restoring a requirement already in force, and
+  write no new decision for it, because the decision was made and the system
+  disagrees with it.
+- I15. Write no defect record for a defect a gate caught and the same change
+  closed, and write one for every other defect, because the failing check and
+  the commit already hold the first one's evidence, and nothing holds the
+  second's reasoning.
 </rules>
