@@ -11,6 +11,8 @@ states:
     REQ-0134,
     REQ-0135,
     REQ-0136,
+    REQ-0140,
+    REQ-0142,
     REQ-0144,
     REQ-0146,
     REQ-0148,
@@ -30,11 +32,12 @@ This covers the five verification verbs a repository declares and the unit
 that resolves, reports and runs them, `meow-verbs`. It states where a verb
 resolves from, what an unresolved verb reports, and what a run records.
 
-It leaves binding a verb to a runner's tasks, language packs and running a
-verb over part of the work to later decisions, which ADR-1070 names. How the
+It leaves binding a verb to a runner's tasks and language packs to later
+decisions, which ADR-1070 names. How the
 unit's skill is written is SPC-1030's.
 
-ADR-1070 and ADR-1480 decide it, EPC-1040 and EPC-1460 realise them, and
+ADR-1070, ADR-1480 and ADR-1520 decide it, EPC-1040, EPC-1460 and EPC-1500
+realise them, and
 `meow-verbs` implements it, checked at #115.
 
 ## Boundary
@@ -73,7 +76,23 @@ format = "mise run fmt-check"
 lint = "mise run lint"
 ```
 
-The value is one command, run by the shell from the repository's root. The
+The value is one command, run by the shell from the repository's root, or a
+table whose `command` is that command and whose optional `subset` runs the
+verb over part of the work, with `{targets}` where the part goes:
+
+```toml
+[verbs.test]
+command = "./scripts/test"
+subset = "./scripts/test {targets}"
+```
+
+`run <verb>... -- <target>...` runs each named verb through its `subset`, with
+every `{targets}` replaced by the targets, each quoted for the shell and
+separated by spaces (REQ-0140). A verb with no `subset` is unresolved of the
+kind `no subset form` and doesn't run, and the program never runs the whole
+command in its place (REQ-0142). A `subset` without `{targets}` is a
+`malformed declaration`, and a `--` naming no target is a usage error
+(ADR-1520). The
 unit never guesses a command and never substitutes one it found another way
 (REQ-0158), because a guessed command produces a green report with nothing
 behind it.
@@ -150,6 +169,11 @@ and `current` or `stale` with the tree it ran on and the tree now. The latest
 record decides. It exits 0 when every named verb's latest record passed on the
 current tree; 1 when one failed, is stale or changed during its run; and 3
 when one has no record, was unresolved or is bound to no tree (REQ-0148).
+
+A record from a subset run carries its targets, and `evidence` never counts it
+as current for the whole verb: it reads the latest record run without
+targets, prints the latest subset record beside it as `subset only`, and reads
+a record carrying no targets field as a whole run.
 
 ### The skill
 
