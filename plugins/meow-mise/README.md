@@ -54,6 +54,20 @@ A task declaring `sources` and `outputs` carries `can skip as fresh`: mise
 exits 0 on a task it skipped, so a green result from it may be a previous
 run's.
 
+After the tasks it names what mise carries beyond them, by path and version
+only, never a value a file holds:
+
+- `tools pinned by committed files:` each tool a committed configuration file
+  pins under `[tools]`, with its version and file, and whether `mise.lock` is
+  committed.
+- `configuration and environment loaded from:` each configuration file mise
+  reads, your own among them, and each `_.file` and `_.source` a committed
+  file names under `[env]`.
+- `idiomatic version files:` each such file at the root, such as
+  `.python-version`, as `read by mise` where the setting
+  `idiomatic_version_file_enable_tools` names its tool, and as possibly inert
+  where it doesn't, which is mise's default.
+
 ## What it reports instead of a list
 
 It exits 0 when it reports the tasks and 3 when it can't, and it never reports
