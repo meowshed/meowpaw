@@ -9,3 +9,5 @@
 [cases]
 decision-missing-its-reasons = 0.66
 clean-requirement = 0.66
+review-before-the-gate = 0.66
+open-findings-kept = 0.66

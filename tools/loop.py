@@ -33,6 +33,10 @@ reads its own supporting files in a normal session, and the eval's sandbox
 refuses any read outside the working directory, so without the grant a unit
 that reads its own files measures the sandbox.
 
+A case whose work writes files, such as a step that writes a record, needs
+the runner to grant it the tool: `--allow-tool Write --allow-tool Edit`. The
+runner grants nothing the case's own front matter names.
+
 Every run is a real model call, so the gate never runs this.
 """
 
@@ -122,7 +126,7 @@ def evaluate(root, args, out, mode, model):
            "-j", str(args.jobs), "--model", model, "--judge-model", args.judge,
            "--trust-plugin", "--no-publish", "--threshold", "0",
            "--json", str(report), "--output-dir", str(out),
-           "--allow-tools", f"Read(/{root.resolve()}/**)"]
+           "--allow-tools", f"Read(/{root.resolve()}/**)", *args.allow_tools]
     if mode == "classifier":
         cmd += ["--ablation", "none"]
     if args.cases:
@@ -305,6 +309,8 @@ def main():
     ap.add_argument("--model", dest="models", action="append",
                     help="a model to run the candidates on; repeat for several (default: Sonnet 5 and Opus 5.5)")
     ap.add_argument("--judge", default=JUDGE)
+    ap.add_argument("--allow-tool", dest="allow_tools", action="append", default=[],
+                    help="a further tool the runner grants each case, such as Write, for a case whose work writes files; repeat for more")
     args = ap.parse_args()
     args.models = args.models or MODELS
 

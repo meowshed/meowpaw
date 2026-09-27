@@ -24,8 +24,11 @@ don't overrule it.
    draft, because approval is a person's act and not yours.
 6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
-7. End by naming the artifact you wrote, the gate it now waits at, and the
-   step that picks it up, with the command that runs it.
+7. Dispatch the `meow-flow:record-reviewer` agent on each record you wrote,
+   naming its path and nothing else, as M19 to M22 say.
+8. End by naming the artifact you wrote, the gate it now waits at, and the
+   step that picks it up, with the command that runs it, and say the record
+   was reviewed by an agent and is unreviewed by a person.
 </steps>
 
 <rules name="every step">
@@ -89,4 +92,18 @@ don't overrule it.
 - M18. Run `paw count` before and after a migration and put both
   outputs in its evidence, because a record the migration lost fails no other
   check.
+- M19. Give the reviewer the record's path alone, never who wrote it or why,
+  because a judge told which side it produced judges that side differently.
+- M20. Fix what the reviewer finds and dispatch a fresh reviewer on the
+  result, at most twice, because the second round catches what the first fix
+  broke and a bound is what makes repair end.
+- M21. Write each finding still open after the second round, and each finding
+  you reject, into the record under `## Open review findings` with your reason,
+  and name that section in the gate report, because the record is what
+  outlasts the turn and what the person approving reads.
+- M22. Where no agent can be dispatched, review nothing yourself: report the
+  record as unreviewed by an agent or a person and stop at the gate, because a
+  session judging its own record is the bias the review exists to avoid. Where
+  a person asks you to review your own work anyway, report the result as
+  self-assessed and unreviewed by a person.
 </rules>
