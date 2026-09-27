@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-verbs
 answers: what meow-verbs does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-verbs@0.3.0]
+describes: [meow-verbs@0.4.0]
 ---
 
 # meow-verbs
@@ -52,6 +52,28 @@ unresolved. A failed verb comes with its exact command, its exit status and its
 whole output, led by its last lines, where a failing tool puts its error. The
 program exits 0 only when every verb it ran passed, 1 when one failed and 3
 when one was unresolved.
+
+Each run is recorded, so a claim that a check passed can name its record
+instead of pasting output. `run` appends every verb it runs to a ledger in your
+state directory, `$XDG_STATE_HOME/meowpaw/evidence/`, or
+`~/.local/state/meowpaw/evidence/` where that variable is unset and
+`%LOCALAPPDATA%\meowpaw\evidence\` on Windows, never in the repository. Each
+record keeps the command, the outcome, the whole output and the git tree id of
+your working state before and after the verb, and `run` ends with one
+`recorded: <verb> <record> at tree <tree id>` line per verb.
+
+`meow-verbs evidence [verb...]` tells you whether those results still hold:
+
+```text
+test: passed, record 3f9a1c0b2d4e, current at tree 6960e730d656
+lint: passed, record 8b21e4f07a9c, stale: ran on tree 1c4d2e9f0a3b, and the tree is now 6960e730d656
+```
+
+It exits 0 when every verb's latest record passed on the tree as it is now, 1
+when one failed, went stale or changed the tree during its run, and 3 when one
+has no record, was unresolved or ran outside a git work tree, where no tree id
+exists. The skill runs `format` first, cites records in this form, and calls
+the work done only when `evidence` exits 0 or you accept what it reported.
 
 An unresolved verb is one of five kinds: undeclared, no profile, a profile
 that doesn't parse, a declaration that isn't one command, and no interpreter
