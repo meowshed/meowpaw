@@ -359,7 +359,8 @@ ADR-1440 in three tasks, TSK-2170 to TSK-2190, each closed with evidence, and
 was verified against every acceptance criterion under issue 482.
 
 [EPC-1430](epics/EPC-1430-the-harness-authoring-capability-ships.md) realises
-ADR-1450 in two tasks, TSK-2200 and TSK-2210.
+ADR-1450 in two tasks, TSK-2200 and TSK-2210, each closed with evidence, and
+was verified against every acceptance criterion under issue 490.
 
 ## Defects
 
