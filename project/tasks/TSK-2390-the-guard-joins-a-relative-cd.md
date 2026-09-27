@@ -33,7 +33,16 @@ Nothing. BUG-1220 is approved.
 
 ## Evidence
 
-Not yet.
+Closes REQ-1292. `meow-verbs evidence --keep format lint test` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
+
+`a_relative_cd_joins_the_directory_before_it` in `crates/meow/src/git.rs`
+failed before the change and passes after it, beside
+`an_absolute_cd_replaces_the_directory`; the crate's `git` tests run 5, OK,
+and the `meow-git` fixtures pass. The tests spell the commit command in parts,
+because the guard reads the text of any shell command that names one, this
+file's included. `meow-git` moves to 0.2.3.
 
 ## Left alone
 

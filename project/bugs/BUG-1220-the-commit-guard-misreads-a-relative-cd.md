@@ -52,9 +52,13 @@ subshell split out works; the cost is a refused commit and a lost minute.
 
 ## Closed by
 
-Not yet.
+TSK-2390. The reproduction is now
+`a_relative_cd_joins_the_directory_before_it` in `crates/meow/src/git.rs`,
+which failed before the fix and passes after it, and stays as the regression
+check.
 
 ## Tasks
 
-- [ ] T-001 TSK-2390 join a relative `cd` onto the directory before it, in
+- [x] T-001 TSK-2390 join a relative `cd` onto the directory before it, in
       `crates/meow/src/git.rs`
+      evidence: the unit test, seen failing first, in #567.
