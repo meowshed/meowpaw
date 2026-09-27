@@ -77,11 +77,14 @@ the work done only when `evidence` exits 0 or you accept what it reported.
 
 A result a record cites is kept in the repository, where anyone can check it:
 `meow-verbs evidence --keep [verb...]` copies each current record, with its
-whole output, to `<record>.log` under `.meowpaw/evidence/`, or under the
+whole output, to `<record>.txt` under `evidence/` in your record's folder,
+`project/evidence/` unless `[record] root` moves it, or under the
 `evidence_dir` you declare under `[verbs]`. The file opens with
 `meow-verbs evidence 1` and the record's verb, command, targets, outcome, exit
-status, tree id and time. A stale record isn't kept. The tree id leaves that
-directory out, so keeping a record doesn't make it stale, and
+status, tree id and time. A stale record isn't kept. After writing, it asks git
+whether the file is ignored: an ignored file is named with its rule and left
+in place, exiting 1, and where git can't answer it exits 3. The tree id leaves
+that directory out, so keeping a record doesn't make it stale, and
 `meow-verbs tree <commit>` prints a commit's tree id the same way, for
 comparing a kept record with the commit that carries it. Read a kept file
 before you commit it, because it holds whatever the verb printed.
