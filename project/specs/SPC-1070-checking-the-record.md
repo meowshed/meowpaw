@@ -63,6 +63,7 @@ states:
     REQ-0698,
     REQ-0700,
     REQ-0702,
+    REQ-1664,
     REQ-1673,
     REQ-2668,
     REQ-2864,
@@ -150,12 +151,14 @@ For each kind the layout also declares its content rules, and the scope of
 each: every record of the kind, or drafts only (ADR-1140). A rule applies to
 drafts only where the approved record already breaks it, because an approved
 record is frozen and a check that fails on it can't be fixed without rewriting
-what someone accepted.
+what someone accepted. `verification-kind` reaches every requirement, because
+none breaks it and `paw status` reads every approved requirement's value to
+report how much rests on judgement (ADR-1510).
 
 | Kind        | Every record                                                                                                                                                                                                                                                                                                         | Drafts only                                                                                                                                                |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | research    | sections Summary, Method, Conclusions and Sources, opening with Summary (REQ-0216, REQ-0219, REQ-2864, REQ-2866); the kind's own index is exempt from its sections                                                                                                                                                   | each source line carries a date (REQ-2868); the body cites no requirement (REQ-0223)                                                                       |
-| requirement | no `priority`, `owner` or `difficulty` field (REQ-2878)                                                                                                                                                                                                                                                              | one verified by judgement carries `verifier` (REQ-2882); its statement carries one keyword, leans on no neighbour and prohibits with `MUST NOT` (REQ-2880) |
+| requirement | no `priority`, `owner` or `difficulty` field (REQ-2878); `verification` holds one of `static`, `behavioural`, `evaluation` and `judgement` (REQ-1664) (ADR-1510)                                                                                                                                                     | one verified by judgement carries `verifier` (REQ-2882); its statement carries one keyword, leans on no neighbour and prohibits with `MUST NOT` (REQ-2880) |
 | decision    | `addresses` names a requirement (REQ-0234); sections Decision, Why, Alternatives, What it costs, What would reverse it and Consequences (REQ-0247, REQ-0556, REQ-0560, REQ-0562); the alternatives table has a column saying why each lost (REQ-0558)                                                                | sections How I will know it was realised and What this does not settle (REQ-2884, REQ-2886)                                                                |
 | epic        | `realises` names exactly one decision or defect (REQ-0262); sections Acceptance criteria, Tasks, Coverage and Not covered (REQ-0309, REQ-2898); a task marked `[x]` has evidence past "Not yet." (REQ-0692), one marked `[+]` an `added:` line and one marked `[~]` a `dropped:` line (REQ-0698, REQ-0700, REQ-0702) |                                                                                                                                                            |
 | defect      | sections Reproduction, What the system does, What it should do and why, Triage and Closed by (REQ-2912, REQ-2914, REQ-2924); no `priority` field (REQ-2923)                                                                                                                                                          |                                                                                                                                                            |
