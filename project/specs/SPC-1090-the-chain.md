@@ -79,7 +79,9 @@ states:
     REQ-0284,
     REQ-0285,
     REQ-0286,
+    REQ-0287,
     REQ-0288,
+    REQ-0289,
     REQ-0290,
     REQ-0291,
     REQ-0292,
@@ -182,6 +184,14 @@ states:
     REQ-1562,
     REQ-1563,
     REQ-1564,
+    REQ-1950,
+    REQ-1952,
+    REQ-1954,
+    REQ-1956,
+    REQ-1958,
+    REQ-1960,
+    REQ-1962,
+    REQ-1964,
     REQ-2130,
     REQ-2131,
     REQ-2132,
@@ -222,6 +232,8 @@ states:
     REQ-2782,
     REQ-2794,
     REQ-2796,
+    REQ-2834,
+    REQ-2836,
     REQ-2858,
     REQ-2859,
     REQ-2860,
@@ -338,10 +350,16 @@ The rules name no requirement, because the files ship to other repositories.
 | spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                 |
 | epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                     |
 | implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104                                                                                                     |
-| document         | REQ-0290, REQ-0292, REQ-0298, REQ-0300                                                                                                                                                                                                                   |
+| document         | REQ-0287, REQ-0289, REQ-0290, REQ-0292, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-1964, REQ-2836                                                                                                     |
 | verify           | REQ-0241, REQ-0275, REQ-0277, REQ-0278, REQ-0279, REQ-0280, REQ-0281, REQ-0282, REQ-0283, REQ-0284, REQ-0286, REQ-0288, REQ-0291, REQ-0293, REQ-0295, REQ-0296, REQ-0297, REQ-0299, REQ-0307, REQ-0317, REQ-0319, REQ-0325, REQ-0327, REQ-0329, REQ-0542 |
-| review           | REQ-0304, REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-3108                                                                                 |
+| review           | REQ-0304, REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108                                                                       |
 | templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                     |
+
+The document step reads `[docs] style` from `.meowpaw/profile.toml`: a path
+to the repository's own style guide, or the name of an installed unit that
+ships one. Where the profile declares none, the step says so and writes to the
+writing standard in force. It reports which verb checked the documentation it
+changed, and reports the documentation as unchecked where no verb covers it.
 
 ### The gate
 

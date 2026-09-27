@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-method index -->
 
-38 decisions in all: 38 approved.
+39 decisions in all: 39 approved.
 
 | Identifier                                                                                             | What it concluded                                                                                                | Status   |
 | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | -------- |
@@ -55,6 +55,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1350](ADR-1350-the-record-command-is-named-paw.md)                                                | The record's command is `paw`, and `meow-method` stays one release as a deprecated alias                         | approved |
 | [ADR-1360](ADR-1360-removing-an-instruction-is-postponed-until-the-cases-can-see-one.md)               | Removing an instruction is postponed until the cases can see one                                                 | approved |
 | [ADR-1370](ADR-1370-each-unit-ships-its-own-page-and-a-program-holds-the-documentation-to-the-tree.md) | Each unit ships its own page, and a program holds the documentation to the tree                                  | approved |
+| [ADR-1380](ADR-1380-the-document-step-writes-one-kind-per-page-and-checks-through-the-verbs.md)        | The document step writes one kind per page to the declared style, and checks documentation through the verbs     | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110; ADR-1100 by EPC-1070.
 <!-- /meow-method index -->
