@@ -428,7 +428,8 @@ one task, TSK-2370, closed with evidence, and was verified against every
 acceptance criterion under issue 555.
 
 [EPC-1530](epics/EPC-1530-evidence-behind-each-claim.md) realises ADR-1560 in
-one task, TSK-2380.
+one task, TSK-2380, closed with evidence, and was verified against every
+acceptance criterion under issue 565.
 
 ## Defects
 
