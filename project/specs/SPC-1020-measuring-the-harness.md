@@ -2,11 +2,15 @@
 id: SPC-1020
 artifact: spec
 status: live
-revised: 2026-09-23
+revised: 2026-09-27
 checked-at:
 states:
   [
+    REQ-0153,
+    REQ-0159,
+    REQ-0160,
     REQ-0956,
+    REQ-1759,
     REQ-3022,
     REQ-3024,
     REQ-3026,
@@ -31,8 +35,10 @@ It leaves what the prompts say, and the size budget a unit carries, to the
 specification of the unit that ships them, because a contract names no unit
 and every unit's specification cites the contracts it follows.
 
-Nothing implements this yet. ADR-1010 authorises it and EPC-1010 realises it,
-and `checked-at` stays empty until that epic closes.
+ADR-1010 authorises it and EPC-1010 realises it. ADR-1500 settles what the
+loop reports and refuses, and EPC-1480 realises it. `tools/loop.py` implements
+it, through the platform's `claude plugin eval`, the one way the harness
+measures a change to its own material (REQ-1759).
 
 ## Boundary
 
@@ -49,9 +55,14 @@ and `checked-at` stays empty until that epic closes.
 
 ### Two arms, always
 
-Every measurement runs the same work with the harness and without it, and the
-difference between the two is the result (REQ-3022). A case scoring the same in
-both arms measures the model and says nothing about the harness.
+Every measurement runs the same work with the harness and without it, in every
+mode of the loop, and the difference between the two is the result
+(REQ-3022). A case scoring the same in both arms measures the model and says
+nothing about the harness. The loop labels each case from its delta and twice
+its standard error, against a margin of 0.10 stated in its code: an interval
+within the margin of zero is `delete: scores the same without the unit`, one
+clearing zero separates, and any other is `undetermined: run more`
+(ADR-1500).
 
 ### When a case earns its place
 
@@ -97,7 +108,24 @@ default of three is enough (REQ-3026). The one measured evaluation this corpus
 cites reported single-case variance above 0.9 at three trials.
 
 It states the judge, the case set, the revision it ran at, and the cost in
-tokens the unit under test loads on every turn.
+tokens the unit under test loads on every turn. Every rate and delta carries
+twice its standard error, and every case its run count (REQ-0160). The header
+names the judge's model and its family, computed from the identifier: a
+same-family judge makes every judged score, a verdict included, a smoke check;
+another family's judge is still no claim while which judge is stronger stays
+unsettled; and a run of 3 or fewer supports no claim.
+
+What counts is stated before a run (REQ-0159). The code states the delta
+rules above, and `evals/thresholds.toml` the minimum score each case must reach
+with the unit. The loop refuses to run while that file differs from the last
+commit, and the header names that commit and the run's time. A case with no
+threshold runs and gets no verdict, as `no threshold set before the run`.
+
+The loop refuses a case with a `type: baseline` grader, a judged comparison
+against the baseline arm whose order the runner doesn't document and the
+harness can't shuffle (REQ-0153). Every other grader judges one run's output
+alone, and the loop's own comparisons compare scores, never two outputs in one
+judge's view.
 
 A candidate lands on its overall delta, when that moves by more than twice its
 standard error. A gain in one case is read only from ten runs or more and only
