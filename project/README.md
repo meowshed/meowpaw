@@ -329,7 +329,8 @@ against every acceptance criterion under issue 441.
 in three tasks, TSK-2110 to TSK-2130.
 
 [EPC-1390](epics/EPC-1390-the-verbs-are-renamed.md) realises ADR-1410 in one
-task, TSK-2140.
+task, TSK-2140, closed with evidence, and was verified against every
+acceptance criterion under issue 455.
 
 ## Defects
 
