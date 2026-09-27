@@ -63,9 +63,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       REQ-2962, REQ-2966, REQ-2967, REQ-2970
       evidence: ten fixtures seen failing first, in #548.
 
-- [ ] T-003 TSK-2360 record a verb as started and ended, and report
+- [x] T-003 TSK-2360 record a verb as started and ended, and report
       `interrupted` and `running`
       closes: REQ-2968, REQ-2969
+      evidence: three fixtures seen failing first, in #549.
 
 ## Coverage
 
