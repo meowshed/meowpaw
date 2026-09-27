@@ -163,6 +163,8 @@ Every decision below is approved and in force, as amended by the ones after it.
   names are read for one release.
 - [ADR-1420](adrs/ADR-1420-a-coding-unit-holds-how-code-is-changed-and-how-a-check-is-written.md):
   a coding unit holds how code is changed and how a check is written.
+- [ADR-1430](adrs/ADR-1430-a-debugging-skill-reproduces-first-and-tests-one-hypothesis-at-a-time.md):
+  a debugging skill reproduces first and tests one hypothesis at a time.
 
 ## Specifications
 
@@ -341,6 +343,9 @@ acceptance criterion under issue 455.
 [EPC-1400](epics/EPC-1400-how-code-is-changed-and-checked.md) realises
 ADR-1420 in one task, TSK-2150, closed with evidence, and was verified against
 every acceptance criterion under issue 464.
+
+[EPC-1410](epics/EPC-1410-a-defect-is-debugged-by-reproduction.md) realises
+ADR-1430 in one task, TSK-2160.
 
 ## Defects
 
