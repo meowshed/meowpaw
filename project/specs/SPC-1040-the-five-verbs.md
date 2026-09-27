@@ -20,6 +20,9 @@ states:
     REQ-0154,
     REQ-0156,
     REQ-0158,
+    REQ-0452,
+    REQ-0454,
+    REQ-0456,
     REQ-0752,
     REQ-0754,
     REQ-0756,
@@ -51,8 +54,9 @@ It leaves binding a verb to a runner's tasks and language packs to later
 decisions, which ADR-1070 names. How the
 unit's skill is written is SPC-1030's.
 
-ADR-1070, ADR-1480, ADR-1520, ADR-1530 and ADR-1550 decide it, EPC-1040,
-EPC-1460, EPC-1500, EPC-1510 and EPC-1520 realise them, and
+ADR-1070, ADR-1480, ADR-1520, ADR-1530, ADR-1550 and ADR-1560 decide it,
+EPC-1040, EPC-1460, EPC-1500, EPC-1510, EPC-1520 and EPC-1530 realise them,
+and
 `meow-verbs` implements it, checked at #115.
 
 ## Boundary
@@ -206,6 +210,23 @@ id and the time, and holds the whole output; that format is a contract, and the
 ledger's own format is private (REQ-2964). A stale record isn't kept. The tree
 id leaves the evidence directory out, and `meow-verbs tree <commit>` prints a
 commit's tree id the same way (ADR-1530).
+
+### The evidence behind a change's claims
+
+Every record carries the tree id it was collected at, and any change to the
+tree makes it stale (REQ-0452, REQ-0454). Where a submodule has uncommitted
+changes the tree id is `none`, so a result then is bound to nothing and an
+earlier one reads as bound to nothing too, with `evidence` naming the
+submodule and exiting 3 (ADR-1560).
+
+`evidence --kept` lists every kept file the work adds against the branch's
+base on `trunk` under `[git]`, committed, uncommitted or untracked, each with
+its record identifier, verb, outcome, tree id and whether that matches the
+tree of `HEAD` less the evidence directory (REQ-0456). The latest file per
+verb counts, and an earlier one is listed as `superseded`. It exits 1 where a
+counted file failed or differs, else 4 where one was interrupted, else 3
+where the listing is empty, the trunk or base is unknown, or a file is bound
+to nothing, else 0.
 
 ### The ledger as run state
 
