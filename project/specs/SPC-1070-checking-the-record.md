@@ -114,13 +114,14 @@ issue 206.
 
 ## Boundary
 
-| Surface                             | What it is                              |
-| ----------------------------------- | --------------------------------------- |
-| `.meowpaw/profile.toml`, `[record]` | Where the record lives                  |
-| `plugins/meow-flow/bin/paw`         | The program: `check` and `check <name>` |
-| `crates/meow/src/record.rs`         | The program's source, `meow record`     |
-| `plugins/meow-flow/lib/layout.toml` | The record's layout, as data            |
-| `plugins/meow-flow/README.md`       | The unit's documentation page           |
+| Surface                             | What it is                                                                       |
+| ----------------------------------- | -------------------------------------------------------------------------------- |
+| `.meowpaw/profile.toml`, `[record]` | Where the record lives                                                           |
+| `plugins/meow-flow/bin/paw`         | The program: `check` and `check <name>`                                          |
+| `crates/meow/src/record.rs`         | The program's source, `meow record`                                              |
+| `plugins/meow-flow/lib/layout.toml` | The record's layout, as data                                                     |
+| `plugins/meow-flow/README.md`       | The unit's documentation page                                                    |
+| `plugins/meow-method/hooks/notice`  | The stub's notice, printed when a session starts, until the release after 0.31.0 |
 
 ## Behaviour
 

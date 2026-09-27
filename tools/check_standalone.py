@@ -21,6 +21,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SKIPPED = ("evals", "tests", "__pycache__")
 VARIABLE = re.compile(r"\$\{?(CLAUDE_PLUGIN_ROOT|CLAUDE_SKILL_DIR)\}?((?:/[^\s\"'`)\]}]*)?)")
 SIBLING = re.compile(r"plugins/(meow-[a-z-]+)|\.\./(meow-[a-z-]+)/")
+# An address is a link a reader follows, and runs no file of the unit it names.
+ADDRESS = re.compile(r"https?://\S+")
 
 
 def findings(plugins: Path) -> tuple[list[str], int]:
@@ -48,7 +50,7 @@ def findings(plugins: Path) -> tuple[list[str], int]:
                     target = Path(os.path.normpath(base / match.group(2).lstrip("/")))
                     if target != unit and unit not in target.parents:
                         out.append(f"{shown}:{number}: reaches outside {unit.name}: {match.group(0)}")
-                for match in SIBLING.finditer(line):
+                for match in SIBLING.finditer(ADDRESS.sub("", line)):
                     other = match.group(1) or match.group(2)
                     if other != unit.name:
                         out.append(f"{shown}:{number}: runs a file of {other}, another unit")
