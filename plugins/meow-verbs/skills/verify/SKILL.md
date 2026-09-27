@@ -43,7 +43,9 @@ report at all.
   because a claim of done over a failing, unresolved or stale check is the
   substitution this unit exists to stop.
 - V2. Report the program's exit status beside its summary: 0 when every named
-  verb passed, 1 when one failed and 3 when one was unresolved.
+  verb passed, 1 when one failed, 4 when one was interrupted and none failed,
+  and 3 when one was unresolved, and report an interrupted run as cut short,
+  never as a result about the work, because a signal says the run stopped.
 - V3. Cite a result as `evidence` prints it, with the verb, the outcome, the
   record and the tree id, and never restate the output in your own words,
   because the tree id is what shows the result is about the content in front

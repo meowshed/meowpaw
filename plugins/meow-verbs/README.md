@@ -50,8 +50,11 @@ check      unresolved  undeclared: the profile doesn't name it; declare it under
 Then it runs the verbs the work needs and reports each as passed, failed or
 unresolved. A failed verb comes with its exact command, its exit status and its
 whole output, led by its last lines, where a failing tool puts its error. The
-program exits 0 only when every verb it ran passed, 1 when one failed and 3
-when one was unresolved.
+program exits 0 only when every verb it ran passed, 1 when one failed, 4 when
+one was interrupted by a signal and none failed, and 3 when one was
+unresolved. Each run is recorded as started before the verb runs, so a run
+cut short reads as `interrupted`, or as `running` while another session's
+run is still going, and nothing retries it on its own.
 
 Each run is recorded, so a claim that a check passed can name its record
 instead of pasting output. `run` appends every verb it runs to a ledger in your

@@ -15,6 +15,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// A tree id, or `none` where the directory isn't a git work tree.
@@ -382,14 +383,13 @@ pub struct Result<'a> {
 
 /// Appends one record, and its whole output beside the ledger, returning the
 /// record's identifier or why it couldn't be written.
-pub fn record(root: &Path, result: &Result) -> std::result::Result<String, String> {
+pub fn record(root: &Path, result: &Result, started: Option<&str>) -> std::result::Result<String, String> {
     let (ledger, outputs) = ledger_of(root).ok_or(no_state_reason())?;
     let time = now();
-    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
-    let seed = format!("{}\n{}\n{}\n{time}\n{nanos}\n{}", result.verb, result.outcome, result.after, std::process::id());
-    let id = hex(&Sha256::digest(seed.as_bytes()))[..12].to_string();
+    let id = started.map(str::to_string).unwrap_or_else(|| new_id(result.verb));
     let line = json!({
         "record": id,
+        "phase": "ended",
         "verb": result.verb,
         "command": result.command,
         "outcome": result.outcome,
@@ -404,16 +404,72 @@ pub fn record(root: &Path, result: &Result) -> std::result::Result<String, Strin
     std::fs::create_dir_all(&outputs).map_err(|e| format!("can't create {}: {e}", outputs.display()))?;
     std::fs::write(outputs.join(format!("{id}.log")), result.output)
         .map_err(|e| format!("can't write the output: {e}"))?;
-    // Every write takes the lock, so no line is lost to a prune (REQ-0758).
+    append(root, &ledger, &line)?;
+    Ok(id)
+}
+
+fn new_id(verb: &str) -> String {
+    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let seed = format!("{verb}\n{nanos}\n{}", std::process::id());
+    hex(&Sha256::digest(seed.as_bytes()))[..12].to_string()
+}
+
+/// Appends one whole line under the lock, so no line is lost to a prune
+/// (REQ-0758), with one write per line so a reader sees it whole or not at all.
+fn append(root: &Path, ledger: &Path, line: &Value) -> std::result::Result<(), String> {
+    if let Some(dir) = ledger.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| format!("can't create {}: {e}", dir.display()))?;
+    }
     let _held = lock(root, true).ok_or("the ledger's lock stayed held; the result wasn't recorded")?;
     let mut file = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open(&ledger)
+        .open(ledger)
         .map_err(|e| format!("can't open {}: {e}", ledger.display()))?;
-    // One write per line, so two sessions appending at once keep lines whole.
-    file.write_all(format!("{line}\n").as_bytes()).map_err(|e| format!("can't append: {e}"))?;
-    Ok(id)
+    file.write_all(format!("{line}\n").as_bytes()).map_err(|e| format!("can't append: {e}"))
+}
+
+/// When a process started, as the system reports it, so a reused process id
+/// isn't read as the same run (REQ-2968).
+fn process_start(pid: u32) -> Option<String> {
+    let done = Command::new("ps").args(["-o", "lstart=", "-p", &pid.to_string()]).output().ok()?;
+    let text = String::from_utf8_lossy(&done.stdout).trim().to_string();
+    (done.status.success() && !text.is_empty()).then_some(text)
+}
+
+fn host() -> String {
+    Command::new("hostname").output().ok().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default()
+}
+
+/// Records a verb as started before it runs, naming this process, so a run
+/// cut short reads as interrupted and never as a result (REQ-2968).
+pub fn start(root: &Path, verb: &str, command: &str, targets: Option<&[String]>, before: &str) -> Option<String> {
+    let (ledger, _) = ledger_of(root)?;
+    let id = new_id(verb);
+    let pid = std::process::id();
+    let line = json!({
+        "record": id,
+        "phase": "started",
+        "verb": verb,
+        "command": command,
+        "targets": targets,
+        "tree_before": before,
+        "time": now(),
+        "pid": pid,
+        "process_start": process_start(pid),
+        "host": host(),
+        "repository": repository_identity(root),
+        "work_tree": std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()).display().to_string(),
+    });
+    append(root, &ledger, &line).ok().map(|_| id)
+}
+
+/// Whether the process a started record names still runs this verb.
+fn still_running(started: &Value) -> bool {
+    let pid = started.get("pid").and_then(Value::as_u64).unwrap_or(0) as u32;
+    let same_host = started.get("host").and_then(Value::as_str) == Some(host().as_str());
+    let recorded = started.get("process_start").and_then(Value::as_str);
+    same_host && pid != 0 && recorded.is_some() && process_start(pid).as_deref() == recorded
 }
 
 /// Every record in a work tree's ledger, oldest first; a line that doesn't
@@ -421,7 +477,31 @@ pub fn record(root: &Path, result: &Result) -> std::result::Result<String, Strin
 pub fn records(root: &Path) -> Vec<Value> {
     let Some((ledger, _)) = ledger_of(root) else { return Vec::new() };
     let Ok(text) = std::fs::read_to_string(ledger) else { return Vec::new() };
-    text.lines().filter_map(|line| serde_json::from_str(line).ok()).collect()
+    let lines: Vec<Value> = text.lines().filter_map(|line| serde_json::from_str(line).ok()).collect();
+    pair(lines)
+}
+
+/// One record per identifier, in the order each reached its last state: an
+/// ended line stands for its record, and a start with no end reads as
+/// `running` while its process lives and `interrupted` otherwise (REQ-2968).
+fn pair(lines: Vec<Value>) -> Vec<Value> {
+    let mut out: Vec<Value> = Vec::new();
+    for line in lines {
+        let id = line.get("record").and_then(Value::as_str).unwrap_or("").to_string();
+        if let Some(i) = out.iter().position(|r| r.get("record").and_then(Value::as_str) == Some(id.as_str())) {
+            out.remove(i);
+        }
+        out.push(line);
+    }
+    for record in &mut out {
+        if record.get("phase").and_then(Value::as_str) == Some("started") {
+            let outcome = if still_running(record) { "running" } else { "interrupted" };
+            record["outcome"] = Value::from(outcome);
+            let before = record.get("tree_before").cloned().unwrap_or(Value::Null);
+            record["tree"] = before;
+        }
+    }
+    out
 }
 
 /// The first twelve characters of a tree id, which is how it is shown.

@@ -26,6 +26,10 @@ const PASSED: u8 = 0;
 const FAILED: u8 = 1;
 const USAGE: u8 = 2;
 const UNRESOLVED: u8 = 3;
+/// A run cut short, which a new run can fix (ADR-1530).
+const INTERRUPTED: u8 = 4;
+const SIGINT: i32 = 2;
+const SIGTERM: i32 = 15;
 
 /// Where a verb's subset form puts the part of the work (ADR-1520).
 const TARGETS: &str = "{targets}";
@@ -265,7 +269,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
     }
     let mut outcomes: Vec<(String, &str)> = Vec::new();
     let mut recorded: Vec<String> = Vec::new();
-    let mut keep = |result: ledger::Result| match ledger::record(root, &result) {
+    let mut keep = |result: ledger::Result, started: Option<&str>| match ledger::record(root, &result, started) {
         Ok(id) => recorded.push(format!("recorded: {} {id} at tree {}", result.verb, ledger::short(result.after))),
         Err(reason) => recorded.push(format!("not recorded: {} ({reason})", result.verb)),
     };
@@ -276,7 +280,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
                 println!("== {name}: unresolved ({kind}: {detail}), not run\n");
                 outcomes.push((name.clone(), "unresolved"));
                 let tree = ledger::tree_id(root);
-                keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "", targets });
+                keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "", targets }, None);
                 continue;
             }
             Entry::Resolved { command, subset } => match (targets, subset) {
@@ -289,23 +293,33 @@ fn run(root: &Path, args: &[String]) -> u8 {
                     println!("== {name}: unresolved (no subset form: {detail}), not run\n");
                     outcomes.push((name.clone(), "unresolved"));
                     let tree = ledger::tree_id(root);
-                    keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "", targets });
+                    keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "", targets }, None);
                     continue;
                 }
             },
         };
         let command = &command;
         let before = ledger::tree_id(root);
+        let record = ledger::start(root, name, command, targets, &before);
         let started = Instant::now();
         let (code, output) = execute(root, command);
         let after = ledger::tree_id(root);
-        let outcome = if code == 0 { "passed" } else { "failed" };
-        keep(ledger::Result { verb: name, command: Some(command), outcome, status: Some(code), before: &before, after: &after, output: &output, targets });
+        // A verb ended by an interrupt or a termination signal says the run
+        // stopped, and nothing about the work (REQ-2969).
+        let outcome = match code {
+            0 => "passed",
+            c if c == -SIGINT || c == -SIGTERM => "interrupted",
+            _ => "failed",
+        };
+        keep(ledger::Result { verb: name, command: Some(command), outcome, status: Some(code), before: &before, after: &after, output: &output, targets }, record.as_deref());
         let seconds = started.elapsed().as_secs_f64();
         println!("== {name}: `{command}`");
         if code == 0 {
             println!("passed, exit status 0 after {seconds:.1}s\n");
             outcomes.push((name.clone(), "passed"));
+        } else if outcome == "interrupted" {
+            println!("interrupted by signal {} after {seconds:.1}s; the run stopped, and this says nothing about the work\n", -code);
+            outcomes.push((name.clone(), "interrupted"));
         } else {
             let lines: Vec<&str> = output.trim_end_matches('\n').lines().collect();
             let shown = lines.len().min(TAIL);
@@ -329,6 +343,8 @@ fn run(root: &Path, args: &[String]) -> u8 {
     }
     if outcomes.iter().any(|(_, result)| *result == "failed") {
         FAILED
+    } else if outcomes.iter().any(|(_, result)| *result == "interrupted") {
+        INTERRUPTED
     } else if outcomes.iter().any(|(_, result)| *result == "unresolved") {
         UNRESOLVED
     } else {
@@ -364,7 +380,7 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
         return UNRESOLVED;
     }
     let now = ledger::tree_id(root);
-    let (mut failed, mut unresolved) = (false, false);
+    let (mut failed, mut unresolved, mut interrupted) = (false, false, false);
     for verb in &wanted {
         // A subset record never stands for the whole verb (ADR-1520); a record
         // from before targets were kept has none, and was a whole run.
@@ -380,6 +396,14 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
         };
         let (id, outcome, tree, before) = (text(latest, "record"), text(latest, "outcome"), text(latest, "tree"), text(latest, "tree_before"));
         let head = format!("{verb}: {outcome}, record {id}");
+        if outcome == "running" || outcome == "interrupted" {
+            println!("{head}, {}", if outcome == "running" { "still running in another session" } else { "cut short; run it again" });
+            interrupted = true;
+            if keep {
+                println!("  not kept: only a finished run is evidence");
+            }
+            continue;
+        }
         if outcome == "unresolved" {
             println!("{head}, not run");
             unresolved = true;
@@ -436,6 +460,8 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
     }
     if failed {
         FAILED
+    } else if interrupted {
+        INTERRUPTED
     } else if unresolved {
         UNRESOLVED
     } else {
