@@ -43,7 +43,28 @@ Nothing. ADR-1460 is approved.
 
 ## Evidence
 
-Not yet.
+`meow-author cost` ports `tools/check_budget.py` to the `author` subcommand:
+it reports each unit's permanent characters against its budget, capping a
+description and its `when_to_use` together, fails on an overrun, a missing
+budget or a description over the cap, and ends by naming `/skill-doctor` for
+each skill's use. It reads no session transcript. On this repository it
+reports the same number for every unit as the script it replaces, and the
+`budget` task runs it through `cargo`, in the `lint` verb and `mise run all`.
+The script is gone, the budget files name "the budget check" where they named
+it, and `meow-author` is at 0.3.0 with its page stating the command.
+
+Four fixtures in `Cost`, three naming REQ-1072 and one REQ-1074, failed
+against `main`'s program and pass against this one:
+
+```text
+$ MEOW_AUTHOR_BIN=<main's meow-author> python3 -m unittest ... -k Cost
+FAILED (failures=4)
+$ python3 -m unittest discover -s plugins/meow-author/tests
+OK
+$ mise run budget
+12 units, 0 budget failures
+How often each skill is used: run /skill-doctor in Claude Code, which reports each skill's cost and invocations.
+```
 
 ## Left alone
 

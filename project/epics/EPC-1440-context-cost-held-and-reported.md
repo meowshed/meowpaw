@@ -41,9 +41,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2220 report each unit's cost and use with `meow-author cost`,
+- [x] T-001 TSK-2220 report each unit's cost and use with `meow-author cost`,
       in the gate
       closes: REQ-1072, REQ-1074
+      evidence: four fixtures, and the `budget` task running the shipped report,
+      in #493.
 
 - [ ] T-002 [P] TSK-2230 carry the loading rules in `meow-author:write`
       closes: REQ-1052, REQ-1054, REQ-1068, REQ-1070, REQ-1076, REQ-1078,
