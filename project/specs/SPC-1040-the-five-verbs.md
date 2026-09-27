@@ -41,7 +41,7 @@ checked at #115.
 | `.meowpaw/profile.toml`, `[verbs]`  | The repository's declaration: one command per verb it declares |
 | `plugins/meow-verbs/bin/meow-verbs` | The program: `status` and `run <verb>...`                      |
 | `plugins/meow-verbs/skills/verify/` | The skill that tells the model to use the program, not a guess |
-| `docs/meow-verbs.md`                | The unit's documentation page                                  |
+| `plugins/meow-verbs/README.md`      | The unit's documentation page                                  |
 
 ## Behaviour
 

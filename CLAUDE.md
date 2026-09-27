@@ -69,7 +69,8 @@ a file. A decision record is `approved` when someone accepted it and
 | `project/tasks/TSK-NNNN-<slug>.md`        | One task, one branch, one pull request                                                                             |
 | `project/bugs/BUG-NNNN-<slug>.md`         | Evidence that a requirement isn't met                                                                              |
 | `project/insights/INS-NNNN-<slug>.md`     | One lesson learned, with its evidence and the pattern it generalises to                                            |
-| `docs/`                                   | Documentation for someone using the harness. A separate hierarchy                                                  |
+| `docs/`                                   | Documentation for someone using the harness as a whole. A separate hierarchy                                       |
+| `plugins/<name>/README.md`                | That unit's own page, shipped inside it                                                                            |
 | `plugins/<name>/`                         | One directory per plugin                                                                                           |
 | `.claude-plugin/marketplace.json`         | The marketplace index                                                                                              |
 | `mise.toml`                               | The gate, as tasks                                                                                                 |
@@ -403,10 +404,10 @@ shape, where `.meowpaw/profile.toml` declares the record:
 plugins/meow-method/bin/paw check
 ```
 
-Three checks stay in `tools/` as Python scripts, because they read this
-repository and not the record: the documentation index, links, and the shape a
-subordinate agent carries. The `test` verb runs all four, and so does
-`meow-verbs run test`.
+Four checks stay in `tools/` as Python scripts, because they read this
+repository and not the record: the documentation, the documentation index,
+links, and the shape a subordinate agent carries. The `test` verb runs all
+five, and so does `meow-verbs run test`.
 
 A check that reports a false positive is a defect in the check, and never a
 reason to reword the text around it. A check that trips on what it shouldn't

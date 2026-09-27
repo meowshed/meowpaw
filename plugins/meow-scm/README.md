@@ -1,3 +1,10 @@
+---
+reader: someone choosing or running meow-scm
+answers: what meow-scm does, what it adds to a session and how to run it
+kind: reference
+describes: [meow-scm@0.4.0]
+---
+
 # meow-scm
 
 `meow-scm` checks a commit message against the convention your repository
@@ -79,9 +86,3 @@ each documented by Claude Code:
 
 - a skill loaded by its description: [documentation](https://code.claude.com/docs/en/skills.md)
 - a plugin's `bin/` programs, run by path: [documentation](https://code.claude.com/docs/en/plugins-reference.md)
-
-## Where the rules come from
-
-The decision is
-`project/adrs/ADR-1080-a-commit-message-is-checked-against-the-declared-convention.md`,
-and the unit is specified in `project/specs/SPC-1050-the-commit-convention.md`.

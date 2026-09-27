@@ -1,3 +1,10 @@
+---
+reader: someone choosing or running meow-prose-gate
+answers: what meow-prose-gate does, what it adds to a session and how to run it
+kind: reference
+describes: [meow-prose-gate@0.1.1]
+---
+
 # meow-prose-gate
 
 `meow-prose-gate` stops Claude Code from publishing a text that carries a
@@ -18,8 +25,7 @@ would dispute teaches you to route around it:
 
 Unexplained acronyms and American spellings are left to the writing skill and
 the reviewer in `meow-prose`. Haiku 4.5 judged both backwards: it passed the
-defect and blocked the correction, in the measurement recorded in
-`project/tasks/TSK-1140-the-prose-gate.md`.
+defect and blocked the correction when the gate was measured on them.
 
 When the gate blocks, Claude Code gets the reason as the command's error, with
 the span and the fix, and publishes again with the text corrected. A text given
@@ -50,16 +56,8 @@ written and the gate catches what the skill missed.
 
 ## What it needs
 
-Claude Code 2.1.283 or later, the version this unit was tested on, declared
-in `plugins/meow-prose-gate/requires.toml`. It relies on these platform behaviours,
-each documented by Claude Code:
+Claude Code 2.1.283 or later, the version this unit was tested on, declared in
+`plugins/meow-prose-gate/requires.toml`. It relies on these platform
+behaviours, each documented by Claude Code:
 
 - a `PreToolUse` hook of type `prompt`, with a `model` field: [documentation](https://code.claude.com/docs/en/hooks.md)
-
-## Where the rules come from
-
-The decision is the architecture decision record
-`project/adrs/ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md`,
-as amended by
-`project/adrs/ADR-1020-every-shipped-prompt-is-tagged-and-a-rule-that-must-hold-is-loaded-by-a-hook.md`,
-and the unit is specified in `project/specs/SPC-1010-the-writing-standard.md`.

@@ -1,3 +1,10 @@
+---
+reader: someone choosing or running meow-prose
+answers: what meow-prose does, what it adds to a session and how to run it
+kind: reference
+describes: [meow-prose@0.3.4]
+---
+
 # meow-prose
 
 `meow-prose` holds everything Claude Code writes for you to one writing
@@ -66,13 +73,11 @@ reads the directory and never writes to it.
 
 ## What it costs you
 
-The skill's description costs 299 characters in context on every turn, so
-that Claude Code knows when to load the skill, and the reviewer's description
-costs 277. Claude Code loads the skill whenever it writes, rewrites, edits or
-reviews prose, a one-line commit message included. In the measurement recorded
-in `project/research/RES-0272-routing-a-skill-by-its-description.md`, it loaded
-in every writing request on Sonnet 5 and Opus 5.5 and in none that only
-changes code. On Opus 5.5 it also loads for some answers in chat.
+The skill's description costs 299 characters in context on every turn, so that
+Claude Code knows when to load the skill, and the reviewer's description costs 277. Claude Code loads the skill whenever it writes, rewrites, edits or reviews
+prose, a one-line commit message included. Measured on 24 requests, three runs
+each, it loaded in every writing request on Sonnet 5 and Opus 5.5 and in none
+that only changes code. On Opus 5.5 it also loads for some answers in chat.
 
 Every token count here is for Sonnet 5. The skill file costs about 4,400
 tokens and holds the rules every text needs, and a commit message or a code
@@ -89,11 +94,3 @@ each documented by Claude Code:
 
 - a skill loaded by its description: [documentation](https://code.claude.com/docs/en/skills.md)
 - a subordinate agent, the reviewer: [documentation](https://code.claude.com/docs/en/sub-agents.md)
-
-## Where the rules come from
-
-The decision is
-`project/adrs/ADR-1010-the-writing-standard-ships-as-a-unit-that-reviews-itself.md`,
-and the part it creates is specified in
-`project/specs/SPC-1010-the-writing-standard.md`. Read the decision for the
-alternatives and what would reverse it.
