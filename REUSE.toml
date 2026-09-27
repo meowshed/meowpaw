@@ -12,6 +12,7 @@ path = [
   "docs/**",
   "plugins/meow-method/templates/**",
   "README.md",
+  "llms.txt",
   "CLAUDE.md",
   "REUSE.toml",
 ]
