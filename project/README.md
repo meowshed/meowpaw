@@ -186,6 +186,8 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1500](adrs/ADR-1500-the-evaluation-loop-reports-what-a-measurement-rests-on-and-refuses-what-it-cannot-hold.md):
   the evaluation loop reports what a measurement rests on, and refuses what it
   can't hold.
+- [ADR-1510](adrs/ADR-1510-a-requirement-declares-one-of-four-kinds-of-check-and-the-record-holds-it.md):
+  a requirement declares one of four kinds of check, and the record holds it.
 
 ## Specifications
 
@@ -396,6 +398,9 @@ verified against every acceptance criterion under issue 525.
 [EPC-1480](epics/EPC-1480-the-loop-reports-and-refuses.md) realises ADR-1500 in
 one task, TSK-2310, closed with evidence, and was verified against every
 acceptance criterion under issue 531.
+
+[EPC-1490](epics/EPC-1490-verification-kind-held.md) realises ADR-1510 in one
+task, TSK-2320.
 
 ## Defects
 
