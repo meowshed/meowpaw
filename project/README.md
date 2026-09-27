@@ -373,7 +373,8 @@ in two tasks, TSK-2220 and TSK-2230, each closed with evidence, and was
 verified against every acceptance criterion under issue 498.
 
 [EPC-1450](epics/EPC-1450-record-connections-reported.md) realises ADR-1470
-in two tasks, TSK-2240 and TSK-2250.
+in two tasks, TSK-2240 and TSK-2250, each closed with evidence, and was
+verified against every acceptance criterion under issue 506.
 
 ## Defects
 
