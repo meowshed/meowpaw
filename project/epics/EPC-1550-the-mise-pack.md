@@ -49,10 +49,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2420 ship the unit and `status`'s task listing
+- [x] T-001 TSK-2420 ship the unit and `status`'s task listing
       closes: REQ-2460, REQ-2462, REQ-2464, REQ-2465, REQ-2466, REQ-2467,
       REQ-2470, REQ-2472, REQ-2473, REQ-2476, REQ-2478, REQ-2479, REQ-2496,
       REQ-2500
+      evidence: 21 fixtures, 20 seen failing first, most against real mise,
+      in #579.
 
 - [ ] T-002 [P] TSK-2430 report the pinned tools, the environment's files and
       idiomatic version files
