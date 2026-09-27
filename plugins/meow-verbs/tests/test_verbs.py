@@ -27,13 +27,28 @@ class Repository:
     def __init__(self, profile=None):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
+        # The ledger goes to a state directory of the fixture's own, outside the
+        # repository and never the machine's (ADR-1480).
+        self.state_tmp = tempfile.TemporaryDirectory()
+        self.state = Path(self.state_tmp.name)
         if profile is not None:
             (self.root / ".meowpaw").mkdir()
             (self.root / ".meowpaw" / "profile.toml").write_text(profile, encoding="utf-8")
 
     def run(self, *args, env=None):
+        env = {**(os.environ if env is None else env), "XDG_STATE_HOME": str(self.state)}
         return subprocess.run([str(BIN), *args], cwd=self.root, capture_output=True,
                               text=True, env=env)
+
+    def git(self, *args):
+        return subprocess.run(["git", "-c", "user.name=a", "-c", "user.email=a@b", *args], cwd=self.root,
+                              capture_output=True, text=True, check=True,
+                              env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"})
+
+    def records(self):
+        ledgers = list((self.state / "meowpaw" / "evidence").glob("*.jsonl"))
+        assert len(ledgers) == 1, ledgers
+        return [json.loads(line) for line in ledgers[0].read_text(encoding="utf-8").splitlines()]
 
     def status(self):
         done = self.run("status", "--json")
@@ -41,6 +56,7 @@ class Repository:
 
     def close(self):
         self.tmp.cleanup()
+        self.state_tmp.cleanup()
 
 
 class Verbs(unittest.TestCase):
@@ -135,26 +151,17 @@ class Verbs(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("formatted", done.stdout)
 
-    def test_an_old_key_resolves_its_new_verb_with_a_notice(self):
-        """REQ-2908, ADR-1410: a profile declaring fmt keeps resolving for one release."""
+    def test_an_old_key_is_ignored_from_0_4_0(self):
+        """REQ-2908, ADR-1410: from 0.4.0 a profile key under an old name resolves nothing and is listed as ignored."""
         report = self.repo('[verbs]\nfmt = "true"\n').status()
-        self.assertEqual(report["verbs"]["format"]["state"], "resolved")
-        self.assertNotIn("verbs.fmt", report["ignored"])
-        self.assertTrue(any("`fmt` is now `format`" in notice and "0.4.0" in notice for notice in report["notices"]))
+        self.assertEqual(report["verbs"]["format"]["state"], "unresolved")
+        self.assertIn("verbs.fmt", report["ignored"])
 
-    def test_an_old_name_on_the_command_line_runs_the_new_verb(self):
-        """REQ-2908, ADR-1410: run typecheck runs check, and says so."""
+    def test_an_old_name_on_the_command_line_is_refused(self):
+        """REQ-2908, ADR-1410: from 0.4.0 typecheck isn't a verb."""
         done = self.repo('[verbs]\ncheck = "echo checked"\n').run("run", "typecheck")
-        self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertIn("`typecheck` is now `check`", done.stdout)
-        self.assertIn("0.4.0", done.stdout)
-        self.assertIn("summary: check passed", done.stdout)
-
-    def test_a_new_key_wins_over_its_old_name(self):
-        """ADR-1410: where both are declared, the new name wins and the notice names the key ignored."""
-        report = self.repo('[verbs]\nformat = "echo new"\nfmt = "echo old"\n').status()
-        self.assertEqual(report["verbs"]["format"]["command"], "echo new")
-        self.assertTrue(any("`fmt` is ignored" in notice for notice in report["notices"]))
+        self.assertEqual(done.returncode, 2, done.stdout)
+        self.assertIn("typecheck isn't a verb", done.stderr)
 
     def test_a_sixth_verb_is_refused(self):
         done = self.repo('[verbs]\ndeploy = "true"\n').run("run", "deploy")
@@ -176,6 +183,90 @@ class Verbs(unittest.TestCase):
         self.assertEqual(done.returncode, 3)
         self.assertNotIn("passed", done.stdout)
 
+
+class Ledger(unittest.TestCase):
+    """ADR-1480: each result is recorded against the tree it ran on, and evidence reports whether it holds."""
+
+    PROFILE = '[verbs]\ntest = "echo tested"\nlint = "echo broken; exit 1"\nformat = "printf x >> formatted.txt"\n'
+
+    def repo(self, git=True):
+        repository = Repository(self.PROFILE)
+        self.addCleanup(repository.close)
+        if git:
+            repository.git("init", "-q", "-b", "work")
+        return repository
+
+    def test_run_records_every_verb_outside_the_repository(self):
+        """REQ-0146: a record per verb, the unresolved one included, with its whole output."""
+        repo = self.repo()
+        before = sorted(p.name for p in repo.root.iterdir())
+        done = repo.run("run", "test", "lint", "check")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        records = repo.records()
+        self.assertEqual([(r["verb"], r["outcome"]) for r in records],
+                         [("test", "passed"), ("lint", "failed"), ("check", "unresolved")])
+        for r in records:
+            self.assertRegex(r["tree"], r"^[0-9a-f]{40}$")
+            self.assertIn(f"recorded: {r['verb']} {r['record']} at tree {r['tree'][:12]}", done.stdout)
+        logs = repo.state / "meowpaw" / "evidence"
+        self.assertEqual((next(logs.glob(f"*/{records[1]['record']}.log"))).read_text(encoding="utf-8"), "broken\n")
+        self.assertEqual(sorted(p.name for p in repo.root.iterdir()), before)
+
+    def test_evidence_holds_only_for_the_tree_it_ran_on(self):
+        """REQ-0146, REQ-0148: current after a pass, stale after an edit, failing after a failure."""
+        repo = self.repo()
+        repo.run("run", "test")
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("test: passed, record", done.stdout)
+        self.assertIn(", current at tree", done.stdout)
+        (repo.root / "edited.txt").write_text("a\n", encoding="utf-8")
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("stale: ran on tree", done.stdout)
+        repo.run("run", "lint")
+        self.assertEqual(repo.run("evidence", "lint").returncode, 1)
+        self.assertEqual(repo.run("evidence", "build").returncode, 3)
+        self.assertIn("build: no record", repo.run("evidence", "build").stdout)
+
+    def test_a_verb_that_rewrites_the_tree_is_stale_until_it_runs_clean(self):
+        """REQ-0148: a result taken while the tree changed describes no one tree."""
+        repo = self.repo()
+        repo.run("run", "format")
+        done = repo.run("evidence", "format")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("the tree changed during its run", done.stdout)
+
+    def test_going_back_to_an_earlier_tree_is_stale_until_the_verb_runs_again(self):
+        """REQ-0148: the latest record decides, so an earlier pass on the same content doesn't count."""
+        repo = self.repo()
+        repo.run("run", "test")
+        (repo.root / "edited.txt").write_text("a\n", encoding="utf-8")
+        repo.run("run", "test")
+        (repo.root / "edited.txt").unlink()
+        self.assertEqual(repo.run("evidence", "test").returncode, 1)
+        repo.run("run", "test")
+        self.assertEqual(repo.run("evidence", "test").returncode, 0)
+
+    def test_the_tree_id_is_the_tree_of_a_commit_adding_every_file(self):
+        """REQ-0146: a reviewer can compare a recorded tree with the commit made from that state."""
+        repo = self.repo()
+        (repo.root / "untracked.txt").write_text("a\n", encoding="utf-8")
+        repo.run("run", "test")
+        tree = repo.records()[-1]["tree"]
+        self.assertIn("?? untracked.txt", repo.git("status", "--short").stdout)
+        repo.git("add", "-A")
+        repo.git("commit", "-q", "-m", "c")
+        self.assertEqual(repo.git("rev-parse", "HEAD^{tree}").stdout.strip(), tree)
+
+    def test_outside_git_a_record_is_bound_to_no_tree(self):
+        """REQ-0146: with no tree to bind to, evidence never reads as current."""
+        repo = self.repo(git=False)
+        repo.run("run", "test")
+        self.assertEqual(repo.records()[-1]["tree"], "none")
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 3, done.stdout)
+        self.assertIn("bound to no tree", done.stdout)
 
 
 class Launcher(unittest.TestCase):
