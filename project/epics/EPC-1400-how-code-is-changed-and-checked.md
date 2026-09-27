@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1420
-checked-at:
+checked-at: "#464"
 ---
 
 # A coding unit holds how code is changed and how a check is written
@@ -47,6 +47,35 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       REQ-2072, REQ-2074, REQ-2076, REQ-2078
       evidence: thirteen rules traced, and the skill loading first on both
       models, in #461.
+
+## Verified
+
+I checked this under #464 on `main` after #466, gathering the evidence there
+rather than carrying it over from the task. Every criterion is met, the third
+after BUG-1200's fix:
+
+| Criterion                                                                                                     | Evidence on `main` after #466                                                                                                                                  |
+| ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Each requirement is carried by a labelled rule, traced, naming no requirement, language, tool or extension | The skill carries 13 labelled rules, TSK-2150 traces all 17 requirements to them, and a search of the skill for record identifiers and file extensions finds 0 |
+| 2. The prompt and budget checks pass                                                                          | `check_prompts.py` reports 54 prompts and 0 failures, and `check_budget.py` measures the description at 274 of 330 characters                                  |
+| 3. A session on each model loads the skill before the first edit                                              | Five runs per model, asked to change a one-line function with only the unit installed: Sonnet 5 loaded it in 5 of 5, Opus 5.5 in 5 of 5                        |
+| 4. Every requirement lands in exactly one closed task                                                         | `paw show` derives all 17 requirements ADR-1420 addresses as closed and not yet verified                                                                       |
+
+The first measurement here, at #463, found Sonnet 5 loading the skill in 2 of
+5 runs. BUG-1200 records that, and #466 fixed the description; the runs in
+the table are the ones after the fix. Every measurement is by hand, as this
+repository's evaluations are.
+
+### Documentation
+
+TSK-2150 wrote `meow-code`'s page, and #466 restamped it at 0.1.1 with the
+description's new cost. The `test` verb checked it, running
+`tools/check_docs.py`, which reports 14 pages and 0 failures.
+
+### Postponements
+
+ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
+untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 
