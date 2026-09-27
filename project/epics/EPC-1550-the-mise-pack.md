@@ -56,9 +56,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: 21 fixtures, 20 seen failing first, most against real mise,
       in #579.
 
-- [ ] T-002 [P] TSK-2430 report the pinned tools, the environment's files and
+- [x] T-002 [P] TSK-2430 report the pinned tools, the environment's files and
       idiomatic version files
       closes: REQ-2482, REQ-2490, REQ-2506
+      evidence: five fixtures seen failing first, against real mise, in #580.
 
 - [ ] T-003 [P] TSK-2440 bind the verbs and check the profile's bindings
       closes: REQ-1316, REQ-2354, REQ-2468, REQ-2474, REQ-2492, REQ-2504
