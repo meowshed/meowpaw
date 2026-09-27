@@ -391,7 +391,21 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
             failed |= outcome != "passed";
             if keep {
                 match ledger::keep(root, latest) {
-                    Ok(path) => println!("  kept: {}", path.strip_prefix(root).unwrap_or(&path).display()),
+                    Ok(path) => {
+                        let shown = path.strip_prefix(root).unwrap_or(&path).display().to_string();
+                        // A file git won't commit isn't kept for anyone else (ADR-1550).
+                        match ledger::ignored_by(root, &path) {
+                            Ok(None) => println!("  kept: {shown}"),
+                            Ok(Some(rule)) => {
+                                println!("  not kept: {shown} is ignored by {rule}; change the rule, and the file is ready to commit");
+                                failed = true;
+                            }
+                            Err(reason) => {
+                                println!("  unchecked: {shown} was written, and git couldn't say whether it ignores it ({reason})");
+                                unresolved = true;
+                            }
+                        }
+                    }
                     Err(reason) => {
                         println!("  not kept: {reason}");
                         failed = true;

@@ -368,8 +368,8 @@ class Kept(unittest.TestCase):
         record = repo.records()[-1]
         done = repo.run("evidence", "--keep", "test")
         self.assertEqual(done.returncode, 0, done.stdout)
-        kept = repo.root / ".meowpaw" / "evidence" / f"{record['record']}.log"
-        self.assertIn(f"kept: .meowpaw/evidence/{record['record']}.log", done.stdout)
+        kept = repo.root / "project" / "evidence" / f"{record['record']}.txt"
+        self.assertIn(f"kept: project/evidence/{record['record']}.txt", done.stdout)
         text = kept.read_text(encoding="utf-8")
         self.assertTrue(text.startswith("meow-verbs evidence 1\n"), text)
         for line in (f"record: {record['record']}", "verb: test", "command: echo tested", "outcome: passed",
@@ -394,16 +394,42 @@ class Kept(unittest.TestCase):
         done = repo.run("evidence", "--keep", "test")
         self.assertEqual(done.returncode, 1, done.stdout)
         self.assertIn("not kept", done.stdout)
-        self.assertFalse((repo.root / ".meowpaw" / "evidence").exists())
+        self.assertFalse((repo.root / "project" / "evidence").exists())
 
     def test_the_declared_directory_is_used_and_left_out(self):
         """REQ-2956: a repository chooses where its evidence lives."""
-        repo = self.repo(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "project/evidence"\n'))
+        repo = self.repo(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "proof"\n'))
         repo.run("run", "test")
         repo.run("evidence", "--keep")
-        self.assertEqual(len(list((repo.root / "project" / "evidence").glob("*.log"))), 1)
+        self.assertEqual(len(list((repo.root / "proof").glob("*.txt"))), 1)
         self.assertNotIn("verbs.evidence_dir", repo.status()["ignored"])
         self.assertEqual(repo.run("evidence", "test").returncode, 0)
+
+    def test_the_default_follows_a_moved_record(self):
+        """REQ-2956, ADR-1550: evidence sits beside the record wherever the profile puts it."""
+        repo = self.repo(self.PROFILE + '\n[record]\nroot = "docs/record"\n')
+        repo.run("run", "test")
+        done = repo.run("evidence", "--keep")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertEqual(len(list((repo.root / "docs" / "record" / "evidence").glob("*.txt"))), 1)
+
+    def test_a_kept_file_git_ignores_is_reported_and_left(self):
+        """REQ-2956, ADR-1550: a file git won't commit isn't kept."""
+        repo = self.repo()
+        (repo.root / ".gitignore").write_text("project/evidence/\n", encoding="utf-8")
+        repo.run("run", "test")
+        done = repo.run("evidence", "--keep", "test")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("ignored by .gitignore:1", done.stdout)
+        self.assertEqual(len(list((repo.root / "project" / "evidence").glob("*.txt"))), 1)
+
+    def test_outside_git_a_kept_file_is_unchecked(self):
+        """REQ-2956, ADR-1550: an ignore check git can't answer is unresolved, never a keep."""
+        repository = Repository(self.PROFILE)
+        self.addCleanup(repository.close)
+        repository.run("run", "test")
+        done = repository.run("evidence", "--keep", "test")
+        self.assertEqual(done.returncode, 3, done.stdout)
 
     def test_a_commit_tree_matches_the_kept_record(self):
         """REQ-2956: a reviewer compares a kept record with the commit that carries it."""
