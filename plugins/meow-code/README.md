@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-code
 answers: what meow-code does, what it adds to a session and how to use it
 kind: reference
-describes: [meow-code@0.1.0]
+describes: [meow-code@0.1.1]
 ---
 
 # meow-code
@@ -49,7 +49,7 @@ description whenever it's about to change code.
 
 ## What it costs you
 
-The skill's description costs 233 characters in context on every turn, and
+The skill's description costs 274 characters in context on every turn, and
 the skill's body loads each time Claude Code changes code. The unit ships no
 program.
 
