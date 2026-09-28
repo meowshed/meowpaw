@@ -343,10 +343,10 @@ fn push_guard(root: &Path) -> u8 {
                 }
             }
         }
-        if policy.signatures {
-            if let Some(problem) = signature(root, commit) {
-                failures.push(format!("{subject}\n    signature: the commit {problem}"));
-            }
+        if policy.signatures
+            && let Some(problem) = signature(root, commit)
+        {
+            failures.push(format!("{subject}\n    signature: the commit {problem}"));
         }
     }
 
