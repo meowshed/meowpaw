@@ -645,7 +645,11 @@ The section is filled when `Landed in` names something, each path under
 `Checks` exists, the path under `Failing run` exists, and each number under
 `Judgement` carries a reason, because the failing run is the cover step's
 evidence (REQ-3207) and a criterion resting on judgement is named with its
-reason before the implementation starts (REQ-3216). It is also filled when
+reason before the implementation starts (REQ-3216). A path under `Checks` or
+`Failing run` is relative to the repository's root and names a regular file
+inside it, and `Failing run` names none of the checks, because a file outside
+the repository isn't kept with it and a directory or a check isn't a run
+(BUG-1260). It is also filled when
 `Checks`, `Failing run` and `Landed in` read `none` and `Judgement` names
 every numbered criterion under `## Acceptance criteria`. `ready implement`
 reads these four lines and nothing more: it doesn't check that the kept run
