@@ -845,19 +845,19 @@ fn front_matter(record: &Record) -> Vec<Finding> {
                 }
             }
         }
-        if let Some(field) = doc.field("artifact") {
-            if bare(&field.value) != kind.artifact {
-                out.push(Finding::at(
-                    doc,
-                    Some(field.line),
-                    format!(
-                        "artifact is {}, where a {} is {}",
-                        bare(&field.value),
-                        kind.name,
-                        kind.artifact
-                    ),
-                ));
-            }
+        if let Some(field) = doc.field("artifact")
+            && bare(&field.value) != kind.artifact
+        {
+            out.push(Finding::at(
+                doc,
+                Some(field.line),
+                format!(
+                    "artifact is {}, where a {} is {}",
+                    bare(&field.value),
+                    kind.name,
+                    kind.artifact
+                ),
+            ));
         }
         for field in fields {
             if let Some(why) = record.layout.retired_fields.get(&field.key) {
@@ -912,10 +912,11 @@ fn front_matter(record: &Record) -> Vec<Finding> {
 fn known(record: &Record) -> BTreeMap<String, &Doc> {
     let mut out = BTreeMap::new();
     for doc in &record.docs {
-        if let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) {
-            if kind.prefix.is_some() && !doc.id().is_empty() {
-                out.entry(bare(doc.id()).to_string()).or_insert(doc);
-            }
+        if let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k])
+            && kind.prefix.is_some()
+            && !doc.id().is_empty()
+        {
+            out.entry(bare(doc.id()).to_string()).or_insert(doc);
         }
     }
     out
@@ -1658,14 +1659,13 @@ fn shape(record: &Record) -> Vec<Finding> {
     for doc in &record.docs {
         // A directory named for age holds material nobody reads, which neither
         // freezes nor discards it (REQ-0555).
-        if let Some((dir, _)) = doc.relative.rsplit_once('/') {
-            if dir
+        if let Some((dir, _)) = doc.relative.rsplit_once('/')
+            && dir
                 .split('/')
                 .any(|part| part.to_lowercase().contains("archive"))
-                && archives.insert(dir.to_string())
-            {
-                out.push(Finding::at(doc, None, format!("sits in {dir}, a directory named for an archive; freeze the record or discard it with a reason")));
-            }
+            && archives.insert(dir.to_string())
+        {
+            out.push(Finding::at(doc, None, format!("sits in {dir}, a directory named for an archive; freeze the record or discard it with a reason")));
         }
         let living = doc
             .kind
@@ -1740,17 +1740,17 @@ fn shape(record: &Record) -> Vec<Finding> {
                 ));
             }
         }
-        if let (Some(first), Some(opening)) = (&kind.first_section, headings.first()) {
-            if !names(opening, first) {
-                out.push(Finding::at(
-                    doc,
-                    None,
-                    format!(
-                        "opens with {opening}, where a {} opens with {first}",
-                        kind.name
-                    ),
-                ));
-            }
+        if let (Some(first), Some(opening)) = (&kind.first_section, headings.first())
+            && !names(opening, first)
+        {
+            out.push(Finding::at(
+                doc,
+                None,
+                format!(
+                    "opens with {opening}, where a {} opens with {first}",
+                    kind.name
+                ),
+            ));
         }
     }
     out
@@ -1781,11 +1781,12 @@ fn entries(epic: &Doc) -> Vec<(usize, char, String, String)> {
         if let Some(c) = head.captures(line) {
             let mark = c[1].chars().next().unwrap_or(' ');
             out.push((i + 1, mark, c[2].to_string(), line.to_string()));
-        } else if let Some(last) = out.last_mut() {
-            if line.starts_with(' ') && !line.trim().is_empty() {
-                last.3.push('\n');
-                last.3.push_str(line);
-            }
+        } else if let Some(last) = out.last_mut()
+            && line.starts_with(' ')
+            && !line.trim().is_empty()
+        {
+            last.3.push('\n');
+            last.3.push_str(line);
         }
     }
     out
@@ -1838,6 +1839,7 @@ fn rules(record: &Record) -> Vec<Finding> {
     let keyword = Regex::new(r"\b(?:MUST|SHALL|SHOULD|MAY)(?: NOT)?\b").expect("keyword pattern");
     let neighbour = Regex::new(r"(?i)\b(?:such an? \w+|the (?:above|previous|preceding|following) \w+|that (?:command|record|artifact|check|step|file|document|unit|requirement))\b").expect("neighbour pattern");
     let negated = Regex::new(r"\bNo\b[^.]*?\bMUST\b(?: NOT)?").expect("negation pattern");
+    let numbered = Regex::new(r"^\d+\. ").expect("step pattern");
     let mut out = Vec::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
@@ -1896,15 +1898,16 @@ fn rules(record: &Record) -> Vec<Finding> {
                     }
                 }
                 "judgement-verifier" => {
-                    if let Some(field) = doc.field("verification") {
-                        if bare(&field.value) == "judgement" && doc.field("verifier").is_none() {
-                            out.push(Finding::at(
-                                doc,
-                                Some(field.line),
-                                "is verified by judgement and names no verifier: agent or person"
-                                    .into(),
-                            ));
-                        }
+                    if let Some(field) = doc.field("verification")
+                        && bare(&field.value) == "judgement"
+                        && doc.field("verifier").is_none()
+                    {
+                        out.push(Finding::at(
+                            doc,
+                            Some(field.line),
+                            "is verified by judgement and names no verifier: agent or person"
+                                .into(),
+                        ));
                     }
                 }
                 "realises-one" => {
@@ -1990,7 +1993,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                 }
                 "adoption-in-steps" => {
                     let lines = section_lines(doc, "Adoption");
-                    let numbered = Regex::new(r"^\d+\. ").expect("step pattern");
                     if !lines.is_empty() && !lines.iter().any(|(_, l)| numbered.is_match(l)) {
                         out.push(Finding::at(doc, lines.first().map(|(n, _)| n - 1), "has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working".into()));
                     }
@@ -2298,14 +2300,12 @@ fn ready(rest: &[String]) -> u8 {
         };
         let kind = kind_of(&record, doc);
         match step {
-            "requirements" | "design" | "spec" | "epic" | "implement" => {
-                if !approved(doc) {
-                    missing.push(format!(
-                        "{id}, a {kind}, is {} and not approved",
-                        bare(doc.value("status"))
-                    ));
-                    continue;
-                }
+            "requirements" | "design" | "spec" | "epic" | "implement" if !approved(doc) => {
+                missing.push(format!(
+                    "{id}, a {kind}, is {} and not approved",
+                    bare(doc.value("status"))
+                ));
+                continue;
             }
             _ => {}
         }
@@ -2360,12 +2360,10 @@ fn ready(rest: &[String]) -> u8 {
                     missing.push(format!("{task}, a task of {id}, isn't done"));
                 }
             }
-            "review" => {
-                if bare(doc.value("checked-at")).is_empty() {
-                    missing.push(format!(
-                        "{id} hasn't been verified: its checked-at is empty"
-                    ));
-                }
+            "review" if bare(doc.value("checked-at")).is_empty() => {
+                missing.push(format!(
+                    "{id} hasn't been verified: its checked-at is empty"
+                ));
             }
             _ => {}
         }
@@ -2854,10 +2852,7 @@ fn show(rest: &[String]) -> u8 {
     let first = doc
         .text
         .split("\n\n")
-        .skip_while(|p| {
-            p.starts_with("---") || p.trim_start().starts_with('#') || p.trim().is_empty()
-        })
-        .next()
+        .find(|p| !(p.starts_with("---") || p.trim_start().starts_with('#') || p.trim().is_empty()))
         .map(|p| p.split_whitespace().collect::<Vec<_>>().join(" "))
         .unwrap_or_default();
     if !first.is_empty() {
@@ -2926,16 +2921,16 @@ fn show(rest: &[String]) -> u8 {
         }
         let mut in_field = false;
         for key in &record.layout.relations {
-            if let Some(field) = other.field(key) {
-                if record.ids.find_iter(&field.value).any(|m| m.as_str() == id) {
-                    let who = if bare(other.id()).is_empty() {
-                        other.shown.clone()
-                    } else {
-                        bare(other.id()).to_string()
-                    };
-                    cited.entry(key.clone()).or_default().insert(who);
-                    in_field = true;
-                }
+            if let Some(field) = other.field(key)
+                && record.ids.find_iter(&field.value).any(|m| m.as_str() == id)
+            {
+                let who = if bare(other.id()).is_empty() {
+                    other.shown.clone()
+                } else {
+                    bare(other.id()).to_string()
+                };
+                cited.entry(key.clone()).or_default().insert(who);
+                in_field = true;
             }
         }
         if !in_field && record.ids.find_iter(&other.text).any(|m| m.as_str() == id) {
@@ -3019,9 +3014,8 @@ fn relative_link(from: &str, to: &str) -> String {
     let base = &base[..base.len().saturating_sub(1)];
     let target: Vec<&str> = to.split('/').collect();
     let common = base.iter().zip(&target).take_while(|(a, b)| a == b).count();
-    let mut parts: Vec<String> = std::iter::repeat("..".to_string())
-        .take(base.len() - common)
-        .collect();
+    let mut parts: Vec<String> =
+        std::iter::repeat_n("..".to_string(), base.len() - common).collect();
     parts.extend(target[common..].iter().map(|s| s.to_string()));
     parts.join("/")
 }
@@ -3249,10 +3243,9 @@ fn new_identifier(rest: &[String]) -> u8 {
             .file_name()
             .and_then(|n| n.to_str())
             .and_then(|n| number.captures(n))
+            && let Ok(n) = c[1].parse::<u32>()
         {
-            if let Ok(n) = c[1].parse::<u32>() {
-                taken.insert(n);
-            }
+            taken.insert(n);
         }
     }
     let highest = taken.iter().max().copied().unwrap_or(0);

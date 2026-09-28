@@ -56,7 +56,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 - [x] T-002 [P] TSK-2490 reformat `crates/meow/src` with `cargo fmt` and
       nothing else
 
-- [ ] T-003 TSK-2500 fix the 15 clippy findings in `crates/meow/src`
+- [x] T-003 TSK-2500 fix the 15 clippy findings in `crates/meow/src`
       depends: TSK-2490, because the reformat rewrites the lines the fixes
       touch, so the fixes written first would conflict with it
 
