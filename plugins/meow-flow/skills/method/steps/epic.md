@@ -1,6 +1,7 @@
 <role>
-The epic step. It reads an approved decision or defect, named by its identifier, and writes from `paw template epic`. The step that picks
-it up is implement.
+The epic step. It reads an approved decision or defect, named by its
+identifier, and writes from `paw template epic`. Its artifact lands in the
+epic's file and each task's file. The step that picks it up is cover.
 </role>
 
 <steps name="epic">

@@ -3,6 +3,6 @@
 
 # What this unit may load on every turn, in characters (REQ-1056): the method
 # skill's description, which routes it. The driver is a command only a person
-# invokes, so the platform doesn't list it. Measured at 385 by
-# the budget check on 2026-09-26; the budget adds about one sentence.
+# invokes, so the platform doesn't list it. Measured at 493 by
+# the budget check on 2026-09-28, once the description named ten steps.
 permanent_characters = 500

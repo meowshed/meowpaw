@@ -832,6 +832,28 @@ class Chain(unittest.TestCase):
         self.assertEqual(done.returncode, 2)
         self.assertIn("research, requirement, adr, spec, epic, task, bug, insight, vision, constitution", done.stderr)
 
+    def template(self, kind):
+        done = self.repo().run("template", kind)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        return Path(done.stdout.strip()).read_text(encoding="utf-8")
+
+    def test_the_task_template_carries_a_cover(self):
+        """TSK-2550 criterion 6, REQ-3200: the task template has `## Cover`, reading `Not yet.`, naming the four lines."""
+        text = self.template("task")
+        self.assertIn("\n## Cover\n", text)
+        headings = re.findall(r"^## (.+)$", text, re.MULTILINE)
+        self.assertEqual(headings[headings.index("Depends on") + 1], "Cover", headings)
+        cover = text.split("\n## Cover\n", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("Not yet.", cover)
+        for line in ("Checks", "Failing run", "Landed in", "Judgement"):
+            self.assertIn(line, cover, line)
+
+    def test_the_bug_template_names_cover(self):
+        """TSK-2550 criterion 6, REQ-3200: the bug template's `enters` comment names cover among the steps."""
+        enters = [line for line in self.template("bug").splitlines() if line.startswith("enters:")]
+        self.assertEqual(len(enters), 1, enters)
+        self.assertRegex(enters[0].split("#", 1)[1], r"\bcover\b")
+
 
 FILLED = """- Checks: tests/test_a_task.py
 - Failing run: evidence/a-failing-run.txt
@@ -1851,6 +1873,116 @@ class VerificationKind(unittest.TestCase):
         repository.edit("requirements/REQ-0001-an-obligation.md", "verification: static", "verification: judgement\nverifier: agent")
         done = repository.run("check", "rules")
         self.assertEqual(done.returncode, 0, "judgement" + done.stdout + done.stderr)
+
+
+STEPS = ("research", "requirements", "design", "spec", "epic", "cover", "implement", "document", "verify", "review")
+METHOD = UNIT / "skills" / "method"
+REPOSITORY = UNIT.parent.parent
+
+# ADR-1620's table: where each step's artifact lands, as its role names it (REQ-3203).
+LANDS = {
+    "research": "a research record's file",
+    "requirements": "one requirement record's file for each obligation",
+    "design": "a decision record's file",
+    "spec": "the specification's file",
+    "epic": "the epic's file and each task's file",
+    "cover": "the check files, the kept failing run, and the task file's cover",
+    "implement": "the changed files, the kept runs, and the task file's evidence",
+    "document": "each user-facing page it changed",
+    "verify": "the epic's file, its verification and the evidence it cites",
+    "review": "writes nothing into the repository",
+}
+
+
+def flat(text):
+    """Lower case, no backticks or heading marks, and every run of white space one space, so a wrapped line
+    reads as one and a section named as `## Cover` reads as its name."""
+    return re.sub(r"\s+", " ", re.sub(r"#+\s*", "", text.replace("`", ""))).lower().strip()
+
+
+def tagged(text, tag):
+    found = re.search(rf"<{tag}\b[^>]*>(.*?)</{tag}>", text, re.DOTALL)
+    return found.group(1) if found else ""
+
+
+class MethodSkill(unittest.TestCase):
+    """ADR-1620: the method's prompts name ten steps (REQ-3200) and where each step's artifact lands (REQ-3203)."""
+
+    def step(self, name):
+        path = METHOD / "steps" / f"{name}.md"
+        self.assertTrue(path.is_file(), f"{path} doesn't exist")
+        return path.read_text(encoding="utf-8")
+
+    def assertInOrder(self, text, where):
+        """The ten names appear as one list in order: `a, b, ... and z`, the last comma optional."""
+        pattern = r",\s+".join(STEPS[:-1]) + r",?\s+and\s+" + STEPS[-1]
+        self.assertRegex(re.sub(r"\s+", " ", text), pattern, where)
+
+    def test_the_skill_names_ten_steps_in_order(self):
+        """TSK-2550 criterion 1, REQ-3200: SKILL.md's body and description name the ten steps in order."""
+        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
+        front, body = text.split("\n---\n", 1)
+        description = next(line for line in front.splitlines() if line.startswith("description:"))
+        self.assertInOrder(description, "description")
+        self.assertInOrder(body, "body")
+
+    def test_each_step_has_one_file(self):
+        """TSK-2550 criterion 1, REQ-3200: `steps/` holds one file for each of the ten steps and no other."""
+        self.assertEqual(sorted(p.stem for p in (METHOD / "steps").glob("*.md")), sorted(STEPS))
+
+    def test_each_role_names_where_its_artifact_lands(self):
+        """TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing."""
+        for name, lands in LANDS.items():
+            with self.subTest(step=name):
+                self.assertIn(lands, flat(tagged(self.step(name), "role")))
+
+    def test_cover_writes_checks_only(self):
+        """TSK-2550 criterion 4, REQ-3200: cover writes checks and no implementation code, sees them fail, keeps
+        the run, lands the checks, fills the four lines of `## Cover`, and hands over to implement."""
+        text = self.step("cover")
+        whole = flat(text)
+        self.assertRegex(flat(tagged(text, "role")), r"the step that picks it up is implement\b")
+        self.assertIn("paw ready cover", whole)
+        self.assertRegex(whole, r"\b(no|never|not)\b[^.]*\bimplementation code\b")
+        self.assertRegex(whole, r"\brun\b[^.]*\bfail")
+        self.assertIn("meow-verbs evidence --keep", whole)
+        self.assertRegex(whole, r"\bland\b[^.]*\bchecks\b|\bchecks\b[^.]*\blanded?\b")
+        self.assertIn("## Cover", text)
+        for line in ("checks:", "failing run:", "landed in:", "judgement:"):
+            self.assertIn(line, whole, line)
+
+    def test_epic_hands_over_to_cover(self):
+        """TSK-2550 criterion 5, REQ-3200: the epic step's role names cover as the step that picks it up."""
+        self.assertRegex(flat(tagged(self.step("epic"), "role")), r"the step that picks it up is cover\b")
+
+    def test_implement_runs_the_cover_checks(self):
+        """TSK-2550 criterion 5, REQ-3200: implement's step 3 runs the cover step's checks and sees them pass,
+        and no longer writes the task's checks."""
+        steps = tagged(self.step("implement"), "steps")
+        third = re.search(r"^3\.(.*?)(?=^\d+\.|\Z)", steps, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(third, steps)
+        third = flat(third.group(1))
+        self.assertIn("cover", third)
+        self.assertRegex(third, r"\brun")
+        self.assertRegex(third, r"\bpass")
+        self.assertNotRegex(third, r"\bwrite a check\b")
+
+    def chain(self, text):
+        block = next(b for b in re.findall(r"```text\n(.*?)```", text, re.DOTALL) if "research ->" in b)
+        return tuple(name.strip() for name in block.split("->")), text.split(block, 1)[0]
+
+    def test_the_living_documents_name_ten_steps(self):
+        """TSK-2550 criterion 7, REQ-3200: the chain in CLAUDE.md's own_method_first and in the vision is ten
+        steps with cover between epic and implement, and the vision's sentence before it no longer says nine."""
+        constitution = (REPOSITORY / "CLAUDE.md").read_text(encoding="utf-8")
+        principle = tagged(constitution, "principle")
+        self.assertIn("own_method_first", constitution.split(principle, 1)[0][-80:])
+        self.assertEqual(self.chain(principle)[0], STEPS)
+        steps, before = self.chain((REPOSITORY / "project" / "vision.md").read_text(encoding="utf-8"))
+        self.assertEqual(steps, STEPS)
+        introduction = before.rstrip().removesuffix("```text").rstrip().rsplit("\n\n", 1)[-1].lower()
+        self.assertNotRegex(introduction, r"\bnine\b")
+        self.assertRegex(introduction, r"\bten\b")
 
 
 if __name__ == "__main__":

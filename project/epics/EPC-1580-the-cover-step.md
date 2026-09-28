@@ -77,9 +77,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-2530, because `status` decides between cover and
       implement with the Cover reading that task adds
 
-- [ ] T-003 [P] TSK-2550 add `steps/cover.md`, name ten steps in
+- [x] T-003 [P] TSK-2550 add `steps/cover.md`, name ten steps in
       `method/SKILL.md`, and name in each step's role where its artifact lands
       closes: REQ-3200, REQ-3203
+      evidence: 17 checks seen failing at the cover commit c83457d, and 182
+      `meow-flow` fixtures passing, in #629.
       depends: TSK-2530, because the prompts tell the model to run the
       cover gate, which `paw ready` refuses with exit 2 until that task
       lands

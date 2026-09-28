@@ -326,8 +326,9 @@ approvals and waiting report are verified under issue 249. ADR-1490 adds the
 review a record gets before its gate, and EPC-1470 realises it. ADR-1620 adds
 the cover step, its gate and the task's Cover section, and EPC-1580 realises
 them. `paw ready` knows the ten steps and gates the implementation on the
-Cover, and until the rest of the epic lands, `status` and the prompts run nine
-steps without cover.
+Cover, and the method's prompts name the ten steps and where each step's
+artifact lands. Until the rest of the epic lands, `status` and the driver run
+nine steps without cover.
 
 ## Boundary
 

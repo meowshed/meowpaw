@@ -4,7 +4,7 @@ artifact: bug
 status: draft # draft, approved, or withdrawn; open and closed are derived
 severity: minor # minor | major | critical, and the reason under Triage
 violates: REQ-NNNN # omit where no requirement covers it yet, and say so below
-enters: implement # the step it enters at: implement or design where it violates a requirement, requirements where the requirement is wrong or none covers it, research where the cause is unknown
+enters: implement # the step it enters at: cover where a task's checks miss what a requirement asks, implement or design where it violates a requirement, requirements where the requirement is wrong or none covers it, research where the cause is unknown
 found: YYYY-MM-DD
 revised: YYYY-MM-DD
 issue: # the tracker's number, where the repository uses one

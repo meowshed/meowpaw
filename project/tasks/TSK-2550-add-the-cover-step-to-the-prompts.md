@@ -92,12 +92,50 @@ exits 2 until that task lands.
 
 ## Cover
 
-Not yet.
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/a3e1024202c9.txt
+- Landed in: #629
+- Judgement: none
+
+The checks, each naming its criterion and requirement in its docstring:
+criterion 1 by `MethodSkill.test_the_skill_names_ten_steps_in_order` and
+`MethodSkill.test_each_step_has_one_file`; criterion 3 by
+`MethodSkill.test_each_role_names_where_its_artifact_lands`, one subtest for
+each step; criterion 4 by `MethodSkill.test_cover_writes_checks_only`;
+criterion 5 by `MethodSkill.test_epic_hands_over_to_cover` and
+`MethodSkill.test_implement_runs_the_cover_checks`; criterion 6 by
+`Chain.test_the_task_template_carries_a_cover` and
+`Chain.test_the_bug_template_names_cover`; criterion 7 by
+`MethodSkill.test_the_living_documents_name_ten_steps`. Criteria 2 and 8 rest
+on checks the gate already runs, the `budget` check and the verbs, so no new
+check covers them and none rests on judgement. Criterion 4's tags are held by
+the `prompts` check in the gate.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`meow-flow` 0.35.0 ships `steps/cover.md`, and `method/SKILL.md` names ten
+steps in its body and its description. Each step file's role names where its
+artifact lands, as ADR-1620's table gives, the epic step hands over to cover,
+and implement's step 3 runs the cover step's checks. The task template carries
+`## Cover`, the bug template's `enters` names cover, and `CLAUDE.md`, the
+vision and SPC-1090 read ten steps.
+
+The checks failed first: at the cover commit c83457d, the kept run
+`project/evidence/a3e1024202c9.txt` records `verb: test`, `outcome: failed`,
+`exit status: 1`, and `FAILED (failures=17)` on `meow-flow`'s 182 tests, the
+17 being this task's checks and their subtests.
+
+With the change, `python3 -m unittest plugins/meow-flow/tests/test_record.py`
+exited 0 and printed `Ran 182 tests` and `OK`, and the nine cover checks run
+alone printed `Ran 9 tests` and `OK`.
+`git diff c83457d0440d1d079fbcc2ac3c9bf6fe294e9e2b -- plugins/meow-flow/tests/test_record.py`
+printed nothing, so the checks are unchanged since the cover commit.
+`mise run budget` printed `meow-flow: 493 of 500 characters on every turn`,
+closing criterion 2, and `timeout 500 mise run all` exited 0.
+
+Criterion 8 is closed by the run of
+`meow-verbs run format lint check test build` kept in this change's
+`project/evidence/`.
 
 ## Left alone
 
