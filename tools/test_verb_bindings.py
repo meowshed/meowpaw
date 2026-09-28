@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Checks that this repository binds check, test and build to the crate, as
-TSK-2480 asks and ADR-1610 decides (REQ-1186, SPC-1080)."""
+"""Checks that this repository binds its five verbs to the crate, as TSK-2480
+asks for check, test and build, TSK-2510 asks for format and lint, and
+ADR-1610 decides (REQ-1186, SPC-1080)."""
 
 import json
 import re
@@ -13,6 +14,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CRATE_CHECK = "cargo check --quiet --manifest-path crates/meow/Cargo.toml --all-features --all-targets"
+CRATE_FMT = "cargo fmt --manifest-path crates/meow/Cargo.toml --check"
+CRATE_LINT = (
+    "cargo clippy --quiet --manifest-path crates/meow/Cargo.toml"
+    " --all-features --all-targets -- -D warnings"
+)
+CARGO_FMT = "cargo fmt --manifest-path crates/meow/Cargo.toml"
 
 
 def mise_tasks():
@@ -103,6 +110,88 @@ class Gate(unittest.TestCase):
     def test_all_depends_on_crate_check(self):
         """Criterion 4 (REQ-1186): `crate-check` is among the tasks `mise run all` runs."""
         self.assertIn("crate-check", mise_tasks()["all"].get("depends", []))
+
+
+def steps(command):
+    return [step.strip() for step in (command or "").split("&&")]
+
+
+class FormatAndLintTasks(unittest.TestCase):
+    """TSK-2510, the tasks its criteria 1, 3 and 4 run: `crate-fmt` and `crate-lint` in `mise.toml`."""
+
+    def test_crate_fmt_runs_the_formatter_check(self):
+        """Criteria 1 and 3 (REQ-1186): `crate-fmt` runs the formatter's check TSK-2510 states."""
+        self.assertEqual(mise_tasks().get("crate-fmt", {}).get("run"), CRATE_FMT)
+
+    def test_crate_lint_runs_clippy_denying_warnings(self):
+        """Criteria 1 and 4 (REQ-1186): `crate-lint` runs clippy with `-D warnings` on the command line."""
+        self.assertEqual(mise_tasks().get("crate-lint", {}).get("run"), CRATE_LINT)
+
+
+class FormatAndLintBindings(unittest.TestCase):
+    """TSK-2510 criterion 1: `format` ends with crate-fmt and `lint` with crate-lint.
+
+    Running the five verbs from here would run this file again through
+    `test`, so the pass half of the criterion is the kept evidence of that
+    run, and this holds the half that a program reads from the bindings.
+    `VerbBindings` already holds that check, test and build resolve."""
+
+    def test_format_ends_with_crate_fmt(self):
+        """Criterion 1 (REQ-1186): `format` still checks the Markdown first and ends with `mise run crate-fmt`."""
+        format_verb = verbs()["format"]
+        self.assertEqual(format_verb.get("state"), "resolved", format_verb)
+        command = steps(format_verb.get("command"))
+        self.assertEqual(command[0], "mise run fmt-check")
+        self.assertEqual(command[-1], "mise run crate-fmt")
+
+    def test_lint_ends_with_crate_lint(self):
+        """Criterion 1 (REQ-1186): `lint` ends with `mise run crate-lint`, after the steps it already ran."""
+        lint = verbs()["lint"]
+        self.assertEqual(lint.get("state"), "resolved", lint)
+        command = steps(lint.get("command"))
+        self.assertEqual(command[-1], "mise run crate-lint")
+        self.assertIn("plugins/meow-mise/bin/meow-mise check", command[:-1])
+
+
+class MiseCheckWithFormatAndLint(unittest.TestCase):
+    """TSK-2510 criterion 2: `meow-mise check` reports 0 findings over runs that include the five crate tasks."""
+
+    def test_meow_mise_check_passes_over_all_five_crate_tasks(self):
+        """Criterion 2 (REQ-1186): 0 findings, over task runs that include crate-fmt, crate-lint, crate-check, crate and build."""
+        run = subprocess.run(
+            [str(ROOT / "plugins/meow-mise/bin/meow-mise"), "check"],
+            cwd=ROOT, capture_output=True, text=True,
+        )
+        output = run.stdout + run.stderr
+        self.assertEqual(run.returncode, 0, output)
+        self.assertRegex(output, r"\b0 findings in [1-9]\d* task runs")
+        named = set()
+        for verb in verbs().values():
+            named.update(re.findall(r"\bmise run ([\w-]+)", verb.get("command") or ""))
+        for task in ("crate-fmt", "crate-lint", "crate-check", "crate", "build"):
+            with self.subTest(task=task):
+                self.assertIn(task, named)
+
+
+class FmtFormatsTheCrate(unittest.TestCase):
+    """TSK-2510 criterion 5, the half read from `mise.toml`: `mise run fmt` also runs `cargo fmt` on the crate."""
+
+    def test_fmt_runs_cargo_fmt_without_check(self):
+        """Criterion 5 (REQ-1186): the `fmt` task keeps its Markdown step and adds `cargo fmt` on the crate's manifest."""
+        command = steps(mise_tasks()["fmt"].get("run"))
+        self.assertIn("prettier --write '**/*.md'", command)
+        self.assertIn(CARGO_FMT, command)
+
+
+class GateWithFormatAndLint(unittest.TestCase):
+    """TSK-2510 criterion 6, the half read from `mise.toml`: `mise run all` runs the three crate tasks."""
+
+    def test_all_depends_on_the_three_crate_tasks(self):
+        """Criterion 6 (REQ-1186): crate-fmt, crate-lint and crate-check are among the tasks `mise run all` runs."""
+        depends = mise_tasks()["all"].get("depends", [])
+        for task in ("crate-fmt", "crate-lint", "crate-check"):
+            with self.subTest(task=task):
+                self.assertIn(task, depends)
 
 
 if __name__ == "__main__":

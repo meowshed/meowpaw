@@ -134,7 +134,8 @@ check.
 This repository's five verbs check the crate as they check every other file
 it ships, so evidence kept from the verbs covers the code every unit runs
 (REQ-1186). Each verb runs a task in `mise.toml`, and the gate's `all` task
-depends on each of them:
+depends on each of them apart from `build`, whose binaries CI builds in its own
+workflow:
 
 | Verb     | Task          | Runs on `crates/meow`                                                  |
 | -------- | ------------- | ---------------------------------------------------------------------- |
