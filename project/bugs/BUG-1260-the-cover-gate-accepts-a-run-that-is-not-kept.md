@@ -19,7 +19,7 @@ failed, which is the evidence REQ-3207 asks the cover step to keep.
 
 ## Reproduction
 
-`main` at 25075c3, with `meow-flow` 0.34.0 built by `crates/meow/build-units`.
+`main` after #630, with `meow-flow` 0.35.0 built by `crates/meow/build-units`.
 
 1. Take the fixture record in `plugins/meow-flow/tests/test_record.py`: an
    approved epic and an approved open task, TSK-0001, with the Cover the
@@ -67,5 +67,7 @@ own failing run, each refused naming the path.
 
 ## Tasks
 
-- [ ] T-001 TSK-2570 refuse a Cover path that isn't a file kept in the
+- [x] T-001 TSK-2570 refuse a Cover path that isn't a file kept in the
       repository, in `crates/meow/src/record.rs`
+      evidence: 4 checks seen failing first, 186 `meow-flow` fixtures
+      passing, in #647.

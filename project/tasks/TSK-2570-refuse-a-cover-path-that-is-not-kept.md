@@ -52,11 +52,35 @@ Nothing. BUG-1260 is approved.
 
 ## Cover
 
-Not yet.
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/856069076836.txt
+- Landed in: #647
+- Judgement: none
 
 ## Evidence
 
-Not yet.
+`cover_gaps` in `crates/meow/src/record.rs` asks a new function, `unkept`,
+about each path under `Checks` and `Failing run`. It refuses an absolute path,
+a path that resolves outside the repository's root once `..` and symbolic
+links are resolved, and one that isn't a regular file. A `Failing run` path
+that `Checks` also names is refused as a check. SPC-1090's section "The gate"
+states the rule.
+
+The four checks in the class `CoverPaths` failed first: `meow-verbs run test`
+exited 1 with `FAILED (failures=4)`, kept as
+`project/evidence/856069076836.txt`, in the commit that held the checks alone.
+They pass now:
+
+```text
+$ python3 -m unittest test_record    # in plugins/meow-flow/tests
+Ran 186 tests
+OK                                   # exit 0
+```
+
+`meow-flow` 0.35.0 isn't released yet, so this fix ships in it without a
+version of its own. `meow-verbs evidence --keep format lint check test build`
+exits 0 on this change's own tree, each result kept in `project/evidence/`,
+as the pull request cites.
 
 ## Left alone
 
