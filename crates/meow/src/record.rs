@@ -2440,6 +2440,19 @@ fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
             .to_ascii_lowercase();
         value.is_empty() || value == "none"
     };
+    for name in COVER_LINES {
+        if values[name].trim().is_empty() {
+            gaps.push(format!(
+                "{id}'s Cover leaves its {name} line empty, where it names what it holds or none"
+            ));
+        }
+    }
+    let criteria = criteria_numbers(task);
+    if criteria.is_empty() {
+        gaps.push(format!(
+            "{id} names no numbered criterion under ## Acceptance criteria, so its Cover can't say what rests on judgement"
+        ));
+    }
     let judged = judgement(&values["Judgement"]);
     for (number, reason) in &judged {
         if reason.is_empty() {
@@ -2447,16 +2460,25 @@ fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
                 "{id}'s Cover names criterion {number} under Judgement with no reason"
             ));
         }
+        if !criteria.is_empty() && !criteria.contains(number) {
+            gaps.push(format!(
+                "{id}'s Cover names criterion {number} under Judgement, and the task has no criterion {number}"
+            ));
+        }
     }
-    if none("Checks") && none("Failing run") && none("Landed in") {
-        for number in criteria_numbers(task) {
-            if !judged.iter().any(|(n, _)| *n == number) {
+    // With no check, every criterion rests on judgement whatever the other
+    // lines name, so each one is named (BUG-1261).
+    if none("Checks") {
+        for number in &criteria {
+            if !judged.iter().any(|(n, _)| n == number) {
                 gaps.push(format!(
                     "{id}'s Cover names no check and leaves criterion {number} out of its Judgement line"
                 ));
             }
         }
-        return gaps;
+        if none("Failing run") && none("Landed in") {
+            return gaps;
+        }
     }
     let checks = cover_paths(&values["Checks"]);
     for path in &checks {

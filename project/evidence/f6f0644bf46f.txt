@@ -1,0 +1,112 @@
+meow-verbs evidence 1
+record: f6f0644bf46f
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: b2184730785eb05003184e75cad641cfcf2de428
+time: 2026-09-28T19:24:35Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 29 tests
+.............................
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 13.185s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.664s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 5.282s
+
+OK
+..............................................................................................................FFFFF............................................................................
+======================================================================
+FAIL: test_a_judgement_naming_no_criterion_is_refused (test_record.CoverCriteria.test_a_judgement_naming_no_criterion_is_refused)
+TSK-2571 criterion 3: `Judgement: 7` on a task whose criteria are 1 and 2.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1127, in test_a_judgement_naming_no_criterion_is_refused
+    lines = self.implement("- Checks: tests/t.py\n- Failing run: evidence/run.txt\n- Landed in: #1\n"
+                           "- Judgement: 7: a reason")
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1108, in implement
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+======================================================================
+FAIL: test_a_task_with_no_numbered_criterion_is_refused (test_record.CoverCriteria.test_a_task_with_no_numbered_criterion_is_refused) (criteria='- One.\n- Two.')
+TSK-2571 criterion 2: bullets in place of numbered criteria, and no criteria section, are refused.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1122, in test_a_task_with_no_numbered_criterion_is_refused
+    lines = self.implement(none, criteria)
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1108, in implement
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+======================================================================
+FAIL: test_a_task_with_no_numbered_criterion_is_refused (test_record.CoverCriteria.test_a_task_with_no_numbered_criterion_is_refused) (criteria=None)
+TSK-2571 criterion 2: bullets in place of numbered criteria, and no criteria section, are refused.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1122, in test_a_task_with_no_numbered_criterion_is_refused
+    lines = self.implement(none, criteria)
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1108, in implement
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+======================================================================
+FAIL: test_an_empty_judgement_is_refused (test_record.CoverCriteria.test_an_empty_judgement_is_refused)
+TSK-2571 criterion 4: `Judgement:` with nothing after it is neither a reason nor `none`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1133, in test_an_empty_judgement_is_refused
+    lines = self.implement("- Checks: tests/t.py\n- Failing run: evidence/run.txt\n- Landed in: #1\n- Judgement:")
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1108, in implement
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+======================================================================
+FAIL: test_no_checks_names_every_criterion_whatever_else_is_named (test_record.CoverCriteria.test_no_checks_names_every_criterion_whatever_else_is_named)
+TSK-2571 criterion 1: `Checks: none` with a run and a pull request named still asks for every criterion.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1113, in test_no_checks_names_every_criterion_whatever_else_is_named
+    lines = self.implement("- Checks: none\n- Failing run: evidence/run.txt\n- Landed in: #1\n- Judgement: none")
+  File "/Users/retran/workspace/meowpaw.fix-cover-names-every-unchecked-criterion/plugins/meow-flow/tests/test_record.py", line 1108, in implement
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+----------------------------------------------------------------------
+Ran 190 tests in 19.220s
+
+FAILED (failures=5)
