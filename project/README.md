@@ -225,8 +225,8 @@ which follows both. The work realising them has landed, and each leaves
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release, the marketplace address and the checks the crate
-passes. The crate implements it, verified under issue 378, except for the
-checks the crate passes, which EPC-1570 realises.
+passes. The crate implements it, verified under issue 378, and the checks the
+crate passes, which EPC-1570 realises, were verified under issue 596.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
@@ -459,7 +459,8 @@ TSK-2450 and TSK-2460, each closed with evidence, and was verified against
 every acceptance criterion under issue 587.
 
 [EPC-1570](epics/EPC-1570-the-crate-under-the-five-verbs.md) realises ADR-1610
-in four tasks, TSK-2480 to TSK-2510, none of them started.
+in four tasks, TSK-2480 to TSK-2510, each closed with evidence, and was
+verified against every acceptance criterion under issue 596.
 
 ## Defects
 
