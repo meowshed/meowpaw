@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-09-27
+revised: 2026-09-28
 checked-at: "#378"
 states:
   [
@@ -23,6 +23,7 @@ states:
     REQ-0040,
     REQ-0074,
     REQ-0076,
+    REQ-1186,
     REQ-1350,
     REQ-1351,
     REQ-1352,
@@ -90,13 +91,16 @@ it. What each subcommand does is its unit's specification, which cites this
 one, so this one names none of them.
 
 ADR-1110 decides it, EPC-1080 realises it, and the `meow` crate with its
-launchers and release implements it, verified under issue 160.
+launchers and release implements it, verified under issue 160. ADR-1610
+decides how this repository's five verbs check the crate, and EPC-1570
+realises that.
 
 ## Boundary
 
 | Surface                         | What it is                                                                |
 | ------------------------------- | ------------------------------------------------------------------------- |
 | `crates/meow/`                  | The tool's source: one crate, with a feature per unit and its own tests   |
+| `mise.toml`                     | The tasks that format, lint, check, test and build the crate              |
 | `plugins/<unit>/bin/<unit>`     | The unit's launcher, which picks the binary for the machine               |
 | `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed            |
 | `.github/workflows/build.yml`   | The six-target build, run by CI when the crate changes and by the release |
@@ -124,6 +128,34 @@ and runs it with the unit's subcommand and the arguments it was given. Where no
 binary exists for the target, it reports every check as unrun and exits as the
 unit's specification says a missing program does, never with success on a
 check.
+
+### The checks the crate passes
+
+This repository's five verbs check the crate as they check every other file
+it ships, so evidence kept from the verbs covers the code every unit runs
+(REQ-1186). Each verb runs a task in `mise.toml`, and the gate's `all` task
+depends on each of them:
+
+| Verb     | Task          | Runs on `crates/meow`                                                  |
+| -------- | ------------- | ---------------------------------------------------------------------- |
+| `format` | `crate-fmt`   | `cargo fmt --check`                                                    |
+| `lint`   | `crate-lint`  | `cargo clippy --all-features --all-targets -- -D warnings`             |
+| `check`  | `crate-check` | `cargo check --all-features --all-targets`                             |
+| `test`   | `crate`       | `cargo test --all-features`                                            |
+| `build`  | `build`       | `crates/meow/build-units`, one binary per unit for the machine it's on |
+
+Each verb runs the crate's task after the checks it already runs on the
+Markdown, prompts and fixtures. `.meowpaw/profile.toml` names each task
+through `mise run`, so `meow-mise check` reads every one. The `fmt` task,
+which writes, runs `cargo fmt` on the crate as well as Prettier on the
+Markdown, so one command fixes a `format` failure of either kind.
+
+`-D warnings` sits on the lint task's command line, and the manifest has no
+`[lints]` table, so a warning fails `lint` and still leaves `cargo build`
+and `build-units` producing a binary. The lint and the type check run with
+every feature on, and a shipped binary carries one feature, so a warning that
+only one feature alone produces passes both (ADR-1610). Clippy's lints are its
+default set, as the Rust version `mise.toml` pins ships them.
 
 ### Six targets
 
@@ -273,11 +305,15 @@ verified from what was assumed (REQ-1734) (ADR-1200).
 
 ## Failure paths
 
-| Condition                              | What happens                                            |
-| -------------------------------------- | ------------------------------------------------------- |
-| No binary for the machine's target     | The launcher reports every check as unrun, never passed |
-| The binary has lost its executable bit | The launcher sets it and runs the binary                |
-| A unit's feature fails to build        | The gate fails, naming the unit                         |
-| A target fails to build at release     | The release publishes nothing, and names the target     |
-| The dispatch to the site fails         | The release stays published; the step fails, naming it  |
-| The site's deployment fails            | The address keeps serving the previous file             |
+| Condition                               | What happens                                            |
+| --------------------------------------- | ------------------------------------------------------- |
+| No binary for the machine's target      | The launcher reports every check as unrun, never passed |
+| The binary has lost its executable bit  | The launcher sets it and runs the binary                |
+| A unit's feature fails to build         | The gate fails, naming the unit                         |
+| The crate isn't in the formatter's form | `format` and the gate fail, naming each file            |
+| Clippy reports a finding                | `lint` and the gate fail, naming the lint and the line  |
+| The crate fails its type check          | `check` and the gate fail, naming the error             |
+| The toolchain lacks rustfmt or clippy   | `format` or `lint` fails with cargo's own error         |
+| A target fails to build at release      | The release publishes nothing, and names the target     |
+| The dispatch to the site fails          | The release stays published; the step fails, naming it  |
+| The site's deployment fails             | The address keeps serving the previous file             |

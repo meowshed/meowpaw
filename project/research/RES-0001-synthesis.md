@@ -2,7 +2,7 @@
 id: RES-0001
 artifact: research
 status: approved
-revised: 2026-09-20
+revised: 2026-09-28
 ---
 
 # Research
@@ -163,6 +163,7 @@ here or in the sources below.
 | [Installing from a released marketplace](RES-0274-installing-from-a-released-marketplace.md)             | A marketplace file on a GitHub release installs only when downloaded and added by its path, and its units run with no interpreter.                                                                   |
 | [Where the marketplace file lives](RES-0275-where-the-marketplace-file-lives.md)                         | A marketplace file on `retran.me` or `github.io` is a url marketplace; the domain's verification keeps `meowshed` off its subdomains.                                                                |
 | [Converting from documents and forge history](RES-0277-converting-from-documents-and-forge-history.md)   | A forge's history states obligations and decisions code doesn't, reads in a few requests, and a placed document goes only after approval.                                                            |
+| [This repository's crate under its own tools](RES-0278-this-repositorys-crate-under-its-own-tools.md)    | On `main` at #595, `crates/meow` passed the compiler and its tests, failed the formatter in 464 places and the linter on 15 errors, and no verb ran them.                                            |
 
 ## The situation
 
