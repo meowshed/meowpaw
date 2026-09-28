@@ -84,8 +84,8 @@ the failing `format` and `lint` runs, and `project/evidence/` holds none: the
 failing runs appear only as transcripts in TSK-2510 and EPC-1570. It also
 found that `tools/test_crate_verbs.py`, which plants a defect in a copy of
 the crate, runs in no verb. TSK-2510 kept it out because clippy "takes
-minutes", and on this machine the file runs in 3 seconds cold and 1 second
-warm. Both belong to the same requirement's closing evidence, so the task
+minutes", and on this machine the file runs in 3 seconds the first time in a
+fresh worktree and 1 second after. Both belong to the same requirement's closing evidence, so the task
 below closes them with this defect and doesn't open a second record.
 
 Minor, because no shipped behaviour is wrong today: each launcher's fallback
@@ -102,6 +102,6 @@ asserts exit 3. They join the `test` verb as regression checks.
 
 ## Tasks
 
-- [ ] T-001 TSK-2520 bring the shipped shell under `format` and `lint`, in
+- [x] T-001 TSK-2520 bring the shipped shell under `format` and `lint`, in
       `mise.toml`, `.meowpaw/profile.toml` and each launcher, and test every
       launcher's no-binary branch

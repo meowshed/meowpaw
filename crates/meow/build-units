@@ -15,12 +15,18 @@ if [ -z "$target" ]; then
   Darwin) system=apple-darwin ;;
   Linux) system=unknown-linux-musl ;;
   MINGW* | MSYS* | CYGWIN*) system=pc-windows-msvc ;;
-  *) echo "build-units: no target for $(uname -s)" >&2; exit 1 ;;
+  *)
+    echo "build-units: no target for $(uname -s)" >&2
+    exit 1
+    ;;
   esac
   case $(uname -m) in
   arm64 | aarch64) cpu=aarch64 ;;
   x86_64 | amd64) cpu=x86_64 ;;
-  *) echo "build-units: no target for $(uname -m)" >&2; exit 1 ;;
+  *)
+    echo "build-units: no target for $(uname -m)" >&2
+    exit 1
+    ;;
   esac
   target="$cpu-$system"
   built=release

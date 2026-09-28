@@ -55,8 +55,8 @@ one review.
    reverted. Closed by: the kept evidence files, which ADR-1610's fourth
    criterion names.
 10. Given this change's tree, when `meow-verbs run format lint test` runs,
-    then each passes, and the kept evidence cites REQ-1186. Closed by: the
-    kept evidence of that run.
+    then each passes. Closed by: the kept evidence of that run, which this
+    task cites for REQ-1186.
 
 ## What to do
 
@@ -90,7 +90,65 @@ added the crate's tasks this one sits beside, are closed.
 
 ## Evidence
 
-Not yet.
+Closes REQ-1186 for the shell. `mise.toml` pins `shellcheck` 0.11.0 and
+`shfmt` 3.14.1 and adds `shell-fmt` and `shell-lint` with the commands this
+task states, and `all` depends on both. `fmt` runs `shfmt -i 2 -w` after
+`cargo fmt`. The profile runs `mise run shell-fmt` before `mise run
+crate-fmt` and `mise run shell-lint` before `mise run crate-lint`, and the
+`test` verb's `unittest` line gains `tools/test_shell_verbs.py` and
+`tools/test_crate_verbs.py`. Each of the ten launchers now reads
+`system='' cpu='' exe=''`, and `shfmt -w` split the two one-line `case`
+items in `crates/meow/build-units`. SPC-1080 states the shell tasks and
+their two failure paths.
+
+### Checks written before the change
+
+The checks went in first, in a commit of their own, on the branch after the
+records. At that commit, `python3 -m unittest tools/test_shell_verbs.py`
+exited 1 with `Ran 11 tests` and `FAILED (failures=14)`, and every check
+failed, two of them in two subtests each: criteria 1 to 7, because no shell
+task existed and the verbs bound none. The four `Launcher` fixtures for
+criterion 8 pass against the launchers as shipped, because the launchers are
+right, so I ran each against a copy of its launcher whose no-binary branch
+prints `0 findings` and exits 0, through `MEOW_<UNIT>_BIN`:
+
+```text
+mise    exit 1  FAILED (failures=3)
+gotask  exit 1  FAILED (failures=3)
+licence exit 1  FAILED (failures=1)
+author  exit 1  FAILED (failures=2)
+```
+
+After the change, `python3 -m unittest tools/test_shell_verbs.py
+tools/test_verb_bindings.py tools/test_crate_verbs.py` exits 0 with
+`Ran 29 tests`, `OK`, and each of the four units' fixtures passes under
+`python3 -m unittest discover`. `mise run shell-fmt` and `mise run
+shell-lint` each exit 0 on this tree. `tools/test_crate_verbs.py` takes
+3 seconds on its first run in this worktree and 1 second after, which is why it now runs
+in `test`.
+
+### Planted defects, kept
+
+Criterion 9 ran twice on the working tree, each plant reverted after its run.
+A badly indented block and `planted= value` appended to
+`plugins/meow-mise/bin/meow-mise` made `meow-verbs run format` exit 1 in
+`shell-fmt` with shfmt's diff of that file, kept as
+`project/evidence/f33fa10988bd.txt`, and `meow-verbs run lint` exit 1 in
+`shell-lint` naming SC1007, kept as `project/evidence/8e0b25258dcc.txt`. An
+unformatted function and a nested `if` appended to `crates/meow/src/main.rs`
+made `format` exit 1 in `crate-fmt`, kept as
+`project/evidence/82260bcc3ad7.txt`, and `lint` exit 1 in `crate-lint` on
+`clippy::collapsible_if`, kept as `project/evidence/20e1fd5f40cb.txt`. The
+last two are the failing runs ADR-1610's fourth criterion names, which
+TSK-2510 recorded only as transcripts.
+
+Criterion 10 is the kept evidence of `meow-verbs run format lint test` on this
+change's tree, in `project/evidence/` and committed with it.
+
+Criterion 1 reads the file list from the tree and not from shfmt, so a shell
+file that `shfmt -f` missed fails it. Criterion 7 asserts exit 1 with nothing
+printed, because a tool missing from the path exits 127 and says so, and a
+check that accepted any non-zero exit would pass on that.
 
 ## Left alone
 
