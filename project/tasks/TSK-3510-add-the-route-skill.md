@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-2000
 closes: [REQ-0330, REQ-0332, REQ-0336, REQ-0340]
-issue:
+issue: 649
+projected: efa38f29d8c2
 ---
 
 # Add the route skill that routes a request before work starts and reports the route before any edit
