@@ -56,6 +56,10 @@ and sets `continueOnBlock: true`, where this record names
 `permissionDecision: "deny"`, a command hook's field. Every prompt this record
 ships is written in the tags ADR-1020 states. The rest stands.
 
+**Amended by ADR-1600.** The gate is a command hook running the unit's program,
+which matches the three exact rules and quotes each span it finds, where this
+record names a prompt hook on Haiku. The rest stands.
+
 ## Decision
 
 The writing standard ships as a plugin named `meow-prose`.
