@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1710
 closes: [REQ-1358]
-issue:
+issue: 641
+projected: 524fab72b02e
 ---
 
 # Make `paw` wait only on a blocking dependency, and ask a draft to say which kind each one is
