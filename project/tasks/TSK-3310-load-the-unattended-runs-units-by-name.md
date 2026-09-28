@@ -1,0 +1,84 @@
+---
+id: TSK-3310
+artifact: task
+status: approved
+revised: 2026-09-28
+epic: EPC-1900
+closes: [REQ-2392]
+issue:
+---
+
+# Make `meow-unattended plan` load each unit by name, and refuse what would load by discovery
+
+`plan` accepts a `units` entry only where it is a directory holding
+`.claude-plugin/plugin.json`, refuses a URL and a folder of units, refuses a
+repository whose `.claude` settings carry an `env` block, and names each unit
+with its version in its output and in the snapshot. With `--bare`, the run
+then loads exactly the units named and nothing by discovery, which is what
+REQ-2392 asks. One task, one branch, one pull request, one review.
+
+## Acceptance criteria
+
+Every check below lives in `plugins/meow-unattended/tests/test_unattended.py`
+and counts what it matched, failing on a count of zero where one was expected
+(EPC-1900 criterion 9).
+
+1. Given a `units` entry that is an `https://` URL, and one that is a folder
+   holding two units but no `.claude-plugin/plugin.json` of its own, when
+   `plan` runs on each, then it prints `unresolved` naming the entry and
+   exits 3, and writes no snapshot. Closed by:
+   `Units.test_url_and_folder_refused`.
+2. Given three declared units, when `plan` runs, then the command line holds
+   `--bare` and exactly three `--plugin-dir` arguments, one for each unit in
+   the declared order, and the output and the snapshot name each unit with
+   the `name` and `version` its `plugin.json` holds. Closed by:
+   `Units.test_one_plugin_dir_for_each_unit`.
+3. Given a fixture repository with a server in `.mcp.json` and a hook in
+   `.claude/settings.json`, when `plan` runs, then neither the command line
+   nor the snapshot names the server or the hook. Closed by:
+   `Units.test_repository_hooks_and_servers_not_named`.
+4. Given an `env` block with two keys in `.claude/settings.json`, and in
+   another fixture in `.claude/settings.local.json`, when `plan` runs, then
+   it prints `unresolved` naming the file and both keys and exits 3. Closed
+   by: `Refusals.test_env_block_refused`.
+5. Given this change's tree, when `meow-verbs run format lint check test
+build` runs, then each passes. Closed by: the kept evidence of that run.
+
+## What to do
+
+Extend the program TSK-3300 adds, as SPC-1200's sections "The command line",
+"The snapshot" and "Failure paths" state. A unit entry resolves against the
+work tree's root. `plan` reports every refusal it finds before it exits.
+Read each unit's `name` and `version` from its `plugin.json`, and add them to
+the snapshot and to the output after the resolved table.
+
+Raise `meow-unattended`'s minor version in `plugin.json`, and its README's
+`describes:` with it, because `plan` gains refusals and output. Update the
+README where it describes what `plan` accepts in `units`.
+
+Write the checks first, in a commit of their own, and see them fail.
+
+## Depends on
+
+TSK-3300, because this task extends the program, the table reader and the
+snapshot that task adds.
+
+## Cover
+
+- Checks: not yet
+- Failing run: not yet
+- Landed in: not yet
+- Judgement: not yet
+
+## Evidence
+
+Not yet. Once done: the command, its exit status and its output, collected at
+the revision that merges.
+
+## Left alone
+
+Checking at start that the run loaded the units the snapshot names, and
+repeating the `env` refusal at start, which ADR-2000 gives to the decision
+that starts a run. A unit loaded from a URL with a checksum, which ADR-2000
+names as what would reverse it. `docs/README.md` and the root `README.md`,
+which the document step updates.
