@@ -32,6 +32,7 @@ states:
     REQ-1355,
     REQ-1356,
     REQ-1360,
+    REQ-3320,
     REQ-1368,
     REQ-1372,
     REQ-1376,
@@ -309,6 +310,10 @@ unmarked task is reported, the issue's state is the tracker's and never
 written, and `--check` computes the state on demand and writes nothing
 (REQ-1353, REQ-1355, REQ-1378, REQ-1388, REQ-1392, REQ-1394, REQ-1400). The
 docs give the `gh` commands that project a task by hand (REQ-1402) (ADR-1310).
+`project` groups an issue nowhere: it passes no `--milestone`, `--parent`,
+`--project` or `--label` and creates no blocked-by relation, and the issue's
+body carries each dependency line with its `(blocking)` or `(not blocking)`
+marker as the task writes it (REQ-3320) (ADR-1800).
 
 ### Quality attributes
 
