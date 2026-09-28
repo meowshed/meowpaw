@@ -18,6 +18,8 @@ mod github;
 mod gotask;
 #[cfg(feature = "licence")]
 mod licence;
+#[cfg(feature = "markdown")]
+mod markdown;
 #[cfg(feature = "mise")]
 mod mise;
 mod profile;
@@ -61,6 +63,8 @@ fn main() -> ExitCode {
         "gotask" => gotask::main(rest),
         #[cfg(feature = "prose")]
         "prose" => prose::main(rest),
+        #[cfg(feature = "markdown")]
+        "markdown" => markdown::main(rest),
         _ => {
             eprintln!(
                 "usage: meow <subcommand> ..., where this build carries: {}",
@@ -104,6 +108,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "prose") {
         names.push("prose");
+    }
+    if cfg!(feature = "markdown") {
+        names.push("markdown");
     }
     names
 }
