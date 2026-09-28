@@ -35,7 +35,7 @@ it.
 
 ## Research
 
-138 documents, indexed by
+141 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
@@ -219,6 +219,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   a read-only agent tries to refute each requirement an epic claims before the
   epic is verified, and verification records each refutation it confirms as a
   draft defect.
+- [ADR-2100](adrs/ADR-2100-a-read-only-agent-routes-each-request-before-work-starts.md):
+  a read-only agent routes each request on the repository before work starts,
+  and the route is reported before any edit.
 
 ## Specifications
 
@@ -259,11 +262,12 @@ grouping fields and `dependency-declared` ADR-1800 adds, which EPC-1710
 realises.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
-the gate each checks, the state of the record and the command that drives it.
-`meow-flow` implements it, verified under issue 368, except the cover step
-ADR-1620 adds, which EPC-1580 realises, the blocking dependency ADR-1800
-adds, which EPC-1710 realises, and the skeptic ADR-2200 adds, which
-EPC-2100 realises.
+the gate each checks, the state of the record, the command that drives it,
+and the route that comes before the first step. `meow-flow` implements it,
+verified under issue 368, except the cover step ADR-1620 adds, which EPC-1580
+realises, the blocking dependency ADR-1800 adds, which EPC-1710 realises, the
+skeptic ADR-2200 adds, which EPC-2100 realises, and the route ADR-2100 adds,
+which EPC-2000 realises.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
@@ -505,6 +509,10 @@ each requirement ADR-1800 addresses lands in one of them.
 [EPC-2100](epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realises
 ADR-2200 in two tasks, TSK-3700 and TSK-3710, neither of them started, and
 every requirement ADR-2200 addresses lands in one of them.
+
+[EPC-2000](epics/EPC-2000-the-route-before-work.md) realises ADR-2100 in two
+tasks, TSK-3500 and TSK-3510, none of them started. Every requirement ADR-2100
+addresses lands in one of them.
 
 ## Defects
 
