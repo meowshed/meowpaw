@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1800
 closes: [REQ-2438, REQ-2454]
-issue:
+issue: 636
+projected: ce04cba83ec0
 ---
 
 # Classify a link check with `links`, and check its declared settings
