@@ -58,8 +58,78 @@ fixes written first would conflict with it.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+The branch holds two commits before this record's. The first, b23eb0e, is
+what `cargo clippy --fix --allow-dirty` and then `cargo fmt` wrote on the
+parent, in `record.rs`, `author.rs` and `git.rs`, and nothing else. The second
+edits `record.rs` by hand: the `numbered` pattern for `adoption-in-steps` is
+compiled once, beside the three patterns `rules` already compiles before its
+loop, and `show` finds the first paragraph with `find` on the negated
+predicate instead of `skip_while(..).next()`. Both keep each function's
+behaviour. No `allow` or `expect` attribute was added.
+
+Both checks in `tools/test_crate_lint.py` failed at the cover commit, b0d05a0,
+which held the checks alone, and pass after this change:
+
+```text
+$ cargo clippy --quiet --manifest-path crates/meow/Cargo.toml --all-features --all-targets -- -D warnings
+error: could not compile `meow` (bin "meow") due to 15 previous errors
+                                                       # b0d05a0: exit 101
+                                                       # this change: exit 0, no output
+$ TSK_2500_BASE=b0d05a0 TSK_2500_FIX=b23eb0e python3 -m unittest -v tools.test_crate_lint
+test_clippy_denying_warnings_exits_0_with_no_output ... ok
+test_clippy_fix_on_the_parent_gives_the_first_commit ... ok
+Ran 2 tests
+OK                                                     # exit 0
+$ cargo fmt --manifest-path crates/meow/Cargo.toml --check
+                                                       # exit 0, no output
+$ mise run crate
+test result: ok. 29 passed; 0 failed; 0 ignored        # exit 0
+```
+
+On the cover commit the 15 errors were ten `collapsible_if`, two
+`collapsible_match`, one `manual_repeat_n`, one `regex_creation_in_loops` and
+one `skip_while_next`. With both variables set to b0d05a0, the second check
+failed on `record.rs`, `author.rs` and `git.rs`. `mise run crate` reported 29
+passed on the cover commit as well. A diff of `tools/test_crate_lint.py` against
+b0d05a0 prints nothing. The kept evidence of `meow-verbs run format lint test`
+sits in `project/evidence/`, committed with this change.
+
+### Checks written before the change
+
+Each criterion a program can check has a check in `tools/test_crate_lint.py`,
+and each check failed on the parent revision, `main` after #608:
+
+- Criterion 1: `ClippyCheck.test_clippy_denying_warnings_exits_0_with_no_output`.
+  On that revision clippy exited 101 on 15 errors, as criterion 1 states.
+  With `TSK_2500_BASE` set, the check also fails when the change adds an
+  `allow` or `expect` attribute to `crates/meow/src`, because an allowed
+  finding passes the lint and still ships. That half wasn't seen failing on
+  its own, since clippy fails first on the parent.
+- Criterion 4, its first commit:
+  `FirstCommitIsClippyFix.test_clippy_fix_on_the_parent_gives_the_first_commit`.
+  It reads the parent from `TSK_2500_BASE` and the first branch commit from
+  `TSK_2500_FIX`, and is skipped without them, because the criterion concerns
+  one change's commits and no default names them. With both set to the
+  parent, `record.rs`, `author.rs` and `git.rs` differed from what
+  `cargo clippy --fix` wrote, the three files RES-0278 names.
+
+Criterion 2 is judgement, although a program runs it: `mise run crate`
+already passes before the change, so no check can fail first and show that
+the fixes did anything. The existing `crate` task is the check, and it guards
+against a fix that changes behaviour. On the parent it reported 29 passed and
+0 failed, not the 18 criterion 2 states, because changes merged after the
+task was written added tests.
+
+Criterion 3 is judgement for the same reason: `FormatterCheck` in
+`tools/test_crate_format.py` holds it and passes on the parent already.
+
+Criterion 4, its second commit, is judgement, because only a reader can tell
+that the hand edits for `skip_while_next` and `regex_creation_in_loops` keep
+each function's behaviour, and the tests cover only part of each function.
+
+Criterion 5 is judgement for the same reason as criterion 2: the gate passes
+before the change, so the gate's own run and the pull request's CI run are
+the check.
 
 ## Left alone
 

@@ -184,11 +184,11 @@ fn hook_prompts(root: &Path, unit: &Path) -> Vec<(String, String)> {
 
 /// The text after the front matter, and how many lines the front matter took.
 fn body(text: &str) -> (&str, usize) {
-    if let Some(rest) = text.strip_prefix("---\n") {
-        if let Some(end) = rest.find("\n---\n") {
-            let cut = 4 + end + 5;
-            return (&text[cut..], text[..cut].matches('\n').count());
-        }
+    if let Some(rest) = text.strip_prefix("---\n")
+        && let Some(end) = rest.find("\n---\n")
+    {
+        let cut = 4 + end + 5;
+        return (&text[cut..], text[..cut].matches('\n').count());
     }
     (text, 0)
 }
