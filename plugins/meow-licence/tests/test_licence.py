@@ -106,5 +106,23 @@ class Check(unittest.TestCase):
         self.assertIn("unchecked", done.stdout)
 
 
+class Launcher(unittest.TestCase):
+    """SPC-1080, BUG-1240: a launcher with no binary beside it reports each subcommand unchecked, never passed."""
+
+    def test_a_missing_binary_is_unchecked_and_names_the_machine_and_the_reinstall(self):
+        machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
+        for subcommand in ["check"]:
+            with self.subTest(subcommand=subcommand), tempfile.TemporaryDirectory() as tmp:
+                launcher = Path(tmp) / "bin" / "meow-licence"
+                launcher.parent.mkdir()
+                launcher.write_text(BIN.read_text(encoding="utf-8"), encoding="utf-8")
+                launcher.chmod(0o755)
+                done = subprocess.run(["sh", str(launcher), subcommand], cwd=tmp, capture_output=True, text=True, input="")
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertIn(f"meow-licence {subcommand}: unchecked: ", done.stdout)
+                self.assertIn(machine, done.stdout)
+                self.assertIn("reinstall the unit", done.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
