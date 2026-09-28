@@ -2359,9 +2359,7 @@ fn ready(rest: &[String]) -> u8 {
                     .filter(|(_, mark)| !finished(*mark))
                     .map(|(task, _)| task)
                     .collect();
-                if marks(doc).is_empty() {
-                    missing.push(format!("{id} lists no tasks"));
-                }
+                missing.extend(taskless_gaps(&record, &known, doc));
                 for task in open {
                     missing.push(format!("{task}, a task of {id}, isn't done"));
                 }
@@ -2554,6 +2552,37 @@ fn title(doc: &Doc) -> String {
         .to_string()
 }
 
+/// Why an epic that lists no tasks can't be documented or verified: each
+/// requirement its record addresses that it leaves unnamed under Not covered.
+/// Empty where it lists tasks, or names every one, because its work was done
+/// elsewhere; `ready` and `status` both ask this, so they agree (BUG-1250).
+fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) -> Vec<String> {
+    if !marks(epic).is_empty() {
+        return Vec::new();
+    }
+    let epic_id = bare(epic.id());
+    let realises = bare(epic.value("realises"));
+    let addressed = known
+        .get(realises)
+        .map(|authority| requirements_in(record, authority.value("addresses")))
+        .unwrap_or_default();
+    if addressed.is_empty() {
+        return vec![format!("{epic_id} lists no tasks")];
+    }
+    let not_covered = Regex::new(r"(?ms)^## Not covered$(.*)").expect("section pattern");
+    let named = not_covered
+        .captures(&epic.text)
+        .map(|c| requirements_in(record, &c[1]))
+        .unwrap_or_default();
+    addressed
+        .iter()
+        .filter(|requirement| !named.contains(*requirement))
+        .map(|requirement| {
+            format!("{epic_id} lists no tasks, and {requirement}, which {realises} addresses, isn't named under Not covered")
+        })
+        .collect()
+}
+
 /// Where one authorising record stands in the chain, and what comes next.
 fn position(
     record: &Record,
@@ -2585,6 +2614,9 @@ fn position(
             "waiting: {epic_id} is {} and not approved",
             bare(epic.value("status"))
         );
+    }
+    if let Some(gap) = taskless_gaps(record, known, epic).first() {
+        return format!("waiting: {gap}");
     }
     let tasks = marks(epic);
     let open: Vec<&String> = tasks
