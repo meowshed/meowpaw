@@ -209,6 +209,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1620](adrs/ADR-1620-the-chain-gains-a-cover-step-that-paw-ready-gates-on-the-tasks-cover-section.md):
   the chain gains a cover step between the epic and the implementation, and
   `paw ready` gates the implementation on the task's Cover section.
+- [ADR-1900](adrs/ADR-1900-a-markdown-pack-reads-the-settings-behind-each-verb-and-reports-an-unreachable-link-as-unreachable.md):
+  a Markdown pack reads the settings behind each verb, and reports an
+  unreachable link as unreachable, never as a finding.
 
 ## Specifications
 
@@ -272,6 +275,12 @@ its check finds in a profile.
 [SPC-1150](specs/SPC-1150-the-go-task-pack.md) states the go-task pack: where
 it differs from the mise pack in detecting, listing and reading a task, and
 how it reports remote includes and secret variables.
+
+[SPC-1190](specs/SPC-1190-the-language-packs.md) states what every language
+pack keeps: detection from tracked files, what it runs and writes, its exit
+statuses and its skill. [SPC-1195](specs/SPC-1195-the-markdown-pack.md) states
+the Markdown pack within it. EPC-1800 realises both, and nothing implements
+them yet.
 
 ## Epics and tasks
 
@@ -471,6 +480,10 @@ verified against every acceptance criterion under issue 596.
 
 [EPC-1580](epics/EPC-1580-the-cover-step.md) realises ADR-1620 in three tasks,
 TSK-2530 to TSK-2550, none of them started, and every requirement ADR-1620 addresses lands in one of them.
+
+[EPC-1800](epics/EPC-1800-the-markdown-pack.md) realises ADR-1900 in four
+tasks, TSK-3100 to TSK-3130, none of them started. Every requirement ADR-1900
+addresses lands in one of them, and REQ-2424 and REQ-2484 are postponed.
 
 ## Defects
 
