@@ -167,6 +167,7 @@ here or in the sources below.
 | [Dependencies and groupings](RES-0289-dependencies-and-groupings-on-the-record-and-on-github.md)         | A task's dependency line can't say it doesn't block, and GitHub offers four ways to group an issue and one dependency relation, which blocks.                                                        |
 | [The Markdown toolchain, as observed](RES-0294-the-markdown-toolchain-as-observed.md)                    | lychee 0.24.2 exits 2 for a site that is down exactly as for a broken link, and only its JSON tells them apart; markdownlint-cli ignores a markdownlint-cli2 configuration in silence.               |
 | [Refuting a verified claim](RES-0309-refuting-a-verified-claim.md)                                       | Four of 755 requirements this repository recorded as verified were unmet, a floor that ordinary work found; in a benchmark, model monitors caught 42% to 65% of shortcuts on multi-file work.        |
+| [A read-only agent routes a request](RES-0304-a-read-only-agent-routes-a-request.md)                     | On Claude Code 2.1.280 a plugin agent limited to Read, Grep and Glob can't write, and routing through it costs a dispatch on every request.                                                          |
 
 ## The situation
 
@@ -479,3 +480,42 @@ own sources with the dates they were read.
 The six internal harnesses were read from their working trees on 2026-09-20:
 `~/workspace/meowctl`, `~/workspace/meowg1k`, `~/workspace/vlie`,
 `~/workspace/hephaestus`, `~/workspace/meowhub`, `~/workspace/meowary`.
+
+## Open review findings
+
+An agent reviewed this record on 2026-09-28, when a change added RES-0304's row
+to the sources table. Each finding below concerns the body approved before that
+change, and each is left, because the body is frozen and a correction to it
+arrives as a new record, which is work outside the change that added the row.
+No issue, task or planned research record picks any of them up yet, and nothing
+authorises that work, so each stays open until somebody writes the record that
+does.
+
+- The record is two kinds, a frozen synthesis and a growing index of research.
+  Left: `plugins/meow-flow/lib/layout.toml` declares this file the research
+  kind's index, so `paw check frozen` lets its table grow, yet the table is
+  kept by hand, which REQ-0575 forbids for an index. Moving the table out
+  changes the layout, the index generator and the constitution's maintenance
+  rule together, and that needs a decision of its own. Finding 9 and conclusion
+  7, corrected in place, raise the same question.
+- The conclusions name no finding or document they rest on, conclusions 3 and 7
+  rest on no finding, and findings 10, 11a and 12 reach no conclusion. Left:
+  mapping them rewrites the approved conclusions, so it needs a new research
+  record.
+- Nothing states the case against one shared, layered harness, and the six
+  internal repositories may share an owner, which weakens their agreement as
+  evidence. Left: the case against belongs in a new research record, which
+  REQ-0222 asks for.
+- Eight figures and claims give no RES identifier: the Summary's "nine of the
+  ten public harnesses", finding 1's "in every public harness surveyed", finding
+  3's "the harnesses' own documentation reports that it gets skipped", finding
+  5's "report multi-hour autonomous runs", finding 9's "about 40% fewer tokens"
+  and "60-90% reduction on development commands", finding 11a's "around 20% on
+  mutation testing", and finding 13's "the prose it produces is worse". Left:
+  tracing each to its research document edits the approved findings.
+- The rule that nothing may cite a claim not recorded here gives no reason.
+  Left: adding one edits the approved summary.
+- Preferences: several table rows state a subject and not a finding, the link
+  text `research/skill-format.md` names a path that no longer exists, line 21 is
+  a fragment, and finding 11a's number suggests an insertion. Left for the same
+  reason.
