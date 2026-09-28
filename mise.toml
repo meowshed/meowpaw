@@ -4,11 +4,11 @@
 markdownlint-cli2 = "latest"
 "npm:prettier" = "latest"
 python = "3.14"
-rust = "1.98"
+rust = { version = "1.98", components = "rustfmt,clippy" }
 
 [tasks.fmt]
-description = "Bring Markdown to canonical form"
-run = "prettier --write '**/*.md'"
+description = "Bring Markdown and the native tool's code to canonical form"
+run = "prettier --write '**/*.md' && cargo fmt --manifest-path crates/meow/Cargo.toml"
 
 [tasks.fmt-check]
 description = "Check Markdown formatting without changing anything"
@@ -46,6 +46,14 @@ run = "crates/meow/build-units"
 description = "Type-check the native tool with every feature and target"
 run = "cargo check --quiet --manifest-path crates/meow/Cargo.toml --all-features --all-targets"
 
+[tasks.crate-fmt]
+description = "Check the native tool's code is in the formatter's form"
+run = "cargo fmt --manifest-path crates/meow/Cargo.toml --check"
+
+[tasks.crate-lint]
+description = "Lint the native tool with clippy, every feature and target, denying warnings"
+run = "cargo clippy --quiet --manifest-path crates/meow/Cargo.toml --all-features --all-targets -- -D warnings"
+
 [tasks.crate]
 description = "Run the native tool's own tests"
 run = "cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features"
@@ -56,4 +64,4 @@ run = "python3 tools/loop.py plugins/*/"
 
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "lint", "style", "prompts", "kernel", "standalone", "budget", "crate-check", "crate"]
+depends = ["fmt-check", "lint", "style", "prompts", "kernel", "standalone", "budget", "crate-fmt", "crate-lint", "crate-check", "crate"]
