@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-64 decisions in all: 64 approved.
+65 decisions in all: 65 approved.
 
 | Identifier                                                                                                                            | What it concluded                                                                                                                          | Status   |
 | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
@@ -82,6 +82,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-1620](ADR-1620-the-chain-gains-a-cover-step-that-paw-ready-gates-on-the-tasks-cover-section.md)                                  | The chain gains a cover step that paw ready gates on the task's Cover section                                                              | approved |
 | [ADR-1800](ADR-1800-a-tasks-dependency-says-whether-it-blocks-and-only-an-epic-or-a-defect-groups-tasks.md)                           | A task's dependency says whether it blocks, and only an epic or a defect groups tasks                                                      | approved |
 | [ADR-1900](ADR-1900-a-markdown-pack-reads-the-settings-behind-each-verb-and-reports-an-unreachable-link-as-unreachable.md)            | A Markdown pack reads the settings behind each verb, and reports an unreachable link as unreachable                                        | approved |
+| [ADR-2200](ADR-2200-a-skeptic-refutes-each-requirement-an-epic-claims.md)                                                             | A skeptic tries to refute each requirement an epic claims before it is verified, and a confirmed refutation becomes a draft defect         | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550.
 <!-- /meow-flow index -->
