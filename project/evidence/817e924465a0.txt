@@ -1,0 +1,98 @@
+meow-verbs evidence 1
+record: 817e924465a0
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: passed
+exit status: 0
+tree: 5f15747cbe9b346dbe89ab04695898aeed478a98
+time: 2026-09-28T19:22:45Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 29 tests
+.............................
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 14.338s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.632s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 6.758s
+
+OK
+..........................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 186 tests in 15.108s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.011s
+
+OK
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 1.787s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.751s
+
+OK
+..................
+----------------------------------------------------------------------
+Ran 18 tests in 0.775s
+
+OK
+.......................................
+----------------------------------------------------------------------
+Ran 39 tests in 9.030s
+
+OK
+..............................
+----------------------------------------------------------------------
+Ran 30 tests in 3.734s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 0.555s
+
+OK
+front-matter: 0 findings
+identifiers: 0 findings
+relations: 0 findings
+index: 0 findings
+coverage: 785 of 1106 requirements in force land in a task
+coverage: 0 findings
+shape: 0 findings
+rules: 0 findings
+.......................................................................
+----------------------------------------------------------------------
+Ran 71 tests in 8.427s
+
+OK
+17 pages, 0 documentation failures
+16 documents, 0 index failures
+0 dangling links
+1 dispatches a subordinate agent, 0 without the shape
