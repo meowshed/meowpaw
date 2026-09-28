@@ -56,10 +56,20 @@ Nothing. ADR-1900 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: plugins/meow-markdown/tests/test_markdown.py
+- Failing run: project/evidence/389ccd22365c.txt
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: none
+
+The checks are `Detection.test_criterion_1_*` for criterion 1,
+`Bind.test_criterion_2_*` for criterion 2,
+`Runner.test_criterion_3_a_mise_toml_is_named_with_the_mise_pack` for
+criterion 3, `Status.test_criterion_4_a_markdownlint_cli2_file_is_read_by_cli2_alone`
+for criterion 4 and `Tree.test_criterion_5_status_and_bind_leave_the_tree_as_it_was`
+for criterion 5, all for REQ-2352. The test verb in `.meowpaw/profile.toml`
+now runs the unit's tests. SPC-1195 doesn't say whether the
+`# check: unresolved` line makes `bind` exit 0 or 3, so the checks accept
+either.
 
 ## Evidence
 
