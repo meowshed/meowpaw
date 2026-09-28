@@ -78,9 +78,10 @@ clippy before the crate passes them fails every pull request.
 this task states, and `all` depends on both beside `crate-check`. The `fmt`
 task runs `cargo fmt --manifest-path crates/meow/Cargo.toml` after Prettier.
 `.meowpaw/profile.toml` appends `&& mise run crate-fmt` to `format` and `&&
-mise run crate-lint` to `lint`. The manifest gains no `[lints]` table, and
-`mise.toml` declares no toolchain components, because the local toolchain has
-`rustfmt` and `clippy` and CI's run decides whether it needs them. SPC-1080
+mise run crate-lint` to `lint`. The manifest gains no `[lints]` table. `mise.toml` declares the `rustfmt` and
+`clippy` components for the pinned toolchain, because CI's first run on this
+branch failed in `crate-fmt` with `'cargo-fmt' is not installed for the
+toolchain '1.98.1-x86_64-unknown-linux-gnu'`. SPC-1080
 now says that `all` depends on every crate task apart from `build`, which CI
 builds in its own workflow, where it said `all` depends on all five.
 

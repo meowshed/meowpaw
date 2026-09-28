@@ -4,7 +4,7 @@
 markdownlint-cli2 = "latest"
 "npm:prettier" = "latest"
 python = "3.14"
-rust = "1.98"
+rust = { version = "1.98", components = "rustfmt,clippy" }
 
 [tasks.fmt]
 description = "Bring Markdown and the native tool's code to canonical form"

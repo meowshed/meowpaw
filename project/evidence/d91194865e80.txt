@@ -1,12 +1,12 @@
 meow-verbs evidence 1
-record: 9f3f8667cc30
+record: d91194865e80
 verb: test
 command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
 targets: none
 outcome: passed
 exit status: 0
-tree: 708ae16cc2e98bd30f6d44a2776d8bf7e7a3cf69
-time: 2026-09-28T16:08:35Z
+tree: 1cfba8f469f3c479ed741f6c0faa486fa6bfeba7
+time: 2026-09-28T16:11:43Z
 
 built meow-verbs for aarch64-apple-darwin
 built meow-scm for aarch64-apple-darwin
@@ -26,57 +26,57 @@ test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 
 ............................................................
 ----------------------------------------------------------------------
-Ran 60 tests in 12.804s
+Ran 60 tests in 12.356s
 
 OK
 .................
 ----------------------------------------------------------------------
-Ran 17 tests in 0.710s
+Ran 17 tests in 0.508s
 
 OK
 ...................
 ----------------------------------------------------------------------
-Ran 19 tests in 5.052s
+Ran 19 tests in 4.802s
 
 OK
 ...........................................................................................................................................................
 ----------------------------------------------------------------------
-Ran 155 tests in 12.340s
+Ran 155 tests in 12.043s
 
 OK
 ...
 ----------------------------------------------------------------------
-Ran 3 tests in 0.135s
+Ran 3 tests in 0.007s
 
 OK
 .............
 ----------------------------------------------------------------------
-Ran 13 tests in 2.171s
+Ran 13 tests in 1.652s
 
 OK
 .........
 ----------------------------------------------------------------------
-Ran 9 tests in 0.795s
+Ran 9 tests in 0.636s
 
 OK
 .................
 ----------------------------------------------------------------------
-Ran 17 tests in 0.849s
+Ran 17 tests in 0.696s
 
 OK
 ......................................
 ----------------------------------------------------------------------
-Ran 38 tests in 8.441s
+Ran 38 tests in 8.127s
 
 OK
 .............................
 ----------------------------------------------------------------------
-Ran 29 tests in 4.042s
+Ran 29 tests in 3.020s
 
 OK
 ...................
 ----------------------------------------------------------------------
-Ran 19 tests in 0.624s
+Ran 19 tests in 0.370s
 
 OK
 front-matter: 0 findings
@@ -89,7 +89,7 @@ shape: 0 findings
 rules: 0 findings
 .........................................................
 ----------------------------------------------------------------------
-Ran 57 tests in 4.907s
+Ran 57 tests in 4.883s
 
 OK
 17 pages, 0 documentation failures

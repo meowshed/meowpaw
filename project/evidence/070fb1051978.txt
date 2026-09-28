@@ -1,12 +1,12 @@
 meow-verbs evidence 1
-record: 0f3b09042620
+record: 070fb1051978
 verb: lint
 command: mise run lint && mise run style && mise run prompts && mise run kernel && mise run standalone && mise run budget && plugins/meow-licence/bin/meow-licence check && plugins/meow-mise/bin/meow-mise check && mise run crate-lint
 targets: none
 outcome: passed
 exit status: 0
-tree: 708ae16cc2e98bd30f6d44a2776d8bf7e7a3cf69
-time: 2026-09-28T16:06:50Z
+tree: 1cfba8f469f3c479ed741f6c0faa486fa6bfeba7
+time: 2026-09-28T16:10:51Z
 
 [lint] $ markdownlint-cli2 '**/*.md'
 markdownlint-cli2 v0.23.2 (markdownlint v0.41.1)
@@ -23,7 +23,7 @@ Summary: 0 issues in 0 files
 134 unit files, 0 paths leaving their unit
 .....
 ----------------------------------------------------------------------
-Ran 5 tests in 0.006s
+Ran 5 tests in 0.005s
 
 OK
 [budget] $ cargo run --quiet --release --manifest-path crates/meow/Cargo.toml --target-dir target/author --no-default-features --features author -- author cost
