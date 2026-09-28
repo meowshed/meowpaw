@@ -19,6 +19,7 @@ states:
     REQ-0309,
     REQ-0396,
     REQ-0398,
+    REQ-3320,
     REQ-0512,
     REQ-0514,
     REQ-0520,
@@ -111,7 +112,8 @@ record are this repository's, and `tools/` keeps checking them.
 
 ADR-1100 decides it and EPC-1070 realised it, verified under issue 168.
 ADR-1140 adds the content rules, and EPC-1110 realised them, verified under
-issue 206.
+issue 206. ADR-1800 adds the grouping fields and `dependency-declared`, and
+EPC-1710 realises them; until it lands, neither is reported.
 
 ## Boundary
 
@@ -155,14 +157,15 @@ what someone accepted. `verification-kind` reaches every requirement, because
 none breaks it and `paw status` reads every approved requirement's value to
 report how much rests on judgement (ADR-1510).
 
-| Kind        | Every record                                                                                                                                                                                                                                                                                                         | Drafts only                                                                                                                                                |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| research    | sections Summary, Method, Conclusions and Sources, opening with Summary (REQ-0216, REQ-0219, REQ-2864, REQ-2866); the kind's own index is exempt from its sections                                                                                                                                                   | each source line carries a date (REQ-2868); the body cites no requirement (REQ-0223)                                                                       |
-| requirement | no `priority`, `owner` or `difficulty` field (REQ-2878); `verification` holds one of `static`, `behavioural`, `evaluation` and `judgement` (REQ-1664) (ADR-1510)                                                                                                                                                     | one verified by judgement carries `verifier` (REQ-2882); its statement carries one keyword, leans on no neighbour and prohibits with `MUST NOT` (REQ-2880) |
-| decision    | `addresses` names a requirement (REQ-0234); sections Decision, Why, Alternatives, What it costs, What would reverse it and Consequences (REQ-0247, REQ-0556, REQ-0560, REQ-0562); the alternatives table has a column saying why each lost (REQ-0558)                                                                | sections How I will know it was realised and What this does not settle (REQ-2884, REQ-2886)                                                                |
-| epic        | `realises` names exactly one decision or defect (REQ-0262); sections Acceptance criteria, Tasks, Coverage and Not covered (REQ-0309, REQ-2898); a task marked `[x]` has evidence past "Not yet." (REQ-0692), one marked `[+]` an `added:` line and one marked `[~]` a `dropped:` line (REQ-0698, REQ-0700, REQ-0702) |                                                                                                                                                            |
-| defect      | sections Reproduction, What the system does, What it should do and why, Triage and Closed by (REQ-2912, REQ-2914, REQ-2924); no `priority` field (REQ-2923)                                                                                                                                                          |                                                                                                                                                            |
-| insight     | sections Evidence, What looked right and The pattern (REQ-0576); a title stating the claim, with no date and at least four words (REQ-0569); evidence holding a digit or a fenced block (REQ-0574); The pattern as the last section (REQ-0571)                                                                       |                                                                                                                                                            |
+| Kind        | Every record                                                                                                                                                                                                                                                                                                                                                           | Drafts only                                                                                                                                                                                         |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| research    | sections Summary, Method, Conclusions and Sources, opening with Summary (REQ-0216, REQ-0219, REQ-2864, REQ-2866); the kind's own index is exempt from its sections                                                                                                                                                                                                     | each source line carries a date (REQ-2868); the body cites no requirement (REQ-0223)                                                                                                                |
+| requirement | no `priority`, `owner` or `difficulty` field (REQ-2878); `verification` holds one of `static`, `behavioural`, `evaluation` and `judgement` (REQ-1664) (ADR-1510)                                                                                                                                                                                                       | one verified by judgement carries `verifier` (REQ-2882); its statement carries one keyword, leans on no neighbour and prohibits with `MUST NOT` (REQ-2880)                                          |
+| decision    | `addresses` names a requirement (REQ-0234); sections Decision, Why, Alternatives, What it costs, What would reverse it and Consequences (REQ-0247, REQ-0556, REQ-0560, REQ-0562); the alternatives table has a column saying why each lost (REQ-0558)                                                                                                                  | sections How I will know it was realised and What this does not settle (REQ-2884, REQ-2886)                                                                                                         |
+| epic        | `realises` names exactly one decision or defect (REQ-0262); sections Acceptance criteria, Tasks, Coverage and Not covered (REQ-0309, REQ-2898); a task marked `[x]` has evidence past "Not yet." (REQ-0692), one marked `[+]` an `added:` line and one marked `[~]` a `dropped:` line (REQ-0698, REQ-0700, REQ-0702); no grouping field and no `epic` field (REQ-3320) |                                                                                                                                                                                                     |
+| task        | no grouping field (REQ-3320)                                                                                                                                                                                                                                                                                                                                           | names exactly one of `epic` and `bug` (`one-authority`); each `## Depends on` line naming a `TSK-` identifier names one and says `(blocking)` or `(not blocking)` (`dependency-declared`, REQ-1358) |
+| defect      | sections Reproduction, What the system does, What it should do and why, Triage and Closed by (REQ-2912, REQ-2914, REQ-2924); no `priority` field (REQ-2923); no grouping field (REQ-3320)                                                                                                                                                                              |                                                                                                                                                                                                     |
+| insight     | sections Evidence, What looked right and The pattern (REQ-0576); a title stating the claim, with no date and at least four words (REQ-0569); evidence holding a digit or a fenced block (REQ-0574); The pattern as the last section (REQ-0571)                                                                                                                         |                                                                                                                                                                                                     |
 
 One file holds one artifact named for its identifier, in the directory of its
 kind, with its kind, status and revision in its front matter (REQ-0512,
@@ -193,6 +196,15 @@ because a superseded record carries its status and names its replacement
 (REQ-0552, REQ-0554, REQ-0555). A draft requirement's statement carries one
 keyword, leans on no neighbour, and prohibits with `MUST NOT` (REQ-2880). The
 constitution outranks every artifact (REQ-0530) (ADR-1230).
+
+A grouping field is one of `milestone`, `parent`, `project`, `sprint`,
+`iteration`, `label` and `labels`, and the layout forbids each on the task,
+epic and defect kinds, so a record carrying one is reported whatever its
+status: a task sits under the epic that realises its authorising record or
+the defect that carries it, and nothing else groups it (REQ-3320). The epic
+kind also forbids `epic`, because only an epic would place one epic under
+another. A grouping written under a field name outside that list isn't
+reported (ADR-1800).
 
 The layout records every retired front matter field and status value with what
 replaced it, and the check refuses a record or a kind carrying one, so a
