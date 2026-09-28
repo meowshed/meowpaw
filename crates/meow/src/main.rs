@@ -23,6 +23,8 @@ mod gotask;
 mod mise;
 #[cfg(any(feature = "mise", feature = "gotask"))]
 mod runner;
+#[cfg(feature = "prose")]
+mod prose;
 #[cfg(feature = "record")]
 mod record;
 #[cfg(feature = "scm")]
@@ -57,6 +59,8 @@ fn main() -> ExitCode {
         "mise" => mise::main(rest),
         #[cfg(feature = "gotask")]
         "gotask" => gotask::main(rest),
+        #[cfg(feature = "prose")]
+        "prose" => prose::main(rest),
         _ => {
             eprintln!("usage: meow <subcommand> ..., where this build carries: {}", carried().join(", "));
             2
@@ -94,6 +98,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "gotask") {
         names.push("gotask");
+    }
+    if cfg!(feature = "prose") {
+        names.push("prose");
     }
     names
 }
