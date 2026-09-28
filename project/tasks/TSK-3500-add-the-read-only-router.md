@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-2000
 closes: [REQ-0334, REQ-0338, REQ-0342, REQ-0344, REQ-0346]
-issue:
+issue: 648
+projected: 3ce6cbc42e07
 ---
 
 # Add the read-only router agent that routes a request on the repository
