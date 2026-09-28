@@ -9,14 +9,13 @@
 //! Every state that would otherwise read as "no tasks" is reported as itself
 //! and exits 3, because an empty list nobody could read is not a list.
 
-use crate::profile;
+use crate::runner::{self, last_lines, version_of, Resolved, Runner, Task, Tree, Unresolved};
 use regex::Regex;
 use serde_json::Value;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
-const UNRESOLVED: u8 = 3;
 /// The mise the pack was tested on: a flag rejected below it is the
 /// environment's, and at or above it the pack's (REQ-2496).
 const TESTED: [u32; 3] = [2026, 9, 11];
@@ -24,11 +23,17 @@ const TASK_DIRECTORIES: [&str; 5] = ["mise-tasks/", ".mise-tasks/", "mise/tasks/
 const CONFIGURATION: [&str; 6] = ["mise.toml", ".mise.toml", "mise/config.toml", ".mise/config.toml", ".config/mise/config.toml", ".config/mise.toml"];
 const CONF_D: [&str; 3] = ["mise/conf.d/", ".mise/conf.d/", ".config/mise/conf.d/"];
 
+const RUNNER: Runner = Runner { unit: "meow-mise", runs: &["mise", "run"], binding, skip: "as fresh" };
+
+fn binding(task: &str) -> String {
+    format!("mise run --force {task}")
+}
+
 pub fn main(args: &[String]) -> u8 {
     match args.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
-        ["status"] => status(),
-        ["bind"] => bind(),
-        ["check"] => check(),
+        ["status"] => runner::status(&RUNNER, resolve),
+        ["bind"] => runner::bind(&RUNNER, resolve),
+        ["check"] => runner::check(&RUNNER, Vec::new(), resolve),
         _ => {
             eprintln!("usage: meow-mise status | bind | check");
             2
@@ -36,178 +41,8 @@ pub fn main(args: &[String]) -> u8 {
     }
 }
 
-fn status() -> u8 {
-    println!("meow-mise status");
-    match resolve() {
-        Ok(resolved) => {
-            print_resolved(&resolved);
-            0
-        }
-        Err(Unresolved { report, reason }) => {
-            for line in report {
-                println!("{line}");
-            }
-            println!("unresolved: {reason}");
-            UNRESOLVED
-        }
-    }
-}
-
-const VERBS: [&str; 5] = ["format", "lint", "check", "test", "build"];
-
-/// A `[verbs]` table binding each verb to the task of exactly its name, never
-/// a near one and never by what a task runs (REQ-2474, REQ-2492). It prints
-/// and never writes, because the profile is the repository's (ADR-1070).
-fn bind() -> u8 {
-    let resolved = match resolve() {
-        Ok(resolved) => resolved,
-        Err(Unresolved { reason, .. }) => {
-            println!("meow-mise bind");
-            println!("unresolved: {reason}");
-            return UNRESOLVED;
-        }
-    };
-    println!("# meow-mise bind: paste what follows into .meowpaw/profile.toml");
-    println!("[verbs]");
-    for verb in VERBS {
-        match resolved.tasks.iter().find(|t| t.name == verb) {
-            None => println!("# {verb}: no task named {verb}"),
-            Some(task) if !task.blocks.is_empty() => println!("# {verb}: task {verb} is blocked: {}", task.blocks.join(", ")),
-            // --force, so a task mise would skip as fresh runs, and a pass is never a skip (REQ-2468).
-            Some(task) => println!("{verb} = \"mise run --force {}\"", task.name),
-        }
-    }
-    0
-}
-
-/// Every task a profile's verb runs through `mise run`, with whether it forces the run.
-fn bound_tasks(command: &str) -> Vec<(String, bool)> {
-    let mut found = Vec::new();
-    for part in command.split("&&").flat_map(|p| p.split("||")).flat_map(|p| p.split(';')) {
-        let words: Vec<&str> = part.split_whitespace().collect();
-        if words.len() < 2 || words[0] != "mise" || words[1] != "run" {
-            continue;
-        }
-        let flags: Vec<&str> = words[2..].iter().take_while(|w| w.starts_with('-')).copied().collect();
-        if let Some(name) = words[2..].iter().find(|w| !w.starts_with('-')) {
-            found.push((name.to_string(), flags.iter().any(|f| *f == "--force" || *f == "-f")));
-        }
-    }
-    found
-}
-
-/// What stops each task a profile's verb runs from being run unattended.
-fn check() -> u8 {
-    println!("meow-mise check");
-    let root = profile::repository_root();
-    let verbs = match profile::read(&root) {
-        profile::Profile::Absent => {
-            println!("unresolved: no profile at {}", profile::PROFILE);
-            return UNRESOLVED;
-        }
-        profile::Profile::Unparseable(message) => {
-            println!("unresolved: the profile doesn't parse: {message}");
-            return UNRESOLVED;
-        }
-        profile::Profile::Parsed(table) => table.get("verbs").and_then(toml::Value::as_table).cloned().unwrap_or_default(),
-    };
-    let mut bound = Vec::new();
-    for (verb, value) in &verbs {
-        let command = match value {
-            toml::Value::String(c) => Some(c.as_str()),
-            toml::Value::Table(t) => t.get("command").and_then(toml::Value::as_str),
-            _ => None,
-        };
-        for (task, forced) in command.map(bound_tasks).unwrap_or_default() {
-            bound.push((verb.clone(), task, forced));
-        }
-    }
-    if bound.is_empty() {
-        println!("nothing to check: no verb runs a task through mise run");
-        return 0;
-    }
-    let resolved = match resolve() {
-        Ok(resolved) => resolved,
-        Err(Unresolved { reason, .. }) => {
-            println!("unresolved: {reason}");
-            return UNRESOLVED;
-        }
-    };
-    let mut findings = 0;
-    let checked = bound.len();
-    for (verb, name, forced) in bound {
-        let Some(task) = resolved.tasks.iter().find(|t| t.name == name) else {
-            println!("  {verb}: no task named {name}");
-            findings += 1;
-            continue;
-        };
-        if !task.blocks.is_empty() {
-            println!("  {verb}: task {name} is blocked: {}", task.blocks.join(", "));
-            findings += 1;
-        }
-        if !forced && task.can_skip != Some(false) {
-            println!("  {verb}: task {name} can skip as fresh and runs without --force");
-            findings += 1;
-        }
-    }
-    println!("{findings} findings in {checked} task runs the profile's verbs name");
-    if findings > 0 { 1 } else { 0 }
-}
-
-/// A state the program couldn't read past, with what it had printed so far.
-struct Unresolved {
-    report: Vec<String>,
-    reason: String,
-}
-
-struct Resolved {
-    report: Vec<String>,
-    tasks: Vec<Task>,
-    carried: Vec<String>,
-}
-
-pub struct Task {
-    pub name: String,
-    pub origin: &'static str,
-    pub source: String,
-    pub replaced: Option<String>,
-    pub blocks: Vec<String>,
-    pub can_skip: Option<bool>,
-    pub confirm_unknown: bool,
-}
-
-/// The work tree: its canonical root and the files git tracks in it.
-struct Tree {
-    root: PathBuf,
-    tracked: BTreeSet<String>,
-}
-
-impl Tree {
-    fn read() -> Tree {
-        let root = profile::repository_root();
-        let root = std::fs::canonicalize(&root).unwrap_or(root);
-        let mut tracked = BTreeSet::new();
-        if let Ok(done) = profile::reading_git().args(["ls-files", "-z"]).current_dir(&root).output() {
-            for path in done.stdout.split(|b| *b == 0).filter(|p| !p.is_empty()) {
-                tracked.insert(String::from_utf8_lossy(path).into_owned());
-            }
-        }
-        Tree { root, tracked }
-    }
-
-    /// A path relative to the root where it lies inside it.
-    fn relative(&self, path: &Path) -> Option<String> {
-        let path = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
-        path.strip_prefix(&self.root).ok().map(|p| p.to_string_lossy().into_owned())
-    }
-
-    fn display(&self, path: &Path) -> String {
-        self.relative(path).unwrap_or_else(|| path.display().to_string())
-    }
-
-    fn committed_configuration(&self) -> Vec<&String> {
-        self.tracked.iter().filter(|p| is_configuration(p)).collect()
-    }
+fn committed_configuration(tree: &Tree) -> Vec<&String> {
+    tree.tracked.iter().filter(|p| is_configuration(p)).collect()
 }
 
 fn is_configuration(path: &str) -> bool {
@@ -230,17 +65,6 @@ fn detected(root: &Path) -> bool {
 
 fn mise(root: &Path, args: &[&str]) -> std::io::Result<Output> {
     Command::new("mise").args(args).current_dir(root).stdin(Stdio::null()).output()
-}
-
-fn version_of(text: &str) -> Option<[u32; 3]> {
-    let token = text.split_whitespace().next()?;
-    let parts: Vec<u32> = token.split('.').map(|p| p.parse().ok()).collect::<Option<_>>()?;
-    (parts.len() == 3).then(|| [parts[0], parts[1], parts[2]])
-}
-
-fn last_lines(text: &str) -> String {
-    let lines: Vec<&str> = text.lines().map(str::trim).filter(|l| !l.is_empty()).collect();
-    lines[lines.len().saturating_sub(3)..].join(" / ")
 }
 
 fn resolve() -> Result<Resolved, Unresolved> {
@@ -271,8 +95,7 @@ fn resolve() -> Result<Resolved, Unresolved> {
         let shown: String = stdout.trim().chars().take(200).collect();
         return Err(unresolved(&report, format!("unrecognised shape: {shown}")));
     };
-    let exec: Vec<&String> = tree
-        .committed_configuration()
+    let exec: Vec<&String> = committed_configuration(&tree)
         .into_iter()
         .filter(|p| std::fs::read_to_string(tree.root.join(p)).is_ok_and(|t| t.contains("exec(")))
         .collect();
@@ -287,7 +110,7 @@ fn resolve() -> Result<Resolved, Unresolved> {
     let mut carried = pinned_tools(&tree);
     carried.extend(environment_files(&tree));
     carried.extend(idiomatic_files(&tree));
-    Ok(Resolved { report, tasks, carried })
+    Ok(Resolved { report, tasks, carried, unlisted: Vec::new() })
 }
 
 /// A listing's failure, named for what it is and never read as an empty list.
@@ -310,7 +133,7 @@ fn listing_failure(stderr: &str, version: &str, code: Option<i32>) -> String {
         let flag = &found[1];
         let number = version.split_whitespace().next().unwrap_or("unknown");
         return match version_of(version) {
-            Some(v) if v < TESTED => format!("environment: mise {number} predates {flag}"),
+            Some(v) if v < TESTED.to_vec() => format!("environment: mise {number} predates {flag}"),
             _ => format!("meow-mise defect: {flag}"),
         };
     }
@@ -334,7 +157,7 @@ fn recognised(stdout: &str) -> Option<Vec<serde_json::Map<String, Value>>> {
 /// Each task a committed file declares, with the files declaring it.
 fn declared_by_commits(tree: &Tree) -> BTreeMap<String, Vec<String>> {
     let mut declared: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    for file in tree.committed_configuration() {
+    for file in committed_configuration(tree) {
         let Ok(text) = std::fs::read_to_string(tree.root.join(file)) else { continue };
         let Ok(table) = text.parse::<toml::Table>() else { continue };
         if let Some(toml::Value::Table(tasks)) = table.get("tasks") {
@@ -356,11 +179,7 @@ fn task(tree: &Tree, declared: &BTreeMap<String, Vec<String>>, entry: &serde_jso
     let name = entry["name"].as_str().unwrap_or_default().to_string();
     let source_path = PathBuf::from(entry["source"].as_str().unwrap_or_default());
     let relative = tree.relative(&source_path);
-    let origin = match &relative {
-        Some(r) if tree.tracked.contains(r) => "repository",
-        Some(_) => "work tree only",
-        None => "outside",
-    };
+    let origin = tree.origin(relative.as_deref());
     let source = tree.display(&source_path);
     let replaced = declared
         .get(&name)
@@ -373,13 +192,13 @@ fn task(tree: &Tree, declared: &BTreeMap<String, Vec<String>>, entry: &serde_jso
         None => blocks.push("unknown hide".to_string()),
     }
     let committed = origin == "repository" && replaced.is_none();
-    let mut confirm_unknown = false;
+    let mut notes = Vec::new();
     if committed {
         if asks_for_a_person(tree, relative.as_deref().unwrap_or_default(), &name) {
             blocks.push("asks for a person".to_string());
         }
     } else {
-        confirm_unknown = true;
+        notes.push("confirm unknown: its definition isn't in a committed file".to_string());
     }
     match required_arguments(tree, entry, &name) {
         Some(needed) if needed.is_empty() => {}
@@ -394,7 +213,12 @@ fn task(tree: &Tree, declared: &BTreeMap<String, Vec<String>>, entry: &serde_jso
         (Some(s), Some(o)) => Some(s && o),
         _ => None,
     };
-    Task { name, origin, source, replaced, blocks, can_skip, confirm_unknown }
+    match can_skip {
+        Some(true) => notes.push("can skip as fresh: freshness decided by mise, by a method it doesn't report".into()),
+        Some(false) => {}
+        None => notes.push("can skip as fresh: unknown, since the listing doesn't say".into()),
+    }
+    Task { name, origin, source, replaced, blocks, notes, can_skip }
 }
 
 /// Whether the task's committed definition sets `confirm`, which mise's
@@ -435,7 +259,7 @@ fn required_arguments(tree: &Tree, entry: &serde_json::Map<String, Value>, name:
 
 /// The committed configuration files, each parsed, in the order git lists them.
 fn committed_tables(tree: &Tree) -> Vec<(&String, toml::Table)> {
-    tree.committed_configuration()
+    committed_configuration(tree)
         .into_iter()
         .filter_map(|file| std::fs::read_to_string(tree.root.join(file)).ok()?.parse::<toml::Table>().ok().map(|t| (file, t)))
         .collect()
@@ -533,31 +357,4 @@ fn idiomatic_files(tree: &Tree) -> Vec<String> {
         lines.push(format!("  {file}: {state}"));
     }
     lines
-}
-
-fn print_resolved(resolved: &Resolved) {
-    for line in &resolved.report {
-        println!("{line}");
-    }
-    println!("tasks resolved in this work tree, which may differ from what the repository declares:");
-    for task in &resolved.tasks {
-        println!("  {}: {} {}", task.name, task.origin, task.source);
-        if let Some(replaced) = &task.replaced {
-            println!("    {replaced}");
-        }
-        if !task.blocks.is_empty() {
-            println!("    blocked: {}", task.blocks.join(", "));
-        }
-        if task.confirm_unknown {
-            println!("    confirm unknown: its definition isn't in a committed file");
-        }
-        match task.can_skip {
-            Some(true) => println!("    can skip as fresh: freshness decided by mise, by a method it doesn't report"),
-            Some(false) => {}
-            None => println!("    can skip as fresh: unknown, since the listing doesn't say"),
-        }
-    }
-    for line in &resolved.carried {
-        println!("{line}");
-    }
 }

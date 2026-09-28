@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1560
 closes: [REQ-2480, REQ-2486, REQ-2508, REQ-2510]
-issue:
+issue: 589
+projected: 2f02c2be4f32
 ---
 
 # Ship the go-task pack with `status`
@@ -51,7 +52,15 @@ Nothing. ADR-1590 is approved.
 
 ## Evidence
 
-Not yet.
+Closes REQ-2480, REQ-2486, REQ-2508 and REQ-2510. The 22 fixtures in
+`plugins/meow-gotask/tests/test_gotask.py` all failed first against a program
+that reports nothing. One of them failed first for a fault in the fixture, a
+task already fresh before any listing, and now uses a checksum task. It fails
+against a program that lists without moving `TASK_TEMP_DIR` and passes
+against the unit. All 22 pass against real Task 3.53.1. `meow-mise`'s 38
+fixtures pass unchanged against the shared `runner` module. `meow-verbs
+evidence --keep format lint test` exits 0 on this change's own tree, each
+result kept in `project/evidence/`, as the pull request cites.
 
 ## Left alone
 
