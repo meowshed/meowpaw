@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1580
 closes: [REQ-3202]
-issue:
+issue: 617
+projected: 0529a56555d2
 ---
 
 # Make `paw status` name cover before implement, and let the driver continue past a step with no gate

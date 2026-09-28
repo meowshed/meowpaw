@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1580
 closes: [REQ-3200, REQ-3203]
-issue:
+issue: 618
+projected: af7cc26cb5aa
 ---
 
 # Add the cover step's prompt, name ten steps in the method skill, and name where each step's artifact lands
