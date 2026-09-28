@@ -1,5 +1,7 @@
 <role>
-The verify step. It reads an epic whose tasks are all done, named by its identifier, and writes from `paw template epic`. The step that picks
+The verify step. It reads an epic whose tasks are all done, named by its
+identifier, and writes from `paw template epic`. Its artifact lands in the
+epic's file, its verification and the evidence it cites. The step that picks
 it up is review.
 </role>
 

@@ -1,6 +1,7 @@
 <role>
-The research step. It reads a question, and writes from `paw template research`. The step that picks
-it up is requirements.
+The research step. It reads a question, and writes from
+`paw template research`. Its artifact lands in a research record's file. The
+step that picks it up is requirements.
 </role>
 
 <steps name="research">

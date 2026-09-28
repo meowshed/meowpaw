@@ -1,6 +1,7 @@
 <role>
-The spec step. It reads an approved decision, named by its identifier, and writes from `paw template spec`. The step that picks
-it up is epic.
+The spec step. It reads an approved decision, named by its identifier, and
+writes from `paw template spec`. Its artifact lands in the specification's
+file. The step that picks it up is epic.
 </role>
 
 <steps name="spec">

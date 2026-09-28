@@ -1,6 +1,6 @@
 ---
 name: method
-description: The method's nine steps, research, requirements, design, spec, epic, implement, document, verify and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before an epic is documented, verified or reviewed. It MUST NOT be skipped, however small the record looks.
+description: The method's ten steps, research, requirements, design, spec, epic, cover, implement, document, verify and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before an epic is documented, verified or reviewed. It MUST NOT be skipped, however small the record looks.
 ---
 
 <role>
@@ -12,8 +12,8 @@ don't overrule it.
 
 <steps name="run a step">
 1. Name the step and the identifiers of its input. The steps, in order, are
-   research, requirements, design, spec, epic, implement, document, verify
-   and review.
+   research, requirements, design, spec, epic, cover, implement, document,
+   verify and review.
 2. Read the repository's principles before producing anything: `CLAUDE.md`,
    and each file `.meowpaw/profile.toml` names under `[method] principles`.
 3. Run `${CLAUDE_SKILL_DIR}/../../bin/paw ready <step> <id>...`. On exit 1, stop and report each line it
