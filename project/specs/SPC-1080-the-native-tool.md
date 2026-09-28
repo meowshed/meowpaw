@@ -145,7 +145,9 @@ depends on each of them:
 | `build`  | `build`       | `crates/meow/build-units`, one binary per unit for the machine it's on |
 
 Each verb runs the crate's task after the checks it already runs on the
-Markdown, prompts and fixtures. `.meowpaw/profile.toml` names each task
+Markdown, prompts and fixtures, apart from `test`, which runs `crate` right
+after `build-units` so a failing crate test stops the run before the fixtures
+start. `.meowpaw/profile.toml` names each task
 through `mise run`, so `meow-mise check` reads every one. The `fmt` task,
 which writes, runs `cargo fmt` on the crate as well as Prettier on the
 Markdown, so one command fixes a `format` failure of either kind.
