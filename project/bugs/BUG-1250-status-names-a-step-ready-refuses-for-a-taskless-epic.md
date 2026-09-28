@@ -64,5 +64,7 @@ requirement unnamed is refused, and `status` names the refusal.
 
 ## Tasks
 
-- [ ] T-001 TSK-2560 make `ready` and `status` agree on an epic with no tasks,
+- [x] T-001 TSK-2560 make `ready` and `status` agree on an epic with no tasks,
       in `crates/meow/src/record.rs`
+      evidence: 3 checks seen failing first, 173 `meow-flow` fixtures passing,
+      in #622.
