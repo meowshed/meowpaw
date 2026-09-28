@@ -86,7 +86,9 @@ check` as the command that runs the settings checks. A `.remarkrc*` or
 `.textlintrc*` is named in a comment as a configured linter the pack binds no
 command for. A verb the profile already declares is left out, and a runner's
 configuration, such as a `mise.toml` or a `Taskfile.yml`, is named with a
-pointer to that runner's pack.
+pointer to that runner's pack. `bind` exits 0 once it prints the table, whatever
+comments the table holds, because a verb printed as unresolved or unbound with
+its reason is settled (ADR-1900).
 
 ### What `check` finds
 

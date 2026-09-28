@@ -58,7 +58,7 @@ Nothing. ADR-1900 is approved.
 
 - Checks: plugins/meow-markdown/tests/test_markdown.py
 - Failing run: project/evidence/389ccd22365c.txt
-- Landed in: not yet
+- Landed in: #650
 - Judgement: none
 
 The checks are `Detection.test_criterion_1_*` for criterion 1,
@@ -73,7 +73,39 @@ either.
 
 ## Evidence
 
-Not yet.
+`crates/meow/src/markdown.rs` is the `markdown` feature: `status` and `bind`,
+reading the tracked file list from `git ls-files` and the profile, and nothing
+else. `build-units` builds it into `plugins/meow-markdown/bin/`, and the unit
+ships its launcher, a skill naming the program, its README, budget,
+`requires.toml` and `plugin.json` at 0.1.0, with a marketplace entry and a row
+in the documentation index. `check` and `links` print the usage line and exit
+2 until TSK-3110 and TSK-3120 land.
+
+The 13 checks failed first: `meow-verbs run test` exited 1 with 19 failures
+counting the subtests, kept as `project/evidence/389ccd22365c.txt`, in the
+cover commit 593222a, which held the checks alone. They pass now, unchanged,
+since `git diff 593222a -- plugins/meow-markdown/tests/test_markdown.py`
+prints nothing:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-markdown/tests
+Ran 13 tests
+OK                                               # exit 0
+$ plugins/meow-markdown/bin/meow-markdown status  # in this repository
+markdown files: 1874 tracked
+markdownlint configuration, by directory:
+  .markdownlint-cli2.yaml: read by markdownlint-cli2 alone
+  plugins/.markdownlint.yaml: read by markdownlint-cli2 and markdownlint-cli
+                                                 # exit 0
+```
+
+SPC-1195 didn't say whether `bind` exits 0 or 3 with its `# check:
+unresolved` line. It exits 0, because ADR-1900 counts a verb printed with its
+reason as settled, and SPC-1195 now says so. A missing profile is unresolved,
+exit 3, for `status` and `bind` alike, as SPC-1195's failure paths state.
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 

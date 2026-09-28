@@ -21,6 +21,7 @@ author = ["dep:regex"]
 mise = ["dep:regex"]
 gotask = ["dep:regex", "dep:yaml-rust2"]
 prose = ["dep:regex"]
+markdown = []
 
 [dependencies]
 toml = { version = "0.8", features = ["preserve_order"] }

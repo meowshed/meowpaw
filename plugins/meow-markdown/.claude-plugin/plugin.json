@@ -1,0 +1,13 @@
+{
+  "name": "meow-markdown",
+  "version": "0.1.0",
+  "description": "Detects a Markdown corpus from what git tracks, lists the tools a repository configured for it, and prints a verbs table bound from that configuration, running no tool and writing no file. It keeps up to 380 characters in context on every turn.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-markdown/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["markdown", "markdownlint", "language", "verbs", "meowpaw"]
+}
