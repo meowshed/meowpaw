@@ -13,7 +13,7 @@ Every decision below is in force, as amended by the ones after it.
 
 <!-- meow-flow index -->
 
-61 decisions in all: 61 approved.
+62 decisions in all: 62 approved.
 
 | Identifier                                                                                                                            | What it concluded                                                                                                                          | Status   |
 | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
@@ -78,6 +78,7 @@ Every decision below is in force, as amended by the ones after it.
 | [ADR-1590](ADR-1590-a-go-task-pack-reads-a-taskfile-without-writing-to-it-and-binds-a-verb-only-to-a-task-that-can-run-unattended.md) | A go-task pack reads a Taskfile without writing to it, and binds a verb only to a task that can run unattended                             | approved |
 | [ADR-1600](ADR-1600-the-prose-gate-is-a-program-that-blocks-only-on-a-span-it-found.md)                                               | The prose gate is a program, and it blocks only on a span it found in the command                                                          | approved |
 | [ADR-1610](ADR-1610-this-repository-binds-its-five-verbs-to-the-crates-own-tools.md)                                                  | This repository binds its five verbs to the crate's own tools, after the crate passes them                                                 | approved |
+| [ADR-1620](ADR-1620-the-chain-gains-a-cover-step-that-paw-ready-gates-on-the-tasks-cover-section.md)                                  | The chain gains a cover step that paw ready gates on the task's Cover section                                                              | approved |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550.
 <!-- /meow-flow index -->
