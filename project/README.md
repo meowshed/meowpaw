@@ -41,7 +41,7 @@ downstream cites.
 
 ## Requirements
 
-1,120 obligations, withdrawn ones included, indexed by
+1,121 obligations, withdrawn ones included, indexed by
 [requirements/README.md](requirements/README.md). Each is one file carrying
 one obligation, and it declares whether it's functional or non-functional and
 which of the four kinds of check verifies it: a static check, a behavioural
@@ -215,6 +215,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1900](adrs/ADR-1900-a-markdown-pack-reads-the-settings-behind-each-verb-and-reports-an-unreachable-link-as-unreachable.md):
   a Markdown pack reads the settings behind each verb, and reports an
   unreachable link as unreachable, never as a finding.
+- [ADR-2000](adrs/ADR-2000-an-unattended-run-is-planned-from-an-authority-the-repository-declares-and-the-plan-starts-nothing.md):
+  an unattended run is planned from an authority the repository declares, and
+  the plan starts nothing.
 - [ADR-2200](adrs/ADR-2200-a-skeptic-refutes-each-requirement-an-epic-claims.md):
   a read-only agent tries to refute each requirement an epic claims before the
   epic is verified, and verification records each refutation it confirms as a
@@ -260,6 +263,10 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 checked, and `meow-flow` implements it, verified under issue 404, except the
 grouping fields and `dependency-declared` ADR-1800 adds, which EPC-1710
 realises.
+
+[SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
+run's plan: the authority a repository declares, the command `plan` prints,
+and the snapshot it writes. `checked-at` is empty until EPC-1900 is verified.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -501,6 +508,9 @@ TSK-2530 to TSK-2550, none of them started, and every requirement ADR-1620 addre
 [EPC-1800](epics/EPC-1800-the-markdown-pack.md) realises ADR-1900 in four
 tasks, TSK-3100 to TSK-3130, none of them started. Every requirement ADR-1900
 addresses lands in one of them, and REQ-2424 and REQ-2484 are postponed.
+[EPC-1900](epics/EPC-1900-the-unattended-runs-plan.md) realises ADR-2000 in
+two tasks, TSK-3300 and TSK-3310, neither of them started, and each of the two
+requirements ADR-2000 addresses lands in one of them.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, neither started, and
