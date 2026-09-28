@@ -839,6 +839,43 @@ FILLED = """- Checks: tests/test_a_task.py
 - Judgement: 2: whether the page reads well rests on a reader"""
 
 
+class TasklessEpic(unittest.TestCase):
+    """BUG-1250: `ready` and `status` read an epic that lists no tasks the same way (REQ-0208)."""
+
+    def repo(self, named):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        if named:
+            repository.edit("epics/EPC-0001-a-plan.md", "## Not covered\n\nText.",
+                            "## Not covered\n\n- REQ-0001 is closed by a task another record carries.")
+        return repository
+
+    def test_an_epic_naming_every_requirement_is_ready(self):
+        """TSK-2560 criterion 1: no tasks, every addressed requirement named under Not covered."""
+        repository = self.repo(named=True)
+        for step in ("document", "verify"):
+            done = repository.run("ready", step, "EPC-0001")
+            self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_status_names_document_and_ready_agrees(self):
+        """TSK-2560 criterion 2: status names document, and the gate it names lets the step run."""
+        repository = self.repo(named=True)
+        self.assertIn("next: document, then verify EPC-0001 (0 tasks done)", repository.run("status").stdout)
+        done = repository.run("ready", "document", "EPC-0001")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_an_epic_leaving_a_requirement_unnamed_is_refused_by_both(self):
+        """TSK-2560 criterion 3: ready refuses naming the requirement, and status names the same refusal."""
+        repository = self.repo(named=False)
+        reason = "EPC-0001 lists no tasks, and REQ-0001, which ADR-0001 addresses, isn't named under Not covered"
+        done = repository.run("ready", "document", "EPC-0001")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn(reason, done.stdout)
+        status = repository.run("status").stdout
+        self.assertIn(f"waiting: {reason}", status)
+        self.assertNotIn("next: document, then verify EPC-0001", status)
+
+
 class Cover(unittest.TestCase):
     """SPC-1090 "The gate": `ready cover` takes today's implement gate, and `ready implement` needs a filled Cover.
 
