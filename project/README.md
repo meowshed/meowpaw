@@ -209,6 +209,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1620](adrs/ADR-1620-the-chain-gains-a-cover-step-that-paw-ready-gates-on-the-tasks-cover-section.md):
   the chain gains a cover step between the epic and the implementation, and
   `paw ready` gates the implementation on the task's Cover section.
+- [ADR-1800](adrs/ADR-1800-a-tasks-dependency-says-whether-it-blocks-and-only-an-epic-or-a-defect-groups-tasks.md):
+  a task's dependency says whether it blocks, and only an epic or a defect
+  groups tasks.
 - [ADR-1900](adrs/ADR-1900-a-markdown-pack-reads-the-settings-behind-each-verb-and-reports-an-unreachable-link-as-unreachable.md):
   a Markdown pack reads the settings behind each verb, and reports an
   unreachable link as unreachable, never as a finding.
@@ -232,7 +235,9 @@ which follows both. The work realising them has landed, and each leaves
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release, the marketplace address and the checks the crate
 passes. The crate implements it, verified under issue 378, and the checks the
-crate passes, which EPC-1570 realises, were verified under issue 596.
+crate passes, which EPC-1570 realises, were verified under issue 596. The
+check that `project` groups an issue nowhere, which ADR-1800 adds, is
+EPC-1710's.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
@@ -245,12 +250,15 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 `meow-git` implements it, verified under issue 392.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
-checked, and `meow-flow` implements it, verified under issue 404.
+checked, and `meow-flow` implements it, verified under issue 404, except the
+grouping fields and `dependency-declared` ADR-1800 adds, which EPC-1710
+realises.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
 `meow-flow` implements it, verified under issue 368, except the cover step
-ADR-1620 adds, which EPC-1580 realises.
+ADR-1620 adds, which EPC-1580 realises, and the blocking dependency ADR-1800
+adds, which EPC-1710 realises.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
@@ -484,6 +492,10 @@ TSK-2530 to TSK-2550, none of them started, and every requirement ADR-1620 addre
 [EPC-1800](epics/EPC-1800-the-markdown-pack.md) realises ADR-1900 in four
 tasks, TSK-3100 to TSK-3130, none of them started. Every requirement ADR-1900
 addresses lands in one of them, and REQ-2424 and REQ-2484 are postponed.
+
+[EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
+realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, neither started, and
+each requirement ADR-1800 addresses lands in one of them.
 
 ## Defects
 
