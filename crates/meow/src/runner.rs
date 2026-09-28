@@ -62,7 +62,11 @@ impl Tree {
         let root = profile::repository_root();
         let root = std::fs::canonicalize(&root).unwrap_or(root);
         let mut tracked = BTreeSet::new();
-        if let Ok(done) = profile::reading_git().args(["ls-files", "-z"]).current_dir(&root).output() {
+        if let Ok(done) = profile::reading_git()
+            .args(["ls-files", "-z"])
+            .current_dir(&root)
+            .output()
+        {
             for path in done.stdout.split(|b| *b == 0).filter(|p| !p.is_empty()) {
                 tracked.insert(String::from_utf8_lossy(path).into_owned());
             }
@@ -73,11 +77,14 @@ impl Tree {
     /// A path relative to the root where it lies inside it.
     pub fn relative(&self, path: &Path) -> Option<String> {
         let path = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
-        path.strip_prefix(&self.root).ok().map(|p| p.to_string_lossy().into_owned())
+        path.strip_prefix(&self.root)
+            .ok()
+            .map(|p| p.to_string_lossy().into_owned())
     }
 
     pub fn display(&self, path: &Path) -> String {
-        self.relative(path).unwrap_or_else(|| path.display().to_string())
+        self.relative(path)
+            .unwrap_or_else(|| path.display().to_string())
     }
 
     /// Where a file a task came from lies: committed, in the work tree only, or outside (REQ-2465).
@@ -91,13 +98,19 @@ impl Tree {
 }
 
 pub fn version_of(text: &str) -> Option<Vec<u32>> {
-    let token = text.split_whitespace().find(|t| t.chars().next().is_some_and(|c| c.is_ascii_digit()))?;
+    let token = text
+        .split_whitespace()
+        .find(|t| t.chars().next().is_some_and(|c| c.is_ascii_digit()))?;
     let token = token.trim_start_matches('v');
     token.split('.').map(|p| p.parse().ok()).collect()
 }
 
 pub fn last_lines(text: &str) -> String {
-    let lines: Vec<&str> = text.lines().map(str::trim).filter(|l| !l.is_empty()).collect();
+    let lines: Vec<&str> = text
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .collect();
     lines[lines.len().saturating_sub(3)..].join(" / ")
 }
 
@@ -118,7 +131,9 @@ pub fn status(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved
     for line in &resolved.report {
         println!("{line}");
     }
-    println!("tasks resolved in this work tree, which may differ from what the repository declares:");
+    println!(
+        "tasks resolved in this work tree, which may differ from what the repository declares:"
+    );
     for task in &resolved.tasks {
         println!("  {}: {} {}", task.name, task.origin, task.source);
         if let Some(replaced) = &task.replaced {
@@ -149,7 +164,10 @@ pub fn bind(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved>)
             return UNRESOLVED;
         }
     };
-    println!("# {} bind: paste what follows into .meowpaw/profile.toml", runner.unit);
+    println!(
+        "# {} bind: paste what follows into .meowpaw/profile.toml",
+        runner.unit
+    );
     println!("[verbs]");
     for verb in VERBS {
         match resolved.tasks.iter().find(|t| t.name == verb) {
@@ -157,7 +175,10 @@ pub fn bind(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved>)
                 Some((_, why)) => println!("# {verb}: task {verb} is {why}"),
                 None => println!("# {verb}: no task named {verb}"),
             },
-            Some(task) if !task.blocks.is_empty() => println!("# {verb}: task {verb} is blocked: {}", task.blocks.join(", ")),
+            Some(task) if !task.blocks.is_empty() => println!(
+                "# {verb}: task {verb} is blocked: {}",
+                task.blocks.join(", ")
+            ),
             // Forced, so a task the runner would skip runs, and a pass is never a skip (REQ-2468).
             Some(task) => println!("{verb} = \"{}\"", (runner.binding)(&task.name)),
         }
@@ -168,15 +189,26 @@ pub fn bind(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved>)
 /// Every task a verb's command runs through the runner, with whether it forces the run.
 pub fn bound_tasks(command: &str, runs: &[&str]) -> Vec<(String, bool)> {
     let mut found = Vec::new();
-    for part in command.split("&&").flat_map(|p| p.split("||")).flat_map(|p| p.split(';')) {
+    for part in command
+        .split("&&")
+        .flat_map(|p| p.split("||"))
+        .flat_map(|p| p.split(';'))
+    {
         let words: Vec<&str> = part.split_whitespace().collect();
         if words.len() < runs.len() || words[..runs.len()] != *runs {
             continue;
         }
         let rest = &words[runs.len()..];
-        let flags: Vec<&str> = rest.iter().take_while(|w| w.starts_with('-')).copied().collect();
+        let flags: Vec<&str> = rest
+            .iter()
+            .take_while(|w| w.starts_with('-'))
+            .copied()
+            .collect();
         if let Some(name) = rest.iter().find(|w| !w.starts_with('-')) {
-            found.push((name.to_string(), flags.iter().any(|f| *f == "--force" || *f == "-f")));
+            found.push((
+                name.to_string(),
+                flags.iter().any(|f| *f == "--force" || *f == "-f"),
+            ));
         }
     }
     found
@@ -185,7 +217,11 @@ pub fn bound_tasks(command: &str, runs: &[&str]) -> Vec<(String, bool)> {
 /// What stops each task a profile's verb runs from being run unattended.
 /// `early` holds findings a pack makes before listing, which a listing it
 /// can't run would otherwise hide.
-pub fn check(runner: &Runner, early: Vec<String>, resolve: impl Fn() -> Result<Resolved, Unresolved>) -> u8 {
+pub fn check(
+    runner: &Runner,
+    early: Vec<String>,
+    resolve: impl Fn() -> Result<Resolved, Unresolved>,
+) -> u8 {
     println!("{} check", runner.unit);
     let root = profile::repository_root();
     let verbs = match profile::read(&root) {
@@ -197,13 +233,20 @@ pub fn check(runner: &Runner, early: Vec<String>, resolve: impl Fn() -> Result<R
             println!("unresolved: the profile doesn't parse: {message}");
             return UNRESOLVED;
         }
-        profile::Profile::Parsed(table) => table.get("verbs").and_then(toml::Value::as_table).cloned().unwrap_or_default(),
+        profile::Profile::Parsed(table) => table
+            .get("verbs")
+            .and_then(toml::Value::as_table)
+            .cloned()
+            .unwrap_or_default(),
     };
     for finding in &early {
         println!("  {finding}");
     }
     if !early.is_empty() {
-        println!("{} findings before listing; nothing was listed", early.len());
+        println!(
+            "{} findings before listing; nothing was listed",
+            early.len()
+        );
         return 1;
     }
     let mut bound = Vec::new();
@@ -213,12 +256,18 @@ pub fn check(runner: &Runner, early: Vec<String>, resolve: impl Fn() -> Result<R
             toml::Value::Table(t) => t.get("command").and_then(toml::Value::as_str),
             _ => None,
         };
-        for (task, forced) in command.map(|c| bound_tasks(c, runner.runs)).unwrap_or_default() {
+        for (task, forced) in command
+            .map(|c| bound_tasks(c, runner.runs))
+            .unwrap_or_default()
+        {
             bound.push((verb.clone(), task, forced));
         }
     }
     if bound.is_empty() {
-        println!("nothing to check: no verb runs a task through {}", runner.runs.join(" "));
+        println!(
+            "nothing to check: no verb runs a task through {}",
+            runner.runs.join(" ")
+        );
         return 0;
     }
     let resolved = match resolve() {
@@ -240,11 +289,17 @@ pub fn check(runner: &Runner, early: Vec<String>, resolve: impl Fn() -> Result<R
             continue;
         };
         if !task.blocks.is_empty() {
-            println!("  {verb}: task {name} is blocked: {}", task.blocks.join(", "));
+            println!(
+                "  {verb}: task {name} is blocked: {}",
+                task.blocks.join(", ")
+            );
             findings += 1;
         }
         if !forced && task.can_skip != Some(false) {
-            println!("  {verb}: task {name} can skip {} and runs without --force", runner.skip);
+            println!(
+                "  {verb}: task {name} can skip {} and runs without --force",
+                runner.skip
+            );
             findings += 1;
         }
     }

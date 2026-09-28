@@ -66,7 +66,10 @@ fn check(root: &Path) -> u8 {
         }
     }
     let declared = declared_header(root, &mut out);
-    let mut in_use: BTreeSet<String> = annotations.iter().flat_map(|a| a.identifiers.clone()).collect();
+    let mut in_use: BTreeSet<String> = annotations
+        .iter()
+        .flat_map(|a| a.identifiers.clone())
+        .collect();
     let mut headed = false;
     for file in &files {
         // A licence text, the bulk declaration and a `.license` file are what
@@ -74,7 +77,9 @@ fn check(root: &Path) -> u8 {
         if is_licence_text(file) || file == "REUSE.toml" || file.ends_with(".license") {
             continue;
         }
-        let covering = annotations.iter().find(|a| a.paths.iter().any(|glob| glob.is_match(file)));
+        let covering = annotations
+            .iter()
+            .find(|a| a.paths.iter().any(|glob| glob.is_match(file)));
         let header = header(root, file);
         headed |= header.copyright || !header.identifiers.is_empty();
         in_use.extend(header.identifiers.iter().cloned());
@@ -90,7 +95,9 @@ fn check(root: &Path) -> u8 {
         }
     }
     if annotations.is_empty() && !declared && !headed {
-        println!("meow-licence check: licensing is undeclared: no REUSE.toml, no [licence], and no header");
+        println!(
+            "meow-licence check: licensing is undeclared: no REUSE.toml, no [licence], and no header"
+        );
         return UNCHECKED;
     }
     out.extend(licence_texts(root, &in_use));
@@ -98,7 +105,11 @@ fn check(root: &Path) -> u8 {
         println!("{finding}");
     }
     let plural = if out.len() == 1 { "" } else { "s" };
-    println!("{} files, {} licensing finding{plural}", files.len(), out.len());
+    println!(
+        "{} files, {} licensing finding{plural}",
+        files.len(),
+        out.len()
+    );
     if out.is_empty() { CLEAN } else { FOUND }
 }
 
@@ -114,12 +125,21 @@ fn half(what: &str, has_copyright: bool) -> String {
 
 /// The files the repository's version control tracks, relative to its root.
 fn tracked(root: &Path) -> Option<Vec<String>> {
-    let done = profile::reading_git().current_dir(root).args(["ls-files", "-z"]).output().ok()?;
+    let done = profile::reading_git()
+        .current_dir(root)
+        .args(["ls-files", "-z"])
+        .output()
+        .ok()?;
     if !done.status.success() {
         return None;
     }
     let text = String::from_utf8_lossy(&done.stdout);
-    Some(text.split('\0').filter(|name| !name.is_empty()).map(str::to_string).collect())
+    Some(
+        text.split('\0')
+            .filter(|name| !name.is_empty())
+            .map(str::to_string)
+            .collect(),
+    )
 }
 
 /// A licence text is the licence itself, and needs no declaration.
@@ -136,7 +156,10 @@ fn is_licence_text(file: &str) -> bool {
     // called licence.rs is code about licences, not a licence.
     let textual = ["", "txt", "md", "rst", "html"].contains(&extension.as_str());
     let stem = stem.to_ascii_uppercase();
-    textual && ["LICENSE", "LICENCE", "COPYING"].iter().any(|text| stem == *text || stem.starts_with(&format!("{text}-")))
+    textual
+        && ["LICENSE", "LICENCE", "COPYING"]
+            .iter()
+            .any(|text| stem == *text || stem.starts_with(&format!("{text}-")))
 }
 
 fn annotations(root: &Path) -> Result<Vec<Annotation>, String> {
@@ -145,21 +168,39 @@ fn annotations(root: &Path) -> Result<Vec<Annotation>, String> {
         return Ok(Vec::new());
     }
     let text = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
-    let table: toml::Table = text.parse().map_err(|e: toml::de::Error| e.message().to_string())?;
+    let table: toml::Table = text
+        .parse()
+        .map_err(|e: toml::de::Error| e.message().to_string())?;
     let mut out = Vec::new();
-    for entry in table.get("annotations").and_then(|v| v.as_array()).into_iter().flatten() {
-        let Some(entry) = entry.as_table() else { continue };
+    for entry in table
+        .get("annotations")
+        .and_then(|v| v.as_array())
+        .into_iter()
+        .flatten()
+    {
+        let Some(entry) = entry.as_table() else {
+            continue;
+        };
         let paths = match entry.get("path") {
             Some(toml::Value::String(one)) => vec![one.clone()],
-            Some(toml::Value::Array(many)) => many.iter().filter_map(|v| v.as_str().map(str::to_string)).collect(),
+            Some(toml::Value::Array(many)) => many
+                .iter()
+                .filter_map(|v| v.as_str().map(str::to_string))
+                .collect(),
             _ => Vec::new(),
         };
-        let copyright = entry.get("SPDX-FileCopyrightText").is_some_and(|v| !is_empty(v));
+        let copyright = entry
+            .get("SPDX-FileCopyrightText")
+            .is_some_and(|v| !is_empty(v));
         let identifiers = match entry.get("SPDX-License-Identifier") {
             Some(toml::Value::String(expression)) => identifiers_in(expression),
             _ => Vec::new(),
         };
-        out.push(Annotation { paths: paths.iter().map(|glob| glob_regex(glob)).collect(), copyright, identifiers });
+        out.push(Annotation {
+            paths: paths.iter().map(|glob| glob_regex(glob)).collect(),
+            copyright,
+            identifiers,
+        });
     }
     Ok(out)
 }
@@ -210,7 +251,9 @@ fn header(root: &Path, file: &str) -> Header {
 }
 
 fn read_header(path: &Path) -> Header {
-    let Ok(bytes) = std::fs::read(path) else { return Header::default() };
+    let Ok(bytes) = std::fs::read(path) else {
+        return Header::default();
+    };
     let text = String::from_utf8_lossy(&bytes);
     let mut found = Header::default();
     for line in text.lines().take(HEADER_LINES) {
@@ -218,7 +261,10 @@ fn read_header(path: &Path) -> Header {
             found.copyright = true;
         }
         if let Some((_, expression)) = line.split_once(IDENTIFIER) {
-            let expression = expression.trim().trim_end_matches(|c: char| "*/->#;".contains(c)).trim();
+            let expression = expression
+                .trim()
+                .trim_end_matches(|c: char| "*/->#;".contains(c))
+                .trim();
             found.identifiers.extend(identifiers_in(expression));
         }
     }
@@ -228,15 +274,24 @@ fn read_header(path: &Path) -> Header {
 /// Whether the profile declares a header, and a finding where the declared
 /// header states half of what a licensing declaration must (REQ-1022).
 fn declared_header(root: &Path, out: &mut Vec<String>) -> bool {
-    let Profile::Parsed(table) = profile::read(root) else { return false };
-    let Some(lines) = table.get("licence").and_then(|t| t.get("header")).and_then(|h| h.as_array()) else {
+    let Profile::Parsed(table) = profile::read(root) else {
+        return false;
+    };
+    let Some(lines) = table
+        .get("licence")
+        .and_then(|t| t.get("header"))
+        .and_then(|h| h.as_array())
+    else {
         return false;
     };
     let lines: Vec<&str> = lines.iter().filter_map(|l| l.as_str()).collect();
     let copyright = lines.iter().any(|l| l.contains(COPYRIGHT));
     let identifier = lines.iter().any(|l| l.contains(IDENTIFIER));
     if copyright != identifier {
-        out.push(half(".meowpaw/profile.toml: the declared header", copyright));
+        out.push(half(
+            ".meowpaw/profile.toml: the declared header",
+            copyright,
+        ));
     }
     true
 }
@@ -245,7 +300,9 @@ fn declared_header(root: &Path, out: &mut Vec<String>) -> bool {
 /// text, where the repository keeps `LICENSES/` (REQ-3062).
 fn licence_texts(root: &Path, in_use: &BTreeSet<String>) -> Vec<String> {
     let directory = root.join("LICENSES");
-    let Ok(entries) = std::fs::read_dir(&directory) else { return Vec::new() };
+    let Ok(entries) = std::fs::read_dir(&directory) else {
+        return Vec::new();
+    };
     let mut texts = BTreeSet::new();
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
@@ -276,7 +333,10 @@ mod tests {
 
     #[test]
     fn an_expression_yields_its_identifiers() {
-        assert_eq!(identifiers_in("(MIT OR Apache-2.0) WITH LLVM-exception"), ["MIT", "Apache-2.0", "LLVM-exception"]);
+        assert_eq!(
+            identifiers_in("(MIT OR Apache-2.0) WITH LLVM-exception"),
+            ["MIT", "Apache-2.0", "LLVM-exception"]
+        );
     }
 
     #[test]
