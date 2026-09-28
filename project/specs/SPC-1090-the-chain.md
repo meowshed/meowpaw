@@ -15,6 +15,7 @@ states:
     REQ-3203,
     REQ-3207,
     REQ-3216,
+    REQ-1358,
     REQ-0192,
     REQ-0194,
     REQ-0196,
@@ -328,7 +329,10 @@ the cover step, its gate and the task's Cover section, and EPC-1580 realises
 them. `paw ready` knows the ten steps and gates the implementation on the
 Cover, and the method's prompts name the ten steps and where each step's
 artifact lands. Until the rest of the epic lands, `status` and the driver run
-nine steps without cover.
+nine steps without cover. ADR-1800 lets a task's dependency say whether it
+blocks, and EPC-1710 realises it; until it lands, `paw` reads every `TSK-`
+identifier under `## Depends on` as blocking and no rule asks a draft for the
+marker.
 
 ## Boundary
 
@@ -427,7 +431,10 @@ exactly one of `epic` and `bug`. A task a defect authorises restores a
 requirement already in force, so its `closes` may be empty (REQ-0350), and the
 defect carries a `## Tasks` section with an epic's marks, from which the
 task's state derives (REQ-0354). An epic realises a defect only where the fix
-needs at least two tasks with an order between them (REQ-0356).
+needs at least two tasks with an order between them (REQ-0356). Only a
+blocking dependency is an order: a task's dependency line marked
+`(not blocking)`, and an epic entry's `depends:` marked `(not blocking)`, don't
+count toward it.
 
 A defect carries a reproduction before it is triaged (REQ-0364). Its triage
 answers first whether a requirement in force covers the behaviour, in
@@ -478,8 +485,25 @@ own line (REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
 A task is done when its epic marks it `[x]`, and dropped when it is marked
 `[~]`. A task entry may carry `[P]` between its number and its identifier,
 marking it as able to run in parallel (REQ-0265), and it is read with its mark
-like any other. The tasks a task depends on are the `TSK-` identifiers under
-its `## Depends on` section.
+like any other.
+
+Each line under a task's `## Depends on` names one task and says whether it
+blocks, so a dependency that exists only for convenience is declared and
+never left out (REQ-1358):
+
+```text
+- TSK-NNNN (blocking): the parser this task extends lands there.
+- TSK-MMMM (not blocking): shares a fixture, which either task can write.
+```
+
+A line saying `(blocking)` is blocking, a line saying `(not blocking)` isn't,
+and a line naming a `TSK-` identifier with neither marker is blocking, which
+is how every task approved before ADR-1800 reads. The tasks a task depends on,
+for `ready cover`, `ready implement` and `status`, are its blocking ones only,
+so a task whose only open dependency doesn't block is ready. An epic entry's
+`depends:` takes the same marker, as `depends: TSK-NNNN (not blocking) - why`,
+and reads the same way. Readiness reads only the task's own line, and nothing
+checks that an epic entry's marker agrees with it.
 
 A task's `## Cover` section reads `Not yet.` until the cover step fills it
 with four lines:
@@ -515,8 +539,8 @@ has reached and the next one:
 
 - no epic realises it: next is `spec`, then `epic`
 - its epic is a draft: waiting for the epic's approval
-- its epic has tasks not done: for the first task whose dependencies are
-  done, next is `cover` while its Cover isn't filled, and `implement` once it
+- its epic has tasks not done: for the first task whose blocking
+  dependencies are done, next is `cover` while its Cover isn't filled, and `implement` once it
   is, and the line keeps the form `(<epic>, <n> of <m> tasks done)`
 - every task is done and the epic has no `checked-at`: next is `document`, then
   `verify`
