@@ -93,19 +93,20 @@ one, so this one names none of them.
 ADR-1110 decides it, EPC-1080 realises it, and the `meow` crate with its
 launchers and release implements it, verified under issue 160. ADR-1610
 decides how this repository's five verbs check the crate, and EPC-1570
-realises that.
+realises that. BUG-1240 and TSK-2520 bring the launchers and the build
+script under the same verbs.
 
 ## Boundary
 
-| Surface                         | What it is                                                                |
-| ------------------------------- | ------------------------------------------------------------------------- |
-| `crates/meow/`                  | The tool's source: one crate, with a feature per unit and its own tests   |
-| `mise.toml`                     | The tasks that format, lint, check, test and build the crate              |
-| `plugins/<unit>/bin/<unit>`     | The unit's launcher, which picks the binary for the machine               |
-| `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed            |
-| `.github/workflows/build.yml`   | The six-target build, run by CI when the crate changes and by the release |
-| `.github/workflows/release.yml` | The release: one archive per unit, a marketplace file                     |
-| `retran/meow.retran.me`         | The site serving the marketplace file at `meow.retran.me`                 |
+| Surface                         | What it is                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `crates/meow/`                  | The tool's source: one crate, with a feature per unit and its own tests    |
+| `mise.toml`                     | The tasks that format, lint, check, test and build the crate and its shell |
+| `plugins/<unit>/bin/<unit>`     | The unit's launcher, which picks the binary for the machine                |
+| `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed             |
+| `.github/workflows/build.yml`   | The six-target build, run by CI when the crate changes and by the release  |
+| `.github/workflows/release.yml` | The release: one archive per unit, a marketplace file                      |
+| `retran/meow.retran.me`         | The site serving the marketplace file at `meow.retran.me`                  |
 
 ## Behaviour
 
@@ -159,6 +160,27 @@ and `build-units` producing a binary. The lint and the type check run with
 every feature on, and a shipped binary carries one feature, so a warning that
 only one feature alone produces passes both (ADR-1610). Clippy's lints are its
 default set, as the Rust version `mise.toml` pins ships them.
+
+### The checks the shell passes
+
+Each launcher, each hook script a unit ships and `crates/meow/build-units` are
+POSIX shell, and `format` and `lint` check them as they check the crate
+(REQ-1186). `mise.toml` pins `shfmt` and `shellcheck`, and the gate's `all`
+task depends on both tasks:
+
+| Verb     | Task         | Runs                                  |
+| -------- | ------------ | ------------------------------------- |
+| `format` | `shell-fmt`  | `shfmt -i 2 -d` over the shell files  |
+| `lint`   | `shell-lint` | `shellcheck`, at its default severity |
+
+Both tasks take the list from `shfmt -f plugins crates/meow`, which picks a
+file by its shebang, so a launcher added later is checked with no edit to
+either task. Each task fails when the list is empty, because a check over
+nothing is no pass. Each verb runs its shell task before the crate's, so the
+crate's task stays last. The `fmt` task runs `shfmt -i 2 -w` over the same
+list. Each unit's fixtures run its launcher with no binary beside it and
+assert what it reports, so `test` fails when a launcher's fallback reads as a
+pass.
 
 ### Six targets
 
@@ -317,6 +339,8 @@ verified from what was assumed (REQ-1734) (ADR-1200).
 | Clippy reports a finding                | `lint` and the gate fail, naming the lint and the line  |
 | The crate fails its type check          | `check` and the gate fail, naming the error             |
 | The toolchain lacks rustfmt or clippy   | `format` or `lint` fails with cargo's own error         |
+| A shell file isn't in shfmt's form      | `format` and the gate fail, showing the diff            |
+| Shellcheck reports a finding            | `lint` and the gate fail, naming the code and the line  |
 | A target fails to build at release      | The release publishes nothing, and names the target     |
 | The dispatch to the site fails          | The release stays published; the step fails, naming it  |
 | The site's deployment fails             | The address keeps serving the previous file             |
