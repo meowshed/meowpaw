@@ -37,7 +37,13 @@ fn check(paths: &[String]) -> u8 {
     let units: Vec<PathBuf> = if paths.is_empty() {
         let plugins = root.join("plugins");
         let mut found: Vec<PathBuf> = std::fs::read_dir(&plugins)
-            .map(|entries| entries.flatten().map(|e| e.path()).filter(|p| p.is_dir()).collect())
+            .map(|entries| {
+                entries
+                    .flatten()
+                    .map(|e| e.path())
+                    .filter(|p| p.is_dir())
+                    .collect()
+            })
             .unwrap_or_default();
         found.sort();
         found
@@ -52,7 +58,10 @@ fn check(paths: &[String]) -> u8 {
             continue;
         }
         if unit.join("commands").is_dir() {
-            failures.push(format!("{}: ships a commands/ directory, where a command is a skill only a person invokes", shown(&root, &unit.join("commands"))));
+            failures.push(format!(
+                "{}: ships a commands/ directory, where a command is a skill only a person invokes",
+                shown(&root, &unit.join("commands"))
+            ));
         }
         for path in prompt_files(unit) {
             files += 1;
@@ -61,13 +70,18 @@ fn check(paths: &[String]) -> u8 {
             failures.extend(vocabulary(&text, &where_));
             failures.extend(unanchored_paths(&text, &where_));
             let is_core = path.file_name().is_some_and(|n| n == "SKILL.md");
-            let is_agent = path.parent().and_then(|p| p.file_name()).is_some_and(|n| n == "agents");
+            let is_agent = path
+                .parent()
+                .and_then(|p| p.file_name())
+                .is_some_and(|n| n == "agents");
             if is_core || is_agent {
                 if field(&text, "description").is_empty() {
                     failures.push(format!("{where_}: has no description in its front matter"));
                 }
                 if has_steps(&text) && !stops(&text) {
-                    failures.push(format!("{where_}: has a procedure and no step naming where it stops"));
+                    failures.push(format!(
+                        "{where_}: has a procedure and no step naming where it stops"
+                    ));
                 }
             }
             if is_core {
@@ -80,18 +94,27 @@ fn check(paths: &[String]) -> u8 {
         }
     }
     if files == 0 && failures.is_empty() {
-        println!("meow-author check: unchecked: no skill, agent, output style or prompt hook was found");
+        println!(
+            "meow-author check: unchecked: no skill, agent, output style or prompt hook was found"
+        );
         return UNCHECKED;
     }
     for failure in &failures {
         println!("{failure}");
     }
-    println!("{files} files, {} authoring failure{}", failures.len(), if failures.len() == 1 { "" } else { "s" });
+    println!(
+        "{files} files, {} authoring failure{}",
+        failures.len(),
+        if failures.len() == 1 { "" } else { "s" }
+    );
     if failures.is_empty() { CLEAN } else { FOUND }
 }
 
 fn shown(root: &Path, path: &Path) -> String {
-    path.strip_prefix(root).unwrap_or(path).display().to_string()
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .display()
+        .to_string()
 }
 
 /// Every prompt file a unit ships, outside measurement cases and fixtures.
@@ -106,7 +129,9 @@ fn prompt_files(unit: &Path) -> Vec<PathBuf> {
 }
 
 fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
     for entry in entries.flatten() {
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().to_string();
@@ -124,16 +149,31 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
 /// Each prompt hook's text, from the unit's `hooks/hooks.json`.
 fn hook_prompts(root: &Path, unit: &Path) -> Vec<(String, String)> {
     let path = unit.join("hooks").join("hooks.json");
-    let Ok(text) = std::fs::read_to_string(&path) else { return Vec::new() };
-    let Ok(config) = serde_json::from_str::<serde_json::Value>(&text) else { return Vec::new() };
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        return Vec::new();
+    };
+    let Ok(config) = serde_json::from_str::<serde_json::Value>(&text) else {
+        return Vec::new();
+    };
     let mut out = Vec::new();
     if let Some(events) = config.get("hooks").and_then(|h| h.as_object()) {
         for (event, groups) in events {
             for group in groups.as_array().into_iter().flatten() {
-                for hook in group.get("hooks").and_then(|h| h.as_array()).into_iter().flatten() {
+                for hook in group
+                    .get("hooks")
+                    .and_then(|h| h.as_array())
+                    .into_iter()
+                    .flatten()
+                {
                     if hook.get("type").and_then(|t| t.as_str()) == Some("prompt") {
-                        let prompt = hook.get("prompt").and_then(|p| p.as_str()).unwrap_or_default();
-                        out.push((format!("{} ({event})", shown(root, &path)), prompt.to_string()));
+                        let prompt = hook
+                            .get("prompt")
+                            .and_then(|p| p.as_str())
+                            .unwrap_or_default();
+                        out.push((
+                            format!("{} ({event})", shown(root, &path)),
+                            prompt.to_string(),
+                        ));
                     }
                 }
             }
@@ -154,8 +194,12 @@ fn body(text: &str) -> (&str, usize) {
 }
 
 fn field(text: &str, key: &str) -> String {
-    let Some(rest) = text.strip_prefix("---\n") else { return String::new() };
-    let Some(end) = rest.find("\n---\n") else { return String::new() };
+    let Some(rest) = text.strip_prefix("---\n") else {
+        return String::new();
+    };
+    let Some(end) = rest.find("\n---\n") else {
+        return String::new();
+    };
     rest[..end]
         .lines()
         .find_map(|line| line.strip_prefix(&format!("{key}:")))
@@ -186,14 +230,17 @@ fn vocabulary(text: &str, where_: &str) -> Vec<String> {
         let quoted = stack.iter().any(|t| QUOTED.contains(&t.as_str()));
         let bare = code_span.replace_all(line, "");
         if !quoted && heading.is_match(line) {
-            found.push(format!("{where_}:{number}: a Markdown heading, where the prompt uses tags"));
+            found.push(format!(
+                "{where_}:{number}: a Markdown heading, where the prompt uses tags"
+            ));
         }
         let outside = stack.is_empty() && !line.trim().is_empty();
         for c in tag.captures_iter(&bare) {
             let closing = &c[1] == "/";
             let name = c[2].to_string();
             if !VOCABULARY.contains(&name.as_str()) {
-                let message = format!("{where_}:{number}: <{name}> is not in the vocabulary SPC-1030 states");
+                let message =
+                    format!("{where_}:{number}: <{name}> is not in the vocabulary SPC-1030 states");
                 if !quoted && !found.contains(&message) {
                     found.push(message);
                 }
@@ -234,8 +281,13 @@ fn unanchored_paths(text: &str, where_: &str) -> Vec<String> {
     for (i, line) in content.lines().enumerate() {
         for m in token.find_iter(line) {
             let path = m.as_str();
-            if !path.starts_with("${CLAUDE_SKILL_DIR}") && !path.starts_with("${CLAUDE_PLUGIN_ROOT}") {
-                out.push(format!("{where_}:{}: {path} climbs out of the file with no directory variable", offset + i + 1));
+            if !path.starts_with("${CLAUDE_SKILL_DIR}")
+                && !path.starts_with("${CLAUDE_PLUGIN_ROOT}")
+            {
+                out.push(format!(
+                    "{where_}:{}: {path} climbs out of the file with no directory variable",
+                    offset + i + 1
+                ));
             }
         }
     }
@@ -245,7 +297,9 @@ fn unanchored_paths(text: &str, where_: &str) -> Vec<String> {
 /// Each file in a skill's directory its core never names, by its path, its
 /// name or the directory holding it (REQ-1124, REQ-1142).
 fn unnamed_files(root: &Path, core: &Path, text: &str) -> Vec<String> {
-    let Some(dir) = core.parent() else { return Vec::new() };
+    let Some(dir) = core.parent() else {
+        return Vec::new();
+    };
     let mut files = Vec::new();
     walk(dir, &mut files);
     let mut out = Vec::new();
@@ -253,12 +307,27 @@ fn unnamed_files(root: &Path, core: &Path, text: &str) -> Vec<String> {
         if file == core {
             continue;
         }
-        let rel = file.strip_prefix(dir).unwrap_or(&file).to_string_lossy().replace('\\', "/");
-        let name = file.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
-        let parent = rel.rsplit_once('/').map(|(p, _)| format!("{p}/")).unwrap_or_default();
-        let named = text.contains(&rel) || text.contains(&name) || (!parent.is_empty() && text.contains(&parent));
+        let rel = file
+            .strip_prefix(dir)
+            .unwrap_or(&file)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let name = file
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default();
+        let parent = rel
+            .rsplit_once('/')
+            .map(|(p, _)| format!("{p}/"))
+            .unwrap_or_default();
+        let named = text.contains(&rel)
+            || text.contains(&name)
+            || (!parent.is_empty() && text.contains(&parent));
         if !named {
-            out.push(format!("{}: {rel} is never named by the skill's core, so nothing loads it", shown(root, core)));
+            out.push(format!(
+                "{}: {rel} is never named by the skill's core, so nothing loads it",
+                shown(root, core)
+            ));
         }
     }
     out
@@ -272,10 +341,15 @@ fn has_steps(text: &str) -> bool {
 fn stops(text: &str) -> bool {
     let block = Regex::new(r"(?s)<steps[^>]*>(.*?)</steps>").expect("steps pattern");
     let item = Regex::new(r"(?m)^\d+\. ").expect("item pattern");
-    let stopping = Regex::new(r"(?i)\b(stop|stops|end|ends|report|finish|return|until)\b").expect("stop pattern");
+    let stopping = Regex::new(r"(?i)\b(stop|stops|end|ends|report|finish|return|until)\b")
+        .expect("stop pattern");
     block.captures_iter(text).any(|c| {
         let steps = &c[1];
-        let last = item.find_iter(steps).last().map(|m| &steps[m.start()..]).unwrap_or(steps);
+        let last = item
+            .find_iter(steps)
+            .last()
+            .map(|m| &steps[m.start()..])
+            .unwrap_or(steps);
         stopping.is_match(last)
     })
 }
@@ -293,7 +367,13 @@ fn cost(args: &[String]) -> u8 {
     }
     let root = profile::repository_root();
     let mut units: Vec<PathBuf> = std::fs::read_dir(root.join("plugins"))
-        .map(|entries| entries.flatten().map(|e| e.path()).filter(|p| p.join(".claude-plugin").join("plugin.json").is_file()).collect())
+        .map(|entries| {
+            entries
+                .flatten()
+                .map(|e| e.path())
+                .filter(|p| p.join(".claude-plugin").join("plugin.json").is_file())
+                .collect()
+        })
         .unwrap_or_default();
     units.sort();
     if units.is_empty() {
@@ -302,11 +382,20 @@ fn cost(args: &[String]) -> u8 {
     }
     let mut failures = Vec::new();
     for unit in &units {
-        let name = unit.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+        let name = unit
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default();
         let pieces = permanent(unit);
         for (path, size) in &pieces {
-            if path.extension().is_some_and(|e| e == "md") && !path.to_string_lossy().contains("output-styles") && *size > CAP {
-                failures.push(format!("{}: description is {size} characters, over the cap of {CAP}", shown(&root, path)));
+            if path.extension().is_some_and(|e| e == "md")
+                && !path.to_string_lossy().contains("output-styles")
+                && *size > CAP
+            {
+                failures.push(format!(
+                    "{}: description is {size} characters, over the cap of {CAP}",
+                    shown(&root, path)
+                ));
             }
         }
         let total: usize = pieces.iter().map(|(_, size)| size).sum();
@@ -326,8 +415,15 @@ fn cost(args: &[String]) -> u8 {
     for failure in &failures {
         println!("{failure}");
     }
-    println!("{} units, {} budget failure{}", units.len(), failures.len(), if failures.len() == 1 { "" } else { "s" });
-    println!("How often each skill is used: run /skill-doctor in Claude Code, which reports each skill's cost and invocations.");
+    println!(
+        "{} units, {} budget failure{}",
+        units.len(),
+        failures.len(),
+        if failures.len() == 1 { "" } else { "s" }
+    );
+    println!(
+        "How often each skill is used: run /skill-doctor in Claude Code, which reports each skill's cost and invocations."
+    );
     if failures.is_empty() { CLEAN } else { FOUND }
 }
 
@@ -344,17 +440,27 @@ fn permanent(unit: &Path) -> Vec<(PathBuf, usize)> {
     }
     let mut agents = Vec::new();
     walk(&unit.join("agents"), &mut agents);
-    listed.extend(agents.into_iter().filter(|p| p.extension().is_some_and(|e| e == "md")));
+    listed.extend(
+        agents
+            .into_iter()
+            .filter(|p| p.extension().is_some_and(|e| e == "md")),
+    );
     listed.sort();
     for path in listed {
-        let Ok(text) = std::fs::read_to_string(&path) else { continue };
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            continue;
+        };
         // A skill only a person can invoke isn't listed to the model.
         if field(&text, "disable-model-invocation") == "true" {
             continue;
         }
         let words: Vec<String> = ["description", "when_to_use"]
             .iter()
-            .map(|key| field(&text, key).trim_matches(|c| c == '"' || c == '\'').to_string())
+            .map(|key| {
+                field(&text, key)
+                    .trim_matches(|c| c == '"' || c == '\'')
+                    .to_string()
+            })
             .filter(|v| !v.is_empty())
             .collect();
         pieces.push((path, words.join(" ").chars().count()));
@@ -363,7 +469,9 @@ fn permanent(unit: &Path) -> Vec<(PathBuf, usize)> {
     walk(&unit.join("output-styles"), &mut styles);
     styles.sort();
     for path in styles {
-        let size = std::fs::read_to_string(&path).map(|t| t.chars().count()).unwrap_or(0);
+        let size = std::fs::read_to_string(&path)
+            .map(|t| t.chars().count())
+            .unwrap_or(0);
         pieces.push((path, size));
     }
     pieces
@@ -372,7 +480,10 @@ fn permanent(unit: &Path) -> Vec<(PathBuf, usize)> {
 fn ceiling(unit: &Path) -> Option<usize> {
     let text = std::fs::read_to_string(unit.join("budget.toml")).ok()?;
     let table: toml::Table = text.parse().ok()?;
-    table.get("permanent_characters")?.as_integer().map(|n| n as usize)
+    table
+        .get("permanent_characters")?
+        .as_integer()
+        .map(|n| n as usize)
 }
 
 #[cfg(test)]
@@ -381,9 +492,16 @@ mod tests {
 
     #[test]
     fn a_heading_and_an_unknown_tag_are_found() {
-        let found = vocabulary("---\nname: x\n---\n\n<role>\nA.\n</role>\n\n## H\n\n<context>\nB.\n</context>\n", "x");
+        let found = vocabulary(
+            "---\nname: x\n---\n\n<role>\nA.\n</role>\n\n## H\n\n<context>\nB.\n</context>\n",
+            "x",
+        );
         assert!(found.iter().any(|f| f.contains("a Markdown heading")));
-        assert!(found.iter().any(|f| f.contains("<context> is not in the vocabulary")));
+        assert!(
+            found
+                .iter()
+                .any(|f| f.contains("<context> is not in the vocabulary"))
+        );
     }
 
     #[test]
@@ -394,7 +512,16 @@ mod tests {
 
     #[test]
     fn a_variable_anchors_a_climbing_path() {
-        assert!(unanchored_paths("<steps>\n1. Run `${CLAUDE_SKILL_DIR}/../../bin/x`.\n</steps>", "x").is_empty());
-        assert_eq!(unanchored_paths("<steps>\n1. Run `../../bin/x`.\n</steps>", "x").len(), 1);
+        assert!(
+            unanchored_paths(
+                "<steps>\n1. Run `${CLAUDE_SKILL_DIR}/../../bin/x`.\n</steps>",
+                "x"
+            )
+            .is_empty()
+        );
+        assert_eq!(
+            unanchored_paths("<steps>\n1. Run `../../bin/x`.\n</steps>", "x").len(),
+            1
+        );
     }
 }

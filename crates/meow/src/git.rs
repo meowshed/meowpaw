@@ -30,7 +30,10 @@ fn git(root: &Path, args: &[&str]) -> (bool, String) {
         .stdin(Stdio::null())
         .output();
     match done {
-        Ok(out) => (out.status.success(), String::from_utf8_lossy(&out.stdout).into_owned()),
+        Ok(out) => (
+            out.status.success(),
+            String::from_utf8_lossy(&out.stdout).into_owned(),
+        ),
         Err(_) => (false, String::new()),
     }
 }
@@ -39,13 +42,17 @@ fn git(root: &Path, args: &[&str]) -> (bool, String) {
 fn read_event() -> (PathBuf, Option<String>) {
     let mut text = String::new();
     let _ = std::io::stdin().read_to_string(&mut text);
-    let event: serde_json::Value = serde_json::from_str(if text.trim().is_empty() { "{}" } else { &text })
-        .unwrap_or(serde_json::Value::Null);
+    let event: serde_json::Value =
+        serde_json::from_str(if text.trim().is_empty() { "{}" } else { &text })
+            .unwrap_or(serde_json::Value::Null);
     let cwd = match event.get("cwd").and_then(|cwd| cwd.as_str()) {
         Some(cwd) if !cwd.is_empty() => PathBuf::from(cwd),
         _ => std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
     };
-    let command = event.pointer("/tool_input/command").and_then(|c| c.as_str()).map(str::to_string);
+    let command = event
+        .pointer("/tool_input/command")
+        .and_then(|c| c.as_str())
+        .map(str::to_string);
     (cwd, command)
 }
 
@@ -69,7 +76,9 @@ fn invocation(command: &str, subcommand: &str) -> Option<Option<String>> {
         if words[i] == "cd" {
             // A relative cd moves from where the command already is (BUG-1220).
             directory = words.get(i + 1).map(|d| match &directory {
-                Some(before) if !Path::new(d).is_absolute() => Path::new(before).join(d).display().to_string(),
+                Some(before) if !Path::new(d).is_absolute() => {
+                    Path::new(before).join(d).display().to_string()
+                }
                 _ => d.to_string(),
             });
         } else if words[i] == "git" {
@@ -79,7 +88,10 @@ fn invocation(command: &str, subcommand: &str) -> Option<Option<String>> {
                 if words[j] == "-C" {
                     at = words.get(j + 1).map(|d| d.to_string());
                 }
-                let takes_value = matches!(words[j], "-C" | "-c" | "--git-dir" | "--work-tree" | "--namespace");
+                let takes_value = matches!(
+                    words[j],
+                    "-C" | "-c" | "--git-dir" | "--work-tree" | "--namespace"
+                );
                 j += if takes_value { 2 } else { 1 };
             }
             if words.get(j) == Some(&subcommand) {
@@ -109,10 +121,20 @@ fn policy(root: &Path) -> Policy {
         _ => &empty,
     };
     Policy {
-        trunk: table.get("trunk").and_then(|value| value.as_str()).map(str::to_string),
-        signatures: table.get("require_signatures").and_then(|value| value.as_bool()) == Some(true),
+        trunk: table
+            .get("trunk")
+            .and_then(|value| value.as_str())
+            .map(str::to_string),
+        signatures: table
+            .get("require_signatures")
+            .and_then(|value| value.as_bool())
+            == Some(true),
         declared: !table.is_empty(),
-        ignored: table.keys().filter(|key| !KEYS.contains(&key.as_str())).map(|key| format!("git.{key}")).collect(),
+        ignored: table
+            .keys()
+            .filter(|key| !KEYS.contains(&key.as_str()))
+            .map(|key| format!("git.{key}"))
+            .collect(),
     }
 }
 
@@ -123,21 +145,36 @@ fn find_meow_scm() -> Option<PathBuf> {
         return named.is_file().then_some(named);
     }
     // The binary sits at <pack>/bin/<target>/meow.
-    let pack = std::env::current_exe().ok()?.canonicalize().ok()?.parent()?.parent()?.parent()?.to_path_buf();
+    let pack = std::env::current_exe()
+        .ok()?
+        .canonicalize()
+        .ok()?
+        .parent()?
+        .parent()?
+        .parent()?
+        .to_path_buf();
     let beside = pack.parent()?.join("meow-scm").join("bin").join("meow-scm");
     if beside.is_file() {
         return Some(beside);
     }
     let home = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE"))?;
-    let cache = PathBuf::from(home).join(".claude").join("plugins").join("cache");
+    let cache = PathBuf::from(home)
+        .join(".claude")
+        .join("plugins")
+        .join("cache");
     let mut found: Vec<(Vec<u64>, PathBuf)> = Vec::new();
     for marketplace in std::fs::read_dir(&cache).ok()?.flatten() {
-        let Ok(versions) = std::fs::read_dir(marketplace.path().join("meow-scm")) else { continue };
+        let Ok(versions) = std::fs::read_dir(marketplace.path().join("meow-scm")) else {
+            continue;
+        };
         for version in versions.flatten() {
             let launcher = version.path().join("bin").join("meow-scm");
             if launcher.is_file() {
                 let name = version.file_name().to_string_lossy().into_owned();
-                let key = name.split(|c: char| !c.is_ascii_digit()).filter_map(|n| n.parse().ok()).collect();
+                let key = name
+                    .split(|c: char| !c.is_ascii_digit())
+                    .filter_map(|n| n.parse().ok())
+                    .collect();
                 found.push((key, launcher));
             }
         }
@@ -162,14 +199,21 @@ fn commit_guard(root: &Path) -> u8 {
         );
         return BLOCK;
     }
-    let shown = if branch.is_empty() { "a detached head" } else { branch };
+    let shown = if branch.is_empty() {
+        "a detached head"
+    } else {
+        branch
+    };
     println!("meow-git commit-guard: `{shown}` isn't the trunk `{trunk}`");
     ALLOW
 }
 
 /// None where the commit's signature is good, otherwise what is wrong with it.
 fn signature(root: &Path, commit: &str) -> Option<String> {
-    let verdict = git(root, &["log", "-1", "--format=%G?", commit]).1.trim().to_string();
+    let verdict = git(root, &["log", "-1", "--format=%G?", commit])
+        .1
+        .trim()
+        .to_string();
     if verdict == "G" {
         return None;
     }
@@ -206,14 +250,27 @@ fn stored_in_name(branch: &str, author: &str) -> Option<String> {
         let run = digits[i..].iter().take_while(|d| **d).count();
         let century = run >= 4 && matches!((chars[i], chars[i + 1]), ('1', '9') | ('2', '0'));
         let packed = run == 8 && century && month(chars[i + 4], chars[i + 5]);
-        let separated = run == 4 && century && i + 7 <= chars.len() && !digits[i + 4] && month(chars[i + 5], chars[i + 6]);
+        let separated = run == 4
+            && century
+            && i + 7 <= chars.len()
+            && !digits[i + 4]
+            && month(chars[i + 5], chars[i + 6]);
         if packed || separated {
             return Some("a date".to_string());
         }
     }
     let lower = branch.to_lowercase();
-    let words: Vec<String> = author.to_lowercase().split_whitespace().map(str::to_string).collect();
-    let forms = [words.join("-"), words.join("."), words.join("_"), words.concat()];
+    let words: Vec<String> = author
+        .to_lowercase()
+        .split_whitespace()
+        .map(str::to_string)
+        .collect();
+    let forms = [
+        words.join("-"),
+        words.join("."),
+        words.join("_"),
+        words.concat(),
+    ];
     forms
         .iter()
         .find(|form| form.len() >= 4 && lower.contains(form.as_str()))
@@ -222,21 +279,34 @@ fn stored_in_name(branch: &str, author: &str) -> Option<String> {
 
 fn push_guard(root: &Path) -> u8 {
     let policy = policy(root);
-    let (ok, listed) = git(root, &["rev-list", "--reverse", "HEAD", "--not", "--remotes"]);
-    let commits: Vec<String> = if ok { listed.split_whitespace().map(str::to_string).collect() } else { Vec::new() };
+    let (ok, listed) = git(
+        root,
+        &["rev-list", "--reverse", "HEAD", "--not", "--remotes"],
+    );
+    let commits: Vec<String> = if ok {
+        listed.split_whitespace().map(str::to_string).collect()
+    } else {
+        Vec::new()
+    };
     let mut notes: Vec<String> = Vec::new();
     if !policy.declared {
         notes.push("no [git] table: the trunk and the signing policy are undeclared".to_string());
     }
     if !policy.ignored.is_empty() {
-        notes.push(format!("not read by meow-git: {}", policy.ignored.join(", ")));
+        notes.push(format!(
+            "not read by meow-git: {}",
+            policy.ignored.join(", ")
+        ));
     }
     if commits.is_empty() {
         println!("meow-git push-guard: no commit to publish was found; checked nothing");
         return ALLOW;
     }
 
-    let branch = git(root, &["symbolic-ref", "--short", "-q", "HEAD"]).1.trim().to_string();
+    let branch = git(root, &["symbolic-ref", "--short", "-q", "HEAD"])
+        .1
+        .trim()
+        .to_string();
     let author = git(root, &["config", "user.name"]).1.trim().to_string();
     let mut failures: Vec<String> = Vec::new();
     if let Some(what) = stored_in_name(&branch, &author) {
@@ -246,18 +316,26 @@ fn push_guard(root: &Path) -> u8 {
     }
     let scm = find_meow_scm();
     if scm.is_none() {
-        notes.push("meow-scm isn't installed: the message check is unrun for every commit".to_string());
+        notes.push(
+            "meow-scm isn't installed: the message check is unrun for every commit".to_string(),
+        );
     }
     for commit in &commits {
-        let subject = git(root, &["log", "-1", "--format=%h %s", commit]).1.trim().to_string();
+        let subject = git(root, &["log", "-1", "--format=%h %s", commit])
+            .1
+            .trim()
+            .to_string();
         if let Some(scm) = &scm {
             let message = git(root, &["log", "-1", "--format=%B", commit]).1;
             let author = git(root, &["log", "-1", "--format=%an%x00%ae", commit]).1;
             let (name, email) = author.trim_end().split_once('\0').unwrap_or(("", ""));
             if let Some((code, stdout)) = run_check(scm, root, &message, (name, email)) {
                 if code == 1 {
-                    let lines: Vec<String> =
-                        stdout.lines().filter(|line| line.starts_with("line ")).map(|line| format!("    {line}")).collect();
+                    let lines: Vec<String> = stdout
+                        .lines()
+                        .filter(|line| line.starts_with("line "))
+                        .map(|line| format!("    {line}"))
+                        .collect();
                     failures.push(format!("{subject}\n{}", lines.join("\n")));
                 } else if code == 3 && !notes.iter().any(|note| note.contains("convention")) {
                     let last = stdout.trim().lines().last().unwrap_or_default().to_string();
@@ -286,14 +364,23 @@ fn push_guard(root: &Path) -> u8 {
         );
         return BLOCK;
     }
-    println!("meow-git push-guard: {} commit{} checked", commits.len(), plural(commits.len()));
+    println!(
+        "meow-git push-guard: {} commit{} checked",
+        commits.len(),
+        plural(commits.len())
+    );
     ALLOW
 }
 
 /// Runs `meow-scm check-message` on one message, as its exit status and output.
 /// The commit's own author goes with its message, because a sign-off is
 /// compared with the author of the commit that carries it.
-fn run_check(scm: &Path, root: &Path, message: &str, author: (&str, &str)) -> Option<(i32, String)> {
+fn run_check(
+    scm: &Path,
+    root: &Path,
+    message: &str,
+    author: (&str, &str),
+) -> Option<(i32, String)> {
     let mut child = Command::new(scm)
         .arg("check-message")
         .current_dir(root)
@@ -308,7 +395,10 @@ fn run_check(scm: &Path, root: &Path, message: &str, author: (&str, &str)) -> Op
         let _ = input.write_all(message.as_bytes());
     }
     let out = child.wait_with_output().ok()?;
-    Some((out.status.code().unwrap_or(-1), String::from_utf8_lossy(&out.stdout).into_owned()))
+    Some((
+        out.status.code().unwrap_or(-1),
+        String::from_utf8_lossy(&out.stdout).into_owned(),
+    ))
 }
 
 pub fn main(args: &[String]) -> u8 {
@@ -320,7 +410,11 @@ pub fn main(args: &[String]) -> u8 {
         }
     };
     let (mut start, command) = read_event();
-    let verb = if name == "commit-guard" { "commit" } else { "push" };
+    let verb = if name == "commit-guard" {
+        "commit"
+    } else {
+        "push"
+    };
     if let Some(command) = &command {
         match invocation(command, verb) {
             None => {
@@ -329,7 +423,9 @@ pub fn main(args: &[String]) -> u8 {
             }
             // A directory that doesn't exist can't hold the commit, so the
             // session's own is judged rather than letting the command through.
-            Some(Some(directory)) if start.join(&directory).is_dir() => start = start.join(directory),
+            Some(Some(directory)) if start.join(&directory).is_dir() => {
+                start = start.join(directory)
+            }
             Some(_) => {}
         }
     }
@@ -339,7 +435,11 @@ pub fn main(args: &[String]) -> u8 {
         return ALLOW;
     }
     let root = PathBuf::from(top.trim());
-    if name == "commit-guard" { commit_guard(&root) } else { push_guard(&root) }
+    if name == "commit-guard" {
+        commit_guard(&root)
+    } else {
+        push_guard(&root)
+    }
 }
 
 #[cfg(test)]
@@ -356,12 +456,18 @@ mod tests {
     fn a_relative_cd_joins_the_directory_before_it() {
         // REQ-1292, BUG-1220: a subshell's relative cd stays in the work tree.
         let command = with("cd /work/tree && (cd plugins/x && true)");
-        assert_eq!(invocation(&command, "commit"), Some(Some("/work/tree/plugins/x".to_string())));
+        assert_eq!(
+            invocation(&command, "commit"),
+            Some(Some("/work/tree/plugins/x".to_string()))
+        );
     }
 
     #[test]
     fn an_absolute_cd_replaces_the_directory() {
         let command = with("cd /work/tree && cd /other");
-        assert_eq!(invocation(&command, "commit"), Some(Some("/other".to_string())));
+        assert_eq!(
+            invocation(&command, "commit"),
+            Some(Some("/other".to_string()))
+        );
     }
 }

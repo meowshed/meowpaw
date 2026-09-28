@@ -32,7 +32,15 @@ use regex::Regex;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-const CHECKS: [&str; 7] = ["front-matter", "identifiers", "relations", "index", "coverage", "shape", "rules"];
+const CHECKS: [&str; 7] = [
+    "front-matter",
+    "identifiers",
+    "relations",
+    "index",
+    "coverage",
+    "shape",
+    "rules",
+];
 const CLEAN: u8 = 0;
 const FOUND: u8 = 1;
 const USAGE: u8 = 2;
@@ -108,7 +116,11 @@ struct Finding {
 
 impl Finding {
     fn at(doc: &Doc, line: Option<usize>, message: String) -> Finding {
-        Finding { shown: doc.shown.clone(), line, message }
+        Finding {
+            shown: doc.shown.clone(),
+            line,
+            message,
+        }
     }
 }
 
@@ -163,7 +175,10 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
         }
     };
     if !root.is_dir() {
-        say!("paw {verb}: the record's root {} doesn't exist; nothing was checked", root.display());
+        say!(
+            "paw {verb}: the record's root {} doesn't exist; nothing was checked",
+            root.display()
+        );
         return Err(FOUND);
     }
     let record = read_record(layout, &repository, &root);
@@ -181,7 +196,10 @@ fn check(rest: &[String]) -> u8 {
     let chosen: Vec<&str> = match rest.first() {
         Some(name) if CHECKS.contains(&name.as_str()) => vec![name.as_str()],
         Some(name) => {
-            eprintln!("paw check: no check is named {name}; the checks are {}", CHECKS.join(", "));
+            eprintln!(
+                "paw check: no check is named {name}; the checks are {}",
+                CHECKS.join(", ")
+            );
             return USAGE;
         }
         None => CHECKS.to_vec(),
@@ -194,7 +212,8 @@ fn check(rest: &[String]) -> u8 {
     let mut total = 0;
     for check in chosen {
         let mut findings = run_check(check, &record, &root, &repository);
-        findings.sort_by(|a, b| (&a.shown, a.line, &a.message).cmp(&(&b.shown, b.line, &b.message)));
+        findings
+            .sort_by(|a, b| (&a.shown, a.line, &a.message).cmp(&(&b.shown, b.line, &b.message)));
         for finding in &findings {
             match finding.line {
                 Some(line) => say!("{}:{}: {}", finding.shown, line, finding.message),
@@ -205,12 +224,29 @@ fn check(rest: &[String]) -> u8 {
             // Nothing required and nothing missing look the same to a count of
             // findings, so the coverage itself is stated (REQ-3098).
             let known = known(&record);
-            let in_force: Vec<&Doc> = of_kind(&record, "requirement").into_iter().filter(|r| approved(r)).collect();
-            let landed = in_force.iter().filter(|r| !closing_tasks(&record, &known, bare(r.id())).is_empty()).count();
-            let zero = if in_force.is_empty() { "; an empty record's coverage is zero, not complete" } else { "" };
-            say!("coverage: {landed} of {} requirements in force land in a task{zero}", in_force.len());
+            let in_force: Vec<&Doc> = of_kind(&record, "requirement")
+                .into_iter()
+                .filter(|r| approved(r))
+                .collect();
+            let landed = in_force
+                .iter()
+                .filter(|r| !closing_tasks(&record, &known, bare(r.id())).is_empty())
+                .count();
+            let zero = if in_force.is_empty() {
+                "; an empty record's coverage is zero, not complete"
+            } else {
+                ""
+            };
+            say!(
+                "coverage: {landed} of {} requirements in force land in a task{zero}",
+                in_force.len()
+            );
         }
-        say!("{check}: {} finding{}", findings.len(), if findings.len() == 1 { "" } else { "s" });
+        say!(
+            "{check}: {} finding{}",
+            findings.len(),
+            if findings.len() == 1 { "" } else { "s" }
+        );
         total += findings.len();
     }
     if total == 0 { CLEAN } else { FOUND }
@@ -225,7 +261,10 @@ fn layout_path() -> Result<PathBuf, String> {
             let exe = std::env::current_exe().map_err(|e| e.to_string())?;
             // The binary sits at <unit>/bin/<target>/meow.
             let unit = exe.parent().and_then(Path::parent).and_then(Path::parent);
-            Ok(unit.ok_or("the binary is not inside a unit")?.join("lib").join("layout.toml"))
+            Ok(unit
+                .ok_or("the binary is not inside a unit")?
+                .join("lib")
+                .join("layout.toml"))
         }
     }
 }
@@ -262,7 +301,13 @@ fn findings_by_file(record: &Record, root: &Path, repository: &Path) -> BTreeMap
 /// Whether the record's root is kept by version control: inside a work tree
 /// and not ignored by it.
 fn under_version_control(root: &Path) -> bool {
-    let git = |args: &[&str]| profile::reading_git().args(args).current_dir(root).output().ok();
+    let git = |args: &[&str]| {
+        profile::reading_git()
+            .args(args)
+            .current_dir(root)
+            .output()
+            .ok()
+    };
     let inside = git(&["rev-parse", "--is-inside-work-tree"]).is_some_and(|o| o.status.success());
     let ignored = git(&["check-ignore", "-q", "."]).is_some_and(|o| o.status.success());
     inside && !ignored
@@ -270,7 +315,11 @@ fn under_version_control(root: &Path) -> bool {
 
 /// Each task closing a requirement, with its mark, its epic and the issue the
 /// epic was verified under, which is empty until it is.
-fn closing_tasks(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> Vec<(String, char, String, String)> {
+fn closing_tasks(
+    record: &Record,
+    known: &BTreeMap<String, &Doc>,
+    id: &str,
+) -> Vec<(String, char, String, String)> {
     let mut out = Vec::new();
     for task in of_kind(record, "task") {
         if !requirements_in(record, task.value("closes")).contains(id) {
@@ -278,8 +327,17 @@ fn closing_tasks(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> V
         }
         let epic_id = authority_of(task).to_string();
         let epic = known.get(epic_id.as_str());
-        let mark = epic.and_then(|e| marks(e).into_iter().find(|(t, _)| t == bare(task.id())).map(|(_, m)| m)).unwrap_or(' ');
-        let checked = epic.map(|e| bare(e.value("checked-at")).to_string()).unwrap_or_default();
+        let mark = epic
+            .and_then(|e| {
+                marks(e)
+                    .into_iter()
+                    .find(|(t, _)| t == bare(task.id()))
+                    .map(|(_, m)| m)
+            })
+            .unwrap_or(' ');
+        let checked = epic
+            .map(|e| bare(e.value("checked-at")).to_string())
+            .unwrap_or_default();
         out.push((bare(task.id()).to_string(), mark, epic_id, checked));
     }
     out.sort();
@@ -287,8 +345,14 @@ fn closing_tasks(record: &Record, known: &BTreeMap<String, &Doc>, id: &str) -> V
 }
 
 /// A requirement's observed state, derived from the tasks closing it (REQ-0584).
-fn requirement_state(tasks: &[(String, char, String, String)], postponed: Option<&str>) -> &'static str {
-    if tasks.iter().any(|(_, mark, _, checked)| *mark == 'x' && !checked.is_empty()) {
+fn requirement_state(
+    tasks: &[(String, char, String, String)],
+    postponed: Option<&str>,
+) -> &'static str {
+    if tasks
+        .iter()
+        .any(|(_, mark, _, checked)| *mark == 'x' && !checked.is_empty())
+    {
         "verified"
     } else if tasks.iter().any(|(_, mark, _, _)| *mark == 'x') {
         "closed and not yet verified"
@@ -323,13 +387,20 @@ fn check_frozen(rest: &[String]) -> u8 {
         Ok(opened) => opened,
         Err(code) => return code,
     };
-    let authority = Regex::new(r"(?:Amended|Corrected) by (?:ADR|BUG|EPC)-\d{4}").expect("authority pattern");
+    let authority =
+        Regex::new(r"(?:Amended|Corrected) by (?:ADR|BUG|EPC)-\d{4}").expect("authority pattern");
     let mut findings = Vec::new();
     for doc in &record.docs {
-        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
+            continue;
+        };
         // A living document describes the present and is rewritten freely.
         let own_index = kind.index.as_deref() == Some(doc.relative.as_str());
-        if doc.is_index || own_index || kind.statuses.iter().any(|s| s == "live") || Path::new(&doc.shown).is_absolute() {
+        if doc.is_index
+            || own_index
+            || kind.statuses.iter().any(|s| s == "live")
+            || Path::new(&doc.shown).is_absolute()
+        {
             continue;
         }
         let Ok(out) = profile::reading_git()
@@ -346,7 +417,15 @@ fn check_frozen(rest: &[String]) -> u8 {
         if before == doc.text {
             continue;
         }
-        let old = Doc { path: doc.path.clone(), relative: doc.relative.clone(), shown: doc.shown.clone(), fields: parse_front_matter(&before), text: before.clone(), kind: doc.kind, is_index: false };
+        let old = Doc {
+            path: doc.path.clone(),
+            relative: doc.relative.clone(),
+            shown: doc.shown.clone(),
+            fields: parse_front_matter(&before),
+            text: before.clone(),
+            kind: doc.kind,
+            is_index: false,
+        };
         if bare(old.value("status")) != "approved" {
             continue;
         }
@@ -354,7 +433,11 @@ fn check_frozen(rest: &[String]) -> u8 {
             continue;
         }
         let was: BTreeSet<&str> = before.lines().collect();
-        if doc.text.lines().any(|line| !was.contains(line) && authority.is_match(line)) {
+        if doc
+            .text
+            .lines()
+            .any(|line| !was.contains(line) && authority.is_match(line))
+        {
             continue;
         }
         let allowed = match kind.name.as_str() {
@@ -375,7 +458,11 @@ fn check_frozen(rest: &[String]) -> u8 {
     for finding in &findings {
         say!("{finding}");
     }
-    say!("frozen: {} finding{}", findings.len(), if findings.len() == 1 { "" } else { "s" });
+    say!(
+        "frozen: {} finding{}",
+        findings.len(),
+        if findings.len() == 1 { "" } else { "s" }
+    );
     if findings.is_empty() { CLEAN } else { FOUND }
 }
 
@@ -384,11 +471,17 @@ fn check_frozen(rest: &[String]) -> u8 {
 /// trunk, and the pull request that carried the change is what a record cites
 /// (REQ-3176). Only added lines are read, so a record keeps what it said.
 fn hash_citations(record: &Record, repository: &Path, base: &str) -> Vec<String> {
-    let cited = Regex::new(r"\b(?:at|revision)\s+`?([0-9a-f]{7,40})`?(?:[^0-9A-Za-z]|$)").expect("citation pattern");
+    let cited = Regex::new(r"\b(?:at|revision)\s+`?([0-9a-f]{7,40})`?(?:[^0-9A-Za-z]|$)")
+        .expect("citation pattern");
     let mut out = Vec::new();
     for doc in &record.docs {
-        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
-        if doc.is_index || kind.statuses.iter().any(|s| s == "live") || Path::new(&doc.shown).is_absolute() {
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
+            continue;
+        };
+        if doc.is_index
+            || kind.statuses.iter().any(|s| s == "live")
+            || Path::new(&doc.shown).is_absolute()
+        {
             continue;
         }
         let before = profile::reading_git()
@@ -406,7 +499,9 @@ fn hash_citations(record: &Record, repository: &Path, base: &str) -> Vec<String>
             }
             for c in cited.captures_iter(line) {
                 let hash = &c[1];
-                if hash.chars().any(|ch| ch.is_ascii_digit()) && hash.chars().any(|ch| ch.is_ascii_alphabetic()) {
+                if hash.chars().any(|ch| ch.is_ascii_digit())
+                    && hash.chars().any(|ch| ch.is_ascii_alphabetic())
+                {
                     out.push(format!("{}:{}: cites the commit {hash} as a revision; cite the pull request that carried it, because a squash rebuilds the commit", doc.shown, i + 1));
                 }
             }
@@ -424,7 +519,11 @@ fn frozen_part(text: &str) -> String {
         if let Some(heading) = line.strip_prefix("## ") {
             in_evidence = heading.trim() == "Evidence";
         }
-        if in_evidence || line.starts_with("issue:") || line.starts_with("projected:") || line.starts_with("revised:") {
+        if in_evidence
+            || line.starts_with("issue:")
+            || line.starts_with("projected:")
+            || line.starts_with("revised:")
+        {
             continue;
         }
         out.push(line);
@@ -454,18 +553,33 @@ fn defect_frozen_part(text: &str) -> String {
 fn load_layout() -> Result<Layout, String> {
     let path = layout_path()?;
     let text = std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let data: toml::Table = text.parse().map_err(|e| format!("{}: {e}", path.display()))?;
+    let data: toml::Table = text
+        .parse()
+        .map_err(|e| format!("{}: {e}", path.display()))?;
     let strings = |table: &toml::Table, key: &str| -> Vec<String> {
         table
             .get(key)
             .and_then(|v| v.as_array())
-            .map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect()
+            })
             .unwrap_or_default()
     };
-    let string = |table: &toml::Table, key: &str| table.get(key).and_then(|v| v.as_str()).map(str::to_string);
+    let string = |table: &toml::Table, key: &str| {
+        table.get(key).and_then(|v| v.as_str()).map(str::to_string)
+    };
     let mut kinds = Vec::new();
-    for entry in data.get("kind").and_then(|v| v.as_array()).into_iter().flatten() {
-        let Some(table) = entry.as_table() else { continue };
+    for entry in data
+        .get("kind")
+        .and_then(|v| v.as_array())
+        .into_iter()
+        .flatten()
+    {
+        let Some(table) = entry.as_table() else {
+            continue;
+        };
         kinds.push(Kind {
             name: string(table, "name").unwrap_or_default(),
             artifact: string(table, "artifact").unwrap_or_default(),
@@ -488,7 +602,11 @@ fn load_layout() -> Result<Layout, String> {
         data.get("retired")
             .and_then(|r| r.get(key))
             .and_then(|t| t.as_table())
-            .map(|t| t.iter().map(|(k, v)| (k.clone(), v.as_str().unwrap_or_default().to_string())).collect())
+            .map(|t| {
+                t.iter()
+                    .map(|(k, v)| (k.clone(), v.as_str().unwrap_or_default().to_string()))
+                    .collect()
+            })
             .unwrap_or_default()
     };
     Ok(Layout {
@@ -516,7 +634,9 @@ fn record_root(repository: &Path) -> Result<PathBuf, String> {
 }
 
 fn markdown_under(dir: &Path, leave_out: Option<&Path>, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
     let mut entries: Vec<_> = entries.filter_map(Result::ok).map(|e| e.path()).collect();
     entries.sort();
     for path in entries {
@@ -536,7 +656,10 @@ fn markdown_under(dir: &Path, leave_out: Option<&Path>, out: &mut Vec<PathBuf>) 
 /// flowed list does.
 fn parse_front_matter(text: &str) -> Option<Vec<Field>> {
     let rest = text.strip_prefix("---\n")?;
-    let end = rest.find("\n---\n").map(|i| i + 1).or_else(|| rest.strip_suffix("\n---").map(str::len))?;
+    let end = rest
+        .find("\n---\n")
+        .map(|i| i + 1)
+        .or_else(|| rest.strip_suffix("\n---").map(str::len))?;
     let mut fields: Vec<Field> = Vec::new();
     for (i, line) in rest[..end].lines().enumerate() {
         let continued = line.starts_with(' ') || line.starts_with('\t');
@@ -558,7 +681,9 @@ fn parse_front_matter(text: &str) -> Option<Vec<Field>> {
 }
 
 fn shown(path: &Path, repository: &Path) -> String {
-    let repository = repository.canonicalize().unwrap_or_else(|_| repository.to_path_buf());
+    let repository = repository
+        .canonicalize()
+        .unwrap_or_else(|_| repository.to_path_buf());
     let path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
     match path.strip_prefix(&repository) {
         Ok(relative) => relative.display().to_string(),
@@ -570,7 +695,15 @@ fn read_doc(path: PathBuf, repository: &Path) -> Doc {
     let text = std::fs::read_to_string(&path).unwrap_or_default();
     let fields = parse_front_matter(&text);
     let shown = shown(&path, repository);
-    Doc { path, relative: String::new(), shown, text, fields, kind: None, is_index: false }
+    Doc {
+        path,
+        relative: String::new(),
+        shown,
+        text,
+        fields,
+        kind: None,
+        is_index: false,
+    }
 }
 
 fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
@@ -578,14 +711,19 @@ fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
     markdown_under(root, None, &mut paths);
     let mut docs = Vec::new();
     for path in paths {
-        let relative = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace('\\', "/");
+        let relative = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
         let mut doc = read_doc(path.clone(), repository);
         doc.relative = relative.clone();
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
         let parent = relative.rsplit_once('/').map(|(dir, _)| dir).unwrap_or("");
         doc.is_index = name == layout.index_name;
         doc.kind = layout.kinds.iter().position(|kind| {
-            kind.file.as_deref() == Some(relative.as_str()) || (kind.dir.as_deref() == Some(parent) && !doc.is_index)
+            kind.file.as_deref() == Some(relative.as_str())
+                || (kind.dir.as_deref() == Some(parent) && !doc.is_index)
         });
         docs.push(doc);
     }
@@ -595,13 +733,27 @@ fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
     markdown_under(repository, Some(&root_canonical), &mut others);
     let outside = others
         .into_iter()
-        .filter(|p| !p.canonicalize().map(|c| c.starts_with(&root_canonical)).unwrap_or(false))
+        .filter(|p| {
+            !p.canonicalize()
+                .map(|c| c.starts_with(&root_canonical))
+                .unwrap_or(false)
+        })
         .map(|p| read_doc(p, repository))
         .collect();
 
-    let prefixes: Vec<&str> = layout.kinds.iter().filter_map(|k| k.prefix.as_deref()).collect();
-    let ids = Regex::new(&format!(r"\b(?:{})-\d{{4}}\b", prefixes.join("|"))).expect("identifier pattern");
-    Record { layout, docs, outside, ids }
+    let prefixes: Vec<&str> = layout
+        .kinds
+        .iter()
+        .filter_map(|k| k.prefix.as_deref())
+        .collect();
+    let ids = Regex::new(&format!(r"\b(?:{})-\d{{4}}\b", prefixes.join("|")))
+        .expect("identifier pattern");
+    Record {
+        layout,
+        docs,
+        outside,
+        ids,
+    }
 }
 
 fn line_of(text: &str, offset: usize) -> usize {
@@ -636,10 +788,21 @@ fn front_matter(record: &Record) -> Vec<Finding> {
     let today = today();
     let mut out = Vec::new();
     for kind in &record.layout.kinds {
-        let reused = kind.statuses.iter().filter(|s| record.layout.retired_statuses.contains_key(*s));
-        let reused = reused.chain(kind.fields.iter().filter(|f| record.layout.retired_fields.contains_key(*f)));
+        let reused = kind
+            .statuses
+            .iter()
+            .filter(|s| record.layout.retired_statuses.contains_key(*s));
+        let reused = reused.chain(
+            kind.fields
+                .iter()
+                .filter(|f| record.layout.retired_fields.contains_key(*f)),
+        );
         for name in reused {
-            out.push(Finding { shown: "the layout".into(), line: None, message: format!("the kind {} declares {name}, a retired name", kind.name) });
+            out.push(Finding {
+                shown: "the layout".into(),
+                line: None,
+                message: format!("the kind {} declares {name}, a retired name", kind.name),
+            });
         }
     }
     for doc in record.docs.iter().filter(|d| !d.is_index) {
@@ -648,7 +811,11 @@ fn front_matter(record: &Record) -> Vec<Finding> {
             continue;
         };
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
-            out.push(Finding::at(doc, None, "an artifact of no known kind".into()));
+            out.push(Finding::at(
+                doc,
+                None,
+                "an artifact of no known kind".into(),
+            ));
             continue;
         };
         for key in record.layout.fields.iter().chain(&kind.fields) {
@@ -658,41 +825,83 @@ fn front_matter(record: &Record) -> Vec<Finding> {
         }
         for key in &kind.forbidden_fields {
             if let Some(field) = doc.field(key) {
-                out.push(Finding::at(doc, Some(field.line), format!("carries {key}, which a {} never does", kind.name)));
+                out.push(Finding::at(
+                    doc,
+                    Some(field.line),
+                    format!("carries {key}, which a {} never does", kind.name),
+                ));
             }
         }
         for key in &kind.required_values {
             if let Some(field) = doc.field(key) {
-                let value = bare(&field.value).trim_matches(|c: char| c == '[' || c == ']' || c.is_whitespace());
+                let value = bare(&field.value)
+                    .trim_matches(|c: char| c == '[' || c == ']' || c.is_whitespace());
                 if value.is_empty() {
-                    out.push(Finding::at(doc, Some(field.line), format!("{key} is empty, and a {} must fill it", kind.name)));
+                    out.push(Finding::at(
+                        doc,
+                        Some(field.line),
+                        format!("{key} is empty, and a {} must fill it", kind.name),
+                    ));
                 }
             }
         }
         if let Some(field) = doc.field("artifact") {
             if bare(&field.value) != kind.artifact {
-                out.push(Finding::at(doc, Some(field.line), format!("artifact is {}, where a {} is {}", bare(&field.value), kind.name, kind.artifact)));
+                out.push(Finding::at(
+                    doc,
+                    Some(field.line),
+                    format!(
+                        "artifact is {}, where a {} is {}",
+                        bare(&field.value),
+                        kind.name,
+                        kind.artifact
+                    ),
+                ));
             }
         }
         for field in fields {
             if let Some(why) = record.layout.retired_fields.get(&field.key) {
-                out.push(Finding::at(doc, Some(field.line), format!("carries {}, a retired field: {why}", field.key)));
+                out.push(Finding::at(
+                    doc,
+                    Some(field.line),
+                    format!("carries {}, a retired field: {why}", field.key),
+                ));
             }
         }
         if let Some(field) = doc.field("status") {
             let status = bare(&field.value);
             if let Some(why) = record.layout.retired_statuses.get(status) {
-                out.push(Finding::at(doc, Some(field.line), format!("status {status} is retired: {why}")));
+                out.push(Finding::at(
+                    doc,
+                    Some(field.line),
+                    format!("status {status} is retired: {why}"),
+                ));
             } else if !kind.statuses.iter().any(|s| s == status) {
-                out.push(Finding::at(doc, Some(field.line), format!("status {status} is not one a {} stores: {}", kind.name, kind.statuses.join(", "))));
+                out.push(Finding::at(
+                    doc,
+                    Some(field.line),
+                    format!(
+                        "status {status} is not one a {} stores: {}",
+                        kind.name,
+                        kind.statuses.join(", ")
+                    ),
+                ));
             }
         }
         if let Some(field) = doc.field("revised") {
             let revised = bare(&field.value);
             if !date.is_match(revised) {
-                out.push(Finding::at(doc, Some(field.line), format!("revised is not a date: {revised}")));
+                out.push(Finding::at(
+                    doc,
+                    Some(field.line),
+                    format!("revised is not a date: {revised}"),
+                ));
             } else if revised > today.as_str() {
-                out.push(Finding::at(doc, Some(field.line), format!("revised is in the future: {revised}")));
+                out.push(Finding::at(
+                    doc,
+                    Some(field.line),
+                    format!("revised is in the future: {revised}"),
+                ));
             }
         }
     }
@@ -716,21 +925,43 @@ fn identifiers(record: &Record) -> Vec<Finding> {
     let mut out = Vec::new();
     let mut seen: BTreeMap<String, &Doc> = BTreeMap::new();
     for doc in &record.docs {
-        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
+            continue;
+        };
         let Some(prefix) = &kind.prefix else { continue };
         let name = doc.path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        let named = Regex::new(&format!(r"^({prefix}-\d{{4}})-[a-z0-9-]+\.md$")).expect("name pattern");
+        let named =
+            Regex::new(&format!(r"^({prefix}-\d{{4}})-[a-z0-9-]+\.md$")).expect("name pattern");
         let Some(from_name) = named.captures(name).map(|c| c[1].to_string()) else {
-            out.push(Finding::at(doc, None, format!("the name doesn't have the form {prefix}-NNNN-<slug>.md")));
+            out.push(Finding::at(
+                doc,
+                None,
+                format!("the name doesn't have the form {prefix}-NNNN-<slug>.md"),
+            ));
             continue;
         };
         let declared = bare(doc.id());
         if declared != from_name {
             let line = doc.field("id").map(|f| f.line);
-            out.push(Finding::at(doc, line, format!("declares id {}, where its name says {from_name}", if declared.is_empty() { "(none)" } else { declared })));
+            out.push(Finding::at(
+                doc,
+                line,
+                format!(
+                    "declares id {}, where its name says {from_name}",
+                    if declared.is_empty() {
+                        "(none)"
+                    } else {
+                        declared
+                    }
+                ),
+            ));
         }
         match seen.get(&from_name) {
-            Some(first) => out.push(Finding::at(doc, None, format!("{from_name} is also allocated to {}", first.shown))),
+            Some(first) => out.push(Finding::at(
+                doc,
+                None,
+                format!("{from_name} is also allocated to {}", first.shown),
+            )),
             None => {
                 seen.insert(from_name, doc);
             }
@@ -739,9 +970,17 @@ fn identifiers(record: &Record) -> Vec<Finding> {
     let known = known(record);
     for doc in record.docs.iter().chain(&record.outside) {
         let mut cited = BTreeSet::new();
-        for found in record.ids.find_iter(&doc.text).filter(|m| m.as_str().starts_with("REQ-")) {
+        for found in record
+            .ids
+            .find_iter(&doc.text)
+            .filter(|m| m.as_str().starts_with("REQ-"))
+        {
             if !known.contains_key(found.as_str()) && cited.insert(found.as_str()) {
-                out.push(Finding::at(doc, Some(line_of(&doc.text, found.start())), format!("cites {}, which has no file", found.as_str())));
+                out.push(Finding::at(
+                    doc,
+                    Some(line_of(&doc.text, found.start())),
+                    format!("cites {}, which has no file", found.as_str()),
+                ));
             }
         }
     }
@@ -755,16 +994,32 @@ fn relations(record: &Record) -> Vec<Finding> {
     let mut out = Vec::new();
     for doc in &record.docs {
         for key in &record.layout.relations {
-            let Some(field) = doc.field(key) else { continue };
+            let Some(field) = doc.field(key) else {
+                continue;
+            };
             // A relation is bare identifiers, because a link carries a path and
             // a path changes when a repository is reorganised.
             let rest = record.ids.replace_all(bare(&field.value), "");
-            if rest.chars().any(|c| !(c.is_whitespace() || c == ',' || c == '[' || c == ']')) {
-                out.push(Finding::at(doc, Some(field.line), format!("{key} holds more than bare identifiers: {}", bare(&field.value))));
+            if rest
+                .chars()
+                .any(|c| !(c.is_whitespace() || c == ',' || c == '[' || c == ']'))
+            {
+                out.push(Finding::at(
+                    doc,
+                    Some(field.line),
+                    format!(
+                        "{key} holds more than bare identifiers: {}",
+                        bare(&field.value)
+                    ),
+                ));
             }
             for found in record.ids.find_iter(&field.value) {
                 if !known.contains_key(found.as_str()) {
-                    out.push(Finding::at(doc, Some(field.line), format!("{key} names {}, which has no file", found.as_str())));
+                    out.push(Finding::at(
+                        doc,
+                        Some(field.line),
+                        format!("{key} names {}, which has no file", found.as_str()),
+                    ));
                 }
             }
         }
@@ -774,7 +1029,10 @@ fn relations(record: &Record) -> Vec<Finding> {
             for (field, id, why) in suspects(record, &known, doc) {
                 let revised = bare(doc.value("revised"));
                 let message = if why.starts_with("revised") {
-                    format!("{} {id}, {why}, after this record's {revised}, so the citation is suspect", field.key)
+                    format!(
+                        "{} {id}, {why}, after this record's {revised}, so the citation is suspect",
+                        field.key
+                    )
                 } else {
                     format!("{} {id} {why}, so the citation is suspect", field.key)
                 };
@@ -795,21 +1053,37 @@ fn relations(record: &Record) -> Vec<Finding> {
                 let prose = span.replace_all(text, "");
                 for found in record.ids.find_iter(&prose) {
                     if !known.contains_key(found.as_str()) {
-                        out.push(Finding::at(doc, Some(i + 1), format!("names {}, which has no file", found.as_str())));
+                        out.push(Finding::at(
+                            doc,
+                            Some(i + 1),
+                            format!("names {}, which has no file", found.as_str()),
+                        ));
                     }
                 }
             }
         }
         let dir = doc.path.parent().unwrap_or(Path::new("."));
         for found in link.captures_iter(&doc.text) {
-            let target = found.get(1).or(found.get(2)).map(|m| m.as_str()).unwrap_or("");
-            if target.starts_with("http://") || target.starts_with("https://") || target.starts_with('#') || target.starts_with("mailto:") {
+            let target = found
+                .get(1)
+                .or(found.get(2))
+                .map(|m| m.as_str())
+                .unwrap_or("");
+            if target.starts_with("http://")
+                || target.starts_with("https://")
+                || target.starts_with('#')
+                || target.starts_with("mailto:")
+            {
                 continue;
             }
             let file = target.split('#').next().unwrap_or("");
             if !file.is_empty() && !dir.join(file).exists() {
                 let line = line_of(&doc.text, found.get(0).map(|m| m.start()).unwrap_or(0));
-                out.push(Finding::at(doc, Some(line), format!("links to {target}, which doesn't exist")));
+                out.push(Finding::at(
+                    doc,
+                    Some(line),
+                    format!("links to {target}, which doesn't exist"),
+                ));
             }
         }
     }
@@ -819,50 +1093,89 @@ fn relations(record: &Record) -> Vec<Finding> {
 fn index(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
     let mut out = Vec::new();
     for (k, kind) in record.layout.kinds.iter().enumerate() {
-        let (Some(index), Some(prefix)) = (&kind.index, &kind.prefix) else { continue };
+        let (Some(index), Some(prefix)) = (&kind.index, &kind.prefix) else {
+            continue;
+        };
         let path = root.join(index);
         let Some(listing) = record.docs.iter().find(|d| d.path == path) else {
-            out.push(Finding { shown: shown(&path, repository), line: None, message: format!("the index of each {} doesn't exist", kind.name) });
+            out.push(Finding {
+                shown: shown(&path, repository),
+                line: None,
+                message: format!("the index of each {} doesn't exist", kind.name),
+            });
             continue;
         };
         if let Some((open, close)) = generated_block(&listing.text) {
             let generated = generate_index(record, k).unwrap_or_default();
             if normalised(&listing.text[open..close]) != normalised(&generated) {
-                out.push(Finding::at(listing, Some(line_of(&listing.text, open)), format!("its generated block is out of date; run paw index {} --write", kind.name)));
+                out.push(Finding::at(
+                    listing,
+                    Some(line_of(&listing.text, open)),
+                    format!(
+                        "its generated block is out of date; run paw index {} --write",
+                        kind.name
+                    ),
+                ));
             }
         }
         let own = Regex::new(&format!(r"\b{prefix}-\d{{4}}\b")).expect("identifier pattern");
         let mut listed: BTreeMap<&str, usize> = BTreeMap::new();
         let mut first: BTreeMap<&str, usize> = BTreeMap::new();
         for found in own.find_iter(&listing.text) {
-            listed.entry(found.as_str()).or_insert_with(|| line_of(&listing.text, found.start()));
+            listed
+                .entry(found.as_str())
+                .or_insert_with(|| line_of(&listing.text, found.start()));
             first.entry(found.as_str()).or_insert(found.start());
         }
         // A living kind's index is its reading order, so each document follows
         // everything it cites (REQ-0525); a record's index is ordered by identifier.
         if kind.statuses.iter().any(|s| s == "live") {
-            for doc in record.docs.iter().filter(|d| d.kind == Some(k) && d.path != path) {
+            for doc in record
+                .docs
+                .iter()
+                .filter(|d| d.kind == Some(k) && d.path != path)
+            {
                 let id = bare(doc.id());
                 let Some(&at) = first.get(id) else { continue };
-                let cited: BTreeSet<&str> = own.find_iter(&doc.text).map(|m| m.as_str()).filter(|c| *c != id).collect();
+                let cited: BTreeSet<&str> = own
+                    .find_iter(&doc.text)
+                    .map(|m| m.as_str())
+                    .filter(|c| *c != id)
+                    .collect();
                 for c in cited {
                     if first.get(c).is_some_and(|&later| later > at) {
-                        out.push(Finding::at(listing, Some(line_of(&listing.text, at)), format!("lists {id} before {c}, which it cites")));
+                        out.push(Finding::at(
+                            listing,
+                            Some(line_of(&listing.text, at)),
+                            format!("lists {id} before {c}, which it cites"),
+                        ));
                     }
                 }
             }
         }
         let mut present = BTreeSet::new();
-        for doc in record.docs.iter().filter(|d| d.kind == Some(k) && d.path != path) {
+        for doc in record
+            .docs
+            .iter()
+            .filter(|d| d.kind == Some(k) && d.path != path)
+        {
             let id = bare(doc.id());
             present.insert(id.to_string());
             if !id.is_empty() && !listed.contains_key(id) {
-                out.push(Finding::at(listing, None, format!("doesn't list {id}, {}", doc.shown)));
+                out.push(Finding::at(
+                    listing,
+                    None,
+                    format!("doesn't list {id}, {}", doc.shown),
+                ));
             }
         }
         for (id, line) in listed {
             if !present.contains(id) && Some(id) != listing.field("id").map(|f| bare(&f.value)) {
-                out.push(Finding::at(listing, Some(line), format!("lists {id}, which has no file")));
+                out.push(Finding::at(
+                    listing,
+                    Some(line),
+                    format!("lists {id}, which has no file"),
+                ));
             }
         }
     }
@@ -870,7 +1183,14 @@ fn index(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
 }
 
 fn of_kind<'a>(record: &'a Record, name: &str) -> Vec<&'a Doc> {
-    let Some(k) = record.layout.kinds.iter().position(|kind| kind.name == name) else { return Vec::new() };
+    let Some(k) = record
+        .layout
+        .kinds
+        .iter()
+        .position(|kind| kind.name == name)
+    else {
+        return Vec::new();
+    };
     record.docs.iter().filter(|d| d.kind == Some(k)).collect()
 }
 
@@ -879,11 +1199,23 @@ fn body_start(doc: &Doc) -> usize {
     if !doc.text.starts_with("---") {
         return 0;
     }
-    doc.text.lines().enumerate().skip(1).find(|(_, l)| l.trim_end() == "---").map(|(i, _)| i + 1).unwrap_or(0)
+    doc.text
+        .lines()
+        .enumerate()
+        .skip(1)
+        .find(|(_, l)| l.trim_end() == "---")
+        .map(|(i, _)| i + 1)
+        .unwrap_or(0)
 }
 
 fn requirements_in(record: &Record, text: &str) -> BTreeSet<String> {
-    record.ids.find_iter(text).map(|m| m.as_str()).filter(|id| id.starts_with("REQ-")).map(str::to_string).collect()
+    record
+        .ids
+        .find_iter(text)
+        .map(|m| m.as_str())
+        .filter(|id| id.starts_with("REQ-"))
+        .map(str::to_string)
+        .collect()
 }
 
 /// A decision's requirements land in exactly one task of the epic realising it,
@@ -908,23 +1240,39 @@ fn coverage(record: &Record) -> Vec<Finding> {
         let realises = bare(epic.value("realises"));
         let Some(decision) = decisions.iter().find(|d| bare(d.id()) == realises) else {
             // An epic may realise a defect, which addresses no requirement to cover.
-            if known.get(realises).is_some_and(|d| kind_of(record, d) == "defect") {
+            if known
+                .get(realises)
+                .is_some_and(|d| kind_of(record, d) == "defect")
+            {
                 continue;
             }
-            out.push(Finding::at(epic, epic.field("realises").map(|f| f.line), format!("realises {realises}, which is not a decision")));
+            out.push(Finding::at(
+                epic,
+                epic.field("realises").map(|f| f.line),
+                format!("realises {realises}, which is not a decision"),
+            ));
             continue;
         };
         let verified = !bare(epic.value("checked-at")).is_empty();
         for (line, mark, task, _) in entries(epic) {
-            let Some(doc) = known.get(task.as_str()) else { continue };
+            let Some(doc) = known.get(task.as_str()) else {
+                continue;
+            };
             if mark == ' ' && claims_done(doc) {
-                out.push(Finding::at(epic, Some(line), format!("leaves {task} unmarked, and its Evidence section is written")));
+                out.push(Finding::at(
+                    epic,
+                    Some(line),
+                    format!("leaves {task} unmarked, and its Evidence section is written"),
+                ));
             }
             if verified || mark == '~' {
                 continue;
             }
             for requirement in requirements_in(record, doc.value("closes")) {
-                if known.get(requirement.as_str()).is_some_and(|r| bare(r.value("status")) == "withdrawn") {
+                if known
+                    .get(requirement.as_str())
+                    .is_some_and(|r| bare(r.value("status")) == "withdrawn")
+                {
                     out.push(Finding::at(doc, doc.field("closes").map(|f| f.line), format!("closes {requirement}, which is withdrawn, in {epic_id}, which is not verified")));
                 }
             }
@@ -942,18 +1290,34 @@ fn coverage(record: &Record) -> Vec<Finding> {
             .unwrap_or_default();
         for requirement in &addressed {
             if !claimed.contains_key(requirement) && !named.contains(requirement) {
-                out.push(Finding::at(epic, None, format!("{requirement} lands in no task")));
+                out.push(Finding::at(
+                    epic,
+                    None,
+                    format!("{requirement} lands in no task"),
+                ));
             }
             if !stated.contains(requirement) {
-                out.push(Finding::at(decision, None, format!("{requirement} is stated in no specification")));
+                out.push(Finding::at(
+                    decision,
+                    None,
+                    format!("{requirement} is stated in no specification"),
+                ));
             }
         }
         for (requirement, where_) in &claimed {
             if !addressed.contains(requirement) {
-                out.push(Finding::at(epic, None, format!("{requirement} is closed by a task and addressed by no decision")));
+                out.push(Finding::at(
+                    epic,
+                    None,
+                    format!("{requirement} is closed by a task and addressed by no decision"),
+                ));
             }
             if where_.len() > 1 {
-                out.push(Finding::at(epic, None, format!("{requirement} is claimed by {}", where_.join(", "))));
+                out.push(Finding::at(
+                    epic,
+                    None,
+                    format!("{requirement} is claimed by {}", where_.join(", ")),
+                ));
             }
         }
     }
@@ -983,7 +1347,11 @@ fn chains(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Finding> {
                 _ => continue,
             };
             let id = path.last().cloned().unwrap_or_default();
-            out.push(Finding::at(doc, None, format!("rests on {id}, {what}, through {}", path.join(" -> "))));
+            out.push(Finding::at(
+                doc,
+                None,
+                format!("rests on {id}, {what}, through {}", path.join(" -> ")),
+            ));
         }
     }
     out
@@ -993,21 +1361,38 @@ fn chains(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Finding> {
 /// relative to its root.
 fn documents(root: &Path, repository: &Path) -> Vec<String> {
     let Ok(out) = profile::reading_git()
-        .args(["ls-files", "-z", "--cached", "--others", "--exclude-standard"])
+        .args([
+            "ls-files",
+            "-z",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+        ])
         .current_dir(repository)
         .output()
     else {
         return Vec::new();
     };
-    let record = root.strip_prefix(repository).ok().map(|p| p.to_string_lossy().replace('\\', "/"));
+    let record = root
+        .strip_prefix(repository)
+        .ok()
+        .map(|p| p.to_string_lossy().replace('\\', "/"));
     let text = String::from_utf8_lossy(&out.stdout);
     // NUL-separated, so a path git would escape reads as it is (REQ-2522).
     let mut paths: Vec<String> = text
         .split('\0')
         .filter(|p| !p.is_empty())
-        .filter(|p| [".md", ".markdown", ".txt", ".rst", ".adoc", ".org"].iter().any(|e| p.to_lowercase().ends_with(e)))
+        .filter(|p| {
+            [".md", ".markdown", ".txt", ".rst", ".adoc", ".org"]
+                .iter()
+                .any(|e| p.to_lowercase().ends_with(e))
+        })
         .filter(|p| !p.starts_with(".meowpaw/"))
-        .filter(|p| record.as_deref().is_none_or(|r| !r.is_empty() && !p.starts_with(&format!("{r}/"))))
+        .filter(|p| {
+            record
+                .as_deref()
+                .is_none_or(|r| !r.is_empty() && !p.starts_with(&format!("{r}/")))
+        })
         .map(str::to_string)
         .collect();
     paths.sort();
@@ -1020,11 +1405,25 @@ fn documents(root: &Path, repository: &Path) -> Vec<String> {
 fn placements(report: &Doc) -> Vec<(usize, String, String, String)> {
     let mut out = Vec::new();
     for (line, text) in section_lines(report, "Documents") {
-        let cells: Vec<&str> = text.trim().trim_matches('|').split('|').map(str::trim).collect();
-        if !text.trim_start().starts_with('|') || cells.len() < 3 || cells[0].starts_with("---") || cells[0] == "Document" {
+        let cells: Vec<&str> = text
+            .trim()
+            .trim_matches('|')
+            .split('|')
+            .map(str::trim)
+            .collect();
+        if !text.trim_start().starts_with('|')
+            || cells.len() < 3
+            || cells[0].starts_with("---")
+            || cells[0] == "Document"
+        {
             continue;
         }
-        out.push((line, cells[0].trim_matches('`').to_string(), cells[1].to_string(), cells[2].to_string()));
+        out.push((
+            line,
+            cells[0].trim_matches('`').to_string(),
+            cells[1].to_string(),
+            cells[2].to_string(),
+        ));
     }
     out
 }
@@ -1042,12 +1441,17 @@ fn onboarding(rest: &[String]) -> u8 {
         Err(code) => return code,
     };
     let Some(report) = of_kind(&record, "onboarding").into_iter().next() else {
-        say!("paw onboarding remove: there is no onboarding report, so nothing is placed and nothing is removed");
+        say!(
+            "paw onboarding remove: there is no onboarding report, so nothing is placed and nothing is removed"
+        );
         return FOUND;
     };
     let status = bare(report.value("status"));
     if status != "approved" {
-        say!("paw onboarding remove: {} is {status}, and nothing is removed before a person approves where each document goes", report.shown);
+        say!(
+            "paw onboarding remove: {} is {status}, and nothing is removed before a person approves where each document goes",
+            report.shown
+        );
         return FOUND;
     }
     let known = known(&record);
@@ -1057,7 +1461,11 @@ fn onboarding(rest: &[String]) -> u8 {
         if outcome != "migrated" && outcome != "superseded" {
             continue;
         }
-        let ids: Vec<&str> = record.ids.find_iter(destination).map(|m| m.as_str()).collect();
+        let ids: Vec<&str> = record
+            .ids
+            .find_iter(destination)
+            .map(|m| m.as_str())
+            .collect();
         let named = destination.trim_matches('`');
         let exists = if ids.is_empty() {
             !named.is_empty() && (root.join(named).is_file() || repository.join(named).is_file())
@@ -1091,14 +1499,19 @@ fn onboarding(rest: &[String]) -> u8 {
         }
         say!("removed {path} ({outcome})");
     }
-    say!("after: {}", count(documents(&root, &repository).len(), "document"));
+    say!(
+        "after: {}",
+        count(documents(&root, &repository).len(), "document")
+    );
     CLEAN
 }
 
 /// Every document an onboarding report finds gets exactly one outcome, with
 /// where it went or why, so nothing is deleted before it is placed (REQ-1556).
 fn placement(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
-    let Some(report) = of_kind(record, "onboarding").into_iter().next() else { return Vec::new() };
+    let Some(report) = of_kind(record, "onboarding").into_iter().next() else {
+        return Vec::new();
+    };
     let mut placed: BTreeMap<String, Vec<usize>> = BTreeMap::new();
     let mut out = Vec::new();
     for (line, path, outcome, destination) in placements(report) {
@@ -1107,14 +1520,26 @@ fn placement(record: &Record, root: &Path, repository: &Path) -> Vec<Finding> {
         if !["migrated", "cited", "superseded", "discarded"].contains(&outcome) {
             out.push(Finding::at(report, Some(line), format!("gives {path} the outcome {outcome}, where an outcome is migrated, cited, superseded or discarded")));
         } else if destination.is_empty() {
-            out.push(Finding::at(report, Some(line), format!("marks {path} {outcome} with no destination or reason")));
+            out.push(Finding::at(
+                report,
+                Some(line),
+                format!("marks {path} {outcome} with no destination or reason"),
+            ));
         }
     }
     let present = documents(root, repository);
     for path in &present {
         match placed.get(path) {
-            None => out.push(Finding::at(report, None, format!("doesn't place {path}, a document the repository has"))),
-            Some(lines) if lines.len() > 1 => out.push(Finding::at(report, Some(lines[1]), format!("places {path} {} times", lines.len()))),
+            None => out.push(Finding::at(
+                report,
+                None,
+                format!("doesn't place {path}, a document the repository has"),
+            )),
+            Some(lines) if lines.len() > 1 => out.push(Finding::at(
+                report,
+                Some(lines[1]),
+                format!("places {path} {} times", lines.len()),
+            )),
             _ => {}
         }
     }
@@ -1136,7 +1561,11 @@ const CHANGE_AFTER_APPROVAL: [&str; 2] = ["epic", "defect"];
 
 /// Each provider up a document's chain, once, with the path that reached it,
 /// walked in the order the layout lists its relations (REQ-0139).
-fn providers<'a>(record: &Record, known: &BTreeMap<String, &'a Doc>, doc: &Doc) -> Vec<(Vec<String>, &'a Doc)> {
+fn providers<'a>(
+    record: &Record,
+    known: &BTreeMap<String, &'a Doc>,
+    doc: &Doc,
+) -> Vec<(Vec<String>, &'a Doc)> {
     let mut out = Vec::new();
     let mut seen = BTreeSet::from([bare(doc.id()).to_string()]);
     let mut path = vec![bare(doc.id()).to_string()];
@@ -1152,11 +1581,20 @@ fn walk_up<'a>(
     seen: &mut BTreeSet<String>,
     out: &mut Vec<(Vec<String>, &'a Doc)>,
 ) {
-    for key in record.layout.relations.iter().filter(|k| !NOT_PROVIDERS.contains(&k.as_str())) {
-        let Some(field) = doc.field(key) else { continue };
+    for key in record
+        .layout
+        .relations
+        .iter()
+        .filter(|k| !NOT_PROVIDERS.contains(&k.as_str()))
+    {
+        let Some(field) = doc.field(key) else {
+            continue;
+        };
         for found in record.ids.find_iter(&field.value) {
             let id = found.as_str();
-            let Some(provider) = known.get(id).copied() else { continue };
+            let Some(provider) = known.get(id).copied() else {
+                continue;
+            };
             if !seen.insert(id.to_string()) {
                 continue;
             }
@@ -1182,12 +1620,26 @@ fn suspect(record: &Record, doc: &Doc, target: &Doc) -> Option<String> {
 
 /// Each citation in a document's relations that is suspect, with the field it
 /// sits in and why.
-fn suspects<'a>(record: &Record, known: &BTreeMap<String, &'a Doc>, doc: &'a Doc) -> Vec<(&'a Field, String, String)> {
+fn suspects<'a>(
+    record: &Record,
+    known: &BTreeMap<String, &'a Doc>,
+    doc: &'a Doc,
+) -> Vec<(&'a Field, String, String)> {
     let mut out = Vec::new();
-    for key in record.layout.relations.iter().filter(|k| k.as_str() != "supersedes") {
-        let Some(field) = doc.field(key) else { continue };
+    for key in record
+        .layout
+        .relations
+        .iter()
+        .filter(|k| k.as_str() != "supersedes")
+    {
+        let Some(field) = doc.field(key) else {
+            continue;
+        };
         for found in record.ids.find_iter(&field.value) {
-            if let Some(why) = known.get(found.as_str()).and_then(|target| suspect(record, doc, target)) {
+            if let Some(why) = known
+                .get(found.as_str())
+                .and_then(|target| suspect(record, doc, target))
+            {
                 out.push((field, found.as_str().to_string(), why));
             }
         }
@@ -1197,17 +1649,27 @@ fn suspects<'a>(record: &Record, known: &BTreeMap<String, &'a Doc>, doc: &'a Doc
 
 fn shape(record: &Record) -> Vec<Finding> {
     let mut out = Vec::new();
-    let withdrawn: BTreeSet<&str> = of_kind(record, "requirement").into_iter().filter(|r| bare(r.value("status")) == "withdrawn").map(|r| bare(r.id())).collect();
+    let withdrawn: BTreeSet<&str> = of_kind(record, "requirement")
+        .into_iter()
+        .filter(|r| bare(r.value("status")) == "withdrawn")
+        .map(|r| bare(r.id()))
+        .collect();
     let mut archives = BTreeSet::new();
     for doc in &record.docs {
         // A directory named for age holds material nobody reads, which neither
         // freezes nor discards it (REQ-0555).
         if let Some((dir, _)) = doc.relative.rsplit_once('/') {
-            if dir.split('/').any(|part| part.to_lowercase().contains("archive")) && archives.insert(dir.to_string()) {
+            if dir
+                .split('/')
+                .any(|part| part.to_lowercase().contains("archive"))
+                && archives.insert(dir.to_string())
+            {
                 out.push(Finding::at(doc, None, format!("sits in {dir}, a directory named for an archive; freeze the record or discard it with a reason")));
             }
         }
-        let living = doc.kind.is_some_and(|k| record.layout.kinds[k].statuses.iter().any(|s| s == "live"));
+        let living = doc
+            .kind
+            .is_some_and(|k| record.layout.kinds[k].statuses.iter().any(|s| s == "live"));
         if living && !doc.is_index {
             let mut aside = false;
             for (i, text) in doc.text.lines().enumerate().skip(body_start(doc)) {
@@ -1218,14 +1680,27 @@ fn shape(record: &Record) -> Vec<Finding> {
                 if aside {
                     continue;
                 }
-                for found in record.ids.find_iter(text).filter(|m| withdrawn.contains(m.as_str())) {
-                    out.push(Finding::at(doc, Some(i + 1), format!("cites {}, which is withdrawn, outside a Withdrawn section", found.as_str())));
+                for found in record
+                    .ids
+                    .find_iter(text)
+                    .filter(|m| withdrawn.contains(m.as_str()))
+                {
+                    out.push(Finding::at(
+                        doc,
+                        Some(i + 1),
+                        format!(
+                            "cites {}, which is withdrawn, outside a Withdrawn section",
+                            found.as_str()
+                        ),
+                    ));
                 }
             }
         }
     }
     for doc in &record.docs {
-        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
+            continue;
+        };
         // A kind's own index lists its records and makes no claims of its own.
         if kind.index.as_deref() == Some(doc.relative.as_str()) {
             continue;
@@ -1239,24 +1714,47 @@ fn shape(record: &Record) -> Vec<Finding> {
             .map(str::trim)
             .collect();
         let names = |heading: &str, section: &str| {
-            heading.strip_prefix(section).is_some_and(|rest| !rest.starts_with(|c: char| c.is_alphanumeric()))
+            heading
+                .strip_prefix(section)
+                .is_some_and(|rest| !rest.starts_with(|c: char| c.is_alphanumeric()))
         };
-        let drafted = if is_draft(doc) { kind.draft_sections.as_slice() } else { &[] };
+        let drafted = if is_draft(doc) {
+            kind.draft_sections.as_slice()
+        } else {
+            &[]
+        };
         for section in kind.sections.iter().chain(drafted) {
             if !headings.iter().any(|h| names(h, section)) {
-                let scope = if drafted.contains(section) { "a draft " } else { "a " };
-                out.push(Finding::at(doc, None, format!("has no {section} section, which {scope}{} carries", kind.name)));
+                let scope = if drafted.contains(section) {
+                    "a draft "
+                } else {
+                    "a "
+                };
+                out.push(Finding::at(
+                    doc,
+                    None,
+                    format!(
+                        "has no {section} section, which {scope}{} carries",
+                        kind.name
+                    ),
+                ));
             }
         }
         if let (Some(first), Some(opening)) = (&kind.first_section, headings.first()) {
             if !names(opening, first) {
-                out.push(Finding::at(doc, None, format!("opens with {opening}, where a {} opens with {first}", kind.name)));
+                out.push(Finding::at(
+                    doc,
+                    None,
+                    format!(
+                        "opens with {opening}, where a {} opens with {first}",
+                        kind.name
+                    ),
+                ));
             }
         }
     }
     out
 }
-
 
 /// The lines of a `## <name>` section, with their line numbers.
 fn section_lines<'a>(doc: &'a Doc, name: &str) -> Vec<(usize, &'a str)> {
@@ -1306,15 +1804,24 @@ fn statement(doc: &Doc) -> Option<(usize, String)> {
     let lines: Vec<&str> = doc.text.lines().collect();
     let heading = lines.iter().position(|l| l.starts_with("# "))?;
     let start = (heading + 1..lines.len()).find(|&i| !lines[i].trim().is_empty())?;
-    let end = (start..lines.len()).find(|&i| lines[i].trim().is_empty()).unwrap_or(lines.len());
+    let end = (start..lines.len())
+        .find(|&i| lines[i].trim().is_empty())
+        .unwrap_or(lines.len());
     Some((start + 1, lines[start..end].join(" ")))
 }
 
 /// A task's evidence, without a leading "Not yet." paragraph.
 fn evidence_of(task: &Doc) -> String {
-    let lines: Vec<&str> = section_lines(task, "Evidence").into_iter().map(|(_, l)| l).collect();
+    let lines: Vec<&str> = section_lines(task, "Evidence")
+        .into_iter()
+        .map(|(_, l)| l)
+        .collect();
     let text = lines.join("\n");
-    let mut paragraphs = text.split("\n\n").map(str::trim).filter(|p| !p.is_empty()).peekable();
+    let mut paragraphs = text
+        .split("\n\n")
+        .map(str::trim)
+        .filter(|p| !p.is_empty())
+        .peekable();
     if paragraphs.peek().is_some_and(|p| p.starts_with("Not yet")) {
         paragraphs.next();
     }
@@ -1333,25 +1840,47 @@ fn rules(record: &Record) -> Vec<Finding> {
     let negated = Regex::new(r"\bNo\b[^.]*?\bMUST\b(?: NOT)?").expect("negation pattern");
     let mut out = Vec::new();
     for doc in &record.docs {
-        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else { continue };
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
+            continue;
+        };
         if kind.index.as_deref() == Some(doc.relative.as_str()) {
             continue;
         }
-        let drafted = if is_draft(doc) { kind.draft_rules.as_slice() } else { &[] };
+        let drafted = if is_draft(doc) {
+            kind.draft_rules.as_slice()
+        } else {
+            &[]
+        };
         for rule in kind.rules.iter().chain(drafted) {
             match rule.as_str() {
                 "sources-dated" => {
                     for (line, text) in section_lines(doc, "Sources") {
                         if text.starts_with("- ") && !date.is_match(text) {
-                            out.push(Finding::at(doc, Some(line), "names a source without the date it was read".into()));
+                            out.push(Finding::at(
+                                doc,
+                                Some(line),
+                                "names a source without the date it was read".into(),
+                            ));
                         }
                     }
                 }
                 "cites-no-requirement" => {
-                    let body_start = doc.fields.as_ref().map(|f| f.last().map(|l| l.line).unwrap_or(0)).unwrap_or(0) + 1;
+                    let body_start = doc
+                        .fields
+                        .as_ref()
+                        .map(|f| f.last().map(|l| l.line).unwrap_or(0))
+                        .unwrap_or(0)
+                        + 1;
                     for (i, text) in doc.text.lines().enumerate().skip(body_start) {
                         for found in requirement.find_iter(text) {
-                            out.push(Finding::at(doc, Some(i + 1), format!("cites {}, and research cites no requirement", found.as_str())));
+                            out.push(Finding::at(
+                                doc,
+                                Some(i + 1),
+                                format!(
+                                    "cites {}, and research cites no requirement",
+                                    found.as_str()
+                                ),
+                            ));
                         }
                     }
                 }
@@ -1369,22 +1898,35 @@ fn rules(record: &Record) -> Vec<Finding> {
                 "judgement-verifier" => {
                     if let Some(field) = doc.field("verification") {
                         if bare(&field.value) == "judgement" && doc.field("verifier").is_none() {
-                            out.push(Finding::at(doc, Some(field.line), "is verified by judgement and names no verifier: agent or person".into()));
+                            out.push(Finding::at(
+                                doc,
+                                Some(field.line),
+                                "is verified by judgement and names no verifier: agent or person"
+                                    .into(),
+                            ));
                         }
                     }
                 }
                 "realises-one" => {
                     let field = doc.field("realises");
-                    let named = field.map(|f| authority.find_iter(&f.value).count()).unwrap_or(0);
+                    let named = field
+                        .map(|f| authority.find_iter(&f.value).count())
+                        .unwrap_or(0);
                     if named != 1 {
                         out.push(Finding::at(doc, field.map(|f| f.line), format!("realises {named} records, where an epic realises exactly one decision or defect")));
                     }
                 }
                 "alternatives-why-lost" => {
-                    let header = section_lines(doc, "Alternatives").into_iter().find(|(_, text)| text.trim_start().starts_with('|'));
+                    let header = section_lines(doc, "Alternatives")
+                        .into_iter()
+                        .find(|(_, text)| text.trim_start().starts_with('|'));
                     let says = header.is_some_and(|(_, text)| text.to_lowercase().contains("lost"));
                     if !says {
-                        out.push(Finding::at(doc, header.map(|(line, _)| line), "has no column saying why each alternative lost".into()));
+                        out.push(Finding::at(
+                            doc,
+                            header.map(|(line, _)| line),
+                            "has no column saying why each alternative lost".into(),
+                        ));
                     }
                 }
                 "done-has-evidence" | "added-says-why" | "dropped-says-why" => {
@@ -1392,7 +1934,10 @@ fn rules(record: &Record) -> Vec<Finding> {
                     for (line, mark, task, entry) in entries(doc) {
                         match (rule.as_str(), mark) {
                             ("done-has-evidence", 'x') => {
-                                let evidence = known.get(task.as_str()).map(|t| evidence_of(t)).unwrap_or_default();
+                                let evidence = known
+                                    .get(task.as_str())
+                                    .map(|t| evidence_of(t))
+                                    .unwrap_or_default();
                                 if evidence.is_empty() {
                                     out.push(Finding::at(doc, Some(line), format!("marks {task} done, and its Evidence section holds nothing past \"Not yet.\"")));
                                 }
@@ -1401,23 +1946,45 @@ fn rules(record: &Record) -> Vec<Finding> {
                                 out.push(Finding::at(doc, Some(line), format!("marks {task} added after approval with no added: line saying why")));
                             }
                             ("dropped-says-why", '~') if !entry.contains("dropped:") => {
-                                out.push(Finding::at(doc, Some(line), format!("marks {task} dropped with no dropped: line saying why")));
+                                out.push(Finding::at(
+                                    doc,
+                                    Some(line),
+                                    format!(
+                                        "marks {task} dropped with no dropped: line saying why"
+                                    ),
+                                ));
                             }
                             _ => {}
                         }
                     }
                 }
                 "one-obligation" | "stands-alone" | "no-negated-requirement" => {
-                    let Some((line, text)) = statement(doc) else { continue };
+                    let Some((line, text)) = statement(doc) else {
+                        continue;
+                    };
                     let (pattern, message) = match rule.as_str() {
-                        "one-obligation" => (&keyword, "carries more than one keyword, where a requirement carries one obligation"),
+                        "one-obligation" => (
+                            &keyword,
+                            "carries more than one keyword, where a requirement carries one obligation",
+                        ),
                         "stands-alone" => (&neighbour, "leans on a neighbour"),
-                        _ => (&negated, "negates a requirement with \"No ... MUST\", where a prohibition is MUST NOT"),
+                        _ => (
+                            &negated,
+                            "negates a requirement with \"No ... MUST\", where a prohibition is MUST NOT",
+                        ),
                     };
                     let hits: Vec<&str> = pattern.find_iter(&text).map(|m| m.as_str()).collect();
-                    let found = if rule == "one-obligation" { hits.len() > 1 } else { !hits.is_empty() };
+                    let found = if rule == "one-obligation" {
+                        hits.len() > 1
+                    } else {
+                        !hits.is_empty()
+                    };
                     if found {
-                        let shown = if rule == "one-obligation" { hits.join(", ") } else { hits[0].to_string() };
+                        let shown = if rule == "one-obligation" {
+                            hits.join(", ")
+                        } else {
+                            hits[0].to_string()
+                        };
                         out.push(Finding::at(doc, Some(line), format!("{message}: {shown}")));
                     }
                 }
@@ -1430,43 +1997,78 @@ fn rules(record: &Record) -> Vec<Finding> {
                 }
                 "enters-after-triage" => {
                     // A draft defect whose triage is written names the step it enters at.
-                    let triaged = section_lines(doc, "Triage").iter().any(|(_, l)| !l.trim().is_empty());
+                    let triaged = section_lines(doc, "Triage")
+                        .iter()
+                        .any(|(_, l)| !l.trim().is_empty());
                     if triaged && bare(doc.value("enters")).is_empty() {
-                        out.push(Finding::at(doc, None, "has a Triage section and no enters: naming the step it enters at".into()));
+                        out.push(Finding::at(
+                            doc,
+                            None,
+                            "has a Triage section and no enters: naming the step it enters at"
+                                .into(),
+                        ));
                     }
                 }
                 "enters-fits" => {
                     let enters = bare(doc.value("enters"));
                     let line = doc.field("enters").map(|f| f.line);
                     if !enters.is_empty() && !STEPS.contains(&enters) {
-                        out.push(Finding::at(doc, line, format!("enters {enters}, which is not a step; the steps are {}", STEPS.join(", "))));
+                        out.push(Finding::at(
+                            doc,
+                            line,
+                            format!(
+                                "enters {enters}, which is not a step; the steps are {}",
+                                STEPS.join(", ")
+                            ),
+                        ));
                     }
-                    if matches!(enters, "implement" | "design") && bare(doc.value("violates")).is_empty() {
+                    if matches!(enters, "implement" | "design")
+                        && bare(doc.value("violates")).is_empty()
+                    {
                         out.push(Finding::at(doc, line, format!("enters {enters} and names no requirement it violates, where a defect no requirement covers enters at requirements or research")));
                     }
-                    if !enters.is_empty() && !section_lines(doc, "Reproduction").iter().any(|(_, l)| !l.trim().is_empty()) {
+                    if !enters.is_empty()
+                        && !section_lines(doc, "Reproduction")
+                            .iter()
+                            .any(|(_, l)| !l.trim().is_empty())
+                    {
                         out.push(Finding::at(doc, line, "is triaged with an empty Reproduction, where a defect is reproduced before it is triaged".into()));
                     }
                 }
                 "rejected-says-why" => {
-                    if bare(doc.value("status")) == "rejected" && !section_lines(doc, "Triage").iter().any(|(_, l)| !l.trim().is_empty()) {
+                    if bare(doc.value("status")) == "rejected"
+                        && !section_lines(doc, "Triage")
+                            .iter()
+                            .any(|(_, l)| !l.trim().is_empty())
+                    {
                         out.push(Finding::at(doc, None, "is rejected as no defect with an empty Triage, where the reasoning is recorded".into()));
                     }
                 }
                 "closed-names-check" => {
                     let tasks = entries(doc);
-                    let closed = !tasks.is_empty() && tasks.iter().all(|(_, mark, _, _)| finished(*mark));
-                    if closed && !section_lines(doc, "Closed by").iter().any(|(_, l)| !l.trim().is_empty()) {
+                    let closed =
+                        !tasks.is_empty() && tasks.iter().all(|(_, mark, _, _)| finished(*mark));
+                    if closed
+                        && !section_lines(doc, "Closed by")
+                            .iter()
+                            .any(|(_, l)| !l.trim().is_empty())
+                    {
                         out.push(Finding::at(doc, None, "has every task done and an empty Closed by, where it names the check that stays as a regression check".into()));
                     }
                 }
                 "defect-epic-ordered" => {
                     let known = known(record);
                     let realises = bare(doc.value("realises"));
-                    if known.get(realises).is_some_and(|d| kind_of(record, d) == "defect") {
+                    if known
+                        .get(realises)
+                        .is_some_and(|d| kind_of(record, d) == "defect")
+                    {
                         let tasks = entries(doc);
                         let ordered = tasks.iter().any(|(_, _, task, entry)| {
-                            entry.contains("depends:") || known.get(task.as_str()).is_some_and(|t| !depends_on(t).is_empty())
+                            entry.contains("depends:")
+                                || known
+                                    .get(task.as_str())
+                                    .is_some_and(|t| !depends_on(t).is_empty())
                         });
                         if tasks.len() < 2 || !ordered {
                             out.push(Finding::at(doc, doc.field("realises").map(|f| f.line), format!("realises the defect {realises} with {} and no order between them, where a one-task fix is carried by the defect itself", count(tasks.len(), "task"))));
@@ -1475,27 +2077,46 @@ fn rules(record: &Record) -> Vec<Finding> {
                 }
                 "prompted-by-defect" => {
                     let known = known(record);
-                    for id in doc.value("prompted-by").split(|c: char| !(c.is_ascii_alphanumeric() || c == '-')).filter(|w| !w.is_empty()) {
-                        if !known.get(id).is_some_and(|d| kind_of(record, d) == "defect") {
-                            out.push(Finding::at(doc, doc.field("prompted-by").map(|f| f.line), format!("is prompted by {id}, which is not a defect")));
+                    for id in doc
+                        .value("prompted-by")
+                        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
+                        .filter(|w| !w.is_empty())
+                    {
+                        if !known
+                            .get(id)
+                            .is_some_and(|d| kind_of(record, d) == "defect")
+                        {
+                            out.push(Finding::at(
+                                doc,
+                                doc.field("prompted-by").map(|f| f.line),
+                                format!("is prompted by {id}, which is not a defect"),
+                            ));
                         }
                     }
                 }
                 "one-authority" => {
-                    let named = [doc.value("epic"), doc.value("bug")].iter().filter(|v| !bare(v).is_empty()).count();
+                    let named = [doc.value("epic"), doc.value("bug")]
+                        .iter()
+                        .filter(|v| !bare(v).is_empty())
+                        .count();
                     if named != 1 {
                         let field = doc.field("epic").or_else(|| doc.field("bug"));
                         out.push(Finding::at(doc, field.map(|f| f.line), format!("names {named} authorising records, where a task names exactly one epic or one defect")));
                     }
                 }
                 "addresses-or-postpones" => {
-                    let named = requirements_in(record, doc.value("addresses")).len() + requirements_in(record, doc.value("postpones")).len();
+                    let named = requirements_in(record, doc.value("addresses")).len()
+                        + requirements_in(record, doc.value("postpones")).len();
                     if named == 0 {
                         out.push(Finding::at(doc, doc.field("addresses").map(|f| f.line), "addresses no requirement and postpones none, where a decision does one or both".into()));
                     }
                 }
                 "title-states-claim" => {
-                    let line = doc.text.lines().position(|l| l.starts_with("# ")).map(|i| i + 1);
+                    let line = doc
+                        .text
+                        .lines()
+                        .position(|l| l.starts_with("# "))
+                        .map(|i| i + 1);
                     let heading = title(doc);
                     let words = heading.split_whitespace().count();
                     if date.is_match(&heading) {
@@ -1506,33 +2127,82 @@ fn rules(record: &Record) -> Vec<Finding> {
                 }
                 "evidence-measured" => {
                     let lines = section_lines(doc, "Evidence");
-                    let measured = lines.iter().any(|(_, l)| l.chars().any(|c| c.is_ascii_digit()) || l.trim_start().starts_with("```"));
+                    let measured = lines.iter().any(|(_, l)| {
+                        l.chars().any(|c| c.is_ascii_digit()) || l.trim_start().starts_with("```")
+                    });
                     if !lines.is_empty() && !measured {
-                        out.push(Finding::at(doc, lines.first().map(|(n, _)| n - 1), "has evidence with no number, measurement or reproducible block".into()));
+                        out.push(Finding::at(
+                            doc,
+                            lines.first().map(|(n, _)| n - 1),
+                            "has evidence with no number, measurement or reproducible block".into(),
+                        ));
                     }
                 }
                 "ends-with-pattern" => {
-                    let last = doc.text.lines().enumerate().filter(|(_, l)| l.starts_with("## ")).last();
-                    if let Some((i, heading)) = last.filter(|(_, l)| l.trim_end() != "## The pattern") {
-                        out.push(Finding::at(doc, Some(i + 1), format!("ends with {}, where an insight ends with The pattern", heading.trim_start_matches("## ").trim())));
+                    let last = doc
+                        .text
+                        .lines()
+                        .enumerate()
+                        .filter(|(_, l)| l.starts_with("## "))
+                        .last();
+                    if let Some((i, heading)) =
+                        last.filter(|(_, l)| l.trim_end() != "## The pattern")
+                    {
+                        out.push(Finding::at(
+                            doc,
+                            Some(i + 1),
+                            format!(
+                                "ends with {}, where an insight ends with The pattern",
+                                heading.trim_start_matches("## ").trim()
+                            ),
+                        ));
                     }
                 }
-                unknown => out.push(Finding::at(doc, None, format!("the layout names a rule, {unknown}, this program doesn't know"))),
+                unknown => out.push(Finding::at(
+                    doc,
+                    None,
+                    format!("the layout names a rule, {unknown}, this program doesn't know"),
+                )),
             }
         }
     }
     out
 }
 
-const STEPS: [&str; 9] = ["research", "requirements", "design", "spec", "epic", "implement", "document", "verify", "review"];
-const TEMPLATES: [&str; 12] = ["research", "requirement", "adr", "spec", "epic", "task", "bug", "insight", "vision", "constitution", "profile", "onboarding"];
+const STEPS: [&str; 9] = [
+    "research",
+    "requirements",
+    "design",
+    "spec",
+    "epic",
+    "implement",
+    "document",
+    "verify",
+    "review",
+];
+const TEMPLATES: [&str; 12] = [
+    "research",
+    "requirement",
+    "adr",
+    "spec",
+    "epic",
+    "task",
+    "bug",
+    "insight",
+    "vision",
+    "constitution",
+    "profile",
+    "onboarding",
+];
 
 fn approved(doc: &Doc) -> bool {
     bare(doc.value("status")) == "approved"
 }
 
 fn kind_of<'a>(record: &'a Record, doc: &Doc) -> &'a str {
-    doc.kind.map(|k| record.layout.kinds[k].name.as_str()).unwrap_or("artifact")
+    doc.kind
+        .map(|k| record.layout.kinds[k].name.as_str())
+        .unwrap_or("artifact")
 }
 
 /// Each task an epic lists, with the mark it carries: `x` done, `~` dropped,
@@ -1540,7 +2210,12 @@ fn kind_of<'a>(record: &'a Record, doc: &Doc) -> &'a str {
 fn marks(epic: &Doc) -> Vec<(String, char)> {
     let line = Regex::new(r"(?m)^- \[(.)\] T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("mark pattern");
     line.captures_iter(&epic.text)
-        .filter_map(|c| Some((c.get(2)?.as_str().to_string(), c.get(1)?.as_str().chars().next()?)))
+        .filter_map(|c| {
+            Some((
+                c.get(2)?.as_str().to_string(),
+                c.get(1)?.as_str().chars().next()?,
+            ))
+        })
         .collect()
 }
 
@@ -1548,7 +2223,11 @@ fn marks(epic: &Doc) -> Vec<(String, char)> {
 /// carries it directly (ADR-1440).
 fn authority_of(task: &Doc) -> &str {
     let epic = bare(task.value("epic"));
-    if epic.is_empty() { bare(task.value("bug")) } else { epic }
+    if epic.is_empty() {
+        bare(task.value("bug"))
+    } else {
+        epic
+    }
 }
 
 fn finished(mark: char) -> bool {
@@ -1561,25 +2240,41 @@ fn depends_on(task: &Doc) -> Vec<String> {
     let id = Regex::new(r"TSK-\d{4}").expect("identifier pattern");
     section
         .captures(&task.text)
-        .map(|c| id.find_iter(&c[1]).map(|m| m.as_str().to_string()).collect())
+        .map(|c| {
+            id.find_iter(&c[1])
+                .map(|m| m.as_str().to_string())
+                .collect()
+        })
         .unwrap_or_default()
 }
 
 /// Whether a task is marked done or dropped by the epic it names.
 fn task_finished(known: &BTreeMap<String, &Doc>, task: &str) -> bool {
-    let Some(doc) = known.get(task) else { return false };
-    let Some(epic) = known.get(authority_of(doc)) else { return false };
-    marks(epic).iter().any(|(id, mark)| id == task && finished(*mark))
+    let Some(doc) = known.get(task) else {
+        return false;
+    };
+    let Some(epic) = known.get(authority_of(doc)) else {
+        return false;
+    };
+    marks(epic)
+        .iter()
+        .any(|(id, mark)| id == task && finished(*mark))
 }
 
 fn ready(rest: &[String]) -> u8 {
     let Some((step, ids)) = rest.split_first() else {
-        eprintln!("usage: paw ready <step> <id>..., where a step is one of {}", STEPS.join(", "));
+        eprintln!(
+            "usage: paw ready <step> <id>..., where a step is one of {}",
+            STEPS.join(", ")
+        );
         return USAGE;
     };
     let step = step.as_str();
     if !STEPS.contains(&step) {
-        eprintln!("paw ready: no step is named {step}; the steps are {}", STEPS.join(", "));
+        eprintln!(
+            "paw ready: no step is named {step}; the steps are {}",
+            STEPS.join(", ")
+        );
         return USAGE;
     }
     if step == "research" {
@@ -1605,7 +2300,10 @@ fn ready(rest: &[String]) -> u8 {
         match step {
             "requirements" | "design" | "spec" | "epic" | "implement" => {
                 if !approved(doc) {
-                    missing.push(format!("{id}, a {kind}, is {} and not approved", bare(doc.value("status"))));
+                    missing.push(format!(
+                        "{id}, a {kind}, is {} and not approved",
+                        bare(doc.value("status"))
+                    ));
                     continue;
                 }
             }
@@ -1619,17 +2317,28 @@ fn ready(rest: &[String]) -> u8 {
                 }
                 for requirement in requirements_in(&record, doc.value("addresses")) {
                     if !stated.contains(&requirement) {
-                        missing.push(format!("{requirement}, which {id} addresses, is stated by no specification"));
+                        missing.push(format!(
+                            "{requirement}, which {id} addresses, is stated by no specification"
+                        ));
                     }
                 }
             }
             "implement" => {
                 let epic_id = authority_of(doc);
-                let what = if bare(doc.value("epic")).is_empty() { "the defect" } else { "the epic" };
+                let what = if bare(doc.value("epic")).is_empty() {
+                    "the defect"
+                } else {
+                    "the epic"
+                };
                 match known.get(epic_id) {
                     Some(epic) if approved(epic) => {}
-                    Some(epic) => missing.push(format!("{epic_id}, {what} of {id}, is {} and not approved", bare(epic.value("status")))),
-                    None if epic_id.is_empty() => missing.push(format!("{id} names no epic and no defect")),
+                    Some(epic) => missing.push(format!(
+                        "{epic_id}, {what} of {id}, is {} and not approved",
+                        bare(epic.value("status"))
+                    )),
+                    None if epic_id.is_empty() => {
+                        missing.push(format!("{id} names no epic and no defect"))
+                    }
                     None => missing.push(format!("{epic_id}, {what} of {id}, has no file")),
                 }
                 for dependency in depends_on(doc) {
@@ -1653,14 +2362,19 @@ fn ready(rest: &[String]) -> u8 {
             }
             "review" => {
                 if bare(doc.value("checked-at")).is_empty() {
-                    missing.push(format!("{id} hasn't been verified: its checked-at is empty"));
+                    missing.push(format!(
+                        "{id} hasn't been verified: its checked-at is empty"
+                    ));
                 }
             }
             _ => {}
         }
     }
     if missing.is_empty() {
-        say!("paw ready {step}: ready; {} approved and complete", ids.join(", "));
+        say!(
+            "paw ready {step}: ready; {} approved and complete",
+            ids.join(", ")
+        );
         CLEAN
     } else {
         say!("paw ready {step}: not ready");
@@ -1676,44 +2390,96 @@ fn count(n: usize, noun: &str) -> String {
 }
 
 fn title(doc: &Doc) -> String {
-    let heading = doc.text.lines().find(|l| l.starts_with("# ")).unwrap_or("# ").trim_start_matches("# ");
+    let heading = doc
+        .text
+        .lines()
+        .find(|l| l.starts_with("# "))
+        .unwrap_or("# ")
+        .trim_start_matches("# ");
     // A decision's heading carries its number, "1130. The chain ...".
-    heading.split_once(". ").filter(|(n, _)| n.chars().all(|c| c.is_ascii_digit())).map(|(_, t)| t).unwrap_or(heading).to_string()
+    heading
+        .split_once(". ")
+        .filter(|(n, _)| n.chars().all(|c| c.is_ascii_digit()))
+        .map(|(_, t)| t)
+        .unwrap_or(heading)
+        .to_string()
 }
 
 /// Where one authorising record stands in the chain, and what comes next.
-fn position(record: &Record, known: &BTreeMap<String, &Doc>, findings: &BTreeMap<String, usize>, decision: &Doc) -> String {
+fn position(
+    record: &Record,
+    known: &BTreeMap<String, &Doc>,
+    findings: &BTreeMap<String, usize>,
+    decision: &Doc,
+) -> String {
     let id = bare(decision.id());
-    let epics: Vec<&Doc> = of_kind(record, "epic").into_iter().filter(|e| bare(e.value("realises")) == id).collect();
+    let epics: Vec<&Doc> = of_kind(record, "epic")
+        .into_iter()
+        .filter(|e| bare(e.value("realises")) == id)
+        .collect();
     let postponed = requirements_in(record, decision.value("postpones"));
-    if epics.is_empty() && requirements_in(record, decision.value("addresses")).is_empty() && !postponed.is_empty() {
-        return format!("postponing: {}, revisited at each verification", count(postponed.len(), "requirement"));
+    if epics.is_empty()
+        && requirements_in(record, decision.value("addresses")).is_empty()
+        && !postponed.is_empty()
+    {
+        return format!(
+            "postponing: {}, revisited at each verification",
+            count(postponed.len(), "requirement")
+        );
     }
-    let Some(epic) = epics.first() else { return "next: spec, then epic".to_string() };
+    let Some(epic) = epics.first() else {
+        return "next: spec, then epic".to_string();
+    };
     let epic_id = bare(epic.id());
     if !approved(epic) {
-        return format!("waiting: {epic_id} is {} and not approved", bare(epic.value("status")));
+        return format!(
+            "waiting: {epic_id} is {} and not approved",
+            bare(epic.value("status"))
+        );
     }
     let tasks = marks(epic);
-    let open: Vec<&String> = tasks.iter().filter(|(_, mark)| !finished(*mark)).map(|(task, _)| task).collect();
+    let open: Vec<&String> = tasks
+        .iter()
+        .filter(|(_, mark)| !finished(*mark))
+        .map(|(task, _)| task)
+        .collect();
     if !open.is_empty() {
         let doable = open.iter().find(|task| {
-            known.get(task.as_str()).map(|doc| depends_on(doc).iter().all(|d| task_finished(known, d))).unwrap_or(true)
+            known
+                .get(task.as_str())
+                .map(|doc| depends_on(doc).iter().all(|d| task_finished(known, d)))
+                .unwrap_or(true)
         });
         return match doable {
-            Some(task) => format!("next: implement {task} ({epic_id}, {} of {} done)", tasks.len() - open.len(), count(tasks.len(), "task")),
+            Some(task) => format!(
+                "next: implement {task} ({epic_id}, {} of {} done)",
+                tasks.len() - open.len(),
+                count(tasks.len(), "task")
+            ),
             None => format!("waiting: every open task of {epic_id} depends on one that isn't done"),
         };
     }
     let checked = bare(epic.value("checked-at"));
     if checked.is_empty() {
-        return format!("next: document, then verify {epic_id} ({} done)", count(tasks.len(), "task"));
+        return format!(
+            "next: document, then verify {epic_id} ({} done)",
+            count(tasks.len(), "task")
+        );
     }
     // A verification holds only while the check reports nothing on what it verified (REQ-0706).
     let on = |doc: &Doc| findings.get(&doc.shown).copied().unwrap_or(0);
-    let drifted = on(decision) + on(epic) + tasks.iter().filter_map(|(t, _)| known.get(t.as_str())).map(|t| on(t)).sum::<usize>();
+    let drifted = on(decision)
+        + on(epic)
+        + tasks
+            .iter()
+            .filter_map(|(t, _)| known.get(t.as_str()))
+            .map(|t| on(t))
+            .sum::<usize>();
     if drifted > 0 {
-        format!("drifted: {epic_id} was verified under {checked}, and check reports {} on it now", count(drifted, "finding"))
+        format!(
+            "drifted: {epic_id} was verified under {checked}, and check reports {} on it now",
+            count(drifted, "finding")
+        )
     } else {
         format!("realised: {epic_id} verified under {checked}")
     }
@@ -1744,18 +2510,28 @@ fn status(rest: &[String]) -> u8 {
         // Run at the start of every session, so it says nothing unless
         // something waits: a repository with no record pays nothing.
         let repository = profile::repository_root();
-        let (Ok(layout), Ok(root)) = (load_layout(), record_root(&repository)) else { return CLEAN };
+        let (Ok(layout), Ok(root)) = (load_layout(), record_root(&repository)) else {
+            return CLEAN;
+        };
         if !root.is_dir() {
             return CLEAN;
         }
         let record = read_record(layout, &repository, &root);
         let known = known(&record);
-        let drafts: Vec<&&Doc> = known.values().filter(|doc| bare(doc.value("status")) == "draft").collect();
+        let drafts: Vec<&&Doc> = known
+            .values()
+            .filter(|doc| bare(doc.value("status")) == "draft")
+            .collect();
         if !drafts.is_empty() {
             say!("Waiting for approval in this repository's record:");
             for doc in &drafts {
                 let kind = kind_of(&record, doc);
-                say!("  {} {kind}, at {}: {}", bare(doc.id()), gate_of(kind), title(doc));
+                say!(
+                    "  {} {kind}, at {}: {}",
+                    bare(doc.id()),
+                    gate_of(kind),
+                    title(doc)
+                );
             }
         }
         return CLEAN;
@@ -1765,23 +2541,37 @@ fn status(rest: &[String]) -> u8 {
         Err(code) => return code,
     };
     if !under_version_control(&root) {
-        say!("The record is local to this machine: {} is under no version control.", root.display());
+        say!(
+            "The record is local to this machine: {} is under no version control.",
+            root.display()
+        );
         say!();
     }
     let known = known(&record);
     let findings = findings_by_file(&record, &root, &repository);
-    let drafts: Vec<&&Doc> = known.values().filter(|doc| bare(doc.value("status")) == "draft").collect();
+    let drafts: Vec<&&Doc> = known
+        .values()
+        .filter(|doc| bare(doc.value("status")) == "draft")
+        .collect();
     say!("Waiting for approval");
     if drafts.is_empty() {
         say!("  nothing");
     }
     for doc in &drafts {
         let kind = kind_of(&record, doc);
-        say!("  {} {kind}, draft at {}: {}", bare(doc.id()), gate_of(kind), title(doc));
+        say!(
+            "  {} {kind}, draft at {}: {}",
+            bare(doc.id()),
+            gate_of(kind),
+            title(doc)
+        );
     }
     say!();
     say!("Decisions");
-    let mut decisions: Vec<&Doc> = of_kind(&record, "decision").into_iter().filter(|d| approved(d)).collect();
+    let mut decisions: Vec<&Doc> = of_kind(&record, "decision")
+        .into_iter()
+        .filter(|d| approved(d))
+        .collect();
     decisions.sort_by_key(|d| bare(d.id()).to_string());
     if decisions.is_empty() {
         say!("  none approved");
@@ -1794,19 +2584,50 @@ fn status(rest: &[String]) -> u8 {
     say!();
     say!("Tasks");
     let tasks = of_kind(&record, "task");
-    let by_defect = tasks.iter().filter(|t| !bare(t.value("bug")).is_empty() || known.get(bare(t.value("epic"))).is_some_and(|e| known.get(bare(e.value("realises"))).is_some_and(|d| kind_of(&record, d) == "defect"))).count();
-    say!("  {} in all: {} authorised by decisions, {} by defects", tasks.len(), tasks.len() - by_defect, by_defect);
+    let by_defect = tasks
+        .iter()
+        .filter(|t| {
+            !bare(t.value("bug")).is_empty()
+                || known.get(bare(t.value("epic"))).is_some_and(|e| {
+                    known
+                        .get(bare(e.value("realises")))
+                        .is_some_and(|d| kind_of(&record, d) == "defect")
+                })
+        })
+        .count();
+    say!(
+        "  {} in all: {} authorised by decisions, {} by defects",
+        tasks.len(),
+        tasks.len() - by_defect,
+        by_defect
+    );
     say!();
     say!("Requirements");
-    let states = ["verified", "closed and not yet verified", "in a task not yet done", "postponed", "checked by nothing"];
+    let states = [
+        "verified",
+        "closed and not yet verified",
+        "in a task not yet done",
+        "postponed",
+        "checked by nothing",
+    ];
     let mut tally = [0usize; 5];
-    let in_force: Vec<&Doc> = of_kind(&record, "requirement").into_iter().filter(|r| approved(r)).collect();
+    let in_force: Vec<&Doc> = of_kind(&record, "requirement")
+        .into_iter()
+        .filter(|r| approved(r))
+        .collect();
     for requirement in &in_force {
         let id = bare(requirement.id());
-        let state = requirement_state(&closing_tasks(&record, &known, id), postponed_by(&record, id).as_deref());
+        let state = requirement_state(
+            &closing_tasks(&record, &known, id),
+            postponed_by(&record, id).as_deref(),
+        );
         tally[states.iter().position(|s| *s == state).unwrap_or(4)] += 1;
     }
-    let parts: Vec<String> = states.iter().zip(tally).map(|(s, n)| format!("{n} {s}")).collect();
+    let parts: Vec<String> = states
+        .iter()
+        .zip(tally)
+        .map(|(s, n)| format!("{n} {s}"))
+        .collect();
     if in_force.is_empty() {
         say!("  none in force, so coverage is zero, not complete");
     } else {
@@ -1845,15 +2666,30 @@ fn verification_share(in_force: &[&Doc]) {
             }
         }
     }
-    let mut parts: Vec<String> = kinds.iter().zip(tally).map(|(k, n)| format!("{n} {k}")).collect();
+    let mut parts: Vec<String> = kinds
+        .iter()
+        .zip(tally)
+        .map(|(k, n)| format!("{n} {k}"))
+        .collect();
     if unstated > 0 {
         parts.push(format!("{unstated} unstated"));
     }
     // Requirements approved before a judgement had to name its verifier name none.
     let unnamed = tally[3] - agent - person;
-    let named = if unnamed > 0 { format!(", {unnamed} naming none") } else { String::new() };
-    say!("  by verification: {} ({agent} by an agent, {person} by a person{named})", parts.join(", "));
-    say!("  {} of {} rest on evaluation or judgement, not on a mechanical check", tally[2] + tally[3], in_force.len());
+    let named = if unnamed > 0 {
+        format!(", {unnamed} naming none")
+    } else {
+        String::new()
+    };
+    say!(
+        "  by verification: {} ({agent} by an agent, {person} by a person{named})",
+        parts.join(", ")
+    );
+    say!(
+        "  {} of {} rest on evaluation or judgement, not on a mechanical check",
+        tally[2] + tally[3],
+        in_force.len()
+    );
 }
 
 /// What `check` leaves to `status` because the artifact is approved and
@@ -1868,7 +2704,11 @@ fn frozen_findings(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Strin
     for doc in known.values() {
         for key in &record.layout.relations {
             if let Some(field) = doc.field(key) {
-                for found in record.ids.find_iter(&field.value).filter(|m| known.contains_key(m.as_str())) {
+                for found in record
+                    .ids
+                    .find_iter(&field.value)
+                    .filter(|m| known.contains_key(m.as_str()))
+                {
                     cited.insert(found.as_str().to_string());
                     citing.insert(bare(doc.id()).to_string());
                 }
@@ -1879,7 +2719,10 @@ fn frozen_findings(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Strin
         }
         for (path, provider) in providers(record, known, doc) {
             if bare(provider.value("status")) == "rejected" {
-                under_rejected.entry(path.last().cloned().unwrap_or_default()).or_default().insert(bare(doc.id()).to_string());
+                under_rejected
+                    .entry(path.last().cloned().unwrap_or_default())
+                    .or_default()
+                    .insert(bare(doc.id()).to_string());
             }
         }
         for (field, id, _) in suspects(record, known, doc) {
@@ -1887,35 +2730,68 @@ fn frozen_findings(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Strin
         }
     }
     for (provider, under) in under_rejected {
-        let noun = if under.len() == 1 { "artifact" } else { "artifacts" };
-        out.push(format!("{provider}, rejected, under {} approved {noun}: {}", under.len(), under.into_iter().collect::<Vec<_>>().join(", ")));
+        let noun = if under.len() == 1 {
+            "artifact"
+        } else {
+            "artifacts"
+        };
+        out.push(format!(
+            "{provider}, rejected, under {} approved {noun}: {}",
+            under.len(),
+            under.into_iter().collect::<Vec<_>>().join(", ")
+        ));
     }
     if !suspected.is_empty() {
-        let noun = if suspected.len() == 1 { "citation" } else { "citations" };
-        out.push(format!("{} suspect {noun} in approved artifacts: {}", suspected.len(), suspected.join(", ")));
+        let noun = if suspected.len() == 1 {
+            "citation"
+        } else {
+            "citations"
+        };
+        out.push(format!(
+            "{} suspect {noun} in approved artifacts: {}",
+            suspected.len(),
+            suspected.join(", ")
+        ));
     }
     let alone: Vec<&str> = known
         .iter()
-        .filter(|(id, doc)| matches!(bare(doc.value("status")), "approved" | "live") && !cited.contains(*id) && !citing.contains(*id))
+        .filter(|(id, doc)| {
+            matches!(bare(doc.value("status")), "approved" | "live")
+                && !cited.contains(*id)
+                && !citing.contains(*id)
+        })
         .map(|(id, _)| id.as_str())
         .collect();
     if !alone.is_empty() {
-        out.push(format!("unconnected, citing nothing and cited by nothing: {}", alone.join(", ")));
+        out.push(format!(
+            "unconnected, citing nothing and cited by nothing: {}",
+            alone.join(", ")
+        ));
     }
     out
 }
 
 fn template(rest: &[String]) -> u8 {
     let [kind] = rest else {
-        eprintln!("usage: paw template <kind>, where a kind is one of {}", TEMPLATES.join(", "));
+        eprintln!(
+            "usage: paw template <kind>, where a kind is one of {}",
+            TEMPLATES.join(", ")
+        );
         return USAGE;
     };
     if !TEMPLATES.contains(&kind.as_str()) {
-        eprintln!("paw template: no kind is named {kind}; the kinds are {}", TEMPLATES.join(", "));
+        eprintln!(
+            "paw template: no kind is named {kind}; the kinds are {}",
+            TEMPLATES.join(", ")
+        );
         return USAGE;
     }
     // The profile is configuration, and configuration the harness owns is TOML.
-    let file = if kind == "profile" { "profile.toml".to_string() } else { format!("{kind}.md") };
+    let file = if kind == "profile" {
+        "profile.toml".to_string()
+    } else {
+        format!("{kind}.md")
+    };
     let repository = profile::repository_root();
     let own = repository.join(".meowpaw").join("templates").join(&file);
     if own.is_file() {
@@ -1923,7 +2799,10 @@ fn template(rest: &[String]) -> u8 {
         return CLEAN;
     }
     let unit = match layout_path() {
-        Ok(path) => path.parent().and_then(Path::parent).map(|u| u.join("templates").join(&file)),
+        Ok(path) => path
+            .parent()
+            .and_then(Path::parent)
+            .map(|u| u.join("templates").join(&file)),
         Err(reason) => {
             say!("paw template: no template was found: {reason}");
             return UNCHECKED;
@@ -1935,7 +2814,10 @@ fn template(rest: &[String]) -> u8 {
             CLEAN
         }
         Some(path) => {
-            say!("paw template: the unit has no template for {kind} at {}", path.display());
+            say!(
+                "paw template: the unit has no template for {kind} at {}",
+                path.display()
+            );
             FOUND
         }
         None => {
@@ -1959,7 +2841,12 @@ fn show(rest: &[String]) -> u8 {
         say!("paw show: {id} resolves to nothing in the record");
         return FOUND;
     };
-    say!("{id} {}, {}: {}", kind_of(&record, doc), bare(doc.value("status")), doc.shown);
+    say!(
+        "{id} {}, {}: {}",
+        kind_of(&record, doc),
+        bare(doc.value("status")),
+        doc.shown
+    );
     let heading = title(doc);
     if heading != id.as_str() {
         say!("{heading}");
@@ -1967,7 +2854,9 @@ fn show(rest: &[String]) -> u8 {
     let first = doc
         .text
         .split("\n\n")
-        .skip_while(|p| p.starts_with("---") || p.trim_start().starts_with('#') || p.trim().is_empty())
+        .skip_while(|p| {
+            p.starts_with("---") || p.trim_start().starts_with('#') || p.trim().is_empty()
+        })
         .next()
         .map(|p| p.split_whitespace().collect::<Vec<_>>().join(" "))
         .unwrap_or_default();
@@ -1983,9 +2872,14 @@ fn show(rest: &[String]) -> u8 {
                 .ids
                 .find_iter(&field.value)
                 .map(|m| {
-                    let marked = known.get(m.as_str()).filter(|_| key != "supersedes").and_then(|target| suspect(&record, doc, target));
+                    let marked = known
+                        .get(m.as_str())
+                        .filter(|_| key != "supersedes")
+                        .and_then(|target| suspect(&record, doc, target));
                     match marked {
-                        Some(why) if why.starts_with("revised") => format!("{} (suspect: {why}, after this record)", m.as_str()),
+                        Some(why) if why.starts_with("revised") => {
+                            format!("{} (suspect: {why}, after this record)", m.as_str())
+                        }
                         Some(why) => format!("{} (suspect: {why})", m.as_str()),
                         None => m.as_str().to_string(),
                     }
@@ -2015,7 +2909,11 @@ fn show(rest: &[String]) -> u8 {
                 '~' => "dropped",
                 _ => "open",
             };
-            let verified = if checked.is_empty() { "not yet verified".to_string() } else { format!("verified under {checked}") };
+            let verified = if checked.is_empty() {
+                "not yet verified".to_string()
+            } else {
+                format!("verified under {checked}")
+            };
             say!("  {task} {done} in {epic}, {verified}");
         }
     }
@@ -2030,22 +2928,38 @@ fn show(rest: &[String]) -> u8 {
         for key in &record.layout.relations {
             if let Some(field) = other.field(key) {
                 if record.ids.find_iter(&field.value).any(|m| m.as_str() == id) {
-                    let who = if bare(other.id()).is_empty() { other.shown.clone() } else { bare(other.id()).to_string() };
+                    let who = if bare(other.id()).is_empty() {
+                        other.shown.clone()
+                    } else {
+                        bare(other.id()).to_string()
+                    };
                     cited.entry(key.clone()).or_default().insert(who);
                     in_field = true;
                 }
             }
         }
         if !in_field && record.ids.find_iter(&other.text).any(|m| m.as_str() == id) {
-            cited.entry("body".into()).or_default().insert(other.shown.clone());
+            cited
+                .entry("body".into())
+                .or_default()
+                .insert(other.shown.clone());
         }
     }
     if cited.is_empty() {
         say!("  nothing");
     }
-    for key in record.layout.relations.iter().map(String::as_str).chain(std::iter::once("body")) {
+    for key in record
+        .layout
+        .relations
+        .iter()
+        .map(String::as_str)
+        .chain(std::iter::once("body"))
+    {
         if let Some(who) = cited.get(key) {
-            say!("  {key}: {}", who.iter().cloned().collect::<Vec<_>>().join(", "));
+            say!(
+                "  {key}: {}",
+                who.iter().cloned().collect::<Vec<_>>().join(", ")
+            );
         }
     }
     CLEAN
@@ -2056,7 +2970,11 @@ const INDEX_CLOSE: &str = "<!-- /meow-flow index -->";
 
 /// A kind by its name or its artifact word, such as `decision` or `adr`.
 fn kind_named(record: &Record, word: &str) -> Option<usize> {
-    record.layout.kinds.iter().position(|k| k.name == word || k.artifact == word)
+    record
+        .layout
+        .kinds
+        .iter()
+        .position(|k| k.name == word || k.artifact == word)
 }
 
 /// What an artifact concluded, in one line: a requirement's statement, a
@@ -2066,16 +2984,29 @@ fn conclusion(record: &Record, doc: &Doc) -> String {
     let paragraph = |text: &str| -> String {
         text.split("\n\n")
             .map(str::trim)
-            .find(|p| !p.is_empty() && !p.starts_with('#') && !p.starts_with("---") && !p.starts_with("<!--"))
+            .find(|p| {
+                !p.is_empty()
+                    && !p.starts_with('#')
+                    && !p.starts_with("---")
+                    && !p.starts_with("<!--")
+            })
             .map(|p| p.split_whitespace().collect::<Vec<_>>().join(" "))
             .unwrap_or_default()
     };
     let text = match kind {
         "requirement" => paragraph(doc.text.splitn(3, "\n---\n").last().unwrap_or("")),
         "research" => {
-            let summary: Vec<&str> = section_lines(doc, "Summary").into_iter().map(|(_, l)| l).collect();
+            let summary: Vec<&str> = section_lines(doc, "Summary")
+                .into_iter()
+                .map(|(_, l)| l)
+                .collect();
             let first = paragraph(&summary.join("\n"));
-            first.split_inclusive(". ").next().unwrap_or(&first).trim().to_string()
+            first
+                .split_inclusive(". ")
+                .next()
+                .unwrap_or(&first)
+                .trim()
+                .to_string()
         }
         _ => title(doc),
     };
@@ -2088,7 +3019,9 @@ fn relative_link(from: &str, to: &str) -> String {
     let base = &base[..base.len().saturating_sub(1)];
     let target: Vec<&str> = to.split('/').collect();
     let common = base.iter().zip(&target).take_while(|(a, b)| a == b).count();
-    let mut parts: Vec<String> = std::iter::repeat("..".to_string()).take(base.len() - common).collect();
+    let mut parts: Vec<String> = std::iter::repeat("..".to_string())
+        .take(base.len() - common)
+        .collect();
     parts.extend(target[common..].iter().map(|s| s.to_string()));
     parts.join("/")
 }
@@ -2105,12 +3038,25 @@ fn generate_index(record: &Record, k: usize) -> Option<String> {
     docs.sort_by(|a, b| bare(a.id()).cmp(bare(b.id())));
     let mut statuses: BTreeMap<String, usize> = BTreeMap::new();
     for doc in &docs {
-        *statuses.entry(bare(doc.value("status")).to_string()).or_default() += 1;
+        *statuses
+            .entry(bare(doc.value("status")).to_string())
+            .or_default() += 1;
     }
     let mut out = String::new();
     let counted: Vec<String> = statuses.iter().map(|(s, n)| format!("{n} {s}")).collect();
-    out.push_str(&format!("{} in all: {}.\n\n", count(docs.len(), &kind.name), counted.join(", ")));
-    out.push_str(&format!("| Identifier | What it {} | Status |\n| --- | --- | --- |\n", if kind.name == "requirement" { "requires" } else { "concluded" }));
+    out.push_str(&format!(
+        "{} in all: {}.\n\n",
+        count(docs.len(), &kind.name),
+        counted.join(", ")
+    ));
+    out.push_str(&format!(
+        "| Identifier | What it {} | Status |\n| --- | --- | --- |\n",
+        if kind.name == "requirement" {
+            "requires"
+        } else {
+            "concluded"
+        }
+    ));
     for doc in &docs {
         let id = bare(doc.id());
         out.push_str(&format!(
@@ -2124,7 +3070,11 @@ fn generate_index(record: &Record, k: usize) -> Option<String> {
     let amendments: Vec<String> = docs
         .iter()
         .filter_map(|doc| {
-            let by: Vec<&str> = amended.captures_iter(&doc.text).filter_map(|c| c.get(1)).map(|m| m.as_str()).collect();
+            let by: Vec<&str> = amended
+                .captures_iter(&doc.text)
+                .filter_map(|c| c.get(1))
+                .map(|m| m.as_str())
+                .collect();
             (!by.is_empty()).then(|| format!("{} by {}", bare(doc.id()), by.join(" and ")))
         })
         .collect();
@@ -2135,7 +3085,10 @@ fn generate_index(record: &Record, k: usize) -> Option<String> {
     if docs.len() > 36 && topical {
         let mut topics: BTreeMap<String, Vec<&str>> = BTreeMap::new();
         for doc in &docs {
-            topics.entry(bare(doc.value("topic")).to_string()).or_default().push(bare(doc.id()));
+            topics
+                .entry(bare(doc.value("topic")).to_string())
+                .or_default()
+                .push(bare(doc.id()));
         }
         out.push_str("\nBy topic:\n\n");
         for (topic, ids) in &topics {
@@ -2187,12 +3140,24 @@ fn index_command(rest: &[String]) -> u8 {
         Err(code) => return code,
     };
     let Some(k) = kind_named(&record, word) else {
-        let kinds: Vec<&str> = record.layout.kinds.iter().filter(|k| k.index.is_some()).map(|k| k.name.as_str()).collect();
-        eprintln!("paw index: no kind is named {word}; the kinds with an index are {}", kinds.join(", "));
+        let kinds: Vec<&str> = record
+            .layout
+            .kinds
+            .iter()
+            .filter(|k| k.index.is_some())
+            .map(|k| k.name.as_str())
+            .collect();
+        eprintln!(
+            "paw index: no kind is named {word}; the kinds with an index are {}",
+            kinds.join(", ")
+        );
         return USAGE;
     };
     let Some(block) = generate_index(&record, k) else {
-        say!("paw index: a {} has no index file in the layout", record.layout.kinds[k].name);
+        say!(
+            "paw index: a {} has no index file in the layout",
+            record.layout.kinds[k].name
+        );
         return FOUND;
     };
     if !write {
@@ -2202,23 +3167,36 @@ fn index_command(rest: &[String]) -> u8 {
     let path = root.join(record.layout.kinds[k].index.as_deref().unwrap_or_default());
     let text = std::fs::read_to_string(&path).unwrap_or_default();
     let Some((start, _, _, end)) = markers(&text) else {
-        say!("paw index: {} has no {INDEX_OPEN} block to write into", path.display());
+        say!(
+            "paw index: {} has no {INDEX_OPEN} block to write into",
+            path.display()
+        );
         return FOUND;
     };
     // Writing moves an index still carrying the old markers onto the new ones.
-    let updated = format!("{}{INDEX_OPEN}\n\n{}\n{INDEX_CLOSE}{}", &text[..start], block.trim_end(), &text[end..]);
+    let updated = format!(
+        "{}{INDEX_OPEN}\n\n{}\n{INDEX_CLOSE}{}",
+        &text[..start],
+        block.trim_end(),
+        &text[end..]
+    );
     if updated != text {
         // Written beside the index and renamed into place, so an interrupted
         // write leaves the old index or the new one and never half of either.
         let temporary = path.with_extension("md.meow-tmp");
-        let written = std::fs::write(&temporary, updated).and_then(|_| std::fs::rename(&temporary, &path));
+        let written =
+            std::fs::write(&temporary, updated).and_then(|_| std::fs::rename(&temporary, &path));
         if let Err(e) = written {
             let _ = std::fs::remove_file(&temporary);
             say!("paw index: {}: {e}", path.display());
             return FOUND;
         }
     }
-    say!("paw index: wrote the {} index to {}", record.layout.kinds[k].name, path.display());
+    say!(
+        "paw index: wrote the {} index to {}",
+        record.layout.kinds[k].name,
+        path.display()
+    );
     CLEAN
 }
 
@@ -2239,9 +3217,19 @@ fn new_identifier(rest: &[String]) -> u8 {
         Ok(opened) => opened,
         Err(code) => return code,
     };
-    let Some(k) = kind_named(&record, word).filter(|&k| record.layout.kinds[k].prefix.is_some()) else {
-        let kinds: Vec<&str> = record.layout.kinds.iter().filter(|k| k.prefix.is_some()).map(|k| k.name.as_str()).collect();
-        eprintln!("paw new: no numbered kind is named {word}; the kinds are {}", kinds.join(", "));
+    let Some(k) = kind_named(&record, word).filter(|&k| record.layout.kinds[k].prefix.is_some())
+    else {
+        let kinds: Vec<&str> = record
+            .layout
+            .kinds
+            .iter()
+            .filter(|k| k.prefix.is_some())
+            .map(|k| k.name.as_str())
+            .collect();
+        eprintln!(
+            "paw new: no numbered kind is named {word}; the kinds are {}",
+            kinds.join(", ")
+        );
         return USAGE;
     };
     let kind = &record.layout.kinds[k];
@@ -2256,7 +3244,12 @@ fn new_identifier(rest: &[String]) -> u8 {
                 taken.insert(n);
             }
         }
-        if let Some(c) = doc.path.file_name().and_then(|n| n.to_str()).and_then(|n| number.captures(n)) {
+        if let Some(c) = doc
+            .path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .and_then(|n| number.captures(n))
+        {
             if let Ok(n) = c[1].parse::<u32>() {
                 taken.insert(n);
             }
@@ -2265,13 +3258,19 @@ fn new_identifier(rest: &[String]) -> u8 {
     let highest = taken.iter().max().copied().unwrap_or(0);
     let (mut next, step) = if kind.name == "requirement" {
         let Some(topic) = topic else {
-            eprintln!("paw new: a requirement is allocated in its topic's block; name it with --topic");
+            eprintln!(
+                "paw new: a requirement is allocated in its topic's block; name it with --topic"
+            );
             return USAGE;
         };
         let in_topic: Vec<u32> = of_kind(&record, "requirement")
             .iter()
             .filter(|d| bare(d.value("topic")) == topic)
-            .filter_map(|d| bare(d.id()).strip_prefix(&format!("{prefix}-")).and_then(|n| n.parse().ok()))
+            .filter_map(|d| {
+                bare(d.id())
+                    .strip_prefix(&format!("{prefix}-"))
+                    .and_then(|n| n.parse().ok())
+            })
             .collect();
         match in_topic.iter().max() {
             Some(top) => (top + 2, 2),
@@ -2307,13 +3306,21 @@ fn count_record(rest: &[String]) -> u8 {
     };
     for (k, kind) in record.layout.kinds.iter().enumerate() {
         let index = kind.index.as_deref();
-        let docs: Vec<&Doc> = record.docs.iter().filter(|d| d.kind == Some(k) && Some(d.relative.as_str()) != index && !d.is_index).collect();
+        let docs: Vec<&Doc> = record
+            .docs
+            .iter()
+            .filter(|d| d.kind == Some(k) && Some(d.relative.as_str()) != index && !d.is_index)
+            .collect();
         let mut statuses: BTreeMap<&str, usize> = BTreeMap::new();
         for doc in &docs {
             *statuses.entry(bare(doc.value("status"))).or_default() += 1;
         }
         let parts: Vec<String> = statuses.iter().map(|(s, n)| format!("{n} {s}")).collect();
-        let detail = if parts.is_empty() { String::new() } else { format!(": {}", parts.join(", ")) };
+        let detail = if parts.is_empty() {
+            String::new()
+        } else {
+            format!(": {}", parts.join(", "))
+        };
         say!("{}: {}{detail}", kind.name, docs.len());
     }
     say!("identifiers: {}", known(&record).len());
@@ -2341,11 +3348,22 @@ fn find(rest: &[String]) -> u8 {
         }
         let concluded = conclusion(&record, doc);
         // A requirement's heading is its identifier, so its statement heads it.
-        let heading = if title(doc) == id { concluded.clone() } else { title(doc) };
+        let heading = if title(doc) == id {
+            concluded.clone()
+        } else {
+            title(doc)
+        };
         let haystack = format!("{id} {heading} {concluded}").to_lowercase();
-        let score = words.iter().filter(|w| haystack.contains(w.as_str())).count();
+        let score = words
+            .iter()
+            .filter(|w| haystack.contains(w.as_str()))
+            .count();
         if score > 0 {
-            let line = format!("{id} {}, {}: {heading}", kind_of(&record, doc), bare(doc.value("status")));
+            let line = format!(
+                "{id} {}, {}: {heading}",
+                kind_of(&record, doc),
+                bare(doc.value("status"))
+            );
             hits.push((score, id.to_string(), line));
         }
     }
@@ -2373,7 +3391,11 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("meow-docs-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
-        let init = profile::reading_git().current_dir(&dir).args(["init", "-q"]).output().unwrap();
+        let init = profile::reading_git()
+            .current_dir(&dir)
+            .args(["init", "-q"])
+            .output()
+            .unwrap();
         assert!(init.status.success());
         let name = "we\"ird\nnamé.md";
         std::fs::write(dir.join(name), "text\n").unwrap();
@@ -2384,7 +3406,10 @@ mod tests {
 
     #[test]
     fn a_flowed_list_is_one_field() {
-        let fields = parse_front_matter("---\nid: TSK-1\ncloses:\n  [\n    REQ-0001,\n    REQ-0002,\n  ]\n---\n# T\n").unwrap();
+        let fields = parse_front_matter(
+            "---\nid: TSK-1\ncloses:\n  [\n    REQ-0001,\n    REQ-0002,\n  ]\n---\n# T\n",
+        )
+        .unwrap();
         let closes = fields.iter().find(|f| f.key == "closes").unwrap();
         assert!(closes.value.contains("REQ-0001") && closes.value.contains("REQ-0002"));
         assert_eq!(closes.line, 3);
@@ -2392,6 +3417,10 @@ mod tests {
 
     #[test]
     fn today_is_a_date() {
-        assert!(Regex::new(r"^\d{4}-\d{2}-\d{2}$").unwrap().is_match(&today()));
+        assert!(
+            Regex::new(r"^\d{4}-\d{2}-\d{2}$")
+                .unwrap()
+                .is_match(&today())
+        );
     }
 }
