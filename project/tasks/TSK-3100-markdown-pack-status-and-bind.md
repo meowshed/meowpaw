@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1800
 closes: [REQ-2352]
-issue:
+issue: 634
+projected: da3a251668d2
 ---
 
 # Ship the Markdown pack with detection, `status` and `bind`

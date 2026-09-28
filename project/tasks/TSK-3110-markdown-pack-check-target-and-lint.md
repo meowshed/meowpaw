@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1800
 closes: [REQ-2434, REQ-2452]
-issue:
+issue: 635
+projected: e106e2645c17
 ---
 
 # Check the render target and the markdownlint settings, and adopt the check here
