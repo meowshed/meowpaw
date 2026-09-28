@@ -3,7 +3,7 @@ id: SPC-1150
 artifact: spec
 status: live
 revised: 2026-09-27
-checked-at:
+checked-at: "#587"
 states: [REQ-2480, REQ-2486, REQ-2487, REQ-2508, REQ-2510]
 ---
 
@@ -21,7 +21,8 @@ place, and this document states only where the two differ: detection, the
 listing, where each block comes from, remote includes and secret variables.
 Running a verb is SPC-1040's.
 
-ADR-1590 decides this part.
+ADR-1590 decides this part, EPC-1560 realises it, and `meow-gotask` implements
+it, checked at #587.
 
 ## Boundary
 
