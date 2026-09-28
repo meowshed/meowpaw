@@ -60,8 +60,9 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: 22 fixtures seen failing first, against real Task, and
       `meow-mise`'s 38 unchanged, in #589.
 
-- [ ] T-002 TSK-2460 bind the verbs and check the profile and the includes
+- [x] T-002 TSK-2460 bind the verbs and check the profile and the includes
       closes: REQ-2487
+      evidence: 7 fixtures, 6 seen failing first, in #590.
 
 ## Coverage
 

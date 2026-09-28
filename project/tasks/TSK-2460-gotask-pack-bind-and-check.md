@@ -42,7 +42,14 @@ TSK-2450, which ships the unit and `status`.
 
 ## Evidence
 
-Not yet.
+Closes REQ-2487. Of the 7 fixtures in the `Bind` and `Check` classes of
+`plugins/meow-gotask/tests/test_gotask.py`, 6 failed first against a program
+that reports nothing. The seventh reads the skill's prohibition and passes
+whatever the program does. `bind` and `check` came with the shared `runner`
+module in TSK-2450, so these fixtures hold behaviour that already existed.
+All 29 in the file pass against real Task 3.53.1. `meow-verbs evidence --keep
+format lint test` exits 0 on this change's own tree, each result kept in
+`project/evidence/`, as the pull request cites.
 
 ## Left alone
 
