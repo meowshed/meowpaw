@@ -351,6 +351,9 @@ it yet, so the verify step dispatches no skeptic and writes no defect today.
 ADR-2100 decides the route, and EPC-2000 realises it; until its tasks land,
 no router ships and a request starts unrouted.
 
+A run of the chain with no person watching is planned before it starts, from
+an authority the repository declares, as SPC-1200 states.
+
 ## Boundary
 
 | Surface                                       | What it is                                                              |
