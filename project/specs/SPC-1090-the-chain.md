@@ -722,6 +722,11 @@ Where no agent can be dispatched, the skill reviews nothing itself and reports
 the record as unreviewed by an agent or a person; a review of its own work a
 person asks for is reported as self-assessed (REQ-2202) (ADR-1490).
 
+A review whose output comes back marked as stopped at the agent's turn
+ceiling is a review that didn't finish, so the skill reports the record as
+unreviewed by an agent, as it does for a review that couldn't run (REQ-2202)
+(ADR-1700).
+
 The review step dispatches a review of work the session produced to an agent
 with read-only tools, and its verdict names itself as an agent's (REQ-0149,
 REQ-0157).
@@ -807,6 +812,7 @@ REQ-3112). Without the pack it reports the history as unread and names
 | A person overrode the router's route                   | The route as overridden, and the route the router gave                                                                  |
 | `route reduced` for work no approved record authorises | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
 | A route came with the request or the brief             | The route as given, and that no router ran                                                                              |
+| The reviewer stops at its turn ceiling    | The record is reported as unreviewed by an agent                                |
 | No binary for the machine                              | The launcher reports the record as not checked and exits 3                                                              |
 
 Where two of the route's rows apply, the report carries both, and the

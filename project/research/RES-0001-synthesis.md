@@ -169,6 +169,7 @@ here or in the sources below.
 | [What bounds an unattended run's authority](RES-0299-what-bounds-an-unattended-runs-authority.md)        | On Claude Code 2.1.280, read with no run observed, flags and deny rules bound a run's authority, except a project's `env` block under `--bare`, unusual Bash forms and a script an Edit rule misses. |
 | [Refuting a verified claim](RES-0309-refuting-a-verified-claim.md)                                       | Four of 755 requirements this repository recorded as verified were unmet, a floor that ordinary work found; in a benchmark, model monitors caught 42% to 65% of shortcuts on multi-file work.        |
 | [A read-only agent routes a request](RES-0304-a-read-only-agent-routes-a-request.md)                     | On Claude Code 2.1.280 a plugin agent limited to Read, Grep and Glob can't write, and routing through it costs a dispatch on every request.                                                          |
+| [What a plugin agent can declare](RES-0284-what-a-plugin-agent-can-declare.md)                           | Claude Code 2.1.280 reads `maxTurns`, `tools`, `model`, `effort`, `omitClaudeMd` and `skills` from an agent a plugin ships, and a plugin can't set the session's nesting depth.                      |
 
 ## The situation
 

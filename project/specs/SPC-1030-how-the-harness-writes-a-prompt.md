@@ -2,7 +2,7 @@
 id: SPC-1030
 artifact: spec
 status: live
-revised: 2026-09-23
+revised: 2026-09-28
 checked-at: "#490"
 states:
   [
@@ -61,7 +61,14 @@ states:
     REQ-2704,
     REQ-2706,
     REQ-2708,
+    REQ-2972,
+    REQ-2974,
+    REQ-2976,
+    REQ-2982,
+    REQ-2984,
+    REQ-2988,
     REQ-3050,
+    REQ-3270,
   ]
 ---
 
@@ -78,8 +85,8 @@ It leaves what each prompt says to the specification of its unit, and how a
 change to a prompt is measured to SPC-1020.
 
 ADR-1020, ADR-1030 and ADR-1050 decide the form, ADR-1040 how the reply shape
-reaches a subordinate agent, and ADR-1450 how the capability ships and is
-checked.
+reaches a subordinate agent, ADR-1450 how the capability ships and is checked,
+and ADR-1700 what an agent declares.
 
 ## Boundary
 
@@ -254,6 +261,50 @@ leaves the repository to declare them (REQ-2692). A script says whether it is
 run or read, and one that is run is never also summarised in prose (REQ-2706).
 Instructions use the vocabulary of the work they govern (REQ-2708).
 
+### What an agent declares
+
+An agent definition declares six fields in its front matter, each written
+out, because the platform has a default for every one of them:
+
+| Field          | What it holds                                                                  | Requirement |
+| -------------- | ------------------------------------------------------------------------------ | ----------- |
+| `maxTurns`     | A positive integer, the ceiling on turns the runner enforces                   | REQ-2974    |
+| `tools`        | A written list; in a unit's agents, one with no `*` and no `Agent` or `Task`   | REQ-3270    |
+| `model`        | An alias or a full model identifier, and not `inherit`                         | REQ-2988    |
+| `effort`       | `low`, `medium`, `high`, `xhigh` or `max`                                      | REQ-2988    |
+| `omitClaudeMd` | `true` or `false`, written out                                                 | REQ-2982    |
+| `skills`       | A list of the skills the agent preloads, and an empty list where it needs none | REQ-2984    |
+
+An agent a unit ships holds no tool that dispatches another agent: its
+`tools` list holds no `*` and names neither `Agent` nor `Task`, alone or with
+a restriction such as `Agent(worker)` (REQ-3270). A repository's own agent
+may list any tools, `*` included, once it writes the list.
+
+An agent loads the project's instructions, with `omitClaudeMd: false`, where
+it judges against the repository's rules, and omits them where it judges
+against a standard it preloads (REQ-2982). An agent with a narrow job
+preloads the skills it needs through `skills`, so the conversation that
+dispatches it doesn't carry them (REQ-2984). The two agents the harness ships
+declare:
+
+| Agent                       | `maxTurns` | `model`  | `effort` | `omitClaudeMd` | `skills`               | `tools`          |
+| --------------------------- | ---------- | -------- | -------- | -------------- | ---------------------- | ---------------- |
+| `meow-flow:record-reviewer` | 30         | `opus`   | `high`   | `false`        | `[]`                   | Read, Grep, Glob |
+| `meow-prose:prose`          | 20         | `sonnet` | `high`   | `true`         | `[meow-prose:writing]` | Read, Grep, Glob |
+
+An agent that reaches its `maxTurns` returns its output marked as stopped at
+its ceiling, and whatever dispatched it reads that output as unfinished work
+(REQ-2974).
+
+### Delegation
+
+Knowledge, such as a design lens or a language's idioms, ships as a skill
+loaded into the working context and never as an agent (REQ-2972). A
+delegated agent runs in the parent's process and under the parent's sandbox
+configuration, so no text the harness ships treats one as a boundary that
+contains what the agent does (REQ-2976). Review holds both, because no field
+shows either.
+
 Tags mark a prompt where it mixes kinds of content, and a prompt that is one
 instruction after another carries them only as far as its role and its rules
 need (REQ-1116, REQ-1118). A procedure's steps end at a named stopping point
@@ -276,6 +327,12 @@ it is given, such as `.claude/`, and fails, naming the file and the line, on:
   another, a tag never closed or text standing outside every tag, with text inside `<example>`
   and `<input>` read as quoted and not judged;
 - a skill or agent with no `description`;
+- an agent leaving out one of the six fields above, or holding a value the
+  table doesn't accept, naming the field; in a unit's `agents/` directory, a
+  `tools` list holding `*`, `Agent` or `Task`, alone or with a restriction.
+  `tools` is read as a YAML list or as a comma-separated string;
+- an agent whose front matter doesn't parse, with that reason and no field
+  rule run on it;
 - a plugin shipping a `commands/` directory;
 - a file in a skill's directory that its `SKILL.md` never names;
 - a path into the unit written without the directory variable;
@@ -296,3 +353,7 @@ One check audits every unit, because the format is uniform across them
 | A unit exceeds its stated budget                   | The overrun is reported as a defect and the material moves into supporting files |
 | The model does not load a unit that must hold      | The routing measurement shows it, and the description is the thing that changes  |
 | A description loads its unit on a near miss        | The routing measurement shows it, and the wording is narrowed before it ships    |
+| An agent leaves out a declared field               | The check fails in the gate, naming the file and the field                       |
+| A shipped agent lists `Agent`, `Task` or `*`       | The check fails, naming the file and the `tools` field                           |
+| A shipped agent names a model the account lacks    | The dispatch fails to start, and a repository replaces the agent with its own    |
+| An agent reaches its `maxTurns`                    | Its output comes back marked partial, and the dispatcher reads it as unfinished  |
