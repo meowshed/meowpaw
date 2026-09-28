@@ -11,7 +11,7 @@ case $0 in
 */*) here=${0%/*} ;;
 *) here=$(command -v "$0") && here=${here%/*} ;;
 esac
-system= cpu= exe=
+system='' cpu='' exe=''
 case $(uname -s 2>/dev/null) in
 Darwin) system=apple-darwin ;;
 Linux) system=unknown-linux-musl ;;

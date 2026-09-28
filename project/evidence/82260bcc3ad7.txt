@@ -1,0 +1,27 @@
+meow-verbs evidence 1
+record: 82260bcc3ad7
+verb: format
+command: mise run fmt-check && mise run shell-fmt && mise run crate-fmt
+targets: none
+outcome: failed
+exit status: 1
+tree: ec1f8585d75edb4e56eb7c1046e94d84e00d0303
+time: 2026-09-28T16:40:11Z
+
+[fmt-check] $ prettier --check '**/*.md'
+Checking formatting...
+All matched files use Prettier code style!
+[shell-fmt] $ files=$(shfmt -f plugins crates/meow) && test -n "$files" && shfmt -i 2 -d $files
+[crate-fmt] $ cargo fmt --manifest-path crates/meow/Cargo.toml --check
+Diff in /Users/retran/workspace/meowpaw.fix-shell-under-the-verbs/crates/meow/src/main.rs:108:
+     names
+ }
+ 
+[31m-fn   planted_by_tsk_2520 ( )->u8{ 1 }
+[m[32m+fn planted_by_tsk_2520() -> u8 {
+[m[32m+    1
+[m[32m+}
+[m 
+ #[allow(dead_code)]
+ fn planted_collapsible_if(first: bool, second: bool) {
+[crate-fmt] ERROR task failed

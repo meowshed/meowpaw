@@ -491,8 +491,9 @@ verified against every acceptance criterion under issue 596.
 | [BUG-1210](bugs/BUG-1210-projecting-writes-no-issue-field.md)                        | `meow-github project` wrote no `issue:` into a task lacking the field, so a replay opened a duplicate issue       |
 | [BUG-1220](bugs/BUG-1220-the-commit-guard-misreads-a-relative-cd.md)                 | `meow-git`'s commit guard resolved a relative `cd` against the session's directory, refusing a commit on a branch |
 | [BUG-1230](bugs/BUG-1230-the-prose-gate-blocks-on-findings-the-text-lacks.md)        | `meow-prose-gate` blocked texts for findings they didn't contain                                                  |
+| [BUG-1240](bugs/BUG-1240-the-shipped-shell-is-outside-the-verbs.md)                  | The shell every unit ships was outside the `format` and `lint` verbs                                              |
 
-Twenty are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Twenty-four are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.

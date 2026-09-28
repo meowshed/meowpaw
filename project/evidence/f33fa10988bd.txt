@@ -1,0 +1,27 @@
+meow-verbs evidence 1
+record: f33fa10988bd
+verb: format
+command: mise run fmt-check && mise run shell-fmt && mise run crate-fmt
+targets: none
+outcome: failed
+exit status: 1
+tree: 35a4316948829fce44d0bad1d0230dc8828795ca
+time: 2026-09-28T16:39:49Z
+
+[fmt-check] $ prettier --check '**/*.md'
+Checking formatting...
+All matched files use Prettier code style!
+[shell-fmt] $ files=$(shfmt -f plugins crates/meow) && test -n "$files" && shfmt -i 2 -d $files
+diff plugins/meow-mise/bin/meow-mise.orig plugins/meow-mise/bin/meow-mise
+--- plugins/meow-mise/bin/meow-mise.orig
++++ plugins/meow-mise/bin/meow-mise
+@@ -39,7 +39,7 @@
+ esac
+ 
+ if true; then
+-      echo planted
++  echo planted
+ fi
+ 
+ planted= value
+[shell-fmt] ERROR task failed
