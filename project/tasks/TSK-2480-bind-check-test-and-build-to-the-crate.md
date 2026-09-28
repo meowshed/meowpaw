@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1570
 closes: []
-issue:
+issue: 602
+projected: 081cc33d99b4
 ---
 
 # Bind `check`, `test` and `build` to the crate
