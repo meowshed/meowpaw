@@ -1,7 +1,7 @@
 ---
 id: TSK-2540
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-28
 epic: EPC-1580
 closes: [REQ-3202]
@@ -34,7 +34,8 @@ One task, one branch, one pull request, one review.
 4. Given `plugins/meow-flow/skills/run/SKILL.md`, when it is read, then a
    step says that where the step it ran ends without an approval gate, it
    runs `paw status` again and continues, and step 5 still stops at an
-   approval gate. Closed by: `RunSkill.test_the_driver_continues_past_a_step_with_no_gate`,
+   approval gate. Closed by:
+   `RunSkill.test_the_driver_continues_past_a_step_with_no_gate`,
    a static fixture reading the skill.
 5. Given the driver run on a task, when it reaches the task's implement step,
    then it reached it in the same invocation that ran cover. Judgement,

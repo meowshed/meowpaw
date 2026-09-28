@@ -3,7 +3,7 @@ id: REQ-3203
 artifact: requirement
 topic: the-method
 class: functional
-status: draft
+status: approved
 revised: 2026-09-28
 elaborates: RES-0001
 verification: static

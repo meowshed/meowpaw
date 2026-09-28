@@ -1,7 +1,7 @@
 ---
 id: TSK-2530
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-28
 epic: EPC-1580
 closes: [REQ-3207, REQ-3216]
@@ -19,19 +19,21 @@ implementation starts. One task, one branch, one pull request, one review.
 ## Acceptance criteria
 
 1. Given any record, when `paw ready bogus TSK-0001` runs, then it exits 2
-   and its message names `research, requirements, design, spec, epic, cover,
-implement, document, verify, review` in that order. Closed by:
+   and its message names the ten steps in order: research, requirements,
+   design, spec, epic, cover, implement, document, verify and review. Closed
+   by:
    `Chain.test_an_unknown_step_names_the_ten` in
    `plugins/meow-flow/tests/test_record.py`, which replaces
    `test_an_unknown_step_names_the_nine`.
 2. Given the fixture record with an approved task under an approved epic,
    when `paw ready cover TSK-0001` runs, then it exits 0; with the task set to
    draft it exits 1 naming the task as not approved; with a dependency not
-   done it exits 1 naming the dependency. Closed by: `Cover.test_cover_is_ready_on_an_approved_task`,
+   done it exits 1 naming the dependency. Closed by:
+   `Cover.test_cover_is_ready_on_an_approved_task`,
    `Cover.test_cover_refuses_a_draft_task` and
    `Cover.test_cover_refuses_until_its_dependency_is_done`.
-3. Given an approved, dependency-free task with no `## Cover`, when `paw ready
-implement` runs on it, then it exits 1 naming the missing Cover. Closed by:
+3. Given an approved, dependency-free task with no `## Cover`, when
+   `paw ready implement` runs on it, then it exits 1 naming the missing Cover. Closed by:
    `Cover.test_implement_refuses_a_task_with_no_cover`.
 4. Given a Cover whose `Failing run` names a path that doesn't exist, then
    `paw ready implement` exits 1 naming that path; and given one whose
@@ -44,8 +46,8 @@ implement` runs on it, then it exits 1 naming the missing Cover. Closed by:
 6. Given a Cover whose `Judgement` names a criterion number with no reason,
    then `paw ready implement` exits 1 naming that criterion. Closed by:
    `Cover.test_implement_names_a_judgement_with_no_reason`.
-7. Given a Cover with every line filled and every path present, then `paw
-ready implement` exits 0; and given a task whose `Checks`, `Failing run` and
+7. Given a Cover with every line filled and every path present, then
+   `paw ready implement` exits 0; and given a task whose `Checks`, `Failing run` and
    `Landed in` read `none` and whose `Judgement` names every numbered
    acceptance criterion with a reason, it exits 0. Closed by:
    `Cover.test_implement_is_ready_once_the_cover_is_filled` and

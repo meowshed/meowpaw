@@ -1,7 +1,7 @@
 ---
 id: TSK-2550
 artifact: task
-status: draft
+status: approved
 revised: 2026-09-28
 epic: EPC-1580
 closes: [REQ-3200, REQ-3203]
@@ -19,8 +19,8 @@ gate. One task, one branch, one pull request, one review.
 ## Acceptance criteria
 
 1. Given `plugins/meow-flow/skills/method/SKILL.md`, when it is read, then its
-   body names `research, requirements, design, spec, epic, cover, implement,
-document, verify` and `review` in that order, its description names the same
+   body names research, requirements, design, spec, epic, cover, implement,
+   document, verify and review in that order, its description names the same
    ten in order, and `steps/` holds one file for each name and no other.
    Closed by: `MethodSkill.test_the_skill_names_ten_steps_in_order` and
    `MethodSkill.test_each_step_has_one_file` in
@@ -50,7 +50,8 @@ document, verify` and `review` in that order, its description names the same
    `Chain.test_the_bug_template_names_cover`.
 7. Given `CLAUDE.md`'s `own_method_first` chain and `project/vision.md`'s
    chain, when they are read, then each names ten steps with cover between
-   epic and implement. Closed by: `MethodSkill.test_the_living_documents_name_ten_steps`.
+   epic and implement. Closed by:
+   `MethodSkill.test_the_living_documents_name_ten_steps`.
 8. Given this change's tree, when `meow-verbs run format lint test` runs,
    then each passes. Closed by: the kept evidence of that run.
 
@@ -99,7 +100,7 @@ the revision that merges.
 
 ## Left alone
 
-The run skill, which TSK-2540 changes. The body of `plugins/meow-flow/README.md`,
-the root `README.md` and `llms.txt`, which the document step updates once
+The run skill, which TSK-2540 changes. The body of
+`plugins/meow-flow/README.md`, the root `README.md` and `llms.txt`, which the document step updates once
 every task is done. The cover step's content rules, which a later decision
 adds.

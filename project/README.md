@@ -467,7 +467,7 @@ in four tasks, TSK-2480 to TSK-2510, each closed with evidence, and was
 verified against every acceptance criterion under issue 596.
 
 [EPC-1580](epics/EPC-1580-the-cover-step.md) realises ADR-1620 in three tasks,
-TSK-2530 to TSK-2550, none of them started.
+TSK-2530 to TSK-2550, none of them started, and every requirement ADR-1620 addresses lands in one of them.
 
 ## Defects
 

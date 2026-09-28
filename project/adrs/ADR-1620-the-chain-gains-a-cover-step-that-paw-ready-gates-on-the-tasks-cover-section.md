@@ -1,7 +1,7 @@
 ---
 id: ADR-1620
 artifact: adr
-status: draft
+status: approved
 revised: 2026-09-28
 addresses: [REQ-3200, REQ-3202, REQ-3203, REQ-3207, REQ-3216]
 postpones: []
