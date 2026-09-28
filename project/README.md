@@ -502,6 +502,7 @@ TSK-2530 to TSK-2550, none of them started, and every requirement ADR-1620 addre
 | [BUG-1220](bugs/BUG-1220-the-commit-guard-misreads-a-relative-cd.md)                 | `meow-git`'s commit guard resolved a relative `cd` against the session's directory, refusing a commit on a branch |
 | [BUG-1230](bugs/BUG-1230-the-prose-gate-blocks-on-findings-the-text-lacks.md)        | `meow-prose-gate` blocked texts for findings they didn't contain                                                  |
 | [BUG-1240](bugs/BUG-1240-the-shipped-shell-is-outside-the-verbs.md)                  | The shell every unit ships was outside the `format` and `lint` verbs                                              |
+| [BUG-1250](bugs/BUG-1250-status-names-a-step-ready-refuses-for-a-taskless-epic.md)   | `paw status` named document for an epic with no tasks, and `paw ready` refused it                                 |
 
 Twenty-four are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
