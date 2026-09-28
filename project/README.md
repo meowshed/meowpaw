@@ -261,6 +261,10 @@ the harness changes code and how it writes a check.
 reports mise resolving in a work tree, how it binds a verb to a task, and what
 its check finds in a profile.
 
+[SPC-1150](specs/SPC-1150-the-go-task-pack.md) states the go-task pack: where
+it differs from the mise pack in detecting, listing and reading a task, and
+how it reports remote includes and secret variables.
+
 ## Epics and tasks
 
 [EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) realises ADR-1000
@@ -445,6 +449,9 @@ evidence, and was verified against every acceptance criterion under issue 575.
 [EPC-1550](epics/EPC-1550-the-mise-pack.md) realises ADR-1580 in three tasks,
 TSK-2420 to TSK-2440, each closed with evidence, and was verified against
 every acceptance criterion under issue 577.
+
+[EPC-1560](epics/EPC-1560-the-go-task-pack.md) realises ADR-1590 in two tasks,
+TSK-2450 and TSK-2460, none started.
 
 ## Defects
 
