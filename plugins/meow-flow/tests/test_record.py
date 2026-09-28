@@ -1047,6 +1047,45 @@ class Cover(unittest.TestCase):
         self.assertNotIn("TSK-0001", done.stdout + done.stderr)
         self.assertNotIn("Cover", done.stdout + done.stderr)
 
+
+class CoverPaths(unittest.TestCase):
+    """BUG-1260, REQ-3207: a path under `Checks` or `Failing run` is a regular file kept inside the repository, and
+    the failing run isn't one of the checks."""
+
+    def refused(self, line, path, outside=False):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        cover = FILLED.replace("tests/test_a_task.py" if line == "Checks" else "evidence/a-failing-run.txt", path)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "## Cover\n\n" + cover + "\n\n## Evidence")
+        for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
+            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
+            (repository.path / name).write_text("A file.\n", encoding="utf-8")
+        if outside:
+            (repository.path.parent / "outside.txt").write_text("A file.\n", encoding="utf-8")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertTrue(any(path in l and line in l for l in done.stdout.splitlines()), done.stdout)
+
+    def test_a_failing_run_outside_the_repository_is_refused(self):
+        """TSK-2570 criterion 1: an absolute path, and a `..` path to a file that exists, under `Failing run`."""
+        self.refused("Failing run", "/etc/hosts")
+        self.refused("Failing run", "../outside.txt", outside=True)
+
+    def test_a_failing_run_that_is_a_directory_is_refused(self):
+        """TSK-2570 criterion 1: a directory in the repository under `Failing run` is no run."""
+        self.refused("Failing run", "tests")
+
+    def test_a_check_outside_the_repository_or_a_directory_is_refused(self):
+        """TSK-2570 criterion 2: an absolute path, a `..` escape and a directory under `Checks`."""
+        self.refused("Checks", "/etc/hosts")
+        self.refused("Checks", "../outside.txt", outside=True)
+        self.refused("Checks", "evidence")
+
+    def test_a_check_named_as_its_own_failing_run_is_refused(self):
+        """TSK-2570 criterion 3: `Failing run` naming the file `Checks` names."""
+        self.refused("Failing run", "tests/test_a_task.py")
+
+
 class Show(unittest.TestCase):
     """SPC-1100: an identifier resolves to its artifact and to what cites it."""
 
