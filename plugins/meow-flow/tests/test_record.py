@@ -860,6 +860,10 @@ FILLED = """- Checks: tests/test_a_task.py
 - Landed in: #12
 - Judgement: 2: whether the page reads well rests on a reader"""
 
+CRITERIA = """1. Given a task, then a check passes.
+2. Given a page, then it reads well.
+3. Given a table, then it is ordered as a reader expects."""
+
 
 class TasklessEpic(unittest.TestCase):
     """BUG-1250: `ready` and `status` read an epic that lists no tasks the same way (REQ-0208)."""
@@ -910,6 +914,8 @@ class Cover(unittest.TestCase):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         sections = ""
+        if criteria is None and cover is not None:
+            criteria = CRITERIA
         if criteria is not None:
             sections += "## Acceptance criteria\n\n" + criteria + "\n\n"
         if cover is not None:
@@ -1056,7 +1062,8 @@ class CoverPaths(unittest.TestCase):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         cover = FILLED.replace("tests/test_a_task.py" if line == "Checks" else "evidence/a-failing-run.txt", path)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "## Cover\n\n" + cover + "\n\n## Evidence")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
+                        "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + cover + "\n\n## Evidence")
         for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
             (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
             (repository.path / name).write_text("A file.\n", encoding="utf-8")
@@ -1084,6 +1091,47 @@ class CoverPaths(unittest.TestCase):
     def test_a_check_named_as_its_own_failing_run_is_refused(self):
         """TSK-2570 criterion 3: `Failing run` naming the file `Checks` names."""
         self.refused("Failing run", "tests/test_a_task.py")
+
+
+class CoverCriteria(unittest.TestCase):
+    """BUG-1261, REQ-3216: no criterion that nothing checks reads as covered, whatever the Cover's other lines say."""
+
+    def implement(self, cover, criteria="1. Given a, then b.\n2. Given c, then d."):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        sections = "## Acceptance criteria\n\n" + criteria + "\n\n" if criteria is not None else ""
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", sections + "## Cover\n\n" + cover + "\n\n## Evidence")
+        for name in ("tests/t.py", "evidence/run.txt"):
+            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
+            (repository.path / name).write_text("A file.\n", encoding="utf-8")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        return done.stdout.splitlines()
+
+    def test_no_checks_names_every_criterion_whatever_else_is_named(self):
+        """TSK-2571 criterion 1: `Checks: none` with a run and a pull request named still asks for every criterion."""
+        lines = self.implement("- Checks: none\n- Failing run: evidence/run.txt\n- Landed in: #1\n- Judgement: none")
+        for number in ("1", "2"):
+            self.assertTrue(any(f"criterion {number}" in l for l in lines), lines)
+
+    def test_a_task_with_no_numbered_criterion_is_refused(self):
+        """TSK-2571 criterion 2: bullets in place of numbered criteria, and no criteria section, are refused."""
+        none = "- Checks: none\n- Failing run: none\n- Landed in: none\n- Judgement: none"
+        for criteria in ("- One.\n- Two.", None):
+            with self.subTest(criteria=criteria):
+                lines = self.implement(none, criteria)
+                self.assertTrue(any("no numbered" in l and "criterion" in l for l in lines), lines)
+
+    def test_a_judgement_naming_no_criterion_is_refused(self):
+        """TSK-2571 criterion 3: `Judgement: 7` on a task whose criteria are 1 and 2."""
+        lines = self.implement("- Checks: tests/t.py\n- Failing run: evidence/run.txt\n- Landed in: #1\n"
+                               "- Judgement: 7: a reason")
+        self.assertTrue(any(re.search(r"\b7\b", l.replace("TSK-0001", "")) for l in lines), lines)
+
+    def test_an_empty_judgement_is_refused(self):
+        """TSK-2571 criterion 4: `Judgement:` with nothing after it is neither a reason nor `none`."""
+        lines = self.implement("- Checks: tests/t.py\n- Failing run: evidence/run.txt\n- Landed in: #1\n- Judgement:")
+        self.assertTrue(any("Judgement" in l for l in lines), lines)
 
 
 class Show(unittest.TestCase):
