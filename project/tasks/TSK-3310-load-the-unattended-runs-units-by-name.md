@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1900
 closes: [REQ-2392]
-issue:
+issue: 655
+projected: fe418aa78fc2
 ---
 
 # Make `meow-unattended plan` load each unit by name, and refuse what would load by discovery
