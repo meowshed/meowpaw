@@ -40,8 +40,8 @@ Nothing. BUG-1250 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: plugins/meow-flow/tests/test_record.py, the class `TasklessEpic`
+- Failing run: project/evidence/caa66d8d0c05.txt
 - Landed in: not yet
 - Judgement: none
 
