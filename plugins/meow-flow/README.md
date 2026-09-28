@@ -2,12 +2,12 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.33.3]
+describes: [meow-flow@0.34.0]
 ---
 
 # meow-flow
 
-`meow-flow` runs the method: nine steps from research to review, each
+`meow-flow` runs the method: ten steps from research to review, each
 writing one artifact from an approved input. It keeps the record those steps
 write, the research, requirements, decisions, specifications, epics, tasks and
 defects, and checks it, reporting each finding with its file and line. It
@@ -106,10 +106,10 @@ and the task names `bug: BUG-NNNN` in place of `epic`. `paw status` counts the
 tasks decisions authorised and the tasks defects did.
 
 A defect is reproduced before it is triaged, and its triage names in `enters`
-the step it enters at: `implement` or `design` where it violates a requirement,
+the step it enters at: `cover`, `implement` or `design` where it violates a requirement,
 `requirements` where the requirement is wrong or none covers the behaviour,
 and `research` where the cause is unknown. `paw check` reports a triaged
-draft with no `enters`, a defect entering at `implement` or `design` with no
+draft with no `enters`, a defect entering at `cover`, `implement` or `design` with no
 `violates`, a triage with no reproduction, a rejected report with no
 reasoning, a closed defect whose Closed by names no check, an epic for a
 defect that one task would fix, and a `prompted-by` naming no defect.
@@ -122,6 +122,28 @@ $ paw ready implement TSK-1430
 paw ready implement: not ready
   TSK-1420, which TSK-1430 depends on, isn't done
 ```
+
+`paw ready cover` asks that of a task: the task and its epic or defect
+approved, and each task under its `## Depends on` done. `paw ready implement`
+asks the same and also reads the task's `## Cover` section, four lines naming
+the checks, the kept run in which they failed, where they landed and each
+criterion resting on judgement with its reason:
+
+```text
+- Checks: tests/test_a_task.py
+- Failing run: evidence/a-failing-run.txt
+- Landed in: #12
+- Judgement: 2: whether the page reads well rests on a reader
+```
+
+It refuses while the section is missing or reads `Not yet.`, while a path
+under `Checks` or `Failing run` names no file in the repository, while
+`Landed in` reads `none` beside a named check, and while a `Judgement` number
+has no reason. A task with no check to write reads `none` on the first three
+lines and names every numbered acceptance criterion under `Judgement`. `ready`
+reads only these lines, so it doesn't check that the run failed. The method
+skill doesn't run the cover step yet, so until it does you write the Cover by
+hand.
 
 `paw status` prints where the record stands, leading with whatever waits for
 your approval. It counts the requirements in force by the state it derives from
