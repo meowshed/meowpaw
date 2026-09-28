@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1900
 closes: [REQ-2388]
-issue:
+issue: 654
+projected: 5d5662f7e417
 ---
 
 # Add `meow-unattended plan`, which prints a run's declared posture and writes the snapshot that holds its authority
