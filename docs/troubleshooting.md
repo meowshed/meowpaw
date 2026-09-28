@@ -9,7 +9,7 @@ describes:
     meow-github@0.4.2,
     meow-flow@0.33.3,
     meow-method@0.30.0,
-    meow-prose-gate@0.1.2,
+    meow-prose-gate@0.2.0,
     meow-scm@0.4.2,
     meow-verbs@0.7.1,
   ]
@@ -106,10 +106,17 @@ have it checked.
 
 `meow-prose-gate` blocked a commit, a pull request, an issue, a comment or a
 release note, and Claude Code shows its reason as `P1 | "span" | fix`, one line
-per problem. P1 is a stock idiom, P2 a bold fragment standing in for a
-heading, and P3 text hidden in a file the gate can't read. Claude Code
-rewrites the text from the reason and publishes again. If you ran the command
-yourself, or the retry is blocked too, apply the fix the reason names.
+per problem. P1 is an idiom from the gate's list of fifteen, P2 a line holding
+only bold text, and P3 text hidden in a file the gate can't read. The span is
+copied from the command, so you can find it there. Claude Code rewrites the
+text from the reason and publishes again. If you ran the command yourself, or
+the retry is blocked too, apply the fix the reason names. If the span is inside
+code or a path the gate should have skipped, that is a defect in the gate:
+report it with the command.
+
+If the gate prints `unrun` and `nothing was checked`, the unit carries no
+binary for your machine, so it let the publish through unchecked. Reinstall
+the unit.
 
 ## A step is not ready
 

@@ -100,5 +100,6 @@ fixture can hold a model's verdict. They stay as the regression check.
 
 ## Tasks
 
-- [ ] T-001 TSK-2470 replace the prompt hook with a command hook running the
+- [x] T-001 TSK-2470 replace the prompt hook with a command hook running the
       unit's program, in `plugins/meow-prose-gate/` and `crates/meow/`
+      evidence: the fixtures, seen failing first, pass in the fix's pull request.
