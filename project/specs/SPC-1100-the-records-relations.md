@@ -104,8 +104,8 @@ relation resolves to an artifact that exists (REQ-0654).
 (REQ-0642, REQ-0652):
 
 ```text
-REQ-0190 requirement, approved: project/requirements/REQ-0190-nine-steps.md
-The method MUST proceed through nine named steps ...
+REQ-3200 requirement, approved: project/requirements/REQ-3200-ten-steps-in-order.md
+The method MUST proceed through ten named steps ...
 
 Names
   elaborates: RES-0001
