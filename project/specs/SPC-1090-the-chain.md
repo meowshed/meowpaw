@@ -128,12 +128,21 @@ states:
     REQ-0326,
     REQ-0327,
     REQ-0329,
+    REQ-0330,
     REQ-0331,
+    REQ-0332,
     REQ-0333,
+    REQ-0334,
     REQ-0335,
+    REQ-0336,
     REQ-0337,
+    REQ-0338,
     REQ-0339,
+    REQ-0340,
     REQ-0341,
+    REQ-0342,
+    REQ-0344,
+    REQ-0346,
     REQ-0348,
     REQ-0350,
     REQ-0352,
@@ -319,8 +328,8 @@ states:
 This covers how the method's ten steps run: invoking one, the gate each
 checks before it writes, the command that drives them, and the state of the
 chain as the record shows it. It leaves each artifact's content rules to the
-specifications of the steps that write them, and classifying trivial work to a
-later decision.
+specifications of the steps that write them. It also covers the route, which
+comes before the chain's first step and says where a request enters the chain.
 
 ADR-1130 decides it, and EPC-1100 realised it, verified under issue 202.
 ADR-1160 adds each step's obligations, and EPC-1160 realised them, verified
@@ -339,6 +348,8 @@ ADR-2200 adds the skeptic that tries to refute each
 requirement an epic claims before its verification is recorded, and the draft
 defect verification writes for each refutation it confirms; no epic realises
 it yet, so the verify step dispatches no skeptic and writes no defect today.
+ADR-2100 decides the route, and EPC-2000 realises it; until its tasks land,
+no router ships and a request starts unrouted.
 
 ## Boundary
 
@@ -349,11 +360,87 @@ it yet, so the verify step dispatches no skeptic and writes no defect today.
 | `plugins/meow-flow/skills/run/SKILL.md`       | `/meow-flow:run`, the command that drives the chain                     |
 | `plugins/meow-flow/agents/record-reviewer.md` | The agent that reviews a record before its gate                         |
 | `plugins/meow-flow/agents/skeptic.md`         | The agent that tries to refute what an epic claims (not yet; see Scope) |
+| `plugins/meow-flow/skills/route/SKILL.md`     | The skill that routes a request before work starts (not yet; see Scope) |
+| `plugins/meow-flow/agents/router.md`          | The read-only agent the route skill dispatches (not yet; see Scope)     |
 | `plugins/meow-flow/templates/<kind>.md`       | The unit's template for each kind                                       |
 | `.meowpaw/templates/<kind>.md`                | A repository's own template, which overrides the unit's                 |
 | `paw status`, `ready`, `template`             | The chain's state, a step's gate, the template in force                 |
 
 ## Behaviour
+
+### The route
+
+Before any work on a request to change the repository, the `route` skill
+classifies the change (REQ-0330) and reports the route and its reason as the
+first thing in the reply, before any tool that writes runs (REQ-0332). A route
+has a size and a shape.
+
+| Size      | What it writes                                                       | Where it enters                                                                                  |
+| --------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `none`    | no artifact                                                          | the edit, for a typo, a formatting fix or a link that alters no behaviour and no approved record |
+| `reduced` | only the records the work lacks: a task, and a defect record for one | `implement` under an approved epic, `epic` under an approved decision no epic realises yet       |
+| `full`    | every step's artifact                                                | `research`                                                                                       |
+
+The three sizes are the classes REQ-0334 asks for. Work that no approved
+record authorises has no step for `reduced` to enter at, so its route is
+`full`.
+
+| Shape           | What it changes                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| new work        | nothing: it enters where its size says                                                                      |
+| extends records | the records it names by identifier are the first step's input                                               |
+| a defect        | it starts at a reproduction, and enters at the step its triage names in `enters`, whatever the size         |
+| several changes | each change is listed with its own size and shape, and the skill stops before any of them starts (REQ-0344) |
+
+A defect's size is `reduced` where a requirement in force appears to cover
+the behaviour and `full` where none does. The size records only that, because
+the defect's `enters` overrides it, as "A defect's path" says.
+
+The skill dispatches `meow-flow:router`, whose front matter sets
+`tools: Read, Grep, Glob` and no other tool, so classification writes nothing
+(REQ-0346). The router reads the request and the repository together:
+`.meowpaw/profile.toml`, the record's indexes and specifications where the
+profile declares a record, and the files the request would touch (REQ-0342).
+It returns the size, the shape, a reason naming at least one path or
+identifier it read, whether the evidence was ambiguous, and the override words
+that would change the route. The router's own definition states these fields,
+and the skill reads them and nothing its brief adds. Where the evidence points
+to two sizes, the router takes the larger (REQ-0338), and the report says
+`ambiguous` and names the evidence on each side (REQ-0340).
+
+After the report, the skill proceeds without a question:
+
+- `none` goes to the edit.
+- `reduced` or `full` runs `paw ready` for the step the route enters at, and
+  the `method` skill takes over.
+- A defect goes to the `method` skill's defect path, which writes the defect
+  record, its reproduction and its triage; the skill runs `paw ready` for the
+  step `enters` names once the record carries it.
+- Several changes are reported as a list, and the skill stops.
+
+A person overrides the route in one instruction, in either direction
+(REQ-0336):
+
+| Word            | Effect                                                                       |
+| --------------- | ---------------------------------------------------------------------------- |
+| `route none`    | sets the size to `none` and keeps the shape                                  |
+| `route reduced` | sets the size to `reduced` and keeps the shape                               |
+| `route full`    | sets the size to `full` and keeps the shape                                  |
+| `route one`     | runs the listed changes as one change, at the largest size among its entries |
+
+A size word given after a several-changes route sets that size on every entry
+and keeps the list. No word splits one change into several. An override
+applies to the request it answers and not to later ones. Given with the
+request, it skips the dispatch. A parent agent that already routed the work
+passes its route in the brief the same way, and the subagent doesn't route
+again.
+
+A question in chat that changes nothing isn't routed.
+
+The failure paths below name the states that would otherwise read as a
+route, and each reports as itself.
+
+A route is recorded nowhere but the reply.
 
 ### The steps
 
@@ -694,11 +781,22 @@ REQ-3112). Without the pack it reports the history as unread and names
 
 ## Failure paths
 
-| Condition                                 | What happens                                                                    |
-| ----------------------------------------- | ------------------------------------------------------------------------------- |
-| `ready` names an input that doesn't exist | Exit 1, the input named as missing                                              |
-| `ready` for a step it doesn't know        | Exit 2, naming the ten steps in order                                           |
-| `ready implement` on a task not covered   | Exit 1, naming the missing Cover, or each missing line or path, on its own line |
-| `template` for a kind it doesn't know     | Exit 2, naming the kinds                                                        |
-| The record's root doesn't exist           | `status` and `ready` say so and exit 1, as `check` does                         |
-| No binary for the machine                 | The launcher reports the record as not checked and exits 3                      |
+| Condition                                              | What happens                                                                                                            |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `ready` names an input that doesn't exist              | Exit 1, the input named as missing                                                                                      |
+| `ready` for a step it doesn't know                     | Exit 2, naming the ten steps in order                                                                                   |
+| `ready implement` on a task not covered                | Exit 1, naming the missing Cover, or each missing line or path, on its own line                                         |
+| `template` for a kind it doesn't know                  | Exit 2, naming the kinds                                                                                                |
+| The record's root doesn't exist                        | `status` and `ready` say so and exit 1, as `check` does                                                                 |
+| The router can't be dispatched                         | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
+| The router's reply names no size                       | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
+| The router's reason names no path or identifier        | `full`, `ambiguous`, "the router's reason named nothing it read", and the override words                                |
+| The repository declares no record                      | The route as the router gave it, and that no record is declared; the skill proceeds to the work and runs no step's gate |
+| A person overrode the router's route                   | The route as overridden, and the route the router gave                                                                  |
+| `route reduced` for work no approved record authorises | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
+| A route came with the request or the brief             | The route as given, and that no router ran                                                                              |
+| No binary for the machine                              | The launcher reports the record as not checked and exits 3                                                              |
+
+Where two of the route's rows apply, the report carries both, and the
+`route reduced` row decides the route over the row for a route given with the
+request.
