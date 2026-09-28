@@ -13,8 +13,8 @@
 
 mod ledger;
 
-use crate::profile::{self, Profile, PROFILE};
-use serde_json::{json, Map, Value};
+use crate::profile::{self, PROFILE, Profile};
+use serde_json::{Map, Value, json};
 use std::io::Read;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -35,8 +35,14 @@ const SIGTERM: i32 = 15;
 const TARGETS: &str = "{targets}";
 
 enum Entry {
-    Resolved { command: String, subset: Option<String> },
-    Unresolved { kind: &'static str, detail: String },
+    Resolved {
+        command: String,
+        subset: Option<String>,
+    },
+    Unresolved {
+        kind: &'static str,
+        detail: String,
+    },
 }
 
 struct Report {
@@ -51,14 +57,28 @@ struct Report {
 fn resolve(root: &Path) -> Report {
     let path = root.join(PROFILE).display().to_string();
     let every = |kind: &'static str, detail: String| {
-        VERBS.iter().map(|verb| (*verb, Entry::Unresolved { kind, detail: detail.clone() })).collect()
+        VERBS
+            .iter()
+            .map(|verb| {
+                (
+                    *verb,
+                    Entry::Unresolved {
+                        kind,
+                        detail: detail.clone(),
+                    },
+                )
+            })
+            .collect()
     };
     match profile::read(root) {
         Profile::Absent => Report {
             path,
             state: "absent",
             error: None,
-            verbs: every("no profile", format!("{PROFILE} doesn't exist; write it, declaring each verb under [verbs]")),
+            verbs: every(
+                "no profile",
+                format!("{PROFILE} doesn't exist; write it, declaring each verb under [verbs]"),
+            ),
             ignored: Vec::new(),
             notices: Vec::new(),
         },
@@ -71,8 +91,11 @@ fn resolve(root: &Path) -> Report {
             notices: Vec::new(),
         },
         Profile::Parsed(data) => {
-            let mut ignored: Vec<String> =
-                data.keys().filter(|key| *key != "verbs").map(|key| format!("[{key}]")).collect();
+            let mut ignored: Vec<String> = data
+                .keys()
+                .filter(|key| *key != "verbs")
+                .map(|key| format!("[{key}]"))
+                .collect();
             let empty = toml::Table::new();
             let declared = match data.get("verbs") {
                 None => &empty,
@@ -114,7 +137,14 @@ fn resolve(root: &Path) -> Report {
                     (*verb, entry)
                 })
                 .collect();
-            Report { path, state: "present", error: None, verbs, ignored, notices: Vec::new() }
+            Report {
+                path,
+                state: "present",
+                error: None,
+                verbs,
+                ignored,
+                notices: Vec::new(),
+            }
         }
     }
 }
@@ -122,19 +152,35 @@ fn resolve(root: &Path) -> Report {
 /// A verb declared as a table: `command` for the whole work, and an optional
 /// `subset` with `{targets}` where the part goes (ADR-1520).
 fn from_table(table: &toml::Table) -> Entry {
-    let malformed = |detail: &str| Entry::Unresolved { kind: "malformed declaration", detail: detail.into() };
-    let Some(command) = table.get("command").and_then(|v| v.as_str()).filter(|c| !c.trim().is_empty()) else {
-        return malformed("the table has no `command`; write the whole command as a string under `command`");
+    let malformed = |detail: &str| Entry::Unresolved {
+        kind: "malformed declaration",
+        detail: detail.into(),
+    };
+    let Some(command) = table
+        .get("command")
+        .and_then(|v| v.as_str())
+        .filter(|c| !c.trim().is_empty())
+    else {
+        return malformed(
+            "the table has no `command`; write the whole command as a string under `command`",
+        );
     };
     let subset = match table.get("subset") {
         None => None,
         Some(toml::Value::String(form)) if form.contains(TARGETS) => Some(form.clone()),
         Some(toml::Value::String(_)) => {
-            return malformed("`subset` has no {targets}, so it would run the whole work under the part's name");
+            return malformed(
+                "`subset` has no {targets}, so it would run the whole work under the part's name",
+            );
         }
-        Some(_) => return malformed("`subset` isn't one command; write it as a string holding {targets}"),
+        Some(_) => {
+            return malformed("`subset` isn't one command; write it as a string holding {targets}");
+        }
     };
-    Entry::Resolved { command: command.to_string(), subset }
+    Entry::Resolved {
+        command: command.to_string(),
+        subset,
+    }
 }
 
 /// A target quoted so the shell passes it to the tool as one argument.
@@ -155,11 +201,17 @@ fn status(root: &Path, as_json: bool) -> u8 {
                 Entry::Resolved { command, subset } => {
                     json!({"state": "resolved", "command": command, "subset": subset, "source": PROFILE})
                 }
-                Entry::Unresolved { kind, detail } => json!({"state": "unresolved", "kind": kind, "detail": detail}),
+                Entry::Unresolved { kind, detail } => {
+                    json!({"state": "unresolved", "kind": kind, "detail": detail})
+                }
             };
             verbs.insert(verb.to_string(), value);
         }
-        let profile = if report.state == "absent" { Value::Null } else { Value::from(report.path.clone()) };
+        let profile = if report.state == "absent" {
+            Value::Null
+        } else {
+            Value::from(report.path.clone())
+        };
         let out = json!({
             "profile": profile,
             "profile_state": report.state,
@@ -171,7 +223,11 @@ fn status(root: &Path, as_json: bool) -> u8 {
         println!("{}", serde_json::to_string_pretty(&out).unwrap_or_default());
         return PASSED;
     }
-    let where_ = if report.state == "absent" { format!("{} (absent)", report.path) } else { report.path.clone() };
+    let where_ = if report.state == "absent" {
+        format!("{} (absent)", report.path)
+    } else {
+        report.path.clone()
+    };
     println!("meow-verbs status, profile {where_}\n");
     for (verb, entry) in &report.verbs {
         match entry {
@@ -179,10 +235,15 @@ fn status(root: &Path, as_json: bool) -> u8 {
                 println!("{verb:<10} resolved    {command}   (from {PROFILE})");
                 match subset {
                     Some(form) => println!("{:<10} subset      {form}", ""),
-                    None => println!("{:<10} subset      none: `run {verb} -- <targets>` reports no subset form", ""),
+                    None => println!(
+                        "{:<10} subset      none: `run {verb} -- <targets>` reports no subset form",
+                        ""
+                    ),
                 }
             }
-            Entry::Unresolved { kind, detail } => println!("{verb:<10} unresolved  {kind}: {detail}"),
+            Entry::Unresolved { kind, detail } => {
+                println!("{verb:<10} unresolved  {kind}: {detail}")
+            }
         }
     }
     if !report.ignored.is_empty() {
@@ -211,7 +272,12 @@ fn execute(root: &Path, command: &str) -> (i32, String) {
         shell
     };
     let spawned = match writer.try_clone() {
-        Ok(copy) => shell.current_dir(root).stdin(Stdio::null()).stdout(copy).stderr(writer).spawn(),
+        Ok(copy) => shell
+            .current_dir(root)
+            .stdin(Stdio::null())
+            .stdout(copy)
+            .stderr(writer)
+            .spawn(),
         Err(error) => return (127, format!("meow: can't share the pipe: {error}\n")),
     };
     drop(shell);
@@ -241,21 +307,35 @@ fn signal_code(_: std::process::ExitStatus) -> i32 {
 
 fn run(root: &Path, args: &[String]) -> u8 {
     // Everything after `--` is the part of the work to run over (ADR-1520).
-    let (names, targets): (&[String], Option<&[String]>) = match args.iter().position(|a| a == "--") {
+    let (names, targets): (&[String], Option<&[String]>) = match args.iter().position(|a| a == "--")
+    {
         Some(i) => (&args[..i], Some(&args[i + 1..])),
         None => (args, None),
     };
     if targets.is_some_and(|t| t.is_empty()) {
-        eprintln!("meow-verbs run: `--` names no target, which could mean the whole work or nothing; name the targets or drop `--`");
+        eprintln!(
+            "meow-verbs run: `--` names no target, which could mean the whole work or nothing; name the targets or drop `--`"
+        );
         return USAGE;
     }
     if names.is_empty() {
-        eprintln!("meow-verbs run: name the verbs to run, from: {}", VERBS.join(" "));
+        eprintln!(
+            "meow-verbs run: name the verbs to run, from: {}",
+            VERBS.join(" ")
+        );
         return USAGE;
     }
-    let unknown: Vec<&str> = names.iter().map(String::as_str).filter(|name| !VERBS.contains(name)).collect();
+    let unknown: Vec<&str> = names
+        .iter()
+        .map(String::as_str)
+        .filter(|name| !VERBS.contains(name))
+        .collect();
     if !unknown.is_empty() {
-        eprintln!("meow-verbs run: {} isn't a verb; the five are {}", unknown.join(", "), VERBS.join(" "));
+        eprintln!(
+            "meow-verbs run: {} isn't a verb; the five are {}",
+            unknown.join(", "),
+            VERBS.join(" ")
+        );
         return USAGE;
     }
 
@@ -269,31 +349,73 @@ fn run(root: &Path, args: &[String]) -> u8 {
     }
     let mut outcomes: Vec<(String, &str)> = Vec::new();
     let mut recorded: Vec<String> = Vec::new();
-    let mut keep = |result: ledger::Result, started: Option<&str>| match ledger::record(root, &result, started) {
-        Ok(id) => recorded.push(format!("recorded: {} {id} at tree {}", result.verb, ledger::short(result.after))),
+    let mut keep = |result: ledger::Result, started: Option<&str>| match ledger::record(
+        root, &result, started,
+    ) {
+        Ok(id) => recorded.push(format!(
+            "recorded: {} {id} at tree {}",
+            result.verb,
+            ledger::short(result.after)
+        )),
         Err(reason) => recorded.push(format!("not recorded: {} ({reason})", result.verb)),
     };
     for name in names {
-        let entry = &report.verbs.iter().find(|(verb, _)| verb == name).expect("a known verb").1;
+        let entry = &report
+            .verbs
+            .iter()
+            .find(|(verb, _)| verb == name)
+            .expect("a known verb")
+            .1;
         let command = match entry {
             Entry::Unresolved { kind, detail } => {
                 println!("== {name}: unresolved ({kind}: {detail}), not run\n");
                 outcomes.push((name.clone(), "unresolved"));
                 let tree = ledger::tree_id(root);
-                keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "", targets }, None);
+                keep(
+                    ledger::Result {
+                        verb: name,
+                        command: None,
+                        outcome: "unresolved",
+                        status: None,
+                        before: &tree,
+                        after: &tree,
+                        output: "",
+                        targets,
+                    },
+                    None,
+                );
                 continue;
             }
             Entry::Resolved { command, subset } => match (targets, subset) {
                 (None, _) => command.clone(),
-                (Some(parts), Some(form)) => {
-                    form.replace(TARGETS, &parts.iter().map(|t| quoted(t)).collect::<Vec<_>>().join(" "))
-                }
+                (Some(parts), Some(form)) => form.replace(
+                    TARGETS,
+                    &parts
+                        .iter()
+                        .map(|t| quoted(t))
+                        .collect::<Vec<_>>()
+                        .join(" "),
+                ),
                 (Some(_), None) => {
-                    let detail = format!("the profile declares no `subset` for {name}; declare one under [verbs.{name}] with {TARGETS}, or run the whole verb");
+                    let detail = format!(
+                        "the profile declares no `subset` for {name}; declare one under [verbs.{name}] with {TARGETS}, or run the whole verb"
+                    );
                     println!("== {name}: unresolved (no subset form: {detail}), not run\n");
                     outcomes.push((name.clone(), "unresolved"));
                     let tree = ledger::tree_id(root);
-                    keep(ledger::Result { verb: name, command: None, outcome: "unresolved", status: None, before: &tree, after: &tree, output: "", targets }, None);
+                    keep(
+                        ledger::Result {
+                            verb: name,
+                            command: None,
+                            outcome: "unresolved",
+                            status: None,
+                            before: &tree,
+                            after: &tree,
+                            output: "",
+                            targets,
+                        },
+                        None,
+                    );
                     continue;
                 }
             },
@@ -311,19 +433,36 @@ fn run(root: &Path, args: &[String]) -> u8 {
             c if c == -SIGINT || c == -SIGTERM => "interrupted",
             _ => "failed",
         };
-        keep(ledger::Result { verb: name, command: Some(command), outcome, status: Some(code), before: &before, after: &after, output: &output, targets }, record.as_deref());
+        keep(
+            ledger::Result {
+                verb: name,
+                command: Some(command),
+                outcome,
+                status: Some(code),
+                before: &before,
+                after: &after,
+                output: &output,
+                targets,
+            },
+            record.as_deref(),
+        );
         let seconds = started.elapsed().as_secs_f64();
         println!("== {name}: `{command}`");
         if code == 0 {
             println!("passed, exit status 0 after {seconds:.1}s\n");
             outcomes.push((name.clone(), "passed"));
         } else if outcome == "interrupted" {
-            println!("interrupted by signal {} after {seconds:.1}s; the run stopped, and this says nothing about the work\n", -code);
+            println!(
+                "interrupted by signal {} after {seconds:.1}s; the run stopped, and this says nothing about the work\n",
+                -code
+            );
             outcomes.push((name.clone(), "interrupted"));
         } else {
             let lines: Vec<&str> = output.trim_end_matches('\n').lines().collect();
             let shown = lines.len().min(TAIL);
-            println!("failed, exit status {code} after {seconds:.1}s; the last {shown} lines of its output:");
+            println!(
+                "failed, exit status {code} after {seconds:.1}s; the last {shown} lines of its output:"
+            );
             println!("{}", lines[lines.len() - shown..].join("\n"));
             println!();
             outcomes.push((name.clone(), "failed"));
@@ -336,7 +475,10 @@ fn run(root: &Path, args: &[String]) -> u8 {
         println!("-- end of {name}\n");
     }
 
-    let summary: Vec<String> = outcomes.iter().map(|(verb, result)| format!("{verb} {result}")).collect();
+    let summary: Vec<String> = outcomes
+        .iter()
+        .map(|(verb, result)| format!("{verb} {result}"))
+        .collect();
     println!("summary: {}", summary.join(", "));
     for line in &recorded {
         println!("{line}");
@@ -364,17 +506,39 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
     if args.iter().any(|a| a == "--kept") {
         return kept(root);
     }
-    let names: Vec<String> = args.iter().filter(|a| a.as_str() != "--keep" && a.as_str() != "--all").cloned().collect();
+    let names: Vec<String> = args
+        .iter()
+        .filter(|a| a.as_str() != "--keep" && a.as_str() != "--all")
+        .cloned()
+        .collect();
     let names = names.as_slice();
-    let unknown: Vec<&str> = names.iter().map(String::as_str).filter(|name| !VERBS.contains(name)).collect();
+    let unknown: Vec<&str> = names
+        .iter()
+        .map(String::as_str)
+        .filter(|name| !VERBS.contains(name))
+        .collect();
     if !unknown.is_empty() {
-        eprintln!("meow-verbs evidence: {} isn't a verb; the five are {}", unknown.join(", "), VERBS.join(" "));
+        eprintln!(
+            "meow-verbs evidence: {} isn't a verb; the five are {}",
+            unknown.join(", "),
+            VERBS.join(" ")
+        );
         return USAGE;
     }
     let records = ledger::records(root);
-    let text = |record: &Value, key: &str| record.get(key).and_then(Value::as_str).unwrap_or("").to_string();
+    let text = |record: &Value, key: &str| {
+        record
+            .get(key)
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_string()
+    };
     let wanted: Vec<String> = if names.is_empty() {
-        VERBS.iter().filter(|verb| records.iter().any(|r| text(r, "verb") == **verb)).map(|v| v.to_string()).collect()
+        VERBS
+            .iter()
+            .filter(|verb| records.iter().any(|r| text(r, "verb") == **verb))
+            .map(|v| v.to_string())
+            .collect()
     } else {
         names.to_vec()
     };
@@ -388,19 +552,52 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
         // A subset record never stands for the whole verb (ADR-1520); a record
         // from before targets were kept has none, and was a whole run.
         let whole = |r: &&Value| r.get("targets").is_none_or(Value::is_null);
-        if let Some(part) = records.iter().rev().find(|r| text(r, "verb") == *verb).filter(|r| !whole(r)) {
-            let parts: Vec<&str> = part["targets"].as_array().into_iter().flatten().filter_map(Value::as_str).collect();
-            println!("{verb}: subset only, {}, record {}, targets {}, at tree {}", text(part, "outcome"), text(part, "record"), parts.join(" "), ledger::short(&text(part, "tree")));
+        if let Some(part) = records
+            .iter()
+            .rev()
+            .find(|r| text(r, "verb") == *verb)
+            .filter(|r| !whole(r))
+        {
+            let parts: Vec<&str> = part["targets"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .collect();
+            println!(
+                "{verb}: subset only, {}, record {}, targets {}, at tree {}",
+                text(part, "outcome"),
+                text(part, "record"),
+                parts.join(" "),
+                ledger::short(&text(part, "tree"))
+            );
         }
-        let Some(latest) = records.iter().rev().filter(|r| text(r, "verb") == *verb).find(whole) else {
+        let Some(latest) = records
+            .iter()
+            .rev()
+            .filter(|r| text(r, "verb") == *verb)
+            .find(whole)
+        else {
             println!("{verb}: no record of a whole run");
             unresolved = true;
             continue;
         };
-        let (id, outcome, tree, before) = (text(latest, "record"), text(latest, "outcome"), text(latest, "tree"), text(latest, "tree_before"));
+        let (id, outcome, tree, before) = (
+            text(latest, "record"),
+            text(latest, "outcome"),
+            text(latest, "tree"),
+            text(latest, "tree_before"),
+        );
         let head = format!("{verb}: {outcome}, record {id}");
         if outcome == "running" || outcome == "interrupted" {
-            println!("{head}, {}", if outcome == "running" { "still running in another session" } else { "cut short; run it again" });
+            println!(
+                "{head}, {}",
+                if outcome == "running" {
+                    "still running in another session"
+                } else {
+                    "cut short; run it again"
+                }
+            );
             interrupted = true;
             if keep {
                 println!("  not kept: only a finished run is evidence");
@@ -412,15 +609,25 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
             unresolved = true;
         } else if tree == ledger::UNBOUND || now == ledger::UNBOUND {
             match ledger::dirty_submodule(root) {
-                Some(sub) => println!("{head}, bound to no tree: the submodule {sub} has uncommitted changes"),
+                Some(sub) => println!(
+                    "{head}, bound to no tree: the submodule {sub} has uncommitted changes"
+                ),
                 None => println!("{head}, bound to no tree: this isn't a git work tree"),
             }
             unresolved = true;
         } else if before != tree {
-            println!("{head}, stale: the tree changed during its run, from {} to {}", ledger::short(&before), ledger::short(&tree));
+            println!(
+                "{head}, stale: the tree changed during its run, from {} to {}",
+                ledger::short(&before),
+                ledger::short(&tree)
+            );
             failed = true;
         } else if tree != now {
-            println!("{head}, stale: ran on tree {}, and the tree is now {}", ledger::short(&tree), ledger::short(&now));
+            println!(
+                "{head}, stale: ran on tree {}, and the tree is now {}",
+                ledger::short(&tree),
+                ledger::short(&now)
+            );
             failed = true;
         } else {
             println!("{head}, current at tree {}", ledger::short(&tree));
@@ -428,16 +635,24 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
             if keep {
                 match ledger::keep(root, latest) {
                     Ok(path) => {
-                        let shown = path.strip_prefix(root).unwrap_or(&path).display().to_string();
+                        let shown = path
+                            .strip_prefix(root)
+                            .unwrap_or(&path)
+                            .display()
+                            .to_string();
                         // A file git won't commit isn't kept for anyone else (ADR-1550).
                         match ledger::ignored_by(root, &path) {
                             Ok(None) => println!("  kept: {shown}"),
                             Ok(Some(rule)) => {
-                                println!("  not kept: {shown} is ignored by {rule}; change the rule, and the file is ready to commit");
+                                println!(
+                                    "  not kept: {shown} is ignored by {rule}; change the rule, and the file is ready to commit"
+                                );
                                 failed = true;
                             }
                             Err(reason) => {
-                                println!("  unchecked: {shown} was written, and git couldn't say whether it ignores it ({reason})");
+                                println!(
+                                    "  unchecked: {shown} was written, and git couldn't say whether it ignores it ({reason})"
+                                );
                                 unresolved = true;
                             }
                         }
@@ -451,15 +666,24 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
             continue;
         }
         if keep {
-            println!("  not kept: only a current record is kept, because any other describes other content than the tree");
+            println!(
+                "  not kept: only a current record is kept, because any other describes other content than the tree"
+            );
         }
     }
     if all {
         for (tree, found) in ledger::other_work_trees(root) {
             println!("\n== work tree {tree}");
             for verb in VERBS {
-                if let Some(latest) = found.iter().rev().find(|r| text(r, "verb") == verb && r.get("targets").is_none_or(Value::is_null)) {
-                    println!("{verb}: {}, record {}, at tree {}", text(latest, "outcome"), text(latest, "record"), ledger::short(&text(latest, "tree")));
+                if let Some(latest) = found.iter().rev().find(|r| {
+                    text(r, "verb") == verb && r.get("targets").is_none_or(Value::is_null)
+                }) {
+                    println!(
+                        "{verb}: {}, record {}, at tree {}",
+                        text(latest, "outcome"),
+                        text(latest, "record"),
+                        ledger::short(&text(latest, "tree"))
+                    );
                 }
             }
         }
@@ -480,26 +704,49 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
 fn kept(root: &Path) -> u8 {
     let (files, doubt) = ledger::kept_by_this_work(root);
     if let Some(reason) = &doubt {
-        println!("listing every kept file: {reason}, so this couldn't tell which belong to this work");
+        println!(
+            "listing every kept file: {reason}, so this couldn't tell which belong to this work"
+        );
     }
     let head = ledger::tree_of_commit(root, "HEAD").ok();
-    let mut entries: Vec<(std::path::PathBuf, Value)> = files.into_iter().filter_map(|p| ledger::header_of(&p).map(|h| (p, h))).collect();
+    let mut entries: Vec<(std::path::PathBuf, Value)> = files
+        .into_iter()
+        .filter_map(|p| ledger::header_of(&p).map(|h| (p, h)))
+        .collect();
     // Times are to the second, so two results kept within one second are
     // ordered by when each file was written.
     entries.sort_by_key(|(p, h)| {
         let written = std::fs::metadata(p).and_then(|m| m.modified()).ok();
-        (h.get("time").and_then(Value::as_str).unwrap_or("").to_string(), written)
+        (
+            h.get("time")
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_string(),
+            written,
+        )
     });
     let field = |h: &Value, key: &str| h.get(key).and_then(Value::as_str).unwrap_or("").to_string();
-    let latest: std::collections::BTreeMap<String, String> =
-        entries.iter().map(|(_, h)| (field(h, "verb"), field(h, "record"))).collect();
-    let (mut failed, mut interrupted, mut unresolved) = (false, false, doubt.is_some() || entries.is_empty());
+    let latest: std::collections::BTreeMap<String, String> = entries
+        .iter()
+        .map(|(_, h)| (field(h, "verb"), field(h, "record")))
+        .collect();
+    let (mut failed, mut interrupted, mut unresolved) =
+        (false, false, doubt.is_some() || entries.is_empty());
     if entries.is_empty() {
         println!("no kept evidence in this work");
     }
     for (path, h) in &entries {
-        let (record, verb, outcome, tree) = (field(h, "record"), field(h, "verb"), field(h, "outcome"), field(h, "tree"));
-        let shown = path.strip_prefix(root).unwrap_or(path).display().to_string();
+        let (record, verb, outcome, tree) = (
+            field(h, "record"),
+            field(h, "verb"),
+            field(h, "outcome"),
+            field(h, "tree"),
+        );
+        let shown = path
+            .strip_prefix(root)
+            .unwrap_or(path)
+            .display()
+            .to_string();
         if latest.get(&verb) != Some(&record) {
             println!("{shown}: {verb} {outcome}, record {record}, superseded");
             continue;
@@ -570,7 +817,10 @@ pub fn main(args: &[String]) -> u8 {
     match args.as_slice() {
         ["status"] => status(&root, false),
         ["status", "--json"] => status(&root, true),
-        ["run", rest @ ..] => run(&root, &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>()),
+        ["run", rest @ ..] => run(
+            &root,
+            &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+        ),
         ["state", rest @ ..] => state(&root, rest),
         ["tree", commit] => match ledger::tree_of_commit(&root, commit) {
             Ok(tree) => {
@@ -582,9 +832,14 @@ pub fn main(args: &[String]) -> u8 {
                 FAILED
             }
         },
-        ["evidence", rest @ ..] => evidence(&root, &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>()),
+        ["evidence", rest @ ..] => evidence(
+            &root,
+            &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+        ),
         _ => {
-            eprintln!("usage: meow-verbs status [--json] | meow-verbs run <verb>... [-- <target>...] | meow-verbs evidence [--keep] [--all] [--kept] [verb...] | meow-verbs state [--purge] | meow-verbs tree <commit>");
+            eprintln!(
+                "usage: meow-verbs status [--json] | meow-verbs run <verb>... [-- <target>...] | meow-verbs evidence [--keep] [--all] [--kept] [verb...] | meow-verbs state [--purge] | meow-verbs tree <commit>"
+            );
             USAGE
         }
     }

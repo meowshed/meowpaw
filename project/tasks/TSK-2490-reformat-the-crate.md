@@ -53,8 +53,31 @@ TSK-2480.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`cargo fmt --manifest-path crates/meow/Cargo.toml` rewrote 15 files under
+`crates/meow/src`, and the change holds nothing else in the crate. No
+`rustfmt.toml` was added.
+
+Both checks in `tools/test_crate_format.py` failed at the cover commit,
+1605c55, which held the checks alone, and pass after this change:
+
+```text
+$ TSK_2490_BASE=dbbd309 python3 -m unittest tools/test_crate_format.py    # checks alone
+AssertionError: 1 != 0 : 495 Diff in blocks
+AssertionError: Lists differ: ['author.rs', 'git.rs', 'github.rs', ...] != []
+Ran 2 tests
+FAILED (failures=2)                                    # exit 1
+$ TSK_2490_BASE=dbbd309 python3 -m unittest tools/test_crate_format.py    # this change
+Ran 2 tests
+OK                                                     # exit 0
+$ cargo fmt --manifest-path crates/meow/Cargo.toml --check
+                                                       # exit 0, no output
+$ mise run crate
+test result: ok. 29 passed; 0 failed; 0 ignored        # exit 0
+```
+
+A diff of `tools/test_crate_format.py` against 1605c55 prints nothing. The
+kept evidence of `meow-verbs run format lint test` sits in
+`project/evidence/`, committed with this change.
 
 ### Checks written before the change
 

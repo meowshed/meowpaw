@@ -9,7 +9,7 @@
 //! Every state that would otherwise read as "no tasks" is reported as itself
 //! and exits 3, because an empty list nobody could read is not a list.
 
-use crate::runner::{self, last_lines, version_of, Resolved, Runner, Task, Tree, Unresolved};
+use crate::runner::{self, Resolved, Runner, Task, Tree, Unresolved, last_lines, version_of};
 use regex::Regex;
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -19,18 +19,41 @@ use std::process::{Command, Output, Stdio};
 /// The mise the pack was tested on: a flag rejected below it is the
 /// environment's, and at or above it the pack's (REQ-2496).
 const TESTED: [u32; 3] = [2026, 9, 11];
-const TASK_DIRECTORIES: [&str; 5] = ["mise-tasks/", ".mise-tasks/", "mise/tasks/", ".mise/tasks/", ".config/mise/tasks/"];
-const CONFIGURATION: [&str; 6] = ["mise.toml", ".mise.toml", "mise/config.toml", ".mise/config.toml", ".config/mise/config.toml", ".config/mise.toml"];
+const TASK_DIRECTORIES: [&str; 5] = [
+    "mise-tasks/",
+    ".mise-tasks/",
+    "mise/tasks/",
+    ".mise/tasks/",
+    ".config/mise/tasks/",
+];
+const CONFIGURATION: [&str; 6] = [
+    "mise.toml",
+    ".mise.toml",
+    "mise/config.toml",
+    ".mise/config.toml",
+    ".config/mise/config.toml",
+    ".config/mise.toml",
+];
 const CONF_D: [&str; 3] = ["mise/conf.d/", ".mise/conf.d/", ".config/mise/conf.d/"];
 
-const RUNNER: Runner = Runner { unit: "meow-mise", runs: &["mise", "run"], binding, skip: "as fresh" };
+const RUNNER: Runner = Runner {
+    unit: "meow-mise",
+    runs: &["mise", "run"],
+    binding,
+    skip: "as fresh",
+};
 
 fn binding(task: &str) -> String {
     format!("mise run --force {task}")
 }
 
 pub fn main(args: &[String]) -> u8 {
-    match args.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
+    match args
+        .iter()
+        .map(String::as_str)
+        .collect::<Vec<_>>()
+        .as_slice()
+    {
         ["status"] => runner::status(&RUNNER, resolve),
         ["bind"] => runner::bind(&RUNNER, resolve),
         ["check"] => runner::check(&RUNNER, Vec::new(), resolve),
@@ -42,14 +65,19 @@ pub fn main(args: &[String]) -> u8 {
 }
 
 fn committed_configuration(tree: &Tree) -> Vec<&String> {
-    tree.tracked.iter().filter(|p| is_configuration(p)).collect()
+    tree.tracked
+        .iter()
+        .filter(|p| is_configuration(p))
+        .collect()
 }
 
 fn is_configuration(path: &str) -> bool {
     let environment = Regex::new(r"^\.?mise\.[^/]+\.toml$").expect("environment pattern");
     CONFIGURATION.contains(&path)
         || environment.is_match(path)
-        || CONF_D.iter().any(|d| path.starts_with(d) && path.ends_with(".toml") && !path[d.len()..].contains('/'))
+        || CONF_D.iter().any(|d| {
+            path.starts_with(d) && path.ends_with(".toml") && !path[d.len()..].contains('/')
+        })
 }
 
 /// A static read for the markers, so a tree without one starts no mise (REQ-2472).
@@ -59,36 +87,59 @@ fn detected(root: &Path) -> bool {
         || TASK_DIRECTORIES.iter().any(|d| root.join(d).is_dir())
         || CONF_D.iter().any(|d| root.join(d).is_dir())
         || std::fs::read_dir(root)
-            .map(|entries| entries.flatten().any(|e| environment.is_match(&e.file_name().to_string_lossy())))
+            .map(|entries| {
+                entries
+                    .flatten()
+                    .any(|e| environment.is_match(&e.file_name().to_string_lossy()))
+            })
             .unwrap_or(false)
 }
 
 fn mise(root: &Path, args: &[&str]) -> std::io::Result<Output> {
-    Command::new("mise").args(args).current_dir(root).stdin(Stdio::null()).output()
+    Command::new("mise")
+        .args(args)
+        .current_dir(root)
+        .stdin(Stdio::null())
+        .output()
 }
 
 fn resolve() -> Result<Resolved, Unresolved> {
     let tree = Tree::read();
     let mut report = Vec::new();
-    let unresolved = |report: &Vec<String>, reason: String| Unresolved { report: report.clone(), reason };
+    let unresolved = |report: &Vec<String>, reason: String| Unresolved {
+        report: report.clone(),
+        reason,
+    };
     if !detected(&tree.root) {
         return Err(unresolved(&report, "not a mise repository".into()));
     }
     let version = match mise(&tree.root, &["--version"]) {
-        Ok(done) => String::from_utf8_lossy(&done.stdout).lines().next().unwrap_or("").trim().to_string(),
+        Ok(done) => String::from_utf8_lossy(&done.stdout)
+            .lines()
+            .next()
+            .unwrap_or("")
+            .trim()
+            .to_string(),
         Err(_) => return Err(unresolved(&report, "mise not found".into())),
     };
     report.push(format!("mise: {version}"));
     if let Ok(done) = mise(&tree.root, &["trust", "--show"]) {
         report.push("trust:".into());
-        for line in String::from_utf8_lossy(&done.stdout).lines().filter(|l| !l.trim().is_empty()) {
+        for line in String::from_utf8_lossy(&done.stdout)
+            .lines()
+            .filter(|l| !l.trim().is_empty())
+        {
             report.push(format!("  {}", line.trim()));
         }
     }
-    let listing = mise(&tree.root, &["tasks", "ls", "--json", "--hidden"]).map_err(|e| unresolved(&report, format!("mise failed: {e}")))?;
+    let listing = mise(&tree.root, &["tasks", "ls", "--json", "--hidden"])
+        .map_err(|e| unresolved(&report, format!("mise failed: {e}")))?;
     let stderr = String::from_utf8_lossy(&listing.stderr).into_owned();
     if !listing.status.success() {
-        return Err(unresolved(&report, listing_failure(&stderr, &version, listing.status.code())));
+        return Err(unresolved(
+            &report,
+            listing_failure(&stderr, &version, listing.status.code()),
+        ));
     }
     let stdout = String::from_utf8_lossy(&listing.stdout).into_owned();
     let Some(entries) = recognised(&stdout) else {
@@ -106,11 +157,19 @@ fn resolve() -> Result<Resolved, Unresolved> {
         format!("listing ran mise over the configuration; templates calling exec, evaluated by the listing: {}", names.join(", "))
     });
     let declared = declared_by_commits(&tree);
-    let tasks = entries.iter().map(|entry| task(&tree, &declared, entry)).collect();
+    let tasks = entries
+        .iter()
+        .map(|entry| task(&tree, &declared, entry))
+        .collect();
     let mut carried = pinned_tools(&tree);
     carried.extend(environment_files(&tree));
     carried.extend(idiomatic_files(&tree));
-    Ok(Resolved { report, tasks, carried, unlisted: Vec::new() })
+    Ok(Resolved {
+        report,
+        tasks,
+        carried,
+        unlisted: Vec::new(),
+    })
 }
 
 /// A listing's failure, named for what it is and never read as an empty list.
@@ -138,17 +197,27 @@ fn listing_failure(stderr: &str, version: &str, code: Option<i32>) -> String {
         };
     }
     let status = code.map_or("a signal".to_string(), |c| c.to_string());
-    format!("mise failed with exit status {status}: {}", last_lines(stderr))
+    format!(
+        "mise failed with exit status {status}: {}",
+        last_lines(stderr)
+    )
 }
 
 /// The listing's entries, where it is an array of objects each naming a task
 /// and its source; anything else is another shape (REQ-2462).
 fn recognised(stdout: &str) -> Option<Vec<serde_json::Map<String, Value>>> {
-    let Ok(Value::Array(items)) = serde_json::from_str::<Value>(stdout) else { return None };
+    let Ok(Value::Array(items)) = serde_json::from_str::<Value>(stdout) else {
+        return None;
+    };
     items
         .into_iter()
         .map(|item| match item {
-            Value::Object(o) if o.get("name").is_some_and(Value::is_string) && o.get("source").is_some_and(Value::is_string) => Some(o),
+            Value::Object(o)
+                if o.get("name").is_some_and(Value::is_string)
+                    && o.get("source").is_some_and(Value::is_string) =>
+            {
+                Some(o)
+            }
             _ => None,
         })
         .collect()
@@ -158,8 +227,12 @@ fn recognised(stdout: &str) -> Option<Vec<serde_json::Map<String, Value>>> {
 fn declared_by_commits(tree: &Tree) -> BTreeMap<String, Vec<String>> {
     let mut declared: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for file in committed_configuration(tree) {
-        let Ok(text) = std::fs::read_to_string(tree.root.join(file)) else { continue };
-        let Ok(table) = text.parse::<toml::Table>() else { continue };
+        let Ok(text) = std::fs::read_to_string(tree.root.join(file)) else {
+            continue;
+        };
+        let Ok(table) = text.parse::<toml::Table>() else {
+            continue;
+        };
         if let Some(toml::Value::Table(tasks)) = table.get("tasks") {
             for name in tasks.keys() {
                 declared.entry(name.clone()).or_default().push(file.clone());
@@ -175,7 +248,11 @@ fn declared_by_commits(tree: &Tree) -> BTreeMap<String, Vec<String>> {
     declared
 }
 
-fn task(tree: &Tree, declared: &BTreeMap<String, Vec<String>>, entry: &serde_json::Map<String, Value>) -> Task {
+fn task(
+    tree: &Tree,
+    declared: &BTreeMap<String, Vec<String>>,
+    entry: &serde_json::Map<String, Value>,
+) -> Task {
     let name = entry["name"].as_str().unwrap_or_default().to_string();
     let source_path = PathBuf::from(entry["source"].as_str().unwrap_or_default());
     let relative = tree.relative(&source_path);
@@ -208,48 +285,92 @@ fn task(tree: &Tree, declared: &BTreeMap<String, Vec<String>>, entry: &serde_jso
     if !committed {
         blocks.push("not committed".to_string());
     }
-    let listed = |field: &str| entry.get(field).and_then(Value::as_array).map(|a| !a.is_empty());
+    let listed = |field: &str| {
+        entry
+            .get(field)
+            .and_then(Value::as_array)
+            .map(|a| !a.is_empty())
+    };
     let can_skip = match (listed("sources"), listed("outputs")) {
         (Some(s), Some(o)) => Some(s && o),
         _ => None,
     };
     match can_skip {
-        Some(true) => notes.push("can skip as fresh: freshness decided by mise, by a method it doesn't report".into()),
+        Some(true) => notes.push(
+            "can skip as fresh: freshness decided by mise, by a method it doesn't report".into(),
+        ),
         Some(false) => {}
         None => notes.push("can skip as fresh: unknown, since the listing doesn't say".into()),
     }
-    Task { name, origin, source, replaced, blocks, notes, can_skip }
+    Task {
+        name,
+        origin,
+        source,
+        replaced,
+        blocks,
+        notes,
+        can_skip,
+    }
 }
 
 /// Whether the task's committed definition sets `confirm`, which mise's
 /// listing leaves out (RES-0126).
 fn asks_for_a_person(tree: &Tree, file: &str, name: &str) -> bool {
-    let Ok(text) = std::fs::read_to_string(tree.root.join(file)) else { return false };
+    let Ok(text) = std::fs::read_to_string(tree.root.join(file)) else {
+        return false;
+    };
     if is_configuration(file) {
-        let Ok(table) = text.parse::<toml::Table>() else { return false };
-        return table.get("tasks").and_then(|t| t.get(name)).and_then(toml::Value::as_table).is_some_and(|t| t.contains_key("confirm"));
+        let Ok(table) = text.parse::<toml::Table>() else {
+            return false;
+        };
+        return table
+            .get("tasks")
+            .and_then(|t| t.get(name))
+            .and_then(toml::Value::as_table)
+            .is_some_and(|t| t.contains_key("confirm"));
     }
-    let header = Regex::new(r"^\s*(?:#|//)\s*(?:\[MISE\]|MISE)\s+confirm\s*=").expect("confirm pattern");
+    let header =
+        Regex::new(r"^\s*(?:#|//)\s*(?:\[MISE\]|MISE)\s+confirm\s*=").expect("confirm pattern");
     text.lines().any(|line| header.is_match(line))
 }
 
 /// The task's required arguments and flags, read from `mise tasks info`,
 /// never found by running it (REQ-2476); `None` where they can't be read.
-fn required_arguments(tree: &Tree, entry: &serde_json::Map<String, Value>, name: &str) -> Option<Vec<String>> {
+fn required_arguments(
+    tree: &Tree,
+    entry: &serde_json::Map<String, Value>,
+    name: &str,
+) -> Option<Vec<String>> {
     let usage = entry.get("usage").and_then(Value::as_str);
     let args = entry.get("args").and_then(Value::as_array);
     if usage == Some("") && args.is_some_and(|a| a.is_empty()) {
         return Some(Vec::new());
     }
-    let done = mise(&tree.root, &["tasks", "info", name, "--json"]).ok().filter(|d| d.status.success())?;
+    let done = mise(&tree.root, &["tasks", "info", name, "--json"])
+        .ok()
+        .filter(|d| d.status.success())?;
     let info: Value = serde_json::from_slice(&done.stdout).ok()?;
     let command = info.get("usage_spec")?.get("cmd")?;
     let mut needed = Vec::new();
     for (field, fallback) in [("args", true), ("flags", false)] {
-        for item in command.get(field).and_then(Value::as_array).into_iter().flatten() {
+        for item in command
+            .get(field)
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
             if item.get("required").and_then(Value::as_bool) == Some(true) {
-                let shown = item.get("usage").and_then(Value::as_str).map(str::to_string);
-                let named = item.get("name").and_then(Value::as_str).map(|n| if fallback { format!("<{n}>") } else { format!("--{n}") });
+                let shown = item
+                    .get("usage")
+                    .and_then(Value::as_str)
+                    .map(str::to_string);
+                let named = item.get("name").and_then(Value::as_str).map(|n| {
+                    if fallback {
+                        format!("<{n}>")
+                    } else {
+                        format!("--{n}")
+                    }
+                });
                 needed.push(shown.or(named)?);
             }
         }
@@ -261,7 +382,13 @@ fn required_arguments(tree: &Tree, entry: &serde_json::Map<String, Value>, name:
 fn committed_tables(tree: &Tree) -> Vec<(&String, toml::Table)> {
     committed_configuration(tree)
         .into_iter()
-        .filter_map(|file| std::fs::read_to_string(tree.root.join(file)).ok()?.parse::<toml::Table>().ok().map(|t| (file, t)))
+        .filter_map(|file| {
+            std::fs::read_to_string(tree.root.join(file))
+                .ok()?
+                .parse::<toml::Table>()
+                .ok()
+                .map(|t| (file, t))
+        })
         .collect()
 }
 
@@ -269,12 +396,22 @@ fn committed_tables(tree: &Tree) -> Vec<(&String, toml::Table)> {
 fn pinned_tools(tree: &Tree) -> Vec<String> {
     let mut lines = vec!["tools pinned by committed files:".to_string()];
     for (file, table) in committed_tables(tree) {
-        let Some(toml::Value::Table(tools)) = table.get("tools") else { continue };
+        let Some(toml::Value::Table(tools)) = table.get("tools") else {
+            continue;
+        };
         for (tool, request) in tools {
             let version = match request {
                 toml::Value::String(v) => v.clone(),
-                toml::Value::Table(t) => t.get("version").and_then(toml::Value::as_str).unwrap_or("unstated").to_string(),
-                toml::Value::Array(a) => a.iter().filter_map(toml::Value::as_str).collect::<Vec<_>>().join(", "),
+                toml::Value::Table(t) => t
+                    .get("version")
+                    .and_then(toml::Value::as_str)
+                    .unwrap_or("unstated")
+                    .to_string(),
+                toml::Value::Array(a) => a
+                    .iter()
+                    .filter_map(toml::Value::as_str)
+                    .collect::<Vec<_>>()
+                    .join(", "),
                 other => other.to_string(),
             };
             lines.push(format!("  {tool} = {version} ({file})"));
@@ -295,19 +432,32 @@ fn pinned_tools(tree: &Tree) -> Vec<String> {
 /// since what they hold stays unread (REQ-2490).
 fn environment_files(tree: &Tree) -> Vec<String> {
     let mut lines = vec!["configuration and environment loaded from:".to_string()];
-    match mise(&tree.root, &["config", "ls", "--json"]).ok().filter(|d| d.status.success()) {
+    match mise(&tree.root, &["config", "ls", "--json"])
+        .ok()
+        .filter(|d| d.status.success())
+    {
         Some(done) => match serde_json::from_slice::<Value>(&done.stdout) {
             Ok(Value::Array(files)) => {
-                for path in files.iter().filter_map(|f| f.get("path").and_then(Value::as_str)) {
+                for path in files
+                    .iter()
+                    .filter_map(|f| f.get("path").and_then(Value::as_str))
+                {
                     lines.push(format!("  {}", tree.display(Path::new(path))));
                 }
             }
-            _ => lines.push("  unknown: mise config ls printed a shape this program can't read".into()),
+            _ => lines
+                .push("  unknown: mise config ls printed a shape this program can't read".into()),
         },
         None => lines.push("  unknown: mise config ls failed".into()),
     }
     for (file, table) in committed_tables(tree) {
-        let Some(directives) = table.get("env").and_then(|e| e.get("_")).and_then(toml::Value::as_table) else { continue };
+        let Some(directives) = table
+            .get("env")
+            .and_then(|e| e.get("_"))
+            .and_then(toml::Value::as_table)
+        else {
+            continue;
+        };
         for key in ["file", "source"] {
             let values = match directives.get(key) {
                 Some(toml::Value::Array(items)) => items.clone(),
@@ -317,10 +467,16 @@ fn environment_files(tree: &Tree) -> Vec<String> {
             for value in values {
                 let path = match &value {
                     toml::Value::String(p) => Some(p.clone()),
-                    toml::Value::Table(t) => t.get("path").and_then(toml::Value::as_str).map(str::to_string),
+                    toml::Value::Table(t) => t
+                        .get("path")
+                        .and_then(toml::Value::as_str)
+                        .map(str::to_string),
                     _ => None,
                 };
-                lines.push(format!("  {} (_.{key} in {file})", path.unwrap_or_else(|| "a path this program can't read".into())));
+                lines.push(format!(
+                    "  {} (_.{key} in {file})",
+                    path.unwrap_or_else(|| "a path this program can't read".into())
+                ));
             }
         }
     }
@@ -339,19 +495,27 @@ fn idiomatic_files(tree: &Tree) -> Vec<String> {
         (".java-version", "java"),
         (".terraform-version", "terraform"),
     ];
-    let present: Vec<&(&str, &str)> = FILES.iter().filter(|(file, _)| tree.root.join(file).is_file()).collect();
+    let present: Vec<&(&str, &str)> = FILES
+        .iter()
+        .filter(|(file, _)| tree.root.join(file).is_file())
+        .collect();
     if present.is_empty() {
         return Vec::new();
     }
-    let enabled: Option<Vec<String>> = mise(&tree.root, &["settings", "get", "idiomatic_version_file_enable_tools"])
-        .ok()
-        .filter(|d| d.status.success())
-        .and_then(|d| serde_json::from_slice(&d.stdout).ok());
+    let enabled: Option<Vec<String>> = mise(
+        &tree.root,
+        &["settings", "get", "idiomatic_version_file_enable_tools"],
+    )
+    .ok()
+    .filter(|d| d.status.success())
+    .and_then(|d| serde_json::from_slice(&d.stdout).ok());
     let mut lines = vec!["idiomatic version files:".to_string()];
     for (file, tool) in present {
         let state = match &enabled {
             Some(tools) if tools.iter().any(|t| t == tool) => "read by mise".to_string(),
-            Some(_) => format!("possibly inert, since idiomatic_version_file_enable_tools doesn't name {tool}"),
+            Some(_) => format!(
+                "possibly inert, since idiomatic_version_file_enable_tools doesn't name {tool}"
+            ),
             None => format!("possibly inert, since mise didn't say whether it reads {tool}'s file"),
         };
         lines.push(format!("  {file}: {state}"));

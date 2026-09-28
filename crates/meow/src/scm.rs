@@ -10,7 +10,7 @@
 //! the ban admits no exception (REQ-1294, REQ-1295). A message is never
 //! reported as meeting a convention nobody declared (REQ-1314).
 
-use crate::profile::{self, Profile, PROFILE};
+use crate::profile::{self, PROFILE, Profile};
 use regex::Regex;
 use std::io::Read;
 use std::path::Path;
@@ -23,7 +23,8 @@ const VIOLATED: u8 = 1;
 const USAGE: u8 = 2;
 const UNDECLARED: u8 = 3;
 
-const SUBJECT: &str = r"^(?P<type>[a-z][a-z0-9-]*)(?:\((?P<scope>[^()\s]+)\))?(?P<bang>!)?: (?P<text>\S.*)$";
+const SUBJECT: &str =
+    r"^(?P<type>[a-z][a-z0-9-]*)(?:\((?P<scope>[^()\s]+)\))?(?P<bang>!)?: (?P<text>\S.*)$";
 // The pattern, never a bare name: a path such as plugins/meow-core/ or the
 // product a harness targets is not attribution.
 const ATTRIBUTION: &str = concat!(
@@ -74,7 +75,11 @@ fn convention(root: &Path) -> Convention {
         }
     };
 
-    found.ignored = table.keys().filter(|key| !KEYS.contains(&key.as_str())).map(|key| format!("commits.{key}")).collect();
+    found.ignored = table
+        .keys()
+        .filter(|key| !KEYS.contains(&key.as_str()))
+        .map(|key| format!("commits.{key}"))
+        .collect();
     match table.get("types") {
         None => {}
         Some(toml::Value::Table(types)) => {
@@ -99,14 +104,21 @@ fn convention(root: &Path) -> Convention {
     match table.get("subject_limit") {
         None => {}
         Some(toml::Value::Integer(limit)) if *limit > 0 => found.limit = *limit,
-        Some(_) => found.malformed.push("`subject_limit` isn't a positive whole number".to_string()),
+        Some(_) => found
+            .malformed
+            .push("`subject_limit` isn't a positive whole number".to_string()),
     }
     match table.get("trailers") {
         None => {}
         Some(toml::Value::Array(items)) if items.iter().all(|item| item.is_str()) => {
-            found.trailers = items.iter().filter_map(|item| item.as_str().map(str::to_string)).collect();
+            found.trailers = items
+                .iter()
+                .filter_map(|item| item.as_str().map(str::to_string))
+                .collect();
         }
-        Some(_) => found.malformed.push("`trailers` isn't a list of names".to_string()),
+        Some(_) => found
+            .malformed
+            .push("`trailers` isn't a list of names".to_string()),
     }
     found
 }
@@ -122,7 +134,11 @@ fn report_convention(root: &Path) -> u8 {
         println!("type {name:<10} release: {meaning}");
     }
     println!("subject limit  {} characters", found.limit);
-    let trailers = if found.trailers.is_empty() { "none declared".to_string() } else { found.trailers.join(", ") };
+    let trailers = if found.trailers.is_empty() {
+        "none declared".to_string()
+    } else {
+        found.trailers.join(", ")
+    };
     println!("trailers       {trailers}");
     for problem in &found.malformed {
         println!("malformed      {problem}");
@@ -135,12 +151,19 @@ fn report_convention(root: &Path) -> u8 {
 
 /// Every violation, as (line number, rule, detail).
 fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
-    let mut lines: Vec<&str> = message.lines().filter(|line| !line.starts_with('#')).collect();
+    let mut lines: Vec<&str> = message
+        .lines()
+        .filter(|line| !line.starts_with('#'))
+        .collect();
     while lines.last().is_some_and(|line| line.trim().is_empty()) {
         lines.pop();
     }
     if lines.is_empty() || lines[0].trim().is_empty() {
-        return vec![(1, "empty message".into(), "the message has no subject".into())];
+        return vec![(
+            1,
+            "empty message".into(),
+            "the message has no subject".into(),
+        )];
     }
 
     let attribution = Regex::new(ATTRIBUTION).expect("the attribution pattern compiles");
@@ -159,12 +182,20 @@ fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
     }
 
     let subject = lines[0];
-    match Regex::new(SUBJECT).expect("the subject pattern compiles").captures(subject) {
-        None => found_problems.push((1, "subject form".into(), "the subject isn't `type(scope)!: description`".into())),
+    match Regex::new(SUBJECT)
+        .expect("the subject pattern compiles")
+        .captures(subject)
+    {
+        None => found_problems.push((
+            1,
+            "subject form".into(),
+            "the subject isn't `type(scope)!: description`".into(),
+        )),
         Some(parts) => {
             let kind = &parts["type"];
             if !found.types.is_empty() && !found.types.iter().any(|(name, _)| name == kind) {
-                let declared: Vec<&str> = found.types.iter().map(|(name, _)| name.as_str()).collect();
+                let declared: Vec<&str> =
+                    found.types.iter().map(|(name, _)| name.as_str()).collect();
                 found_problems.push((
                     1,
                     "declared type".into(),
@@ -182,7 +213,11 @@ fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
         ));
     }
     if subject.trim_end().ends_with('.') {
-        found_problems.push((1, "subject ending".into(), "the subject ends in a full stop".into()));
+        found_problems.push((
+            1,
+            "subject ending".into(),
+            "the subject ends in a full stop".into(),
+        ));
     }
     if lines.len() > 1 && !lines[1].trim().is_empty() {
         found_problems.push((
@@ -192,9 +227,14 @@ fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
         ));
     }
     for trailer in &found.trailers {
-        let pattern = Regex::new(&format!(r"^{}: \S", regex::escape(trailer))).expect("a trailer pattern compiles");
+        let pattern = Regex::new(&format!(r"^{}: \S", regex::escape(trailer)))
+            .expect("a trailer pattern compiles");
         if !lines[1..].iter().any(|line| pattern.is_match(line)) {
-            found_problems.push((lines.len(), "trailer".into(), format!("the `{trailer}` trailer is missing")));
+            found_problems.push((
+                lines.len(),
+                "trailer".into(),
+                format!("the `{trailer}` trailer is missing"),
+            ));
         }
     }
     found_problems
@@ -252,7 +292,10 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
     if found.trailers.iter().any(|t| t == "Signed-off-by") {
         match author(root) {
             Some(author) => listed.extend(sign_off(&message, &author)),
-            None => notes.push("sign-off: not compared with the author, because git reports no author identity".to_string()),
+            None => notes.push(
+                "sign-off: not compared with the author, because git reports no author identity"
+                    .to_string(),
+            ),
         }
     }
     for note in &notes {
@@ -307,7 +350,9 @@ mod tests {
     #[test]
     fn a_path_or_a_product_name_is_not_attribution() {
         let attribution = Regex::new(ATTRIBUTION).unwrap();
-        assert!(!attribution.is_match("fix: route the shape in plugins/meow-core/ for Claude Code"));
+        assert!(
+            !attribution.is_match("fix: route the shape in plugins/meow-core/ for Claude Code")
+        );
         assert!(attribution.is_match(&format!("Co-Authored-{}", "By: Claude <x@example.org>")));
     }
 }

@@ -9,7 +9,7 @@
 //! name, so a field the code host stops sending fails by that name, and a listing
 //! it can't read leaves the history unread rather than printed in part.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::process::{Command, Stdio};
 
 mod project;
@@ -29,7 +29,11 @@ pub fn main(args: &[String]) -> u8 {
         [command, repository] if command == "history" => history(Some(repository.as_str())),
         [command, rest @ ..] if command == "project" && !rest.is_empty() => {
             let check = rest.iter().any(|a| a == "--check");
-            let words: Vec<&str> = rest.iter().map(String::as_str).filter(|a| *a != "--check").collect();
+            let words: Vec<&str> = rest
+                .iter()
+                .map(String::as_str)
+                .filter(|a| *a != "--check")
+                .collect();
             match words.as_slice() {
                 [epic] => project::run(epic, None, check),
                 [epic, repository] => project::run(epic, Some(repository), check),
@@ -40,7 +44,9 @@ pub fn main(args: &[String]) -> u8 {
             }
         }
         _ => {
-            eprintln!("usage: meow-github history [<owner>/<name>] | project <epic> [--check] [<owner>/<name>]");
+            eprintln!(
+                "usage: meow-github history [<owner>/<name>] | project <epic> [--check] [<owner>/<name>]"
+            );
             USAGE
         }
     }
@@ -50,8 +56,15 @@ fn name_repository(repository: Option<&str>) -> Result<String, String> {
     match repository {
         Some(name) => Ok(name.to_string()),
         None => gh(&["repo", "view", "--json", "nameWithOwner"])
-            .map(|view| view.get("nameWithOwner").and_then(Value::as_str).unwrap_or_default().to_string())
-            .map_err(|e| format!("couldn't name this directory's repository: {e}; name it as <owner>/<name>")),
+            .map(|view| {
+                view.get("nameWithOwner")
+                    .and_then(Value::as_str)
+                    .unwrap_or_default()
+                    .to_string()
+            })
+            .map_err(|e| {
+                format!("couldn't name this directory's repository: {e}; name it as <owner>/<name>")
+            }),
     }
 }
 
@@ -64,7 +77,11 @@ fn gh(args: &[&str]) -> Result<Value, String> {
         .map_err(|e| format!("gh couldn't run ({e}); install GitHub's client, gh, and sign in with `gh auth login`"))?;
     if !out.status.success() {
         let said = String::from_utf8_lossy(&out.stderr).trim().to_string();
-        return Err(if said.is_empty() { format!("gh exited with {}", out.status) } else { said });
+        return Err(if said.is_empty() {
+            format!("gh exited with {}", out.status)
+        } else {
+            said
+        });
     }
     serde_json::from_slice(&out.stdout).map_err(|e| format!("gh printed no JSON ({e})"))
 }
@@ -72,30 +89,45 @@ fn gh(args: &[&str]) -> Result<Value, String> {
 /// A field of a response, by name, so that one the code host stopped sending fails
 /// by that name rather than reading as empty (REQ-2556).
 fn field<'a>(item: &'a Value, name: &str, listing: &str) -> Result<&'a Value, String> {
-    item.get(name).ok_or_else(|| format!("a response in the {listing} listing lacks the field `{name}`"))
+    item.get(name)
+        .ok_or_else(|| format!("a response in the {listing} listing lacks the field `{name}`"))
 }
 
 fn text(item: &Value, name: &str, listing: &str) -> Result<Value, String> {
     let value = field(item, name, listing)?;
-    Ok(if value.is_null() { Value::Null } else { Value::String(value.as_str().unwrap_or_default().to_string()) })
+    Ok(if value.is_null() {
+        Value::Null
+    } else {
+        Value::String(value.as_str().unwrap_or_default().to_string())
+    })
 }
 
 fn author(item: &Value, listing: &str) -> Result<Value, String> {
-    Ok(field(item, "user", listing)?.get("login").cloned().unwrap_or(Value::Null))
+    Ok(field(item, "user", listing)?
+        .get("login")
+        .cloned()
+        .unwrap_or(Value::Null))
 }
 
 /// The number at the end of an issue's or a pull request's address.
 fn number_in(item: &Value, name: &str, listing: &str) -> Result<u64, String> {
     let address = field(item, name, listing)?.as_str().unwrap_or_default();
-    address.rsplit('/').next().and_then(|n| n.parse().ok()).ok_or_else(|| format!("the {listing} listing gave `{name}` with no number"))
+    address
+        .rsplit('/')
+        .next()
+        .and_then(|n| n.parse().ok())
+        .ok_or_else(|| format!("the {listing} listing gave `{name}` with no number"))
 }
 
 /// Every item of a listing, every page of it read (REQ-2560), through the
 /// client's cache (REQ-2564).
 fn listing(repository: &str, name: &str, path: &str) -> Result<Vec<Value>, String> {
     let endpoint = format!("repos/{repository}/{path}");
-    let pages = gh(&["api", &endpoint, "--paginate", "--slurp", "--cache", "1h"]).map_err(|e| format!("{name}, {endpoint}: {e}"))?;
-    let Value::Array(pages) = pages else { return Err(format!("{name}, {endpoint}: the pages aren't a list")) };
+    let pages = gh(&["api", &endpoint, "--paginate", "--slurp", "--cache", "1h"])
+        .map_err(|e| format!("{name}, {endpoint}: {e}"))?;
+    let Value::Array(pages) = pages else {
+        return Err(format!("{name}, {endpoint}: the pages aren't a list"));
+    };
     let mut items = Vec::new();
     for page in pages {
         match page {
@@ -116,13 +148,22 @@ fn history(repository: Option<&str>) -> u8 {
     };
     match read(&repository) {
         Ok(document) => {
-            println!("{}", serde_json::to_string_pretty(&document).unwrap_or_default());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&document).unwrap_or_default()
+            );
             0
         }
         Err((read, e)) => {
             println!("meow-github history: unread: {e}");
-            let read = if read.is_empty() { "nothing".to_string() } else { read.join(", ") };
-            println!("read before it stopped: {read}; no document is printed, because a part of the history reads as the whole of it");
+            let read = if read.is_empty() {
+                "nothing".to_string()
+            } else {
+                read.join(", ")
+            };
+            println!(
+                "read before it stopped: {read}; no document is printed, because a part of the history reads as the whole of it"
+            );
             UNREAD
         }
     }
@@ -140,12 +181,23 @@ fn read(repository: &str) -> Result<Value, (Vec<&'static str>, String)> {
     let (issue_listing, pull_listing) = (LISTINGS[0].0, LISTINGS[1].0);
     let mut merged = std::collections::BTreeMap::new();
     for pull in &lists[1] {
-        let number = field(pull, "number", pull_listing).map_err(failed)?.as_u64().unwrap_or_default();
-        merged.insert(number, !field(pull, "merged_at", pull_listing).map_err(failed)?.is_null());
+        let number = field(pull, "number", pull_listing)
+            .map_err(failed)?
+            .as_u64()
+            .unwrap_or_default();
+        merged.insert(
+            number,
+            !field(pull, "merged_at", pull_listing)
+                .map_err(failed)?
+                .is_null(),
+        );
     }
     let mut issues = Vec::new();
     for item in &lists[0] {
-        let number = field(item, "number", issue_listing).map_err(failed)?.as_u64().unwrap_or_default();
+        let number = field(item, "number", issue_listing)
+            .map_err(failed)?
+            .as_u64()
+            .unwrap_or_default();
         let pull = item.get("pull_request").is_some();
         let labels: Vec<Value> = field(item, "labels", issue_listing)
             .map_err(failed)?
@@ -185,5 +237,7 @@ fn read(repository: &str) -> Result<Value, (Vec<&'static str>, String)> {
             "url": text(item, "html_url", listing_name).map_err(failed)?,
         }));
     }
-    Ok(json!({"repository": repository, "issues": issues, "comments": comments, "review_comments": reviews}))
+    Ok(
+        json!({"repository": repository, "issues": issues, "comments": comments, "review_comments": reviews}),
+    )
 }

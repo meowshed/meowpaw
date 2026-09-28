@@ -8,25 +8,25 @@
 //! (REQ-0076). SPC-1080 states the crate; each subcommand's behaviour is its
 //! unit's specification.
 
-mod profile;
 #[cfg(feature = "author")]
 mod author;
-#[cfg(feature = "github")]
-mod github;
 #[cfg(feature = "git")]
 mod git;
-#[cfg(feature = "licence")]
-mod licence;
+#[cfg(feature = "github")]
+mod github;
 #[cfg(feature = "gotask")]
 mod gotask;
+#[cfg(feature = "licence")]
+mod licence;
 #[cfg(feature = "mise")]
 mod mise;
-#[cfg(any(feature = "mise", feature = "gotask"))]
-mod runner;
+mod profile;
 #[cfg(feature = "prose")]
 mod prose;
 #[cfg(feature = "record")]
 mod record;
+#[cfg(any(feature = "mise", feature = "gotask"))]
+mod runner;
 #[cfg(feature = "scm")]
 mod scm;
 #[cfg(feature = "verbs")]
@@ -62,7 +62,10 @@ fn main() -> ExitCode {
         #[cfg(feature = "prose")]
         "prose" => prose::main(rest),
         _ => {
-            eprintln!("usage: meow <subcommand> ..., where this build carries: {}", carried().join(", "));
+            eprintln!(
+                "usage: meow <subcommand> ..., where this build carries: {}",
+                carried().join(", ")
+            );
             2
         }
     };

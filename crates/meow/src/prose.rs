@@ -38,7 +38,8 @@ pub const IDIOMS: [&str; 15] = [
 
 const FIX_P1: &str = "say literally what the idiom stands for";
 const FIX_P2: &str = "write the point as a sentence, or make the line a real heading";
-const FIX_P3: &str = "give the text inline, as -m \"...\" or --body \"...\", or in a heredoc read with -F -";
+const FIX_P3: &str =
+    "give the text inline, as -m \"...\" or --body \"...\", or in a heredoc read with -F -";
 
 /// One piece of a shell word: its characters as the command holds them, and
 /// whether the shell expands a substitution inside it.
@@ -81,8 +82,12 @@ pub fn main(args: &[String]) -> u8 {
         Some("check") => {
             let mut input = String::new();
             let _ = std::io::stdin().read_to_string(&mut input);
-            let event: serde_json::Value = serde_json::from_str(&input).unwrap_or(serde_json::Value::Null);
-            let Some(command) = event.pointer("/tool_input/command").and_then(|c| c.as_str()) else {
+            let event: serde_json::Value =
+                serde_json::from_str(&input).unwrap_or(serde_json::Value::Null);
+            let Some(command) = event
+                .pointer("/tool_input/command")
+                .and_then(|c| c.as_str())
+            else {
                 return ALLOW;
             };
             let found = findings(command);
@@ -105,7 +110,9 @@ pub fn main(args: &[String]) -> u8 {
 pub fn findings(command: &str) -> Vec<Finding> {
     let mut found: Vec<Finding> = Vec::new();
     for simple in parse(command) {
-        let Some(published) = publishing(&simple) else { continue };
+        let Some(published) = publishing(&simple) else {
+            continue;
+        };
         for piece in &published.texts {
             rule_p1(&piece.raw, &mut found);
             rule_p2(&piece.raw, &mut found);
@@ -114,7 +121,11 @@ pub fn findings(command: &str) -> Vec<Finding> {
             }
         }
         for path in published.paths {
-            found.push(Finding { rule: "P3", span: path, fix: FIX_P3 });
+            found.push(Finding {
+                rule: "P3",
+                span: path,
+                fix: FIX_P3,
+            });
         }
     }
     let mut unique: Vec<Finding> = Vec::new();
@@ -136,11 +147,21 @@ struct Published {
 /// nothing for any other command.
 fn publishing(simple: &Simple) -> Option<Published> {
     let words: Vec<String> = simple.words.iter().map(Word::text).collect();
-    let start = words.iter().position(|word| word == "git" || word == "gh")?;
-    let (text_flags, path_flags, arg_flags): (&[&str], &[&str], &[&str]) = if words[start] == "git" {
+    let start = words
+        .iter()
+        .position(|word| word == "git" || word == "gh")?;
+    let (text_flags, path_flags, arg_flags): (&[&str], &[&str], &[&str]) = if words[start] == "git"
+    {
         let mut at = start + 1;
         while at < words.len() && words[at].starts_with('-') {
-            at += if matches!(words[at].as_str(), "-C" | "-c" | "--git-dir" | "--work-tree" | "--namespace") { 2 } else { 1 };
+            at += if matches!(
+                words[at].as_str(),
+                "-C" | "-c" | "--git-dir" | "--work-tree" | "--namespace"
+            ) {
+                2
+            } else {
+                1
+            };
         }
         if words.get(at).map(String::as_str) != Some("commit") {
             return None;
@@ -148,7 +169,21 @@ fn publishing(simple: &Simple) -> Option<Published> {
         (
             &["-m", "--message"],
             &["-F", "--file"],
-            &["-C", "-c", "-t", "--reuse-message", "--reedit-message", "--template", "--author", "--date", "--cleanup", "--fixup", "--squash", "--trailer", "--pathspec-from-file"],
+            &[
+                "-C",
+                "-c",
+                "-t",
+                "--reuse-message",
+                "--reedit-message",
+                "--template",
+                "--author",
+                "--date",
+                "--cleanup",
+                "--fixup",
+                "--squash",
+                "--trailer",
+                "--pathspec-from-file",
+            ],
         )
     } else {
         let group = words.get(start + 1).map(String::as_str);
@@ -158,13 +193,21 @@ fn publishing(simple: &Simple) -> Option<Published> {
         if !publishes {
             return None;
         }
-        (&["-t", "--title", "-b", "--body", "-n", "--notes"], &["-F", "--body-file", "--notes-file"], &[])
+        (
+            &["-t", "--title", "-b", "--body", "-n", "--notes"],
+            &["-F", "--body-file", "--notes-file"],
+            &[],
+        )
     };
     let mut texts = Vec::new();
     let mut paths = Vec::new();
     let mut reads_input = false;
     let mut index = start + 1;
-    let take = |value: &Word, is_path: bool, texts: &mut Vec<Piece>, paths: &mut Vec<String>, reads_input: &mut bool| {
+    let take = |value: &Word,
+                is_path: bool,
+                texts: &mut Vec<Piece>,
+                paths: &mut Vec<String>,
+                reads_input: &mut bool| {
         if is_path {
             let path = value.text();
             if path == "-" {
@@ -184,7 +227,13 @@ fn publishing(simple: &Simple) -> Option<Published> {
         let next = simple.words.get(index + 1);
         if text_flags.contains(&word.as_str()) || path_flags.contains(&word.as_str()) {
             if let Some(value) = next {
-                take(value, path_flags.contains(&word.as_str()), &mut texts, &mut paths, &mut reads_input);
+                take(
+                    value,
+                    path_flags.contains(&word.as_str()),
+                    &mut texts,
+                    &mut paths,
+                    &mut reads_input,
+                );
             }
             index += 2;
             continue;
@@ -193,7 +242,10 @@ fn publishing(simple: &Simple) -> Option<Published> {
             index += 2;
             continue;
         }
-        if let Some((flag, value)) = word.split_once('=').filter(|(flag, _)| flag.starts_with("--")) {
+        if let Some((flag, value)) = word
+            .split_once('=')
+            .filter(|(flag, _)| flag.starts_with("--"))
+        {
             let is_text = text_flags.contains(&flag);
             if is_text || path_flags.contains(&flag) {
                 let mut rest = simple.words[index].clone();
@@ -266,9 +318,14 @@ fn rule_p1(text: &str, found: &mut Vec<Finding>) {
     let masked = mask(text, true);
     for idiom in IDIOMS {
         let words: Vec<String> = idiom.split([' ', '-']).map(regex::escape).collect();
-        let pattern = Regex::new(&format!(r"(?i)\b{}\b", words.join(r"[\s-]+"))).expect("an idiom's pattern compiles");
+        let pattern = Regex::new(&format!(r"(?i)\b{}\b", words.join(r"[\s-]+")))
+            .expect("an idiom's pattern compiles");
         for hit in pattern.find_iter(&masked) {
-            found.push(Finding { rule: "P1", span: text[hit.range()].to_string(), fix: FIX_P1 });
+            found.push(Finding {
+                rule: "P1",
+                span: text[hit.range()].to_string(),
+                fix: FIX_P1,
+            });
         }
     }
 }
@@ -276,14 +333,19 @@ fn rule_p1(text: &str, found: &mut Vec<Finding>) {
 /// P2: a line holding only bold text, with an optional colon or full stop.
 fn rule_p2(text: &str, found: &mut Vec<Finding>) {
     let masked = mask(text, false);
-    let bold = Regex::new(r"^[ \t]*(\*\*[^*\n]*[^*\s]\*\*|__[^_\n]*[^_\s]__)[ \t]*[:.]?[ \t]*$").expect("P2 compiles");
+    let bold = Regex::new(r"^[ \t]*(\*\*[^*\n]*[^*\s]\*\*|__[^_\n]*[^_\s]__)[ \t]*[:.]?[ \t]*$")
+        .expect("P2 compiles");
     let mut offset = 0;
     for line in masked.split('\n') {
         if let Some(hit) = bold.find(line) {
             let span = text[offset + hit.start()..offset + hit.end()].trim();
             let inner = &span.trim_end_matches([':', '.', ' ', '\t'])[2..];
             if !inner.trim_start().is_empty() && !inner.starts_with(char::is_whitespace) {
-                found.push(Finding { rule: "P2", span: span.to_string(), fix: FIX_P2 });
+                found.push(Finding {
+                    rule: "P2",
+                    span: span.to_string(),
+                    fix: FIX_P2,
+                });
             }
         }
         offset += line.len() + 1;
@@ -297,7 +359,11 @@ fn substitutions(text: &str, found: &mut Vec<Finding>) {
         .expect("P3 compiles");
     for hit in pattern.captures_iter(text) {
         if let Some(path) = hit.get(1).or_else(|| hit.get(2)) {
-            found.push(Finding { rule: "P3", span: path.as_str().to_string(), fix: FIX_P3 });
+            found.push(Finding {
+                rule: "P3",
+                span: path.as_str().to_string(),
+                fix: FIX_P3,
+            });
         }
     }
 }
@@ -330,7 +396,10 @@ fn mask(text: &str, tokens: bool) -> String {
     spans.extend(code.find_iter(&out).map(|m| (m.start(), m.end())));
     spans.extend(url.find_iter(&out).map(|m| (m.start(), m.end())));
     if tokens {
-        let token = Regex::new(r"[^\s`]*[/\\][^\s`]*|[^\s`]+\.[A-Za-z][A-Za-z0-9]*\b[^\s`]*|[^\s`]*_[^\s`]*").expect("tokens compile");
+        let token = Regex::new(
+            r"[^\s`]*[/\\][^\s`]*|[^\s`]+\.[A-Za-z][A-Za-z0-9]*\b[^\s`]*|[^\s`]*_[^\s`]*",
+        )
+        .expect("tokens compile");
         spans.extend(token.find_iter(&out).map(|m| (m.start(), m.end())));
     }
     let mut bytes = out.into_bytes();
@@ -345,7 +414,9 @@ fn mask(text: &str, tokens: bool) -> String {
 }
 
 fn blank(line: &str) -> String {
-    line.chars().map(|c| if c.is_ascii() { ' ' } else { c }).collect()
+    line.chars()
+        .map(|c| if c.is_ascii() { ' ' } else { c })
+        .collect()
 }
 
 /// Split a shell command into simple commands, keeping each word's characters
@@ -362,7 +433,9 @@ fn parse(command: &str) -> Vec<Simple> {
     let mut index = 0;
 
     fn push_piece(word: &mut Option<Word>, raw: String, expands: bool) {
-        word.get_or_insert_with(Word::default).pieces.push(Piece { raw, expands });
+        word.get_or_insert_with(Word::default)
+            .pieces
+            .push(Piece { raw, expands });
     }
 
     macro_rules! end_word {
@@ -439,12 +512,20 @@ fn parse(command: &str) -> Vec<Simple> {
             }
             '$' if chars.get(index + 1) == Some(&'(') => {
                 let end = substitution(&chars, index + 2);
-                push_piece(&mut word, chars[index..end.min(chars.len())].iter().collect(), true);
+                push_piece(
+                    &mut word,
+                    chars[index..end.min(chars.len())].iter().collect(),
+                    true,
+                );
                 index = end;
             }
             '`' => {
                 let end = find(&chars, index + 1, '`');
-                push_piece(&mut word, chars[index..(end + 1).min(chars.len())].iter().collect(), true);
+                push_piece(
+                    &mut word,
+                    chars[index..(end + 1).min(chars.len())].iter().collect(),
+                    true,
+                );
                 index = end + 1;
             }
             '<' if chars.get(index + 1) == Some(&'<') && chars.get(index + 2) == Some(&'<') => {
@@ -478,7 +559,10 @@ fn parse(command: &str) -> Vec<Simple> {
                 }
             }
             '>' => {
-                let digits = word.as_ref().map(|w| w.text().chars().all(|d| d.is_ascii_digit())).unwrap_or(false);
+                let digits = word
+                    .as_ref()
+                    .map(|w| w.text().chars().all(|d| d.is_ascii_digit()))
+                    .unwrap_or(false);
                 if digits {
                     word = None;
                 } else {
@@ -617,7 +701,11 @@ fn heredoc(chars: &[char], from: usize, delimiter: &str, strip: bool) -> (String
     while index < chars.len() {
         let end = find(chars, index, '\n');
         let line: String = chars[index..end].iter().collect();
-        let bare = if strip { line.trim_start_matches('\t') } else { line.as_str() };
+        let bare = if strip {
+            line.trim_start_matches('\t')
+        } else {
+            line.as_str()
+        };
         if bare == delimiter {
             return (body, (end + 1).min(chars.len()));
         }
@@ -633,22 +721,34 @@ mod tests {
     use super::*;
 
     fn rules(command: &str) -> Vec<(&'static str, String)> {
-        findings(command).into_iter().map(|f| (f.rule, f.span)).collect()
+        findings(command)
+            .into_iter()
+            .map(|f| (f.rule, f.span))
+            .collect()
     }
 
     #[test]
     fn an_idiom_in_a_message_is_quoted_as_written() {
-        assert_eq!(rules("git commit -m \"The Low-Hanging  fruit here\""), vec![("P1", "Low-Hanging  fruit".to_string())]);
+        assert_eq!(
+            rules("git commit -m \"The Low-Hanging  fruit here\""),
+            vec![("P1", "Low-Hanging  fruit".to_string())]
+        );
     }
 
     #[test]
     fn an_idiom_in_a_path_or_code_passes() {
-        assert!(rules("git commit -m \"see plugins/deep-dive/ and `deep dive` and rule-of-thumb.md\"").is_empty());
+        assert!(
+            rules("git commit -m \"see plugins/deep-dive/ and `deep dive` and rule-of-thumb.md\"")
+                .is_empty()
+        );
     }
 
     #[test]
     fn a_clustered_message_flag_is_read() {
-        assert_eq!(rules("git commit -am \"a silver bullet\""), vec![("P1", "silver bullet".to_string())]);
+        assert_eq!(
+            rules("git commit -am \"a silver bullet\""),
+            vec![("P1", "silver bullet".to_string())]
+        );
     }
 
     #[test]
@@ -658,22 +758,34 @@ mod tests {
 
     #[test]
     fn a_heredoc_another_command_reads_is_not_published() {
-        assert!(rules("cat > notes.md <<'EOF'\n**Why.**\nEOF\ngit commit -m \"Cache pages\"").is_empty());
+        assert!(
+            rules("cat > notes.md <<'EOF'\n**Why.**\nEOF\ngit commit -m \"Cache pages\"")
+                .is_empty()
+        );
     }
 
     #[test]
     fn a_heredoc_the_commit_reads_is_published() {
-        assert_eq!(rules("git commit -F - <<'EOF'\nCache\n\n**Why.**\nEOF"), vec![("P2", "**Why.**".to_string())]);
+        assert_eq!(
+            rules("git commit -F - <<'EOF'\nCache\n\n**Why.**\nEOF"),
+            vec![("P2", "**Why.**".to_string())]
+        );
     }
 
     #[test]
     fn a_heredoc_belongs_to_its_command_when_another_follows() {
-        assert_eq!(rules("git commit -F - <<'EOF' && git push\nsilver bullet\nEOF"), vec![("P1", "silver bullet".to_string())]);
+        assert_eq!(
+            rules("git commit -F - <<'EOF' && git push\nsilver bullet\nEOF"),
+            vec![("P1", "silver bullet".to_string())]
+        );
     }
 
     #[test]
     fn a_file_on_standard_input_hides_the_text() {
-        assert_eq!(rules("git commit -F - < notes.txt"), vec![("P3", "notes.txt".to_string())]);
+        assert_eq!(
+            rules("git commit -F - < notes.txt"),
+            vec![("P3", "notes.txt".to_string())]
+        );
     }
 
     #[test]
@@ -683,7 +795,10 @@ mod tests {
 
     #[test]
     fn a_long_flag_with_equals_is_read() {
-        assert_eq!(rules("gh issue create --title x --body-file=body.md"), vec![("P3", "body.md".to_string())]);
+        assert_eq!(
+            rules("gh issue create --title x --body-file=body.md"),
+            vec![("P3", "body.md".to_string())]
+        );
     }
 
     #[test]
