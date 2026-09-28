@@ -2,7 +2,7 @@
 id: index
 artifact: index
 status: live
-revised: 2026-09-24
+revised: 2026-09-28
 ---
 
 # The project
@@ -206,6 +206,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1610](adrs/ADR-1610-this-repository-binds-its-five-verbs-to-the-crates-own-tools.md):
   this repository binds its five verbs to the crate's own tools, after the
   crate passes them.
+- [ADR-1620](adrs/ADR-1620-the-chain-gains-a-cover-step-that-paw-ready-gates-on-the-tasks-cover-section.md):
+  the chain gains a cover step between the epic and the implementation, and
+  `paw ready` gates the implementation on the task's Cover section.
 
 ## Specifications
 
@@ -243,7 +246,8 @@ checked, and `meow-flow` implements it, verified under issue 404.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
-`meow-flow` implements it, verified under issue 368.
+`meow-flow` implements it, verified under issue 368, except the cover step
+ADR-1620 adds, which EPC-1580 realises.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
@@ -461,6 +465,9 @@ every acceptance criterion under issue 587.
 [EPC-1570](epics/EPC-1570-the-crate-under-the-five-verbs.md) realises ADR-1610
 in four tasks, TSK-2480 to TSK-2510, each closed with evidence, and was
 verified against every acceptance criterion under issue 596.
+
+[EPC-1580](epics/EPC-1580-the-cover-step.md) realises ADR-1620 in three tasks,
+TSK-2530 to TSK-2550, none of them started.
 
 ## Defects
 
