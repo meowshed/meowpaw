@@ -77,6 +77,56 @@ clippy before the crate passes them fails every pull request.
 Not yet. Once done: the command, its exit status and its output, collected at
 the revision that merges.
 
+### Checks written before the change
+
+Each criterion a program can check has a check in
+`tools/test_verb_bindings.py` or `tools/test_crate_verbs.py`, and each check
+failed on the parent revision, `main` after #609, because `mise.toml` has no
+`crate-fmt` or `crate-lint` task and the profile binds neither.
+`python3 -m unittest tools/test_verb_bindings.py tools/test_crate_verbs.py`
+exited 1 and printed `Ran 18 tests` and `FAILED (failures=12)`: the 8 checks
+TSK-2480 wrote passed, and the 10 below failed, two of them in two subtests.
+
+- Criterion 1: `FormatAndLintTasks.test_crate_fmt_runs_the_formatter_check`,
+  `FormatAndLintTasks.test_crate_lint_runs_clippy_denying_warnings`,
+  `FormatAndLintBindings.test_format_ends_with_crate_fmt` and
+  `FormatAndLintBindings.test_lint_ends_with_crate_lint`.
+- Criterion 2:
+  `MiseCheckWithFormatAndLint.test_meow_mise_check_passes_over_all_five_crate_tasks`.
+- Criterion 3:
+  `FormatCatchesAnUnformattedLine.test_crate_fmt_passes_the_clean_copy_and_fails_the_planted_one`.
+- Criterion 4: `LintCatchesACollapsibleIf.test_crate_lint_fails_naming_collapsible_if`.
+- Criterion 5: `FmtFormatsTheCrate.test_fmt_runs_cargo_fmt_without_check` and
+  `FmtFormatsThePlantedLine.test_fmt_step_formats_the_line_and_crate_fmt_then_passes`.
+- Criterion 6: `GateWithFormatAndLint.test_all_depends_on_the_three_crate_tasks`.
+
+The checks for criteria 3, 4 and 5 plant their defect in a copy of
+`crates/meow` and run the task's own command from `mise.toml` against the
+copy's manifest, because planting it in the working tree would leave the tree
+dirty if a run stopped halfway. Clippy's run takes minutes, so
+`tools/test_crate_verbs.py` stays out of the `test` verb, like
+`tools/test_crate_lint.py`.
+
+Criterion 1 is partly judgement: a check can't run all five verbs, because
+`test` runs `tools/test_verb_bindings.py` and would run the check again. The
+checks hold the bindings, and the kept evidence of the five-verb run holds the
+passes.
+
+Criteria 3 and 4 are partly judgement for the same reason. The checks hold
+that the task each verb ends with fails on the planted defect, and the kept
+evidence of `meow-verbs run format` and `meow-verbs run lint` holds the exit
+status of 1.
+
+Criterion 5 names `mise run fmt-check`, which checks Markdown alone and so
+passes whatever the crate holds. The check reads the criterion as the crate's
+own check, `crate-fmt`, passing after `fmt` ran.
+
+Criterion 6 is judgement: the pull request's CI run is the check, and no
+program in the tree can see it.
+
+Criterion 7 is judgement: it records a wall time and states no limit, so
+nothing can pass or fail.
+
 ## Left alone
 
 SPC-1080, which already states the five bindings. Each feature linted alone,
