@@ -192,6 +192,90 @@ class Status(Fixture):
         self.assertIn("ran-sums", ran.stdout, ran.stderr)
 
 
+BINDABLE = """version: '3'
+tasks:
+  test:
+    cmds: [echo test]
+  tests:
+    cmds: [echo tests]
+  lint:
+    cmds:
+      - cmd: exit 1
+        ignore_error: true
+  build:
+    sources: [src.txt]
+    cmds: [echo build]
+  priv:
+    internal: true
+    cmds: [echo priv]
+  ask:
+    prompt: Sure?
+    cmds: [echo ask]
+  deploy:
+    requires:
+      vars: [ENV]
+    cmds: [echo deploy]
+"""
+
+
+def profile(verbs):
+    return "[verbs]\n" + "".join(f'{verb} = "{command}"\n' for verb, command in verbs.items())
+
+
+class Bind(Fixture):
+    def setUp(self):
+        self.done = self.repo({"Taskfile.yml": BINDABLE, "src.txt": "a\n"}).run("bind")
+
+    def test_a_verb_binds_to_its_exact_task_with_force(self):
+        self.assertEqual(self.done.returncode, 0, self.done.stdout + self.done.stderr)
+        self.assertIn('test = "task --force test"', self.done.stdout)
+        self.assertIn('build = "task --force build"', self.done.stdout)
+        self.assertNotIn("--force tests", self.done.stdout)
+
+    def test_a_blocked_task_is_left_unbound_with_its_reason(self):
+        self.assertIn("# lint: task lint is blocked: ignores errors", self.done.stdout)
+        self.assertIn("# format: no task named format", self.done.stdout)
+
+
+class Check(Fixture):
+    def check(self, verbs, files=None):
+        return self.repo({"Taskfile.yml": BINDABLE, "src.txt": "a\n", ".meowpaw/profile.toml": profile(verbs),
+                          **(files or {})}).run("check")
+
+    def test_a_skippable_task_without_force_is_a_finding(self):
+        done = self.check({"build": "task build"})
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("  build: task build can skip as up to date and runs without --force", done.stdout)
+
+    def test_a_forced_task_is_clean(self):
+        done = self.check({"build": "task --force build", "test": "task test"})
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("0 findings in 2 task runs", done.stdout)
+
+    def test_hand_written_bindings_report_their_blocks_never_missing(self):
+        """REQ-2508: a task needing a variable is reported before it runs, and an internal one as internal."""
+        done = self.check({"test": "task priv", "lint": "task --force ask", "build": "task --force deploy"})
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("  test: task priv is internal", done.stdout)
+        self.assertIn("  lint: task ask is blocked: asks for a person", done.stdout)
+        self.assertIn("  build: task deploy is blocked: needs variables ENV", done.stdout)
+        self.assertNotIn("no task named", done.stdout)
+
+    def test_a_remote_include_is_a_finding(self):
+        """REQ-2487: an include from outside the repository fails the gate, whether or not a verb uses it."""
+        repository = self.repo({"Taskfile.yml": REMOTE, ".meowpaw/profile.toml": profile({"test": "task test"})},
+                               stand_in='echo "3.53.1"\n')
+        done = repository.run("check")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("  remote include far: https://example.org/Taskfile.yml (Taskfile.yml)", done.stdout)
+        self.assertFalse(any("--list-all" in call for call in repository.calls()), repository.calls())
+
+    def test_the_skill_forbids_writing_a_remote_include(self):
+        """REQ-2487: the harness never authors one."""
+        skill = (UNIT / "skills" / "tasks" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("Never write an include whose `taskfile` names a URL", skill)
+
+
 class Remote(Fixture):
     def test_a_remote_include_is_named_and_nothing_listed(self):
         """REQ-2486: the include is reported before any task from it is used."""
