@@ -53,7 +53,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 - [x] T-001 [P] TSK-2480 add `crate-check`, and bind `check`, `test` and
       `build` in `.meowpaw/profile.toml` and `mise.toml`
 
-- [ ] T-002 [P] TSK-2490 reformat `crates/meow/src` with `cargo fmt` and
+- [x] T-002 [P] TSK-2490 reformat `crates/meow/src` with `cargo fmt` and
       nothing else
 
 - [ ] T-003 TSK-2500 fix the 15 clippy findings in `crates/meow/src`
