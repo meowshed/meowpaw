@@ -1,0 +1,13 @@
+meow-verbs evidence 1
+record: 0a521ef01ba8
+verb: format
+command: mise run fmt-check
+targets: none
+outcome: passed
+exit status: 0
+tree: 7e83f7075291d846329e777ad3a8982214b93f0f
+time: 2026-09-28T15:44:12Z
+
+[fmt-check] $ prettier --check '**/*.md'
+Checking formatting...
+All matched files use Prettier code style!

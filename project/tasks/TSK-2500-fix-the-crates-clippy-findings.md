@@ -61,6 +61,43 @@ fixes written first would conflict with it.
 Not yet. Once done: the command, its exit status and its output, collected at
 the revision that merges.
 
+### Checks written before the change
+
+Each criterion a program can check has a check in `tools/test_crate_lint.py`,
+and each check failed on the parent revision, `main` after #608:
+
+- Criterion 1: `ClippyCheck.test_clippy_denying_warnings_exits_0_with_no_output`.
+  On that revision clippy exited 101 on 15 errors, as criterion 1 states.
+  With `TSK_2500_BASE` set, the check also fails when the change adds an
+  `allow` or `expect` attribute to `crates/meow/src`, because an allowed
+  finding passes the lint and still ships. That half wasn't seen failing on
+  its own, since clippy fails first on the parent.
+- Criterion 4, its first commit:
+  `FirstCommitIsClippyFix.test_clippy_fix_on_the_parent_gives_the_first_commit`.
+  It reads the parent from `TSK_2500_BASE` and the first branch commit from
+  `TSK_2500_FIX`, and is skipped without them, because the criterion concerns
+  one change's commits and no default names them. With both set to the
+  parent, `record.rs`, `author.rs` and `git.rs` differed from what
+  `cargo clippy --fix` wrote, the three files RES-0278 names.
+
+Criterion 2 is judgement, although a program runs it: `mise run crate`
+already passes before the change, so no check can fail first and show that
+the fixes did anything. The existing `crate` task is the check, and it guards
+against a fix that changes behaviour. On the parent it reported 29 passed and
+0 failed, not the 18 criterion 2 states, because changes merged after the
+task was written added tests.
+
+Criterion 3 is judgement for the same reason: `FormatterCheck` in
+`tools/test_crate_format.py` holds it and passes on the parent already.
+
+Criterion 4, its second commit, is judgement, because only a reader can tell
+that the hand edits for `skip_while_next` and `regex_creation_in_loops` keep
+each function's behaviour, and the tests cover only part of each function.
+
+Criterion 5 is judgement for the same reason as criterion 2: the gate passes
+before the change, so the gate's own run and the pull request's CI run are
+the check.
+
 ## Left alone
 
 Clippy's lints outside its default set, which ADR-1610 leaves open. Each
