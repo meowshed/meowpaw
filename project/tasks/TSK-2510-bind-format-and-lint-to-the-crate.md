@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1570
 closes: [REQ-1186]
-issue:
+issue: 605
+projected: c285b90a2fb3
 ---
 
 # Bind `format` and `lint` to the crate

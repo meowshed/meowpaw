@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1570
 closes: []
-issue:
+issue: 604
+projected: a58e32239000
 ---
 
 # Fix the crate's clippy findings
