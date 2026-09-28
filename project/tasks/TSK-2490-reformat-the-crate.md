@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1570
 closes: []
-issue:
+issue: 603
+projected: df9b90d49484
 ---
 
 # Reformat the crate with `cargo fmt`
