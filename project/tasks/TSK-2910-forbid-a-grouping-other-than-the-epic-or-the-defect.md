@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1710
 closes: [REQ-3320]
-issue:
+issue: 642
+projected: 79a031af6d67
 ---
 
 # Report a grouping field on a task, an epic or a defect, and show that `project` groups an issue nowhere
