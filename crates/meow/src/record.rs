@@ -2458,10 +2458,11 @@ fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
         }
         return gaps;
     }
-    for path in cover_paths(&values["Checks"]) {
-        if !repository.join(&path).exists() {
+    let checks = cover_paths(&values["Checks"]);
+    for path in &checks {
+        if let Some(gap) = unkept(repository, path) {
             gaps.push(format!(
-                "{id}'s Cover names the check {path} under Checks, and it doesn't exist"
+                "{id}'s Cover names the check {path} under Checks, {gap}"
             ));
         }
     }
@@ -2471,9 +2472,13 @@ fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
         ));
     }
     for path in cover_paths(&values["Failing run"]) {
-        if !repository.join(&path).exists() {
+        if checks.contains(&path) {
             gaps.push(format!(
-                "{id}'s Cover names the run {path} under Failing run, and it doesn't exist"
+                "{id}'s Cover names the check {path} under Failing run, where the run of its checks is kept"
+            ));
+        } else if let Some(gap) = unkept(repository, &path) {
+            gaps.push(format!(
+                "{id}'s Cover names the run {path} under Failing run, {gap}"
             ));
         }
     }
@@ -2483,6 +2488,30 @@ fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
         ));
     }
     gaps
+}
+
+/// Why a path a Cover names isn't a file kept in the repository, or nothing
+/// where it is one. An absolute path, or one whose `..` or symbolic link
+/// leads outside the root, isn't kept with the repository, and a directory
+/// is neither a check nor a run (REQ-3207).
+fn unkept(repository: &Path, path: &str) -> Option<&'static str> {
+    if Path::new(path).is_absolute() {
+        return Some("and it is absolute where a path inside the repository belongs");
+    }
+    let joined = repository.join(path);
+    let Ok(resolved) = joined.canonicalize() else {
+        return Some("and it doesn't exist");
+    };
+    let root = repository
+        .canonicalize()
+        .unwrap_or_else(|_| repository.to_path_buf());
+    if !resolved.starts_with(&root) {
+        return Some("and it leads outside the repository");
+    }
+    if !resolved.is_file() {
+        return Some("and it isn't a file");
+    }
+    None
 }
 
 /// The paths a Cover line names, or none where it reads `none`.

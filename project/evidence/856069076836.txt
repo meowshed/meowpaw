@@ -1,0 +1,102 @@
+meow-verbs evidence 1
+record: 856069076836
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: 15e30b466407936b6e0c4526e5e6a6eeaeb2c5b7
+time: 2026-09-28T19:07:17Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 29 tests
+.............................
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 14.892s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.884s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 5.950s
+
+OK
+..............................................................................................................FFFF........................................................................
+======================================================================
+FAIL: test_a_check_named_as_its_own_failing_run_is_refused (test_record.CoverPaths.test_a_check_named_as_its_own_failing_run_is_refused)
+TSK-2570 criterion 3: `Failing run` naming the file `Checks` names.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-paths-are-kept-files/plugins/meow-flow/tests/test_record.py", line 1086, in test_a_check_named_as_its_own_failing_run_is_refused
+    self.refused("Failing run", "tests/test_a_task.py")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.fix-cover-paths-are-kept-files/plugins/meow-flow/tests/test_record.py", line 1066, in refused
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+======================================================================
+FAIL: test_a_check_outside_the_repository_or_a_directory_is_refused (test_record.CoverPaths.test_a_check_outside_the_repository_or_a_directory_is_refused)
+TSK-2570 criterion 2: an absolute path, a `..` escape and a directory under `Checks`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-paths-are-kept-files/plugins/meow-flow/tests/test_record.py", line 1080, in test_a_check_outside_the_repository_or_a_directory_is_refused
+    self.refused("Checks", "/etc/hosts")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.fix-cover-paths-are-kept-files/plugins/meow-flow/tests/test_record.py", line 1066, in refused
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+======================================================================
+FAIL: test_a_failing_run_outside_the_repository_is_refused (test_record.CoverPaths.test_a_failing_run_outside_the_repository_is_refused)
+TSK-2570 criterion 1: an absolute path, and a `..` path to a file that exists, under `Failing run`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-paths-are-kept-files/plugins/meow-flow/tests/test_record.py", line 1071, in test_a_failing_run_outside_the_repository_is_refused
+    self.refused("Failing run", "/etc/hosts")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.fix-cover-paths-are-kept-files/plugins/meow-flow/tests/test_record.py", line 1066, in refused
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+======================================================================
+FAIL: test_a_failing_run_that_is_a_directory_is_refused (test_record.CoverPaths.test_a_failing_run_that_is_a_directory_is_refused)
+TSK-2570 criterion 1: a directory in the repository under `Failing run` is no run.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-cover-paths-are-kept-files/plugins/meow-flow/tests/test_record.py", line 1076, in test_a_failing_run_that_is_a_directory_is_refused
+    self.refused("Failing run", "tests")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.fix-cover-paths-are-kept-files/plugins/meow-flow/tests/test_record.py", line 1066, in refused
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : paw ready implement: ready; TSK-0001 approved and complete
+
+
+----------------------------------------------------------------------
+Ran 186 tests in 17.172s
+
+FAILED (failures=4)
