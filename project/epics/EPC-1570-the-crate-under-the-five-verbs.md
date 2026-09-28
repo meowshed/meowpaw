@@ -50,7 +50,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-2480 add `crate-check`, and bind `check`, `test` and
+- [x] T-001 [P] TSK-2480 add `crate-check`, and bind `check`, `test` and
       `build` in `.meowpaw/profile.toml` and `mise.toml`
 
 - [ ] T-002 [P] TSK-2490 reformat `crates/meow/src` with `cargo fmt` and

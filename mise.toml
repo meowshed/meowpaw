@@ -42,6 +42,10 @@ run = "cargo run --quiet --release --manifest-path crates/meow/Cargo.toml --targ
 description = "Build each unit's binary of the native tool for this machine"
 run = "crates/meow/build-units"
 
+[tasks.crate-check]
+description = "Type-check the native tool with every feature and target"
+run = "cargo check --quiet --manifest-path crates/meow/Cargo.toml --all-features --all-targets"
+
 [tasks.crate]
 description = "Run the native tool's own tests"
 run = "cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features"
@@ -52,4 +56,4 @@ run = "python3 tools/loop.py plugins/*/"
 
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "lint", "style", "prompts", "kernel", "standalone", "budget", "crate"]
+depends = ["fmt-check", "lint", "style", "prompts", "kernel", "standalone", "budget", "crate-check", "crate"]
