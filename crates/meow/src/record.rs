@@ -511,13 +511,13 @@ fn hash_citations(record: &Record, repository: &Path, base: &str) -> Vec<String>
 }
 
 /// A task's text without what may change after approval: its evidence, its
-/// issue and its revision date.
+/// Cover, its issue and its revision date.
 fn frozen_part(text: &str) -> String {
     let mut out = Vec::new();
     let mut in_evidence = false;
     for line in text.lines() {
         if let Some(heading) = line.strip_prefix("## ") {
-            in_evidence = heading.trim() == "Evidence";
+            in_evidence = matches!(heading.trim(), "Evidence" | "Cover");
         }
         if in_evidence
             || line.starts_with("issue:")
@@ -2024,7 +2024,7 @@ fn rules(record: &Record) -> Vec<Finding> {
                             ),
                         ));
                     }
-                    if matches!(enters, "implement" | "design")
+                    if matches!(enters, "cover" | "implement" | "design")
                         && bare(doc.value("violates")).is_empty()
                     {
                         out.push(Finding::at(doc, line, format!("enters {enters} and names no requirement it violates, where a defect no requirement covers enters at requirements or research")));
@@ -2171,12 +2171,13 @@ fn rules(record: &Record) -> Vec<Finding> {
     out
 }
 
-const STEPS: [&str; 9] = [
+const STEPS: [&str; 10] = [
     "research",
     "requirements",
     "design",
     "spec",
     "epic",
+    "cover",
     "implement",
     "document",
     "verify",
@@ -2287,7 +2288,7 @@ fn ready(rest: &[String]) -> u8 {
         eprintln!("paw ready {step}: name the identifiers of the step's input");
         return USAGE;
     }
-    let (record, _, _) = match open_record("ready") {
+    let (record, repository, _) = match open_record("ready") {
         Ok(opened) => opened,
         Err(code) => return code,
     };
@@ -2300,7 +2301,9 @@ fn ready(rest: &[String]) -> u8 {
         };
         let kind = kind_of(&record, doc);
         match step {
-            "requirements" | "design" | "spec" | "epic" | "implement" if !approved(doc) => {
+            "requirements" | "design" | "spec" | "epic" | "cover" | "implement"
+                if !approved(doc) =>
+            {
                 missing.push(format!(
                     "{id}, a {kind}, is {} and not approved",
                     bare(doc.value("status"))
@@ -2323,7 +2326,7 @@ fn ready(rest: &[String]) -> u8 {
                     }
                 }
             }
-            "implement" => {
+            "cover" | "implement" => {
                 let epic_id = authority_of(doc);
                 let what = if bare(doc.value("epic")).is_empty() {
                     "the defect"
@@ -2345,6 +2348,9 @@ fn ready(rest: &[String]) -> u8 {
                     if !task_finished(&known, &dependency) {
                         missing.push(format!("{dependency}, which {id} depends on, isn't done"));
                     }
+                }
+                if step == "implement" && !task_finished(&known, id) {
+                    missing.extend(cover_gaps(doc, &repository));
                 }
             }
             "document" | "verify" => {
@@ -2381,6 +2387,151 @@ fn ready(rest: &[String]) -> u8 {
         }
         FOUND
     }
+}
+
+/// The four lines a task's `## Cover` section holds (SPC-1090 "The gate").
+const COVER_LINES: [&str; 4] = ["Checks", "Failing run", "Landed in", "Judgement"];
+
+/// What a task's `## Cover` section lacks before its implementation starts,
+/// one line for each thing missing, and nothing when the section is filled
+/// (SPC-1090 "The gate", REQ-3207, REQ-3216). A path resolves against the
+/// repository's root. It reads the four lines and no history.
+fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
+    let id = bare(task.id());
+    let lines = section_lines(task, "Cover");
+    let written: Vec<&str> = lines
+        .iter()
+        .map(|(_, l)| l.trim())
+        .filter(|l| !l.is_empty())
+        .collect();
+    if lines.is_empty() && !task.text.lines().any(|l| l.trim() == "## Cover") {
+        return vec![format!(
+            "{id} has no ## Cover section, where the cover step names its checks, its failing run, where they landed and what rests on judgement"
+        )];
+    }
+    if written.is_empty() || written[0].starts_with("Not yet") {
+        return vec![format!(
+            "{id}'s Cover isn't filled yet: the cover step writes its Checks, Failing run, Landed in and Judgement lines"
+        )];
+    }
+    let mut values: BTreeMap<&str, String> = BTreeMap::new();
+    for line in &written {
+        let item = line.trim_start_matches(['-', '*']).trim();
+        for name in COVER_LINES {
+            if let Some(value) = item
+                .strip_prefix(name)
+                .and_then(|rest| rest.strip_prefix(':'))
+            {
+                values.insert(name, value.trim().to_string());
+            }
+        }
+    }
+    let mut gaps = Vec::new();
+    for name in COVER_LINES {
+        if !values.contains_key(name) {
+            gaps.push(format!("{id}'s Cover has no {name} line"));
+        }
+    }
+    if !gaps.is_empty() {
+        return gaps;
+    }
+    let none = |name: &str| {
+        let value = values[name]
+            .trim_end_matches('.')
+            .trim()
+            .to_ascii_lowercase();
+        value.is_empty() || value == "none"
+    };
+    let judged = judgement(&values["Judgement"]);
+    for (number, reason) in &judged {
+        if reason.is_empty() {
+            gaps.push(format!(
+                "{id}'s Cover names criterion {number} under Judgement with no reason"
+            ));
+        }
+    }
+    if none("Checks") && none("Failing run") && none("Landed in") {
+        for number in criteria_numbers(task) {
+            if !judged.iter().any(|(n, _)| *n == number) {
+                gaps.push(format!(
+                    "{id}'s Cover names no check and leaves criterion {number} out of its Judgement line"
+                ));
+            }
+        }
+        return gaps;
+    }
+    for path in cover_paths(&values["Checks"]) {
+        if !repository.join(&path).exists() {
+            gaps.push(format!(
+                "{id}'s Cover names the check {path} under Checks, and it doesn't exist"
+            ));
+        }
+    }
+    if none("Failing run") {
+        gaps.push(format!(
+            "{id}'s Cover has Failing run: none, where the run in which its checks failed is kept"
+        ));
+    }
+    for path in cover_paths(&values["Failing run"]) {
+        if !repository.join(&path).exists() {
+            gaps.push(format!(
+                "{id}'s Cover names the run {path} under Failing run, and it doesn't exist"
+            ));
+        }
+    }
+    if none("Landed in") {
+        gaps.push(format!(
+            "{id}'s Cover has Landed in: none, where it names the pull request or commit that carried its checks"
+        ));
+    }
+    gaps
+}
+
+/// The paths a Cover line names, or none where it reads `none`.
+fn cover_paths(value: &str) -> Vec<String> {
+    if value
+        .trim_end_matches('.')
+        .trim()
+        .eq_ignore_ascii_case("none")
+    {
+        return Vec::new();
+    }
+    value
+        .split([',', ' ', '\t'])
+        .map(|p| p.trim().trim_matches('`').trim_end_matches(['.', ';']))
+        .filter(|p| !p.is_empty() && *p != "and")
+        .map(str::to_string)
+        .collect()
+}
+
+/// A Judgement line's entries, each a criterion's number and its reason.
+/// Entries are separated by semicolons, each `<number>: <reason>`.
+fn judgement(value: &str) -> Vec<(String, String)> {
+    if value
+        .trim_end_matches('.')
+        .trim()
+        .eq_ignore_ascii_case("none")
+    {
+        return Vec::new();
+    }
+    value
+        .split(';')
+        .map(str::trim)
+        .filter(|e| !e.is_empty())
+        .map(|entry| match entry.split_once(':') {
+            Some((number, reason)) => (number.trim().to_string(), reason.trim().to_string()),
+            None => (entry.to_string(), String::new()),
+        })
+        .collect()
+}
+
+/// The numbers of the criteria under a task's `## Acceptance criteria`.
+fn criteria_numbers(task: &Doc) -> Vec<String> {
+    let numbered = Regex::new(r"^(\d+)\.\s").expect("criterion pattern");
+    section_lines(task, "Acceptance criteria")
+        .iter()
+        .filter_map(|(_, l)| numbered.captures(l).map(|c| c[1].to_string()))
+        .collect()
 }
 
 fn count(n: usize, noun: &str) -> String {
