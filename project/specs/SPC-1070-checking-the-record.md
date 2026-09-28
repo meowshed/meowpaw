@@ -2,7 +2,7 @@
 id: SPC-1070
 artifact: spec
 status: live
-revised: 2026-09-27
+revised: 2026-09-28
 checked-at: "#404"
 states:
   [
@@ -236,7 +236,7 @@ one its kind allows:
 
 | Kind            | May change after approval                                                                                                                                  |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| task            | its `## Evidence` section and its `issue`                                                                                                                  |
+| task            | its `## Evidence` and `## Cover` sections and its `issue`, because the implement and cover steps write them after the epic's approval                      |
 | epic            | anything, until its `checked-at` is set (REQ-0634)                                                                                                         |
 | every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic |
 | living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                             |
