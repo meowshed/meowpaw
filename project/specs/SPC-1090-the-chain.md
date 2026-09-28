@@ -11,13 +11,13 @@ states:
     REQ-0149,
     REQ-0151,
     REQ-0157,
-    REQ-0190,
+    REQ-3200,
     REQ-0192,
     REQ-0194,
     REQ-0196,
     REQ-0198,
     REQ-0200,
-    REQ-0202,
+    REQ-3202,
     REQ-0204,
     REQ-0206,
     REQ-0208,
@@ -338,8 +338,9 @@ review a record gets before its gate, and EPC-1470 realises it.
 
 ### The steps
 
-The chain has nine steps in this order, each writing one kind of artifact
-(REQ-0190):
+REQ-3200 puts a cover step, which writes a task's checks, between the epic and
+the implementation. No decision has realised it yet, so the chain still runs
+the nine steps below in this order, each writing one kind of artifact:
 
 | Step         | Reads                                                                                                                                                                                                                                                                                                                                                                               | Writes                                 |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
@@ -508,7 +509,7 @@ REQ-0157).
 ### The driver
 
 `/meow-flow:run` runs `status`, and takes the first item that isn't waiting,
-or the record a person names (REQ-0202). It runs that item's next step through
+or the record a person names (REQ-3202). It runs that item's next step through
 the `method` skill, and stops where the step ends at an approval gate, as the
 step would (REQ-0204). At every stop it reports which step it reached, why it
 stopped and what the next invocation will do (REQ-0208). It keeps no state of
