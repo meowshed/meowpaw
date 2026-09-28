@@ -35,8 +35,14 @@ that will close each requirement it cites. Not how to do it.
 
 ## Depends on
 
-The tasks that must be done first, as `TSK-` identifiers, and why. `paw
-ready implement` reads this section.
+The tasks that must be done first, as `TSK-` identifiers, and why.
+`paw ready cover` and `paw ready implement` read this section.
+
+## Cover
+
+Not yet. The cover step replaces this line with four, `Checks`,
+`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
+the task until they are filled.
 
 ## Evidence
 

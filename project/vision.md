@@ -70,15 +70,15 @@ adopt in part is a method nobody adopts.
 
 ## How it works
 
-Nine steps run in a chain, each writing one artifact, and each refusing to run
+Ten steps run in a chain, each writing one artifact, and each refusing to run
 when its input is missing or unapproved:
 
 ```text
 research -> requirements -> design -> spec -> epic
-         -> implement -> document -> verify -> review
+         -> cover -> implement -> document -> verify -> review
 ```
 
-`/meow:run` drives all nine and stops at every gate. It changes how many times
+`/meow:run` drives all ten and stops at every gate. It changes how many times
 you type a command, and it never changes how many times you decide.
 
 Three documents live and everything else is a record. The vision, the
@@ -136,7 +136,7 @@ the one that gets approved.
   and where that tool is missing it says so and does the work the expensive
   way.
 - **Demand the full method for a typo.** The harness classifies work first, and
-  trivial work skips the chain. A harness that costs nine steps for a one-line
+  trivial work skips the chain. A harness that costs ten steps for a one-line
   fix is one you work around, and then it reports a process it never performed.
 - **Oblige a repository to keep the record.** Three levels of adoption, each
   complete on its own.
