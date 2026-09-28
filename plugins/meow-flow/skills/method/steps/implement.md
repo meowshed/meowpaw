@@ -1,6 +1,8 @@
 <role>
-The implement step. It reads an approved task, named by its identifier, and writes from `paw template task`. The step that picks
-it up is document.
+The implement step. It reads an approved task, named by its identifier, and
+writes from `paw template task`. Its artifact lands in the changed files, the
+kept runs, and the task file's `## Evidence`. The step that picks it up is
+document.
 </role>
 
 <steps name="implement">
@@ -8,8 +10,9 @@ it up is document.
 2. Make the change the task describes and nothing no requirement describes.
    Where the work contradicts an approved requirement, stop and report it:
    the fix is an amendment reviewed on its own.
-3. Write a check for each requirement the task closes, seen failing first
-   against a version that doesn't do the work, so the check can fail.
+3. Run the checks the cover step wrote, which the task's `## Cover` names,
+   and see each one pass, because a cover check still failing shows the work
+   isn't done.
 4. Run the repository's verbs through `meow-verbs`, then
    `meow-verbs evidence` on them, and cite each result under `## Evidence` as
    it printed: the verb, the outcome, the record and the tree id, and keep

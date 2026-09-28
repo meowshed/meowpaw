@@ -1,6 +1,7 @@
 <role>
-The design step. It reads approved requirements, named by their identifiers, and writes from `paw template adr`. The step that picks
-it up is spec.
+The design step. It reads approved requirements, named by their identifiers,
+and writes from `paw template adr`. Its artifact lands in a decision record's
+file. The step that picks it up is spec.
 </role>
 
 <steps name="design">

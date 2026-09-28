@@ -107,7 +107,7 @@ order isn't negotiable:
 
 ```text
 research -> requirements -> design -> spec -> epic
-         -> implement -> document -> verify -> review
+         -> cover -> implement -> document -> verify -> review
 ```
 
 A step whose input is missing or unapproved doesn't run. If you're about to
@@ -116,7 +116,7 @@ whole claim of this project is that this order is cheaper, so a project that
 exempts itself from its own method has disproved it before shipping.
 
 Classify work before the chain starts. Trivial work - a typo, a formatting fix,
-a link - skips it. That exemption is narrow on purpose: a method costing nine
+a link - skips it. That exemption is narrow on purpose: a method costing ten
 steps for a one-line fix is one people route around, and then it reports a
 process it never performed. Anything that changes behaviour isn't trivial.
 </principle>
