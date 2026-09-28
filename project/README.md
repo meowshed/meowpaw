@@ -462,6 +462,9 @@ every acceptance criterion under issue 577.
 TSK-2450 and TSK-2460, each closed with evidence, and was verified against
 every acceptance criterion under issue 587.
 
+[EPC-1590](epics/EPC-1590-the-prose-gate-is-a-program.md) realises ADR-1600
+through TSK-2470, which BUG-1230 carries and which landed before the epic.
+
 [EPC-1570](epics/EPC-1570-the-crate-under-the-five-verbs.md) realises ADR-1610
 in four tasks, TSK-2480 to TSK-2510, each closed with evidence, and was
 verified against every acceptance criterion under issue 596.
