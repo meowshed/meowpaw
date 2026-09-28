@@ -58,7 +58,7 @@ Nothing. ADR-1900 is approved.
 
 - Checks: plugins/meow-markdown/tests/test_markdown.py
 - Failing run: project/evidence/389ccd22365c.txt
-- Landed in: #650
+- Landed in: #651
 - Judgement: none
 
 The checks are `Detection.test_criterion_1_*` for criterion 1,

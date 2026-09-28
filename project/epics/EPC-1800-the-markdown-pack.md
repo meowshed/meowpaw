@@ -77,7 +77,7 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
       in `plugins/meow-markdown` and the `markdown` feature of `crates/meow`
       closes: REQ-2352
       evidence: 13 checks seen failing at the cover commit 593222a, and
-      passing unchanged in #650.
+      passing unchanged in #651.
 
 - [ ] T-002 [P] TSK-3110 `check` the render target and the markdownlint
       settings, and adopt it in this repository's profile
