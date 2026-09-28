@@ -54,9 +54,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2450 ship the unit and `status`, sharing the runner code with
+- [x] T-001 TSK-2450 ship the unit and `status`, sharing the runner code with
       `meow-mise`
       closes: REQ-2480, REQ-2486, REQ-2508, REQ-2510
+      evidence: 22 fixtures seen failing first, against real Task, and
+      `meow-mise`'s 38 unchanged, in #589.
 
 - [ ] T-002 TSK-2460 bind the verbs and check the profile and the includes
       closes: REQ-2487
