@@ -166,6 +166,7 @@ here or in the sources below.
 | [This repository's crate under its own tools](RES-0278-this-repositorys-crate-under-its-own-tools.md)    | On `main` at #595, `crates/meow` passed the compiler and its tests, failed the formatter in 464 places and the linter on 15 errors, and no verb ran them.                                            |
 | [Dependencies and groupings](RES-0289-dependencies-and-groupings-on-the-record-and-on-github.md)         | A task's dependency line can't say it doesn't block, and GitHub offers four ways to group an issue and one dependency relation, which blocks.                                                        |
 | [The Markdown toolchain, as observed](RES-0294-the-markdown-toolchain-as-observed.md)                    | lychee 0.24.2 exits 2 for a site that is down exactly as for a broken link, and only its JSON tells them apart; markdownlint-cli ignores a markdownlint-cli2 configuration in silence.               |
+| [Refuting a verified claim](RES-0309-refuting-a-verified-claim.md)                                       | Four of 755 requirements this repository recorded as verified were unmet, a floor that ordinary work found; in a benchmark, model monitors caught 42% to 65% of shortcuts on multi-file work.        |
 
 ## The situation
 

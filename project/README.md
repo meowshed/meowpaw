@@ -35,13 +35,13 @@ it.
 
 ## Research
 
-129 documents, indexed by
+138 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
 ## Requirements
 
-1,078 obligations, withdrawn ones included, indexed by
+1,120 obligations, withdrawn ones included, indexed by
 [requirements/README.md](requirements/README.md). Each is one file carrying
 one obligation, and it declares whether it's functional or non-functional and
 which of the four kinds of check verifies it: a static check, a behavioural
@@ -215,6 +215,10 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1900](adrs/ADR-1900-a-markdown-pack-reads-the-settings-behind-each-verb-and-reports-an-unreachable-link-as-unreachable.md):
   a Markdown pack reads the settings behind each verb, and reports an
   unreachable link as unreachable, never as a finding.
+- [ADR-2200](adrs/ADR-2200-a-skeptic-refutes-each-requirement-an-epic-claims.md):
+  a read-only agent tries to refute each requirement an epic claims before the
+  epic is verified, and verification records each refutation it confirms as a
+  draft defect.
 
 ## Specifications
 
@@ -257,8 +261,9 @@ realises.
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record and the command that drives it.
 `meow-flow` implements it, verified under issue 368, except the cover step
-ADR-1620 adds, which EPC-1580 realises, and the blocking dependency ADR-1800
-adds, which EPC-1710 realises.
+ADR-1620 adds, which EPC-1580 realises, the blocking dependency ADR-1800
+adds, which EPC-1710 realises, and the skeptic ADR-2200 adds, which
+EPC-2100 realises.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
@@ -496,6 +501,10 @@ addresses lands in one of them, and REQ-2424 and REQ-2484 are postponed.
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, neither started, and
 each requirement ADR-1800 addresses lands in one of them.
+
+[EPC-2100](epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realises
+ADR-2200 in two tasks, TSK-3700 and TSK-3710, neither of them started, and
+every requirement ADR-2200 addresses lands in one of them.
 
 ## Defects
 
