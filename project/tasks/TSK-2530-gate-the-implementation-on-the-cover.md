@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-28
 epic: EPC-1580
 closes: [REQ-3207, REQ-3216]
-issue:
+issue: 616
+projected: b523c09c7c9f
 ---
 
 # Give `paw ready` a cover gate, and gate the implementation on the task's Cover
