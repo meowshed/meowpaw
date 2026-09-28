@@ -64,10 +64,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2530 give `crates/meow/src/record.rs` ten steps, a `cover`
+- [x] T-001 TSK-2530 give `crates/meow/src/record.rs` ten steps, a `cover`
       gate, an `implement` gate on the filled Cover, the frozen exemption
       for `## Cover` and a defect entering at `cover`
       closes: REQ-3207, REQ-3216
+      evidence: 16 checks seen failing at the cover commit 0c9cec6, and 170
+      `meow-flow` fixtures passing, in #616.
 
 - [ ] T-002 [P] TSK-2540 make `paw status` name cover before implement, and
       let `/meow-flow:run` continue past a step with no gate

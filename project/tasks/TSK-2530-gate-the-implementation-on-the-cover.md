@@ -106,12 +106,53 @@ Nothing. ADR-1620 and EPC-1580 are approved.
 
 ## Cover
 
-Not yet.
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/ac043fee00a9.txt
+- Landed in: #620
+- Judgement: none
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`crates/meow/src/record.rs` knows ten steps. `ready cover` checks what
+`ready implement` checked before: the task and its epic or defect approved,
+and each task under `## Depends on` done. `ready implement` checks the same
+and then calls `cover_gaps`, which reads the four Cover lines and returns one
+line for each thing missing. That function is separate so TSK-2540's `status`
+can call it. `ready implement` skips the Cover for a task its authorising
+record marks `[x]` or `[~]`. `frozen_part` treats `## Cover` as it treats
+`## Evidence`, and `enters-fits` asks a defect entering at `cover` for
+`violates`. `meow-flow` moves to 0.34.0, and its README describes the cover
+gate and the Cover's four lines.
+
+The 16 checks failed at the cover commit,
+`0c9cec6b5c1bff9c5ea4c13d584b272c9cccb0b3`, which held the checks alone:
+`meow-verbs run test` exited 1 with `FAILED (failures=16)` in the
+`meow-flow` fixtures, kept as `project/evidence/ac043fee00a9.txt`. They pass
+after this change:
+
+```text
+$ python3 -m unittest test_record.Cover \
+    test_record.Chain.test_an_unknown_step_names_the_ten \
+    test_record.Frozen.test_a_filled_cover_leaves_an_approved_task_unchanged \
+    test_record.Triage.test_a_defect_may_enter_at_cover \
+    test_record.Triage.test_a_defect_entering_at_cover_names_what_it_violates
+Ran 16 tests
+OK                                               # exit 0
+$ python3 -m unittest test_record                # in plugins/meow-flow/tests
+Ran 170 tests
+OK                                               # exit 0
+```
+
+`git diff 0c9cec6b5c1bff9c5ea4c13d584b272c9cccb0b3 --
+plugins/meow-flow/tests/test_record.py` prints no change to the 16 checks.
+It shows only the two older fixtures "What to do" names, moved from
+`ready implement` to `ready cover`, because the fixture task has no Cover:
+`Chain.test_implement_refuses_until_its_dependency_is_done`, now
+`Chain.test_cover_refuses_until_its_dependency_is_done`, and
+`DefectTasks.test_a_task_under_an_approved_defect_is_ready`.
+
+Criterion 11 is closed by the run of `meow-verbs run format lint test` kept
+in this change's `project/evidence/`.
 
 ### Checks written before the change
 

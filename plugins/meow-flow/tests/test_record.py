@@ -724,16 +724,16 @@ class Chain(unittest.TestCase):
         self.assertEqual(done.returncode, 1)
         self.assertIn("REQ-0001, which ADR-0001 addresses, is stated by no specification", done.stdout)
 
-    def test_implement_refuses_until_its_dependency_is_done(self):
+    def test_cover_refuses_until_its_dependency_is_done(self):
         repository = self.repo()
         repository.write("tasks/TSK-0002-a-second-task.md", CLEAN["tasks/TSK-0001-a-task.md"]
                          .replace("TSK-0001", "TSK-0002").replace("## Depends on\n\nText.", "## Depends on\n\nTSK-0001."))
         self.mark(repository, " ")
-        done = self.ready(repository, "implement", "TSK-0002")
+        done = self.ready(repository, "cover", "TSK-0002")
         self.assertEqual(done.returncode, 1)
         self.assertIn("TSK-0001, which TSK-0002 depends on, isn't done", done.stdout)
         self.mark_done(repository)
-        self.assertEqual(self.ready(repository, "implement", "TSK-0002").returncode, 0)
+        self.assertEqual(self.ready(repository, "cover", "TSK-0002").returncode, 0)
 
     def mark_done(self, repository):
         repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
@@ -1539,7 +1539,7 @@ class DefectTasks(unittest.TestCase):
 
     def test_a_task_under_an_approved_defect_is_ready(self):
         """REQ-0352: a defect record authorises work exactly as a decision record does."""
-        done = self.repo(mark=" ").run("ready", "implement", "TSK-0002")
+        done = self.repo(mark=" ").run("ready", "cover", "TSK-0002")
         self.assertEqual(done.returncode, 0, done.stdout)
 
     def test_a_task_under_a_draft_defect_is_not_ready(self):
