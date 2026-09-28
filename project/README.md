@@ -491,8 +491,7 @@ in four tasks, TSK-2480 to TSK-2510, none of them started.
 | [BUG-1220](bugs/BUG-1220-the-commit-guard-misreads-a-relative-cd.md)                 | `meow-git`'s commit guard resolved a relative `cd` against the session's directory, refusing a commit on a branch |
 | [BUG-1230](bugs/BUG-1230-the-prose-gate-blocks-on-findings-the-text-lacks.md)        | `meow-prose-gate` blocked texts for findings they didn't contain                                                  |
 
-Nineteen are closed. BUG-1040, BUG-1100 and BUG-1230 are open. BUG-1040 routes to design, because the mechanism
+Twenty are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
-asks for the reviewer's cases to cover every rule. BUG-1230 routes to requirements, because
-REQ-3186 forbade the program that fixes it, and TSK-2470 carries the fix. BUG-1005 was written
+asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.
