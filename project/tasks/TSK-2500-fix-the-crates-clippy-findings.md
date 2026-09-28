@@ -58,8 +58,41 @@ fixes written first would conflict with it.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+The branch holds two commits before this record's. The first, b23eb0e, is
+what `cargo clippy --fix --allow-dirty` and then `cargo fmt` wrote on the
+parent, in `record.rs`, `author.rs` and `git.rs`, and nothing else. The second
+edits `record.rs` by hand: the `numbered` pattern for `adoption-in-steps` is
+compiled once, beside the three patterns `rules` already compiles before its
+loop, and `show` finds the first paragraph with `find` on the negated
+predicate instead of `skip_while(..).next()`. Both keep each function's
+behaviour. No `allow` or `expect` attribute was added.
+
+Both checks in `tools/test_crate_lint.py` failed at the cover commit, b0d05a0,
+which held the checks alone, and pass after this change:
+
+```text
+$ cargo clippy --quiet --manifest-path crates/meow/Cargo.toml --all-features --all-targets -- -D warnings
+error: could not compile `meow` (bin "meow") due to 15 previous errors
+                                                       # b0d05a0: exit 101
+                                                       # this change: exit 0, no output
+$ TSK_2500_BASE=b0d05a0 TSK_2500_FIX=b23eb0e python3 -m unittest -v tools.test_crate_lint
+test_clippy_denying_warnings_exits_0_with_no_output ... ok
+test_clippy_fix_on_the_parent_gives_the_first_commit ... ok
+Ran 2 tests
+OK                                                     # exit 0
+$ cargo fmt --manifest-path crates/meow/Cargo.toml --check
+                                                       # exit 0, no output
+$ mise run crate
+test result: ok. 29 passed; 0 failed; 0 ignored        # exit 0
+```
+
+On the cover commit the 15 errors were ten `collapsible_if`, two
+`collapsible_match`, one `manual_repeat_n`, one `regex_creation_in_loops` and
+one `skip_while_next`. With both variables set to b0d05a0, the second check
+failed on `record.rs`, `author.rs` and `git.rs`. `mise run crate` reported 29
+passed on the cover commit as well. A diff of `tools/test_crate_lint.py` against
+b0d05a0 prints nothing. The kept evidence of `meow-verbs run format lint test`
+sits in `project/evidence/`, committed with this change.
 
 ### Checks written before the change
 

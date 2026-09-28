@@ -1839,6 +1839,7 @@ fn rules(record: &Record) -> Vec<Finding> {
     let keyword = Regex::new(r"\b(?:MUST|SHALL|SHOULD|MAY)(?: NOT)?\b").expect("keyword pattern");
     let neighbour = Regex::new(r"(?i)\b(?:such an? \w+|the (?:above|previous|preceding|following) \w+|that (?:command|record|artifact|check|step|file|document|unit|requirement))\b").expect("neighbour pattern");
     let negated = Regex::new(r"\bNo\b[^.]*?\bMUST\b(?: NOT)?").expect("negation pattern");
+    let numbered = Regex::new(r"^\d+\. ").expect("step pattern");
     let mut out = Vec::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
@@ -1992,7 +1993,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                 }
                 "adoption-in-steps" => {
                     let lines = section_lines(doc, "Adoption");
-                    let numbered = Regex::new(r"^\d+\. ").expect("step pattern");
                     if !lines.is_empty() && !lines.iter().any(|(_, l)| numbered.is_match(l)) {
                         out.push(Finding::at(doc, lines.first().map(|(n, _)| n - 1), "has an Adoption section with no numbered steps, where adoption is a sequence each leaving the repository working".into()));
                     }
@@ -2852,10 +2852,7 @@ fn show(rest: &[String]) -> u8 {
     let first = doc
         .text
         .split("\n\n")
-        .skip_while(|p| {
-            p.starts_with("---") || p.trim_start().starts_with('#') || p.trim().is_empty()
-        })
-        .next()
+        .find(|p| !(p.starts_with("---") || p.trim_start().starts_with('#') || p.trim().is_empty()))
         .map(|p| p.split_whitespace().collect::<Vec<_>>().join(" "))
         .unwrap_or_default();
     if !first.is_empty() {
