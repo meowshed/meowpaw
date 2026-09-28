@@ -1,0 +1,267 @@
+meow-verbs evidence 1
+record: a3e1024202c9
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: 47c8f5bd7a0983034f999c8fdb3740dfe22a70c6
+time: 2026-09-28T18:41:19Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 29 tests
+.............................
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 13.961s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.783s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 6.157s
+
+OK
+...................F.F...................................................................................................................FFFFFFFFFFFFFFF......................................
+======================================================================
+FAIL: test_the_bug_template_names_cover (test_record.Chain.test_the_bug_template_names_cover)
+TSK-2550 criterion 6, REQ-3200: the bug template's `enters` comment names cover among the steps.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 855, in test_the_bug_template_names_cover
+    self.assertRegex(enters[0].split("#", 1)[1], r"\bcover\b")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\bcover\\b' not found in ' the step it enters at: implement or design where it violates a requirement, requirements where the requirement is wrong or none covers it, research where the cause is unknown'
+
+======================================================================
+FAIL: test_the_task_template_carries_a_cover (test_record.Chain.test_the_task_template_carries_a_cover)
+TSK-2550 criterion 6, REQ-3200: the task template has `## Cover`, reading `Not yet.`, naming the four lines.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 843, in test_the_task_template_carries_a_cover
+    self.assertIn("\n## Cover\n", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '\n## Cover\n' not found in "---\nid: TSK-NNNN\nartifact: task\nstatus: draft # draft, then approved; done is derived from the authorising record's mark\nrevised: YYYY-MM-DD\nepic: EPC-NNNN # or bug: BUG-NNNN, where a defect carries this task itself; name one\ncloses: [REQ-NNNN] # the requirements it closes; a defect's task restores one and may close none\nissue: # the tracker's number, where the repository uses one\n---\n\n<!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->\n\n# <What this task does>\n\nWhat this task makes true, in a sentence or two, so a reader who stops here\nknows whether it is theirs. One task, one branch, one pull request, one review.\n\n## Acceptance criteria\n\n1. Given <a starting state>, when <an action>, then <an observable outcome>.\n   Closed by: <the evidence that will show it, such as a named test or a\n   command's output>.\n\nEach criterion is a state, an action and an outcome someone can observe,\nnever an adjective, and names the evidence that will close it. Where the work\npredicts a measurable outcome, the criterion states the predicted number now,\nbefore the work. The repository's definition of done applies as well and\nisn't restated here.\n\n## What to do\n\nEnough that an implementer with none of the conversation can do it: the\nconstraints that bind the result, the interfaces it touches, and the evidence\nthat will close each requirement it cites. Not how to do it.\n\n## Depends on\n\nThe tasks that must be done first, as `TSK-` identifiers, and why. `paw\nready implement` reads this section.\n\n## Evidence\n\nNot yet. Once done: the command, its exit status and its output, collected at\nthe revision that merges.\n\n## Left alone\n\nWhat was deliberately not changed, documentation included, and why.\n"
+
+======================================================================
+FAIL: test_cover_writes_checks_only (test_record.MethodSkill.test_cover_writes_checks_only)
+TSK-2550 criterion 4, REQ-3200: cover writes checks and no implementation code, sees them fail, keeps
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1942, in test_cover_writes_checks_only
+    text = self.step("cover")
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1913, in step
+    self.assertTrue(path.is_file(), f"{path} doesn't exist")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/skills/method/steps/cover.md doesn't exist
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='research')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "a research record's file" not found in 'the research step. it reads a question, and writes from paw template research. the step that picks it up is requirements.'
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='requirements')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "one requirement record's file for each obligation" not found in 'the requirements step. it reads approved research, named by its identifiers, and writes from paw template requirement. the step that picks it up is design.'
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='design')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "a decision record's file" not found in 'the design step. it reads approved requirements, named by their identifiers, and writes from paw template adr. the step that picks it up is spec.'
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='spec')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "the specification's file" not found in 'the spec step. it reads an approved decision, named by its identifier, and writes from paw template spec. the step that picks it up is epic.'
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='epic')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "the epic's file and each task's file" not found in 'the epic step. it reads an approved decision or defect, named by its identifier, and writes from paw template epic. the step that picks it up is implement.'
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='cover')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+                                     ~~~~~~~~~^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1913, in step
+    self.assertTrue(path.is_file(), f"{path} doesn't exist")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : /Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/skills/method/steps/cover.md doesn't exist
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='implement')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "the changed files, the kept runs, and the task file's evidence" not found in 'the implement step. it reads an approved task, named by its identifier, and writes from paw template task. the step that picks it up is document.'
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='document')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'each user-facing page it changed' not found in 'the document step. it reads an epic whose tasks are all done, named by its identifier, and writes from paw template spec. the step that picks it up is verify.'
+
+======================================================================
+FAIL: test_each_role_names_where_its_artifact_lands (test_record.MethodSkill.test_each_role_names_where_its_artifact_lands) (step='verify')
+TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1937, in test_each_role_names_where_its_artifact_lands
+    self.assertIn(lands, flat(tagged(self.step(name), "role")))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "the epic's file, its verification and the evidence it cites" not found in 'the verify step. it reads an epic whose tasks are all done, named by its identifier, and writes from paw template epic. the step that picks it up is review.'
+
+======================================================================
+FAIL: test_each_step_has_one_file (test_record.MethodSkill.test_each_step_has_one_file)
+TSK-2550 criterion 1, REQ-3200: `steps/` holds one file for each of the ten steps and no other.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1931, in test_each_step_has_one_file
+    self.assertEqual(sorted(p.stem for p in (METHOD / "steps").glob("*.md")), sorted(STEPS))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['design', 'document', 'epic', 'implement',[51 chars]ify'] != ['cover', 'design', 'document', 'epic', 'im[60 chars]ify']
+
+First differing element 0:
+'design'
+'cover'
+
+Second list contains 1 additional elements.
+First extra element 9:
+'verify'
+
++ ['cover',
+- ['design',
+? ^
+
++  'design',
+? ^
+
+   'document',
+   'epic',
+   'implement',
+   'requirements',
+   'research',
+   'review',
+   'spec',
+   'verify']
+
+======================================================================
+FAIL: test_epic_hands_over_to_cover (test_record.MethodSkill.test_epic_hands_over_to_cover)
+TSK-2550 criterion 5, REQ-3200: the epic step's role names cover as the step that picks it up.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1956, in test_epic_hands_over_to_cover
+    self.assertRegex(flat(tagged(self.step("epic"), "role")), r"the step that picks it up is cover\b")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: 'the step that picks it up is cover\\b' not found in 'the epic step. it reads an approved decision or defect, named by its identifier, and writes from paw template epic. the step that picks it up is implement.'
+
+======================================================================
+FAIL: test_implement_runs_the_cover_checks (test_record.MethodSkill.test_implement_runs_the_cover_checks)
+TSK-2550 criterion 5, REQ-3200: implement's step 3 runs the cover step's checks and sees them pass,
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1965, in test_implement_runs_the_cover_checks
+    self.assertIn("cover", third)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: 'cover' not found in "write a check for each requirement the task closes, seen failing first against a version that doesn't do the work, so the check can fail."
+
+======================================================================
+FAIL: test_the_living_documents_name_ten_steps (test_record.MethodSkill.test_the_living_documents_name_ten_steps)
+TSK-2550 criterion 7, REQ-3200: the chain in CLAUDE.md's own_method_first and in the vision is ten
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1980, in test_the_living_documents_name_ten_steps
+    self.assertEqual(self.chain(principle)[0], STEPS)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: ('res[40 chars], 'epic', 'implement', 'document', 'verify', 'review') != ('res[40 chars], 'epic', 'cover', 'implement', 'document', 'verify', 'review')
+
+First differing element 5:
+'implement'
+'cover'
+
+Second tuple contains 1 additional elements.
+First extra element 9:
+'review'
+
+  ('research',
+   'requirements',
+   'design',
+   'spec',
+   'epic',
++  'cover',
+   'implement',
+   'document',
+   'verify',
+   'review')
+
+======================================================================
+FAIL: test_the_skill_names_ten_steps_in_order (test_record.MethodSkill.test_the_skill_names_ten_steps_in_order)
+TSK-2550 criterion 1, REQ-3200: SKILL.md's body and description name the ten steps in order.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1926, in test_the_skill_names_ten_steps_in_order
+    self.assertInOrder(description, "description")
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2550-cover-checks/plugins/meow-flow/tests/test_record.py", line 1919, in assertInOrder
+    self.assertRegex(re.sub(r"\s+", " ", text), pattern, where)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: 'research,\\s+requirements,\\s+design,\\s+spec,\\s+epic,\\s+cover,\\s+implement,\\s+document,\\s+verify,?\\s+and\\s+review' not found in "description: The method's nine steps, research, requirements, design, spec, epic, implement, document, verify and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before an epic is documented, verified or reviewed. It MUST NOT be skipped, however small the record looks." : description
+
+----------------------------------------------------------------------
+Ran 182 tests in 15.617s
+
+FAILED (failures=17)

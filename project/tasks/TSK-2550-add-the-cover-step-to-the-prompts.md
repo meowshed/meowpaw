@@ -92,7 +92,24 @@ exits 2 until that task lands.
 
 ## Cover
 
-Not yet.
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/a3e1024202c9.txt
+- Landed in: not yet
+- Judgement: none
+
+The checks, each naming its criterion and requirement in its docstring:
+criterion 1 by `MethodSkill.test_the_skill_names_ten_steps_in_order` and
+`MethodSkill.test_each_step_has_one_file`; criterion 3 by
+`MethodSkill.test_each_role_names_where_its_artifact_lands`, one subtest for
+each step; criterion 4 by `MethodSkill.test_cover_writes_checks_only`;
+criterion 5 by `MethodSkill.test_epic_hands_over_to_cover` and
+`MethodSkill.test_implement_runs_the_cover_checks`; criterion 6 by
+`Chain.test_the_task_template_carries_a_cover` and
+`Chain.test_the_bug_template_names_cover`; criterion 7 by
+`MethodSkill.test_the_living_documents_name_ten_steps`. Criteria 2 and 8 rest
+on checks the gate already runs, the `budget` check and the verbs, so no new
+check covers them and none rests on judgement. Criterion 4's tags are held by
+the `prompts` check in the gate.
 
 ## Evidence
 
