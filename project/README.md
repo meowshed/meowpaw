@@ -203,6 +203,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1570](adrs/ADR-1570-the-harness-reads-git-unescaped-and-releases-a-breaking-change-as-marked.md):
   the harness reads git unescaped and without locks, keeps to the repository's
   configuration, and releases a breaking change as it is marked.
+- [ADR-1610](adrs/ADR-1610-this-repository-binds-its-five-verbs-to-the-crates-own-tools.md):
+  this repository binds its five verbs to the crate's own tools, after the
+  crate passes them.
 
 ## Specifications
 
@@ -221,8 +224,9 @@ which follows both. The work realising them has landed, and each leaves
 `checked-at` empty until its epics are verified.
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
-launchers, its release and the marketplace address. The crate implements it,
-verified under issue 378.
+launchers, its release, the marketplace address and the checks the crate
+passes. The crate implements it, verified under issue 378, except for the
+checks the crate passes, which EPC-1570 realises.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
@@ -453,6 +457,9 @@ every acceptance criterion under issue 577.
 [EPC-1560](epics/EPC-1560-the-go-task-pack.md) realises ADR-1590 in two tasks,
 TSK-2450 and TSK-2460, each closed with evidence, and was verified against
 every acceptance criterion under issue 587.
+
+[EPC-1570](epics/EPC-1570-the-crate-under-the-five-verbs.md) realises ADR-1610
+in four tasks, TSK-2480 to TSK-2510, none of them started.
 
 ## Defects
 
