@@ -60,7 +60,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-2490, because the reformat rewrites the lines the fixes
       touch, so the fixes written first would conflict with it
 
-- [ ] T-004 TSK-2510 add `crate-fmt` and `crate-lint`, run `cargo fmt` from
+- [x] T-004 TSK-2510 add `crate-fmt` and `crate-lint`, run `cargo fmt` from
       `fmt`, and bind `format` and `lint`
       closes: REQ-1186
       depends: TSK-2480, TSK-2490 and TSK-2500, because the profile lines it

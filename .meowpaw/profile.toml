@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # What this repository declares to the harness (RES-0261). Each verb is one
-# command, run by the shell from the repository's root. check, test and build
-# reach the native tool in crates/meow through mise.toml's tasks (ADR-1610).
+# command, run by the shell from the repository's root. All five reach the
+# native tool in crates/meow through mise.toml's tasks (ADR-1610).
 
 [verbs]
-format = "mise run fmt-check"
+format = "mise run fmt-check && mise run crate-fmt"
 check = "mise run crate-check"
-lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run standalone && mise run budget && plugins/meow-licence/bin/meow-licence check && plugins/meow-mise/bin/meow-mise check"
+lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run standalone && mise run budget && plugins/meow-licence/bin/meow-licence check && plugins/meow-mise/bin/meow-mise check && mise run crate-lint"
 test = "crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py"
 build = "mise run build"
 

@@ -74,8 +74,57 @@ clippy before the crate passes them fails every pull request.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`mise.toml` gains `crate-fmt` and `crate-lint`, running the two commands
+this task states, and `all` depends on both beside `crate-check`. The `fmt`
+task runs `cargo fmt --manifest-path crates/meow/Cargo.toml` after Prettier.
+`.meowpaw/profile.toml` appends `&& mise run crate-fmt` to `format` and `&&
+mise run crate-lint` to `lint`. The manifest gains no `[lints]` table, and
+`mise.toml` declares no toolchain components, because the local toolchain has
+`rustfmt` and `clippy` and CI's run decides whether it needs them. SPC-1080
+now says that `all` depends on every crate task apart from `build`, which CI
+builds in its own workflow, where it said `all` depends on all five.
+
+The ten checks failed at the cover commit, the branch's first commit, which
+held the checks alone, and pass after this change. A diff of both check files
+against that commit prints nothing.
+
+```text
+$ python3 -m unittest tools/test_verb_bindings.py tools/test_crate_verbs.py
+Ran 18 tests
+FAILED (failures=12)                             # cover commit, exit 1
+Ran 18 tests
+OK                                               # this change, exit 0
+$ plugins/meow-mise/bin/meow-mise check
+0 findings in 12 task runs the profile's verbs name   # exit 0
+```
+
+Criteria 3 and 4 ran once against the working tree, each with its defect
+planted at the end of `crates/meow/src/main.rs` and reverted after:
+
+```text
+$ plugins/meow-verbs/bin/meow-verbs run format   # unformatted line planted
+[crate-fmt] $ cargo fmt --manifest-path crates/meow/Cargo.toml --check
+Diff in .../crates/meow/src/main.rs:108:
+-fn   planted_by_tsk_2510 ( )->u8{ 1 }
++fn planted_by_tsk_2510() -> u8 {
+summary: format failed                           # exit 1
+$ plugins/meow-verbs/bin/meow-verbs run lint     # collapsible if planted
+    = help: ... index.html#collapsible_if
+[crate-lint] ERROR task failed
+summary: lint failed                             # exit 1
+```
+
+Criterion 5 ran with the unformatted line planted: `mise run fmt` exited 0
+and rewrote the line as `fn planted_by_tsk_2510() -> u8 {`, then `mise run
+crate-fmt` and `mise run fmt-check` each exited 0. Criterion 7: `mise run
+crate-lint` with `CARGO_TARGET_DIR` set to an empty directory took 2.67 s
+wall time, 8.00 s user and 1.14 s system, and exited 0, on an Apple silicon
+laptop with the 40 packages in `crates/meow/Cargo.lock`.
+
+The kept evidence of `meow-verbs run format lint check test build`, all five
+passing with non-empty commands, sits in
+`project/evidence/`, committed with this change. Criterion 6 is the pull
+request's CI run.
 
 ### Checks written before the change
 
