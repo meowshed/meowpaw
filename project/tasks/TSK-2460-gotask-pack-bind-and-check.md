@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-27
 epic: EPC-1560
 closes: [REQ-2487]
-issue:
+issue: 590
+projected: e88b645b53cb
 ---
 
 # Bind the verbs to their Task tasks and check the profile and the includes

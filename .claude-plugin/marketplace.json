@@ -64,6 +64,11 @@
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-mise/README.md"
     },
     {
+      "name": "meow-gotask",
+      "source": "./plugins/meow-gotask",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-gotask/README.md"
+    },
+    {
       "name": "meow-code",
       "source": "./plugins/meow-code",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-code/README.md"

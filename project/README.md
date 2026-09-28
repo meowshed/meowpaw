@@ -451,7 +451,7 @@ TSK-2420 to TSK-2440, each closed with evidence, and was verified against
 every acceptance criterion under issue 577.
 
 [EPC-1560](epics/EPC-1560-the-go-task-pack.md) realises ADR-1590 in two tasks,
-TSK-2450 and TSK-2460, none started.
+TSK-2450 and TSK-2460, with TSK-2450 closed with evidence.
 
 ## Defects
 
