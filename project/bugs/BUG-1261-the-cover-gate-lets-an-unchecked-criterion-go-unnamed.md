@@ -79,5 +79,7 @@ each refused naming what is missing.
 
 ## Tasks
 
-- [ ] T-001 TSK-2571 refuse a Cover that leaves a criterion nothing checks
+- [x] T-001 TSK-2571 refuse a Cover that leaves a criterion nothing checks
       unnamed, in `crates/meow/src/record.rs`
+      evidence: 5 checks seen failing first, 190 `meow-flow` fixtures
+      passing, in #653.

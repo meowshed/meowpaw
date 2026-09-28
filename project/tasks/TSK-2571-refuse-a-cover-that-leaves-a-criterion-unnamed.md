@@ -57,11 +57,36 @@ Nothing. BUG-1261 is approved, and TSK-2570 has landed.
 
 ## Cover
 
-Not yet.
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/f6f0644bf46f.txt
+- Landed in: #653
+- Judgement: none
 
 ## Evidence
 
-Not yet.
+`cover_gaps` in `crates/meow/src/record.rs` now refuses an empty Cover line, a
+task with no numbered criterion, and a `Judgement` number that matches no
+criterion. With `Checks: none` it asks `Judgement` to name every criterion
+whatever `Failing run` and `Landed in` say, and returns early only where both
+read `none` as well. The `Cover` fixtures' task carries three numbered
+criteria, because the gate reads them on every Cover. SPC-1090's section "The
+gate" states the rule.
+
+The five checks in the class `CoverCriteria` failed first: `meow-verbs run
+test` exited 1 with `FAILED (failures=5)`, kept as
+`project/evidence/f6f0644bf46f.txt`, in the commit that held the checks alone.
+They pass now:
+
+```text
+$ python3 -m unittest test_record    # in plugins/meow-flow/tests
+Ran 190 tests
+OK                                   # exit 0
+```
+
+`meow-flow` 0.35.0 isn't released yet, so this fix ships in it without a
+version of its own. `meow-verbs evidence --keep format lint check test build`
+exits 0 on this change's own tree, each result kept in `project/evidence/`,
+as the pull request cites.
 
 ## Left alone
 

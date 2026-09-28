@@ -654,8 +654,13 @@ inside it, and `Failing run` names none of the checks, because a file outside
 the repository isn't kept with it and a directory or a check isn't a run
 (BUG-1260). It is also filled when
 `Checks`, `Failing run` and `Landed in` read `none` and `Judgement` names
-every numbered criterion under `## Acceptance criteria`. `ready implement`
-reads these four lines and nothing more: it doesn't check that the kept run
+every numbered criterion under `## Acceptance criteria`. Whatever the other
+lines say, the section isn't filled while the task names no numbered
+criterion, while a line is left empty, while `Judgement` names a number the
+criteria don't have, or while `Checks` reads `none` and `Judgement` leaves a
+criterion out, because with no check every criterion rests on judgement
+(BUG-1261). `ready implement` reads these four lines and the task's numbered
+criteria, and nothing more: it doesn't check that the kept run
 failed or that the checks landed before the implementation.
 
 A task its authorising record marks `[x]` or `[~]` needs no Cover, because
