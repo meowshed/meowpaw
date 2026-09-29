@@ -1,13 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Fixtures for meow-github: the history read through a stand-in gh (ADR-1290)."""
+"""Fixtures for meow-github: the history read and the projection through a stand-in gh (ADR-1290, ADR-1810)."""
 
+import calendar
 import hashlib
 import json
 import os
+import re
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -324,6 +327,254 @@ class Project(unittest.TestCase):
         self.assertEqual(done.returncode, 1, done.stdout)
         self.assertIn("EPC-0001 is draft, and its tasks are projected only once it is approved", done.stdout)
         self.assertFalse((root / "state.json").exists())
+
+
+# ADR-1810: the stand-in `gh` the request layer's checks run against. It prints a status line and a header block
+# before the body under `--include`, as RES-0290 saw gh 2.101.0 do, and prints a refused call's block too. Its `Date`
+# is the injected local clock, the file MEOW_GITHUB_CLOCK names, less GH_SKEW seconds. The run under test reads the
+# same file as its clock and sleeps by adding the seconds to it, so no check waits in real time. GH_SCRIPT names a
+# JSON file: `responses` holds, for each "<METHOD> <path>", the answers to give in turn before the default one,
+# `listings` holds each listing's body, `bare` leaves every rate-limit header out, and `cached` gives the age,
+# `remaining` and reset of the headers a call sent with `--cache` replays.
+LAYERED = """#!/usr/bin/env python3
+import email.utils, json, os, sys
+state_path = os.environ["GH_STATE"]
+state = json.load(open(state_path)) if os.path.exists(state_path) else {"issues": {}, "calls": [], "used": {}}
+script = json.load(open(os.environ["GH_SCRIPT"]))
+now = float(open(os.environ["MEOW_GITHUB_CLOCK"]).read())
+github_now = now - float(os.environ.get("GH_SKEW", "0"))
+args = sys.argv[1:]
+state["calls"].append({"args": args, "at": now})
+method, fields, path, i = "GET", {}, None, 1
+while i < len(args):
+    a = args[i]
+    if a in ("-X", "--method"):
+        method = args[i + 1]; i += 2
+    elif a.startswith("--method="):
+        method = a.split("=", 1)[1]; i += 1
+    elif a in ("-f", "-F", "--field", "--raw-field"):
+        key, _, value = args[i + 1].partition("="); fields[key] = value; i += 2
+    elif a in ("--cache", "-H", "--header", "-q", "--jq", "--input", "-t", "--template"):
+        i += 2
+    elif a.startswith("-"):
+        i += 1
+    else:
+        path = path or a.removeprefix("https://api.github.com/"); i += 1
+key = f"{method} {path}"
+headers = {"Date": email.utils.formatdate(github_now, usegmt=True)}
+if not script.get("bare"):
+    headers.update({"X-Ratelimit-Limit": "5000", "X-Ratelimit-Remaining": "4990", "X-Ratelimit-Used": "10",
+                    "X-Ratelimit-Resource": "core", "X-Ratelimit-Reset": str(int(github_now) + 3600)})
+cached = script.get("cached")
+if cached and "--cache" in args:
+    stored = github_now - cached["age"]
+    headers.update({"Date": email.utils.formatdate(stored, usegmt=True),
+                    "X-Ratelimit-Remaining": str(cached["remaining"]),
+                    "X-Ratelimit-Reset": str(int(github_now) + cached["reset_in"])})
+queue = script.get("responses", {}).get(key, [])
+used = state["used"].get(key, 0)
+if used < len(queue):
+    state["used"][key] = used + 1
+    answer = queue[used]
+    status, body = answer["status"], answer.get("body", {"message": "scripted"})
+    headers.update(answer.get("headers", {}))
+elif method == "POST":
+    number = len(state["issues"]) + 1
+    state["issues"][str(number)] = {"number": number, "state": "open", **fields}
+    status, body = 201, state["issues"][str(number)]
+elif method == "PATCH":
+    state["issues"][path.split("/")[-1]].update(fields)
+    status, body = 200, state["issues"][path.split("/")[-1]]
+elif path in script.get("listings", {}):
+    status, body = 200, script["listings"][path]
+elif path.split("/")[-1] in state["issues"]:
+    status, body = 200, state["issues"][path.split("/")[-1]]
+else:
+    status, body = 404, {"message": "Not Found"}
+json.dump(state, open(state_path, "w"))
+if "--include" in args:
+    reason = {200: "OK", 201: "Created", 403: "Forbidden", 404: "Not Found", 429: "Too Many Requests"}.get(status, "")
+    print(f"HTTP/2.0 {status} {reason}")
+    for name, value in headers.items():
+        print(f"{name}: {value}")
+    print()
+print(json.dumps([body] if "--slurp" in args else body))
+if status >= 400:
+    print(f"gh: {body.get('message', '')} (HTTP {status})", file=sys.stderr)
+    sys.exit(1)
+"""
+
+# The local clock every layered check starts at: the moment RES-0290 read `date -u +%s`, 14:30:37 UTC on 2026-09-29.
+START = 1790692237
+SECONDARY = {"message": "You have exceeded a secondary rate limit. Please wait a few minutes before you try again."}
+
+
+class Layered:
+    """Runs `meow-github` against the stand-in above, with an injected clock and sleep."""
+
+    def stand_in(self, root, script):
+        (root / "bin").mkdir(exist_ok=True)
+        (root / "bin" / "gh").write_text(LAYERED, encoding="utf-8")
+        (root / "bin" / "gh").chmod(0o755)
+        (root / "script.json").write_text(json.dumps(script), encoding="utf-8")
+        (root / "clock").write_text(str(START), encoding="utf-8")
+
+    def meow_github(self, root, *args, skew=0):
+        env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json"),
+               "GH_SCRIPT": str(root / "script.json"), "MEOW_GITHUB_CLOCK": str(root / "clock"), "GH_SKEW": str(skew)}
+        return subprocess.run([str(BIN), *args], cwd=root, capture_output=True, text=True, env=env)
+
+    def calls(self, root):
+        path = root / "state.json"
+        return json.loads(path.read_text(encoding="utf-8"))["calls"] if path.exists() else []
+
+    def clock(self, root):
+        return float((root / "clock").read_text(encoding="utf-8"))
+
+    def throttled_line(self, done):
+        lines = [line for line in done.stdout.splitlines() if "throttled" in line]
+        self.assertTrue(lines, done.stdout + done.stderr)
+        return lines[0]
+
+    def retry_after(self, line):
+        """The UTC time and the header a `throttled` line names, as `retry after <UTC time> (<header>)` states."""
+        found = re.search(r"retry after (.+?) \(([^)]+)\)", line)
+        self.assertTrue(found, line)
+        for form in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d %H:%M:%S UTC", "%Y-%m-%dT%H:%M:%S+00:00", "%a, %d %b %Y %H:%M:%S GMT"):
+            try:
+                return calendar.timegm(time.strptime(found.group(1), form)), found.group(2).lower()
+            except ValueError:
+                continue
+        self.fail(f"no UTC time in {line!r}")
+
+
+def create(call):
+    return call["args"][:2] == ["api", "repos/o/r/issues"] and "POST" in call["args"]
+
+
+class Throttle(Layered, unittest.TestCase):
+    """ADR-1810: a throttled `project` stops at the stated wait, or sleeps it under `--wait`, never past an hour."""
+
+    def throttled_project(self, *answers):
+        root = Project.repository(self)
+        self.stand_in(root, {"responses": {"POST repos/o/r/issues": list(answers)}})
+        return root
+
+    def test_a_stated_wait_stops_the_run(self):
+        """TSK-2940 criterion 1, REQ-2566: a 403 with `retry-after: 30` prints `throttled`, the method, the endpoint
+        and the UTC time 30 seconds after the response, exits 3 and sends no further call."""
+        root = self.throttled_project({"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        line = self.throttled_line(done)
+        self.assertIn("POST repos/o/r/issues", line)
+        self.assertEqual(self.retry_after(line), (START + 30, "retry-after"))
+        calls = self.calls(root)
+        self.assertEqual(len([c for c in calls if create(c)]), 1, calls)
+        self.assertTrue(create(calls[-1]), calls)
+
+    def test_wait_resends_no_earlier_than_the_stated_time(self):
+        """TSK-2940 criterion 2, REQ-2566: under `--wait` the refused call is sent again no earlier than the
+        `retry-after` time, on the injected clock."""
+        root = self.throttled_project({"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r", "--wait")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        creates = [c for c in self.calls(root) if create(c)]
+        self.assertGreaterEqual(len(creates), 2, creates)
+        self.assertGreaterEqual(creates[1]["at"], creates[0]["at"] + 30, creates)
+
+    def test_wait_stops_once_the_waits_would_pass_an_hour(self):
+        """TSK-2940 criterion 3, REQ-2566: under `--wait`, 3,540 seconds are slept, and a second throttle of 120
+        seconds, which would take the waits past an hour, starts no sleep and stops the run as throttled."""
+        root = self.throttled_project({"status": 403, "headers": {"Retry-After": "3540"}, "body": SECONDARY},
+                                      {"status": 403, "headers": {"Retry-After": "120"}, "body": SECONDARY})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r", "--wait")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.throttled_line(done)
+        creates = [c for c in self.calls(root) if create(c)]
+        self.assertEqual(len(creates), 2, creates)
+        self.assertGreaterEqual(creates[1]["at"], START + 3540, creates)
+        self.assertTrue(create(self.calls(root)[-1]), self.calls(root))
+        self.assertGreaterEqual(self.clock(root), START + 3540)
+        self.assertLess(self.clock(root), START + 3540 + 120, "a second sleep was started")
+
+    def test_an_unparsed_wait_is_unknown_and_stops_the_run(self):
+        """TSK-2940 criterion 5, REQ-2578: a `retry-after` that isn't a number of seconds gives an unknown wait, and
+        the run sends no further call and exits 3, under `--wait` as without it, sleeping nothing."""
+        for extra in ((), ("--wait",)):
+            with self.subTest(extra=extra):
+                root = self.throttled_project(
+                    {"status": 403, "headers": {"Retry-After": "Wed, 21 Oct 2026 07:28:00 GMT"}, "body": SECONDARY})
+                done = self.meow_github(root, "project", "EPC-0001", "o/r", *extra)
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                line = self.throttled_line(done)
+                self.assertIn("POST repos/o/r/issues", line)
+                self.assertIn("unknown", line)
+                calls = self.calls(root)
+                self.assertEqual(len([c for c in calls if create(c)]), 1, calls)
+                self.assertTrue(create(calls[-1]), calls)
+                self.assertEqual(self.clock(root), START)
+
+
+SINGLE_PAGES = {
+    "repos/o/r/issues?state=all&per_page=100": [ISSUE, MERGED],
+    "repos/o/r/pulls?state=all&per_page=100": [{"number": 2, "merged_at": "2026-01-01T00:00:00Z"}],
+    "repos/o/r/issues/comments?per_page=100": [],
+    "repos/o/r/pulls/comments?per_page=100": [],
+}
+
+
+class Limits(Layered, unittest.TestCase):
+    """ADR-1810: the layer reads every response's limit headers, and never reads a replay's as current."""
+
+    def history(self, script, skew=0):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        self.stand_in(root, {"listings": SINGLE_PAGES, **script})
+        return root, self.meow_github(root, "history", "o/r", skew=skew)
+
+    def test_a_response_with_no_limit_header_lets_the_run_go_on(self):
+        """TSK-2940 criterion 6, REQ-2566: responses carrying no rate-limit header, read through `--include`, are
+        taken as carrying none, not as a limit reached, and the run reads every listing."""
+        root, done = self.history({"bare": True})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("throttled", done.stdout)
+        self.assertEqual([i["number"] for i in json.loads(done.stdout)["issues"]], [1, 2])
+        calls = self.calls(root)
+        self.assertEqual(len(calls), 4, calls)
+        for call in calls:
+            self.assertIn("--include", call["args"], call)
+
+    def test_a_stale_replay_is_not_read_as_current(self):
+        """TSK-2940 criterion 7, REQ-2566: a cached response whose `Date` is ten minutes old carries
+        `x-ratelimit-remaining: 0`; read as current it would hold the next read, so the run reading every listing
+        shows its `remaining` wasn't taken as current."""
+        root, done = self.history({"cached": {"age": 600, "remaining": 0, "reset_in": 1800}})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("throttled", done.stdout)
+        self.assertEqual(json.loads(done.stdout)["repository"], "o/r")
+        calls = self.calls(root)
+        self.assertEqual(len(calls), 4, calls)
+        self.assertNotIn("--cache", calls[0]["args"], calls[0])
+        for call in calls:
+            self.assertIn("--include", call["args"], call)
+        for call in calls[1:]:
+            self.assertIn("--cache", call["args"], call)
+
+    def test_a_skewed_clock_leaves_a_fresh_response_current(self):
+        """TSK-2940 criterion 7, REQ-2566: with the local clock two minutes ahead of the stand-in's `Date`, a fresh
+        cached response is current, so its `remaining: 0` holds the next read to the same resource and the run
+        stops as throttled at the reset; the run's first call carries no `--cache`."""
+        root, done = self.history({"cached": {"age": 0, "remaining": 0, "reset_in": 1800}}, skew=120)
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        line = self.throttled_line(done)
+        self.assertIn("GET repos/o/r/issues/comments?per_page=100", line)
+        self.assertEqual(self.retry_after(line), (START - 120 + 1800, "x-ratelimit-reset"))
+        calls = self.calls(root)
+        self.assertEqual(len(calls), 2, calls)
+        self.assertNotIn("--cache", calls[0]["args"], calls[0])
+        self.assertIn("--cache", calls[1]["args"], calls[1])
 
 
 class Launcher(unittest.TestCase):

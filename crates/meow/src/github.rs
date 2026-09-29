@@ -13,6 +13,7 @@ use serde_json::{Value, json};
 use std::process::{Command, Stdio};
 
 mod project;
+mod request;
 
 const USAGE: u8 = 2;
 const UNREAD: u8 = 3;
