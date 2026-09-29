@@ -3,7 +3,7 @@ id: SPC-1200
 artifact: spec
 status: live
 revised: 2026-09-29
-checked-at:
+checked-at: "#626"
 states: [REQ-2388, REQ-2392]
 ---
 
