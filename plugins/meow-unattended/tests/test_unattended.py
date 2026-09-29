@@ -314,6 +314,26 @@ class Units(Fixture):
         self.assertEqual(sorted((obj["name"], obj["version"]) for obj in named), sorted(THREE.values()),
                          content)
 
+    def test_unit_paths_hold_from_a_subdirectory(self):
+        """TSK-3330 criterion 1, BUG-1341: run in a subdirectory, `plan` names each declared unit by its
+        absolute path, on the command line and in the snapshot, so the command loads it wherever it runs."""
+        repository = self.repo(self.profile(GIT, table()))
+        sub = repository.root / "sub"
+        sub.mkdir()
+        if not BIN.exists():
+            self.fail(f"no launcher at {BIN}")
+        done = subprocess.run([str(BIN), "plan"], cwd=sub, capture_output=True, text=True,
+                              env=repository.env, stdin=subprocess.DEVNULL)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        expected = [str((repository.root / "units" / name).resolve()) for name in ("alpha", "beta")]
+        loaded = following(tokens(command_line(done.stdout)), "--plugin-dir")
+        self.assertEqual(loaded, expected, done.stdout)
+        settings = following(tokens(done.stdout), "--settings")
+        self.assertEqual(len(settings), 1, done.stdout)
+        snapshot = json.loads(Path(settings[0]).read_text(encoding="utf-8"))
+        self.assertEqual([unit["path"] for unit in snapshot["meowpaw"]["units"]], expected,
+                         json.dumps(snapshot, indent=2))
+
 
 class Plan(Fixture):
     """TSK-3300 criteria 4, 5 and 10, REQ-2388: the printed plan states the declared posture."""
