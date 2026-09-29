@@ -200,8 +200,7 @@ requirement with its mark, and the issue its epic was verified under, or
 "checked by nothing". Under ADR-2300 a requirement is closed when a closed
 task or epic names it and no open one does, open while an open defect names it
 in `violates`, and has no state after closed (REQ-3600, REQ-3602, REQ-3608,
-REQ-3610) (not yet; until EPC-2200 lands, `show` still derives verified from
-`checked-at`). `status` says the
+REQ-3610). `status` says the
 record is local to this machine where its root is under no version control
 (REQ-0510, REQ-0527).
 
@@ -219,8 +218,7 @@ carries at least one of the two. A requirement an approved decision postpones
 and no task closes is derived as postponed: `show` names the decision and
 `status` counts it, and a decision that only postpones needs no epic and no
 specification. `status` lists every postponement and its condition on each
-run, which is where a deferral is looked at again (REQ-3622) (ADR-2300) (not
-yet; until EPC-2200 lands, the verify step lists them).
+run, which is where a deferral is looked at again (REQ-3622) (ADR-2300).
 
 ## Failure paths
 

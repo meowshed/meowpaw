@@ -287,17 +287,6 @@ fn run_check(check: &str, record: &Record, root: &Path, repository: &Path) -> Ve
     }
 }
 
-/// How many findings every check reports on each file, keyed by its shown path.
-fn findings_by_file(record: &Record, root: &Path, repository: &Path) -> BTreeMap<String, usize> {
-    let mut out = BTreeMap::new();
-    for check in CHECKS {
-        for finding in run_check(check, record, root, repository) {
-            *out.entry(finding.shown).or_insert(0) += 1;
-        }
-    }
-    out
-}
-
 /// Whether the record's root is kept by version control: inside a work tree
 /// and not ignored by it.
 fn under_version_control(root: &Path) -> bool {
@@ -313,21 +302,21 @@ fn under_version_control(root: &Path) -> bool {
     inside && !ignored
 }
 
-/// Each task closing a requirement, with its mark, its epic and the issue the
-/// epic was verified under, which is empty until it is.
+/// Each task closing a requirement, with its mark and the epic or defect that
+/// authorises it.
 fn closing_tasks(
     record: &Record,
     known: &BTreeMap<String, &Doc>,
     id: &str,
-) -> Vec<(String, char, String, String)> {
+) -> Vec<(String, char, String)> {
     let mut out = Vec::new();
     for task in of_kind(record, "task") {
         if !requirements_in(record, task.value("closes")).contains(id) {
             continue;
         }
         let epic_id = authority_of(task).to_string();
-        let epic = known.get(epic_id.as_str());
-        let mark = epic
+        let mark = known
+            .get(epic_id.as_str())
             .and_then(|e| {
                 marks(e)
                     .into_iter()
@@ -335,33 +324,66 @@ fn closing_tasks(
                     .map(|(_, m)| m)
             })
             .unwrap_or(' ');
-        let checked = epic
-            .map(|e| bare(e.value("checked-at")).to_string())
-            .unwrap_or_default();
-        out.push((bare(task.id()).to_string(), mark, epic_id, checked));
+        out.push((bare(task.id()).to_string(), mark, epic_id));
     }
     out.sort();
     out
 }
 
-/// A requirement's observed state, derived from the tasks closing it (REQ-0584).
+/// Whether a defect is still open (REQ-3610). It closes with its tasks, its
+/// own or those of an epic realising it, once each is done or dropped. One
+/// with no task closed in the change that recorded it, unless its Closed by
+/// opens with "Not" or "Open", which is how a defect still waiting says so.
+fn defect_open(record: &Record, defect: &Doc) -> bool {
+    if !matches!(bare(defect.value("status")), "draft" | "approved") {
+        return false;
+    }
+    let id = bare(defect.id());
+    let mut tasks = marks(defect);
+    for epic in of_kind(record, "epic") {
+        if bare(epic.value("realises")) == id {
+            tasks.extend(marks(epic));
+        }
+    }
+    if !tasks.is_empty() {
+        return !tasks.iter().all(|(_, mark)| finished(*mark));
+    }
+    let first = section_lines(defect, "Closed by")
+        .into_iter()
+        .map(|(_, l)| l.trim())
+        .find(|l| !l.is_empty())
+        .unwrap_or("");
+    first.is_empty() || first.starts_with("Not") || first.starts_with("Open")
+}
+
+/// The open defects naming a requirement in `violates`.
+fn violated_by(record: &Record, id: &str) -> Vec<String> {
+    of_kind(record, "defect")
+        .into_iter()
+        .filter(|d| requirements_in(record, d.value("violates")).contains(id))
+        .filter(|d| defect_open(record, d))
+        .map(|d| bare(d.id()).to_string())
+        .collect()
+}
+
+/// A requirement's observed state (REQ-0584), derived from the tasks and
+/// epics that name it and the defects that violate it, with nothing after
+/// closed (REQ-3600, REQ-3602, REQ-3608, REQ-3610).
 fn requirement_state(
-    tasks: &[(String, char, String, String)],
+    tasks: &[(String, char, String)],
     postponed: Option<&str>,
+    violated: &[String],
 ) -> &'static str {
-    if tasks
-        .iter()
-        .any(|(_, mark, _, checked)| *mark == 'x' && !checked.is_empty())
-    {
-        "verified"
-    } else if tasks.iter().any(|(_, mark, _, _)| *mark == 'x') {
-        "closed and not yet verified"
-    } else if tasks.iter().any(|(_, mark, _, _)| *mark != '~') {
+    if !violated.is_empty() {
+        "reopened by a defect"
+    } else if tasks.iter().any(|(_, mark, _)| !finished(*mark)) {
         "in a task not yet done"
+    } else if tasks.iter().any(|(_, mark, _)| *mark == 'x') {
+        "closed"
     } else if postponed.is_some() {
         "postponed"
     } else {
-        "checked by nothing"
+        "named by no task"
     }
 }
 
@@ -1254,7 +1276,6 @@ fn coverage(record: &Record) -> Vec<Finding> {
             ));
             continue;
         };
-        let verified = !bare(epic.value("checked-at")).is_empty();
         for (line, mark, task, _) in entries(epic) {
             let Some(doc) = known.get(task.as_str()) else {
                 continue;
@@ -1266,7 +1287,7 @@ fn coverage(record: &Record) -> Vec<Finding> {
                     format!("leaves {task} unmarked, and its Evidence section is written"),
                 ));
             }
-            if verified || mark == '~' {
+            if finished(mark) {
                 continue;
             }
             for requirement in requirements_in(record, doc.value("closes")) {
@@ -1274,7 +1295,7 @@ fn coverage(record: &Record) -> Vec<Finding> {
                     .get(requirement.as_str())
                     .is_some_and(|r| bare(r.value("status")) == "withdrawn")
                 {
-                    out.push(Finding::at(doc, doc.field("closes").map(|f| f.line), format!("closes {requirement}, which is withdrawn, in {epic_id}, which is not verified")));
+                    out.push(Finding::at(doc, doc.field("closes").map(|f| f.line), format!("closes {requirement}, which is withdrawn, while the task is open in {epic_id}")));
                 }
             }
         }
@@ -1305,19 +1326,12 @@ fn coverage(record: &Record) -> Vec<Finding> {
                 ));
             }
         }
-        for (requirement, where_) in &claimed {
+        for requirement in claimed.keys() {
             if !addressed.contains(requirement) {
                 out.push(Finding::at(
                     epic,
                     None,
                     format!("{requirement} is closed by a task and addressed by no decision"),
-                ));
-            }
-            if where_.len() > 1 {
-                out.push(Finding::at(
-                    epic,
-                    None,
-                    format!("{requirement} is claimed by {}", where_.join(", ")),
                 ));
             }
         }
@@ -2745,7 +2759,6 @@ fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) ->
 fn position(
     record: &Record,
     known: &BTreeMap<String, &Doc>,
-    findings: &BTreeMap<String, usize>,
     repository: &Path,
     decision: &Doc,
 ) -> String {
@@ -2760,7 +2773,7 @@ fn position(
         && !postponed.is_empty()
     {
         return format!(
-            "postponing: {}, revisited at each verification",
+            "postponing: {}, listed under Postponed",
             count(postponed.len(), "requirement")
         );
     }
@@ -2806,30 +2819,9 @@ fn position(
             None => format!("waiting: every open task of {epic_id} depends on one that isn't done"),
         };
     }
-    let checked = bare(epic.value("checked-at"));
-    if checked.is_empty() {
-        return format!(
-            "next: document, then verify {epic_id} ({} done)",
-            count(tasks.len(), "task")
-        );
-    }
-    // A verification holds only while the check reports nothing on what it verified (REQ-0706).
-    let on = |doc: &Doc| findings.get(&doc.shown).copied().unwrap_or(0);
-    let drifted = on(decision)
-        + on(epic)
-        + tasks
-            .iter()
-            .filter_map(|(t, _)| known.get(t.as_str()))
-            .map(|t| on(t))
-            .sum::<usize>();
-    if drifted > 0 {
-        format!(
-            "drifted: {epic_id} was verified under {checked}, and check reports {} on it now",
-            count(drifted, "finding")
-        )
-    } else {
-        format!("realised: {epic_id} verified under {checked}")
-    }
+    // Every task done or dropped closes the epic, and no step whose work has
+    // landed is named next (REQ-3604, REQ-3620).
+    format!("closed: {epic_id} ({} done)", count(tasks.len(), "task"))
 }
 
 /// The gate a draft of each kind waits at.
@@ -2842,6 +2834,48 @@ fn gate_of(kind: &str) -> &'static str {
         "defect" => "triage",
         _ => "approval",
     }
+}
+
+/// Each requirement an approved decision postpones and no task has taken up,
+/// with the condition that would end the postponement, which is the first
+/// line of the decision's What would reverse it (REQ-3622).
+fn postponements(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut decisions: Vec<&Doc> = of_kind(record, "decision")
+        .into_iter()
+        .filter(|d| approved(d))
+        .collect();
+    decisions.sort_by_key(|d| bare(d.id()).to_string());
+    for decision in decisions {
+        // The first paragraph or bullet, joined across its wrapped lines.
+        let mut words: Vec<&str> = Vec::new();
+        for (_, line) in section_lines(decision, "What would reverse it") {
+            let line = line.trim();
+            if line.is_empty() || (line.starts_with("- ") && !words.is_empty()) {
+                if words.is_empty() {
+                    continue;
+                }
+                break;
+            }
+            words.push(line.trim_start_matches("- "));
+        }
+        let condition = if words.is_empty() {
+            "no condition stated".to_string()
+        } else {
+            words.join(" ")
+        };
+        for requirement in requirements_in(record, decision.value("postpones")) {
+            let still = known.get(requirement.as_str()).is_some_and(|r| approved(r))
+                && closing_tasks(record, known, &requirement).is_empty();
+            if still {
+                out.push(format!(
+                    "{requirement} by {}, until: {condition}",
+                    bare(decision.id())
+                ));
+            }
+        }
+    }
+    out
 }
 
 fn status(rest: &[String]) -> u8 {
@@ -2895,7 +2929,6 @@ fn status(rest: &[String]) -> u8 {
         say!();
     }
     let known = known(&record);
-    let findings = findings_by_file(&record, &root, &repository);
     let drafts: Vec<&&Doc> = known
         .values()
         .filter(|doc| bare(doc.value("status")) == "draft")
@@ -2926,10 +2959,7 @@ fn status(rest: &[String]) -> u8 {
     for decision in decisions {
         let id = bare(decision.id());
         say!("  {id} {}", title(decision));
-        say!(
-            "    {}",
-            position(&record, &known, &findings, &repository, decision)
-        );
+        say!("    {}", position(&record, &known, &repository, decision));
     }
     say!();
     say!("Tasks");
@@ -2954,11 +2984,11 @@ fn status(rest: &[String]) -> u8 {
     say!();
     say!("Requirements");
     let states = [
-        "verified",
-        "closed and not yet verified",
+        "closed",
         "in a task not yet done",
+        "reopened by a defect",
         "postponed",
-        "checked by nothing",
+        "named by no task",
     ];
     let mut tally = [0usize; 5];
     let in_force: Vec<&Doc> = of_kind(&record, "requirement")
@@ -2970,6 +3000,7 @@ fn status(rest: &[String]) -> u8 {
         let state = requirement_state(
             &closing_tasks(&record, &known, id),
             postponed_by(&record, id).as_deref(),
+            &violated_by(&record, id),
         );
         tally[states.iter().position(|s| *s == state).unwrap_or(4)] += 1;
     }
@@ -2983,6 +3014,15 @@ fn status(rest: &[String]) -> u8 {
     } else {
         say!("  {} in force: {}", in_force.len(), parts.join(", "));
         verification_share(&in_force);
+    }
+    say!();
+    say!("Postponed");
+    let postponements = postponements(&record, &known);
+    if postponements.is_empty() {
+        say!("  nothing");
+    }
+    for line in postponements {
+        say!("  {line}");
     }
     say!();
     say!("Only a new record can fix");
@@ -3246,22 +3286,20 @@ fn show(rest: &[String]) -> u8 {
         say!("State");
         let tasks = closing_tasks(&record, &known, id);
         let by = postponed_by(&record, id);
-        match requirement_state(&tasks, by.as_deref()) {
+        let violated = violated_by(&record, id);
+        match requirement_state(&tasks, by.as_deref(), &violated) {
             "postponed" => say!("  postponed by {}", by.unwrap_or_default()),
-            state => say!("  {state}"),
+            "reopened by a defect" => say!("  open, violated by {}", violated.join(", ")),
+            "closed" => say!("  closed"),
+            state => say!("  open, {state}"),
         }
-        for (task, mark, epic, checked) in &tasks {
+        for (task, mark, epic) in &tasks {
             let done = match mark {
                 'x' => "done",
                 '~' => "dropped",
                 _ => "open",
             };
-            let verified = if checked.is_empty() {
-                "not yet verified".to_string()
-            } else {
-                format!("verified under {checked}")
-            };
-            say!("  {task} {done} in {epic}, {verified}");
+            say!("  {task} {done} in {epic}");
         }
     }
     say!();

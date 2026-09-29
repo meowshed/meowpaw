@@ -338,13 +338,13 @@ class Checks(unittest.TestCase):
 
     def test_a_task_closing_a_withdrawn_requirement_in_an_open_epic_is_reported(self):
         repository = self.repo()
-        self.mark(repository, "x")
+        self.mark(repository, ">")
         repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
         # A living specification stating a withdrawn requirement is a finding of its own (ADR-1470).
         repository.edit("specs/SPC-0001-a-part.md", "states: [REQ-0001]", "states: []")
         self.found(repository.run("check", "coverage"), "coverage",
-                   "project/tasks/TSK-0001-a-task.md:7: closes REQ-0001, which is withdrawn, in EPC-0001, which is not verified")
-        repository.edit("epics/EPC-0001-a-plan.md", 'checked-at: ', 'checked-at: "#1"')
+                   "project/tasks/TSK-0001-a-task.md:7: closes REQ-0001, which is withdrawn, while the task is open in EPC-0001")
+        repository.edit("epics/EPC-0001-a-plan.md", "- [>] T-001", "- [x] T-001")
         self.assertEqual(repository.run("check", "coverage").returncode, 0)
 
     def test_a_draft_body_naming_a_missing_identifier_is_reported(self):
@@ -360,34 +360,24 @@ class Checks(unittest.TestCase):
 
     def verified(self, repository):
         self.mark(repository, "x")
-        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#1"')
 
     def test_show_derives_a_requirements_state(self):
         repository = self.repo()
         self.verified(repository)
         done = repository.run("show", "REQ-0001")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("State\n  verified\n  TSK-0001 done in EPC-0001, verified under #1\n", done.stdout)
+        self.assertIn("State\n  closed\n  TSK-0001 done in EPC-0001\n", done.stdout)
         repository.write("requirements/REQ-0002-another.md",
                          (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8").replace("REQ-0001", "REQ-0002"))
-        self.assertIn("State\n  checked by nothing\n\n", repository.run("show", "REQ-0002").stdout)
+        self.assertIn("State\n  open, named by no task\n\n", repository.run("show", "REQ-0002").stdout)
 
     def test_status_counts_requirements_by_derived_state(self):
         repository = self.repo()
         self.verified(repository)
         repository.write("requirements/REQ-0002-another.md",
                          (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8").replace("REQ-0001", "REQ-0002"))
-        self.assertIn("Requirements\n  2 in force: 1 verified, 0 closed and not yet verified, 0 in a task not yet done, 0 postponed, 1 checked by nothing\n",
+        self.assertIn("Requirements\n  2 in force: 1 closed, 0 in a task not yet done, 0 reopened by a defect, 0 postponed, 1 named by no task\n",
                       repository.run("status").stdout)
-
-    def test_status_withholds_verified_from_an_epic_check_reports_on(self):
-        repository = self.repo()
-        self.verified(repository)
-        self.assertIn("realised: EPC-0001 verified under #1", repository.run("status").stdout)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Left alone\n\nText.", "## Left alone\n\n[Gone](gone.md).")
-        done = repository.run("status").stdout
-        self.assertIn("drifted: EPC-0001 was verified under #1, and check reports 1 finding on it now", done)
-        self.assertNotIn("realised: EPC-0001", done)
 
     def test_status_says_a_record_under_no_version_control_is_local(self):
         repository = self.repo()
@@ -630,8 +620,8 @@ class Checks(unittest.TestCase):
         self.assertIn("State\n  postponed by ADR-0002\n", shown.stdout)
         status = repository.run("status").stdout
         self.assertIn("ADR-0002", status)
-        self.assertIn("postponing: 1 requirement, revisited at each verification", status)
-        self.assertIn("2 in force: 0 verified, 0 closed and not yet verified, 1 in a task not yet done, 1 postponed, 0 checked by nothing", status)
+        self.assertIn("postponing: 1 requirement, listed under Postponed", status)
+        self.assertIn("2 in force: 0 closed, 1 in a task not yet done, 0 reopened by a defect, 1 postponed, 0 named by no task", status)
         for check in ("rules", "coverage"):
             done = repository.run("check", check)
             self.assertEqual(done.returncode, 0, done.stdout)
@@ -640,7 +630,7 @@ class Checks(unittest.TestCase):
         repository = self.postponing()
         repository.edit("tasks/TSK-0001-a-task.md", "    REQ-0001,", "    REQ-0001,\n    REQ-0002,")
         shown = repository.run("show", "REQ-0002").stdout
-        self.assertIn("State\n  in a task not yet done\n", shown)
+        self.assertIn("State\n  open, in a task not yet done\n", shown)
         self.assertNotIn("postponed by", shown)
 
     def test_a_decision_addressing_and_postponing_nothing_is_reported(self):
@@ -783,11 +773,7 @@ class Chain(unittest.TestCase):
         self.assertIn("RES-0002 research, draft", lines[1])
         self.assertIn("next: cover TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
         self.mark_done(repository)
-        self.assertIn("next: document, then verify EPC-0001 (1 task done)", repository.run("status").stdout)
-        # A verified epic resting on draft research has drifted (ADR-1470).
-        repository.edit("research/RES-0002-a-finding.md", "status: draft", "status: approved")
-        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#7"')
-        self.assertIn("realised: EPC-0001 verified under #7", repository.run("status").stdout)
+        self.assertIn("closed: EPC-0001 (1 task done)", repository.run("status").stdout)
 
     def test_status_places_a_decision_with_no_epic(self):
         repository = self.repo()
@@ -927,9 +913,9 @@ class TasklessEpic(unittest.TestCase):
             self.assertEqual(done.returncode, 0, done.stdout)
 
     def test_status_names_document_and_ready_agrees(self):
-        """TSK-2560 criterion 2: status names document, and the gate it names lets the step run."""
+        """TSK-2560 criterion 2, REQ-3620: a taskless epic naming everything is closed, and the document gate still lets the step run."""
         repository = self.repo(named=True)
-        self.assertIn("next: document, then verify EPC-0001 (0 tasks done)", repository.run("status").stdout)
+        self.assertIn("closed: EPC-0001 (0 tasks done)", repository.run("status").stdout)
         done = repository.run("ready", "document", "EPC-0001")
         self.assertEqual(done.returncode, 0, done.stdout)
 
@@ -942,7 +928,7 @@ class TasklessEpic(unittest.TestCase):
         self.assertIn(reason, done.stdout)
         status = repository.run("status").stdout
         self.assertIn(f"waiting: {reason}", status)
-        self.assertNotIn("next: document, then verify EPC-0001", status)
+        self.assertNotIn("closed: EPC-0001", status)
 
 
 class Cover(unittest.TestCase):
@@ -2725,6 +2711,8 @@ class RequirementState(unittest.TestCase):
         repository = self.repo()
         self.second_requirement(repository)
         self.second_task(repository, "REQ-0001, REQ-0002")
+        for task in ("tasks/TSK-0001-a-task.md", "tasks/TSK-0002-another.md"):
+            repository.edit(task, "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
         self.tasks(repository, "- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001",
                    "- [ ] T-002 TSK-0002 another\n      closes: REQ-0001, REQ-0002")
         done = repository.run("check", "coverage")
