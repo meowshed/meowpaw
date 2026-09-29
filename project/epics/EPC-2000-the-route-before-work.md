@@ -78,7 +78,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       states, and the cases for how the router routes
       closes: REQ-0334, REQ-0338, REQ-0342, REQ-0344, REQ-0346
 
-- [ ] T-002 TSK-3510 add `plugins/meow-flow/skills/route/SKILL.md`, which
+- [x] T-002 TSK-3510 add `plugins/meow-flow/skills/route/SKILL.md`, which
       dispatches the router, reports the route before any write, takes the
       four override words and reports the seven states as themselves; name it
       in the method skill and `CLAUDE.md`; raise
@@ -87,6 +87,9 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-3500 (blocking) - the skill dispatches the router and
       reads the reply fields the router's definition states, and every skill
       case runs the router
+      evidence: 9 checks seen failing first and passing, 227 `meow-flow`
+      fixtures passing, the cases run by hand on both models, in #722;
+      criteria 5 to 7 fall short on Opus 5.5 and 7 on Sonnet 5, BUG-1360
 
 No task runs in parallel: TSK-3510 reads the reply TSK-3500 defines. Both
 raise `meow-flow`'s minor version, so TSK-3510 takes the next minor version
