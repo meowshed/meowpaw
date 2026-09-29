@@ -54,15 +54,37 @@ Nothing. BUG-1264 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/7db4da4bafbe.txt
+- Landed in: #696
+- Judgement: none
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+Each role under `plugins/meow-flow/skills/method/steps/`, except review's,
+now names where its artifact lands as a path pattern under the record root,
+`[record] root` in `.meowpaw/profile.toml` or `project/` where it declares
+none: `research/RES-NNNN-<topic>.md`, `requirements/REQ-NNNN-<slug>.md`,
+`adrs/ADR-NNNN-<slug>.md`, `specs/SPC-NNNN-<topic>.md`,
+`epics/EPC-NNNN-<slug>.md` and `tasks/TSK-NNNN-<slug>.md`. Cover and
+implement name the kept runs under the evidence directory, verify names the
+kept evidence it cites, and document names each page at its own path outside
+the record root. SPC-1090's section "The steps" states the rule and its
+table, and `meow-flow` goes to 0.39.5.
+
+`MethodSkill.test_each_role_names_where_its_artifact_lands` failed first:
+`meow-verbs run test` exited 1 with `FAILED (failures=38)`, one failure for
+each phrase a role lacked, kept as `project/evidence/7db4da4bafbe.txt`, in the
+commit that held the check alone. It passes now:
+
+```text
+$ python3 -m unittest test_record    # in plugins/meow-flow/tests
+OK                                   # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 

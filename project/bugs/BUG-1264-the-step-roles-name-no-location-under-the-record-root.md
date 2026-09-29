@@ -77,5 +77,7 @@ for the kept evidence.
 
 ## Tasks
 
-- [ ] T-001 TSK-2574 name the path pattern under the record root in each step's
+- [x] T-001 TSK-2574 name the path pattern under the record root in each step's
       role, in `plugins/meow-flow/skills/method/steps/`
+      evidence: 1 check seen failing first on 38 phrases, and every
+      `meow-flow` fixture passing, in #696.
