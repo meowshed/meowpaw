@@ -2,7 +2,7 @@
 id: SPC-1195
 artifact: spec
 status: live
-revised: 2026-09-28
+revised: 2026-09-29
 checked-at:
 states: [REQ-0083, REQ-2352, REQ-2434, REQ-2438, REQ-2452, REQ-2454]
 ---
@@ -81,14 +81,21 @@ Each verb takes the first row that applies (REQ-2352):
 | `build`  | `# build: unbound, <file> configures a site build` | A `mkdocs.yml`, `book.toml`, `hugo.toml` or `docusaurus.config.*`                 |
 | any      | `# <verb>: unbound, looked for <files>`            | No row above applies                                                              |
 
-Where `lint` binds markdownlint-cli2, a comment under it names `meow-markdown
-check` as the command that runs the settings checks. A `.remarkrc*` or
-`.textlintrc*` is named in a comment as a configured linter the pack binds no
-command for. A verb the profile already declares is left out, and a runner's
-configuration, such as a `mise.toml` or a `Taskfile.yml`, is named with a
-pointer to that runner's pack. `bind` exits 0 once it prints the table, whatever
-comments the table holds, because a verb printed as unresolved or unbound with
-its reason is settled (ADR-1900).
+`lint` binds `meow-markdown check` where no linter is configured, because the
+settings checks are then the only lint the repository has. Where `lint` binds
+markdownlint-cli2, a comment under it names `meow-markdown check` as the command
+that runs the settings checks. A verb's value is one command run by the shell
+(SPC-1040), so a chain such as `markdownlint-cli2 '**/*.md' && meow-markdown
+check` is allowed, but `bind` doesn't print it: the shell stops at the linter's
+first failure, so the settings checks would go unreported on exactly the run
+where lint fails, and the verb's one exit status couldn't say which of the two
+failed. A repository that accepts that loss writes the chain itself, as this one
+does. A `.remarkrc*` or `.textlintrc*` is named in a comment as a configured
+linter the pack binds no command for. A verb the profile already declares is
+left out, and a runner's configuration, such as a `mise.toml` or a
+`Taskfile.yml`, is named with a pointer to that runner's pack. `bind` exits 0
+once it prints the table, whatever comments the table holds, because a verb
+printed as unresolved or unbound with its reason is settled (ADR-1900).
 
 ### What `check` finds
 
@@ -115,11 +122,14 @@ runs a linter or a link checker through a runner's task isn't read.
 
 ### What `links` reports
 
-`meow-markdown links [<input>...]` runs `lychee --format json --no-progress`
-at the repository's root, with the inputs given, or `**/*.md` where none is,
-and forwards no flag. It classifies each result from lychee's JSON, never from
-lychee's exit status, and prints one line per result naming the file, the line,
-the address and lychee's own words (REQ-2438):
+`meow-markdown links [<input>...]` runs `lychee --format json --no-progress` at
+the repository's root, with the inputs given, or `**/*.md` where none is, and
+forwards no flag. lychee's exit status decides only whether lychee ran: exit 3
+or 1 is `tool broken`, even where lychee printed valid JSON. On exit 0 or 2,
+`links` classifies each result from lychee's JSON, never from the exit status,
+because lychee exits 2 for a timeout as for a broken link (RES-0294). It prints
+one line per result naming the file, the line, the address and lychee's own
+words (REQ-2438):
 
 | lychee reports                                                                     | Printed as    |
 | ---------------------------------------------------------------------------------- | ------------- |
