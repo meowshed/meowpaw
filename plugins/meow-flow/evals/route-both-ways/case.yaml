@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-both-ways
+description: A request whose evidence points to two sizes, which the router should route to the larger and mark ambiguous.
+tags: [route]
+runs: 3
+expected_outcome: The router's reply takes the larger of the two sizes the evidence supports, says ambiguous, and names the evidence on each side.
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 20
+  prompt: |
+    Dispatch the meow-flow:router agent in the foreground on the request
+    below, passing it the request as written, and print its reply verbatim
+    with nothing before it. Do no other work on the request.
+
+    <request>
+    Reword the message paw check prints when a task has no Cover section, so it names the section to add.
+    </request>
