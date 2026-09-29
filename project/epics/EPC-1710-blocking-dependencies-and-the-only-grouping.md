@@ -67,7 +67,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       step and the `meow-prose` record types
       closes: REQ-1358
 
-- [ ] T-002 [P] TSK-2910 forbid the grouping fields on the task, epic and
+- [x] T-002 [P] TSK-2910 forbid the grouping fields on the task, epic and
       defect kinds in `plugins/meow-flow/lib/layout.toml`, and show in a
       `meow-github` test that `project` groups an issue nowhere
       closes: REQ-3320
