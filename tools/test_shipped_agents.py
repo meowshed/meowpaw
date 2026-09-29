@@ -11,6 +11,7 @@ check compares the two and a flipped value fails it.
 """
 
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -92,6 +93,34 @@ class ShippedAgents(unittest.TestCase):
                 self.assertIn("omitClaudeMd", mismatches(rows[name], flipped))
                 other = "[]" if rows[name]["skills"] else "[meow-prose:writing]"
                 self.assertIn("skills", mismatches(rows[name], dict(fields, skills=other)))
+
+
+OUTCOMES = ("DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED")
+
+
+def named_outcomes(path):
+    """The outcome words an agent's body names, each read as a whole word so DONE_WITH_CONCERNS isn't DONE."""
+    body = path.read_text(encoding="utf-8").split("---\n", 2)[2]
+    return {w for w in OUTCOMES if re.search(rf"(?<![A-Z_]){w}(?![A-Z_])", body)}
+
+
+class ShippedOutcomes(unittest.TestCase):
+    """TSK-2702 criterion 2, REQ-0816, SPC-1030 "What an agent reports": the three shipped agents name the four
+    outcomes, and `meow-author check` passes over the repository's units with its outcome rule in force."""
+
+    def test_the_three_shipped_agents_name_the_four_outcomes(self):
+        paths = sorted(ROOT.glob("plugins/*/agents/*.md"))
+        self.assertEqual(sorted(f"{p.parent.parent.name}:{p.stem}" for p in paths),
+                         ["meow-flow:record-reviewer", "meow-flow:router", "meow-prose:prose"])
+        for path in paths:
+            with self.subTest(agent=str(path.relative_to(ROOT))):
+                self.assertEqual(named_outcomes(path), set(OUTCOMES))
+
+    def test_the_check_passes_over_the_units(self):
+        done = subprocess.run([str(ROOT / "plugins" / "meow-author" / "bin" / "meow-author"), "check"],
+                              cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn(" 0 authoring failures", done.stdout)
 
 
 if __name__ == "__main__":

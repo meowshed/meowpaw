@@ -111,4 +111,20 @@ don't overrule it.
   ceiling, report the record as unreviewed by an agent, as M22 does for a
   review that couldn't run, because a partial list of findings reads as a
   complete one.
+- M24. Read the reviewer's `outcome:` line before its findings, allowing
+  leading space, because the platform's hand-back indents each line of the
+  report, and act on the word yourself, never asking a model to relay the
+  report first:
+  - `DONE`: act on the findings as M20 and M21 say;
+  - `DONE_WITH_CONCERNS`: act on the findings, and name the part that didn't
+    run in the gate report;
+  - `NEEDS_CONTEXT`: correct the brief and dispatch once more, which counts
+    as no repair round under M20, and act on that outcome by these rows;
+  - a second `NEEDS_CONTEXT` after the corrected brief: report the record as
+    unreviewed by an agent, naming the brief you sent;
+  - `BLOCKED`: report the record as unreviewed by an agent, naming the tool
+    and the input;
+  - a report with no outcome line from the set: report the record as
+    unreviewed by an agent, as for a repository's own reviewer that writes
+    none.
 </rules>

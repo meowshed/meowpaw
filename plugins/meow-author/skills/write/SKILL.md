@@ -141,4 +141,10 @@ states where it stops.
   its ceiling, as unfinished work, and read any output of a run that reached
   its ceiling the same way until a run has shown the marking, because a
   partial list of findings reads as a complete one.
+- D10. In an agent a unit ships, name the four outcomes `DONE`,
+  `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT` and `BLOCKED`, say when the agent
+  reports each, and have it write `outcome:`, a space and the word on a line
+  of its own, with one sentence naming the cause where the outcome isn't
+  `DONE`, because the skill that dispatched it acts on the word without
+  reading the rest, and the check fails an agent that leaves one out.
 </rules>
