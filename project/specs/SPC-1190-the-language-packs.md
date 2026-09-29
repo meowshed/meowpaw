@@ -3,7 +3,7 @@ id: SPC-1190
 artifact: spec
 status: live
 revised: 2026-09-29
-checked-at:
+checked-at: "#624"
 states: [REQ-0083, REQ-2434, REQ-2438]
 ---
 
@@ -21,7 +21,7 @@ rest.
 runner packs, SPC-1140 and SPC-1150, keep the same boundary for a runner and
 aren't restated here. Running a bound verb is SPC-1040's.
 
-ADR-1900 decides this part and EPC-1800 realises it.
+ADR-1900 decides this part and EPC-1800 realised it, verified under issue 624.
 
 ## Boundary
 
