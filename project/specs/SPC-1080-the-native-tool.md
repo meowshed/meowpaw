@@ -36,7 +36,6 @@ states:
     REQ-1368,
     REQ-1372,
     REQ-1376,
-    REQ-1378,
     REQ-1380,
     REQ-1382,
     REQ-1384,
@@ -432,7 +431,7 @@ a throttle or a ceiling (ADR-1810).
 A replay changes nothing, a changed task updates its issue, an edited issue is
 reported and left, a closed issue on an unmarked task is reported, the issue's
 state is the tracker's and never written, and `--check` computes the state on
-demand and writes nothing (REQ-1353, REQ-1355, REQ-1378, REQ-1388, REQ-1392,
+demand and writes nothing (REQ-1353, REQ-1355, REQ-1388, REQ-1392,
 REQ-1394, REQ-1400). The docs give the `gh` commands that project a task by
 hand, the headers to read and the one-second spacing between writes
 (REQ-1402) (ADR-1310, ADR-1810).

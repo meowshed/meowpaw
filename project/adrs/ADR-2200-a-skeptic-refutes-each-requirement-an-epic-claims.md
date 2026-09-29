@@ -1,14 +1,16 @@
 ---
 id: ADR-2200
 artifact: adr
-status: approved
-revised: 2026-09-28
+status: superseded
+revised: 2026-09-29
 addresses: [REQ-0314, REQ-2070, REQ-2078, REQ-3520, REQ-3522, REQ-3524]
 postpones: []
 supersedes: []
 ---
 
 # 2200. A skeptic tries to refute each requirement an epic claims before it is verified, and a confirmed refutation becomes a draft defect
+
+**Superseded by ADR-2300.**
 
 ## Decision
 

@@ -55,22 +55,27 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-3700 add `plugins/meow-flow/agents/skeptic.md`, its static
-      fixture, its two evaluation cases, its README entry and the budget of
-      600 characters
-      closes: REQ-0314, REQ-2070, REQ-2078
+- [~] T-001 TSK-3700 add `plugins/meow-flow/agents/skeptic.md`, its static
+  fixture, its two evaluation cases, its README entry and the budget of
+  600 characters
+  closes: REQ-0314, REQ-2070, REQ-2078
+  dropped: ADR-2300 supersedes ADR-2200, so no step dispatches the skeptic
 
-- [ ] T-002 TSK-3710 make `steps/verify.md` dispatch the skeptic and write a
-      draft defect for each refutation it confirms, make `steps/review.md`
-      judge each rejected refutation, and add the defect fixture and the
-      third evaluation case
-      closes: REQ-3520, REQ-3522, REQ-3524
-      depends: TSK-3700, because the verify step dispatches
-      `meow-flow:skeptic`, and a dispatch of an agent the unit doesn't ship
-      fails in every session that runs it
+- [~] T-002 TSK-3710 make `steps/verify.md` dispatch the skeptic and write a
+  draft defect for each refutation it confirms, make `steps/review.md`
+  judge each rejected refutation, and add the defect fixture and the
+  third evaluation case
+  closes: REQ-3520, REQ-3522, REQ-3524
+  depends: TSK-3700, because the verify step dispatches
+  `meow-flow:skeptic`, and a dispatch of an agent the unit doesn't ship
+  fails in every session that runs it
+  dropped: ADR-2300 removes the verify step it would change
 
 Both tasks raise `meow-flow`'s minor version and its README's `describes`, so
 TSK-3710 takes the next minor version above the one TSK-3700 lands with.
+
+Both tasks are dropped: ADR-2300 supersedes ADR-2200, so no step is left to
+dispatch the skeptic.
 
 ## Coverage
 

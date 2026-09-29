@@ -3,21 +3,17 @@ id: REQ-3522
 artifact: requirement
 topic: the-method
 class: functional
-status: approved
-revised: 2026-09-28
+status: withdrawn
+revised: 2026-09-29
 elaborates: RES-0309, RES-0070
 verification: static
 ---
 
 # REQ-3522
 
-Before an epic's verification is recorded, an agent that didn't produce its
-work MUST have tried to refute that each requirement the epic's authorising
-record addresses is met, and the verification records that agent's outcome
-for each such requirement: refuted, naming the input or condition that breaks
-it, not refuted, or not judged, naming what the agent couldn't reach. Where
-the verification runs somewhere it can't dispatch an agent, it records instead
-that the refutation wasn't attempted, and names that cause.
+**Withdrawn by ADR-2300.**
+
+It read: before an epic's verification is recorded, an agent that didn't produce its work MUST have tried to refute that each requirement the epic's authorising record addresses is met, and the verification records that agent's outcome for each such requirement: refuted, naming the input or condition that breaks it, not refuted, or not judged, naming what the agent couldn't reach. Where the verification runs somewhere it can't dispatch an agent, it records instead that the refutation wasn't attempted, and names that cause.
 
 The session that verifies an epic is usually the one that implemented it, and
 a model judging its own work is measurably biased, and capability doesn't
@@ -33,3 +29,5 @@ has shown only that it found none. The exception is limited to a place that
 can't dispatch, such as a verification running inside a subagent, and its
 cause is written down, so a reader can see whether the reason applies and
 nobody reads the epic as independently checked.
+
+ADR-2300 removes the verification step and the skeptic, so no step is left for this rule to bind.
