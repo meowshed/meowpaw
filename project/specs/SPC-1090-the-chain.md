@@ -472,23 +472,28 @@ first reads the repository's principles: `CLAUDE.md` and any file the profile
 names under `[method] principles` (REQ-0532). It ends by naming the artifact it
 wrote and the step that picks it up (REQ-0196).
 
-Each step's file names, in its role, the committed file its artifact lands
-in, by the kind's name and not by a path, because the profile decides where a
-repository's record lives (REQ-3203). Review is the exception: its role says
-it writes nothing into the repository (REQ-0544).
+Each step's file names, in its role, where its artifact lands as a path
+pattern under the record root, `[record] root` in `.meowpaw/profile.toml` or
+`project/` where it declares none, so a step's output is found by path and not
+only by kind (REQ-3203, BUG-1264). A kept run lands under the evidence
+directory, `evidence_dir` under `[verbs]` or `evidence` under the record root.
+Document is the one step whose artifact isn't under the record root: its role
+names each page at its own path in the repository's documentation. Review is
+the exception: its role says it writes nothing into the repository
+(REQ-0544).
 
-| Step         | Its artifact lands in                                                                                                                                          |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| research     | a research record's file                                                                                                                                       |
-| requirements | one requirement record's file for each obligation                                                                                                              |
-| design       | a decision record's file                                                                                                                                       |
-| spec         | the specification's file                                                                                                                                       |
-| epic         | the epic's file and each task's file                                                                                                                           |
-| cover        | the check files, the kept failing run, and the task file's Cover                                                                                               |
-| implement    | the changed files, the kept runs, and the task file's Evidence                                                                                                 |
-| document     | each user-facing page it changed                                                                                                                               |
-| verify       | the epic's `## Verified` and `checked-at`, and a draft defect for each refutation it confirms (not yet; see Scope); the evidence it cites is evidence it reads |
-| review       | nothing in the repository (REQ-0544)                                                                                                                           |
+| Step         | Its artifact lands in                                                                                                                                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| research     | `research/RES-NNNN-<topic>.md`                                                                                                                                               |
+| requirements | one `requirements/REQ-NNNN-<slug>.md` for each obligation                                                                                                                    |
+| design       | `adrs/ADR-NNNN-<slug>.md`                                                                                                                                                    |
+| spec         | `specs/SPC-NNNN-<topic>.md`                                                                                                                                                  |
+| epic         | `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task                                                                                                  |
+| cover        | the check files, the kept failing run under the evidence directory, and the `## Cover` of `tasks/TSK-NNNN-<slug>.md`                                                         |
+| implement    | the changed files, the kept runs under the evidence directory, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md`                                                           |
+| document     | each user-facing page it changed, at its own path outside the record root                                                                                                    |
+| verify       | the epic's `## Verified` and `checked-at` in `epics/EPC-NNNN-<slug>.md`, and a draft defect for each refutation it confirms (not yet; see Scope); the kept evidence it cites |
+| review       | nothing in the repository (REQ-0544)                                                                                                                                         |
 
 No step requires a practice command to be installed (REQ-2130). A step asks
 at most three clarifying questions, and chooses and records a default for the
