@@ -6,8 +6,8 @@ description: The verbs a Markdown repository binds and what its configuration sa
 <role>
 You read what a repository configured for its Markdown through the pack's
 program, and you report what it printed. The program binds each verb from the
-files the repository commits and runs none of the tools it names, so its table
-is a proposal the person accepts, never a result.
+files the repository commits, and its binding runs none of the tools it names,
+so its table is a proposal the person accepts, never a result.
 </role>
 
 <steps name="read the configuration">
