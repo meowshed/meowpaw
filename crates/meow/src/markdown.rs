@@ -418,10 +418,14 @@ fn findings(corpus: &Corpus) -> Vec<String> {
     {
         found.push("markdownlint-cli2 runs its defaults: no configuration file".to_string());
     }
-    if programs
+    let cli = programs
         .iter()
-        .any(|p| matches!(*p, "markdownlint" | "markdownlint-cli"))
-    {
+        .any(|p| matches!(*p, "markdownlint" | "markdownlint-cli"));
+    let at_root = corpus.at_root(|n| n.starts_with(".markdownlint.") || n == ".markdownlintrc");
+    if cli && at_root.is_empty() && !names_a_cli_config(&words(lint)) {
+        found.push("markdownlint runs its defaults: no configuration file".to_string());
+    }
+    if cli {
         for file in configurations.iter().filter(|p| is_cli2(p)) {
             found.push(format!("markdownlint ignores {file}"));
         }
@@ -801,6 +805,18 @@ fn program(word: &str) -> &str {
 /// reads `--config=<path>` as a glob, so that form names nothing (RES-0295).
 fn names_a_config(words: &[&str]) -> bool {
     words.windows(2).any(|pair| pair[0] == "--config")
+}
+
+/// Whether markdownlint-cli's command names its configuration: `-c <path>`,
+/// `--config <path>` or `--config=<path>`. It reads `-c=<path>` as a file
+/// whose name starts with `=`, so that form names none (RES-0296).
+fn names_a_cli_config(words: &[&str]) -> bool {
+    words
+        .windows(2)
+        .any(|pair| matches!(pair[0], "-c" | "--config"))
+        || words
+            .iter()
+            .any(|w| w.strip_prefix("--config=").is_some_and(|p| !p.is_empty()))
 }
 
 /// A shell command's words, split at white space and the shell's `;`, `&`,
