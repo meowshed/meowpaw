@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-reported-ambiguous
+description: A request whose evidence points to two sizes, which the session should report as ambiguous with the evidence on each side.
+tags: [route]
+runs: 3
+expected_outcome: The session's route report says ambiguous and names what points to the smaller size and what points to the larger one.
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 12
+  prompt: |
+    Reword the message paw check prints when a task has no Cover section, so it names the section to add.

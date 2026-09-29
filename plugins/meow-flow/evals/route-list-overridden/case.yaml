@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-list-overridden
+description: A route full given after a several-changes route, which should keep the list with every entry full.
+tags: [route]
+runs: 3
+expected_outcome: The session keeps the three entries, gives each the size full, and stops before any of them starts.
+context:
+  scaffold_script: scaffold.sh
+  history_file: history.jsonl
+execution:
+  max_turns: 10
+  prompt: |
+    route full
