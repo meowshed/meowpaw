@@ -174,6 +174,7 @@ here or in the sources below.
 | [What `mise exec` runs](RES-0297-what-mise-exec-runs.md)                                                       | `mise exec` loads each tool word before `--` onto `PATH` and runs only the command after `--` or `-c`.                                                                                                   |
 | [What bounds an unattended run's authority](RES-0299-what-bounds-an-unattended-runs-authority.md)              | On Claude Code 2.1.280, read with no run observed, flags and deny rules bound a run's authority, except a project's `env` block under `--bare`, unusual Bash forms and a script an Edit rule misses.     |
 | [Print mode as a loop runner, observed](RES-0300-print-mode-as-a-loop-runner-observed.md)                      | On Claude Code 2.1.280 each `claude -p` call is a new session that reports its cost, loads a named plugin and honours a deny rule, and its spend cap is checked only after the spend.                    |
+| [What the record tells a runner about a step](RES-0301-what-the-record-tells-a-runner-about-a-step.md)         | `paw ready` passes before and after a step's work alike, the frozen check passes an approval, a withdrawal and an authority line, and a dropped task counts as finished.                                 |
 | [Refuting a verified claim](RES-0309-refuting-a-verified-claim.md)                                             | Four of 755 requirements this repository recorded as verified were unmet, a floor that ordinary work found; in a benchmark, model monitors caught 42% to 65% of shortcuts on multi-file work.            |
 | [A read-only agent routes a request](RES-0304-a-read-only-agent-routes-a-request.md)                           | On Claude Code 2.1.280 a plugin agent limited to Read, Grep and Glob can't write, and routing through it costs a dispatch on every request.                                                              |
 
@@ -491,18 +492,23 @@ The six internal harnesses were read from their working trees on 2026-09-20:
 
 ## Open review findings
 
-An agent reviewed this record on 2026-09-28, when a change added RES-0304's row
-to the sources table, and again on 2026-09-29, when a change added RES-0284's
-row. The second review raised the last finding below and found the others
-unchanged. A third review, on 2026-09-29, of the change that added RES-0285's
-row, found that the row claimed more than RES-0285 shows, which that change
-corrected, and raised the second-to-last finding below. Each other finding concerns the body approved before those changes,
-and each is left, because the body is frozen and a correction to it
-arrives as a new record, which is work outside the change that added the row.
-Issue #599 owns every finding below, with the earlier findings it already
-listed, so each stays open there until somebody writes the record that closes
-it, and a later review adds its findings to that issue and not to this
-section.
+An agent reviewed this record once for each change that added a row to the
+sources table. The first six findings below concern the body approved before
+any of those changes. The review on 2026-09-28, of the change adding
+RES-0304's row, found them open. The review on 2026-09-29 of the change adding
+RES-0284's row raised the last finding, on the table's order. The review on
+2026-09-29 of the change adding RES-0285's row found that the row claimed more
+than RES-0285 shows, which that change corrected, and raised the finding on a
+row that summarises a draft, which now names RES-0301's row. The review on
+2026-09-29 of the change adding RES-0301's row raised no new fix, and asked
+for this paragraph to say which review raised which finding.
+
+Each finding on the approved body is left, because the body is frozen and a
+correction to it arrives as a new record, which is work outside a change that
+adds a row. Issue #599 owns every finding below, with the earlier findings it
+already listed, so each stays open there until somebody writes the record that
+closes it. From the review of RES-0301's row on, a review adds its findings to
+that issue and not to this section.
 
 - The record is two kinds, a frozen synthesis and a growing index of research.
   Left: `plugins/meow-flow/lib/layout.toml` declares this file the research
@@ -532,11 +538,12 @@ section.
   text `research/skill-format.md` names a path that no longer exists, line 21 is
   a fragment, and finding 11a's number suggests an insertion. Left for the same
   reason.
-- RES-0285's row summarises a record still in draft, so its findings can
+- RES-0301's row summarises a record still in draft, so its findings can
   change before approval and nothing would update the row. Left, because the
   row and the record land in one change and are approved together, and the
   first finding asks for this table to be generated, which would keep the row
-  current.
+  current. The same finding about RES-0285's row closed when RES-0285 was
+  approved.
 - RES-0304's row follows RES-0309's. Left, because the first finding asks for
   this table to be generated, so ordering it by hand is work the generator
   would undo.
