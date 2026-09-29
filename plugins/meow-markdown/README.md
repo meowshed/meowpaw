@@ -2,16 +2,17 @@
 reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-markdown@0.2.0]
+describes: [meow-markdown@0.3.0]
 ---
 
 # meow-markdown
 
 `meow-markdown` tells you whether your repository holds a Markdown corpus,
 lists the tools you configured for it, prints a `[verbs]` table bound from
-that configuration, and checks the settings behind your verbs. It runs no Markdown tool and writes no file: it reads the
-files git tracks and runs git alone. It installs on its own, with no other part
-of the `meowpaw` harness.
+that configuration, checks the settings behind your verbs, and runs your link
+check. It writes no file. `status`, `bind` and `check` read the files git
+tracks and run git alone, and `links` runs lychee. It installs on its own, with
+no other part of the `meowpaw` harness.
 
 ## Install it
 
@@ -89,22 +90,30 @@ a `Taskfile.yml` with the runner's pack, `meow-mise` or `meow-gotask`, since a
 repository that runs its tools through a runner binds its verbs to the
 runner's tasks.
 
-`links` isn't shipped yet, so a table binding `test` names a command this
-version doesn't run: until it ships, it prints the usage line and exits 2.
+`meow-markdown links` is the link check that table binds, as
+[Run your link check](#run-your-link-check) describes.
 
 ## Check your settings
 
 `meow-markdown check` reports each setting your verbs depend on that is
 missing or has no effect, one line for each finding, and exits 1 on any:
 
-| Line                                                                     | When                                                                                               |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `no render target: declare [markdown] target`                            | Your profile's `[markdown] target` is missing or empty                                             |
-| `markdownlint-cli2 runs its defaults: no configuration file`             | Your `lint` verb runs `markdownlint-cli2` and git tracks no markdownlint configuration             |
-| `markdownlint ignores <file>`                                            | Your `lint` verb runs `markdownlint` and git tracks a `.markdownlint-cli2.*` file                  |
-| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules |
+| Line                                                                     | When                                                                                                         |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `no render target: declare [markdown] target`                            | Your profile's `[markdown] target` is missing or empty                                                       |
+| `markdownlint-cli2 runs its defaults: no configuration file`             | Your `lint` verb runs `markdownlint-cli2` and git tracks no markdownlint configuration                       |
+| `markdownlint ignores <file>`                                            | Your `lint` verb runs `markdownlint` and git tracks a `.markdownlint-cli2.*` file                            |
+| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules           |
+| `link check declares no <setting>`                                       | A verb runs `lychee` or `meow-markdown links`, and nothing it reads sets `offline`, `max_retries` or `cache` |
+| `<file> doesn't parse as TOML: <message>`                                | The link check's settings file isn't valid TOML                                                              |
+| `.lycheecache isn't ignored`                                             | The link check's cache is on, and no ignore file in your repository covers `.lycheecache`                    |
 
-Any string in `[markdown] target` counts as a declaration. The last finding
+Any string in `[markdown] target` counts as a declaration. For a verb running
+`lychee`, `check` reads the file `--config` names, or `lychee.toml` at the root,
+and the flags `--offline`, `--max-retries` and `--cache`. For a verb running
+`meow-markdown links` it reads `lychee.toml` alone, because `links` forwards no
+flag. A global excludes file and `.git/info/exclude` protect one clone only, so
+neither counts as ignoring `.lycheecache`. The last finding
 comes from the files alone, whatever your `lint` verb runs. `check` reads the
 tool your `lint` verb names, so a linter run through a runner's task, such as
 `mise run lint`, isn't seen. With no finding it prints `no findings` and exits 0.
@@ -121,16 +130,46 @@ lint = "markdownlint-cli2 '**/*.md' && plugins/meow-markdown/bin/meow-markdown c
 The shell stops at the linter's first failure, so on a run where lint fails
 the settings checks don't run.
 
+## Run your link check
+
+`meow-markdown links [<input>...]` runs
+`lychee --format json --no-progress` at the root of your repository, on the
+inputs you give or `**/*.md` where you give none, and forwards no flag, so
+lychee takes its settings from `lychee.toml`. It reads lychee's JSON and never
+its exit status, because lychee exits 2 for a site that timed out exactly as
+for a broken link. Each result prints on a line of its own with its class, the
+file, the line, the address and lychee's own words:
+
+| Class         | lychee reported                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `finding`     | A 4xx response other than those below, or `File not found` on a relative link's `file://` address       |
+| `unreachable` | A timeout, an error with no status code on an `http` or `https` address, or a 5xx, 429, 408, 401 or 403 |
+| `skipped`     | An address lychee excluded, by its defaults or by `offline`, so it was never checked                    |
+| `unresolved`  | Any other error, such as a rejected 3xx                                                                 |
+
+`links` lists the findings first, then the unreachable and the unresolved
+results under their own headings, then how many addresses it skipped. It exits
+1 on any finding, 3 where there is no finding but anything is unreachable or
+unresolved, and 0 where every checked link resolved. A skipped address counts
+towards no exit status. A site that is down therefore never makes a finding,
+and never makes a pass either.
+
+`meow-verbs` reads a `test` verb's exit status alone, so it reports a `links`
+run that exits 3 as failed, and the lines it quotes say `unreachable`.
+
 ## What it reports instead of a table
 
-Every command exits 0 when it reports what it was asked, `check` exits 1 on a
-finding, and every command exits 3 when it can't:
+Every command exits 0 when it reports what it was asked, `check` and `links`
+exit 1 on a finding, and every command exits 3 when it can't:
 
-| Line                                              | Means                                                           |
-| ------------------------------------------------- | --------------------------------------------------------------- |
-| `unresolved: not a Markdown repository`           | Git tracks fewer than two `*.md` files and no markdownlint file |
-| `unresolved: no profile at .meowpaw/profile.toml` | The repository has no profile                                   |
-| `unresolved: the profile doesn't parse: ...`      | The profile isn't valid TOML; the parser's message follows      |
+| Line                                              | Means                                                                                       |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `unresolved: not a Markdown repository`           | Git tracks fewer than two `*.md` files and no markdownlint file                             |
+| `unresolved: no profile at .meowpaw/profile.toml` | The repository has no profile                                                               |
+| `unresolved: the profile doesn't parse: ...`      | The profile isn't valid TOML; the parser's message follows                                  |
+| `tool absent: lychee`                             | `links` found no lychee on `PATH`                                                           |
+| `tool broken: lychee ended with exit status ...`  | lychee exited 3 on its configuration or 1 on its inputs                                     |
+| `tool broken: lychee printed ...`                 | lychee printed no JSON, or JSON missing a map `links` reads or carrying one it doesn't know |
 
 `bind` exits 0 whatever comments its table holds, because a verb printed with
 its reason is settled.
@@ -139,10 +178,12 @@ its reason is settled.
 
 The skill's description stays in context on every turn, within the 380
 characters the unit's budget states. The program is a native binary shipped
-inside the unit, and needs git on the machine. On a machine the unit carries
+inside the unit, and needs git on the machine. `links` reaches every remote
+address your documents cite on each run. On a machine the unit carries
 no binary for, it reports the repository as unresolved and exits 3.
 
 ## What it needs
 
 Claude Code 2.1.280 or later, declared in
-`plugins/meow-markdown/requires.toml`, and git.
+`plugins/meow-markdown/requires.toml`, and git. `links` needs lychee on
+`PATH`, and the pack was observed against lychee 0.24.2.
