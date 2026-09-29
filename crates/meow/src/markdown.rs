@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! `meow-markdown`: whether a work tree holds a Markdown corpus, what it
-//! configured, and the `[verbs]` table that configuration binds (SPC-1195).
+//! configured, the `[verbs]` table that configuration binds, and the settings
+//! behind its verbs that are missing or have no effect (SPC-1195).
 //!
 //! The program reads the files git tracks, runs git alone and writes nothing
 //! (SPC-1190), so detection and binding start none of the tools they name.
@@ -10,9 +11,11 @@
 use crate::profile::{self, Profile};
 use std::collections::BTreeSet;
 use std::path::PathBuf;
+use yaml_rust2::{Yaml, YamlLoader};
 
 const UNRESOLVED: u8 = 3;
-const USAGE: &str = "usage: meow-markdown status | bind";
+const FOUND: u8 = 1;
+const USAGE: &str = "usage: meow-markdown status | bind | check";
 const KNOWN_TARGETS: [&str; 7] = [
     "github",
     "gitlab",
@@ -55,6 +58,7 @@ pub fn main(args: &[String]) -> u8 {
     {
         ["status"] => status(),
         ["bind"] => bind(),
+        ["check"] => check(),
         _ => {
             eprintln!("{USAGE}");
             2
@@ -350,6 +354,180 @@ fn bind() -> u8 {
     0
 }
 
+/// The findings in the settings behind the verbs: a missing render target
+/// (REQ-2452), and a markdownlint configuration the `lint` verb lacks, ignores
+/// or never applies (REQ-2434). It reads the profile and the tracked files,
+/// and exits 1 on any finding.
+fn check() -> u8 {
+    println!("meow-markdown check");
+    let corpus = match Corpus::read() {
+        Ok(corpus) => corpus,
+        Err(reason) => {
+            println!("unresolved: {reason}");
+            return UNRESOLVED;
+        }
+    };
+    let findings = findings(&corpus);
+    if findings.is_empty() {
+        println!("no findings");
+        return 0;
+    }
+    for finding in &findings {
+        println!("{finding}");
+    }
+    FOUND
+}
+
+fn findings(corpus: &Corpus) -> Vec<String> {
+    let mut found = Vec::new();
+    let target = corpus
+        .profile
+        .get("markdown")
+        .and_then(|m| m.get("target"))
+        .and_then(toml::Value::as_str)
+        .unwrap_or("");
+    if target.trim().is_empty() {
+        found.push("no render target: declare [markdown] target".to_string());
+    }
+    let lint = corpus
+        .profile
+        .get("verbs")
+        .and_then(|v| v.get("lint"))
+        .and_then(toml::Value::as_str)
+        .unwrap_or("");
+    let programs = programs(lint);
+    let configurations = corpus.markdownlint();
+    if programs.contains(&"markdownlint-cli2") && configurations.is_empty() {
+        found.push("markdownlint-cli2 runs its defaults: no configuration file".to_string());
+    }
+    if programs.contains(&"markdownlint") {
+        for file in configurations.iter().filter(|p| is_cli2(p)) {
+            found.push(format!("markdownlint ignores {file}"));
+        }
+    }
+    for dir in configurations
+        .iter()
+        .map(|p| directory(p))
+        .collect::<BTreeSet<_>>()
+    {
+        let here: Vec<&str> = configurations
+            .iter()
+            .copied()
+            .filter(|p| directory(p) == dir)
+            .collect();
+        let applied = here.iter().find(|p| !is_cli2(p));
+        let overridden = here
+            .iter()
+            .find(|p| is_cli2(p) && cli2_sets_rules(&corpus.root.join(p)));
+        if let (Some(a), Some(b)) = (applied, overridden) {
+            found.push(format!(
+                "{}: {a} and {b} both configure rules; markdownlint-cli2 applies {a}",
+                if dir.is_empty() { "." } else { dir }
+            ));
+        }
+    }
+    found
+}
+
+/// The directory a tracked path lies in, empty at the root.
+fn directory(path: &str) -> &str {
+    path.rsplit_once('/').map_or("", |(dir, _)| dir)
+}
+
+fn is_cli2(path: &str) -> bool {
+    file_name(path).starts_with(".markdownlint-cli2.")
+}
+
+/// The name of each program a shell command runs or passes as a word, by its
+/// last path component, so `npx markdownlint-cli2` and a path both count.
+fn programs(command: &str) -> Vec<&str> {
+    command
+        .split(|c: char| c.is_whitespace() || ";&|()".contains(c))
+        .map(|word| word.trim_matches(['\'', '"']))
+        .filter(|word| !word.is_empty())
+        .map(file_name)
+        .collect()
+}
+
+/// Whether a `.markdownlint-cli2.*` file's `config` key sets any rule. A
+/// JavaScript file is code the program doesn't run, so it counts as setting
+/// rules where its text names `config`. A file that can't be read or parsed
+/// counts as setting none, since markdownlint-cli2 then fails on it itself.
+fn cli2_sets_rules(path: &std::path::Path) -> bool {
+    let Ok(text) = std::fs::read_to_string(path) else {
+        return false;
+    };
+    let name = path.to_string_lossy();
+    if name.ends_with(".cjs") || name.ends_with(".mjs") {
+        return text.contains("config");
+    }
+    if name.ends_with(".yaml") || name.ends_with(".yml") {
+        return YamlLoader::load_from_str(&text)
+            .ok()
+            .and_then(|docs| docs.into_iter().next())
+            .is_some_and(|doc| match &doc["config"] {
+                Yaml::Hash(rules) => !rules.is_empty(),
+                Yaml::BadValue | Yaml::Null => false,
+                _ => true,
+            });
+    }
+    serde_json::from_str::<serde_json::Value>(&plain_json(&text))
+        .ok()
+        .and_then(|json| json.get("config").cloned())
+        .is_some_and(|config| match config {
+            serde_json::Value::Object(rules) => !rules.is_empty(),
+            serde_json::Value::Null => false,
+            _ => true,
+        })
+}
+
+/// JSONC as JSON: comments and trailing commas outside strings removed.
+fn plain_json(text: &str) -> String {
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = String::with_capacity(text.len());
+    let mut i = 0;
+    let mut in_string = false;
+    while i < chars.len() {
+        let c = chars[i];
+        let next = chars.get(i + 1).copied();
+        if in_string {
+            out.push(c);
+            if c == '\\' {
+                if let Some(n) = next {
+                    out.push(n);
+                    i += 1;
+                }
+            } else if c == '"' {
+                in_string = false;
+            }
+        } else if c == '"' {
+            in_string = true;
+            out.push(c);
+        } else if c == '/' && next == Some('/') {
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
+            }
+            continue;
+        } else if c == '/' && next == Some('*') {
+            i += 2;
+            while i < chars.len() && !(chars[i] == '*' && chars.get(i + 1) == Some(&'/')) {
+                i += 1;
+            }
+            i += 2;
+            continue;
+        } else if c == ',' {
+            let rest = chars[i + 1..].iter().find(|c| !c.is_whitespace());
+            if !matches!(rest, Some('}') | Some(']')) {
+                out.push(c);
+            }
+        } else {
+            out.push(c);
+        }
+        i += 1;
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -362,6 +540,22 @@ mod tests {
     fn two_markdown_files_are_a_corpus_and_one_is_not() {
         assert!(detected(&tracked(&["README.md", "docs/a.md"])));
         assert!(!detected(&tracked(&["README.md", "main.c"])));
+    }
+
+    #[test]
+    fn a_command_names_its_programs_by_their_last_component() {
+        assert_eq!(
+            programs("npx markdownlint-cli2 '**/*.md' && node_modules/.bin/markdownlint x"),
+            ["npx", "markdownlint-cli2", "*.md", "markdownlint", "x"]
+        );
+    }
+
+    #[test]
+    fn jsonc_loses_its_comments_and_trailing_commas() {
+        let text = "{ // a comment\n \"config\": { \"MD013\": false, }, /* \"x\": 1 */ \"url\": \"a//b\", }";
+        let json: serde_json::Value = serde_json::from_str(&plain_json(text)).unwrap();
+        assert_eq!(json["config"]["MD013"], false);
+        assert_eq!(json["url"], "a//b");
     }
 
     #[test]

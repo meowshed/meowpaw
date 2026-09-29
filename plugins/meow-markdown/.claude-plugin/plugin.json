@@ -1,7 +1,7 @@
 {
   "name": "meow-markdown",
-  "version": "0.1.0",
-  "description": "Detects a Markdown corpus from what git tracks, lists the tools a repository configured for it, and prints a verbs table bound from that configuration, running no tool and writing no file. It keeps up to 380 characters in context on every turn.",
+  "version": "0.2.0",
+  "description": "Detects a Markdown corpus from what git tracks, lists the tools a repository configured for it, and prints a verbs table bound from that configuration, and reports a missing render target and markdownlint settings the lint verb lacks, ignores or never applies, running no tool and writing no file. It keeps up to 380 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
