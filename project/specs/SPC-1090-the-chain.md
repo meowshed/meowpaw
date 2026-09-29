@@ -359,6 +359,9 @@ report as they did before.
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
 
+A person repeats one prompt in fresh sessions until the verbs pass or a
+bound ends the run, with the loop runner SPC-1201 states.
+
 ## Boundary
 
 | Surface                                       | What it is                                                              |
