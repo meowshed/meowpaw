@@ -245,8 +245,9 @@ the harness says is measured,
 prompt the harness ships is written and what an agent declares, which
 EPC-1650 realises, and
 [SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
-which follows both. The work realising them has landed, and each leaves
-`checked-at` empty until its epics are verified.
+which follows both. The work realising them has landed. SPC-1010 was checked
+at #597, when EPC-1590 was verified, and the other two leave `checked-at` empty
+until their epics are verified.
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release, the marketplace address and the checks the crate
@@ -502,7 +503,9 @@ TSK-2450 and TSK-2460, each closed with evidence, and was verified against
 every acceptance criterion under issue 587.
 
 [EPC-1590](epics/EPC-1590-the-prose-gate-is-a-program.md) realises ADR-1600
-through TSK-2470, which BUG-1230 carries and which landed before the epic.
+through TSK-2470, which BUG-1230 carries and which landed before the epic, and
+was verified under issue 597. Four criteria are met and the fifth in part:
+REQ-3182 is met in part, and BUG-1265 records the fixtures it lacks.
 
 [EPC-1570](epics/EPC-1570-the-crate-under-the-five-verbs.md) realises ADR-1610
 in four tasks, TSK-2480 to TSK-2510, each closed with evidence, and was
@@ -570,6 +573,7 @@ addresses lands in one of them.
 | [BUG-1262](bugs/BUG-1262-the-cover-gate-accepts-a-run-that-is-not-evidence.md)               | `paw ready implement` accepted a Failing run outside the evidence directory, or one git ignores                   |
 | [BUG-1263](bugs/BUG-1263-the-cover-gate-lets-a-criterion-naming-no-check-go-unnamed.md)      | `paw ready implement` accepted a Cover that left a criterion naming no check out of its Judgement                 |
 | [BUG-1264](bugs/BUG-1264-the-step-roles-name-no-location-under-the-record-root.md)           | The method's step roles named a kind of file where REQ-3203 asks for a location under the record root             |
+| [BUG-1265](bugs/BUG-1265-no-fixture-holds-a-release-note-or-seven-of-the-gated-commands.md)  | No fixture showed the prose gate holding a release note, or seven of the ten commands it reads                    |
 | [BUG-1300](bugs/BUG-1300-no-check-shows-status-waiting-on-a-blocking-dependency.md)          | No check showed `paw status` waiting on a blocking dependency                                                     |
 | [BUG-1301](bugs/BUG-1301-the-grouping-checks-cover-a-subset-of-the-fields.md)                | The grouping checks covered a subset of the fields ADR-1800 forbids                                               |
 | [BUG-1320](bugs/BUG-1320-a-markdownlintrc-is-read-as-no-linter.md)                           | `meow-markdown` bound `lint` to its own check beside a `.markdownlintrc`, and listed no configuration             |
@@ -577,7 +581,9 @@ addresses lands in one of them.
 | [BUG-1341](bugs/BUG-1341-a-unit-path-is-printed-relative-to-the-root.md)                     | `meow-unattended plan` printed each unit relative to the root, which names nothing from a subdirectory            |
 | [BUG-1342](bugs/BUG-1342-the-unattended-suite-passes-a-plan-that-ignores-the-declaration.md) | The `meow-unattended` checks passed nine versions of `plan` that ignore what the repository declares              |
 
-Thirty-three are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Thirty-three are closed. BUG-1040, BUG-1100 and BUG-1265 are open. BUG-1265
+enters at cover, because the prose gate holds every command it reads but no
+fixture shows it for seven of them. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.
