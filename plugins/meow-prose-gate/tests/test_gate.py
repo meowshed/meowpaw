@@ -209,11 +209,28 @@ class TheHook(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertIn("nothing was checked", done.stdout)
 
+    @staticmethod
+    def hook_types(hooks):
+        return [hook["type"] for groups in hooks["hooks"].values() for group in groups for hook in group["hooks"]]
+
+    @staticmethod
+    def shipped_hooks():
+        return json.loads((UNIT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+
     def test_no_hook_is_a_prompt(self):
-        hooks = json.loads((UNIT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
-        kinds = [hook["type"] for group in hooks["hooks"]["PreToolUse"] for hook in group["hooks"]]
+        kinds = self.hook_types(self.shipped_hooks())
         self.assertTrue(kinds)
         self.assertEqual(set(kinds), {"command"})
+
+    def test_a_prompt_hook_under_any_event_is_refused(self):
+        hooks = self.shipped_hooks()
+        hooks["hooks"]["Stop"] = [{"hooks": [{"type": "prompt", "prompt": "Check the prose."}]}]
+        self.assertIn("prompt", self.hook_types(hooks))
+
+    def test_an_agent_hook_under_any_event_is_refused(self):
+        hooks = self.shipped_hooks()
+        hooks["hooks"]["PostToolUse"] = [{"matcher": "Bash", "hooks": [{"type": "agent", "prompt": "Check the prose."}]}]
+        self.assertIn("agent", self.hook_types(hooks))
 
     def test_each_routed_command_has_a_blocking_fixture(self):
         hooks = json.loads((UNIT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
