@@ -2023,6 +2023,164 @@ class VerificationKind(unittest.TestCase):
         self.assertEqual(done.returncode, 0, "judgement" + done.stdout + done.stderr)
 
 
+class Dependencies(unittest.TestCase):
+    """ADR-1800 and SPC-1090 "The gate": each dependency line says whether it blocks, and `paw` waits only on
+    the blocking ones (REQ-1358). A bare line on an approved task keeps blocking, and a draft is asked to mark it.
+    """
+
+    TASK = "tasks/TSK-0002-a-second-task.md"
+
+    def repo(self, lines, status="approved", first=False):
+        """TSK-0002 depends on TSK-0001 through `lines`; both are open under EPC-0001. With `first`, the epic
+        lists TSK-0002 ahead of TSK-0001, so `status` reaches it first."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        task = CLEAN["tasks/TSK-0001-a-task.md"].replace("TSK-0001", "TSK-0002").replace(
+            "## Depends on\n\nText.", "## Depends on\n\n" + "\n".join(lines)).replace(
+            "status: approved", f"status: {status}").replace(
+            "## Evidence", "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + FILLED + "\n\n## Evidence")
+        repository.write(self.TASK, task)
+        entries = ["- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001",
+                   "- [ ] T-002 TSK-0002 the second task\n      closes: REQ-0001"]
+        if first:
+            entries = ["- [ ] T-001 TSK-0002 the second task\n      closes: REQ-0001",
+                       "- [ ] T-002 TSK-0001 the task\n      closes: REQ-0001"]
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n" + "\n\n".join(entries))
+        for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
+            path = repository.path / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("A file.\n", encoding="utf-8")
+        return repository
+
+    def line_of(self, repository, text):
+        lines = (repository.root / self.TASK).read_text(encoding="utf-8").splitlines()
+        return f"{self.TASK.split('/')[1]}:{lines.index(text) + 1}:"
+
+    def test_a_declared_dependency_passes(self):
+        """TSK-2900 criterion 1, REQ-1358: a draft's `(blocking)` and `(not blocking)` lines are reported by no
+        rule, while a variant such as `(non-blocking)` is reported by line under `dependency-declared`."""
+        declared = ["- TSK-0001 (not blocking): shares a helper", "- TSK-0003 (blocking): the parser lands there"]
+        variant = "- TSK-0004 (non-blocking): shares a fixture"
+        repository = self.repo(declared + [variant], status="draft")
+        done = repository.run("check", "rules")
+        for line in declared:
+            self.assertNotIn(self.line_of(repository, line), done.stdout, line)
+        self.assertIn(self.line_of(repository, variant), done.stdout, done.stdout + done.stderr)
+
+    def test_a_bare_dependency_in_a_draft_is_reported(self):
+        """TSK-2900 criterion 1, REQ-1358: a draft's bare `- TSK-NNNN` line is reported by its line number
+        under `dependency-declared`."""
+        bare = "- TSK-0001"
+        repository = self.repo(["- TSK-0003 (not blocking): shares a helper", bare], status="draft")
+        done = repository.run("check", "rules")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn(self.line_of(repository, bare), done.stdout)
+
+    def test_a_line_naming_two_tasks_is_reported(self):
+        """TSK-2900 criterion 1, REQ-1358: a draft's line naming two identifiers is reported by its line number,
+        even when it carries a marker."""
+        two = "- TSK-0001 and TSK-0003 (blocking): both land the parser"
+        repository = self.repo([two], status="draft")
+        done = repository.run("check", "rules")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn(self.line_of(repository, two), done.stdout)
+
+    def test_an_approved_bare_dependency_still_blocks(self):
+        """TSK-2900 criterion 2, REQ-1358: an approved task's bare line is not reported and `ready implement`
+        still waits on it, while the same line in a draft is reported, because `dependency-declared` is a draft
+        rule (ADR-1140)."""
+        bare = "- TSK-0001"
+        repository = self.repo([bare])
+        checked = repository.run("check", "rules")
+        self.assertNotIn(self.line_of(repository, bare), checked.stdout)
+        done = repository.run("ready", "implement", "TSK-0002")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("TSK-0001, which TSK-0002 depends on, isn't done", done.stdout)
+        draft = self.repo([bare], status="draft")
+        self.assertIn(self.line_of(draft, bare), draft.run("check", "rules").stdout)
+
+    def test_a_not_blocking_dependency_leaves_the_task_ready(self):
+        """TSK-2900 criterion 3, REQ-1358: a task whose only open dependency is `(not blocking)` is ready to
+        cover and to implement."""
+        repository = self.repo(["- TSK-0001 (not blocking): shares a helper"])
+        for step in ("cover", "implement"):
+            done = repository.run("ready", step, "TSK-0002")
+            self.assertEqual(done.returncode, 0, step + done.stdout + done.stderr)
+            self.assertNotIn("TSK-0001, which TSK-0002 depends on", done.stdout, step)
+
+    def test_a_blocking_dependency_makes_the_task_wait(self):
+        """TSK-2900 criterion 3, REQ-1358: the same dependency marked `(blocking)` keeps `ready cover` and
+        `ready implement` waiting on it, and only the marker separates the two outcomes."""
+        for marker, code in (("blocking", 1), ("not blocking", 0)):
+            repository = self.repo([f"- TSK-0001 ({marker}): the parser lands there"])
+            for step in ("cover", "implement"):
+                done = repository.run("ready", step, "TSK-0002")
+                self.assertEqual(done.returncode, code, marker + " " + step + done.stdout + done.stderr)
+                named = "TSK-0001, which TSK-0002 depends on, isn't done"
+                (self.assertIn if code else self.assertNotIn)(named, done.stdout, marker + " " + step)
+
+    def test_status_names_a_task_whose_only_dependency_does_not_block(self):
+        """TSK-2900 criterion 3, REQ-1358: `paw status` names as next the first task whose only open
+        dependency is `(not blocking)`."""
+        repository = self.repo(["- TSK-0001 (not blocking): shares a helper"], first=True)
+        done = repository.run("status")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertRegex(done.stdout, r"next: \w+ TSK-0002 \(EPC-0001, 0 of 2 tasks done\)")
+
+    def defect_epic(self, task_lines, depends=None):
+        """An epic realising BUG-0001 with two tasks, ordered only by `task_lines` or by an entry's `depends:`."""
+        repository = self.repo(task_lines)
+        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: BUG-0001")
+        if depends is not None:
+            repository.edit("epics/EPC-0001-a-plan.md", "the second task\n      closes: REQ-0001",
+                            f"the second task\n      closes: REQ-0001\n      depends: {depends}")
+        return repository.run("check", "rules").stdout
+
+    UNORDERED = "realises the defect BUG-0001 with 2 tasks and no order between them"
+
+    def test_a_not_blocking_order_does_not_order_a_defects_epic(self):
+        """TSK-2900 criterion 4, REQ-1358: a task's line and an epic entry's `depends:` marked `(not blocking)`
+        are no order, so `defect-epic-ordered` reports each epic."""
+        said = self.defect_epic(["- TSK-0001 (not blocking): shares a helper"])
+        self.assertIn(self.UNORDERED, said)
+        said = self.defect_epic(["Nothing."], depends="TSK-0001 (not blocking) - shares a helper")
+        self.assertIn(self.UNORDERED, said)
+
+    def test_a_blocking_order_orders_a_defects_epic(self):
+        """TSK-2900 criterion 4, REQ-1358: `(blocking)` on the task's line or the entry's `depends:`, or an
+        unmarked `depends:`, orders the epic, and only the marker separates it from the reported one."""
+        for lines, depends in ((["- TSK-0001 (blocking): the parser lands there"], None),
+                               (["Nothing."], "TSK-0001 (blocking) - the parser lands there"),
+                               (["Nothing."], "TSK-0001 - the parser lands there")):
+            self.assertNotIn(self.UNORDERED, self.defect_epic(lines, depends), (lines, depends))
+        self.assertIn(self.UNORDERED, self.defect_epic(["- TSK-0001 (not blocking): shares a helper"]))
+
+    def test_the_templates_and_the_epic_step_show_both_markers(self):
+        """TSK-2900 criterion 5, REQ-1358: the task and epic templates show both markers and no longer say a
+        convenience isn't a dependency, and the epic step holds a rule beside E6 to declare one as not blocking."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        texts = {}
+        for kind in ("task", "epic"):
+            done = repository.run("template", kind)
+            self.assertEqual(done.returncode, 0, done.stderr)
+            texts[kind] = Path(done.stdout.strip()).read_text(encoding="utf-8")
+        depends_on = texts["task"].split("## Depends on", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("(blocking)", depends_on)
+        self.assertIn("(not blocking)", depends_on)
+        self.assertRegex(texts["epic"], r"depends: TSK-NNNN \(not blocking\) - why")
+        for kind, text in texts.items():
+            self.assertNotRegex(flat(text).lower(), r"convenience isn.t a dependency", kind)
+        rules = tagged((METHOD / "steps" / "epic.md").read_text(encoding="utf-8"), "rules")
+        items = re.findall(r"^- (E\d+)\.(.*?)(?=^- E\d+\.|\Z)", rules, re.MULTILINE | re.DOTALL)
+        names = [name for name, _ in items]
+        self.assertIn("E6", names)
+        at = names.index("E6")
+        beside = [flat(body) for _, body in items[max(at - 1, 0):at + 2]]
+        self.assertTrue(any("convenience" in body and "not blocking" in body and re.search(r"\breason|\bwhy\b", body)
+                            for body in beside), beside)
+
+
 STEPS = ("research", "requirements", "design", "spec", "epic", "cover", "implement", "document", "verify", "review")
 METHOD = UNIT / "skills" / "method"
 REPOSITORY = UNIT.parent.parent

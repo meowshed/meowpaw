@@ -113,7 +113,8 @@ record are this repository's, and `tools/` keeps checking them.
 ADR-1100 decides it and EPC-1070 realised it, verified under issue 168.
 ADR-1140 adds the content rules, and EPC-1110 realised them, verified under
 issue 206. ADR-1800 adds the grouping fields and `dependency-declared`, and
-EPC-1710 realises them; until it lands, neither is reported.
+EPC-1710 realises them. `dependency-declared` is reported; until the rest of
+the epic lands, a grouping field isn't.
 
 ## Boundary
 
