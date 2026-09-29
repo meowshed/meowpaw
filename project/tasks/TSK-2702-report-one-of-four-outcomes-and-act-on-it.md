@@ -130,8 +130,8 @@ the rules this task writes.
 
 - Checks: crates/meow/src/author.rs plugins/meow-author/tests/test_author.py tools/test_shipped_agents.py plugins/meow-flow/tests/test_record.py plugins/meow-prose/tests/test_prose_agent.py
 - Failing run: project/evidence/b7fd3db95397.txt project/evidence/d3979c5f92d6.txt project/evidence/042104530e84.txt project/evidence/d481010ed6f9.txt project/evidence/0fb448bbe505.txt
-- Landed in: not yet
-- Judgement: 6: the graders run a model by hand and never in CI, so a person reads the kept transcripts; 7 and 8: a person runs each hand-run case and reads the kept stream; 9: the kept run of `format lint check test build` at implement closes it
+- Landed in: #734
+- Judgement: 6: the graders run a model by hand and never in CI, so a person reads the kept transcripts; 7: a person runs the hand-run case and reads the kept stream; 8: a person runs the hand-run case and reads the kept stream; 9: the kept run of `format lint check test build` at implement closes it
 
 Criterion 1 is covered twice. The crate tests in `author.rs`,
 `a_unit_agent_naming_no_outcome_fails`,
@@ -174,8 +174,40 @@ fixture expected to pass, beside a failing one in the same class.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+Done. Closes REQ-0816.
+
+The checks failed first: the cover commit 5bb523ac, rebased as 5c7a2309 onto
+main, kept the five failing runs the Cover names, one for each suite that
+stopped on a failing check.
+
+`cargo test --all-features -- author::`, from `crates/meow`, exited 0 and
+printed `7 passed; 0 failed`, the four outcome tests among them.
+`python3 -m unittest discover -s plugins/meow-author/tests` exited 0 and
+printed `Ran 51 tests` and `OK`. `python3 -m unittest test_record`, from
+`plugins/meow-flow/tests`, exited 0 and printed `Ran 227 tests` and `OK`.
+`python3 -m unittest discover -s plugins/meow-prose/tests` exited 0 and
+printed `Ran 4 tests` and `OK`. `python3 -m unittest
+tools/test_shipped_agents.py` exited 0 and printed `Ran 6 tests` and `OK`.
+`plugins/meow-author/bin/meow-author check` exited 0 and printed
+`53 files, 0 authoring failures`.
+
+`git diff 5bb523ac745c2eecbd735e55334833548fe58d10 --` over the five check
+files printed only the check's own code in `crates/meow/src/author.rs`, and
+nothing in any test, so the checks are as the cover wrote them.
+
+TSK-3510 landed `plugins/meow-flow/skills/route/SKILL.md` first, in #722, so
+this change writes the router's outcome rows from SPC-1090 "The route" into
+it, as R10, and step 3 reads `outcome:` before the other fields.
+
+The Cover's Judgement line named criteria 7 and 8 as one entry, which
+`paw ready implement` read as a criterion named `7 and 8`; this change splits
+it into one entry for each, with the same reason.
+
+Criteria 6, 7 and 8 rest on judgement: the outcome and length graders, and the
+hand-run cases `review-a-missing-path` and `reviewer-with-no-outcome`, are
+added, and no model ran them in this change.
+
+The five verbs' run is kept under `project/evidence/` in this change.
 
 ## Left alone
 

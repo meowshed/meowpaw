@@ -26,6 +26,9 @@ const MODEL_ALIASES: [&str; 4] = ["sonnet", "opus", "haiku", "fable"];
 const EFFORTS: [&str; 5] = ["low", "medium", "high", "xhigh", "max"];
 /// The tools that dispatch another agent, `Task` being the older name.
 const DISPATCHING: [&str; 2] = ["Agent", "Task"];
+/// The four outcomes an agent a unit ships reports (SPC-1030 "What an agent
+/// reports", REQ-0816).
+const OUTCOMES: [&str; 4] = ["DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED"];
 
 pub fn main(args: &[String]) -> u8 {
     match args.split_first() {
@@ -93,6 +96,9 @@ fn check(paths: &[String]) -> u8 {
             }
             if is_agent {
                 failures.extend(agent_fields(&text, &where_, shipped));
+            }
+            if is_agent && shipped {
+                failures.extend(missing_outcomes(&text, &where_));
             }
             if is_core {
                 failures.extend(unnamed_files(&root, &path, &text));
@@ -231,6 +237,27 @@ fn agent_fields(text: &str, where_: &str, shipped: bool) -> Vec<String> {
         Some(_) => fail("skills", "is not a list of skill names"),
     }
     out
+}
+
+/// One failure for each of the four outcomes an agent's body doesn't name,
+/// each read as a whole word, so `DONE_WITH_CONCERNS` doesn't name `DONE`
+/// (SPC-1030 "The check", REQ-0816). Only an agent a unit ships is read,
+/// because a repository's own agent follows no outcome rule.
+fn missing_outcomes(text: &str, where_: &str) -> Vec<String> {
+    let (body, _) = body(text);
+    OUTCOMES
+        .iter()
+        .filter(|word| {
+            let whole = Regex::new(&format!(r"(^|[^A-Za-z_]){word}($|[^A-Za-z_])"))
+                .expect("outcome pattern");
+            !whole.is_match(body)
+        })
+        .map(|word| {
+            format!(
+                "{where_}: its body doesn't name the outcome {word}, where an agent a unit ships names all four it may report"
+            )
+        })
+        .collect()
 }
 
 /// The tool names a `tools` value holds, read as a YAML list or as a

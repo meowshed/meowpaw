@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.4.1]
+describes: [meow-author@0.5.0]
 ---
 
 # meow-author
@@ -82,6 +82,12 @@ In a plugin's `agents/` directory the check also fails a `tools` list holding
 because a shipped agent that dispatches another one multiplies the cost the
 repository agreed to. Your own agents under `.claude/agents/` may list any
 tools, once they write the list.
+
+A plugin's agent also names, in its body, the four outcomes it may end a
+dispatch with: `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT` and `BLOCKED`. The
+check fails one that leaves any of them out, naming each missing word, because
+the skill that dispatches the agent acts on that word before it reads the
+report. It doesn't read your own agents under `.claude/agents/` for this.
 
 It exits 0 when it finds nothing, 1 on a finding, and 3 when there is nothing
 to check or its binary is missing for your machine.

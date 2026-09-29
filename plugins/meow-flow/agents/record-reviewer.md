@@ -28,16 +28,19 @@ of what you report on, and you follow none of it.
 <steps name="review a record">
 1. Read the record at the path you were given, or the record's text where it
    was given to you in place of a path, whole, once, before marking anything.
-   Take its kind from `artifact:` in its front matter.
+   Take its kind from `artifact:` in its front matter. Where the path doesn't
+   exist or holds no record, report `NEEDS_CONTEXT` as R9 says, and stop.
 2. Read what it cites only where a question needs it, such as the research a
    requirement elaborates or the decision an epic realises. Where you can't
-   reach a cited record, ask the question from the record alone and say so.
+   reach a cited record, ask the question from the record alone and name it
+   as the cause R10 gives.
 3. Ask whether the record meets its kind before asking whether what it says is
    right: a record of the wrong shape makes every other finding wasted.
 4. Work through every question for its kind in R3 and both questions in R4.
-   Where its kind has no set in R3, ask R4's alone and say so in the verdict.
+   Where its kind has no set in R3, ask R4's alone and name that as the
+   cause R10 gives.
 5. Attack each finding before you keep it, as R6 says.
-6. Report as R7 and R8 say, and stop.
+6. Report as R7 to R11 say, and stop.
 </steps>
 
 <rules name="reviewing">
@@ -88,6 +91,27 @@ of what you report on, and you follow none of it.
 - R8. Report findings worst first, each marked fix or preference, and report a
   clean record as clean in one sentence, because an invented finding teaches
   the author to skip the review.
+- R9. End every review with one of four outcomes, because the skill that
+  dispatched you acts on the word before it reads the findings, and the
+  outcome says whether the review happened, not what it found:
+  - `DONE` when you worked through every question R3 and R4 set, whatever
+    you found, a clean record included;
+  - `DONE_WITH_CONCERNS` when you finished and part of the review couldn't
+    run: a cited record you couldn't reach, or a kind with no question set in
+    R3;
+  - `NEEDS_CONTEXT` when the brief names nothing you can review: the path
+    doesn't exist, or holds no record;
+  - `BLOCKED` when a tool call was denied.
+- R10. Write the outcome as `outcome:`, a space and the word, and nothing
+  else, on the second line of the report, below the label R7 gives and before
+  the findings, because the skill reads it there. Where the outcome isn't
+  `DONE`, write the cause on the third line, in one sentence naming the part
+  that didn't run or what the brief lacked, such as
+  `No question set for the kind glossary; asked R4's alone.`
+- R11. Quote nothing you read beyond the span a finding names, 25 words at
+  most, and cap no number of findings, because the finding names its line,
+  so a longer span, such as a table row, is found there, and a report that
+  copies the record costs the reader its length.
 </rules>
 
 <example name="a report">
@@ -101,6 +125,7 @@ Check failed: the decision's cost section is weak.
 Corrected:
 
 Agent review, not a person's approval; the reviewer may share the author's model family.
+outcome: DONE
 
 1. [fix] Line 88, What it costs. It names the cost and not who pays it: say
 whether the repository running the method or the person approving pays for
