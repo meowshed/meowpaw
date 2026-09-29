@@ -102,10 +102,34 @@ Nothing. ADR-1700 and EPC-1650 are approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: `plugins/meow-author/tests/test_author.py`, class `AgentFields`:
+  criterion 1 by `test_a_missing_maxTurns_fails`, `test_a_missing_tools_fails`,
+  `test_a_missing_model_fails`, `test_a_missing_effort_fails`,
+  `test_a_missing_omitClaudeMd_fails` and `test_a_missing_skills_fails`;
+  criterion 2 by `test_a_zero_ceiling_fails`, `test_inherit_fails`,
+  `test_an_unknown_model_alias_fails`, `test_an_unknown_effort_fails` and
+  `test_a_wrong_type_fails`, one subtest for each of the five wrong types;
+  criterion 3 by `test_a_shipped_agent_with_every_tool_fails`,
+  `test_a_shipped_agent_listing_agent_fails`,
+  `test_a_shipped_agent_listing_task_fails`,
+  `test_a_restricted_agent_entry_fails` and
+  `test_agent_in_a_comma_separated_list_fails`; criterion 4 by
+  `test_front_matter_that_does_not_parse_fails_alone`; criterion 5 by
+  `test_an_agent_declaring_all_six_passes`,
+  `test_a_shipped_agent_with_no_tools_passes`,
+  `test_a_full_model_identifier_passes`,
+  `test_a_repositorys_own_agent_may_list_agent` and
+  `test_a_repositorys_own_agent_may_list_every_tool`, each asserting a
+  refusal with one field removed before it asserts the pass.
+- Failing run: `project/evidence/27a4dd34eda3.txt`, the `test` verb exiting 1
+  with 26 failures, every one in `AgentFields`, each because the check exits 0
+  where it should exit 1.
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: criterion 6 is closed by the gate's run at the merging revision,
+  as the criterion states, because only that revision holds both the new check
+  and the two agents' declarations; that each agent's values are the ones in
+  SPC-1030's table is read at review. Criterion 7 is a hand-run evaluation
+  read by a person, because a model's run never runs in CI.
 
 ## Evidence
 
