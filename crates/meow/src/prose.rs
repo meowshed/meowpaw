@@ -744,6 +744,14 @@ mod tests {
     }
 
     #[test]
+    fn an_idiom_inside_longer_words_is_no_finding() {
+        assert!(
+            rules("git commit -m \"Route the circle backend\" -m \"a deep diver\" -m \"undercircle back\"")
+                .is_empty()
+        );
+    }
+
+    #[test]
     fn a_clustered_message_flag_is_read() {
         assert_eq!(
             rules("git commit -am \"a silver bullet\""),
