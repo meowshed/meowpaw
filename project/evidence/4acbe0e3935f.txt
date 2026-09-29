@@ -1,0 +1,581 @@
+meow-verbs evidence 1
+record: 4acbe0e3935f
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: 03cdf94bf7ce559dfb259e22d37534456773ca72
+time: 2026-09-29T08:40:01Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+built meow-unattended for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 35 tests
+...................................
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 13.208s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.718s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 5.539s
+
+OK
+.................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 193 tests in 17.278s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.033s
+
+OK
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 2.212s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.999s
+
+OK
+..................
+----------------------------------------------------------------------
+Ran 18 tests in 0.948s
+
+OK
+.......................................
+----------------------------------------------------------------------
+Ran 39 tests in 10.760s
+
+OK
+..............................
+----------------------------------------------------------------------
+Ran 30 tests in 4.461s
+
+OK
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 1.585s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 0.538s
+
+OK
+....FFF.........FFFFFFFF
+======================================================================
+FAIL: test_env_block_refused (test_unattended.Refusals.test_env_block_refused) (file='.claude/settings.json')
+TSK-3310 criterion 4, REQ-2392: an `env` block with two keys in `.claude/settings.json`, and
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 210, in test_env_block_refused
+    said = self.refused({**self.profile(GIT, table()), name: env}, f"unresolved: {name} sets env ")
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 136, in refused
+    self.assertEqual(done.returncode, 3, said)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 3 : [unattended]
+permission_mode = "dontAsk"
+budget_usd = 2.5
+gates = ["verify", "review"]
+units = ["units/alpha", "units/beta"]
+merge_protected = false
+amend_approved = false
+
+The command that would start the run, one argument a line:
+
+  claude \
+    -p \
+    --bare \
+    --plugin-dir units/alpha \
+    --plugin-dir units/beta \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --disallowed-tools AskUserQuestion \
+    --output-format stream-json \
+    --verbose \
+    --max-budget-usd 2.5 \
+    --settings /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpahfd3nef/state/meowpaw/unattended/78406d183274b043/ca0ec20d31db702518cdf2b750881f3e0e616f3e66bc24b6d4c0c9fbec845472.json
+
+snapshot: /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpahfd3nef/state/meowpaw/unattended/78406d183274b043/ca0ec20d31db702518cdf2b750881f3e0e616f3e66bc24b6d4c0c9fbec845472.json
+
+deny rules:
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpahfd3nef/repo/.meowpaw/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpahfd3nef/repo/.claude/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpahfd3nef/state/meowpaw/unattended/78406d183274b043/**)
+  Bash(git push *main*)
+  Bash(git push)
+  Bash(git push *HEAD*)
+no record to protect: the profile declares no [record]
+
+A requirement or decision approved after this plan isn't protected until plan runs again.
+
+The deny rules have four limits:
+- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
+  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
+  while the trunk is checked out.
+- An Edit deny rule reaches the file tools and the file commands Claude Code
+  recognises, and not a script that opens the file itself.
+- A merge through the code host's interface isn't denied.
+- A new record whose front matter supersedes or withdraws an approved one retires
+  it without editing its file, so no deny rule stops it.
+
+The command needs ANTHROPIC_API_KEY in its environment.
+
+
+======================================================================
+FAIL: test_env_block_refused (test_unattended.Refusals.test_env_block_refused) (file='.claude/settings.local.json')
+TSK-3310 criterion 4, REQ-2392: an `env` block with two keys in `.claude/settings.json`, and
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 210, in test_env_block_refused
+    said = self.refused({**self.profile(GIT, table()), name: env}, f"unresolved: {name} sets env ")
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 136, in refused
+    self.assertEqual(done.returncode, 3, said)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 3 : [unattended]
+permission_mode = "dontAsk"
+budget_usd = 2.5
+gates = ["verify", "review"]
+units = ["units/alpha", "units/beta"]
+merge_protected = false
+amend_approved = false
+
+The command that would start the run, one argument a line:
+
+  claude \
+    -p \
+    --bare \
+    --plugin-dir units/alpha \
+    --plugin-dir units/beta \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --disallowed-tools AskUserQuestion \
+    --output-format stream-json \
+    --verbose \
+    --max-budget-usd 2.5 \
+    --settings /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp6yqu4y10/state/meowpaw/unattended/d95fc5bf44eb7cb7/4ad0a101666dddd3d57f3a46fc6f8d93c2038c10f567ac03fc6e54590f0a048c.json
+
+snapshot: /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp6yqu4y10/state/meowpaw/unattended/d95fc5bf44eb7cb7/4ad0a101666dddd3d57f3a46fc6f8d93c2038c10f567ac03fc6e54590f0a048c.json
+
+deny rules:
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp6yqu4y10/repo/.meowpaw/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp6yqu4y10/repo/.claude/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp6yqu4y10/state/meowpaw/unattended/d95fc5bf44eb7cb7/**)
+  Bash(git push *main*)
+  Bash(git push)
+  Bash(git push *HEAD*)
+no record to protect: the profile declares no [record]
+
+A requirement or decision approved after this plan isn't protected until plan runs again.
+
+The deny rules have four limits:
+- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
+  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
+  while the trunk is checked out.
+- An Edit deny rule reaches the file tools and the file commands Claude Code
+  recognises, and not a script that opens the file itself.
+- A merge through the code host's interface isn't denied.
+- A new record whose front matter supersedes or withdraws an approved one retires
+  it without editing its file, so no deny rule stops it.
+
+The command needs ANTHROPIC_API_KEY in its environment.
+
+
+======================================================================
+FAIL: test_env_block_refused (test_unattended.Refusals.test_env_block_refused)
+TSK-3310 criterion 4, REQ-2392: an `env` block with two keys in `.claude/settings.json`, and
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 216, in test_env_block_refused
+    self.assertEqual(checked, 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_one_plugin_dir_for_each_unit (test_unattended.Units.test_one_plugin_dir_for_each_unit) (unit='gamma')
+TSK-3310 criterion 2, REQ-2392: `--bare` and exactly one `--plugin-dir` for each of three
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 288, in test_one_plugin_dir_for_each_unit
+    self.assertGreaterEqual(len(lines), 1, output)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 not greater than or equal to 1 : [unattended]
+permission_mode = "dontAsk"
+budget_usd = 2.5
+gates = ["verify", "review"]
+units = ["units/c", "units/a", "units/b"]
+merge_protected = false
+amend_approved = false
+
+The command that would start the run, one argument a line:
+
+  claude \
+    -p \
+    --bare \
+    --plugin-dir units/c \
+    --plugin-dir units/a \
+    --plugin-dir units/b \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --disallowed-tools AskUserQuestion \
+    --output-format stream-json \
+    --verbose \
+    --max-budget-usd 2.5 \
+    --settings /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/4ccc81c18ff1b2b6cff290c987e23bcaef56f6b12dfe7dcb9243e3112699f374.json
+
+snapshot: /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/4ccc81c18ff1b2b6cff290c987e23bcaef56f6b12dfe7dcb9243e3112699f374.json
+
+deny rules:
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/repo/.meowpaw/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/repo/.claude/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/**)
+  Bash(git push *main*)
+  Bash(git push)
+  Bash(git push *HEAD*)
+no record to protect: the profile declares no [record]
+
+A requirement or decision approved after this plan isn't protected until plan runs again.
+
+The deny rules have four limits:
+- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
+  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
+  while the trunk is checked out.
+- An Edit deny rule reaches the file tools and the file commands Claude Code
+  recognises, and not a script that opens the file itself.
+- A merge through the code host's interface isn't denied.
+- A new record whose front matter supersedes or withdraws an approved one retires
+  it without editing its file, so no deny rule stops it.
+
+The command needs ANTHROPIC_API_KEY in its environment.
+
+
+======================================================================
+FAIL: test_one_plugin_dir_for_each_unit (test_unattended.Units.test_one_plugin_dir_for_each_unit) (unit='alpha')
+TSK-3310 criterion 2, REQ-2392: `--bare` and exactly one `--plugin-dir` for each of three
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 288, in test_one_plugin_dir_for_each_unit
+    self.assertGreaterEqual(len(lines), 1, output)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 not greater than or equal to 1 : [unattended]
+permission_mode = "dontAsk"
+budget_usd = 2.5
+gates = ["verify", "review"]
+units = ["units/c", "units/a", "units/b"]
+merge_protected = false
+amend_approved = false
+
+The command that would start the run, one argument a line:
+
+  claude \
+    -p \
+    --bare \
+    --plugin-dir units/c \
+    --plugin-dir units/a \
+    --plugin-dir units/b \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --disallowed-tools AskUserQuestion \
+    --output-format stream-json \
+    --verbose \
+    --max-budget-usd 2.5 \
+    --settings /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/4ccc81c18ff1b2b6cff290c987e23bcaef56f6b12dfe7dcb9243e3112699f374.json
+
+snapshot: /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/4ccc81c18ff1b2b6cff290c987e23bcaef56f6b12dfe7dcb9243e3112699f374.json
+
+deny rules:
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/repo/.meowpaw/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/repo/.claude/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/**)
+  Bash(git push *main*)
+  Bash(git push)
+  Bash(git push *HEAD*)
+no record to protect: the profile declares no [record]
+
+A requirement or decision approved after this plan isn't protected until plan runs again.
+
+The deny rules have four limits:
+- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
+  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
+  while the trunk is checked out.
+- An Edit deny rule reaches the file tools and the file commands Claude Code
+  recognises, and not a script that opens the file itself.
+- A merge through the code host's interface isn't denied.
+- A new record whose front matter supersedes or withdraws an approved one retires
+  it without editing its file, so no deny rule stops it.
+
+The command needs ANTHROPIC_API_KEY in its environment.
+
+
+======================================================================
+FAIL: test_one_plugin_dir_for_each_unit (test_unattended.Units.test_one_plugin_dir_for_each_unit) (unit='beta')
+TSK-3310 criterion 2, REQ-2392: `--bare` and exactly one `--plugin-dir` for each of three
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 288, in test_one_plugin_dir_for_each_unit
+    self.assertGreaterEqual(len(lines), 1, output)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 not greater than or equal to 1 : [unattended]
+permission_mode = "dontAsk"
+budget_usd = 2.5
+gates = ["verify", "review"]
+units = ["units/c", "units/a", "units/b"]
+merge_protected = false
+amend_approved = false
+
+The command that would start the run, one argument a line:
+
+  claude \
+    -p \
+    --bare \
+    --plugin-dir units/c \
+    --plugin-dir units/a \
+    --plugin-dir units/b \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --disallowed-tools AskUserQuestion \
+    --output-format stream-json \
+    --verbose \
+    --max-budget-usd 2.5 \
+    --settings /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/4ccc81c18ff1b2b6cff290c987e23bcaef56f6b12dfe7dcb9243e3112699f374.json
+
+snapshot: /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/4ccc81c18ff1b2b6cff290c987e23bcaef56f6b12dfe7dcb9243e3112699f374.json
+
+deny rules:
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/repo/.meowpaw/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/repo/.claude/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxla96dyl/state/meowpaw/unattended/754ff1cb25c7e78f/**)
+  Bash(git push *main*)
+  Bash(git push)
+  Bash(git push *HEAD*)
+no record to protect: the profile declares no [record]
+
+A requirement or decision approved after this plan isn't protected until plan runs again.
+
+The deny rules have four limits:
+- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
+  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
+  while the trunk is checked out.
+- An Edit deny rule reaches the file tools and the file commands Claude Code
+  recognises, and not a script that opens the file itself.
+- A merge through the code host's interface isn't denied.
+- A new record whose front matter supersedes or withdraws an approved one retires
+  it without editing its file, so no deny rule stops it.
+
+The command needs ANTHROPIC_API_KEY in its environment.
+
+
+======================================================================
+FAIL: test_one_plugin_dir_for_each_unit (test_unattended.Units.test_one_plugin_dir_for_each_unit)
+TSK-3310 criterion 2, REQ-2392: `--bare` and exactly one `--plugin-dir` for each of three
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 292, in test_one_plugin_dir_for_each_unit
+    self.assertEqual(checked, 3)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 0 != 3
+
+======================================================================
+FAIL: test_repository_hooks_and_servers_not_named (test_unattended.Units.test_repository_hooks_and_servers_not_named)
+TSK-3310 criterion 3, REQ-2392: a server in `.mcp.json` and a hook in `.claude/settings.json`
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 314, in test_repository_hooks_and_servers_not_named
+    self.assertEqual(sorted((obj["name"], obj["version"]) for obj in named), sorted(THREE.values()),
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     content)
+                     ^^^^^^^^
+AssertionError: Lists differ: [] != [('alpha', '1.2.3'), ('beta', '0.4.0'), ('gamma', '2.0.1')]
+
+Second list contains 3 additional elements.
+First extra element 0:
+('alpha', '1.2.3')
+
+- []
++ [('alpha', '1.2.3'), ('beta', '0.4.0'), ('gamma', '2.0.1')] : {
+  "meowpaw": {
+    "unattended": {
+      "permission_mode": "dontAsk",
+      "budget_usd": 2.5,
+      "gates": [
+        "verify",
+        "review"
+      ],
+      "units": [
+        "units/c",
+        "units/a",
+        "units/b"
+      ],
+      "merge_protected": false,
+      "amend_approved": false
+    }
+  },
+  "permissions": {
+    "deny": [
+      "Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxrm7kloe/repo/.meowpaw/**)",
+      "Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxrm7kloe/repo/.claude/**)",
+      "Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpxrm7kloe/state/meowpaw/unattended/a49d0419b1c50876/**)",
+      "Bash(git push *main*)",
+      "Bash(git push)",
+      "Bash(git push *HEAD*)"
+    ]
+  }
+}
+
+
+======================================================================
+FAIL: test_url_and_folder_refused (test_unattended.Units.test_url_and_folder_refused) (case='URL')
+TSK-3310 criterion 1, REQ-2392: a URL entry and a folder of units that is no unit itself are
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 262, in test_url_and_folder_refused
+    self.refused(self.profile(GIT, table(units=units)), expected)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 136, in refused
+    self.assertEqual(done.returncode, 3, said)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 3 : [unattended]
+permission_mode = "dontAsk"
+budget_usd = 2.5
+gates = ["verify", "review"]
+units = ["https://example.com/units/alpha"]
+merge_protected = false
+amend_approved = false
+
+The command that would start the run, one argument a line:
+
+  claude \
+    -p \
+    --bare \
+    --plugin-dir https://example.com/units/alpha \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --disallowed-tools AskUserQuestion \
+    --output-format stream-json \
+    --verbose \
+    --max-budget-usd 2.5 \
+    --settings /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpirdvxwd7/state/meowpaw/unattended/5e90bb5b4ee33a04/ce6f40e6431413bf21e8bf2caf61676456e8446bf30c8a452c19d4f6cd93cef3.json
+
+snapshot: /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpirdvxwd7/state/meowpaw/unattended/5e90bb5b4ee33a04/ce6f40e6431413bf21e8bf2caf61676456e8446bf30c8a452c19d4f6cd93cef3.json
+
+deny rules:
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpirdvxwd7/repo/.meowpaw/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpirdvxwd7/repo/.claude/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpirdvxwd7/state/meowpaw/unattended/5e90bb5b4ee33a04/**)
+  Bash(git push *main*)
+  Bash(git push)
+  Bash(git push *HEAD*)
+no record to protect: the profile declares no [record]
+
+A requirement or decision approved after this plan isn't protected until plan runs again.
+
+The deny rules have four limits:
+- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
+  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
+  while the trunk is checked out.
+- An Edit deny rule reaches the file tools and the file commands Claude Code
+  recognises, and not a script that opens the file itself.
+- A merge through the code host's interface isn't denied.
+- A new record whose front matter supersedes or withdraws an approved one retires
+  it without editing its file, so no deny rule stops it.
+
+The command needs ANTHROPIC_API_KEY in its environment.
+
+
+======================================================================
+FAIL: test_url_and_folder_refused (test_unattended.Units.test_url_and_folder_refused) (case='folder of units')
+TSK-3310 criterion 1, REQ-2392: a URL entry and a folder of units that is no unit itself are
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 262, in test_url_and_folder_refused
+    self.refused(self.profile(GIT, table(units=units)), expected)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 136, in refused
+    self.assertEqual(done.returncode, 3, said)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 3 : [unattended]
+permission_mode = "dontAsk"
+budget_usd = 2.5
+gates = ["verify", "review"]
+units = ["units"]
+merge_protected = false
+amend_approved = false
+
+The command that would start the run, one argument a line:
+
+  claude \
+    -p \
+    --bare \
+    --plugin-dir units \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --disallowed-tools AskUserQuestion \
+    --output-format stream-json \
+    --verbose \
+    --max-budget-usd 2.5 \
+    --settings /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp_n82yhr8/state/meowpaw/unattended/bde5c08cd922146f/f35fbda3a67c1b3c0be6ace7011754658e846075de32d5bb018a6a658c706379.json
+
+snapshot: /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp_n82yhr8/state/meowpaw/unattended/bde5c08cd922146f/f35fbda3a67c1b3c0be6ace7011754658e846075de32d5bb018a6a658c706379.json
+
+deny rules:
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp_n82yhr8/repo/.meowpaw/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp_n82yhr8/repo/.claude/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmp_n82yhr8/state/meowpaw/unattended/bde5c08cd922146f/**)
+  Bash(git push *main*)
+  Bash(git push)
+  Bash(git push *HEAD*)
+no record to protect: the profile declares no [record]
+
+A requirement or decision approved after this plan isn't protected until plan runs again.
+
+The deny rules have four limits:
+- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
+  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
+  while the trunk is checked out.
+- An Edit deny rule reaches the file tools and the file commands Claude Code
+  recognises, and not a script that opens the file itself.
+- A merge through the code host's interface isn't denied.
+- A new record whose front matter supersedes or withdraws an approved one retires
+  it without editing its file, so no deny rule stops it.
+
+The command needs ANTHROPIC_API_KEY in its environment.
+
+
+======================================================================
+FAIL: test_url_and_folder_refused (test_unattended.Units.test_url_and_folder_refused)
+TSK-3310 criterion 1, REQ-2392: a URL entry and a folder of units that is no unit itself are
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-unattended-plan-load-by-name/plugins/meow-unattended/tests/test_unattended.py", line 264, in test_url_and_folder_refused
+    self.assertEqual(checked, 2)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 17 tests in 1.528s
+
+FAILED (failures=11)

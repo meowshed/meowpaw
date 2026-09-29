@@ -2,7 +2,7 @@
 id: TSK-3310
 artifact: task
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 epic: EPC-1900
 closes: [REQ-2392]
 issue: 655
@@ -66,15 +66,66 @@ snapshot that task adds.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-unattended/tests/test_unattended.py,
+  `Units.test_url_and_folder_refused`,
+  `Units.test_one_plugin_dir_for_each_unit`,
+  `Units.test_repository_hooks_and_servers_not_named` and
+  `Refusals.test_env_block_refused`
+- Failing run: project/evidence/4acbe0e3935f.txt
+- Landed in: #668
+- Judgement: 3: TSK-3300 already names no repository hook or server, so the
+  check's assertions that neither is named pass before this work, and it
+  fails only on its control, that the snapshot names each declared unit with
+  its version; review confirms that a regression naming either would fail
+  it. 5: the kept run of the five verbs at the revision that merges closes
+  it, and no check written before the work can
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`crates/meow/src/unattended.rs` now reads each `units` entry against the work
+tree's root. It refuses an entry holding `://` as a URL, and one with no
+`.claude-plugin/plugin.json` as not a unit's own directory, which covers a
+folder of units. It reads the unit's `name` and `version` from that file,
+prints them after the resolved table, and stores them in the snapshot under
+`meowpaw.units`. It refuses an `env` block with at least one key in
+`.claude/settings.json` or `.claude/settings.local.json` on one line naming
+every key, and reports these refusals together with the table's own before it
+exits. `meow-unattended` is 0.2.0, and its README states what `units` accepts
+and the new refusals.
+
+The four checks failed first: `meow-verbs run test` exited 1 with
+`FAILED (failures=11)` for the unit's file, counting the subtests, kept as
+`project/evidence/4acbe0e3935f.txt` in the cover commit fa22b5f, which became
+eac3884 when the branch was rebased onto `origin/main`. They pass now,
+unchanged, since
+`git diff fa22b5f42020bca44a9e09ac48e2b0bee18bce63 -- plugins/meow-unattended/tests/test_unattended.py`
+prints nothing:
+
+```text
+$ python3 -m unittest -v test_unattended.Units.test_url_and_folder_refused \
+    test_unattended.Units.test_one_plugin_dir_for_each_unit \
+    test_unattended.Units.test_repository_hooks_and_servers_not_named \
+    test_unattended.Refusals.test_env_block_refused    # in plugins/meow-unattended/tests
+Ran 4 tests
+OK                                                    # exit 0
+$ python3 -m unittest plugins/meow-unattended/tests/test_unattended.py
+Ran 17 tests
+OK                                                    # exit 0
+```
+
+Criterion 3's check fails first only on its control, as the Cover's Judgement
+says, so what it shows is that the snapshot names each unit with its version
+and still names no server or hook. Criterion 5: `meow-verbs run format lint
+check test build` passes on this change's tree, and
+`meow-verbs evidence --keep` keeps each result in `project/evidence/`, as the
+pull request cites.
+
+SPC-1200 didn't state what `plan` does with a `plugin.json` that lacks a
+`name` or a `version`, so I chose to refuse it as
+`unresolved: unit <entry> has a plugin.json that states no name and version`,
+because the plan would otherwise name a unit it can't identify, and SPC-1200
+now states it. A settings file that isn't valid JSON is read as holding no
+`env` block, because Claude Code refuses that file on its own.
 
 ## Left alone
 
