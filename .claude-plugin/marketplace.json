@@ -49,6 +49,11 @@
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-method/README.md"
     },
     {
+      "name": "meow-unattended",
+      "source": "./plugins/meow-unattended",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-unattended/README.md"
+    },
+    {
       "name": "meow-github",
       "source": "./plugins/meow-github",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-github/README.md"
