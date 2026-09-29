@@ -8,7 +8,7 @@ tags: [route]
 runs: 3
 expected_outcome: The router's reply lists three entries, each with its own size and shape.
 context:
-  scaffold_script: ../this-repository.sh
+  scaffold_script: scaffold.sh
 execution:
   max_turns: 20
   prompt: |

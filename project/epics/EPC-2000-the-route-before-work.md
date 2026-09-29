@@ -72,7 +72,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-3500 add `plugins/meow-flow/agents/router.md` with
+- [x] T-001 TSK-3500 add `plugins/meow-flow/agents/router.md` with
       `tools: Read, Grep, Glob`, its reply fields and its routing rules, the
       static test, the allowlist re-observed on the version `requires.toml`
       states, and the cases for how the router routes

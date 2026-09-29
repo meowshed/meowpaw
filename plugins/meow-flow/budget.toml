@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # What this unit may load on every turn, in characters (REQ-1056): the method
-# skill's description, which routes it. The driver is a command only a person
-# invokes, so the platform doesn't list it. Measured at 493 by
-# the budget check on 2026-09-28, once the description named ten steps.
-permanent_characters = 500
+# skill's description, which routes it, and the router agent's, which the
+# route skill dispatches. The driver is a command only a person invokes, so
+# the platform doesn't list it. Measured at 621 by the budget check on
+# 2026-09-29, once the router's description joined the method skill's.
+permanent_characters = 625

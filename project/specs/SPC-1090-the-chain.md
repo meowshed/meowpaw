@@ -2,7 +2,7 @@
 id: SPC-1090
 artifact: spec
 status: live
-revised: 2026-09-28
+revised: 2026-09-29
 checked-at: "#368"
 states:
   [
@@ -347,8 +347,8 @@ ADR-2200 adds the skeptic that tries to refute each
 requirement an epic claims before its verification is recorded, and the draft
 defect verification writes for each refutation it confirms; no epic realises
 it yet, so the verify step dispatches no skeptic and writes no defect today.
-ADR-2100 decides the route, and EPC-2000 realises it; until its tasks land,
-no router ships and a request starts unrouted.
+ADR-2100 decides the route, and EPC-2000 realises it. The router ships, and
+until the `route` skill that dispatches it lands, a request starts unrouted.
 
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
@@ -363,7 +363,7 @@ an authority the repository declares, as SPC-1200 states.
 | `plugins/meow-flow/agents/record-reviewer.md` | The agent that reviews a record before its gate                         |
 | `plugins/meow-flow/agents/skeptic.md`         | The agent that tries to refute what an epic claims (not yet; see Scope) |
 | `plugins/meow-flow/skills/route/SKILL.md`     | The skill that routes a request before work starts (not yet; see Scope) |
-| `plugins/meow-flow/agents/router.md`          | The read-only agent the route skill dispatches (not yet; see Scope)     |
+| `plugins/meow-flow/agents/router.md`          | The read-only agent the route skill dispatches                          |
 | `plugins/meow-flow/templates/<kind>.md`       | The unit's template for each kind                                       |
 | `.meowpaw/templates/<kind>.md`                | A repository's own template, which overrides the unit's                 |
 | `paw status`, `ready`, `template`             | The chain's state, a step's gate, the template in force                 |
