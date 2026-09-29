@@ -2,14 +2,14 @@
 reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-markdown@0.1.0]
+describes: [meow-markdown@0.2.0]
 ---
 
 # meow-markdown
 
 `meow-markdown` tells you whether your repository holds a Markdown corpus,
-lists the tools you configured for it, and prints a `[verbs]` table bound from
-that configuration. It runs no Markdown tool and writes no file: it reads the
+lists the tools you configured for it, prints a `[verbs]` table bound from
+that configuration, and checks the settings behind your verbs. It runs no Markdown tool and writes no file: it reads the
 files git tracks and runs git alone. It installs on its own, with no other part
 of the `meowpaw` harness.
 
@@ -89,12 +89,42 @@ a `Taskfile.yml` with the runner's pack, `meow-mise` or `meow-gotask`, since a
 repository that runs its tools through a runner binds its verbs to the
 runner's tasks.
 
-`check` and `links` aren't shipped yet, so the table names commands this
-version doesn't run: until they ship, each prints the usage line and exits 2.
+`links` isn't shipped yet, so a table binding `test` names a command this
+version doesn't run: until it ships, it prints the usage line and exits 2.
+
+## Check your settings
+
+`meow-markdown check` reports each setting your verbs depend on that is
+missing or has no effect, one line for each finding, and exits 1 on any:
+
+| Line                                                                     | When                                                                                               |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `no render target: declare [markdown] target`                            | Your profile's `[markdown] target` is missing or empty                                             |
+| `markdownlint-cli2 runs its defaults: no configuration file`             | Your `lint` verb runs `markdownlint-cli2` and git tracks no markdownlint configuration             |
+| `markdownlint ignores <file>`                                            | Your `lint` verb runs `markdownlint` and git tracks a `.markdownlint-cli2.*` file                  |
+| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules |
+
+Any string in `[markdown] target` counts as a declaration. The last finding
+comes from the files alone, whatever your `lint` verb runs. `check` reads the
+tool your `lint` verb names, so a linter run through a runner's task, such as
+`mise run lint`, isn't seen. With no finding it prints `no findings` and exits 0.
+
+To run the checks with your linter, append the command to your `lint` verb,
+naming the program by its path so a CI job without the unit's `bin/` on
+`PATH` still finds it:
+
+```toml
+[verbs]
+lint = "markdownlint-cli2 '**/*.md' && plugins/meow-markdown/bin/meow-markdown check"
+```
+
+The shell stops at the linter's first failure, so on a run where lint fails
+the settings checks don't run.
 
 ## What it reports instead of a table
 
-Every command exits 0 when it reports what it was asked, and 3 when it can't:
+Every command exits 0 when it reports what it was asked, `check` exits 1 on a
+finding, and every command exits 3 when it can't:
 
 | Line                                              | Means                                                           |
 | ------------------------------------------------- | --------------------------------------------------------------- |

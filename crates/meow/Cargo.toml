@@ -21,7 +21,7 @@ author = ["dep:regex"]
 mise = ["dep:regex"]
 gotask = ["dep:regex", "dep:yaml-rust2"]
 prose = ["dep:regex"]
-markdown = []
+markdown = ["dep:yaml-rust2"]
 unattended = ["dep:sha2"]
 
 [dependencies]

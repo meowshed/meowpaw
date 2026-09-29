@@ -59,19 +59,55 @@ from it.
 
 ## Cover
 
-- Checks: `plugins/meow-markdown/tests/test_markdown.py`, classes
-  `RenderTarget` (criterion 1), `MarkdownlintSettings` (criteria 2 to 4),
-  `CheckUnresolved` (criterion 5), `CheckTree` (criterion 6) and `Adopted`
-  (criterion 7), each test named `test_criterion_N_...`
+- Checks: `plugins/meow-markdown/tests/test_markdown.py`
 - Failing run: `project/evidence/d8c083022377.txt`
-- Landed in: not yet
-- Judgement: none. Criterion 7's `lint` run is shown by the kept `lint`
-  evidence at implementation, because a check inside `test` that ran the whole
-  `lint` verb would run the gate within the gate
+- Landed in: #665
+- Judgement: 7: the `lint` verb's own run is shown by the kept `lint` evidence at implementation, because a check inside `test` that ran the whole `lint` verb would run the gate within the gate
+
+The checks are `RenderTarget.test_criterion_1_*` for criterion 1,
+`MarkdownlintSettings.test_criterion_2_*` to `test_criterion_4_*` for criteria
+2 to 4, `CheckUnresolved.test_criterion_5_*` for criterion 5,
+`CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was` for criterion 6
+and `Adopted.test_criterion_7_*` for criterion 7. The cover step first wrote
+the class list on the Checks line and prose after `none.` on the Judgement
+line, and `paw ready implement` refused both, since each line holds paths or
+`<criterion>: <reason>` entries alone. The implement step moved the class list
+here and wrote the judgement as criterion 7's entry, and changed no check.
 
 ## Evidence
 
-Not yet.
+`crates/meow/src/markdown.rs` gains `check`: it reads `[markdown] target`, the
+`lint` verb's command and the tracked markdownlint files, and for each
+`.markdownlint-cli2.*` beside a `.markdownlint.*` the file's `config` key. It
+runs git alone and writes nothing. The `markdown` feature now takes
+`yaml-rust2` to read a `.markdownlint-cli2.yaml`. `.meowpaw/profile.toml`
+declares `[markdown] target = "github"`, and its `lint` verb runs
+`plugins/meow-markdown/bin/meow-markdown check` second to last. It goes before
+`mise run crate-lint`, not after it, because the checks for REQ-1186 in
+`tools/test_verb_bindings.py` and `tools/test_shell_verbs.py` hold the crate's
+lint as the verb's last command.
+`meow-markdown` is 0.2.0, and its README and SPC-1195 say how `check` reads a
+command and a `config` key.
+
+The 14 checks failed first: `meow-verbs run test` exited 1, kept as
+`project/evidence/d8c083022377.txt`, in the cover commit b9acb6f, which held
+the checks alone. They pass now, unchanged, since
+`git diff b9acb6f -- plugins/meow-markdown/tests/test_markdown.py` prints
+nothing:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-markdown/tests
+Ran 27 tests
+OK                                               # exit 0
+$ plugins/meow-markdown/bin/meow-markdown check   # in this repository
+meow-markdown check
+no findings                                      # exit 0
+```
+
+Criterion 7's `lint` run is `meow-verbs run lint`, which now runs
+`meow-markdown check`. `meow-verbs evidence --keep format lint check test
+build` exits 0 on this change's own tree, each result kept in
+`project/evidence/`, as the pull request cites.
 
 ## Left alone
 
