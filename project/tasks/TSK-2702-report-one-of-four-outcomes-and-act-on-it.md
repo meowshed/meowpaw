@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1651
 closes: [REQ-0816]
-issue:
+issue: 701
+projected: 94131e36b55a
 ---
 
 # Make each shipped agent report one of four outcomes, and make its dispatcher act on the word
