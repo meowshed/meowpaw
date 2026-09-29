@@ -615,6 +615,7 @@ addresses lands in one of them.
 | [BUG-1321](bugs/BUG-1321-check-misreads-the-lint-command.md)                                 | `meow-markdown check` misread a versioned program word and cli2's `--config` in the lint verb                     |
 | [BUG-1360](bugs/BUG-1360-a-session-calls-a-tool-before-it-reports-the-route.md)              | A session under the route skill called a tool before it reported the route, and Opus 5.5 often reported none      |
 | [BUG-1322](bugs/BUG-1322-markdownlint-cli-runs-its-defaults-unreported.md)                   | `meow-markdown check` missed markdownlint-cli running its default rules unconfigured                              |
+| [BUG-1324](bugs/BUG-1324-check-reads-a-mise-exec-tool-as-a-run.md)                           | `meow-markdown check` read a tool `mise exec` loads as a program the verb runs                                    |
 | [BUG-1340](bugs/BUG-1340-an-approved-record-in-another-yaml-form-goes-unprotected.md)        | `meow-unattended plan` left an approved record with a quoted, commented or CRLF status without a deny rule        |
 | [BUG-1341](bugs/BUG-1341-a-unit-path-is-printed-relative-to-the-root.md)                     | `meow-unattended plan` printed each unit relative to the root, which names nothing from a subdirectory            |
 | [BUG-1342](bugs/BUG-1342-the-unattended-suite-passes-a-plan-that-ignores-the-declaration.md) | The `meow-unattended` checks passed nine versions of `plan` that ignore what the repository declares              |
