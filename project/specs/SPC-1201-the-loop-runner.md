@@ -13,7 +13,9 @@ states:
     REQ-0878,
     REQ-0880,
     REQ-0882,
+    REQ-0884,
     REQ-0886,
+    REQ-0888,
     REQ-0894,
   ]
 ---
@@ -23,17 +25,19 @@ states:
 ## Scope
 
 This covers `meow-loop`, the method-layer unit that runs one frozen prompt
-again and again in fresh `claude -p` sessions until a condition on the verbs
-holds or a bound ends the run. It states the command a person runs, the terms
-it takes, the files a run keeps, each call it makes, the order of its checks,
-the six endings, the guards that stop the model starting a run, and each state
-it refuses.
+again and again in fresh `claude -p` sessions, bound to one step of the method
+and its input, until the step's work is done and the verbs pass at one tree,
+or a bound or a crossed gate ends the run. It states the command a person
+runs, the terms it takes, the files a run keeps, each call it makes, the order
+of its checks, the eight endings, the guards that stop the model starting a
+run or deciding a status, and each state it refuses.
 
 It doesn't cover the authority an unattended run is planned from, which
 SPC-1200 states, and the runner doesn't read that plan. Stopping a run by any
-means other than the terminal's interrupt, completion from kept evidence or
-the plan's marks, the sandbox, the network allowlist and credential removal
-have no decision yet, so no specification states them. The runner also
+means other than the terminal's interrupt, a run in the document or review
+step, a run that approves a record through a separate judge, keeping a run's
+results as evidence files, the sandbox, the network allowlist and credential
+removal have no decision yet, so no specification states them. The runner also
 doesn't guard the files the condition's commands read in the work tree, such
 as a task runner's configuration or the tests, because those files are the
 work a run is meant to change. Neither a call nor an evaluation of the
@@ -41,23 +45,25 @@ condition has a time limit, so a run's wall time is bounded only by its
 ceiling, and a call that hangs holds the run and its lock until a person
 interrupts it, because ADR-2010 chose no timeout.
 
-ADR-2010 decides this part and EPC-1910 realises it.
+ADR-2010 decides this part and EPC-1910 realises it. ADR-2020 amends it with
+the step, the step's test and the endings `crossed` and `off-step`, and
+EPC-1920 realises that amendment.
 
 ## Boundary
 
-| Surface                                          | What it is                                                        |
-| ------------------------------------------------ | ----------------------------------------------------------------- |
-| `plugins/meow-loop/bin/meow-loop start`          | Starts a run in the current work tree and holds it until it ends  |
-| `plugins/meow-loop/skills/loop/SKILL.md`         | A skill only a person invokes, which helps write the prompt file  |
-| `plugins/meow-loop/hooks/hooks.json`             | A PreToolUse hook on Bash, Edit and Write                         |
-| `plugins/meow-loop/README.md`                    | The unit's page                                                   |
-| `plugins/meow-loop/.claude-plugin/plugin.json`   | The unit's manifest, which Claude Code loads it from              |
-| `plugins/meow-loop/budget.toml`                  | What the unit loads on every turn: the skill's description        |
-| `plugins/meow-loop/requires.toml`                | The Claude Code version the unit needs, 2.1.280                   |
-| `.claude-plugin/marketplace.json`                | The unit's entry                                                  |
-| `crates/meow`, feature `loop`                    | The unit's program, which compiles in the `verbs` feature's code  |
-| `<state>/meowpaw/runs/<work tree key>/`          | Where a work tree's runs and its lock live, outside the work tree |
-| `<state>/meowpaw/runs/<work tree key>/<run id>/` | One run's directory                                               |
+| Surface                                          | What it is                                                          |
+| ------------------------------------------------ | ------------------------------------------------------------------- |
+| `plugins/meow-loop/bin/meow-loop start`          | Starts a run in the current work tree and holds it until it ends    |
+| `plugins/meow-loop/skills/loop/SKILL.md`         | A skill only a person invokes, which helps write the prompt file    |
+| `plugins/meow-loop/hooks/hooks.json`             | A PreToolUse hook on Bash, Edit and Write                           |
+| `plugins/meow-loop/README.md`                    | The unit's page                                                     |
+| `plugins/meow-loop/.claude-plugin/plugin.json`   | The unit's manifest, which Claude Code loads it from                |
+| `plugins/meow-loop/budget.toml`                  | What the unit loads on every turn: the skill's description          |
+| `plugins/meow-loop/requires.toml`                | The Claude Code version the unit needs, 2.1.280                     |
+| `.claude-plugin/marketplace.json`                | The unit's entry                                                    |
+| `crates/meow`, feature `loop`                    | The unit's program, which compiles in the `verbs` and `record` code |
+| `<state>/meowpaw/runs/<work tree key>/`          | Where a work tree's runs and its lock live, outside the work tree   |
+| `<state>/meowpaw/runs/<work tree key>/<run id>/` | One run's directory                                                 |
 
 `build-units` builds the program as SPC-1080 states. The runner finds the
 state directory as the evidence ledger does, as SPC-1040 states:
@@ -86,15 +92,20 @@ because the same command starts from a terminal outside it (ADR-2010).
 A person starts a run from a terminal outside Claude Code:
 
 ```text
-meow-loop start --prompt <file> --until verbs=<verb>[,<verb>...]
+meow-loop start --step <step> [--inputs <id>[,<id>...]]
+                --prompt <file> --until verbs=<verb>[,<verb>...]
                 --iterations <n> --budget-usd <amount>
                 --permission-mode dontAsk [--allowed-tools <rule>]...
                 [--plugin-dir <dir>]...
 ```
 
-`--prompt`, `--until`, `--iterations`, `--budget-usd` and `--permission-mode`
-are each required, so the condition and both bounds are stated before a run
-starts (REQ-0872), and no call inherits the platform's default mode.
+`--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` and
+`--permission-mode` are each required, so the step, the condition and both
+bounds are stated before a run starts (REQ-0872, REQ-0888), and no call
+inherits the platform's default mode. `--step` names one of the eight steps in
+the table under "The step's test". `--inputs` names the identifiers that step
+reads, and every step but `research` requires it, while `research` refuses it.
+`document` and `review` aren't steps a run takes.
 `--iterations` is an integer of 1 or more, and `--budget-usd` a number above
 0, in US dollars. `--permission-mode` accepts `dontAsk` alone, because it's
 the one mode RES-0300 saw run a call. `bypassPermissions` is refused, because
@@ -107,12 +118,71 @@ The one condition kind is `verbs=`, naming one or more of the five verbs. At
 start the runner resolves each named verb to its command and holds the
 command in memory with the other terms, because `.meowpaw/profile.toml` is in
 the work tree and a call could otherwise point a verb at a command that
-always exits 0 (REQ-0874). The condition holds when every held command exits
-0 at the current tree (REQ-0870). The runner evaluates it itself, through the
-`verbs` feature's code, and runs no other unit's program to do it, because a
-unit's file runs no path outside its own directory, which the `standalone`
-check enforces, and so the unit works whether or not `meow-verbs` is
-installed.
+always exits 0 (REQ-0874). The runner evaluates the condition itself, through
+the `verbs` and `record` features' code, and runs no other unit's program to
+do it, because a unit's file runs no path outside its own directory, which
+the `standalone` check enforces, and so the unit works whether or not
+`meow-verbs` or `meow-flow` is installed.
+
+After the command line, `start` checks the inputs through the `record` code,
+with the test `paw ready <step> <inputs>` applies. It exits 3 when an input
+isn't ready, printing each line `paw ready` would print. It
+exits 3 as well when the record root, `[record] root` in
+`.meowpaw/profile.toml` or `project/`, is missing, is ignored by git, or lies
+outside the work tree, because the tree id would then leave the record out
+and bind the step's test to no tree.
+
+At start, after the evaluation before the first call, the runner reads the
+whole record and holds in memory each record's identifier, kind, path, stored
+status and text. "The copy held at start" below means this copy. It's taken
+after that evaluation because a verb that writes, such as `format`, can
+rewrite a record then, and the first call must not be blamed for that.
+
+### The step's test
+
+The condition holds only when two terms hold at the same tree: every held
+verb command exits 0, and the step's test passes (REQ-0870, REQ-0884). A
+record counts whatever its status, so a draft counts.
+
+| Step           | Its test holds when                                                                                               | The step may write                                                        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `research`     | A research record exists that wasn't in the copy held at start                                                    | research records                                                          |
+| `requirements` | Each input research record is in the `elaborates` of some requirement new or changed since start                  | requirements                                                              |
+| `design`       | Each input requirement is in the `addresses` or `postpones` of some decision new since start                      | decisions                                                                 |
+| `spec`         | Each requirement the input decision addresses is in the `states` of some specification new or changed since start | specifications                                                            |
+| `epic`         | An epic new since start names the input in `realises`                                                             | epics and tasks                                                           |
+| `cover`        | Each input task passes the Cover test `paw ready implement` applies                                               | tasks, and any path outside the record root                               |
+| `implement`    | Each input task is marked `x` by the record that authorises it, and its `## Evidence` holds text                  | tasks, the task marks of epics and defects, and any path outside the root |
+| `verify`       | Each input epic's `checked-at` is set                                                                             | epics' `## Verified` and `checked-at`                                     |
+
+"New since start" means absent from the copy held at start, and "changed"
+means present there with other text. The `implement` test reads the `x` mark
+alone, so a task marked `~`, dropped, doesn't pass it. The `verify` test is
+the one `paw ready review` applies. A `cover`, `implement` or `verify` run
+whose work is already done ends `finished` with no call, and a run of any of
+the five record steps always makes at least one call, because its test counts
+only a record new or changed since start.
+
+### Evaluating the condition
+
+The runner evaluates the condition before the first call and after each call
+whose tree id changed or couldn't be identified. One evaluation:
+
+1. reads the tree id, applies the step's test to the record in the work tree,
+   runs each held verb command, and reads the tree id again;
+2. holds only when the test passes, every command exits 0, and the two tree
+   ids are equal and identified. Where both are identified and differ, the
+   runner repeats the evaluation once, at once, and the second result stands,
+   so a verb that settles after one pass can finish the run and a verb that
+   changes the tree on every pass never does. An unidentified tree, such as
+   one with a dirty submodule, holds no condition;
+3. records each verb's result in the evidence ledger through the `verbs`
+   code, with the tree before and after, as SPC-1040 states, so the person can
+   keep the run's final results with `meow-verbs evidence --keep`.
+
+The runner reads no pass back from the ledger and nothing the model printed,
+so a result whose text claims the work is done changes nothing, and no option
+takes a completion phrase (REQ-0884).
 
 ### A run's files
 
@@ -132,12 +202,12 @@ idle rule.
 
 The run's directory holds four files:
 
-| File                   | Holds                                                                                                                                                                                                                                                                                                      |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `run.toml`             | The prompt's sha256, the condition and each verb's resolved command, the ceiling, the budget, the permission mode, each allowed rule, each plugin directory, the sha256 of `.claude/settings.json` or its absence, who started the run and when, the repository's identity, and the ending once it has one |
-| `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                                                                                                                                               |
-| `progress/progress.md` | The file the model reads and writes to carry what it has done across iterations, empty at start (REQ-0882)                                                                                                                                                                                                 |
-| `log.jsonl`            | One line per iteration                                                                                                                                                                                                                                                                                     |
+| File                   | Holds                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `run.toml`             | The step as one string, the inputs as a list, the prompt's sha256, the condition and each verb's resolved command, the ceiling, the budget, the permission mode, each allowed rule, each plugin directory, the sha256 of `.claude/settings.json` or its absence, who started the run and when, the repository's identity, and the ending once it has one |
+| `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                                                                                                                                                                                             |
+| `progress/progress.md` | The file the model reads and writes to carry what it has done across iterations, empty at start (REQ-0882)                                                                                                                                                                                                                                               |
+| `log.jsonl`            | One line per iteration                                                                                                                                                                                                                                                                                                                                   |
 
 Each line of `log.jsonl` holds the iteration number, the tree id before and
 after the call, whether `progress.md` changed, the call's `total_cost_usd`,
@@ -197,17 +267,19 @@ After each call, the runner, in this order:
 3. ends the run `unmetered` if the call printed no JSON result, or a result
    without `total_cost_usd`, and otherwise adds that cost to the spend;
 4. ends the run `budget` if the result's subtype is `error_max_budget_usd`;
-5. evaluates the condition if the tree id changed or couldn't be identified,
+5. ends the run `crossed` if the call crossed a gate, and then `off-step` if
+   it left its step, as "Keeping to one step" states (REQ-0888);
+6. evaluates the condition if the tree id changed or couldn't be identified,
    and ends the run `finished` if it holds, because an unchanged tree would
    repeat the last result;
-6. ends the run `idle` if this iteration and the one before it both changed
+7. ends the run `idle` if this iteration and the one before it both changed
    nothing (REQ-0886).
 
-Steps 3 and 4 come before the condition, because a call whose spend can't be
-counted, or that passed its own cap, has broken a bound the person stated,
-and a broken bound is reported before a success. So a call that prints no
-cost and also makes the verbs pass ends `unmetered`, and its log line holds
-no condition result.
+Steps 3 to 5 come before the condition, because a call whose spend can't be
+counted, that passed its own cap or that crossed a gate has broken a bound the
+person stated, and a broken bound is reported before a success. So a call
+that prints no cost and also makes the verbs pass ends `unmetered`, and its
+log line holds no condition result.
 
 A call that exits non-zero, or prints a result with any other error subtype,
 counts as an iteration, and the ceiling and the budget bound it like any
@@ -217,6 +289,55 @@ An iteration changes nothing when the work tree's id, as `ledger::tree_id`
 computes it, and the sha256 of `progress/progress.md` are both the same after
 the call as before it. An iteration whose tree the runner can't identify, such
 as one with a dirty submodule, counts as a change.
+
+### Keeping to one step
+
+Step 5 after a call compares the record in the work tree with the copy held
+at start, and reads the paths the call changed. The paths are those
+`git diff-tree -r --name-only` lists between the tree id the runner read
+immediately before the call, after its own evaluation, and the tree id after
+the call, so a path a verb rewrote in an evaluation is never the call's. The
+runner skips step 5 only when both ids are identified and equal, because then
+the call changed no record and no path.
+
+A decided status is any stored status except `draft`, and except `live` in a
+kind the record declares living, such as a specification. The run ends
+`crossed`, naming each record, when the comparison shows any of four changes:
+
+- a record's stored status became a decided status;
+- a record new since start carries a decided status;
+- an approved record is gone from the path it had at start, deleted or
+  renamed;
+- an approved record changed outside what a run may change in it.
+
+A run may change an approved task outside its frozen part, as the record's
+frozen comparison allows. It may change an approved epic or an approved
+defect only in its task marks, and only in an `implement` run, and an approved
+epic only in its `## Verified` section and `checked-at`, and only in a
+`verify` run. Any other change to an approved epic or defect crosses. The
+runner takes none of the frozen comparison's other allowances: an epic whose
+`checked-at` is empty isn't free to change, a status now `withdrawn` or
+`superseded` crosses, and so does an added line naming an authority.
+
+The run ends `off-step`, naming each record or path, when the call:
+
+- created or changed a record of a kind the step's row doesn't let it write.
+  A defect or an insight as a draft is allowed in every step, and so is a
+  file under the record root that is no record, such as an index;
+- changed a path outside the record root in a step whose row doesn't allow
+  it. Where either tree id is unidentified the runner can't list the paths,
+  and it ends a run of a step that writes only records `off-step` for that
+  reason;
+- left an input failing the test `start` applied, or, in an `implement` run,
+  set an epic's `checked-at`.
+
+The runner checks `crossed` before `off-step`, so a call that does both ends
+`crossed`.
+
+After each of its own evaluations that changed the tree, the runner also
+compares the record with the copy held at start. A decided status or a change
+to an approved record found there ends the run `crossed`, naming the
+evaluation and the verb that ran in it.
 
 ### Each call
 
@@ -245,7 +366,11 @@ answer a prompt. The preamble is the same bytes on every call and holds no itera
 number and no spend, so every iteration begins from the same stated context
 (REQ-0880). The preamble names `progress/progress.md` by its absolute path,
 states the condition, and says the runner decides completion and holds the
-bounds. `--add-dir` names the run's `progress` directory, so the progress file
+bounds. It names the step, its inputs and what the step may write, and the
+three things that end the run early: a decided status, a change to an
+approved record, and a change to another step's files. It tells the model to
+record a defect as a draft where the work shows an approved artifact is wrong
+(REQ-0888). Every call's environment sets `MEOW_LOOP_RUN` to the run's id. `--add-dir` names the run's `progress` directory, so the progress file
 is meant to be reachable from the call, and the runner adds an allow rule for Edit and
 Write of that file, because its run id is fixed only at start and so no rule
 the person types can name it (REQ-0882).
@@ -262,23 +387,31 @@ show them (ADR-2010): whether the model can write `progress.md` under
 `--permission-prompts none` does, which plugins a repository's own settings
 add under `--setting-sources project`, whether the unit's hook fires in a
 `-p` call, whether `CLAUDECODE` is set in a Bash call inside one, and whether
-the user's own instruction files and memory load. The hash check decides
+the user's own instruction files and memory load. Whether the hook sees
+`MEOW_LOOP_RUN` in a `-p` call is unobserved as well (ADR-2020), and the
+comparison after each call decides whether a gate was crossed, whether or not
+the hook's status rule fired. The hash check decides
 whether the terms changed, whether or not the hook fires.
 
 ### Endings
 
 A run that isn't interrupted and doesn't stop on a failure after start ends
-in exactly one of six endings. The runner writes the ending into
+in exactly one of eight endings. The runner writes the ending into
 `run.toml` and prints it on the last line of its output:
 
-| Ending      | When                                                                | Exit status |
-| ----------- | ------------------------------------------------------------------- | ----------- |
-| `finished`  | The condition held at the current tree                              | 0           |
-| `budget`    | The next call could pass the budget, or a call reported its cap hit | 1           |
-| `ceiling`   | The stated number of iterations ran                                 | 1           |
-| `idle`      | Two iterations in a row changed nothing                             | 1           |
-| `tampered`  | `run.toml` or `prompt.md` changed during the run                    | 1           |
-| `unmetered` | A call reported no cost, so the spend can't be summed               | 1           |
+| Ending      | When                                                                               | Exit status |
+| ----------- | ---------------------------------------------------------------------------------- | ----------- |
+| `finished`  | The condition held at the current tree                                             | 0           |
+| `budget`    | The next call could pass the budget, or a call reported its cap hit                | 1           |
+| `ceiling`   | The stated number of iterations ran                                                | 1           |
+| `idle`      | Two iterations in a row changed nothing                                            | 1           |
+| `tampered`  | `run.toml` or `prompt.md` changed during the run                                   | 1           |
+| `unmetered` | A call reported no cost, so the spend can't be summed                              | 1           |
+| `crossed`   | A call or an evaluation decided a status, or changed or removed an approved record | 1           |
+| `off-step`  | A call wrote another step's files, or the step's input stopped being ready         | 1           |
+
+The last line of a run that ended `crossed` or `off-step` names each record
+or path that caused it, and for an evaluation, the verb that ran in it.
 
 ### Who starts a run
 
@@ -309,32 +442,52 @@ The hook also denies an Edit or a Write of any path under
 check before and after each call decides whether the terms changed, whether
 or not the hook loaded.
 
+### The status rule
+
+When `MEOW_LOOP_RUN` is set, the hook denies an Edit whose `new_string`, or a
+Write whose `content`, would change the stored status of a file under the
+record root to a decided status, as "Keeping to one step" defines it. It reads
+the kind from the file's directory, so it allows `live` in a specification,
+and it reads the file on disk, so an edit that leaves a status already there
+unchanged, such as an Edit of an approved task's `## Evidence`, passes. When
+`MEOW_LOOP_RUN` isn't set, the rule allows every edit, because in a session
+the model writes an approval a person gave. The comparison after each call
+decides whether a gate was crossed, because a Bash command that writes the
+file passes the hook (REQ-0888).
+
 ## Failure paths
 
 Each usage error exits 2, creates no run directory and removes none:
 
-| State                                                                               | Reported as                                      |
-| ----------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `--prompt`, `--until`, `--iterations`, `--budget-usd` or `--permission-mode` absent | `usage: <flag> is required`, once for each       |
-| The prompt file is missing or can't be read                                         | `usage: --prompt <file> can't be read`           |
-| `--until verbs=` names no verb                                                      | `usage: --until names no verb`                   |
-| `--until verbs=` names something other than the five verbs                          | `usage: <name> is not a verb`, once for each     |
-| `--iterations` isn't an integer of 1 or more                                        | `usage: --iterations <value> is not at least 1`  |
-| `--budget-usd` isn't a number above 0                                               | `usage: --budget-usd <value> is not above 0`     |
-| `--until` names a kind other than `verbs=`                                          | `usage: --until <value> is not a condition kind` |
-| `--permission-mode` is anything but `dontAsk`                                       | `usage: --permission-mode <value> is refused`    |
+| State                                                                                         | Reported as                                       |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` or `--permission-mode` absent | `usage: <flag> is required`, once for each        |
+| `--step` names no step in the table, `document` and `review` among them                       | `usage: --step <value> is not a step a run takes` |
+| `--inputs` given with `--step research`                                                       | `usage: research takes no --inputs`               |
+| `--inputs` absent with any other step                                                         | `usage: --step <step> needs --inputs`             |
+| The prompt file is missing or can't be read                                                   | `usage: --prompt <file> can't be read`            |
+| `--until verbs=` names no verb                                                                | `usage: --until names no verb`                    |
+| `--until verbs=` names something other than the five verbs                                    | `usage: <name> is not a verb`, once for each      |
+| `--iterations` isn't an integer of 1 or more                                                  | `usage: --iterations <value> is not at least 1`   |
+| `--budget-usd` isn't a number above 0                                                         | `usage: --budget-usd <value> is not above 0`      |
+| `--until` names a kind other than `verbs=`                                                    | `usage: --until <value> is not a condition kind`  |
+| `--permission-mode` is anything but `dontAsk`                                                 | `usage: --permission-mode <value> is refused`     |
 
 Each state the runner can't read past exits 3, reported as
 `unresolved: <what>`, and creates no run directory and removes none:
 
-| State                                          | Reported as                                                    |
-| ---------------------------------------------- | -------------------------------------------------------------- |
-| `CLAUDECODE` is set                            | `unresolved: a run starts from a terminal outside Claude Code` |
-| The current directory isn't in a git work tree | `unresolved: not a git work tree`                              |
-| `MEOWPAW_STATE=off`                            | `unresolved: state writing is off, and a run needs state`      |
-| No `claude` on the path                        | `unresolved: claude is not on the path`                        |
-| A verb in the condition resolves to no command | `unresolved: verb <verb> resolves to no command`               |
-| Another process holds the work tree's lock     | `unresolved: a run already holds this work tree`               |
+| State                                          | Reported as                                                                 |
+| ---------------------------------------------- | --------------------------------------------------------------------------- |
+| `CLAUDECODE` is set                            | `unresolved: a run starts from a terminal outside Claude Code`              |
+| The current directory isn't in a git work tree | `unresolved: not a git work tree`                                           |
+| `MEOWPAW_STATE=off`                            | `unresolved: state writing is off, and a run needs state`                   |
+| No `claude` on the path                        | `unresolved: claude is not on the path`                                     |
+| A verb in the condition resolves to no command | `unresolved: verb <verb> resolves to no command`                            |
+| The record root is missing                     | `unresolved: record root <path> is missing`                                 |
+| The record root is ignored by git              | `unresolved: record root <path> is ignored by git`                          |
+| The record root lies outside the work tree     | `unresolved: record root <path> is outside the work tree`                   |
+| An input isn't ready for the step              | `unresolved: <line>`, once for each line `paw ready <step> <inputs>` prints |
+| Another process holds the work tree's lock     | `unresolved: a run already holds this work tree`                            |
 
 A failure to remove an old run doesn't refuse the start: the runner prints
 `can't remove <run id>: <error>` and goes on, because retention is

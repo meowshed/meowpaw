@@ -22,6 +22,11 @@ supersedes: []
 
 ## Decision
 
+**Amended by ADR-2020.** A run is bound to one step and its input. The
+condition adds the step's own test to the verbs, both at one tree, and a run
+ends `crossed` or `off-step` when a call decides a status, changes an approved
+record or writes another step's files. The rest stands.
+
 A new method-layer unit, `meow-loop`, ships a program that a person starts from
 a terminal. The program runs one `claude -p` call per iteration, and the model
 never holds the loop, its count or its budget. The unit also ships a skill the
