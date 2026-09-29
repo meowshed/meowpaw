@@ -340,6 +340,16 @@ class LintCommand(Check):
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("markdownlint ignores .markdownlint-cli2.jsonc", done.stdout.splitlines())
 
+    def test_a_tool_mise_exec_loads_is_no_linter(self):
+        """TSK-3180 criterion 2, BUG-1324, REQ-2434: a front end `mise exec` loads runs only when named after `--`."""
+        for name, run, status in (("loaded only", "prettier --check .", 0),
+                                  ("run after --", "markdownlint-cli2 '**/*.md'", 1)):
+            with self.subTest(case=name):
+                lint = f"lint = \"mise exec markdownlint-cli2@0.23.2 -- {run}\"\n"
+                done = self.check({**TWO, ".meowpaw/profile.toml": verbs(lint)})
+                self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+                self.assertEqual(DEFAULTS in done.stdout.splitlines(), bool(status), done.stdout)
+
 
 CLI_DEFAULTS = "markdownlint runs its defaults: no configuration file"
 
@@ -630,6 +640,17 @@ class LinkSettings(Check):
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         for setting in ("offline", "max_retries", "cache"):
             self.assertIn(f"link check declares no {setting}", done.stdout.splitlines())
+
+    def test_a_tool_mise_exec_loads_is_no_link_check(self):
+        """TSK-3180 criterion 1, BUG-1324, REQ-2454: lychee `mise exec` loads is a link check only when run after `--`."""
+        for name, test, status in (("loaded only", "mise exec lychee@0.24.2 -- python3 -m unittest", 0),
+                                   ("run after --", "mise x lychee@0.24.2 -- lychee '**/*.md'", 1)):
+            with self.subTest(case=name):
+                done = self.check({**TWO, ".meowpaw/profile.toml": PROFILE + f'\n[verbs]\ntest = "{test}"\n'})
+                self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+                said = [text for text in done.stdout.splitlines() if text.startswith("link check declares no")]
+                expected = [f"link check declares no {s}" for s in ("offline", "max_retries", "cache")]
+                self.assertEqual(said, expected if status else [], done.stdout)
 
     def test_criterion_7_a_settings_file_that_does_not_parse_is_named(self):
         """TSK-3120 criterion 7, REQ-2454: a `lychee.toml` that isn't TOML exits 1 naming the file."""
