@@ -2,7 +2,7 @@
 id: TSK-2540
 artifact: task
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 epic: EPC-1580
 closes: [REQ-3202]
 issue: 617
@@ -73,12 +73,51 @@ Cover reading that task adds, and names a step `ready` must already know.
 
 ## Cover
 
-Not yet.
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/0c16e63f1816.txt
+- Landed in: #658
+- Judgement: 5: no fixture runs a model session, so whether one invocation reaches implement after cover is observed on the next epic, as criterion 9 of EPC-1580 says
+
+The checks are `Chain.test_status_names_cover_for_an_uncovered_task` for
+criterion 1, `Chain.test_status_names_implement_once_covered` for criterion 2,
+`Chain.test_status_prints_the_same_state_twice` for criterion 3 and
+`RunSkill.test_the_driver_continues_past_a_step_with_no_gate` for criterion
+4, all for REQ-3202. `Chain.test_status_leads_with_drafts_and_places_each_decision`
+now expects `next: cover TSK-0001`, as What to do asks. Criterion 6 is the
+kept run of the verbs at the revision that merges.
+
+### Cover returned
+
+Two checks were wrong, and I corrected them after the failing run. The two
+status checks compared the expected line with whole output lines, and `paw
+status` indents each decision's position by four spaces, so they now compare
+stripped lines. The covered fixture gave the task no numbered criterion, which
+`ready implement` refuses since BUG-1261, so it now carries the criteria the
+Cover fixtures use.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`position` in `crates/meow/src/record.rs` reads the first doable task's Cover
+with `cover_gaps`, the function `ready implement` uses, and prints
+`next: cover <task>` while the Cover has gaps and `next: implement <task>`
+once it has none. `/meow-flow:run` gains a step that runs `paw status` again
+and continues where the step it ran ends without an approval gate. SPC-1090's
+sections "The state" and "The driver" no longer mark the behaviour as not yet,
+and `meow-flow` goes to 0.36.0.
+
+The five checks failed first: `meow-verbs run test` exited 1 with
+`FAILED (failures=5)`, kept as `project/evidence/0c16e63f1816.txt`, in the
+commit that held the checks alone. They pass now:
+
+```text
+$ python3 -m unittest test_record    # in plugins/meow-flow/tests
+Ran 193 tests
+OK                                   # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 

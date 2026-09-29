@@ -1,0 +1,97 @@
+meow-verbs evidence 1
+record: 0c16e63f1816
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: 8be642dc48410f784f9f63c2ad2bacb1d6c6c47f
+time: 2026-09-29T08:13:42Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 31 tests
+...............................
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 13.203s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.631s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 4.913s
+
+OK
+...............FFF.F.................................................................................................................................................F...........................
+======================================================================
+FAIL: test_status_leads_with_drafts_and_places_each_decision (test_record.Chain.test_status_leads_with_drafts_and_places_each_decision)
+TSK-2540 criterion 1, REQ-3202: an open task with no Cover is placed at cover (REQ-0321 for the drafts).
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2540-cover-checks/plugins/meow-flow/tests/test_record.py", line 784, in test_status_leads_with_drafts_and_places_each_decision
+    self.assertIn("next: cover TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'next: cover TSK-0001 (EPC-0001, 0 of 1 task done)' not found in 'Waiting for approval\n  RES-0002 research, draft at the research gate: RES-0002\n\nDecisions\n  ADR-0001 ADR-0001\n    next: implement TSK-0001 (EPC-0001, 0 of 1 task done)\n\nTasks\n  1 in all: 1 authorised by decisions, 0 by defects\n\nRequirements\n  1 in force: 0 verified, 0 closed and not yet verified, 1 in a task not yet done, 0 postponed, 0 checked by nothing\n  by verification: 1 static, 0 behavioural, 0 evaluation, 0 judgement (0 by an agent, 0 by a person)\n  0 of 1 rest on evaluation or judgement, not on a mechanical check\n\nOnly a new record can fix\n  nothing\n'
+
+======================================================================
+FAIL: test_status_names_cover_for_an_uncovered_task (test_record.Chain.test_status_names_cover_for_an_uncovered_task)
+TSK-2540 criterion 1, REQ-3202: an open task with no Cover is next for cover, not implement.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2540-cover-checks/plugins/meow-flow/tests/test_record.py", line 827, in test_status_names_cover_for_an_uncovered_task
+    self.assertIn(self.NEXT.format(step="cover"), [l.strip() for l in done.stdout.splitlines()])
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'next: cover TSK-0001 (EPC-0001, 0 of 1 task done)' not found in ['Waiting for approval', 'nothing', '', 'Decisions', 'ADR-0001 ADR-0001', 'next: implement TSK-0001 (EPC-0001, 0 of 1 task done)', '', 'Tasks', '1 in all: 1 authorised by decisions, 0 by defects', '', 'Requirements', '1 in force: 0 verified, 0 closed and not yet verified, 1 in a task not yet done, 0 postponed, 0 checked by nothing', 'by verification: 1 static, 0 behavioural, 0 evaluation, 0 judgement (0 by an agent, 0 by a person)', '0 of 1 rest on evaluation or judgement, not on a mechanical check', '', 'Only a new record can fix', 'nothing']
+
+======================================================================
+FAIL: test_status_names_implement_once_covered (test_record.Chain.test_status_names_implement_once_covered)
+TSK-2540 criterion 2, REQ-3202: the same line names implement once the task's Cover is filled.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2540-cover-checks/plugins/meow-flow/tests/test_record.py", line 834, in test_status_names_implement_once_covered
+    self.assertIn(self.NEXT.format(step="cover"), repository.run("status").stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'next: cover TSK-0001 (EPC-0001, 0 of 1 task done)' not found in 'Waiting for approval\n  nothing\n\nDecisions\n  ADR-0001 ADR-0001\n    next: implement TSK-0001 (EPC-0001, 0 of 1 task done)\n\nTasks\n  1 in all: 1 authorised by decisions, 0 by defects\n\nRequirements\n  1 in force: 0 verified, 0 closed and not yet verified, 1 in a task not yet done, 0 postponed, 0 checked by nothing\n  by verification: 1 static, 0 behavioural, 0 evaluation, 0 judgement (0 by an agent, 0 by a person)\n  0 of 1 rest on evaluation or judgement, not on a mechanical check\n\nOnly a new record can fix\n  nothing\n'
+
+======================================================================
+FAIL: test_status_prints_the_same_state_twice (test_record.Chain.test_status_prints_the_same_state_twice)
+TSK-2540 criterion 3, REQ-3202 and REQ-0210: status prints the same text twice, uncovered or covered.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2540-cover-checks/plugins/meow-flow/tests/test_record.py", line 805, in test_status_prints_the_same_state_twice
+    self.assertIn(self.NEXT.format(step="cover"), first)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'next: cover TSK-0001 (EPC-0001, 0 of 1 task done)' not found in 'Waiting for approval\n  nothing\n\nDecisions\n  ADR-0001 ADR-0001\n    next: implement TSK-0001 (EPC-0001, 0 of 1 task done)\n\nTasks\n  1 in all: 1 authorised by decisions, 0 by defects\n\nRequirements\n  1 in force: 0 verified, 0 closed and not yet verified, 1 in a task not yet done, 0 postponed, 0 checked by nothing\n  by verification: 1 static, 0 behavioural, 0 evaluation, 0 judgement (0 by an agent, 0 by a person)\n  0 of 1 rest on evaluation or judgement, not on a mechanical check\n\nOnly a new record can fix\n  nothing\n'
+
+======================================================================
+FAIL: test_the_driver_continues_past_a_step_with_no_gate (test_record.RunSkill.test_the_driver_continues_past_a_step_with_no_gate)
+TSK-2540 criterion 4, REQ-3202: a step reruns `paw status` and continues where no approval gate ends the step.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2540-cover-checks/plugins/meow-flow/tests/test_record.py", line 1193, in test_the_driver_continues_past_a_step_with_no_gate
+    self.assertTrue(again, steps)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+AssertionError: [] is not true : {1: 'Run `${CLAUDE_SKILL_DIR}/../../bin/paw status` and show its output.', 2: 'Choose what to advance: the record named in `$ARGUMENTS` if one is, and otherwise the first decision whose line begins `next:`.', 3: 'Where nothing begins `next:` and something waits for approval, report the first item waiting and stop, saying the chain is waiting on it.', 4: 'Load the `method` skill and run the step the chosen line names, with its input.', 5: 'Stop where that step ends at an approval gate.', 6: 'Report which step you reached, why you stopped, and what the next invocation of `/meow-flow:run` will do.'}
+
+----------------------------------------------------------------------
+Ran 193 tests in 15.210s
+
+FAILED (failures=5)
