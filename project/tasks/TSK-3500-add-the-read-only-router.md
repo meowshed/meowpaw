@@ -90,12 +90,21 @@ Nothing: the agent stands alone, and the route skill is the one that needs it.
 
 ## Cover
 
-Not yet.
-
-- Checks: not yet
-- Failing run: not yet
+- Checks: plugins/meow-flow/tests/test_route.py
+- Failing run: project/evidence/c43d863413e3.txt
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: 3: it dispatches the router on a model, and model calls run by hand and never in the gate; 4: the cases dispatch the router on a model, run by hand; 5: the case dispatches the router on a model, run by hand; 6: the case dispatches the router on a model, run by hand; 7: the existing budget check closes it, and it passes before the agent exists, so no failing run can be kept for it
+
+The checks are the class `RouterAgent`, each naming its criterion and
+requirement in its docstring: criterion 1 by
+`RouterAgent.test_tools_are_read_grep_glob` and
+`RouterAgent.test_a_writing_copy_fails`, and criterion 2 by
+`RouterAgent.test_the_prompt_names_sizes_shapes_and_fields`. Criterion 3's
+two dispatches are kept runs by hand, and whether the reply reads as a
+refusal stays a judgement. Criteria 4, 5 and 6 are closed by the cases
+`route-plain-words`, `route-a-tiny-fix`, `route-both-ways` and
+`route-three-changes`, which the implementation adds with their thresholds
+before their first run.
 
 ## Evidence
 
