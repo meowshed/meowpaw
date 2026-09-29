@@ -76,7 +76,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       and a feature `unattended` in `crates/meow`
       closes: REQ-2388
       evidence: 13 checks seen failing at the cover commit f9e8b4e, and
-      passing unchanged in #662.
+      passing unchanged in #663.
 
 - [ ] T-002 TSK-3310 make `plan` load each unit by name: refuse a URL, a
       folder of units and a project `env` block, and name each unit with its

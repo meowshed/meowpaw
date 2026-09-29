@@ -109,7 +109,7 @@ already exist.
 
 - Checks: plugins/meow-unattended/tests/test_unattended.py
 - Failing run: project/evidence/5a1520eda28c.txt
-- Landed in: #662
+- Landed in: #663
 - Judgement: 11: the check reads `claude --help` from a third party's
   installed program, which no fixture pins and CI doesn't have, so the
   implementer keeps the help text and names the version read; 12: the kept
