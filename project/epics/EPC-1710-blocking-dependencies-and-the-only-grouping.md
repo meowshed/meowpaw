@@ -61,7 +61,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-2900 make `paw` wait only on a blocking dependency, add
+- [x] T-001 [P] TSK-2900 make `paw` wait only on a blocking dependency, add
       `dependency-declared`, count only a blocking order in
       `defect-epic-ordered`, and show both markers in the templates, the epic
       step and the `meow-prose` record types

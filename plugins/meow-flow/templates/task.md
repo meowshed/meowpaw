@@ -35,8 +35,13 @@ that will close each requirement it cites. Not how to do it.
 
 ## Depends on
 
-The tasks that must be done first, as `TSK-` identifiers, and why.
-`paw ready cover` and `paw ready implement` read this section.
+One task to a line, each saying whether it blocks and why, or `Nothing.`
+where the task depends on none. `paw ready cover` and `paw ready implement`
+wait only on a blocking line. A dependency that exists only for convenience
+is declared as not blocking, never left out.
+
+- TSK-NNNN (blocking): what this task needs from it before it can start.
+- TSK-NNNN (not blocking): what the two share, which either task can write.
 
 ## Cover
 

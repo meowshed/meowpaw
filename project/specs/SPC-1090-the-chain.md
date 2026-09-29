@@ -340,10 +340,9 @@ the cover step, its gate and the task's Cover section, and EPC-1580 realises
 them. `paw ready` knows the ten steps and gates the implementation on the
 Cover, `status` names cover before implement, the driver continues past
 cover, and the method's prompts name the ten steps and where each step's
-artifact lands. ADR-1800 lets a task's dependency say whether it
-blocks, and EPC-1710 realises it; until it lands, `paw` reads every `TSK-`
-identifier under `## Depends on` as blocking and no rule asks a draft for the
-marker.
+artifact lands. ADR-1800 lets a task's dependency say whether it blocks, and
+EPC-1710 realises it: `paw` waits only on a blocking dependency, and
+`dependency-declared` asks a draft for the marker.
 ADR-2200 adds the skeptic that tries to refute each
 requirement an epic claims before its verification is recorded, and the draft
 defect verification writes for each refutation it confirms; no epic realises

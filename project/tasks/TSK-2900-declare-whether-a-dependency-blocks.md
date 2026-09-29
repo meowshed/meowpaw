@@ -100,14 +100,32 @@ Nothing. ADR-1800 and EPC-1710 are approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/9c59e364c42a.txt
+- Landed in: #662
+- Judgement: 6: `meow-prose` ships no test directory, and a check in `meow-flow` reading its files would cross the boundary the `standalone` check holds, so the reviewer reads the two record types
 
 ## Evidence
 
-Not yet.
+- Before this change, the test verb's run of
+  `plugins/meow-flow/tests/test_record.py` exited 1 with 200 tests and
+  `FAILED (failures=10)`, the ten `Dependencies` checks, kept in
+  `project/evidence/9c59e364c42a.txt`.
+- After it, `python3 -m unittest plugins/meow-flow/tests/test_record.py -k Dependencies`
+  exits 0 with `Ran 10 tests` and `OK`, and the whole file exits 0 with
+  `Ran 200 tests` and `OK`.
+- `git diff` of `plugins/meow-flow/tests/test_record.py` against the commit
+  that added the checks prints nothing, so the checks are the ones the cover
+  step wrote.
+- `plugins/meow-flow/bin/paw check` exits 0 with 0 findings under every rule.
+- `meow-verbs run format lint check test build` passes each verb, in the
+  evidence kept with this change.
+- Criterion 6 rests on judgement: the reviewer reads
+  `plugins/meow-prose/skills/writing/types/record/task.md` and `epic.md`,
+  which show both markers and no longer say a convenience isn't a dependency.
+- The Cover's Checks line named the class in prose, and `paw ready implement`
+  read each word as a path; the line now names the file alone.
+- The change landed in #662, closing REQ-1358.
 
 ## Left alone
 

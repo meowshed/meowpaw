@@ -32,20 +32,25 @@ epic's file and each task's file. The step that picks it up is cover.
 - E6. Name the tasks each task depends on, and mark the ones that can
   genuinely run in parallel, because an unmarked order is read as a required
   one.
-- E7. Keep a task small enough that its change is reviewed rather than
+- E7. Write each dependency on its own line marked `(blocking)` or
+  `(not blocking)`, and declare one that exists only for convenience as not
+  blocking with its reason rather than leaving it out, because `paw` waits on
+  an unmarked line and the implementer of the second task needs the reason
+  the two touch.
+- E8. Keep a task small enough that its change is reviewed rather than
   approved, and write it so an implementer with none of the conversation can
   follow it.
-- E8. Authorise recurring work once, by the record that establishes it, not by
+- E9. Authorise recurring work once, by the record that establishes it, not by
   a new record each time it recurs.
-- E9. Record an unknown as an open question classified by what it blocks, and
+- E10. Record an unknown as an open question classified by what it blocks, and
   let it stop a step only when it blocks that step.
-- E10. Give each task two completion tests: its acceptance criteria, and the
+- E11. Give each task two completion tests: its acceptance criteria, and the
   repository's definition of done, referenced rather than restated; a task may
   add a condition to the definition of done, marked as an addition, and never
   removes one.
-- E11. Leave how a task is implemented to the implementer, beyond the
+- E12. Leave how a task is implemented to the implementer, beyond the
   constraints that bind the result.
-- E12. Name at least one thing the epic can measure before the work is
+- E13. Name at least one thing the epic can measure before the work is
   finished, where one exists, and the smallest set of tasks that would test
   the decision.
 - E13. Carry no estimates.
