@@ -211,7 +211,7 @@ class TheHook(unittest.TestCase):
 
     @staticmethod
     def hook_types(hooks):
-        return [hook["type"] for group in hooks["hooks"]["PreToolUse"] for hook in group["hooks"]]
+        return [hook["type"] for groups in hooks["hooks"].values() for group in groups for hook in group["hooks"]]
 
     @staticmethod
     def shipped_hooks():
