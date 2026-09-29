@@ -45,14 +45,34 @@ Nothing. BUG-1268 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-prose-gate/tests/test_gate.py
+- Failing run: project/evidence/43a4c9f3a54e.txt
+- Landed in: #733
+- Judgement: none
 
 ## Evidence
 
-Not yet.
+`take` in `publishing` in `crates/meow/src/prose.rs` now reads `-`,
+`/dev/stdin` and `/dev/fd/0` as standard input, so the heredoc feeding the
+command is checked by P1 and P2, and a file redirected with `<` is still P3.
+SPC-1010's section on the gate and the unit's README name the three
+spellings, and `meow-prose-gate` goes to 0.2.1, with the `describes:` of its
+README, `docs/README.md` and `docs/troubleshooting.md`.
+
+The three fixtures failed first, in the commit that held them alone:
+`meow-verbs run test` exited 1 with `FAILED (failures=3)`, kept as
+`project/evidence/43a4c9f3a54e.txt`. Criterion 3 failed as well, because the
+old reader reported the path and never read the heredoc. They pass now:
+
+```text
+$ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests
+Ran 37 tests
+OK                                 # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 

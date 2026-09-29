@@ -60,5 +60,7 @@ idiom in a heredoc read through `-F /dev/stdin` blocked with P1.
 
 ## Tasks
 
-- [ ] T-001 TSK-2578 read `/dev/stdin` and `/dev/fd/0` as standard input, in
+- [x] T-001 TSK-2578 read `/dev/stdin` and `/dev/fd/0` as standard input, in
       `crates/meow/src/prose.rs`
+      evidence: 3 checks seen failing first, 37 `meow-prose-gate` fixtures
+      passing, in #733.
