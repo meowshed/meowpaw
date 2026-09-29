@@ -104,6 +104,62 @@ class TruePositives(unittest.TestCase):
         self.assert_blocks('gh pr create --title "Cache" --body "$(cat notes.md)"', "P3", "notes.md")
 
 
+# One blocking command for each `if` pattern in hooks/hooks.json, keyed by the
+# command the pattern names, so a pattern with no fixture fails `TheHook`.
+GATED = {
+    "git commit": ('git commit -m "Cache pages" -m "Caching is the low-hanging fruit here."', "P1", "low-hanging fruit"),
+    "gh pr create": ('gh pr create --title "Cache pages" --body "a silver bullet for slow pages"', "P1", "silver bullet"),
+    "gh issue create": ('gh issue create --title "Slow pages" --body "**Why.**\n\nThe server renders twice."', "P2", "**Why.**"),
+    "gh pr edit": ('gh pr edit 5 --body "This is no silver bullet for slow pages."', "P1", "silver bullet"),
+    "gh pr comment": ('gh pr comment 5 --body "Let us circle back after the release."', "P1", "circle back"),
+    "gh pr review": ('gh pr review 5 --comment -b "A deep dive into the cache shows two misses."', "P1", "deep dive"),
+    "gh issue edit": ('gh issue edit 7 --body "__Steps__:\n\nRun the server twice."', "P2", "__Steps__:"),
+    "gh issue comment": ('gh issue comment 7 -b "The retry is under the hood of the worker."', "P1", "under the hood"),
+    "gh release create": ('gh release create v1.2.0 --title "1.2.0" --notes "Caching was the low-hanging fruit."', "P1", "low-hanging fruit"),
+    "gh release edit": ('gh release edit v1.2.0 -n "A game changer for slow pages."', "P1", "game changer"),
+}
+
+
+class EveryGatedCommand(unittest.TestCase):
+    """REQ-3182: the gate holds a text back in each command the hook routes, and in each argument it reads."""
+
+    def assert_blocks(self, command, rule, span):
+        TruePositives.assert_blocks(self, command, rule, span)
+
+    def test_git_commit(self):
+        self.assert_blocks(*GATED["git commit"])
+
+    def test_gh_pr_create(self):
+        self.assert_blocks(*GATED["gh pr create"])
+
+    def test_gh_issue_create(self):
+        self.assert_blocks(*GATED["gh issue create"])
+
+    def test_gh_pr_edit(self):
+        self.assert_blocks(*GATED["gh pr edit"])
+
+    def test_gh_pr_comment(self):
+        self.assert_blocks(*GATED["gh pr comment"])
+
+    def test_gh_pr_review(self):
+        self.assert_blocks(*GATED["gh pr review"])
+
+    def test_gh_issue_edit(self):
+        self.assert_blocks(*GATED["gh issue edit"])
+
+    def test_gh_issue_comment(self):
+        self.assert_blocks(*GATED["gh issue comment"])
+
+    def test_gh_release_create(self):
+        self.assert_blocks(*GATED["gh release create"])
+
+    def test_gh_release_edit(self):
+        self.assert_blocks(*GATED["gh release edit"])
+
+    def test_release_notes_hidden_in_a_file(self):
+        self.assert_blocks('gh release create v1.2.0 --notes-file notes.md', "P3", "notes.md")
+
+
 class ReadableTexts(unittest.TestCase):
     """REQ-1756: forms the program reads, and text the rules leave alone, pass."""
 
@@ -158,6 +214,11 @@ class TheHook(unittest.TestCase):
         kinds = [hook["type"] for group in hooks["hooks"]["PreToolUse"] for hook in group["hooks"]]
         self.assertTrue(kinds)
         self.assertEqual(set(kinds), {"command"})
+
+    def test_each_routed_command_has_a_blocking_fixture(self):
+        hooks = json.loads((UNIT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+        routed = {hook["if"] for group in hooks["hooks"]["PreToolUse"] for hook in group["hooks"]}
+        self.assertEqual(routed, {f"Bash({command} *)" for command in GATED})
 
 
 if __name__ == "__main__":

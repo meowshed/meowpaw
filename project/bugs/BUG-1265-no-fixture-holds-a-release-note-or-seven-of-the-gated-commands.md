@@ -7,7 +7,7 @@ violates: REQ-3182
 enters: cover
 found: 2026-09-29
 revised: 2026-09-29
-issue:
+issue: 711
 ---
 
 # No fixture shows the prose gate holding a release note, or seven of the ten commands it reads
@@ -64,5 +64,7 @@ span found verbatim in the command.
 
 ## Tasks
 
-- [ ] T-001 TSK-2575 add a fixture for each gated command and each text
+- [x] T-001 TSK-2575 add a fixture for each gated command and each text
       argument, in `plugins/meow-prose-gate/tests/test_gate.py`
+      evidence: 1 check seen failing first, 31 `meow-prose-gate` fixtures
+      passing, in #713.
