@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-28
 realises: ADR-1800
-checked-at:
+checked-at: "#625"
 ---
 
 # A task's dependency says whether it blocks, and only an epic or a defect groups tasks
@@ -77,6 +77,44 @@ its README's `describes`, so whichever lands second takes the next minor
 version above the first. That shared version is a convenience, and `paw`
 can't yet record it as one: until TSK-2900 lands, every `TSK-` identifier
 under a task's `## Depends on` blocks, so neither task names the other there.
+
+## Verified
+
+I checked this under #625 on `main` after #670, gathering the evidence there
+rather than carrying it over from the tasks. `meow-verbs run format lint check
+test build` exits 0 on this change's own tree, each verb passed, and the
+results are kept in `project/evidence/`, as the pull request cites.
+`python3 -m unittest test_record` in `plugins/meow-flow/tests` runs 209, OK,
+and `python3 -m unittest test_github` in `plugins/meow-github/tests` runs 14,
+OK. The ten `Dependencies` and six `Grouping` fixtures run 16, OK. Every
+criterion is met:
+
+| Criterion                                                                                                                                     | Evidence on `main` after #670                                                                                                                                                                                                                                                                                |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. A declared line passes, and a bare line or one naming two tasks is reported under `dependency-declared`                                    | `Dependencies.test_a_declared_dependency_passes`, `test_a_bare_dependency_in_a_draft_is_reported` and `test_a_line_naming_two_tasks_is_reported` pass                                                                                                                                                        |
+| 2. An approved task's bare line isn't reported and still blocks                                                                               | `Dependencies.test_an_approved_bare_dependency_still_blocks` passes                                                                                                                                                                                                                                          |
+| 3. `ready implement` and `ready cover` pass a `(not blocking)` dependency and wait on a `(blocking)` one, and `status` names the task as next | `Dependencies.test_a_not_blocking_dependency_leaves_the_task_ready`, `test_a_blocking_dependency_makes_the_task_wait` and `test_status_names_a_task_whose_only_dependency_does_not_block` pass                                                                                                               |
+| 4. `defect-epic-ordered` counts only a blocking order                                                                                         | `Dependencies.test_a_not_blocking_order_does_not_order_a_defects_epic` and `test_a_blocking_order_orders_a_defects_epic` pass                                                                                                                                                                                |
+| 5. `milestone:` on a task and `parent:` on an epic are reported, and `epic:` or `bug:` on a task passes                                       | `Grouping.test_a_task_with_a_milestone_is_reported`, `test_an_epic_with_a_parent_is_reported` and `test_a_task_under_its_epic_or_defect_passes` pass                                                                                                                                                         |
+| 6. `project` passes no grouping argument and the body carries `(not blocking)`                                                                | `Project.test_project_groups_an_issue_nowhere` passes against the stand-in `gh`                                                                                                                                                                                                                              |
+| 7. The templates, the epic step, the `meow-prose` types and both specifications show the markers                                              | `Dependencies.test_the_templates_and_the_epic_step_show_both_markers` passes; `grep` finds both markers in `plugins/meow-prose/skills/writing/types/record/task.md` and `epic.md`, rule E7 in the epic step, the rule in SPC-1090's section "The gate", and `dependency-declared` in SPC-1070's layout table |
+| 8. `milestone:` on a defect is reported                                                                                                       | `Grouping.test_a_defect_with_a_milestone_is_reported` passes                                                                                                                                                                                                                                                 |
+| 9. REQ-1358 and REQ-3320 each land in one closed task                                                                                         | `paw show` derives REQ-1358 as closed by TSK-2900 and REQ-3320 as closed by TSK-2910, each done in EPC-1710                                                                                                                                                                                                  |
+
+### Judgement
+
+Criterion 7's `meow-prose` half rests on reading the two record types, because
+`meow-prose` ships no test directory and a check in `meow-flow` reading its
+files would cross the `standalone` boundary. `Project.test_project_groups_an_issue_nowhere`
+passed before TSK-2910's work, because `project` already sent only a title and
+a body, so it guards against a regression rather than having been seen to
+fail; it would fail if a call carried any of the four flags. Every other
+check named above failed first, in `project/evidence/9c59e364c42a.txt` and
+`project/evidence/27c4d319f7ce.txt`.
+
+### Postponements
+
+ADR-1800 postpones no requirement.
 
 ## Coverage
 

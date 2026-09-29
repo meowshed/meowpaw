@@ -3,7 +3,7 @@ id: SPC-1080
 artifact: spec
 status: live
 revised: 2026-09-28
-checked-at: "#596"
+checked-at: "#625"
 states:
   [
     REQ-0010,
@@ -95,7 +95,8 @@ ADR-1110 decides it, EPC-1080 realises it, and the `meow` crate with its
 launchers and release implements it, verified under issue 160. ADR-1610
 decides how this repository's five verbs check the crate, and EPC-1570
 realises that. BUG-1240 and TSK-2520 bring the launchers and the build
-script under the same verbs.
+script under the same verbs. ADR-1800 adds the check that `project` groups
+an issue nowhere, and EPC-1710 realised it, verified under issue 625.
 
 ## Boundary
 
