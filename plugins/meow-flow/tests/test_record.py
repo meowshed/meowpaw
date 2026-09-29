@@ -2803,5 +2803,68 @@ class RequirementState(unittest.TestCase):
         self.assertIn("  REQ-0002 by ADR-0002, until: The owner asks.\n", status)
 
 
+class SevenSteps(unittest.TestCase):
+    """TSK-3810, ADR-2300: `paw` knows seven steps, reads no Cover, and lets a task realise a decision."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def test_an_unknown_step_names_the_seven(self):
+        """REQ-3638: the steps are research, requirements, design, spec, epic, implement and review."""
+        done = self.repo().run("ready", "bogus", "TSK-0001")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("the steps are research, requirements, design, spec, epic, implement, review\n", done.stderr)
+
+    def test_a_retired_step_names_what_replaced_it(self):
+        """REQ-3638: cover, document and verify are refused, each naming what took its work."""
+        repository = self.repo()
+        for step, said in (("cover", "cover is part of implement"), ("document", "document is part of implement"),
+                           ("verify", "verify is gone: a requirement closes with the tasks that name it")):
+            done = repository.run("ready", step, "TSK-0001")
+            self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+            self.assertIn(f"paw ready: {said} (ADR-2300)", done.stderr)
+
+    def test_implement_reads_no_cover(self):
+        """REQ-3616: an approved task with no Cover section is ready to implement."""
+        repository = self.repo()
+        text = (repository.root / "tasks/TSK-0001-a-task.md").read_text(encoding="utf-8")
+        self.assertNotIn("## Cover", text)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def direct(self, repository, evidence="Not yet."):
+        (repository.root / "epics/EPC-0001-a-plan.md").unlink()
+        repository.edit("README.md", "- EPC-0001\n", "")
+        repository.edit("tasks/TSK-0001-a-task.md", "epic: EPC-0001", "realises: ADR-0001")
+        repository.edit("tasks/TSK-0001-a-task.md", "\nSee [the plan](../epics/EPC-0001-a-plan.md).\n", "\n")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", f"## Evidence\n\n{evidence}")
+
+    def test_a_task_realises_a_decision_with_no_epic(self):
+        """REQ-3630: a task naming `realises: ADR-NNNN` and no epic passes every check and is next to implement."""
+        repository = self.repo()
+        self.direct(repository)
+        done = repository.run("check")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("next: implement TSK-0001 (ADR-0001, 0 of 1 task done)", repository.run("status").stdout)
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+
+    def test_a_draft_task_may_realise_a_decision(self):
+        """REQ-3630: `realises` counts as the one authority a draft names."""
+        repository = self.repo()
+        self.direct(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        done = repository.run("check", "rules")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_direct_task_closes_with_its_evidence(self):
+        """REQ-3630, REQ-3604: with no epic to mark it, a task is done once its Evidence is written."""
+        repository = self.repo()
+        self.direct(repository, evidence="In #1: the checks pass.")
+        self.assertIn("closed: ADR-0001 (1 task done)", repository.run("status").stdout)
+        self.assertIn("State\n  closed\n  TSK-0001 done in ADR-0001\n", repository.run("show", "REQ-0001").stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

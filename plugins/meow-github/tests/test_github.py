@@ -354,6 +354,24 @@ class Project(unittest.TestCase):
                 self.assertTrue(call[5].startswith("title=") and call[7].startswith("body="), call)
         self.assertIn("- TSK-0001 (not blocking): shares a helper", self.state(root)["issues"]["2"]["body"])
 
+    def test_a_task_realising_a_decision_projects_with_no_parent(self):
+        """TSK-3810 criterion 4, REQ-3630: a task naming `realises` and no epic projects as one issue under nothing."""
+        root = self.repository()
+        (root / "project" / "adrs").mkdir()
+        (root / "project" / "adrs" / "ADR-0002-a-choice.md").write_text(
+            "---\nid: ADR-0002\nartifact: adr\nstatus: approved\nrevised: 2026-01-01\naddresses: [REQ-0004]\n---\n\n# 0002. A choice\n",
+            encoding="utf-8")
+        (root / "project" / "tasks" / "TSK-0003-direct.md").write_text(TASK.format(
+            id="TSK-0003", closes="    REQ-0004,", title="Do it directly", depends="Nothing.").replace(
+            "epic: EPC-0001", "realises: ADR-0002"), encoding="utf-8")
+        env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json")}
+        done = subprocess.run([str(BIN), "project", "ADR-0002", "o/r"], cwd=root, capture_output=True, text=True, env=env)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        issues = self.state(root)["issues"]
+        self.assertEqual([i["title"] for i in issues.values()], ["TSK-0003: Do it directly"])
+        self.assertIn("TSK-0003, which realises ADR-0002.", issues["1"]["body"])
+        self.assertIn("\nissue: 1\n", self.task(root, "TSK-0003-direct.md"))
+
     def test_a_draft_epic_projects_nothing(self):
         root = self.repository(status="draft")
         done = self.project(root)
