@@ -52,14 +52,45 @@ Nothing. BUG-1269 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-prose-gate/tests/test_gate.py
+- Failing run: project/evidence/858bedc10330.txt
+- Landed in: #743
+- Judgement: none
+
+Criteria 2 and 4 passed in the failing run, because the program already
+skipped `git`'s global options and never read `gh -R o/r pr list` as a
+publish. Criterion 3 failed for all four commands, so the `git` forms are
+held by the routing check.
 
 ## Evidence
 
-Not yet.
+`publishing` in `crates/meow/src/prose.rs` now skips `-R` and `--repo` with
+their value, `--repo=...` and an attached `-R...`, between `gh` and the
+group. `plugins/meow-prose-gate/hooks/hooks.json` gains four `if` entries,
+`Bash(gh -R *)`, `Bash(gh --repo *)`, `Bash(git -C *)` and `Bash(git -c *)`,
+each running the same `check`. SPC-1010's section on the gate and the unit's
+README name the forms, the README says the hook now also runs on a command
+that publishes nothing, and `meow-prose-gate` goes to 0.2.2, with the
+`describes:` of its README, `docs/README.md` and `docs/troubleshooting.md`.
+
+Three checks failed first, in the commit that held the fixtures alone:
+`meow-verbs run test` exited 1 with `FAILED (failures=3)`, naming the two
+`gh` fixtures and the routing check, kept as
+`project/evidence/858bedc10330.txt`. They pass now:
+
+```text
+$ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests
+Ran 42 tests
+OK                                 # exit 0
+```
+
+That Claude Code routes `gh -R owner/repo pr create` through the new
+`Bash(gh -R *)` entry is assumed from the rule syntax and not observed,
+because no fixture runs Claude Code's matcher.
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 

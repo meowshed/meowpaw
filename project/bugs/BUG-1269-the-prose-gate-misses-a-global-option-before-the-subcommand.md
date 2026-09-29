@@ -72,5 +72,7 @@ showing `gh -R o/r pr list` passes.
 
 ## Tasks
 
-- [ ] T-001 TSK-2579 read and route a global option before the subcommand, in
+- [x] T-001 TSK-2579 read and route a global option before the subcommand, in
       `crates/meow/src/prose.rs` and `plugins/meow-prose-gate/hooks/hooks.json`
+      evidence: 3 checks seen failing first, 42 `meow-prose-gate` fixtures
+      passing, in #743.

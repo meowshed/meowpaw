@@ -47,12 +47,12 @@ and publishes again with the text corrected.
 ## What it costs you
 
 Nothing in context, and no model call. The gate is a command hook that runs
-only when Claude Code runs a command that publishes text: `git commit`, and
+when Claude Code runs a command that publishes text: `git commit`, and
 `gh` creating or editing a pull request, an issue or a release, commenting on
-a pull request or an issue, or reviewing a pull request, including a command
-that names another repository first, as `gh -R owner/repo pr create` or
-`git -C dir commit` does. The program is a
-native binary shipped inside the unit, so it needs nothing installed on the
+a pull request or an issue, or reviewing a pull request. It also runs on any
+command that opens with `git -C`, `git -c`, `gh -R` or `gh --repo`, because
+`gh -R owner/repo pr create` publishes too, and on a command that publishes
+nothing it finds no text and exits at once. The program is a native binary shipped inside the unit, so it needs nothing installed on the
 machine. On a machine the unit carries no binary for, it says it checked
 nothing and blocks nothing.
 
