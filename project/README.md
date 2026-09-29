@@ -252,8 +252,8 @@ which follows both. The work realising them has landed, and each leaves
 launchers, its release, the marketplace address and the checks the crate
 passes. The crate implements it, verified under issue 378, and the checks the
 crate passes, which EPC-1570 realises, were verified under issue 596. The
-check that `project` groups an issue nowhere, which ADR-1800 adds, is
-EPC-1710's.
+check that `project` groups an issue nowhere, which ADR-1800 adds, was
+verified with EPC-1710 under issue 625.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
@@ -266,9 +266,9 @@ convention and its check, and `meow-scm` implements it, verified under issue 130
 `meow-git` implements it, verified under issue 392.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
-checked, and `meow-flow` implements it, verified under issue 404, except the
+checked, and `meow-flow` implements it, verified under issue 404, and the
 grouping fields and `dependency-declared` ADR-1800 adds, which EPC-1710
-realises.
+realised, were verified under issue 625.
 
 [SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
 run's plan: the authority a repository declares, the command `plan` prints,
@@ -278,9 +278,9 @@ and the snapshot it writes. `checked-at` is empty until EPC-1900 is verified.
 the gate each checks, the state of the record, the command that drives it,
 and the route that comes before the first step. `meow-flow` implements it,
 verified under issue 368, except the cover step ADR-1620 adds, which EPC-1580
-realises, the blocking dependency ADR-1800 adds, which EPC-1710 realises, the
-skeptic ADR-2200 adds, which EPC-2100 realises, and the route ADR-2100 adds,
-which EPC-2000 realises.
+realises, the skeptic ADR-2200 adds, which EPC-2100 realises, and the route ADR-2100 adds,
+which EPC-2000 realises. The blocking dependency ADR-1800 adds, which EPC-1710
+realised, was verified under issue 625.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
@@ -519,8 +519,8 @@ two tasks, TSK-3300 and TSK-3310, neither of them started, and each of the two
 requirements ADR-2000 addresses lands in one of them.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
-realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, neither started, and
-each requirement ADR-1800 addresses lands in one of them.
+realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
+evidence, and was verified against every acceptance criterion under issue 625.
 
 [EPC-2100](epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realises
 ADR-2200 in two tasks, TSK-3700 and TSK-3710, neither of them started, and
