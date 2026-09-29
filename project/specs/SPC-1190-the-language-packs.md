@@ -2,7 +2,7 @@
 id: SPC-1190
 artifact: spec
 status: live
-revised: 2026-09-28
+revised: 2026-09-29
 checked-at:
 states: [REQ-0083, REQ-2434, REQ-2438]
 ---
@@ -38,11 +38,13 @@ to use it:
 | `.meowpaw/profile.toml`, `[<language>]` | The pack's own settings, in a table named for its language  |
 
 The program writes no file, in the repository or outside it, and never writes
-the profile or any tool's configuration. It runs one program, git, as
-`git ls-files` for the tracked file list and `git check-ignore` for an ignored
-path. A command that runs the language's tools on purpose, such as a link
-check, is named as such in the pack's document, and `status`, `bind` and
-`check` run none.
+the profile or any tool's configuration, because the repository's declaration
+comes first (REQ-0134) and a file the pack writes is a change nobody reviewed as
+a diff. It prints what it would declare, and the repository commits it. It runs
+one program, git, as `git ls-files` for the tracked file list and `git
+check-ignore` for an ignored path. A command that runs the language's tools on
+purpose, such as a link check, is named as such in the pack's document, and
+`status`, `bind` and `check` run none.
 
 Exit status, for every command:
 
