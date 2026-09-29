@@ -662,7 +662,11 @@ lines say, the section isn't filled while the task names no numbered
 criterion, while a line is left empty, while `Judgement` names a number the
 criteria don't have, or while `Checks` reads `none` and `Judgement` leaves a
 criterion out, because with no check every criterion rests on judgement
-(BUG-1261). `ready implement` reads these four lines and the task's numbered
+(BUG-1261). Wherever a check is listed, the section isn't filled while
+`Judgement` leaves out a criterion whose text, up to the next numbered
+criterion, has no `Closed by:` naming something, because such a criterion
+names nothing that checks it, and a `Judgement` reason holds at least one
+letter (BUG-1263). `ready implement` reads these four lines and the task's numbered
 criteria, and nothing more: it doesn't check that the kept run
 failed or that the checks landed before the implementation.
 

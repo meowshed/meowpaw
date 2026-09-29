@@ -146,13 +146,12 @@ criterion resting on judgement with its reason:
 It refuses while the section is missing or reads `Not yet.`, while a path
 under `Checks` or `Failing run` names no file in the repository, while
 the failing run lies outside the evidence directory or is a file git ignores,
-while
-`Landed in` reads `none` beside a named check, and while a `Judgement` number
-has no reason. A task with no check to write reads `none` on the first three
-lines and names every numbered acceptance criterion under `Judgement`. `ready`
-reads only these lines, so it doesn't check that the run failed. The method
-skill doesn't run the cover step yet, so until it does you write the Cover by
-hand.
+while `Landed in` reads `none` beside a named check, while a `Judgement`
+number has no reason, and while a criterion with no `Closed by:` line is left
+out of `Judgement`. A task with no check to write reads `none` on the first
+three lines and names every numbered acceptance criterion under `Judgement`.
+`ready` reads only these lines and the criteria, so it doesn't check that the
+run failed.
 
 `paw status` prints where the record stands, leading with whatever waits for
 your approval. For an epic with open tasks it names the first task it can
