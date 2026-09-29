@@ -2476,7 +2476,8 @@ fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
     }
     let judged = judgement(&values["Judgement"]);
     for (number, reason) in &judged {
-        if reason.is_empty() {
+        // A reason holds a word, so `.` or `-` is none (BUG-1263).
+        if !reason.chars().any(char::is_alphabetic) {
             gaps.push(format!(
                 "{id}'s Cover names criterion {number} under Judgement with no reason"
             ));
@@ -2499,6 +2500,16 @@ fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
         }
         if none("Failing run") && none("Landed in") {
             return gaps;
+        }
+    } else {
+        // A criterion with no `Closed by:` names nothing that checks it, so it
+        // rests on judgement and is named, whatever `Checks` lists (BUG-1263).
+        for number in unclosed_criteria(task) {
+            if !judged.iter().any(|(n, _)| *n == number) {
+                gaps.push(format!(
+                    "{id}'s Cover leaves criterion {number} out of its Judgement line, and the criterion names no check under Closed by:"
+                ));
+            }
         }
     }
     let checks = cover_paths(&values["Checks"]);
@@ -2653,6 +2664,29 @@ fn criteria_numbers(task: &Doc) -> Vec<String> {
     section_lines(task, "Acceptance criteria")
         .iter()
         .filter_map(|(_, l)| numbered.captures(l).map(|c| c[1].to_string()))
+        .collect()
+}
+
+/// The numbers of the criteria under a task's `## Acceptance criteria` whose
+/// text, up to the next numbered criterion, has no `Closed by:` naming
+/// something.
+fn unclosed_criteria(task: &Doc) -> Vec<String> {
+    let numbered = Regex::new(r"^(\d+)\.\s").expect("criterion pattern");
+    let closed = Regex::new(r"Closed by:\s*\S").expect("closed-by pattern");
+    let mut criteria: Vec<(String, String)> = Vec::new();
+    for (_, line) in section_lines(task, "Acceptance criteria") {
+        if let Some(c) = numbered.captures(line) {
+            criteria.push((c[1].to_string(), String::new()));
+        }
+        if let Some((_, text)) = criteria.last_mut() {
+            text.push(' ');
+            text.push_str(line.trim());
+        }
+    }
+    criteria
+        .into_iter()
+        .filter(|(_, text)| !closed.is_match(text))
+        .map(|(number, _)| number)
         .collect()
 }
 
