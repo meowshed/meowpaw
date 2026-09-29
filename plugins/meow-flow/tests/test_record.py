@@ -2401,6 +2401,20 @@ class MethodSkill(unittest.TestCase):
         self.assertRegex(third, r"\bpass")
         self.assertNotRegex(third, r"\bwrite a check\b")
 
+    def test_a_partial_review_is_unreviewed(self):
+        """TSK-2701 criterion 2, REQ-2974, SPC-1090 "The review before a gate": a rule beside M22 reports a record
+        whose review came back marked as stopped at the agent's ceiling as unreviewed by an agent, with its
+        reason."""
+        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
+        items = re.findall(r"^- (M\d+)\.\s(.*?)(?=^- M\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
+        idents = [ident for ident, _ in items]
+        self.assertIn("M22", idents)
+        matching = [ident for ident, body in items
+                    if re.search(r"\bceiling\b", flat(body)) and "unreviewed by an agent" in flat(body) and "because" in flat(body)]
+        self.assertTrue(matching, "no rule in the method skill reports a review stopped at its ceiling as unreviewed by an agent")
+        beside = {idents[i] for i in (idents.index("M22") - 1, idents.index("M22") + 1) if 0 <= i < len(idents)}
+        self.assertTrue(beside & set(matching), f"the rule {matching} isn't beside M22")
+
     def chain(self, text):
         block = next(b for b in re.findall(r"```text\n(.*?)```", text, re.DOTALL) if "research ->" in b)
         return tuple(name.strip() for name in block.split("->")), text.split(block, 1)[0]
