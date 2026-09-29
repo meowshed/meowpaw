@@ -1,0 +1,162 @@
+meow-verbs evidence 1
+record: 0765f11da365
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: 4d4f38d33eb102198de2b77a19ef229ac8e9cf3f
+time: 2026-09-29T14:10:43Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+built meow-unattended for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 38 tests
+......................................
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 12.969s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.728s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 5.358s
+
+OK
+.......................................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 215 tests in 16.942s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.029s
+
+OK
+..............
+----------------------------------------------------------------------
+Ran 14 tests in 1.985s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.806s
+
+OK
+..................
+----------------------------------------------------------------------
+Ran 18 tests in 1.004s
+
+OK
+.......................................
+----------------------------------------------------------------------
+Ran 39 tests in 7.689s
+
+OK
+..............................
+----------------------------------------------------------------------
+Ran 30 tests in 3.258s
+
+OK
+...........................s...................
+----------------------------------------------------------------------
+Ran 47 tests in 5.410s
+
+OK (skipped=1)
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 0.504s
+
+OK
+.................F.
+======================================================================
+FAIL: test_unit_paths_hold_from_a_subdirectory (test_unattended.Units.test_unit_paths_hold_from_a_subdirectory)
+TSK-3330 criterion 1, BUG-1341: run in a subdirectory, `plan` names each declared unit by its
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.fix-unattended-unit-paths/plugins/meow-unattended/tests/test_unattended.py", line 330, in test_unit_paths_hold_from_a_subdirectory
+    self.assertEqual(loaded, expected, done.stdout)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['units/alpha', 'units/beta'] != ['/private/var/folders/wk/74q0nx852996mc0yh[129 chars]eta']
+
+First differing element 0:
+'units/alpha'
+'/private/var/folders/wk/74q0nx852996mc0yh[40 chars]lpha'
+
+- ['units/alpha', 'units/beta']
++ ['/private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpknmhdxwg/repo/units/alpha',
++  '/private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpknmhdxwg/repo/units/beta'] : [unattended]
+permission_mode = "dontAsk"
+budget_usd = 2.5
+gates = ["verify", "review"]
+units = ["units/alpha", "units/beta"]
+merge_protected = false
+amend_approved = false
+
+units, each with the name and version its plugin.json holds:
+  units/alpha  alpha 0.3.1
+  units/beta  beta 0.3.1
+
+The command that would start the run, one argument a line:
+
+  claude \
+    -p \
+    --bare \
+    --plugin-dir units/alpha \
+    --plugin-dir units/beta \
+    --permission-mode dontAsk \
+    --permission-prompts none \
+    --disallowed-tools AskUserQuestion \
+    --output-format stream-json \
+    --verbose \
+    --max-budget-usd 2.5 \
+    --settings /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpknmhdxwg/state/meowpaw/unattended/1f45db9308d993c3/2e7efc2cc14d7bae88adaad5af3b448c1072f04661362b6b0e331dc7bf628968.json
+
+snapshot: /private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpknmhdxwg/state/meowpaw/unattended/1f45db9308d993c3/2e7efc2cc14d7bae88adaad5af3b448c1072f04661362b6b0e331dc7bf628968.json
+
+deny rules:
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpknmhdxwg/repo/.meowpaw/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpknmhdxwg/repo/.claude/**)
+  Edit(//private/var/folders/wk/74q0nx852996mc0yhcf2__pw0000gn/T/tmpknmhdxwg/state/meowpaw/unattended/1f45db9308d993c3/**)
+  Bash(git push *main*)
+  Bash(git push)
+  Bash(git push *HEAD*)
+no record to protect: the profile declares no [record]
+
+A requirement or decision approved after this plan isn't protected until plan runs again.
+
+The deny rules have four limits:
+- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
+  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
+  while the trunk is checked out.
+- An Edit deny rule reaches the file tools and the file commands Claude Code
+  recognises, and not a script that opens the file itself.
+- A merge through the code host's interface isn't denied.
+- A new record whose front matter supersedes or withdraws an approved one retires
+  it without editing its file, so no deny rule stops it.
+
+The command needs ANTHROPIC_API_KEY in its environment.
+
+
+----------------------------------------------------------------------
+Ran 19 tests in 1.504s
+
+FAILED (failures=1)

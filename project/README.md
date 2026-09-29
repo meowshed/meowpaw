@@ -570,6 +570,7 @@ addresses lands in one of them.
 | [BUG-1262](bugs/BUG-1262-the-cover-gate-accepts-a-run-that-is-not-evidence.md)        | `paw ready implement` accepted a Failing run outside the evidence directory, or one git ignores                   |
 | [BUG-1300](bugs/BUG-1300-no-check-shows-status-waiting-on-a-blocking-dependency.md)   | No check showed `paw status` waiting on a blocking dependency                                                     |
 | [BUG-1340](bugs/BUG-1340-an-approved-record-in-another-yaml-form-goes-unprotected.md) | `meow-unattended plan` left an approved record with a quoted, commented or CRLF status without a deny rule        |
+| [BUG-1341](bugs/BUG-1341-a-unit-path-is-printed-relative-to-the-root.md)              | `meow-unattended plan` printed each unit relative to the root, which names nothing from a subdirectory            |
 
 Twenty-nine are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement

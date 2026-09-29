@@ -48,9 +48,11 @@ struct Authority {
     amend_approved: bool,
 }
 
-/// A declared unit, with the name and version its `plugin.json` holds.
+/// A declared unit, with its directory's absolute path and the name and
+/// version its `plugin.json` holds.
 struct Unit {
     entry: String,
+    path: String,
     name: String,
     version: String,
 }
@@ -175,7 +177,7 @@ fn plan(root: &Path) -> u8 {
     );
     let mut line: Vec<String> = vec!["claude".into(), "-p".into(), "--bare".into()];
     for unit in &authority.units {
-        line.push(format!("--plugin-dir {}", quoted(&unit.entry)));
+        line.push(format!("--plugin-dir {}", quoted(&unit.path)));
     }
     line.push(format!("--permission-mode {}", authority.mode));
     line.push("--permission-prompts none".into());
@@ -324,7 +326,9 @@ fn unit(root: &Path, entry: String, refusals: &mut Vec<String>) -> Option<Unit> 
         ));
         return None;
     }
-    let manifest = root.join(&entry).join(".claude-plugin").join("plugin.json");
+    // The command may run anywhere, so it names the directory the check read.
+    let directory = root.join(&entry);
+    let manifest = directory.join(".claude-plugin").join("plugin.json");
     let Ok(text) = std::fs::read_to_string(&manifest) else {
         refusals.push(format!(
             "unresolved: unit {entry} is not a unit's own directory"
@@ -341,8 +345,10 @@ fn unit(root: &Path, entry: String, refusals: &mut Vec<String>) -> Option<Unit> 
         ));
         return None;
     };
+    let path = std::fs::canonicalize(&directory).unwrap_or(directory);
     Some(Unit {
         entry,
+        path: path.to_string_lossy().into_owned(),
         name,
         version,
     })
@@ -427,7 +433,7 @@ fn snapshot(authority: &Authority, deny: &[String]) -> String {
     let units: Vec<Value> = authority
         .units
         .iter()
-        .map(|u| json!({ "path": u.entry, "name": u.name, "version": u.version }))
+        .map(|u| json!({ "path": u.path, "name": u.name, "version": u.version }))
         .collect();
     let content = json!({
         "meowpaw": { "unattended": Value::Object(table), "units": units },
