@@ -32,8 +32,9 @@ that picks it up is implement.
 <rules name="cover">
 - C1. Write checks and never implementation code, because a check written
   beside the code it tests is shaped by that code and misses its faults.
-- C2. Name under `Judgement` each criterion no program can check, with the
-  reason, because an unchecked criterion left off the list reads as covered.
+- C2. Name under `Judgement` each criterion no program can check, and each
+  with no `Closed by:` line, with the reason, because an unchecked criterion
+  left off the list reads as covered, and `paw ready implement` refuses it.
 - C3. Leave `Failing run` and `Landed in` as none only where `Checks` is none
   and `Judgement` names every criterion, because then nothing ran and nothing
   landed.

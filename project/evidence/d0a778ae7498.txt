@@ -1,0 +1,23 @@
+meow-verbs evidence 1
+record: d0a778ae7498
+verb: build
+command: mise run build
+targets: none
+outcome: passed
+exit status: 0
+tree: 3635230ce19c9b50f8001de5b81834faf9615c15
+time: 2026-09-29T14:11:00Z
+
+[build] $ crates/meow/build-units
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+built meow-unattended for aarch64-apple-darwin

@@ -1,0 +1,11 @@
+meow-verbs evidence 1
+record: b03d2e301f51
+verb: check
+command: mise run crate-check
+targets: none
+outcome: passed
+exit status: 0
+tree: acde74caedb7ea2f9ce17842b0025a95237647f5
+time: 2026-09-29T14:24:20Z
+
+[crate-check] $ cargo check --quiet --manifest-path crates/meow/Cargo.toml --all-features --all-targets
