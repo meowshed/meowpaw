@@ -111,12 +111,22 @@ printed as unresolved or unbound with its reason is settled (ADR-1900).
 | `<file> doesn't parse as TOML: <message>`                                | The link check's settings file doesn't parse                                                                                                  |
 | `.lycheecache isn't ignored`                                             | The link check's cache is on, and `git check-ignore` finds no ignore file in the repository covering the path                                 |
 
-Any string in `[markdown] target` is a declaration. The finding for two
-configurations in one directory is read from the files, whatever the verb
-runs. For a verb running `lychee`, the settings file is the one `--config`
-names, or `lychee.toml` at the root, and its flags count, among them
-`--offline`, `--max-retries` and `--cache`; for a verb running `meow-markdown
-links`, the settings file is `lychee.toml` alone. A global excludes file and
+Any string in `[markdown] target` is a declaration. A command runs a tool
+where one of its words, split at white space and the shell's `;`, `&`, `|`,
+`(` and `)`, has the tool's name as its last path component, so `npx
+markdownlint-cli2` and `node_modules/.bin/markdownlint` both count. The finding
+for two configurations in one directory is read from the files, whatever the
+verb runs. A `.markdownlint-cli2.jsonc`, `.json`, `.yaml` or `.yml` sets rules where
+its `config` key holds a value other than null or an empty object, and one
+that doesn't parse sets none, because markdownlint-cli2 then fails on it
+itself. A `.markdownlint-cli2.cjs` or `.mjs` is code `check` doesn't run, so
+it sets rules where its text contains `config`. `check` prints each finding
+on a line of its own, and `no findings` when there is none.
+
+For a verb running `lychee`, the settings file is the one `--config` names,
+or `lychee.toml` at the root, and its flags count, among them `--offline`,
+`--max-retries` and `--cache`; for a verb running `meow-markdown links`, the
+settings file is `lychee.toml` alone. A global excludes file and
 `.git/info/exclude` don't count as ignoring `.lycheecache`. A command that
 runs a linter or a link checker through a runner's task isn't read.
 

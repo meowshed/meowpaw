@@ -1,0 +1,400 @@
+meow-verbs evidence 1
+record: d8c083022377
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: 36bc6ab5f55a182163d96c9bbbdfb11490537ab0
+time: 2026-09-29T08:18:41Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 31 tests
+...............................
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 14.250s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.794s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 6.118s
+
+OK
+..............................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 190 tests in 15.545s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.038s
+
+OK
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 1.826s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.852s
+
+OK
+..................
+----------------------------------------------------------------------
+Ran 18 tests in 0.908s
+
+OK
+.......................................
+----------------------------------------------------------------------
+Ran 39 tests in 7.838s
+
+OK
+..............................
+----------------------------------------------------------------------
+Ran 30 tests in 3.821s
+
+OK
+FF.......FFFFFFFFFF...FFFFFFFFFFFFFFFFF...
+======================================================================
+FAIL: test_criterion_7_check_passes_on_this_repository (test_markdown.Adopted.test_criterion_7_check_passes_on_this_repository)
+TSK-3110 criterion 7, REQ-2434 and REQ-2452: `check` finds nothing in this repository.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 344, in test_criterion_7_check_passes_on_this_repository
+    self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_7_the_profile_declares_github_and_lint_runs_check (test_markdown.Adopted.test_criterion_7_the_profile_declares_github_and_lint_runs_check)
+TSK-3110 criterion 7, REQ-2452 and REQ-2434: `[markdown] target` and the `lint` verb, by the program's path.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 336, in test_criterion_7_the_profile_declares_github_and_lint_runs_check
+    self.assertEqual(profile.get("markdown", {}).get("target"), "github")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'github'
+
+======================================================================
+FAIL: test_criterion_6_check_leaves_the_tree_as_it_was (test_markdown.CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was) (fixture='no target')
+TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 326, in test_criterion_6_check_leaves_the_tree_as_it_was
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_6_check_leaves_the_tree_as_it_was (test_markdown.CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was) (fixture='github')
+TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 326, in test_criterion_6_check_leaves_the_tree_as_it_was
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_6_check_leaves_the_tree_as_it_was (test_markdown.CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was) (fixture='forgejo')
+TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 326, in test_criterion_6_check_leaves_the_tree_as_it_was
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_6_check_leaves_the_tree_as_it_was (test_markdown.CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was) (fixture='defaults')
+TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 326, in test_criterion_6_check_leaves_the_tree_as_it_was
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_6_check_leaves_the_tree_as_it_was (test_markdown.CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was) (fixture='ignored')
+TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 326, in test_criterion_6_check_leaves_the_tree_as_it_was
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_6_check_leaves_the_tree_as_it_was (test_markdown.CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was) (fixture='overridden')
+TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 326, in test_criterion_6_check_leaves_the_tree_as_it_was
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_6_check_leaves_the_tree_as_it_was (test_markdown.CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was) (fixture='no profile')
+TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 326, in test_criterion_6_check_leaves_the_tree_as_it_was
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_6_check_leaves_the_tree_as_it_was (test_markdown.CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was) (fixture='unparseable')
+TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 326, in test_criterion_6_check_leaves_the_tree_as_it_was
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_5_a_missing_profile_is_unresolved (test_markdown.CheckUnresolved.test_criterion_5_a_missing_profile_is_unresolved)
+TSK-3110 criterion 5: a missing profile prints unresolved and exits 3.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 295, in test_criterion_5_a_missing_profile_is_unresolved
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_5_a_profile_that_does_not_parse_is_unresolved (test_markdown.CheckUnresolved.test_criterion_5_a_profile_that_does_not_parse_is_unresolved)
+TSK-3110 criterion 5: a profile that doesn't parse prints unresolved and exits 3.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 301, in test_criterion_5_a_profile_that_does_not_parse_is_unresolved
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_2_markdownlint_cli2_with_a_configuration_passes (test_markdown.MarkdownlintSettings.test_criterion_2_markdownlint_cli2_with_a_configuration_passes)
+TSK-3110 criterion 2, REQ-2434: a tracked `.markdownlint-cli2.yaml` settles the defaults finding.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 249, in test_criterion_2_markdownlint_cli2_with_a_configuration_passes
+    self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_2_markdownlint_cli2_with_no_configuration_runs_its_defaults (test_markdown.MarkdownlintSettings.test_criterion_2_markdownlint_cli2_with_no_configuration_runs_its_defaults)
+TSK-3110 criterion 2, REQ-2434: a `lint` verb running markdownlint-cli2 with no configuration file.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 243, in test_criterion_2_markdownlint_cli2_with_no_configuration_runs_its_defaults
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_3_markdownlint_cli2_reads_its_own_file (test_markdown.MarkdownlintSettings.test_criterion_3_markdownlint_cli2_reads_its_own_file)
+TSK-3110 criterion 3, REQ-2434: markdownlint-cli2 beside the same file draws no finding.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 261, in test_criterion_3_markdownlint_cli2_reads_its_own_file
+    self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_3_markdownlint_ignores_a_cli2_file (test_markdown.MarkdownlintSettings.test_criterion_3_markdownlint_ignores_a_cli2_file)
+TSK-3110 criterion 3, REQ-2434: markdownlint beside a tracked `.markdownlint-cli2.jsonc` exits 1 naming it.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 255, in test_criterion_3_markdownlint_ignores_a_cli2_file
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_a_cli2_file_setting_no_rule_is_no_finding (test_markdown.MarkdownlintSettings.test_criterion_4_a_cli2_file_setting_no_rule_is_no_finding)
+TSK-3110 criterion 4, REQ-2434: a `.markdownlint-cli2.yaml` with no `config` overrides nothing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 285, in test_criterion_4_a_cli2_file_setting_no_rule_is_no_finding
+    self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_two_configurations_in_one_directory (test_markdown.MarkdownlintSettings.test_criterion_4_two_configurations_in_one_directory) (lint=None, directory='.')
+TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 273, in test_criterion_4_two_configurations_in_one_directory
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_two_configurations_in_one_directory (test_markdown.MarkdownlintSettings.test_criterion_4_two_configurations_in_one_directory) (lint=None, directory='docs/')
+TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 273, in test_criterion_4_two_configurations_in_one_directory
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_two_configurations_in_one_directory (test_markdown.MarkdownlintSettings.test_criterion_4_two_configurations_in_one_directory) (lint='lint = "markdownlint-cli2 \'**/*.md\'"\n', directory='.')
+TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 273, in test_criterion_4_two_configurations_in_one_directory
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_two_configurations_in_one_directory (test_markdown.MarkdownlintSettings.test_criterion_4_two_configurations_in_one_directory) (lint='lint = "markdownlint-cli2 \'**/*.md\'"\n', directory='docs/')
+TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 273, in test_criterion_4_two_configurations_in_one_directory
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_two_configurations_in_one_directory (test_markdown.MarkdownlintSettings.test_criterion_4_two_configurations_in_one_directory) (lint='lint = "markdownlint \'**/*.md\'"\n', directory='.')
+TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 273, in test_criterion_4_two_configurations_in_one_directory
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_two_configurations_in_one_directory (test_markdown.MarkdownlintSettings.test_criterion_4_two_configurations_in_one_directory) (lint='lint = "markdownlint \'**/*.md\'"\n', directory='docs/')
+TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 273, in test_criterion_4_two_configurations_in_one_directory
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_two_configurations_in_one_directory (test_markdown.MarkdownlintSettings.test_criterion_4_two_configurations_in_one_directory) (lint='lint = "true"\n', directory='.')
+TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 273, in test_criterion_4_two_configurations_in_one_directory
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_4_two_configurations_in_one_directory (test_markdown.MarkdownlintSettings.test_criterion_4_two_configurations_in_one_directory) (lint='lint = "true"\n', directory='docs/')
+TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 273, in test_criterion_4_two_configurations_in_one_directory
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_1_a_declared_target_passes (test_markdown.RenderTarget.test_criterion_1_a_declared_target_passes) (target='github')
+TSK-3110 criterion 1, REQ-2452: `github`, and `forgejo` the skill doesn't know, both exit 0.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 233, in test_criterion_1_a_declared_target_passes
+    self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_1_a_declared_target_passes (test_markdown.RenderTarget.test_criterion_1_a_declared_target_passes) (target='forgejo')
+TSK-3110 criterion 1, REQ-2452: `github`, and `forgejo` the skill doesn't know, both exit 0.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 233, in test_criterion_1_a_declared_target_passes
+    self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_1_a_missing_target_is_a_finding (test_markdown.RenderTarget.test_criterion_1_a_missing_target_is_a_finding)
+TSK-3110 criterion 1, REQ-2452: no `[markdown] target` exits 1 naming the missing target.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 219, in test_criterion_1_a_missing_target_is_a_finding
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+======================================================================
+FAIL: test_criterion_1_an_empty_target_is_a_finding (test_markdown.RenderTarget.test_criterion_1_an_empty_target_is_a_finding)
+TSK-3110 criterion 1, REQ-2452: an empty `[markdown] target` counts as missing.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-markdown-check-cover/plugins/meow-markdown/tests/test_markdown.py", line 225, in test_criterion_1_an_empty_target_is_a_finding
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind
+
+
+----------------------------------------------------------------------
+Ran 27 tests in 3.575s
+
+FAILED (failures=29)
