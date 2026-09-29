@@ -72,7 +72,7 @@ of `Judgement` wherever `Checks` lists a check. A `Judgement` reason with no
 letter now counts as no reason. The fixture criteria carry the `Closed by:`
 lines the template asks for. SPC-1090's section "The gate", rule C2 in
 `steps/cover.md` and the `meow-flow` README state the rule, and `meow-flow`
-goes to 0.39.2.
+goes to 0.39.3.
 
 The two checks that describe the defect in the class `CoverClosedBy` failed
 first: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
