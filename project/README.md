@@ -566,8 +566,9 @@ addresses lands in one of them.
 | [BUG-1250](bugs/BUG-1250-status-names-a-step-ready-refuses-for-a-taskless-epic.md)   | `paw status` named document for an epic with no tasks, and `paw ready` refused it                                 |
 | [BUG-1260](bugs/BUG-1260-the-cover-gate-accepts-a-run-that-is-not-kept.md)           | `paw ready implement` accepted a Failing run outside the repository, a directory, or the check itself             |
 | [BUG-1261](bugs/BUG-1261-the-cover-gate-lets-an-unchecked-criterion-go-unnamed.md)   | `paw ready implement` accepted a Cover that left a criterion nothing checks unnamed                               |
+| [BUG-1262](bugs/BUG-1262-the-cover-gate-accepts-a-run-that-is-not-evidence.md)       | `paw ready implement` accepted a Failing run outside the evidence directory, or one git ignores                   |
 
-Twenty-six are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Twenty-seven are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.
