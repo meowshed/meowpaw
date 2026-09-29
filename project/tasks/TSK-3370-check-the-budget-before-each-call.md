@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1910
 closes: [REQ-0870, REQ-0876, REQ-0878]
-issue:
+issue: 727
+projected: da48b31a3ef7
 ---
 
 # Check the budget before each call, and end a run that can't be metered

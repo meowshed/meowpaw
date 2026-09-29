@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1910
 closes: [REQ-0894]
-issue:
+issue: 730
+projected: 11479fab2500
 ---
 
 # Let only a person start a run

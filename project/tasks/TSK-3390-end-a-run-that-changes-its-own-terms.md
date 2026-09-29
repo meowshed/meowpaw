@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1910
 closes: [REQ-0874]
-issue:
+issue: 729
+projected: 323390752993
 ---
 
 # End a run that changes its own terms, and deny an edit of a run's files

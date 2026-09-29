@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1910
 closes: [REQ-0886]
-issue:
+issue: 728
+projected: 471a85de25a3
 ---
 
 # End a run after two iterations in a row that change nothing
