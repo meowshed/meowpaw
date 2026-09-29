@@ -68,5 +68,7 @@ in the class `LintCommand`.
 
 ## Tasks
 
-- [ ] T-001 TSK-3150 read a program word without its version and
+- [x] T-001 TSK-3150 read a program word without its version and
       markdownlint-cli2's `--config`, in `crates/meow/src/markdown.rs`
+      evidence: 3 checks seen failing first, 52 `meow-markdown` fixtures
+      passing, in #697.

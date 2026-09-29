@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-markdown@0.4.1]
+describes: [meow-markdown@0.4.2]
 ---
 
 # meow-markdown
@@ -101,15 +101,15 @@ runner's tasks.
 `meow-markdown check` reports each setting your verbs depend on that is
 missing or has no effect, one line for each finding, and exits 1 on any:
 
-| Line                                                                     | When                                                                                                         |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `no render target: declare [markdown] target`                            | Your profile's `[markdown] target` is missing or empty                                                       |
-| `markdownlint-cli2 runs its defaults: no configuration file`             | Your `lint` verb runs `markdownlint-cli2` and git tracks no markdownlint configuration                       |
-| `markdownlint ignores <file>`                                            | Your `lint` verb runs `markdownlint` and git tracks a `.markdownlint-cli2.*` file                            |
-| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules           |
-| `link check declares no <setting>`                                       | A verb runs `lychee` or `meow-markdown links`, and nothing it reads sets `offline`, `max_retries` or `cache` |
-| `<file> doesn't parse as TOML: <message>`                                | The link check's settings file isn't valid TOML                                                              |
-| `.lycheecache isn't ignored`                                             | The link check's cache is on, and no ignore file in your repository covers `.lycheecache`                    |
+| Line                                                                     | When                                                                                                                |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `no render target: declare [markdown] target`                            | Your profile's `[markdown] target` is missing or empty                                                              |
+| `markdownlint-cli2 runs its defaults: no configuration file`             | Your `lint` verb runs `markdownlint-cli2`, names no `--config <file>`, and git tracks no markdownlint configuration |
+| `markdownlint ignores <file>`                                            | Your `lint` verb runs `markdownlint` or `markdownlint-cli`, and git tracks a `.markdownlint-cli2.*` file            |
+| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules                  |
+| `link check declares no <setting>`                                       | A verb runs `lychee` or `meow-markdown links`, and nothing it reads sets `offline`, `max_retries` or `cache`        |
+| `<file> doesn't parse as TOML: <message>`                                | The link check's settings file isn't valid TOML                                                                     |
+| `.lycheecache isn't ignored`                                             | The link check's cache is on, and no ignore file in your repository covers `.lycheecache`                           |
 
 Any string in `[markdown] target` counts as a declaration. For a verb running
 `lychee`, `check` reads the file `--config` names, or `lychee.toml` at the root,
@@ -119,7 +119,11 @@ flag. A global excludes file and `.git/info/exclude` protect one clone only, so
 neither counts as ignoring `.lycheecache`. The last finding
 comes from the files alone, whatever your `lint` verb runs. `check` reads the
 tool your `lint` verb names, so a linter run through a runner's task, such as
-`mise run lint`, isn't seen. With no finding it prints `no findings` and exits 0.
+`mise run lint`, isn't seen. It names a program without an `@<version>`
+suffix, so `npx markdownlint-cli2@0.23.2` counts as markdownlint-cli2. Write
+markdownlint-cli2's `--config` with the path as the next word, because
+markdownlint-cli2 reads `--config=<path>` as a glob and applies no
+configuration from it. With no finding it prints `no findings` and exits 0.
 
 To run the checks with your linter, append the command to your `lint` verb,
 naming the program by its path so a CI job without the unit's `bin/` on
