@@ -2211,6 +2211,77 @@ def tagged(text, tag):
     return found.group(1) if found else ""
 
 
+class Grouping(unittest.TestCase):
+    """ADR-1800 and SPC-1070 "The layout": the task, epic and defect kinds forbid every grouping field, and the
+    epic kind forbids `epic`, so a task sits under its epic or its defect and nothing else (REQ-3320)."""
+
+    TASK = "tasks/TSK-0001-a-task.md"
+    EPIC = "epics/EPC-0001-a-plan.md"
+    BUG = "bugs/BUG-0001-a-defect.md"
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def reported(self, repository, name, field):
+        """`paw check` exits 1 and names the file, the field's line and the field. Line 7 is the first line after
+        the fixture's own fields, where each test writes the grouping field."""
+        done = repository.run("check")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn(f"project/{name}:7: carries {field},", done.stdout)
+        return done
+
+    def test_a_task_with_a_milestone_is_reported(self):
+        """TSK-2910 criterion 1, REQ-3320: a task carrying `milestone:` is reported by file and field, whatever
+        its status, so the draft is reported as the approved one is."""
+        repository = self.repo()
+        repository.edit(self.TASK, "status: approved\nrevised: 2026-01-01\nepic: EPC-0001",
+                        "status: draft\nrevised: 2026-01-01\nepic: EPC-0001\nmilestone: v1")
+        self.reported(repository, self.TASK, "milestone")
+
+    def test_an_epic_with_a_parent_is_reported(self):
+        """TSK-2910 criterion 1, REQ-3320: an epic carrying `parent:` is reported by file and field."""
+        repository = self.repo()
+        repository.edit(self.EPIC, "realises: ADR-0001", "realises: ADR-0001\nparent: EPC-0002")
+        self.reported(repository, self.EPIC, "parent")
+
+    def test_a_task_under_its_epic_or_defect_passes(self):
+        """TSK-2910 criterion 1, REQ-3320: a task naming `epic:`, or `bug:` in its place, and no grouping field
+        is not reported, so the forbidden list doesn't reach the fields that place a task. The epic carries
+        `parent:` in the same run, so the check is shown reporting a grouping field and passing the task, and a
+        run that reports no grouping field anywhere doesn't pass."""
+        for field in ("epic: EPC-0001", "bug: BUG-0001"):
+            with self.subTest(field=field):
+                repository = self.repo()
+                repository.edit(self.TASK, "epic: EPC-0001", field)
+                repository.edit(self.EPIC, "realises: ADR-0001", "realises: ADR-0001\nparent: EPC-0002")
+                done = self.reported(repository, self.EPIC, "parent")
+                self.assertNotIn("TSK-0001", done.stdout, done.stdout)
+                self.assertEqual(done.stdout.count("carries"), 1, done.stdout)
+
+    def test_an_approved_task_with_a_label_is_reported(self):
+        """TSK-2910 criterion 2, REQ-3320: an approved task carrying `label:` is reported, because a forbidden
+        field reaches every record and not only a draft."""
+        repository = self.repo()
+        repository.edit(self.TASK, "epic: EPC-0001", "epic: EPC-0001\nlabel: urgent")
+        self.assertIn("status: approved", (repository.root / self.TASK).read_text(encoding="utf-8"))
+        self.reported(repository, self.TASK, "label")
+
+    def test_a_defect_with_a_milestone_is_reported(self):
+        """TSK-2910 criterion 3, REQ-3320: a defect carrying `milestone:` is reported by file and field."""
+        repository = self.repo()
+        repository.edit(self.BUG, "violates: REQ-0001", "violates: REQ-0001\nmilestone: v1")
+        self.reported(repository, self.BUG, "milestone")
+
+    def test_an_epic_under_an_epic_is_reported(self):
+        """TSK-2910 criterion 3, REQ-3320: an epic carrying `epic:` is reported, because only an epic would place
+        one epic under another."""
+        repository = self.repo()
+        repository.edit(self.EPIC, "realises: ADR-0001", "realises: ADR-0001\nepic: EPC-0002")
+        self.reported(repository, self.EPIC, "epic")
+
+
 class MethodSkill(unittest.TestCase):
     """ADR-1620: the method's prompts name ten steps (REQ-3200) and where each step's artifact lands (REQ-3203)."""
 
