@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1720
 closes: [REQ-2568, REQ-2582]
-issue:
+issue: 706
+projected: 4bac05d3ef46
 ---
 
 # Keep the four budgets, space the writes, and name the credential's form

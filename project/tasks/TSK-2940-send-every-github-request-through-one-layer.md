@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1720
 closes: [REQ-2566, REQ-2578]
-issue:
+issue: 705
+projected: 830811b8caac
 ---
 
 # Send every GitHub request through one layer that reads its limits and stops at a stated wait

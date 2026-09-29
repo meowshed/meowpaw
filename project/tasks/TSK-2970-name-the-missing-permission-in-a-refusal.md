@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1720
 closes: [REQ-2574]
-issue:
+issue: 708
+projected: 53ab6e7b4959
 ---
 
 # Name the endpoint and the missing permission in a refusal
