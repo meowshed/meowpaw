@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.5.0]
+describes: [meow-github@0.6.0]
 ---
 
 # meow-github
@@ -85,6 +85,13 @@ a marker naming the task and a fingerprint. The task gains `issue:` with the
 issue's number and `projected:` with the fingerprint, so the mapping lives in
 the repository. Each issue is read back after it is created. Run it again and
 nothing changes. It refuses an epic that isn't approved.
+
+A decision one task realises has no epic. Name the decision, and the pack files
+an issue for each task that names it in `realises:`, under nothing:
+
+```bash
+meow-github project ADR-2300
+```
 
 The record owns each issue's title and body, and GitHub owns whether it is
 open or closed, which the pack never writes. A task you changed updates its

@@ -315,16 +315,7 @@ fn closing_tasks(
             continue;
         }
         let epic_id = authority_of(task).to_string();
-        let mark = known
-            .get(epic_id.as_str())
-            .and_then(|e| {
-                marks(e)
-                    .into_iter()
-                    .find(|(t, _)| t == bare(task.id()))
-                    .map(|(_, m)| m)
-            })
-            .unwrap_or(' ');
-        out.push((bare(task.id()).to_string(), mark, epic_id));
+        out.push((bare(task.id()).to_string(), mark_of(known, task), epic_id));
     }
     out.sort();
     out
@@ -2039,7 +2030,11 @@ fn rules(record: &Record) -> Vec<Finding> {
                 "enters-fits" => {
                     let enters = bare(doc.value("enters"));
                     let line = doc.field("enters").map(|f| f.line);
-                    if !enters.is_empty() && !STEPS.contains(&enters) {
+                    // A defect approved while cover was a step keeps the step it
+                    // was triaged to (ADR-2300); a draft names a step in force.
+                    let retired = RETIRED_STEPS.iter().any(|(name, _)| *name == enters);
+                    if !enters.is_empty() && !STEPS.contains(&enters) && !(retired && approved(doc))
+                    {
                         out.push(Finding::at(
                             doc,
                             line,
@@ -2125,13 +2120,16 @@ fn rules(record: &Record) -> Vec<Finding> {
                     }
                 }
                 "one-authority" => {
-                    let named = [doc.value("epic"), doc.value("bug")]
+                    let named = [doc.value("epic"), doc.value("bug"), doc.value("realises")]
                         .iter()
                         .filter(|v| !bare(v).is_empty())
                         .count();
                     if named != 1 {
-                        let field = doc.field("epic").or_else(|| doc.field("bug"));
-                        out.push(Finding::at(doc, field.map(|f| f.line), format!("names {named} authorising records, where a task names exactly one epic or one defect")));
+                        let field = doc
+                            .field("epic")
+                            .or_else(|| doc.field("bug"))
+                            .or_else(|| doc.field("realises"));
+                        out.push(Finding::at(doc, field.map(|f| f.line), format!("names {named} authorising records, where a task names exactly one epic, one defect or one decision it realises")));
                     }
                 }
                 "dependency-declared" => {
@@ -2212,17 +2210,25 @@ fn rules(record: &Record) -> Vec<Finding> {
     out
 }
 
-const STEPS: [&str; 10] = [
+const STEPS: [&str; 7] = [
     "research",
     "requirements",
     "design",
     "spec",
     "epic",
-    "cover",
     "implement",
-    "document",
-    "verify",
     "review",
+];
+
+/// The steps ADR-2300 retired, each with what took its work, read for one
+/// release so an old prompt is told where to go (REQ-3638).
+const RETIRED_STEPS: [(&str, &str); 3] = [
+    ("cover", "cover is part of implement"),
+    ("document", "document is part of implement"),
+    (
+        "verify",
+        "verify is gone: a requirement closes with the tasks that name it",
+    ),
 ];
 const TEMPLATES: [&str; 12] = [
     "research",
@@ -2263,15 +2269,29 @@ fn marks(epic: &Doc) -> Vec<(String, char)> {
         .collect()
 }
 
-/// The record that authorises a task: the epic it names, or the defect that
-/// carries it directly (ADR-1440).
+/// The record that authorises a task: the epic it names, the defect that
+/// carries it directly (ADR-1440), or the decision it realises with no epic
+/// (REQ-3630).
 fn authority_of(task: &Doc) -> &str {
-    let epic = bare(task.value("epic"));
-    if epic.is_empty() {
-        bare(task.value("bug"))
-    } else {
-        epic
+    ["epic", "bug", "realises"]
+        .iter()
+        .map(|key| bare(task.value(key)))
+        .find(|v| !v.is_empty())
+        .unwrap_or("")
+}
+
+/// The mark a task carries: the one its epic or defect gives it, or, for a
+/// task realising a decision with nothing to mark it, done once its Evidence
+/// is written (REQ-3630).
+fn mark_of(known: &BTreeMap<String, &Doc>, task: &Doc) -> char {
+    let id = bare(task.id());
+    if bare(task.value("epic")).is_empty() && bare(task.value("bug")).is_empty() {
+        return if claims_done(task) { 'x' } else { ' ' };
     }
+    known
+        .get(authority_of(task))
+        .and_then(|e| marks(e).into_iter().find(|(t, _)| t == id).map(|(_, m)| m))
+        .unwrap_or(' ')
 }
 
 fn finished(mark: char) -> bool {
@@ -2298,15 +2318,9 @@ fn depends_on(task: &Doc) -> Vec<String> {
 
 /// Whether a task is marked done or dropped by the epic it names.
 fn task_finished(known: &BTreeMap<String, &Doc>, task: &str) -> bool {
-    let Some(doc) = known.get(task) else {
-        return false;
-    };
-    let Some(epic) = known.get(authority_of(doc)) else {
-        return false;
-    };
-    marks(epic)
-        .iter()
-        .any(|(id, mark)| id == task && finished(*mark))
+    known
+        .get(task)
+        .is_some_and(|doc| finished(mark_of(known, doc)))
 }
 
 fn ready(rest: &[String]) -> u8 {
@@ -2318,6 +2332,10 @@ fn ready(rest: &[String]) -> u8 {
         return USAGE;
     };
     let step = step.as_str();
+    if let Some((_, said)) = RETIRED_STEPS.iter().find(|(name, _)| *name == step) {
+        eprintln!("paw ready: {said} (ADR-2300)");
+        return USAGE;
+    }
     if !STEPS.contains(&step) {
         eprintln!(
             "paw ready: no step is named {step}; the steps are {}",
@@ -2333,7 +2351,7 @@ fn ready(rest: &[String]) -> u8 {
         eprintln!("paw ready {step}: name the identifiers of the step's input");
         return USAGE;
     }
-    let (record, repository, _) = match open_record("ready") {
+    let (record, _, _) = match open_record("ready") {
         Ok(opened) => opened,
         Err(code) => return code,
     };
@@ -2346,9 +2364,7 @@ fn ready(rest: &[String]) -> u8 {
         };
         let kind = kind_of(&record, doc);
         match step {
-            "requirements" | "design" | "spec" | "epic" | "cover" | "implement"
-                if !approved(doc) =>
-            {
+            "requirements" | "design" | "spec" | "epic" | "implement" if !approved(doc) => {
                 missing.push(format!(
                     "{id}, a {kind}, is {} and not approved",
                     bare(doc.value("status"))
@@ -2371,12 +2387,14 @@ fn ready(rest: &[String]) -> u8 {
                     }
                 }
             }
-            "cover" | "implement" => {
+            "implement" => {
                 let epic_id = authority_of(doc);
-                let what = if bare(doc.value("epic")).is_empty() {
+                let what = if !bare(doc.value("epic")).is_empty() {
+                    "the epic"
+                } else if !bare(doc.value("bug")).is_empty() {
                     "the defect"
                 } else {
-                    "the epic"
+                    "the decision"
                 };
                 match known.get(epic_id) {
                     Some(epic) if approved(epic) => {}
@@ -2385,7 +2403,7 @@ fn ready(rest: &[String]) -> u8 {
                         bare(epic.value("status"))
                     )),
                     None if epic_id.is_empty() => {
-                        missing.push(format!("{id} names no epic and no defect"))
+                        missing.push(format!("{id} names no epic, no defect and no decision"))
                     }
                     None => missing.push(format!("{epic_id}, {what} of {id}, has no file")),
                 }
@@ -2393,20 +2411,6 @@ fn ready(rest: &[String]) -> u8 {
                     if !task_finished(&known, &dependency) {
                         missing.push(format!("{dependency}, which {id} depends on, isn't done"));
                     }
-                }
-                if step == "implement" && !task_finished(&known, id) {
-                    missing.extend(cover_gaps(doc, &repository));
-                }
-            }
-            "document" | "verify" => {
-                let open: Vec<String> = marks(doc)
-                    .into_iter()
-                    .filter(|(_, mark)| !finished(*mark))
-                    .map(|(task, _)| task)
-                    .collect();
-                missing.extend(taskless_gaps(&record, &known, doc));
-                for task in open {
-                    missing.push(format!("{task}, a task of {id}, isn't done"));
                 }
             }
             _ => {}
@@ -2425,288 +2429,6 @@ fn ready(rest: &[String]) -> u8 {
         }
         FOUND
     }
-}
-
-/// The four lines a task's `## Cover` section holds (SPC-1090 "The gate").
-const COVER_LINES: [&str; 4] = ["Checks", "Failing run", "Landed in", "Judgement"];
-
-/// What a task's `## Cover` section lacks before its implementation starts,
-/// one line for each thing missing, and nothing when the section is filled
-/// (SPC-1090 "The gate", REQ-3207, REQ-3216). A path resolves against the
-/// repository's root. It reads the four lines and no history.
-fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
-    let id = bare(task.id());
-    let lines = section_lines(task, "Cover");
-    let written: Vec<&str> = lines
-        .iter()
-        .map(|(_, l)| l.trim())
-        .filter(|l| !l.is_empty())
-        .collect();
-    if lines.is_empty() && !task.text.lines().any(|l| l.trim() == "## Cover") {
-        return vec![format!(
-            "{id} has no ## Cover section, where the cover step names its checks, its failing run, where they landed and what rests on judgement"
-        )];
-    }
-    if written.is_empty() || written[0].starts_with("Not yet") {
-        return vec![format!(
-            "{id}'s Cover isn't filled yet: the cover step writes its Checks, Failing run, Landed in and Judgement lines"
-        )];
-    }
-    let mut values: BTreeMap<&str, String> = BTreeMap::new();
-    for line in &written {
-        let item = line.trim_start_matches(['-', '*']).trim();
-        for name in COVER_LINES {
-            if let Some(value) = item
-                .strip_prefix(name)
-                .and_then(|rest| rest.strip_prefix(':'))
-            {
-                values.insert(name, value.trim().to_string());
-            }
-        }
-    }
-    let mut gaps = Vec::new();
-    for name in COVER_LINES {
-        if !values.contains_key(name) {
-            gaps.push(format!("{id}'s Cover has no {name} line"));
-        }
-    }
-    if !gaps.is_empty() {
-        return gaps;
-    }
-    let none = |name: &str| {
-        let value = values[name]
-            .trim_end_matches('.')
-            .trim()
-            .to_ascii_lowercase();
-        value.is_empty() || value == "none"
-    };
-    for name in COVER_LINES {
-        if values[name].trim().is_empty() {
-            gaps.push(format!(
-                "{id}'s Cover leaves its {name} line empty, where it names what it holds or none"
-            ));
-        }
-    }
-    let criteria = criteria_numbers(task);
-    if criteria.is_empty() {
-        gaps.push(format!(
-            "{id} names no numbered criterion under ## Acceptance criteria, so its Cover can't say what rests on judgement"
-        ));
-    }
-    let judged = judgement(&values["Judgement"]);
-    for (number, reason) in &judged {
-        // A reason holds a word, so `.` or `-` is none (BUG-1263).
-        if !reason.chars().any(char::is_alphabetic) {
-            gaps.push(format!(
-                "{id}'s Cover names criterion {number} under Judgement with no reason"
-            ));
-        }
-        if !criteria.is_empty() && !criteria.contains(number) {
-            gaps.push(format!(
-                "{id}'s Cover names criterion {number} under Judgement, and the task has no criterion {number}"
-            ));
-        }
-    }
-    // With no check, every criterion rests on judgement whatever the other
-    // lines name, so each one is named (BUG-1261).
-    if none("Checks") {
-        for number in &criteria {
-            if !judged.iter().any(|(n, _)| n == number) {
-                gaps.push(format!(
-                    "{id}'s Cover names no check and leaves criterion {number} out of its Judgement line"
-                ));
-            }
-        }
-        if none("Failing run") && none("Landed in") {
-            return gaps;
-        }
-    } else {
-        // A criterion with no `Closed by:` names nothing that checks it, so it
-        // rests on judgement and is named, whatever `Checks` lists (BUG-1263).
-        for number in unclosed_criteria(task) {
-            if !judged.iter().any(|(n, _)| *n == number) {
-                gaps.push(format!(
-                    "{id}'s Cover leaves criterion {number} out of its Judgement line, and the criterion names no check under Closed by:"
-                ));
-            }
-        }
-    }
-    let checks = cover_paths(&values["Checks"]);
-    for path in &checks {
-        if let Some(gap) = unkept(repository, path) {
-            gaps.push(format!(
-                "{id}'s Cover names the check {path} under Checks, {gap}"
-            ));
-        }
-    }
-    if none("Failing run") {
-        gaps.push(format!(
-            "{id}'s Cover has Failing run: none, where the run in which its checks failed is kept"
-        ));
-    }
-    for path in cover_paths(&values["Failing run"]) {
-        if checks.contains(&path) {
-            gaps.push(format!(
-                "{id}'s Cover names the check {path} under Failing run, where the run of its checks is kept"
-            ));
-        } else if let Some(gap) = unkept(repository, &path) {
-            gaps.push(format!(
-                "{id}'s Cover names the run {path} under Failing run, {gap}"
-            ));
-        } else if let Some(gap) = not_evidence(repository, &path) {
-            gaps.push(format!(
-                "{id}'s Cover names the run {path} under Failing run, {gap}"
-            ));
-        }
-    }
-    if none("Landed in") {
-        gaps.push(format!(
-            "{id}'s Cover has Landed in: none, where it names the pull request or commit that carried its checks"
-        ));
-    }
-    gaps
-}
-
-/// Why a path a Cover names isn't a file kept in the repository, or nothing
-/// where it is one. An absolute path, or one whose `..` or symbolic link
-/// leads outside the root, isn't kept with the repository, and a directory
-/// is neither a check nor a run (REQ-3207).
-fn unkept(repository: &Path, path: &str) -> Option<&'static str> {
-    if Path::new(path).is_absolute() {
-        return Some("and it is absolute where a path inside the repository belongs");
-    }
-    let joined = repository.join(path);
-    let Ok(resolved) = joined.canonicalize() else {
-        return Some("and it doesn't exist");
-    };
-    let root = repository
-        .canonicalize()
-        .unwrap_or_else(|_| repository.to_path_buf());
-    if !resolved.starts_with(&root) {
-        return Some("and it leads outside the repository");
-    }
-    if !resolved.is_file() {
-        return Some("and it isn't a file");
-    }
-    None
-}
-
-/// Why a failing run, already a file in the repository, isn't kept as
-/// evidence, or nothing where it is: it lies under the evidence directory and
-/// git doesn't ignore it, because ADR-1550 keeps evidence there and a file git
-/// won't commit reaches no clone (BUG-1262, REQ-3207). Where git can't answer,
-/// the run isn't refused on that ground, as ADR-1550 reports it unchecked.
-fn not_evidence(repository: &Path, path: &str) -> Option<String> {
-    let dir = evidence_dir(repository);
-    let resolved = repository.join(path).canonicalize().ok()?;
-    let inside = repository
-        .join(&dir)
-        .canonicalize()
-        .is_ok_and(|d| resolved.starts_with(d));
-    if !inside {
-        return Some(format!(
-            "and it lies outside the evidence directory {dir}, where a kept run lands"
-        ));
-    }
-    let ignored = profile::reading_git()
-        .current_dir(repository)
-        .args(["check-ignore", "-q", "--", path])
-        .status()
-        .is_ok_and(|s| s.code() == Some(0));
-    ignored.then(|| "and git ignores it, so no clone receives it".to_string())
-}
-
-/// Where kept evidence lives: `evidence_dir` under `[verbs]`, or `evidence`
-/// under the record's root, a copy of the verbs' own reading, since neither
-/// unit may depend on the other (ADR-1550).
-fn evidence_dir(repository: &Path) -> String {
-    let table = match profile::read(repository) {
-        Profile::Parsed(table) => table,
-        _ => Default::default(),
-    };
-    let text = |section: &str, key: &str| {
-        table
-            .get(section)
-            .and_then(|v| v.get(key))
-            .and_then(|v| v.as_str())
-            .map(|d| d.trim_end_matches('/').to_string())
-    };
-    text("verbs", "evidence_dir").unwrap_or_else(|| {
-        format!(
-            "{}/evidence",
-            text("record", "root").unwrap_or_else(|| "project".to_string())
-        )
-    })
-}
-
-/// The paths a Cover line names, or none where it reads `none`.
-fn cover_paths(value: &str) -> Vec<String> {
-    if value
-        .trim_end_matches('.')
-        .trim()
-        .eq_ignore_ascii_case("none")
-    {
-        return Vec::new();
-    }
-    value
-        .split([',', ' ', '\t'])
-        .map(|p| p.trim().trim_matches('`').trim_end_matches(['.', ';']))
-        .filter(|p| !p.is_empty() && *p != "and")
-        .map(str::to_string)
-        .collect()
-}
-
-/// A Judgement line's entries, each a criterion's number and its reason.
-/// Entries are separated by semicolons, each `<number>: <reason>`.
-fn judgement(value: &str) -> Vec<(String, String)> {
-    if value
-        .trim_end_matches('.')
-        .trim()
-        .eq_ignore_ascii_case("none")
-    {
-        return Vec::new();
-    }
-    value
-        .split(';')
-        .map(str::trim)
-        .filter(|e| !e.is_empty())
-        .map(|entry| match entry.split_once(':') {
-            Some((number, reason)) => (number.trim().to_string(), reason.trim().to_string()),
-            None => (entry.to_string(), String::new()),
-        })
-        .collect()
-}
-
-/// The numbers of the criteria under a task's `## Acceptance criteria`.
-fn criteria_numbers(task: &Doc) -> Vec<String> {
-    let numbered = Regex::new(r"^(\d+)\.\s").expect("criterion pattern");
-    section_lines(task, "Acceptance criteria")
-        .iter()
-        .filter_map(|(_, l)| numbered.captures(l).map(|c| c[1].to_string()))
-        .collect()
-}
-
-/// The numbers of the criteria under a task's `## Acceptance criteria` whose
-/// text, up to the next numbered criterion, has no `Closed by:` naming
-/// something.
-fn unclosed_criteria(task: &Doc) -> Vec<String> {
-    let numbered = Regex::new(r"^(\d+)\.\s").expect("criterion pattern");
-    let closed = Regex::new(r"Closed by:\s*\S").expect("closed-by pattern");
-    let mut criteria: Vec<(String, String)> = Vec::new();
-    for (_, line) in section_lines(task, "Acceptance criteria") {
-        if let Some(c) = numbered.captures(line) {
-            criteria.push((c[1].to_string(), String::new()));
-        }
-        if let Some((_, text)) = criteria.last_mut() {
-            text.push(' ');
-            text.push_str(line.trim());
-        }
-    }
-    criteria
-        .into_iter()
-        .filter(|(_, text)| !closed.is_match(text))
-        .map(|(number, _)| number)
-        .collect()
 }
 
 fn count(n: usize, noun: &str) -> String {
@@ -2761,19 +2483,21 @@ fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) ->
 }
 
 /// Where one authorising record stands in the chain, and what comes next.
-fn position(
-    record: &Record,
-    known: &BTreeMap<String, &Doc>,
-    repository: &Path,
-    decision: &Doc,
-) -> String {
+fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> String {
     let id = bare(decision.id());
     let epics: Vec<&Doc> = of_kind(record, "epic")
         .into_iter()
         .filter(|e| bare(e.value("realises")) == id)
         .collect();
+    // A decision one task realises has that task and no epic (REQ-3630).
+    let direct: Vec<(String, char)> = of_kind(record, "task")
+        .into_iter()
+        .filter(|t| bare(t.value("realises")) == id && bare(t.value("epic")).is_empty())
+        .map(|t| (bare(t.id()).to_string(), mark_of(known, t)))
+        .collect();
     let postponed = requirements_in(record, decision.value("postpones"));
     if epics.is_empty()
+        && direct.is_empty()
         && requirements_in(record, decision.value("addresses")).is_empty()
         && !postponed.is_empty()
     {
@@ -2782,20 +2506,23 @@ fn position(
             count(postponed.len(), "requirement")
         );
     }
-    let Some(epic) = epics.first() else {
-        return "next: spec, then epic".to_string();
+    let (group, tasks) = match epics.first() {
+        Some(epic) => {
+            let epic_id = bare(epic.id());
+            if !approved(epic) {
+                return format!(
+                    "waiting: {epic_id} is {} and not approved",
+                    bare(epic.value("status"))
+                );
+            }
+            if let Some(gap) = taskless_gaps(record, known, epic).first() {
+                return format!("waiting: {gap}");
+            }
+            (epic_id, marks(epic))
+        }
+        None if !direct.is_empty() => (id, direct),
+        None => return "next: spec, then epic".to_string(),
     };
-    let epic_id = bare(epic.id());
-    if !approved(epic) {
-        return format!(
-            "waiting: {epic_id} is {} and not approved",
-            bare(epic.value("status"))
-        );
-    }
-    if let Some(gap) = taskless_gaps(record, known, epic).first() {
-        return format!("waiting: {gap}");
-    }
-    let tasks = marks(epic);
     let open: Vec<&String> = tasks
         .iter()
         .filter(|(_, mark)| !finished(*mark))
@@ -2808,25 +2535,18 @@ fn position(
                 .map(|doc| depends_on(doc).iter().all(|d| task_finished(known, d)))
                 .unwrap_or(true)
         });
-        // A task is covered before it is implemented (SPC-1090 "The state"), and
-        // `ready implement` reads the same Cover, so the two agree (REQ-3202).
-        let step = |task: &str| match known.get(task) {
-            Some(doc) if cover_gaps(doc, repository).is_empty() => "implement",
-            _ => "cover",
-        };
         return match doable {
             Some(task) => format!(
-                "next: {} {task} ({epic_id}, {} of {} done)",
-                step(task),
+                "next: implement {task} ({group}, {} of {} done)",
                 tasks.len() - open.len(),
                 count(tasks.len(), "task")
             ),
-            None => format!("waiting: every open task of {epic_id} depends on one that isn't done"),
+            None => format!("waiting: every open task of {group} depends on one that isn't done"),
         };
     }
     // Every task done or dropped closes the epic, and no step whose work has
     // landed is named next (REQ-3604, REQ-3620).
-    format!("closed: {epic_id} ({} done)", count(tasks.len(), "task"))
+    format!("closed: {group} ({} done)", count(tasks.len(), "task"))
 }
 
 /// The gate a draft of each kind waits at.
@@ -2928,7 +2648,7 @@ fn status(rest: &[String]) -> u8 {
         }
         return CLEAN;
     }
-    let (record, repository, root) = match open_record("status") {
+    let (record, _, root) = match open_record("status") {
         Ok(opened) => opened,
         Err(code) => return code,
     };
@@ -2970,7 +2690,7 @@ fn status(rest: &[String]) -> u8 {
     for decision in decisions {
         let id = bare(decision.id());
         say!("  {id} {}", title(decision));
-        say!("    {}", position(&record, &known, &repository, decision));
+        say!("    {}", position(&record, &known, decision));
     }
     say!();
     say!("Tasks");
