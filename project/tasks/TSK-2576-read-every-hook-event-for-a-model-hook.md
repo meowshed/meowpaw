@@ -42,14 +42,36 @@ Nothing. BUG-1266 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-prose-gate/tests/test_gate.py
+- Failing run: project/evidence/18050f05356d.txt
+- Landed in: #717
+- Judgement: none
+
+Criterion 3 passed in the failing run as well, because the shipped
+`hooks.json` holds command hooks only, so it guards against a reading that
+refuses too much.
 
 ## Evidence
 
-Not yet.
+`TheHook.hook_types` in `plugins/meow-prose-gate/tests/test_gate.py` now
+collects the type of each hook under each event in `hooks.json`, and the three
+tests use it. `test_a_prompt_hook_under_any_event_is_refused` adds a `prompt`
+hook under `Stop`, and `test_an_agent_hook_under_any_event_is_refused` an
+`agent` hook under `PostToolUse`, and each finds the type it added.
+
+Both failed first, in the commit that held them alone against the old
+reading: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
+`project/evidence/18050f05356d.txt`. They pass now:
+
+```text
+$ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests
+Ran 33 tests
+OK                                 # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 

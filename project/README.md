@@ -604,9 +604,7 @@ addresses lands in one of them.
 | [BUG-1341](bugs/BUG-1341-a-unit-path-is-printed-relative-to-the-root.md)                     | `meow-unattended plan` printed each unit relative to the root, which names nothing from a subdirectory            |
 | [BUG-1342](bugs/BUG-1342-the-unattended-suite-passes-a-plan-that-ignores-the-declaration.md) | The `meow-unattended` checks passed nine versions of `plan` that ignore what the repository declares              |
 
-Thirty-four are closed. BUG-1040, BUG-1100 and BUG-1266 are open. BUG-1266
-enters at cover, because the prose gate runs no model but its check reads one
-hook event. BUG-1040 routes to design, because the mechanism
+Thirty-five are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.

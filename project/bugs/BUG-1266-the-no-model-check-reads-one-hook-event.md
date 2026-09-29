@@ -58,5 +58,7 @@ under `PostToolUse`, each refused, and the shipped `hooks.json` accepted.
 
 ## Tasks
 
-- [ ] T-001 TSK-2576 read the type of every hook under every event, in
+- [x] T-001 TSK-2576 read the type of every hook under every event, in
       `plugins/meow-prose-gate/tests/test_gate.py`
+      evidence: 2 checks seen failing first, 33 `meow-prose-gate` fixtures
+      passing, in #717.
