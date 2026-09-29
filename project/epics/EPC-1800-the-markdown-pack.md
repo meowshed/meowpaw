@@ -79,10 +79,12 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: 13 checks seen failing at the cover commit 593222a, and
       passing unchanged in #651.
 
-- [ ] T-002 [P] TSK-3110 `check` the render target and the markdownlint
+- [x] T-002 [P] TSK-3110 `check` the render target and the markdownlint
       settings, and adopt it in this repository's profile
       closes: REQ-2434, REQ-2452
       depends: TSK-3100 - the program and its detection must exist
+      evidence: 14 checks seen failing at the cover commit b9acb6f, and
+      passing unchanged in #665.
 
 - [ ] T-003 [P] TSK-3120 `links`, and `check` the link check's settings
       closes: REQ-2438, REQ-2454

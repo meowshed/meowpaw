@@ -8,7 +8,7 @@
 [verbs]
 format = "mise run fmt-check && mise run shell-fmt && mise run crate-fmt"
 check = "mise run crate-check"
-lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run standalone && mise run budget && plugins/meow-licence/bin/meow-licence check && plugins/meow-mise/bin/meow-mise check && mise run shell-lint && mise run crate-lint"
+lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run standalone && mise run budget && plugins/meow-licence/bin/meow-licence check && plugins/meow-mise/bin/meow-mise check && mise run shell-lint && plugins/meow-markdown/bin/meow-markdown check && mise run crate-lint"
 test = "crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py"
 build = "mise run build"
 
@@ -43,3 +43,8 @@ root = "project"
 # standard meow-prose ships, which CLAUDE.md holds every text to.
 [docs]
 style = "meow-prose"
+
+# The render target this repository's Markdown is written for, which
+# meow-markdown check requires (REQ-2452, ADR-1900).
+[markdown]
+target = "github"
