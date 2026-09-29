@@ -218,6 +218,9 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-2000](adrs/ADR-2000-an-unattended-run-is-planned-from-an-authority-the-repository-declares-and-the-plan-starts-nothing.md):
   an unattended run is planned from an authority the repository declares, and
   the plan starts nothing.
+- [ADR-2010](adrs/ADR-2010-a-runner-outside-the-model-repeats-one-frozen-prompt-in-fresh-sessions-and-holds-its-bounds-in-its-own-process.md):
+  a runner outside the model repeats one frozen prompt in fresh sessions, and
+  holds its bounds in its own process.
 - [ADR-2200](adrs/ADR-2200-a-skeptic-refutes-each-requirement-an-epic-claims.md):
   a read-only agent tries to refute each requirement an epic claims before the
   epic is verified, and verification records each refutation it confirms as a
@@ -278,6 +281,11 @@ realised, were verified under issue 625.
 [SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
 run's plan: the authority a repository declares, the command `plan` prints,
 and the snapshot it writes. `checked-at` is empty until EPC-1900 is verified.
+
+[SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: the
+terms a person starts a run with, the files a run keeps, each call, the order
+of its checks, its six endings and the guards that stop the model starting a
+run. `checked-at` is empty until EPC-1910 is verified.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -526,6 +534,10 @@ postponed.
 [EPC-1900](epics/EPC-1900-the-unattended-runs-plan.md) realises ADR-2000 in
 two tasks, TSK-3300 and TSK-3310, neither of them started, and each of the two
 requirements ADR-2000 addresses lands in one of them.
+
+[EPC-1910](epics/EPC-1910-the-loop-runner.md) realises ADR-2010 in six tasks,
+TSK-3350 to TSK-3400, none of them started, and each of the nine requirements
+ADR-2010 addresses lands in one of them.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with

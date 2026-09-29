@@ -16,8 +16,11 @@ run, and its one command, `plan`. It states the `[unattended]` table `plan`
 reads from the profile, the command line it prints, the snapshot it writes as
 the run's authority, what it reports, and each state it refuses.
 
-`plan` starts nothing, and nothing in the harness starts a run yet. Starting,
-repeating and stopping a run, crossing a declared gate, the sandbox and the
+`plan` starts nothing, and nothing in the harness starts a run from the
+plan. The loop runner `meow-loop`, once it is built, starts and repeats a run
+from terms a person types, and doesn't read the snapshot. Starting a run from
+the plan, stopping a run by any means other than the terminal's interrupt and
+the runner's own endings, crossing a declared gate, the sandbox and the
 removal of the run's credentials have no decision yet, so no specification
 states them.
 
