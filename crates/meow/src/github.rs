@@ -3,16 +3,17 @@
 
 //! Read a GitHub repository's history, and write nothing (ADR-1290).
 //!
-//! SPC-1080 states the behaviour. `history` reads four listings through
-//! `gh api`, the interface beneath GitHub's own client, every page of each and
-//! through its cache, and prints one JSON document. It takes each field by
+//! SPC-1080 states the behaviour. `history` reads four listings through the
+//! request layer (ADR-1810), every page of each and through `gh`'s cache, and
+//! prints one JSON document. It takes each field by
 //! name, so a field the code host stops sending fails by that name, and a listing
 //! it can't read leaves the history unread rather than printed in part.
 
+use request::{Failure, Layer};
 use serde_json::{Value, json};
-use std::process::{Command, Stdio};
 
 mod project;
+mod request;
 
 const USAGE: u8 = 2;
 const UNREAD: u8 = 3;
@@ -23,67 +24,52 @@ const LISTINGS: [(&str, &str); 4] = [
     ("review comments", "pulls/comments?per_page=100"),
 ];
 
+const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic> [--check] [--wait] [<owner>/<name>]";
+
 pub fn main(args: &[String]) -> u8 {
-    match args {
-        [command] if command == "history" => history(None),
-        [command, repository] if command == "history" => history(Some(repository.as_str())),
-        [command, rest @ ..] if command == "project" && !rest.is_empty() => {
-            let check = rest.iter().any(|a| a == "--check");
-            let words: Vec<&str> = rest
-                .iter()
-                .map(String::as_str)
-                .filter(|a| *a != "--check")
-                .collect();
-            match words.as_slice() {
-                [epic] => project::run(epic, None, check),
-                [epic, repository] => project::run(epic, Some(repository), check),
-                _ => {
-                    eprintln!("usage: meow-github project <epic> [--check] [<owner>/<name>]");
-                    USAGE
-                }
-            }
+    let Some((command, rest)) = args.split_first() else {
+        eprintln!("{USAGE_LINE}");
+        return USAGE;
+    };
+    let flag = |name: &str| rest.iter().any(|a| a == name);
+    let (check, wait) = (flag("--check"), flag("--wait"));
+    let words: Vec<&str> = rest
+        .iter()
+        .map(String::as_str)
+        .filter(|a| *a != "--check" && *a != "--wait")
+        .collect();
+    let mut layer = Layer::new(wait);
+    match (command.as_str(), words.as_slice(), check) {
+        ("history", [], false) => history(&mut layer, None),
+        ("history", [repository], false) => history(&mut layer, Some(repository)),
+        ("project", [epic], _) => project::run(&mut layer, epic, None, check),
+        ("project", [epic, repository], _) => {
+            project::run(&mut layer, epic, Some(repository), check)
         }
         _ => {
-            eprintln!(
-                "usage: meow-github history [<owner>/<name>] | project <epic> [--check] [<owner>/<name>]"
-            );
+            eprintln!("{USAGE_LINE}");
             USAGE
         }
     }
 }
 
-fn name_repository(repository: Option<&str>) -> Result<String, String> {
+/// The repository named, or else the one this directory's clone belongs to,
+/// read as `repos/{owner}/{repo}` through the layer.
+fn name_repository(layer: &mut Layer, repository: Option<&str>) -> Result<String, Failure> {
     match repository {
         Some(name) => Ok(name.to_string()),
-        None => gh(&["repo", "view", "--json", "nameWithOwner"])
-            .map(|view| {
-                view.get("nameWithOwner")
-                    .and_then(Value::as_str)
-                    .unwrap_or_default()
-                    .to_string()
-            })
-            .map_err(|e| {
-                format!("couldn't name this directory's repository: {e}; name it as <owner>/<name>")
-            }),
+        None => match layer.get("repos/{owner}/{repo}", false) {
+            Ok(view) => Ok(view
+                .get("full_name")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string()),
+            Err(Failure::Failed(e)) => Err(Failure::Failed(format!(
+                "couldn't name this directory's repository: {e}; name it as <owner>/<name>"
+            ))),
+            Err(throttled) => Err(throttled),
+        },
     }
-}
-
-fn gh(args: &[&str]) -> Result<Value, String> {
-    let out = Command::new("gh")
-        .args(args)
-        .env("GH_PROMPT_DISABLED", "1")
-        .stdin(Stdio::null())
-        .output()
-        .map_err(|e| format!("gh couldn't run ({e}); install GitHub's client, gh, and sign in with `gh auth login`"))?;
-    if !out.status.success() {
-        let said = String::from_utf8_lossy(&out.stderr).trim().to_string();
-        return Err(if said.is_empty() {
-            format!("gh exited with {}", out.status)
-        } else {
-            said
-        });
-    }
-    serde_json::from_slice(&out.stdout).map_err(|e| format!("gh printed no JSON ({e})"))
 }
 
 /// A field of a response, by name, so that one the code host stopped sending fails
@@ -119,34 +105,40 @@ fn number_in(item: &Value, name: &str, listing: &str) -> Result<u64, String> {
         .ok_or_else(|| format!("the {listing} listing gave `{name}` with no number"))
 }
 
-/// Every item of a listing, every page of it read (REQ-2560), through the
-/// client's cache (REQ-2564).
-fn listing(repository: &str, name: &str, path: &str) -> Result<Vec<Value>, String> {
+/// Every item of a listing, every page of it read by following its `Link`
+/// header (REQ-2560), through the client's cache (REQ-2564).
+fn listing(
+    layer: &mut Layer,
+    repository: &str,
+    name: &str,
+    path: &str,
+) -> Result<Vec<Value>, String> {
     let endpoint = format!("repos/{repository}/{path}");
-    let pages = gh(&["api", &endpoint, "--paginate", "--slurp", "--cache", "1h"])
-        .map_err(|e| format!("{name}, {endpoint}: {e}"))?;
-    let Value::Array(pages) = pages else {
-        return Err(format!("{name}, {endpoint}: the pages aren't a list"));
-    };
     let mut items = Vec::new();
-    for page in pages {
-        match page {
+    let mut next = Some(endpoint.clone());
+    while let Some(page) = next {
+        let (body, following) = layer.page(&page).map_err(|e| match e {
+            Failure::Throttled(line) => line,
+            Failure::Failed(e) => format!("{name}, {endpoint}: {e}"),
+        })?;
+        match body {
             Value::Array(page) => items.extend(page),
             _ => return Err(format!("{name}, {endpoint}: a page isn't a list")),
         }
+        next = following;
     }
     Ok(items)
 }
 
-fn history(repository: Option<&str>) -> u8 {
-    let repository = match name_repository(repository) {
+fn history(layer: &mut Layer, repository: Option<&str>) -> u8 {
+    let repository = match name_repository(layer, repository) {
         Ok(name) => name,
         Err(e) => {
             println!("meow-github history: unread: {e}");
             return UNREAD;
         }
     };
-    match read(&repository) {
+    match read(layer, &repository) {
         Ok(document) => {
             println!(
                 "{}",
@@ -169,11 +161,11 @@ fn history(repository: Option<&str>) -> u8 {
     }
 }
 
-fn read(repository: &str) -> Result<Value, (Vec<&'static str>, String)> {
+fn read(layer: &mut Layer, repository: &str) -> Result<Value, (Vec<&'static str>, String)> {
     let mut read = Vec::new();
     let mut lists = Vec::new();
     for (name, path) in LISTINGS {
-        let items = listing(repository, name, path).map_err(|e| (read.clone(), e))?;
+        let items = listing(layer, repository, name, path).map_err(|e| (read.clone(), e))?;
         read.push(name);
         lists.push(items);
     }

@@ -8,9 +8,11 @@
 //! `projected:` the fingerprint of what was written, so a replay finds nothing
 //! to do and the mapping survives losing the tracker. The fingerprint is the
 //! first twelve hex digits of the SHA-256 of the title, a newline and the body,
-//! which `shasum -a 256` reproduces by hand.
+//! which `shasum -a 256` reproduces by hand. Every call goes through the
+//! request layer, and a throttle stops the run where it is met (ADR-1810).
 
-use super::{gh, name_repository};
+use super::name_repository;
+use super::request::{Failure, Layer};
 use crate::profile::{self, Profile};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -183,12 +185,13 @@ fn same(a: &str, b: &str) -> bool {
 
 /// What the tracker holds now, as the fingerprint its title and body carry
 /// without the marker, and whether the issue is closed.
-fn tracked(repository: &str, issue: &str) -> Result<(String, bool), String> {
-    let read = gh(&["api", &format!("repos/{repository}/issues/{issue}")])?;
+fn tracked(layer: &mut Layer, repository: &str, issue: &str) -> Result<(String, bool), Failure> {
+    let read = layer.get(&format!("repos/{repository}/issues/{issue}"), false)?;
+    let lacks = || Failure::Failed("the issue lacks the field `title`".to_string());
     let title = read
         .get("title")
         .and_then(Value::as_str)
-        .ok_or("the issue lacks the field `title`")?;
+        .ok_or_else(lacks)?;
     let body = read
         .get("body")
         .and_then(Value::as_str)
@@ -211,7 +214,16 @@ fn done_in(epic: &Record) -> Vec<String> {
         .collect()
 }
 
-pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
+/// Prints the `throttled:` line and says what the run did before it.
+fn throttled(line: &str) -> u8 {
+    println!("{line}");
+    println!(
+        "meow-github project: stopped at the throttle above, sending nothing more; the tasks above it were projected"
+    );
+    UNREAD
+}
+
+pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
     let root = profile::repository_root();
     let table = match profile::read(&root) {
         Profile::Parsed(table) => table,
@@ -260,8 +272,9 @@ pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
         );
         return FOUND;
     }
-    let repository = match name_repository(repository) {
+    let repository = match name_repository(layer, repository) {
         Ok(name) => name,
+        Err(Failure::Throttled(line)) => return throttled(&line),
         Err(e) => {
             println!("meow-github project: nothing projected: {e}");
             return UNREAD;
@@ -287,8 +300,9 @@ pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
                 continue;
             }
             // Computed from the two fingerprints each run, never stored (REQ-1388).
-            let (on_tracker, closed) = match tracked(&repository, &issue) {
+            let (on_tracker, closed) = match tracked(layer, &repository, &issue) {
                 Ok(state) => state,
+                Err(Failure::Throttled(line)) => return throttled(&line),
                 Err(e) => {
                     println!("{id}: issue #{issue} couldn't be read: {e}");
                     worst = worst.max(UNREAD);
@@ -315,16 +329,7 @@ pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
             } else {
                 let full = format!("{body}\n\n{}", marker(&id, &print));
                 let endpoint = format!("repos/{repository}/issues/{issue}");
-                match gh(&[
-                    "api",
-                    &endpoint,
-                    "-X",
-                    "PATCH",
-                    "-f",
-                    &format!("title={title}"),
-                    "-f",
-                    &format!("body={full}"),
-                ]) {
+                match layer.write("PATCH", &endpoint, &[("title", &title), ("body", &full)]) {
                     Ok(_) => match issue
                         .parse::<u64>()
                         .ok()
@@ -341,6 +346,7 @@ pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
                             worst = worst.max(FOUND);
                         }
                     },
+                    Err(Failure::Throttled(line)) => return throttled(&line),
                     Err(e) => {
                         println!("{id}: issue #{issue} not updated: {endpoint}: {e}");
                         worst = worst.max(UNREAD);
@@ -355,17 +361,9 @@ pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
         }
         let full = format!("{body}\n\n{}", marker(&id, &print));
         let endpoint = format!("repos/{repository}/issues");
-        let created = match gh(&[
-            "api",
-            &endpoint,
-            "-X",
-            "POST",
-            "-f",
-            &format!("title={title}"),
-            "-f",
-            &format!("body={full}"),
-        ]) {
+        let created = match layer.write("POST", &endpoint, &[("title", &title), ("body", &full)]) {
             Ok(created) => created,
+            Err(Failure::Throttled(line)) => return throttled(&line),
             Err(e) => {
                 println!("{id}: not projected: {endpoint}: {e}");
                 println!(
@@ -385,7 +383,7 @@ pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
             );
             return FOUND;
         }
-        match gh(&["api", &format!("{endpoint}/{number}")]) {
+        match layer.get(&format!("{endpoint}/{number}"), false) {
             Ok(read)
                 if same(
                     read.get("title").and_then(Value::as_str).unwrap_or(""),
@@ -403,6 +401,7 @@ pub fn run(epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
                 );
                 worst = worst.max(FOUND);
             }
+            Err(Failure::Throttled(line)) => return throttled(&line),
             Err(e) => {
                 println!("{id}: projected to issue #{number}, and it couldn't be read back: {e}");
                 worst = worst.max(UNREAD);
