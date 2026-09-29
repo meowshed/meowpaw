@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.4.2]
+describes: [meow-github@0.5.0]
 ---
 
 # meow-github
@@ -122,6 +122,22 @@ Where `gh` is missing, isn't signed in, or GitHub refuses a listing, it prints
 read before it stopped, and exits 3. It prints no document then, because a part
 of the history would read as the whole of it. Where its binary is missing for
 your machine, it names the machine and says to reinstall the unit.
+
+Every call goes through one request layer that reads GitHub's rate-limit
+headers on each response. Where GitHub throttles a call, or a fresh response
+says the limit is spent, `history` and `project` send nothing more, print
+`throttled: <method> <endpoint>, retry after <UTC time> (<header>)` and exit
+3, because a call sent while throttled can get the integration banned. Where
+the header doesn't parse as its unit, the line says the time is unknown. Add
+`--wait` to either command to sleep until that time and send the call again:
+
+```bash
+meow-github project EPC-1310 --wait
+```
+
+A run sleeps an hour at most in all, because a primary limit resets within an
+hour and a run still throttled after that has another cause. It stops as
+throttled at the wait that would pass the hour.
 
 ## What it needs
 
