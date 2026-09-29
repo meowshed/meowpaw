@@ -79,10 +79,16 @@ line and the budget lines.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: `plugins/meow-github/tests/test_github.py`:
+  `Budgets.test_content_creation_stops_the_run_at_500_an_hour`,
+  `Budgets.test_writes_are_a_second_apart`,
+  `Budgets.test_the_budget_lines_name_the_four_counts`,
+  `Credential.test_the_first_line_names_the_form`,
+  `Credential.test_the_token_value_is_never_printed` and
+  `History.test_the_document_names_the_credential_and_the_budget`
+- Failing run: `project/evidence/cb8e5d797b4a.txt`
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: none
 
 ## Evidence
 

@@ -1,0 +1,333 @@
+meow-verbs evidence 1
+record: cb8e5d797b4a
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && mise exec lychee@0.24.2 -- python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: 580aaa170f490695ff293ba03e21fd4d0fef96d0
+time: 2026-09-29T18:01:47Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+built meow-unattended for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 41 tests
+.........................................
+test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 14.451s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.616s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 5.448s
+
+OK
+...................................................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 227 tests in 50.459s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.031s
+
+OK
+FFFFFFFFFFFFFFF...F..................
+======================================================================
+FAIL: test_content_creation_stops_the_run_at_500_an_hour (test_github.Budgets.test_content_creation_stops_the_run_at_500_an_hour)
+TSK-2950 criterion 1, REQ-2568: with 501 unmapped tasks the stand-in records 500 creates, and the run
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 690, in test_content_creation_stops_the_run_at_500_an_hour
+    self.assertEqual(done.returncode, 3, done.stdout[-2000:] + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 3 : jected to issue #469 at d71500d1818d, read back
+TSK-0470: projected to issue #470 at e4f3871691ec, read back
+TSK-0471: projected to issue #471 at 5209df6a2d22, read back
+TSK-0472: projected to issue #472 at eb21bf86a0c4, read back
+TSK-0473: projected to issue #473 at 14a30a3417a3, read back
+TSK-0474: projected to issue #474 at 0b2e85d6002a, read back
+TSK-0475: projected to issue #475 at cadcbada927f, read back
+TSK-0476: projected to issue #476 at 9bf3c4f84f0f, read back
+TSK-0477: projected to issue #477 at 5acd4b617f92, read back
+TSK-0478: projected to issue #478 at d28c8bf82626, read back
+TSK-0479: projected to issue #479 at dc97c105173a, read back
+TSK-0480: projected to issue #480 at 6675cb1cf9a5, read back
+TSK-0481: projected to issue #481 at e4da20b34f33, read back
+TSK-0482: projected to issue #482 at e5b30be6e280, read back
+TSK-0483: projected to issue #483 at e4f6d21bac6f, read back
+TSK-0484: projected to issue #484 at 18fea2ec33eb, read back
+TSK-0485: projected to issue #485 at b8f1882e46dd, read back
+TSK-0486: projected to issue #486 at 37de40f040c9, read back
+TSK-0487: projected to issue #487 at 154ff2f1d31c, read back
+TSK-0488: projected to issue #488 at 3809f86a5bdc, read back
+TSK-0489: projected to issue #489 at 0a46880824d8, read back
+TSK-0490: projected to issue #490 at 29a75ab6cd9d, read back
+TSK-0491: projected to issue #491 at 9741fe833e4b, read back
+TSK-0492: projected to issue #492 at 16b5eb7b7229, read back
+TSK-0493: projected to issue #493 at b31e97758d51, read back
+TSK-0494: projected to issue #494 at ffbece2d4677, read back
+TSK-0495: projected to issue #495 at b8af8025c3e5, read back
+TSK-0496: projected to issue #496 at a30508c995d6, read back
+TSK-0497: projected to issue #497 at cb4ea059939e, read back
+TSK-0498: projected to issue #498 at 093c57b9ba68, read back
+TSK-0499: projected to issue #499 at 36d00ccbf77b, read back
+TSK-0500: projected to issue #500 at e70925913e89, read back
+TSK-0501: projected to issue #501 at 5e6ed2dcd450, read back
+
+
+======================================================================
+FAIL: test_the_budget_lines_name_the_four_counts (test_github.Budgets.test_the_budget_lines_name_the_four_counts)
+TSK-2950 criterion 3, REQ-2568: with `x-ratelimit-limit: 1000` and `GITHUB_ACTIONS=true`, the last lines
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 715, in test_the_budget_lines_name_the_four_counts
+    self.assertEqual(len([line for line in tail if count in line]), 1, (count, tail))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : ('primary requests', ['TSK-0001: projected to issue #1 at 35732234dd3b, read back', 'TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back'])
+
+======================================================================
+FAIL: test_writes_are_a_second_apart (test_github.Budgets.test_writes_are_a_second_apart)
+TSK-2950 criterion 2, REQ-2568: in the same run, every write the stand-in records is at least one second
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 703, in test_writes_are_a_second_apart
+    self.assertEqual(len(close), 0, f"writes less than a second after the previous one, the first {close[:1]}")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 500 != 0 : writes less than a second after the previous one, the first [(1790692237.0, 1790692237.0)]
+
+======================================================================
+FAIL: test_the_first_line_names_the_form (test_github.Credential.test_the_first_line_names_the_form) (variables=['GH_TOKEN'], actions=False)
+TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 739, in test_the_first_line_names_the_form
+    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'GH_TOKEN from the environment' not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_first_line_names_the_form (test_github.Credential.test_the_first_line_names_the_form) (variables=['GH_TOKEN'], actions=True)
+TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 739, in test_the_first_line_names_the_form
+    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'GH_TOKEN from the environment, inside a GitHub Actions workflow' not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_first_line_names_the_form (test_github.Credential.test_the_first_line_names_the_form) (variables=['GH_TOKEN', 'GITHUB_TOKEN'], actions=False)
+TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 739, in test_the_first_line_names_the_form
+    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'GH_TOKEN from the environment' not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_first_line_names_the_form (test_github.Credential.test_the_first_line_names_the_form) (variables=['GH_TOKEN', 'GITHUB_TOKEN'], actions=True)
+TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 739, in test_the_first_line_names_the_form
+    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'GH_TOKEN from the environment, inside a GitHub Actions workflow' not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_first_line_names_the_form (test_github.Credential.test_the_first_line_names_the_form) (variables=['GITHUB_TOKEN'], actions=False)
+TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 739, in test_the_first_line_names_the_form
+    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'GITHUB_TOKEN from the environment' not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_first_line_names_the_form (test_github.Credential.test_the_first_line_names_the_form) (variables=['GITHUB_TOKEN'], actions=True)
+TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 739, in test_the_first_line_names_the_form
+    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'GITHUB_TOKEN from the environment, inside a GitHub Actions workflow' not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_first_line_names_the_form (test_github.Credential.test_the_first_line_names_the_form) (variables=[], actions=False)
+TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 739, in test_the_first_line_names_the_form
+    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "gh's stored credential" not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_first_line_names_the_form (test_github.Credential.test_the_first_line_names_the_form) (variables=[], actions=True)
+TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 739, in test_the_first_line_names_the_form
+    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "gh's stored credential, inside a GitHub Actions workflow" not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_token_value_is_never_printed (test_github.Credential.test_the_token_value_is_never_printed) (variable='GH_TOKEN', command='project')
+TSK-2950 criterion 5, REQ-2582: a sentinel value in `GH_TOKEN` or `GITHUB_TOKEN` appears nowhere in the
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 758, in test_the_token_value_is_never_printed
+    self.assertIn(FORMS[variable], (done.stdout.splitlines() or [""])[0], done.stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'GH_TOKEN from the environment' not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_token_value_is_never_printed (test_github.Credential.test_the_token_value_is_never_printed) (variable='GH_TOKEN', command='history')
+TSK-2950 criterion 5, REQ-2582: a sentinel value in `GH_TOKEN` or `GITHUB_TOKEN` appears nowhere in the
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 761, in test_the_token_value_is_never_printed
+    self.assertEqual(json.loads(done.stdout).get("credential"), FORMS[variable], done.stdout)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'GH_TOKEN from the environment' : {
+  "repository": "o/r",
+  "issues": [
+    {
+      "number": 1,
+      "kind": "issue",
+      "title": "Refuse an empty title",
+      "body": "It must refuse one.",
+      "state": "open",
+      "merged": null,
+      "author": "ada",
+      "url": "https://github.com/o/r/issues/1",
+      "labels": [
+        "bug"
+      ]
+    },
+    {
+      "number": 2,
+      "kind": "pull request",
+      "title": "Refuse it",
+      "body": "Closes #1",
+      "state": "closed",
+      "merged": true,
+      "author": "ada",
+      "url": "https://github.com/o/r/pull/2",
+      "labels": []
+    }
+  ],
+  "comments": [],
+  "review_comments": []
+}
+
+
+======================================================================
+FAIL: test_the_token_value_is_never_printed (test_github.Credential.test_the_token_value_is_never_printed) (variable='GITHUB_TOKEN', command='project')
+TSK-2950 criterion 5, REQ-2582: a sentinel value in `GH_TOKEN` or `GITHUB_TOKEN` appears nowhere in the
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 758, in test_the_token_value_is_never_printed
+    self.assertIn(FORMS[variable], (done.stdout.splitlines() or [""])[0], done.stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'GITHUB_TOKEN from the environment' not found in 'TSK-0001: projected to issue #1 at 35732234dd3b, read back' : TSK-0001: projected to issue #1 at 35732234dd3b, read back
+TSK-0002: projected to issue #2 at 7bf01c8b72d9, read back
+
+
+======================================================================
+FAIL: test_the_token_value_is_never_printed (test_github.Credential.test_the_token_value_is_never_printed) (variable='GITHUB_TOKEN', command='history')
+TSK-2950 criterion 5, REQ-2582: a sentinel value in `GH_TOKEN` or `GITHUB_TOKEN` appears nowhere in the
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 761, in test_the_token_value_is_never_printed
+    self.assertEqual(json.loads(done.stdout).get("credential"), FORMS[variable], done.stdout)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'GITHUB_TOKEN from the environment' : {
+  "repository": "o/r",
+  "issues": [
+    {
+      "number": 1,
+      "kind": "issue",
+      "title": "Refuse an empty title",
+      "body": "It must refuse one.",
+      "state": "open",
+      "merged": null,
+      "author": "ada",
+      "url": "https://github.com/o/r/issues/1",
+      "labels": [
+        "bug"
+      ]
+    },
+    {
+      "number": 2,
+      "kind": "pull request",
+      "title": "Refuse it",
+      "body": "Closes #1",
+      "state": "closed",
+      "merged": true,
+      "author": "ada",
+      "url": "https://github.com/o/r/pull/2",
+      "labels": []
+    }
+  ],
+  "comments": [],
+  "review_comments": []
+}
+
+
+======================================================================
+FAIL: test_the_document_names_the_credential_and_the_budget (test_github.History.test_the_document_names_the_credential_and_the_budget)
+TSK-2950 criterion 6, REQ-2568, REQ-2582: the document carries `credential`, the form, and `budget`, the
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-tsk-2950-budgets-cover/plugins/meow-github/tests/test_github.py", line 120, in test_the_document_names_the_credential_and_the_budget
+    self.assertEqual(document.get("credential"), FORMS[None], document.keys())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != "gh's stored credential" : dict_keys(['repository', 'issues', 'comments', 'review_comments'])
+
+----------------------------------------------------------------------
+Ran 27 tests in 27.462s
+
+FAILED (failures=16)
