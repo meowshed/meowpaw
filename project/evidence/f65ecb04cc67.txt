@@ -1,0 +1,15 @@
+meow-verbs evidence 1
+record: f65ecb04cc67
+verb: format
+command: mise run fmt-check && mise run shell-fmt && mise run crate-fmt
+targets: none
+outcome: passed
+exit status: 0
+tree: 694a624090aa4a4358c5cc643488a2b8bf2e3a76
+time: 2026-09-29T17:58:06Z
+
+[fmt-check] $ prettier --check '**/*.md'
+Checking formatting...
+All matched files use Prettier code style!
+[shell-fmt] $ files=$(shfmt -f plugins crates/meow) && test -n "$files" && shfmt -i 2 -d $files
+[crate-fmt] $ cargo fmt --manifest-path crates/meow/Cargo.toml --check
