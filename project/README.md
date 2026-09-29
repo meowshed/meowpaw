@@ -2,7 +2,7 @@
 id: index
 artifact: index
 status: live
-revised: 2026-09-28
+revised: 2026-09-29
 ---
 
 # The project
@@ -35,7 +35,7 @@ it.
 
 ## Research
 
-143 documents, indexed by
+145 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
@@ -212,6 +212,10 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-1800](adrs/ADR-1800-a-tasks-dependency-says-whether-it-blocks-and-only-an-epic-or-a-defect-groups-tasks.md):
   a task's dependency says whether it blocks, and only an epic or a defect
   groups tasks.
+- [ADR-1810](adrs/ADR-1810-every-github-request-goes-through-one-layer-that-reads-its-limits-stops-at-a-stated-wait-and-writes-only-issues.md):
+  every GitHub request goes through one layer that reads its limits, stops at
+  a stated wait, and writes only issues, and a hook asks before a `gh` command
+  changes governance. It postpones REQ-2580, a budget billed by query cost.
 - [ADR-1900](adrs/ADR-1900-a-markdown-pack-reads-the-settings-behind-each-verb-and-reports-an-unreachable-link-as-unreachable.md):
   a Markdown pack reads the settings behind each verb, and reports an
   unreachable link as unreachable, never as a finding.
@@ -257,7 +261,8 @@ launchers, its release, the marketplace address and the checks the crate
 passes. The crate implements it, verified under issue 378, and the checks the
 crate passes, which EPC-1570 realises, were verified under issue 596. The
 check that `project` groups an issue nowhere, which ADR-1800 adds, was
-verified with EPC-1710 under issue 625.
+verified with EPC-1710 under issue 625. The GitHub request layer, which
+ADR-1810 adds and EPC-1720 realises, isn't built yet.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-verbs` implements it, verified under
@@ -527,6 +532,11 @@ requirements ADR-2000 addresses lands in one of them.
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
 evidence, and was verified against every acceptance criterion under issue 625.
+
+[EPC-1720](epics/EPC-1720-one-github-request-layer.md) realises ADR-1810 in
+five tasks, TSK-2940 to TSK-2980, none of them started, and each of the seven
+requirements ADR-1810 addresses lands in one of them. REQ-2580 stays
+postponed.
 
 [EPC-2100](epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realises
 ADR-2200 in two tasks, TSK-3700 and TSK-3710, neither of them started, and
