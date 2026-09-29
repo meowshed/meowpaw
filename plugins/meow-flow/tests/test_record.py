@@ -2287,19 +2287,19 @@ STEPS = ("research", "requirements", "design", "spec", "epic", "cover", "impleme
 METHOD = UNIT / "skills" / "method"
 REPOSITORY = UNIT.parent.parent
 
-# ADR-1620's table: where each step's artifact lands, as its role names it (REQ-3203).
+# Where each step's artifact lands, as a path pattern under the record root the profile resolves (REQ-3203,
+# BUG-1264). Document and review are read apart: a page isn't under the record root, and review writes nothing.
 LANDS = {
-    "research": "a research record's file",
-    "requirements": "one requirement record's file for each obligation",
-    "design": "a decision record's file",
-    "spec": "the specification's file",
-    "epic": "the epic's file and each task's file",
-    "cover": "the check files, the kept failing run, and the task file's cover",
-    "implement": "the changed files, the kept runs, and the task file's evidence",
-    "document": "each user-facing page it changed",
-    "verify": "the epic's file, its verification and the evidence it cites",
-    "review": "writes nothing into the repository",
+    "research": ["research/res-nnnn-<topic>.md"],
+    "requirements": ["requirements/req-nnnn-<slug>.md"],
+    "design": ["adrs/adr-nnnn-<slug>.md"],
+    "spec": ["specs/spc-nnnn-<topic>.md"],
+    "epic": ["epics/epc-nnnn-<slug>.md", "tasks/tsk-nnnn-<slug>.md"],
+    "cover": ["tasks/tsk-nnnn-<slug>.md", "cover", "kept", "evidence_dir"],
+    "implement": ["tasks/tsk-nnnn-<slug>.md", "evidence", "kept runs", "evidence_dir"],
+    "verify": ["epics/epc-nnnn-<slug>.md", "kept evidence", "evidence_dir"],
 }
+RECORD_ROOT = ("[record] root", ".meowpaw/profile.toml", "project/")
 
 
 def flat(text):
@@ -2425,10 +2425,17 @@ class MethodSkill(unittest.TestCase):
         self.assertEqual(sorted(p.stem for p in (METHOD / "steps").glob("*.md")), sorted(STEPS))
 
     def test_each_role_names_where_its_artifact_lands(self):
-        """TSK-2550 criterion 3, REQ-3203: each role names ADR-1620's committed file; review's writes nothing."""
-        for name, lands in LANDS.items():
-            with self.subTest(step=name):
-                self.assertIn(lands, flat(tagged(self.step(name), "role")))
+        """TSK-2574 criteria 1 to 3, REQ-3203: each role names its path pattern under the record root, cover,
+        implement and verify the evidence directory, document a page outside the record root, and review nothing."""
+        for name, patterns in LANDS.items():
+            role = flat(tagged(self.step(name), "role"))
+            for phrase in RECORD_ROOT + tuple(patterns):
+                with self.subTest(step=name, phrase=phrase):
+                    self.assertIn(phrase, role)
+        document = flat(tagged(self.step("document"), "role"))
+        self.assertIn("outside the record root", document)
+        self.assertIn("documentation", document)
+        self.assertIn("writes nothing into the repository", flat(tagged(self.step("review"), "role")))
 
     def test_cover_writes_checks_only(self):
         """TSK-2550 criterion 4, REQ-3200: cover writes checks and no implementation code, sees them fail, keeps
