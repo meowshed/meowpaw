@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1720
 closes: [REQ-2572]
-issue:
+issue: 707
+projected: b7a26f789f5c
 ---
 
 # Read created issues back in one listing, and report a partial run as partial
