@@ -57,15 +57,35 @@ Nothing. BUG-1262 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/ec12b7c3f9b6.txt
+- Landed in: #666
+- Judgement: none
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`cover_gaps` in `crates/meow/src/record.rs` asks a new function,
+`not_evidence`, about the path under `Failing run` once `unkept` accepts it as
+a file in the repository. It refuses a run outside the evidence directory,
+which `evidence_dir` reads from `[verbs] evidence_dir` or places at `evidence`
+under the record root, and a run `git check-ignore` reports as ignored. The
+fixtures' failing run moved from `evidence/` to `project/evidence/`, and
+SPC-1090's section "The gate" states the rule. `meow-flow` goes to 0.36.1.
+
+The three checks in the class `CoverRun` failed first: `meow-verbs run test`
+exited 1 with `FAILED (failures=3)`, kept as
+`project/evidence/ec12b7c3f9b6.txt`, in the commit that held the checks alone.
+They pass now:
+
+```text
+$ python3 -m unittest test_record    # in plugins/meow-flow/tests
+Ran 196 tests
+OK                                   # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 
