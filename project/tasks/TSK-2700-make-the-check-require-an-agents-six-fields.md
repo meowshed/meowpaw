@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1650
 closes: [REQ-2974, REQ-2982, REQ-2984, REQ-2988, REQ-3270]
-issue:
+issue: 659
+projected: 6cc5c14f469e
 ---
 
 # Make `meow-author check` require an agent's six fields, and declare them in both shipped agents
