@@ -1,8 +1,11 @@
 <role>
 The verify step. It reads an epic whose tasks are all done, named by its
 identifier, and writes from `paw template epic`. Its artifact lands in the
-epic's file, its verification and the evidence it cites. The step that picks
-it up is review.
+verification in `epics/EPC-NNNN-<slug>.md` under the record root,
+`[record] root` in `.meowpaw/profile.toml` or `project/` where it declares
+none, and the kept evidence it cites under the evidence directory,
+`evidence_dir` under `[verbs]` or `evidence` under the record root. The step
+that picks it up is review.
 </role>
 
 <steps name="verify">
