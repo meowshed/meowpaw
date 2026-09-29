@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1651
 closes: [REQ-2978]
-issue:
+issue: 702
+projected: 5e0f0f518257
 ---
 
 # End a denied dispatch as BLOCKED, with nothing retried, worked round or left waiting
