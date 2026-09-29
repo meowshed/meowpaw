@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what meow-unattended plans, what it writes and what its deny rules don't stop
 kind: reference
-describes: [meow-unattended@0.1.0]
+describes: [meow-unattended@0.2.0]
 ---
 
 # meow-unattended
@@ -45,8 +45,15 @@ units = ["vendor/meow-verbs", "vendor/meow-flow"]
 | `amend_approved`  | Whether the run may amend an approved requirement or withdraw an approved decision                                   | `false`            |
 
 `gates = []` declares that the run crosses no gate, and `plan` accepts it.
-`merge` names a merge into a branch other than the trunk. This version passes
-each entry in `units` to `--plugin-dir` as you wrote it.
+`merge` names a merge into a branch other than the trunk.
+
+Each entry in `units` must be a directory, relative to the work tree's root,
+that holds `.claude-plugin/plugin.json`. `plan` refuses a URL, because a unit
+loads from a directory, and a folder of units that isn't a unit itself, because
+the run would load its children by discovery. It also refuses a repository
+whose `.claude/settings.json` or `.claude/settings.local.json` has an `env`
+block, because those variables would reach the run without the table naming
+them.
 
 ## Run it
 
@@ -61,19 +68,20 @@ From your own shell, run the same launcher by its path in the installed unit.
 `plan` prints, in order, and exits 0:
 
 1. The resolved `[unattended]` table, with each default filled in.
-2. The command that would start the run, one argument a line:
+2. Each unit, with the `name` and `version` its `plugin.json` holds.
+3. The command that would start the run, one argument a line:
    `claude -p --bare`, one `--plugin-dir` for each unit, `--permission-mode`
    with the declared mode, `--permission-prompts none`,
    `--disallowed-tools AskUserQuestion`, `--output-format stream-json`,
    `--verbose`, `--max-budget-usd` with the declared budget, and `--settings`
    with the snapshot's path.
-3. The snapshot's path.
-4. Each deny rule the snapshot holds, one a line, and `no record to protect`
+4. The snapshot's path.
+5. Each deny rule the snapshot holds, one a line, and `no record to protect`
    where the profile declares no `[record]`.
-5. That a requirement or decision approved after the plan isn't protected
+6. That a requirement or decision approved after the plan isn't protected
    until you run `plan` again.
-6. The four limits of the deny rules, listed below.
-7. That the command needs `ANTHROPIC_API_KEY` in its environment, because a
+7. The four limits of the deny rules, listed below.
+8. That the command needs `ANTHROPIC_API_KEY` in its environment, because a
    bare run reads no subscription login and the snapshot holds no credential.
 
 `meow-unattended plan --purge` removes every snapshot of the work tree and
@@ -90,7 +98,8 @@ or `~/.local/state` where that isn't set, and `MEOWPAW_STATE_DIR` moves it, as
 it moves the evidence ledger. With `MEOWPAW_STATE=off`, `plan` writes no file,
 prints the snapshot's content and says no snapshot was kept.
 
-The snapshot holds the resolved table and these deny rules under
+The snapshot holds the resolved table, each unit's `name` and `version`
+under `meowpaw.units`, and these deny rules under
 `permissions.deny`, each path written as an absolute path with a leading `//`:
 
 | Rule                                                                  | Present when                 |
@@ -133,6 +142,10 @@ writes no snapshot:
 | `unresolved: [unattended] <key> <value> is not true or false`          | `merge_protected` or `amend_approved` isn't a boolean           |
 | `unresolved: merge_protected is true and gates lacks merge`            | The run may push to the trunk but may not merge anywhere        |
 | `unresolved: [git] trunk is not declared, so the push rules ...`       | `merge_protected` is `false` and no trunk names what to protect |
+| `unresolved: unit <entry> is a URL, and a unit loads from a directory` | A `units` entry is a URL                                        |
+| `unresolved: unit <entry> is not a unit's own directory`               | A `units` entry holds no `.claude-plugin/plugin.json`           |
+| `unresolved: unit <entry> has a plugin.json that states no name ...`   | The unit's `plugin.json` lacks a `name` or a `version`          |
+| `unresolved: <file> sets env <key>, ...`                               | A repository settings file has an `env` block, naming each key  |
 | `unresolved: snapshot not written: <reason>`                           | The state directory can't be written                            |
 
 `bypassPermissions` is refused because it skips the protection Claude Code

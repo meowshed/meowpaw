@@ -78,12 +78,14 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: 13 checks seen failing at the cover commit f9e8b4e, and
       passing unchanged in #663.
 
-- [ ] T-002 TSK-3310 make `plan` load each unit by name: refuse a URL, a
+- [x] T-002 TSK-3310 make `plan` load each unit by name: refuse a URL, a
       folder of units and a project `env` block, and name each unit with its
       version in the output and the snapshot
       closes: REQ-2392
       depends: TSK-3300, because it extends the program, the table reader and
       the snapshot that task adds
+      evidence: 4 checks seen failing at the cover commit fa22b5f, and
+      passing unchanged in #668.
 
 Neither task can run in parallel with the other, because TSK-3310 changes the
 code TSK-3300 writes.
