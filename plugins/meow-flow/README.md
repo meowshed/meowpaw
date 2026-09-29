@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.39.1]
+describes: [meow-flow@0.39.2]
 ---
 
 # meow-flow
@@ -192,7 +192,9 @@ the unit's rename isn't read, and `--write` names the markers it needs.
 questions for its kind, such as whether each alternative in a decision says why
 it lost, and whether each rule in any record states its reason. It reads the
 record and what the record cites, with `Read`, `Grep` and `Glob` alone, and
-edits nothing. It asks nothing `paw check` already settles. Its report opens
+edits nothing. It runs on `opus` at `high` effort for at most 30 turns, and
+loads your repository's `CLAUDE.md`, because it judges the record against your
+repository's rules. It asks nothing `paw check` already settles. Its report opens
 with this line, because it is a model's judgement, which covers more than a
 person's and can't say whether the work should exist:
 

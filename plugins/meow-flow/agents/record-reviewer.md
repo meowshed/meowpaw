@@ -1,7 +1,12 @@
 ---
 name: record-reviewer
 description: Reviews one project record against fixed questions for its kind and reports findings, editing nothing.
-tools: Read, Grep, Glob
+tools: [Read, Grep, Glob]
+maxTurns: 30
+model: opus
+effort: high
+omitClaudeMd: false
+skills: []
 ---
 
 <role>

@@ -102,38 +102,54 @@ Nothing. ADR-1700 and EPC-1650 are approved.
 
 ## Cover
 
-- Checks: `plugins/meow-author/tests/test_author.py`, class `AgentFields`:
-  criterion 1 by `test_a_missing_maxTurns_fails`, `test_a_missing_tools_fails`,
-  `test_a_missing_model_fails`, `test_a_missing_effort_fails`,
-  `test_a_missing_omitClaudeMd_fails` and `test_a_missing_skills_fails`;
-  criterion 2 by `test_a_zero_ceiling_fails`, `test_inherit_fails`,
-  `test_an_unknown_model_alias_fails`, `test_an_unknown_effort_fails` and
-  `test_a_wrong_type_fails`, one subtest for each of the five wrong types;
-  criterion 3 by `test_a_shipped_agent_with_every_tool_fails`,
-  `test_a_shipped_agent_listing_agent_fails`,
-  `test_a_shipped_agent_listing_task_fails`,
-  `test_a_restricted_agent_entry_fails` and
-  `test_agent_in_a_comma_separated_list_fails`; criterion 4 by
-  `test_front_matter_that_does_not_parse_fails_alone`; criterion 5 by
-  `test_an_agent_declaring_all_six_passes`,
-  `test_a_shipped_agent_with_no_tools_passes`,
-  `test_a_full_model_identifier_passes`,
-  `test_a_repositorys_own_agent_may_list_agent` and
-  `test_a_repositorys_own_agent_may_list_every_tool`, each asserting a
-  refusal with one field removed before it asserts the pass.
-- Failing run: `project/evidence/27a4dd34eda3.txt`, the `test` verb exiting 1
-  with 26 failures, every one in `AgentFields`, each because the check exits 0
-  where it should exit 1.
-- Landed in: not yet
-- Judgement: criterion 6 is closed by the gate's run at the merging revision,
-  as the criterion states, because only that revision holds both the new check
-  and the two agents' declarations; that each agent's values are the ones in
-  SPC-1030's table is read at review. Criterion 7 is a hand-run evaluation
-  read by a person, because a model's run never runs in CI.
+- Checks: plugins/meow-author/tests/test_author.py
+- Failing run: project/evidence/27a4dd34eda3.txt
+- Landed in: #667
+- Judgement: 6: closed by the gate's run at the merging revision, because only that revision holds both the new check and the two agents' declarations, and that each agent's values are the ones in SPC-1030's table is read at review; 7: a hand-run evaluation read by a person, because a model's run never runs in CI
+
+The checks are class `AgentFields`, one for each fixture the acceptance
+criteria name. The failing run is the `test` verb exiting 1 with 26 failures,
+every one in `AgentFields`, each because the check exited 0 where it should
+exit 1. The cover step first wrote this section as prose that `paw ready`
+couldn't read, so the implement step rewrote it into the four lines with the
+same checks, run and judgements.
 
 ## Evidence
 
-Not yet.
+`agent_fields` in `crates/meow/src/author.rs` reads an agent's front matter
+as YAML and fails, naming the file and the field, on each of the six fields
+SPC-1030 states when it is missing or holds a value the table doesn't accept.
+In a unit's `agents/` directory it also fails a `tools` list holding `*`,
+`Agent` or `Task`, alone or with a restriction, read as a list or as a
+comma-separated string. A unit counts as shipped when it sits in a `plugins/`
+directory or carries a plugin manifest, so `.claude/` passes the `tools` rule
+once it writes a list. Front matter that doesn't parse fails with the parser's
+reason and runs no field rule. The `author` feature now builds with
+`yaml-rust2`, which the `gotask` feature already uses.
+
+`record-reviewer` and `prose` declare the values in SPC-1030's table, and
+`plugins/meow-flow/evals/review-without-delegating/` is the hand-run case for
+criterion 7, with its threshold in `thresholds.toml`. Nobody has run it yet,
+so criterion 7 is open until a person runs it and keeps the transcript.
+
+The 26 checks in `AgentFields` failed first: the `test` verb exited 1, kept
+as `project/evidence/27a4dd34eda3.txt`, in the commit that held the checks
+alone. They pass now, and `git diff 9bf7626 -- plugins/meow-author/tests/test_author.py`
+prints nothing:
+
+```text
+$ python3 -m unittest plugins/meow-author/tests/test_author.py
+Ran 40 tests in 1.740s
+OK                                   # exit 0
+$ plugins/meow-author/bin/meow-author check
+51 files, 0 authoring failures       # exit 0
+```
+
+`meow-author` goes to 0.4.0, because the check fails agents it passed before,
+and `meow-flow` to 0.37.1 and `meow-prose` to 0.4.1 for their agents'
+declarations. `meow-verbs evidence --keep format lint check test build` exits
+0 on this change's own tree, each result kept in `project/evidence/`, as the
+pull request cites.
 
 ## Left alone
 
