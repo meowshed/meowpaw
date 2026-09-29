@@ -651,7 +651,11 @@ reason before the implementation starts (REQ-3216). A path under `Checks` or
 `Failing run` is relative to the repository's root and names a regular file
 inside it, and `Failing run` names none of the checks, because a file outside
 the repository isn't kept with it and a directory or a check isn't a run
-(BUG-1260). It is also filled when
+(BUG-1260). The path under `Failing run` lies under the evidence directory,
+`evidence_dir` under `[verbs]` or `evidence` under the record root, and git
+doesn't ignore it, because ADR-1550 keeps evidence there and a file git won't
+commit reaches no clone (BUG-1262). Where git can't say, the run isn't refused
+on that ground. It is also filled when
 `Checks`, `Failing run` and `Landed in` read `none` and `Judgement` names
 every numbered criterion under `## Acceptance criteria`. Whatever the other
 lines say, the section isn't filled while the task names no numbered

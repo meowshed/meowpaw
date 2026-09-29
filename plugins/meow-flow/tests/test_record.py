@@ -814,7 +814,7 @@ class Chain(unittest.TestCase):
     def cover(self, repository):
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
                         "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + FILLED + "\n\n## Evidence")
-        for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
+        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
             path = repository.path / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("A file.\n", encoding="utf-8")
@@ -897,7 +897,7 @@ class Chain(unittest.TestCase):
 
 
 FILLED = """- Checks: tests/test_a_task.py
-- Failing run: evidence/a-failing-run.txt
+- Failing run: project/evidence/a-failing-run.txt
 - Landed in: #12
 - Judgement: 2: whether the page reads well rests on a reader"""
 
@@ -1020,22 +1020,22 @@ class Cover(unittest.TestCase):
         self.landed(repository, "tests/test_a_task.py")
         done = self.implement(repository)
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertTrue(any("evidence/a-failing-run.txt" in line for line in done.stdout.splitlines()), done.stdout)
+        self.assertTrue(any("project/evidence/a-failing-run.txt" in line for line in done.stdout.splitlines()), done.stdout)
         self.assertNotIn("tests/test_a_task.py", done.stdout)
 
     def test_implement_names_a_missing_check(self):
         """TSK-2530 criterion 4, REQ-3207: a path under `Checks` naming no file is named on its own line."""
         repository = self.repo(cover=FILLED)
-        self.landed(repository, "evidence/a-failing-run.txt")
+        self.landed(repository, "project/evidence/a-failing-run.txt")
         done = self.implement(repository)
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("tests/test_a_task.py", done.stdout)
-        self.assertNotIn("evidence/a-failing-run.txt", done.stdout)
+        self.assertNotIn("project/evidence/a-failing-run.txt", done.stdout)
 
     def test_implement_names_landed_in_left_none(self):
         """TSK-2530 criterion 5, REQ-3207: checks named and landed nowhere is named by its `Landed in` line."""
         repository = self.repo(cover=FILLED.replace("- Landed in: #12", "- Landed in: none"))
-        self.landed(repository, "tests/test_a_task.py", "evidence/a-failing-run.txt")
+        self.landed(repository, "tests/test_a_task.py", "project/evidence/a-failing-run.txt")
         done = self.implement(repository)
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("Landed in", done.stdout)
@@ -1045,7 +1045,7 @@ class Cover(unittest.TestCase):
         repository = self.repo(cover=FILLED.replace(
             "- Judgement: 2: whether the page reads well rests on a reader",
             "- Judgement: 2: whether the page reads well rests on a reader; 3:"))
-        self.landed(repository, "tests/test_a_task.py", "evidence/a-failing-run.txt")
+        self.landed(repository, "tests/test_a_task.py", "project/evidence/a-failing-run.txt")
         done = self.implement(repository)
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         named = [line for line in done.stdout.splitlines() if re.search(r"\b3\b", line.replace("TSK-0001", ""))]
@@ -1061,7 +1061,7 @@ class Cover(unittest.TestCase):
         repository = self.repo(cover=FILLED)
         refused = self.implement(repository)
         self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
-        self.landed(repository, "tests/test_a_task.py", "evidence/a-failing-run.txt")
+        self.landed(repository, "tests/test_a_task.py", "project/evidence/a-failing-run.txt")
         done = self.implement(repository)
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
@@ -1102,10 +1102,10 @@ class CoverPaths(unittest.TestCase):
     def refused(self, line, path, outside=False):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
-        cover = FILLED.replace("tests/test_a_task.py" if line == "Checks" else "evidence/a-failing-run.txt", path)
+        cover = FILLED.replace("tests/test_a_task.py" if line == "Checks" else "project/evidence/a-failing-run.txt", path)
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
                         "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + cover + "\n\n## Evidence")
-        for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
+        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
             (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
             (repository.path / name).write_text("A file.\n", encoding="utf-8")
         if outside:
@@ -1127,11 +1127,53 @@ class CoverPaths(unittest.TestCase):
         """TSK-2570 criterion 2: an absolute path, a `..` escape and a directory under `Checks`."""
         self.refused("Checks", "/etc/hosts")
         self.refused("Checks", "../outside.txt", outside=True)
-        self.refused("Checks", "evidence")
+        self.refused("Checks", "project/evidence")
 
     def test_a_check_named_as_its_own_failing_run_is_refused(self):
         """TSK-2570 criterion 3: `Failing run` naming the file `Checks` names."""
         self.refused("Failing run", "tests/test_a_task.py")
+
+
+class CoverRun(unittest.TestCase):
+    """BUG-1262, REQ-3207: the failing run is kept as evidence, under the evidence directory ADR-1550 places it in, and
+    in a file git doesn't ignore."""
+
+    def implement(self, run, profile=None, ignore=None):
+        repository = Repository(profile=profile)
+        self.addCleanup(repository.tmp.cleanup)
+        cover = FILLED.replace("project/evidence/a-failing-run.txt", run)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
+                        "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + cover + "\n\n## Evidence")
+        for name in ("tests/test_a_task.py", run):
+            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
+            (repository.path / name).write_text("A file.\n", encoding="utf-8")
+        if ignore is not None:
+            (repository.path / ".gitignore").write_text(ignore + "\n", encoding="utf-8")
+        return repository.run("ready", "implement", "TSK-0001")
+
+    def refused(self, done, path, *words):
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        lines = [l for l in done.stdout.splitlines() if path in l and "Failing run" in l]
+        self.assertTrue(lines, done.stdout)
+        for word in words:
+            self.assertTrue(any(word in l for l in lines), done.stdout)
+
+    def test_a_failing_run_outside_the_evidence_directory_is_refused(self):
+        """TSK-2572 criterion 1: `README.md` at the root is a file in the repository and no kept run."""
+        self.refused(self.implement("README.md"), "README.md", "evidence")
+
+    def test_a_failing_run_git_ignores_is_refused(self):
+        """TSK-2572 criterion 2: a file under the evidence directory that `.gitignore` ignores reaches no clone."""
+        self.refused(self.implement("project/evidence/run.txt", ignore="project/evidence/"), "project/evidence/run.txt",
+                     "ignore")
+
+    def test_the_profile_declares_the_evidence_directory(self):
+        """TSK-2572 criterion 3: `[verbs] evidence_dir` moves the directory, so a run under it is kept and one under
+        the record root's `evidence` isn't."""
+        profile = '[verbs]\nevidence_dir = "kept"\n'
+        done = self.implement("kept/run.txt", profile=profile)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.refused(self.implement("project/evidence/run.txt", profile=profile), "project/evidence/run.txt")
 
 
 class CoverCriteria(unittest.TestCase):
@@ -1142,7 +1184,7 @@ class CoverCriteria(unittest.TestCase):
         self.addCleanup(repository.tmp.cleanup)
         sections = "## Acceptance criteria\n\n" + criteria + "\n\n" if criteria is not None else ""
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", sections + "## Cover\n\n" + cover + "\n\n## Evidence")
-        for name in ("tests/t.py", "evidence/run.txt"):
+        for name in ("tests/t.py", "project/evidence/run.txt"):
             (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
             (repository.path / name).write_text("A file.\n", encoding="utf-8")
         done = repository.run("ready", "implement", "TSK-0001")
@@ -1151,7 +1193,7 @@ class CoverCriteria(unittest.TestCase):
 
     def test_no_checks_names_every_criterion_whatever_else_is_named(self):
         """TSK-2571 criterion 1: `Checks: none` with a run and a pull request named still asks for every criterion."""
-        lines = self.implement("- Checks: none\n- Failing run: evidence/run.txt\n- Landed in: #1\n- Judgement: none")
+        lines = self.implement("- Checks: none\n- Failing run: project/evidence/run.txt\n- Landed in: #1\n- Judgement: none")
         for number in ("1", "2"):
             self.assertTrue(any(f"criterion {number}" in l for l in lines), lines)
 
@@ -1165,13 +1207,13 @@ class CoverCriteria(unittest.TestCase):
 
     def test_a_judgement_naming_no_criterion_is_refused(self):
         """TSK-2571 criterion 3: `Judgement: 7` on a task whose criteria are 1 and 2."""
-        lines = self.implement("- Checks: tests/t.py\n- Failing run: evidence/run.txt\n- Landed in: #1\n"
+        lines = self.implement("- Checks: tests/t.py\n- Failing run: project/evidence/run.txt\n- Landed in: #1\n"
                                "- Judgement: 7: a reason")
         self.assertTrue(any(re.search(r"\b7\b", l.replace("TSK-0001", "")) for l in lines), lines)
 
     def test_an_empty_judgement_is_refused(self):
         """TSK-2571 criterion 4: `Judgement:` with nothing after it is neither a reason nor `none`."""
-        lines = self.implement("- Checks: tests/t.py\n- Failing run: evidence/run.txt\n- Landed in: #1\n- Judgement:")
+        lines = self.implement("- Checks: tests/t.py\n- Failing run: project/evidence/run.txt\n- Landed in: #1\n- Judgement:")
         self.assertTrue(any("Judgement" in l for l in lines), lines)
 
 
@@ -1314,7 +1356,7 @@ class Frozen(unittest.TestCase):
                                      "commit", "-q", "-m", "base"]):
             subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
         repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\nNot yet.",
-                        "## Cover\n\n- Checks: tests/test_a_task.py\n- Failing run: evidence/a-failing-run.txt\n"
+                        "## Cover\n\n- Checks: tests/test_a_task.py\n- Failing run: project/evidence/a-failing-run.txt\n"
                         "- Landed in: #12\n- Judgement: none")
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
@@ -2046,7 +2088,7 @@ class Dependencies(unittest.TestCase):
             entries = ["- [ ] T-001 TSK-0002 the second task\n      closes: REQ-0001",
                        "- [ ] T-002 TSK-0001 the task\n      closes: REQ-0001"]
         repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n" + "\n\n".join(entries))
-        for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
+        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
             path = repository.path / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("A file.\n", encoding="utf-8")

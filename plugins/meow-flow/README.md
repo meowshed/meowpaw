@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.39.0]
+describes: [meow-flow@0.39.1]
 ---
 
 # meow-flow
@@ -145,6 +145,8 @@ criterion resting on judgement with its reason:
 
 It refuses while the section is missing or reads `Not yet.`, while a path
 under `Checks` or `Failing run` names no file in the repository, while
+the failing run lies outside the evidence directory or is a file git ignores,
+while
 `Landed in` reads `none` beside a named check, and while a `Judgement` number
 has no reason. A task with no check to write reads `none` on the first three
 lines and names every numbered acceptance criterion under `Judgement`. `ready`
