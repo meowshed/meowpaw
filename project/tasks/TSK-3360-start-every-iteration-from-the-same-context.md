@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1910
 closes: [REQ-0880, REQ-0882]
-issue:
+issue: 726
+projected: 6df258a914ef
 ---
 
 # Start every iteration from the same frozen prompt and preamble, and carry progress in a file
