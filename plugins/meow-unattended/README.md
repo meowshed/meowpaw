@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what meow-unattended plans, what it writes and what its deny rules don't stop
 kind: reference
-describes: [meow-unattended@0.2.1]
+describes: [meow-unattended@0.2.2]
 ---
 
 # meow-unattended
@@ -70,7 +70,8 @@ From your own shell, run the same launcher by its path in the installed unit.
 1. The resolved `[unattended]` table, with each default filled in.
 2. Each unit, with the `name` and `version` its `plugin.json` holds.
 3. The command that would start the run, one argument a line:
-   `claude -p --bare`, one `--plugin-dir` for each unit, `--permission-mode`
+   `claude -p --bare`, one `--plugin-dir` for each unit, naming its directory's
+   absolute path so the command runs from any directory, `--permission-mode`
    with the declared mode, `--permission-prompts none`,
    `--disallowed-tools AskUserQuestion`, `--output-format stream-json`,
    `--verbose`, `--max-budget-usd` with the declared budget, and `--settings`

@@ -76,7 +76,7 @@ this order:
 
 ```text
 claude -p --bare
-  --plugin-dir <unit>            once for each declared unit
+  --plugin-dir <unit directory>  once for each declared unit, absolute
   --permission-mode <declared>
   --permission-prompts none
   --disallowed-tools AskUserQuestion
@@ -95,6 +95,11 @@ MCP server or `CLAUDE.md` by discovery, and the command names no hook or MCP
 server the repository configures (REQ-2392). Each entry in `units` is a
 directory holding `.claude-plugin/plugin.json`.
 
+Each `--plugin-dir` names the unit's directory as an absolute path, resolved
+against the work tree's root with every symbolic link resolved, because `plan`
+runs from any directory in the work tree and a relative path would name a
+directory under wherever the command runs.
+
 ### The snapshot
 
 The snapshot is the file `--settings` names, and it holds the run's
@@ -105,7 +110,8 @@ an earlier snapshot's content and name unchanged. It holds no credential and
 no `apiKeyHelper`. It holds:
 
 - the resolved `[unattended]` table, with each default filled in;
-- each unit's `name` and `version`, read from its `plugin.json`;
+- each unit's absolute `path`, as `--plugin-dir` names it, and its `name` and
+  `version`, read from its `plugin.json`;
 - the deny rules below, under `permissions.deny`.
 
 The rule on the snapshot names the folder that holds it, because the file's
