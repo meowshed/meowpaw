@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1920
 closes: []
-issue:
+issue: 739
+projected: f0cba895a6ff
 ---
 
 # Deny an edit that decides a record's status inside a run
