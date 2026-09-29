@@ -149,14 +149,20 @@ words (REQ-2438):
 | A missing file behind a relative link, with a `file://` address                    | `finding`     |
 | Any other 4xx response                                                             | `finding`     |
 | An entry in `excluded_map`                                                         | `skipped`     |
-| Any other entry                                                                    | `unresolved`  |
+| Any other entry in `error_map`, such as a rejected 3xx                             | `unresolved`  |
 | lychee isn't on `PATH`                                                             | `tool absent` |
 | lychee exits 3 or 1, or prints output that isn't JSON                              | `tool broken` |
 | JSON missing `error_map`, `timeout_map` or `excluded_map`, or carrying another map | `tool broken` |
 
-It prints the unreachable results under their own heading, apart from the
-findings, and the number of skipped addresses. A skipped address counts
-towards no exit status. `links` exits 1 where any result is a finding, 3 where
+An entry in `success_map`, `redirect_map` or `suggestion_map` prints nothing:
+the first two resolved, and a suggestion names an address `error_map` already
+holds. Those six are the maps `links` knows, and another is `tool broken`. A
+missing file is an error with no status code whose text starts
+`File not found`, and another error on a `file://` address is `unresolved`.
+
+It prints the findings first, then the unreachable and the unresolved results
+under a heading each, then the number of skipped addresses. A skipped address
+counts towards no exit status. `links` exits 1 where any result is a finding, 3 where
 none is and any result is unreachable, unresolved, absent or broken, and 0
 where every checked link resolved.
 

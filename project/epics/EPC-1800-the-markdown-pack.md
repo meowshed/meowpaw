@@ -86,9 +86,11 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: 14 checks seen failing at the cover commit b9acb6f, and
       passing unchanged in #665.
 
-- [ ] T-003 [P] TSK-3120 `links`, and `check` the link check's settings
+- [x] T-003 [P] TSK-3120 `links`, and `check` the link check's settings
       closes: REQ-2438, REQ-2454
       depends: TSK-3100 - the program and its detection must exist
+      evidence: 13 checks seen failing at the cover commit 97915b4, and
+      passing unchanged in #671.
 
 - [ ] T-004 [P] TSK-3130 the skill's body and `reviewing.md`
       closes: REQ-0083

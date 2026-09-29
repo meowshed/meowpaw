@@ -1,0 +1,263 @@
+meow-verbs evidence 1
+record: 9ef867a56681
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: fc27729cf0513ad043f56f0e7d81a8f8b149b4c2
+time: 2026-09-29T13:23:02Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+built meow-unattended for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 37 tests
+.....................................
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 14.491s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.658s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 5.950s
+
+OK
+...........................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 203 tests in 17.824s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.138s
+
+OK
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 1.910s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.920s
+
+OK
+..................
+----------------------------------------------------------------------
+Ran 18 tests in 1.013s
+
+OK
+.......................................
+----------------------------------------------------------------------
+Ran 39 tests in 13.079s
+
+OK
+..............................
+----------------------------------------------------------------------
+Ran 30 tests in 3.738s
+
+OK
+...............FFFFFFFFFFFFFFFF............
+======================================================================
+FAIL: test_criterion_6_a_link_check_declares_offline_retries_and_cache (test_markdown.LinkSettings.test_criterion_6_a_link_check_declares_offline_retries_and_cache) (case='no max_retries')
+TSK-3120 criterion 6, REQ-2454: no `max_retries` exits 1 naming it; all three, in the file or the flags, exit 0.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 528, in test_criterion_6_a_link_check_declares_offline_retries_and_cache
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : meow-markdown check
+no findings
+
+
+======================================================================
+FAIL: test_criterion_6_an_undeclared_link_check_names_each_setting (test_markdown.LinkSettings.test_criterion_6_an_undeclared_link_check_names_each_setting)
+TSK-3120 criterion 6, REQ-2454: a verb running `lychee` with no file and no flags names all three.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 540, in test_criterion_6_an_undeclared_link_check_names_each_setting
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : meow-markdown check
+no findings
+
+
+======================================================================
+FAIL: test_criterion_7_a_cache_left_unignored_is_a_finding (test_markdown.LinkSettings.test_criterion_7_a_cache_left_unignored_is_a_finding) (case='unignored')
+TSK-3120 criterion 7, REQ-2454: `cache = true` with `.lycheecache` unignored exits 1, and 0 once ignored.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 557, in test_criterion_7_a_cache_left_unignored_is_a_finding
+    self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : meow-markdown check
+no findings
+
+
+======================================================================
+FAIL: test_criterion_7_a_settings_file_that_does_not_parse_is_named (test_markdown.LinkSettings.test_criterion_7_a_settings_file_that_does_not_parse_is_named)
+TSK-3120 criterion 7, REQ-2454: a `lychee.toml` that isn't TOML exits 1 naming the file.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 547, in test_criterion_7_a_settings_file_that_does_not_parse_is_named
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : meow-markdown check
+no findings
+
+
+======================================================================
+FAIL: test_criterion_1_a_403_and_a_503_are_unreachable (test_markdown.Links.test_criterion_1_a_403_and_a_503_are_unreachable)
+TSK-3120 criterion 1, REQ-2438: a 403 and a 503 response print as `unreachable`, exiting 3.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 435, in test_criterion_1_a_403_and_a_503_are_unreachable
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_1_a_timeout_and_a_failed_connection_are_unreachable (test_markdown.Links.test_criterion_1_a_timeout_and_a_failed_connection_are_unreachable)
+TSK-3120 criterion 1, REQ-2438: a timeout and a failed connection print as `unreachable`, exiting 3.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 428, in test_criterion_1_a_timeout_and_a_failed_connection_are_unreachable
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_2_a_404_and_a_missing_file_are_findings (test_markdown.Links.test_criterion_2_a_404_and_a_missing_file_are_findings) (case='404')
+TSK-3120 criterion 2, REQ-2438: a 404 and a missing relative file print as `finding`, exiting 1.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 446, in test_criterion_2_a_404_and_a_missing_file_are_findings
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_2_a_404_and_a_missing_file_are_findings (test_markdown.Links.test_criterion_2_a_404_and_a_missing_file_are_findings) (case='missing file')
+TSK-3120 criterion 2, REQ-2438: a 404 and a missing relative file print as `finding`, exiting 1.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 446, in test_criterion_2_a_404_and_a_missing_file_are_findings
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_2_a_mix_exits_1_with_the_unreachable_listed_apart (test_markdown.Links.test_criterion_2_a_mix_exits_1_with_the_unreachable_listed_apart)
+TSK-3120 criterion 2, REQ-2438: a 404 beside a timeout exits 1, the timeout under its own heading.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 452, in test_criterion_2_a_mix_exits_1_with_the_unreachable_listed_apart
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_3_only_excluded_addresses_are_skipped (test_markdown.Links.test_criterion_3_only_excluded_addresses_are_skipped)
+TSK-3120 criterion 3, REQ-2438: excluded addresses print as `skipped` with their count, exiting 0.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 466, in test_criterion_3_only_excluded_addresses_are_skipped
+    self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken (test_markdown.Links.test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken) (case='exit 3')
+TSK-3120 criterion 4, REQ-2438: exit 3, text that isn't JSON and a renamed `timeout_map` are `tool broken`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 487, in test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken (test_markdown.Links.test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken) (case='not JSON')
+TSK-3120 criterion 4, REQ-2438: exit 3, text that isn't JSON and a renamed `timeout_map` are `tool broken`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 487, in test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken (test_markdown.Links.test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken) (case='renamed map')
+TSK-3120 criterion 4, REQ-2438: exit 3, text that isn't JSON and a renamed `timeout_map` are `tool broken`.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 487, in test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_4_a_rejected_3xx_is_unresolved (test_markdown.Links.test_criterion_4_a_rejected_3xx_is_unresolved)
+TSK-3120 criterion 4, REQ-2438: a rejected 301 falls in no class, so it prints `unresolved`, exiting 3.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 495, in test_criterion_4_a_rejected_3xx_is_unresolved
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_4_no_lychee_on_path_is_tool_absent (test_markdown.Links.test_criterion_4_no_lychee_on_path_is_tool_absent)
+TSK-3120 criterion 4, REQ-2438: no lychee on `PATH` prints `tool absent`, exiting 3.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 475, in test_criterion_4_no_lychee_on_path_is_tool_absent
+    self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 3 : usage: meow-markdown status | bind | check
+
+
+======================================================================
+FAIL: test_criterion_5_the_real_lychee_reports_a_missing_file (test_markdown.Links.test_criterion_5_the_real_lychee_reports_a_missing_file)
+TSK-3120 criterion 5, REQ-2438: lychee itself, on a missing relative file, makes `links` exit 1.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-links-classify-settings-cover/plugins/meow-markdown/tests/test_markdown.py", line 508, in test_criterion_5_the_real_lychee_reports_a_missing_file
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 1 : usage: meow-markdown status | bind | check
+
+
+----------------------------------------------------------------------
+Ran 40 tests in 3.966s
+
+FAILED (failures=16)
