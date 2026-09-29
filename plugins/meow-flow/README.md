@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.39.2]
+describes: [meow-flow@0.39.3]
 ---
 
 # meow-flow
@@ -207,6 +207,10 @@ Ask Claude to use it on a path:
 ```text
 Use the meow-flow:record-reviewer agent on project/adrs/ADR-0100-cache-in-redis.md
 ```
+
+Where the reviewer's output comes back marked as stopped at its turn ceiling,
+the method skill reports the record as unreviewed by an agent, because a
+partial list of findings reads as a complete one.
 
 ## Postpone requirements
 
