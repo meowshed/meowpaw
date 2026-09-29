@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.35.0]
+describes: [meow-flow@0.36.0]
 ---
 
 # meow-flow
@@ -68,8 +68,10 @@ is at `project/`.
 
 Type `/meow-flow:run` to be taken to the next approval gate. It reads where
 the record stands, runs the next step, and stops where that step waits for
-your approval, saying what the next run will do. Run it again after you
-approve, and it carries on; run it with nothing approved, and it says what it
+your approval, saying what the next run will do. A step that ends with no
+approval, such as cover, doesn't stop it: it reads the record again and runs
+the step after, so one run takes an approved task through cover and
+implement. Run it again after you approve, and it carries on; run it with nothing approved, and it says what it
 is waiting on.
 
 To run one step yourself, ask for it by name, such as "run the design step for
@@ -146,7 +148,9 @@ skill doesn't run the cover step yet, so until it does you write the Cover by
 hand.
 
 `paw status` prints where the record stands, leading with whatever waits for
-your approval. It counts the requirements in force by the state it derives from
+your approval. For an epic with open tasks it names the first task it can
+take, at `cover` while the task's Cover isn't filled and at `implement` once it
+is. It counts the requirements in force by the state it derives from
 the tasks closing them: verified, closed and not yet verified, in a task not
 yet done, or checked by nothing. It calls an epic verified only while `check`
 reports nothing on the epic, its decision or its tasks, and calls it drifted
