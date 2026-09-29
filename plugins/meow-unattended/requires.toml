@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# The Claude Code version this unit needs (REQ-1736). Claude Code's plugin
+# manifest has no field for a minimum platform version, so the unit states it
+# here: the version whose flags the printed command uses (ADR-2000).
+claude_code = "2.1.283"

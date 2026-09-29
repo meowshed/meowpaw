@@ -31,6 +31,8 @@ mod record;
 mod runner;
 #[cfg(feature = "scm")]
 mod scm;
+#[cfg(feature = "unattended")]
+mod unattended;
 #[cfg(feature = "verbs")]
 mod verbs;
 
@@ -65,6 +67,8 @@ fn main() -> ExitCode {
         "prose" => prose::main(rest),
         #[cfg(feature = "markdown")]
         "markdown" => markdown::main(rest),
+        #[cfg(feature = "unattended")]
+        "unattended" => unattended::main(rest),
         _ => {
             eprintln!(
                 "usage: meow <subcommand> ..., where this build carries: {}",
@@ -111,6 +115,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "markdown") {
         names.push("markdown");
+    }
+    if cfg!(feature = "unattended") {
+        names.push("unattended");
     }
     names
 }
