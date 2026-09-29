@@ -45,13 +45,16 @@ def table(**keys):
     return "\n".join(lines) + "\n"
 
 
-def record(status_of):
-    """Record files under `project/`, each with the front matter its kind carries."""
+ARTIFACT = {"REQ": "requirement", "ADR": "adr", "EPC": "epic", "RES": "research"}
+
+
+def record(status_of, root="project"):
+    """Record files under `root`, each with the front matter its kind carries."""
     files = {}
     for path, status in status_of.items():
         ident = Path(path).name[:8]
-        artifact = "requirement" if ident.startswith("REQ") else "adr"
-        files[f"project/{path}"] = (f"---\nid: {ident}\nartifact: {artifact}\nstatus: {status}\n"
+        artifact = ARTIFACT[ident[:3]]
+        files[f"{root}/{path}"] = (f"---\nid: {ident}\nartifact: {artifact}\nstatus: {status}\n"
                                     f"revised: 2026-09-29\n---\n\n# {ident}\n\nA fixture record.\n")
     return files
 
@@ -181,13 +184,15 @@ class Refusals(Fixture):
         self.assertEqual(checked, 4)
 
     def test_refused_values(self):
-        """TSK-3300 criterion 3, REQ-2388: bypassPermissions, an unknown gate, a zero budget and an
-        unguarded `merge_protected` are each refused, naming the value."""
+        """TSK-3300 criterion 3, REQ-2388, BUG-1342: bypassPermissions, a mode outside the list, an
+        unknown gate, a zero budget and an unguarded `merge_protected` are each refused, naming the value."""
         cases = {
             "bypassPermissions": (table(permission_mode='"bypassPermissions"'),
                                   "unresolved: [unattended] permission_mode bypassPermissions is refused"),
             "unknown gate": (table(gates='["verify", "deploy"]'),
                              "unresolved: [unattended] gates names deploy, which is not a gate"),
+            "unknown mode": (table(permission_mode='"yolo"'),
+                             "unresolved: [unattended] permission_mode yolo is refused"),
             "zero budget": (table(budget_usd="0"),
                             "unresolved: [unattended] budget_usd 0 is not a positive number"),
             "merge_protected": (table(merge_protected="true"),
@@ -198,7 +203,7 @@ class Refusals(Fixture):
             with self.subTest(case=name):
                 self.refused(self.profile(GIT, text), expected)
                 checked += 1
-        self.assertEqual(checked, 4)
+        self.assertEqual(checked, 5)
 
     def test_env_block_refused(self):
         """TSK-3310 criterion 4, REQ-2392: an `env` block with two keys in `.claude/settings.json`, and
@@ -347,39 +352,62 @@ class Plan(Fixture):
         self.assertEqual(len(following(tokens(done.stdout), "--settings")), 1, done.stdout)
 
     def test_command_line_states_the_posture(self):
-        """TSK-3300 criterion 5, REQ-2388: the command carries the declared mode and budget, and the
-        flags that keep the run from asking or loading by discovery."""
-        repository = self.repo(self.profile(GIT, table()))
-        output, words, path = self.plan(repository)
-        for flag in ("claude", "-p", "--bare", "--permission-prompts", "--disallowed-tools", "--output-format",
-                     "--verbose", "--max-budget-usd", "--permission-mode"):
-            with self.subTest(flag=flag):
-                self.assertGreaterEqual(words.count(flag), 1, output)
-        self.assertEqual(following(words, "--permission-mode"), ["dontAsk"], output)
-        self.assertEqual(following(words, "--max-budget-usd"), ["2.5"], output)
-        self.assertEqual(following(words, "--permission-prompts"), ["none"], output)
-        self.assertEqual(following(words, "--disallowed-tools"), ["AskUserQuestion"], output)
-        self.assertEqual(following(words, "--output-format"), ["stream-json"], output)
-        self.assertTrue(path.is_absolute(), output)
-        self.assertEqual(path.parent, repository.snapshot_folder(), output)
+        """TSK-3300 criterion 5, REQ-2388, BUG-1342: for each of the five modes, the command line carries
+        the declared mode and budget and each flag that keeps the run from asking or loading by discovery
+        exactly once, and the snapshot holds the declared table."""
+        checked = 0
+        for mode in ("manual", "plan", "dontAsk", "acceptEdits", "auto"):
+            with self.subTest(mode=mode):
+                repository = self.repo(self.profile(GIT, table(permission_mode=f'"{mode}"')))
+                output, _, path = self.plan(repository)
+                words = tokens(command_line(output))
+                for flag in ("claude", "-p", "--bare", "--permission-prompts", "--disallowed-tools",
+                             "--output-format", "--verbose", "--max-budget-usd", "--permission-mode"):
+                    self.assertEqual(words.count(flag), 1, f"{flag}\n{output}")
+                self.assertEqual(following(words, "--permission-mode"), [mode], output)
+                self.assertEqual(following(words, "--max-budget-usd"), ["2.5"], output)
+                self.assertEqual(following(words, "--permission-prompts"), ["none"], output)
+                self.assertEqual(following(words, "--disallowed-tools"), ["AskUserQuestion"], output)
+                self.assertEqual(following(words, "--output-format"), ["stream-json"], output)
+                self.assertTrue(path.is_absolute(), output)
+                self.assertEqual(path.parent, repository.snapshot_folder(), output)
+                snapshot = json.loads(path.read_text(encoding="utf-8"))
+                self.assertEqual(snapshot["meowpaw"]["unattended"], {
+                    "permission_mode": mode,
+                    "budget_usd": 2.5,
+                    "gates": ["verify", "review"],
+                    "units": ["units/alpha", "units/beta"],
+                    "merge_protected": False,
+                    "amend_approved": False,
+                }, json.dumps(snapshot, indent=2))
+                checked += 1
+        self.assertEqual(checked, 5)
 
     def test_output_states_the_limits(self):
-        """TSK-3300 criterion 10, REQ-2388: the output states the four limits of the deny rules, the
-        key the command needs and that a record approved later needs a new plan."""
+        """TSK-3300 criterion 10, REQ-2388, BUG-1342: the output states the four limits of the deny
+        rules, the key the command needs and that a record approved later needs a new plan, each as the
+        sentence that carries its meaning."""
         repository = self.repo(self.profile(GIT, RECORD, table()))
         repository.write(RECORD_FILES)
         output, _, _ = self.plan(repository)
-        stated = {
-            "a Bash rule stops only the forms it matches": r"git -C \. push origin main",
-            "an Edit rule misses a script": r"script that opens the file",
-            "a merge through the code host": r"code host",
-            "a new record retires an approved one": r"supersedes or withdraws",
-            "the command needs the key": r"ANTHROPIC_API_KEY",
-            "a record approved later needs a new plan": r"approved after this plan",
-        }
-        for name, pattern in stated.items():
-            with self.subTest(statement=name):
-                self.assertGreaterEqual(len(re.findall(pattern, output, re.IGNORECASE)), 1, output)
+        text = " ".join(output.split())
+        stated = (
+            "A Bash deny rule stops only the forms it matches, so `git -C . push origin main` isn't denied, "
+            "and neither is `git push origin` or `git push --force-with-lease` while the trunk is checked out.",
+            "An Edit deny rule reaches the file tools and the file commands Claude Code recognises, and not a "
+            "script that opens the file itself.",
+            "A merge through the code host's interface isn't denied.",
+            "A new record whose front matter supersedes or withdraws an approved one retires it without "
+            "editing its file, so no deny rule stops it.",
+            "The command needs ANTHROPIC_API_KEY in its environment.",
+            "A requirement or decision approved after this plan isn't protected until plan runs again.",
+        )
+        checked = 0
+        for sentence in stated:
+            with self.subTest(statement=sentence):
+                self.assertEqual(text.count(sentence), 1, output)
+                checked += 1
+        self.assertEqual(checked, 6)
 
 
 class Snapshot(Fixture):
@@ -413,13 +441,13 @@ class Snapshot(Fixture):
         self.assertEqual(first.name, hashlib.sha256(before).hexdigest() + ".json")
 
     def test_push_rules(self):
-        """TSK-3300 criterion 7, REQ-2388: the trunk's three push rules are denied unless
-        `merge_protected = true` with `merge` in `gates`."""
-        rules = ("Bash(git push *main*)", "Bash(git push)", "Bash(git push *HEAD*)")
-        _, _, _, guarded = self.snapshot(self.profile(GIT, table()))
-        for rule in rules:
-            with self.subTest(merge_protected="absent", rule=rule):
-                self.assertEqual(self.deny(guarded).count(rule), 1, self.deny(guarded))
+        """TSK-3300 criterion 7, REQ-2388, BUG-1342: the three push rules for the declared trunk are
+        denied unless `merge_protected = true` with `merge` in `gates`."""
+        rules = ("Bash(git push *trunk-x*)", "Bash(git push)", "Bash(git push *HEAD*)")
+        _, _, _, guarded = self.snapshot(self.profile('[git]\ntrunk = "trunk-x"\n', table()))
+        pushes = [rule for rule in self.deny(guarded) if rule.startswith("Bash(git push")]
+        self.assertEqual(sorted(pushes), sorted(rules), self.deny(guarded))
+        self.assertEqual([rule for rule in self.deny(guarded) if "main" in rule], [], self.deny(guarded))
         _, _, _, open_ = self.snapshot(self.profile(GIT, table(merge_protected="true",
                                                                gates='["verify", "merge"]')))
         deny = self.deny(open_)
@@ -427,11 +455,18 @@ class Snapshot(Fixture):
         self.assertEqual([rule for rule in deny if rule.startswith("Bash(git push")], [], deny)
 
     def test_approved_records_are_denied(self):
-        """TSK-3300 criterion 8, REQ-2388: each approved requirement and decision is denied Edit, none is
-        where `amend_approved = true`, and no `[record]` says there is no record to protect."""
-        repository, _, _, denied = self.snapshot({**self.profile(GIT, RECORD, table()), **RECORD_FILES})
-        prefix = f"Edit(/{repository.root}/project/"
-        on_record = sorted(rule for rule in self.deny(denied) if rule.startswith(prefix))
+        """TSK-3300 criterion 8, REQ-2388, BUG-1342: each approved requirement and decision under the
+        declared record root is denied Edit, and an approved epic or research file is not; none is where
+        `amend_approved = true`, and no `[record]` says there is no record to protect."""
+        others = record({"epics/EPC-0001-first.md": "approved", "research/RES-0001-first.md": "approved"},
+                        root="records")
+        declared = {**record({path: "approved" for path in APPROVED}, root="records"),
+                    **record({"requirements/REQ-0003-third.md": "draft"}, root="records"), **others}
+        repository, _, _, denied = self.snapshot({**self.profile(GIT, '[record]\nroot = "records"\n', table()),
+                                                  **declared, **RECORD_FILES})
+        on_record = sorted(rule for rule in self.deny(denied) if rule.startswith(f"Edit(/{repository.root}/")
+                           and rule.endswith(".md)"))
+        prefix = f"Edit(/{repository.root}/records/"
         self.assertEqual(on_record, sorted(f"{prefix}{path})" for path in APPROVED), self.deny(denied))
 
         repository, _, _, amended = self.snapshot({**self.profile(GIT, RECORD, table(amend_approved="true")),
