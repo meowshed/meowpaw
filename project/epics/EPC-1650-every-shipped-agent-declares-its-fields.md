@@ -76,11 +76,15 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
   hand-run case waits for a person to run it and keep the transcript.
   depends: nothing
 
-- [ ] T-002 [P] TSK-2701 give `meow-author:write` the rules a program can't
-      check, give the method skill the partial-output rule, and add the
-      hand-run cases for the ceiling and for knowledge shipped as a skill
-      closes: REQ-2972, REQ-2976
-      depends: nothing
+- [>] T-002 [P] TSK-2701 give `meow-author:write` the rules a program can't
+  check, give the method skill the partial-output rule, and add the
+  hand-run cases for the ceiling and for knowledge shipped as a skill
+  closes: REQ-2972, REQ-2976
+  evidence: the `WriteSkill` and `MethodSkill` checks pass after failing
+  first, in #686. TSK-2701 carries the runs. Criteria 4, 5 and 6 wait for
+  a person to run the two hand-run cases and the two judges and keep what
+  they print.
+  depends: nothing
 
 TSK-2700 and TSK-2701 touch different files except `meow-flow`'s and
 `meow-author`'s versions and their READMEs' `describes`, so whichever lands

@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.4.0]
+describes: [meow-author@0.4.1]
 ---
 
 # meow-author
@@ -29,6 +29,14 @@ skill has it declare what the material is for and who invokes it, write the
 body in the five tags with every obligation a numbered rule, name every
 supporting file, end every procedure at a stopping point, and run the check
 before it stops.
+
+For an agent, the skill has Claude Code write out `maxTurns`, `tools`,
+`model`, `effort`, `omitClaudeMd` and `skills`, each with the reason the
+platform's default is wrong for it. It ships knowledge, such as a language's
+idioms, as a skill and never as an agent, because an agent pays for a fresh
+context on every dispatch. It never describes a delegated agent as a boundary,
+because the agent runs under the parent's sandbox configuration. An output
+that comes back marked partial is read as unfinished work.
 
 ## Run the check
 

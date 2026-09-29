@@ -9,6 +9,7 @@ test, so the fixtures can first run against a program that reports nothing
 and be seen failing (REQ-2072).
 """
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -332,6 +333,85 @@ class Launcher(unittest.TestCase):
                 self.assertIn(f"meow-author {subcommand}: unchecked: ", done.stdout)
                 self.assertIn(machine, done.stdout)
                 self.assertIn("reinstall the unit", done.stdout)
+
+
+def rules(text):
+    """Each numbered rule under a `<rules>` tag, as (identifier, text), the text lower case with backticks
+    kept and every run of white space one space, so a wrapped rule reads as one line."""
+    found = []
+    for block in re.findall(r"<rules\b[^>]*>(.*?)</rules>", text, re.DOTALL):
+        for ident, body in re.findall(r"^- ([A-Z]+\d+)\.\s(.*?)(?=^- [A-Z]+\d+\.\s|\Z)", block, re.MULTILINE | re.DOTALL):
+            found.append((ident, re.sub(r"\s+", " ", body).strip().lower()))
+    return found
+
+
+class WriteSkill(unittest.TestCase):
+    """ADR-1700, SPC-1030: the write skill carries the delegation rules no program can check, each a numbered
+    rule under a `<rules>` tag that states its reason."""
+
+    # REQ-2972: knowledge ships as a skill, and never as an agent.
+    KNOWLEDGE = (r"\bknowledge\b", r"\bas a skill\b[^.;]*\bnever as an agent\b")
+    # REQ-2976: a delegated agent is no boundary that contains what it does.
+    BOUNDARY = (r"\bagent\b", r"\b(never|not|no)\b[^.;,]*\bboundary\b", r"\bsandbox\b")
+
+    @staticmethod
+    def matches(body, patterns):
+        return "because" in body and all(re.search(p, body) for p in patterns)
+
+    def rule(self, *patterns):
+        """The rules matching every pattern and stating a reason, or a failure naming what was looked for."""
+        text = (UNIT / "skills" / "write" / "SKILL.md").read_text(encoding="utf-8")
+        matching = [ident for ident, body in rules(text) if self.matches(body, patterns)]
+        self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+        return matching
+
+    def test_knowledge_ships_as_a_skill_and_never_as_an_agent(self):
+        """TSK-2701 criterion 1, REQ-2972: knowledge ships as a skill loaded into the working context, never as
+        an agent."""
+        self.rule(*self.KNOWLEDGE)
+
+    def test_the_knowledge_rule_refuses_its_inversion(self):
+        """REQ-2972: the words alone don't pass, so a rule saying the opposite fails the fixture above."""
+        for inverted in (
+            "knowledge is not a skill; ship it as an agent, because an agent keeps it out of the context.",
+            "ship knowledge as an agent and never as a skill, because an agent keeps it out of the context.",
+        ):
+            with self.subTest(rule=inverted):
+                self.assertFalse(self.matches(inverted, self.KNOWLEDGE))
+
+    def test_a_delegated_agent_is_no_isolation_boundary(self):
+        """TSK-2701 criterion 1, REQ-2976: no text treats a delegated agent as an isolation boundary, because it
+        runs under the parent's sandbox configuration."""
+        self.rule(*self.BOUNDARY)
+
+    def test_the_boundary_rule_refuses_its_inversion(self):
+        """REQ-2976: the words alone don't pass, so a rule saying the opposite fails the fixture above."""
+        for inverted in (
+            "treat a delegated agent as an isolation boundary, because it has its own sandbox.",
+            "describe a delegated agent as a boundary, because it doesn't share the parent's sandbox.",
+        ):
+            with self.subTest(rule=inverted):
+                self.assertFalse(self.matches(inverted, self.BOUNDARY))
+
+    def test_each_of_the_six_fields_has_its_rule(self):
+        """TSK-2701 criterion 1: one rule for each of the six fields SPC-1030 states under "What an agent
+        declares", with the reason ADR-1700 gives: maxTurns REQ-2974, tools REQ-3270, model and effort REQ-2988,
+        omitClaudeMd REQ-2982, skills REQ-2984."""
+        fields = {
+            "maxTurns": r"\bceiling\b",
+            "tools": r"`agent`",
+            "model": r"`inherit`",
+            "effort": r"`xhigh`",
+            "omitClaudeMd": r"\binstructions\b",
+            "skills": r"\bpreload",
+        }
+        for field, reason in fields.items():
+            with self.subTest(field=field):
+                self.rule(re.escape(f"`{field.lower()}`"), reason)
+
+    def test_a_partial_output_is_unfinished(self):
+        """TSK-2701 criterion 1, REQ-2974: a dispatcher reads an output marked partial as unfinished work."""
+        self.rule(r"\bdispatch", r"\bpartial\b", r"\bunfinished\b")
 
 
 if __name__ == "__main__":
