@@ -30,7 +30,7 @@ build` runs, then each passes. Closed by: the kept evidence of that run.
 ## What to do
 
 In `crates/meow/src/unattended.rs`, read front matter with CRLF line endings,
-and compare `artifact` and `status` with a trailing ` #` comment and the
+and compare `artifact` and `status` with a trailing comment and the
 quotes removed, as `bare` in `crates/meow/src/record.rs` does, so the two
 readers of the record agree on which files are approved. Raise
 `meow-unattended` to 0.2.1 in `plugin.json`, and its README's `describes:`
@@ -47,13 +47,32 @@ Nothing. BUG-1340 is approved.
 - Checks: plugins/meow-unattended/tests/test_unattended.py,
   `Snapshot.test_approved_in_every_front_matter_form`
 - Failing run: project/evidence/7221defb820c.txt
-- Landed in: not yet
+- Landed in: #675
 - Judgement: 2: the kept run of the five verbs at the revision that merges
   closes it, and no check written before the work can
 
 ## Evidence
 
-Not yet.
+`approved` in `crates/meow/src/unattended.rs` now compares `artifact` and
+`status` through `bare`, which drops a trailing comment and the quotes as
+`bare` in `crates/meow/src/record.rs` does, and `front_matter` reads CRLF line
+endings as LF. SPC-1200's section "The snapshot" states both. `meow-unattended`
+is 0.2.1.
+
+The check failed first: `meow-verbs run test` exited 1 with
+`FAILED (failures=1)` on `Snapshot.test_approved_in_every_front_matter_form`,
+kept as `project/evidence/7221defb820c.txt` in the commit that held the check
+alone. It passes now, unchanged:
+
+```text
+$ python3 -m unittest test_unattended    # in plugins/meow-unattended/tests
+Ran 18 tests
+OK                                       # exit 0
+```
+
+Criterion 2: `meow-verbs run format lint check test build` passes on this
+change's tree, and `meow-verbs evidence --keep` keeps each result in
+`project/evidence/`, as the pull request cites.
 
 ## Left alone
 

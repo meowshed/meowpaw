@@ -20,7 +20,7 @@ output doesn't say the record is unprotected.
 
 ## Reproduction
 
-`main` at b42eaa1, with `meow-unattended` 0.2.0 built by
+`main` after #671, with `meow-unattended` 0.2.0 built by
 `crates/meow/build-units`.
 
 1. In a scratch git repository, declare `[git] trunk = "main"`,
@@ -66,5 +66,7 @@ rule for each of the four approved forms and none for a quoted draft.
 
 ## Tasks
 
-- [ ] T-001 TSK-3320 read an approved record's status the way `paw check`
+- [x] T-001 TSK-3320 read an approved record's status the way `paw check`
       does, in `crates/meow/src/unattended.rs`
+      evidence: 1 check seen failing first, 18 `meow-unattended`
+      fixtures passing, in #675.

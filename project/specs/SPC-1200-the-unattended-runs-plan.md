@@ -125,7 +125,9 @@ directory, which is the state directory and not the work tree.
 
 `<trunk>` is the profile's `[git] trunk`. `plan` finds the approved
 requirements and decisions from the `[record]` the profile declares, as they
-stand when `plan` runs.
+stand when `plan` runs. It reads `artifact` and `status` as `paw check` does,
+without a trailing comment or quotes, and reads a file with CRLF line endings
+as one with LF, so a record `paw check` holds frozen gets its rule.
 
 With `MEOWPAW_STATE=off`, `plan` prints the snapshot's content in place of
 writing it, and says no snapshot was kept; its rule on the snapshot folder
