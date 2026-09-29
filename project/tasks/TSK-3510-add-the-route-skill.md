@@ -97,12 +97,27 @@ with its README's `describes` to match.
 
 ## Cover
 
-Not yet.
-
-- Checks: not yet
-- Failing run: not yet
+- Checks: plugins/meow-flow/tests/test_route.py
+- Failing run: project/evidence/ed1d8795487d.txt
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: 3: the existing budget check closes it, and it passes before the skill exists, so no failing run can be kept for it; 4: the case runs a model session, by hand on Sonnet 5 and Opus 5.5 and never in the gate; 5: the case runs a model session, by hand on Sonnet 5 and Opus 5.5 and never in the gate; 6: the cases run a model session, by hand on Sonnet 5 and Opus 5.5 and never in the gate; 8: the case runs a model session, by hand on Sonnet 5 and Opus 5.5 and never in the gate; 7: whether a stream shows a write before the route is reported is read from a model's run, by hand; 9: the load measure comes from the platform's eval runner on a model, by hand
+
+The checks are the classes `RouteSkill` and `RouteCases`, each naming its
+criterion and requirement in its docstring. Criterion 1 is checked by
+`RouteSkill.test_the_skill_names_four_override_words` and
+`RouteSkill.test_the_skill_dispatches_the_router`, and criterion 2 by
+`RouteSkill.test_the_method_and_constitution_name_the_route`. The static half
+of criteria 4, 5, 6 and 8 is `RouteCases.test_each_skill_case_has_a_threshold`:
+each case exists, names itself and carries its threshold before its first run
+(REQ-0159). The static half of criterion 7 is
+`RouteCases.test_every_route_case_shares_the_write_grader`, one grader naming
+Write, Edit, NotebookEdit and Bash, the same in every route case including
+TSK-3500's, and `RouteCases.test_every_route_case_starts_in_a_clean_repository`,
+which runs each case's scaffold in an empty directory and expects a git
+repository where `git status --porcelain` prints nothing. The kept run fails 34
+subtests, all of them these: the skill and the seven cases don't exist, the
+method skill and `CLAUDE.md` don't name the route skill, no route case carries
+the grader, and TSK-3500's four scaffolds extract a tree with no repository.
 
 ## Evidence
 
