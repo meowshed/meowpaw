@@ -147,6 +147,12 @@ impl Corpus {
         self.named(|n| n.starts_with(".markdownlint-cli2.") || n.starts_with(".markdownlint."))
     }
 
+    /// Each `.markdownlintrc`, which markdownlint-cli alone reads, and only
+    /// in the directory it runs from (RES-0295).
+    fn markdownlintrc(&self) -> Vec<&str> {
+        self.named(|n| n == ".markdownlintrc")
+    }
+
     fn remark(&self) -> Vec<&str> {
         self.named(|n| n.starts_with(".remarkrc"))
     }
@@ -235,6 +241,7 @@ fn status() -> u8 {
         None => println!("render target: not declared in [markdown] target"),
     }
     let mut configurations = corpus.markdownlint();
+    configurations.extend(corpus.markdownlintrc());
     configurations.sort_by_key(|path| (path.rsplit_once('/').map_or("", |(dir, _)| dir), *path));
     if configurations.is_empty() {
         println!("markdownlint configuration: none tracked");
@@ -243,6 +250,8 @@ fn status() -> u8 {
         for path in configurations {
             let readers = if file_name(path).starts_with(".markdownlint-cli2.") {
                 "markdownlint-cli2 alone"
+            } else if file_name(path) == ".markdownlintrc" {
+                "markdownlint-cli alone, run in its directory"
             } else {
                 "markdownlint-cli2 and markdownlint-cli"
             };
@@ -320,11 +329,14 @@ fn bind() -> u8 {
         if !corpus.markdownlint().is_empty() {
             println!("lint = \"markdownlint-cli2 '**/*.md'\"");
             println!("# meow-markdown check runs the settings checks; this lint command doesn't");
+        } else if !corpus.at_root(|n| n == ".markdownlintrc").is_empty() {
+            println!("lint = \"markdownlint '**/*.md'\"");
+            println!("# meow-markdown check runs the settings checks; this lint command doesn't");
         } else if others.is_empty() {
             println!("lint = \"meow-markdown check\"");
         } else {
             println!(
-                "# lint: unbound, looked for .markdownlint-cli2.* and .markdownlint.*, and found only a linter this pack binds no command for"
+                "# lint: unbound, looked for .markdownlint-cli2.*, .markdownlint.* and .markdownlintrc, and found only a linter this pack binds no command for"
             );
         }
     }

@@ -39,7 +39,7 @@ The program is the `markdown` feature of `crates/meow`, built by
 cache is on.
 
 The pack was observed against lychee 0.24.2, markdownlint-cli2 0.23.2 and
-markdownlint-cli 0.49.1 (RES-0294).
+markdownlint-cli 0.49.1 (RES-0294, RES-0295).
 
 ## Behaviour
 
@@ -58,8 +58,9 @@ In this order:
    are known. Another string is reported as declared and unknown to the skill.
 3. Each markdownlint configuration file git tracks, by directory, with the
    front ends that read it: a `.markdownlint-cli2.*` file is read by
-   markdownlint-cli2 alone, and a `.markdownlint.*` file by markdownlint-cli2
-   and markdownlint-cli.
+   markdownlint-cli2 alone, a `.markdownlint.*` file by markdownlint-cli2
+   and markdownlint-cli, and a `.markdownlintrc` by markdownlint-cli alone,
+   run in that file's directory (RES-0295).
 4. Each other configured tool it recognises: a prettier, mdformat, remark-lint
    or textlint configuration, a `lychee.toml`, and a site generator's
    configuration.
@@ -75,6 +76,7 @@ Each verb takes the first row that applies (REQ-2352):
 | `format` | `format = "prettier --check '**/*.md'"`            | A `.prettierrc*`, a `prettier.config.*` or a `package.json` with a `prettier` key |
 | `format` | `format = "mdformat --check ."`                    | A `.mdformat.toml`                                                                |
 | `lint`   | `lint = "markdownlint-cli2 '**/*.md'"`             | A `.markdownlint-cli2.*` or `.markdownlint.*` file                                |
+| `lint`   | `lint = "markdownlint '**/*.md'"`                  | A `.markdownlintrc` at the root                                                   |
 | `lint`   | `lint = "meow-markdown check"`                     | No linter configuration of any kind                                               |
 | `check`  | `# check: unresolved, Markdown has no types`       | Always                                                                            |
 | `test`   | `test = "meow-markdown links"`                     | A `lychee.toml`                                                                   |
@@ -82,8 +84,9 @@ Each verb takes the first row that applies (REQ-2352):
 | any      | `# <verb>: unbound, looked for <files>`            | No row above applies                                                              |
 
 `lint` binds `meow-markdown check` where no linter is configured, because the
-settings checks are then the only lint the repository has. Where `lint` binds
-markdownlint-cli2, a comment under it names `meow-markdown check` as the command
+settings checks are then the only lint the repository has. A root
+`.markdownlintrc` binds markdownlint-cli, because markdownlint-cli2 ignores
+that file (RES-0295). Where `lint` binds either front end, a comment under it names `meow-markdown check` as the command
 that runs the settings checks. A verb's value is one command run by the shell
 (SPC-1040), so a chain such as `markdownlint-cli2 '**/*.md' && meow-markdown
 check` is allowed, but `bind` doesn't print it: the shell stops at the linter's
