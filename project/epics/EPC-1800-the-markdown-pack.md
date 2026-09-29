@@ -92,9 +92,11 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: 13 checks seen failing at the cover commit 97915b4, and
       passing unchanged in #671.
 
-- [ ] T-004 [P] TSK-3130 the skill's body and `reviewing.md`
+- [x] T-004 [P] TSK-3130 the skill's body and `reviewing.md`
       closes: REQ-0083
       depends: TSK-3100 - the unit and its skill file must exist
+      evidence: 7 checks seen failing at the cover commit 4142a15, and
+      passing unchanged in #677.
 
 ## Coverage
 
