@@ -812,7 +812,7 @@ REQ-3112). Without the pack it reports the history as unread and names
 | A person overrode the router's route                   | The route as overridden, and the route the router gave                                                                  |
 | `route reduced` for work no approved record authorises | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
 | A route came with the request or the brief             | The route as given, and that no router ran                                                                              |
-| The reviewer stops at its turn ceiling    | The record is reported as unreviewed by an agent                                |
+| The reviewer stops at its turn ceiling                 | The record is reported as unreviewed by an agent                                                                        |
 | No binary for the machine                              | The launcher reports the record as not checked and exits 3                                                              |
 
 Where two of the route's rows apply, the report carries both, and the

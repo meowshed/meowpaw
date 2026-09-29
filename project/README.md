@@ -35,7 +35,7 @@ it.
 
 ## Research
 
-141 documents, indexed by
+142 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
