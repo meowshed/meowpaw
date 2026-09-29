@@ -70,11 +70,13 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-3300 add `meow-unattended` with `plan`, which reads the
+- [x] T-001 TSK-3300 add `meow-unattended` with `plan`, which reads the
       `[unattended]` table, prints the command line with its posture, and
       writes the snapshot with its deny rules, in `plugins/meow-unattended/`
       and a feature `unattended` in `crates/meow`
       closes: REQ-2388
+      evidence: 13 checks seen failing at the cover commit f9e8b4e, and
+      passing unchanged in #662.
 
 - [ ] T-002 TSK-3310 make `plan` load each unit by name: refuse a URL, a
       folder of units and a project `env` block, and name each unit with its

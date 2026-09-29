@@ -1,0 +1,13 @@
+{
+  "name": "meow-unattended",
+  "version": "0.1.0",
+  "description": "Plans an unattended run from the [unattended] table a repository declares: prints the command that would start it with its posture and budget, and writes the snapshot of deny rules that holds its authority. It starts nothing and keeps nothing in context on every turn.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-unattended/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["unattended", "permissions", "authority", "plan", "meowpaw"]
+}

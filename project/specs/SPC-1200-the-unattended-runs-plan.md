@@ -2,7 +2,7 @@
 id: SPC-1200
 artifact: spec
 status: live
-revised: 2026-09-28
+revised: 2026-09-29
 checked-at:
 states: [REQ-2388, REQ-2392]
 ---
@@ -21,9 +21,10 @@ repeating and stopping a run, crossing a declared gate, the sandbox and the
 removal of the run's credentials have no decision yet, so no specification
 states them.
 
-ADR-2000 decides this part and EPC-1900 realises it. Until EPC-1900's tasks
-land, `meow-unattended` doesn't exist and this document states what they
-build.
+ADR-2000 decides this part and EPC-1900 realises it. TSK-3300 built `plan`,
+and until TSK-3310 lands, `plan` passes each `units` entry to `--plugin-dir`
+unchecked, refuses no `env` block, and names no unit's version in its output
+or its snapshot.
 
 ## Boundary
 
@@ -129,7 +130,11 @@ requirements and decisions from the `[record]` the profile declares, as they
 stand when `plan` runs.
 
 With `MEOWPAW_STATE=off`, `plan` prints the snapshot's content in place of
-writing it, and says no snapshot was kept. `plan --purge` removes every
+writing it, and says no snapshot was kept; its rule on the snapshot folder
+still names the folder a kept snapshot would go to. `plan` creates the folder
+before it writes the rule naming it, and names it with every symbolic link
+resolved, as the rules on the work tree already are, so every path in the
+snapshot names a file the same way. `plan --purge` removes every
 snapshot under the work tree's key and prints how many it removed.
 
 ### What `plan` prints
@@ -163,18 +168,26 @@ main` isn't denied, and neither is `git push origin` or
 Each is reported as `unresolved: <what>`, with exit status 3, and `plan`
 writes no snapshot:
 
-| State                                                                       | Reported as                                                            |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| No profile, or no `[unattended]` table                                      | `unresolved: no [unattended] table in .meowpaw/profile.toml`           |
-| A required key is missing                                                   | `unresolved: [unattended] <key> is not declared`, once for each        |
-| `permission_mode` is `bypassPermissions` or any value outside the list      | `unresolved: [unattended] permission_mode <value> is refused`          |
-| `budget_usd` isn't a positive number                                        | `unresolved: [unattended] budget_usd <value> is not a positive number` |
-| A gate outside the list                                                     | `unresolved: [unattended] gates names <value>, which is not a gate`    |
-| `merge_protected = true` without `merge` in `gates`                         | `unresolved: merge_protected is true and gates lacks merge`            |
-| A unit entry is a URL                                                       | `unresolved: unit <entry> is a URL, and a unit loads from a directory` |
-| A unit entry holds no `.claude-plugin/plugin.json`                          | `unresolved: unit <entry> is not a unit's own directory`               |
-| `.claude/settings.json` or `.claude/settings.local.json` has an `env` block | `unresolved: <file> sets env <key>, ...`, naming each key              |
-| The state directory can't be written                                        | `unresolved: snapshot not written: <reason>`                           |
+| State                                                                       | Reported as                                                                           |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| No profile, or no `[unattended]` table                                      | `unresolved: no [unattended] table in .meowpaw/profile.toml`                          |
+| The profile isn't valid TOML                                                | `unresolved: the profile doesn't parse: <reason>`                                     |
+| A required key is missing                                                   | `unresolved: [unattended] <key> is not declared`, once for each                       |
+| `permission_mode` is `bypassPermissions` or any value outside the list      | `unresolved: [unattended] permission_mode <value> is refused`                         |
+| `budget_usd` isn't a positive number                                        | `unresolved: [unattended] budget_usd <value> is not a positive number`                |
+| A gate outside the list                                                     | `unresolved: [unattended] gates names <value>, which is not a gate`                   |
+| `gates` or `units` isn't a list of strings                                  | `unresolved: [unattended] <key> <value> is not a list of strings`                     |
+| `merge_protected` or `amend_approved` isn't `true` or `false`               | `unresolved: [unattended] <key> <value> is not true or false`                         |
+| `merge_protected = true` without `merge` in `gates`                         | `unresolved: merge_protected is true and gates lacks merge`                           |
+| `merge_protected` is `false` and the profile declares no `[git] trunk`      | `unresolved: [git] trunk is not declared, so the push rules have no trunk to protect` |
+| A unit entry is a URL                                                       | `unresolved: unit <entry> is a URL, and a unit loads from a directory`                |
+| A unit entry holds no `.claude-plugin/plugin.json`                          | `unresolved: unit <entry> is not a unit's own directory`                              |
+| `.claude/settings.json` or `.claude/settings.local.json` has an `env` block | `unresolved: <file> sets env <key>, ...`, naming each key                             |
+| The state directory can't be written                                        | `unresolved: snapshot not written: <reason>`                                          |
+
+`plan --purge` with state writing off, or with no state directory, reports
+`unresolved: snapshots not purged: <reason>` with exit status 3 and removes
+nothing.
 
 A folder holding several units, and not a unit itself, fails the
 `plugin.json` check, so `plan` never passes a folder whose children would load
