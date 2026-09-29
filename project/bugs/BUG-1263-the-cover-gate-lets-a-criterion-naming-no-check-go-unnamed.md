@@ -74,5 +74,7 @@ accepted.
 
 ## Tasks
 
-- [ ] T-001 TSK-2573 refuse a criterion that names no check and isn't under
+- [x] T-001 TSK-2573 refuse a criterion that names no check and isn't under
       Judgement, in `crates/meow/src/record.rs`
+      evidence: 2 checks seen failing first, 215 `meow-flow` fixtures
+      passing, in #678.

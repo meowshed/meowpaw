@@ -55,15 +55,39 @@ Nothing. BUG-1263 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/e65403061cf8.txt
+- Landed in: #678
+- Judgement: none
+
+Criterion 3 passed in the failing run as well, because it is the Cover the
+fix must keep accepting, so it guards against a rule that refuses too much.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`cover_gaps` in `crates/meow/src/record.rs` asks a new function,
+`unclosed_criteria`, for the criteria whose text, up to the next numbered
+criterion, has no `Closed by:` naming something, and refuses each one left out
+of `Judgement` wherever `Checks` lists a check. A `Judgement` reason with no
+letter now counts as no reason. The fixture criteria carry the `Closed by:`
+lines the template asks for. SPC-1090's section "The gate", rule C2 in
+`steps/cover.md` and the `meow-flow` README state the rule, and `meow-flow`
+goes to 0.39.2.
+
+The two checks that describe the defect in the class `CoverClosedBy` failed
+first: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
+`project/evidence/e65403061cf8.txt`, in the commit that held the checks
+alone. They pass now:
+
+```text
+$ python3 -m unittest test_record    # in plugins/meow-flow/tests
+Ran 215 tests
+OK                                   # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 
