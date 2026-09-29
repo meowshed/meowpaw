@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1910
 closes: [REQ-0872]
-issue:
+issue: 725
+projected: 00ea37d68251
 ---
 
 # Add `meow-loop start`, which repeats a call until the verbs pass or the ceiling ends the run
