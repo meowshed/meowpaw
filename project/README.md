@@ -224,7 +224,10 @@ Every decision below is approved and in force, as amended by the ones after it.
   the plan starts nothing.
 - [ADR-2010](adrs/ADR-2010-a-runner-outside-the-model-repeats-one-frozen-prompt-in-fresh-sessions-and-holds-its-bounds-in-its-own-process.md):
   a runner outside the model repeats one frozen prompt in fresh sessions, and
-  holds its bounds in its own process.
+  holds its bounds in its own process. ADR-2020 amends it.
+- [ADR-2020](adrs/ADR-2020-a-run-is-bound-to-one-step-finishes-when-the-runner-sees-that-steps-work-done-at-the-current-tree-and-ends-when-it-crosses-a-gate.md):
+  a run is bound to one step, finishes when the runner sees that step's work
+  done at the current tree, and ends when it crosses a gate.
 - [ADR-2200](adrs/ADR-2200-a-skeptic-refutes-each-requirement-an-epic-claims.md):
   a read-only agent tries to refute each requirement an epic claims before the
   epic is verified, and verification records each refutation it confirms as a
@@ -289,9 +292,10 @@ and the snapshot it writes. `meow-unattended` implements it, verified under
 issue 626.
 
 [SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: the
-terms a person starts a run with, the files a run keeps, each call, the order
-of its checks, its six endings and the guards that stop the model starting a
-run. `checked-at` is empty until EPC-1910 is verified.
+terms a person starts a run with, the step it's bound to and that step's
+test, the files a run keeps, each call, the order of its checks, its eight
+endings and the guards that stop the model starting a run or deciding a
+status. `checked-at` is empty until EPC-1910 and EPC-1920 are verified.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -545,6 +549,9 @@ against every acceptance criterion under issue 626.
 [EPC-1910](epics/EPC-1910-the-loop-runner.md) realises ADR-2010 in six tasks,
 TSK-3350 to TSK-3400, none of them started, and each of the nine requirements
 ADR-2010 addresses lands in one of them.
+[EPC-1920](epics/EPC-1920-a-run-bound-to-one-step.md) realises ADR-2020 in
+four tasks, TSK-3410 to TSK-3440, none of them started, and each of the two
+requirements ADR-2020 addresses lands in one of them.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
