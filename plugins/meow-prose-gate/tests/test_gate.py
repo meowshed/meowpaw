@@ -110,6 +110,13 @@ GATED = {
     "git commit": ('git commit -m "Cache pages" -m "Caching is the low-hanging fruit here."', "P1", "low-hanging fruit"),
     "gh pr create": ('gh pr create --title "Cache pages" --body "a silver bullet for slow pages"', "P1", "silver bullet"),
     "gh issue create": ('gh issue create --title "Slow pages" --body "**Why.**\n\nThe server renders twice."', "P2", "**Why.**"),
+    "gh pr edit": ('gh pr edit 5 --body "This is no silver bullet for slow pages."', "P1", "silver bullet"),
+    "gh pr comment": ('gh pr comment 5 --body "Let us circle back after the release."', "P1", "circle back"),
+    "gh pr review": ('gh pr review 5 --comment -b "A deep dive into the cache shows two misses."', "P1", "deep dive"),
+    "gh issue edit": ('gh issue edit 7 --body "__Steps__:\n\nRun the server twice."', "P2", "__Steps__:"),
+    "gh issue comment": ('gh issue comment 7 -b "The retry is under the hood of the worker."', "P1", "under the hood"),
+    "gh release create": ('gh release create v1.2.0 --title "1.2.0" --notes "Caching was the low-hanging fruit."', "P1", "low-hanging fruit"),
+    "gh release edit": ('gh release edit v1.2.0 -n "A game changer for slow pages."', "P1", "game changer"),
 }
 
 
@@ -127,6 +134,30 @@ class EveryGatedCommand(unittest.TestCase):
 
     def test_gh_issue_create(self):
         self.assert_blocks(*GATED["gh issue create"])
+
+    def test_gh_pr_edit(self):
+        self.assert_blocks(*GATED["gh pr edit"])
+
+    def test_gh_pr_comment(self):
+        self.assert_blocks(*GATED["gh pr comment"])
+
+    def test_gh_pr_review(self):
+        self.assert_blocks(*GATED["gh pr review"])
+
+    def test_gh_issue_edit(self):
+        self.assert_blocks(*GATED["gh issue edit"])
+
+    def test_gh_issue_comment(self):
+        self.assert_blocks(*GATED["gh issue comment"])
+
+    def test_gh_release_create(self):
+        self.assert_blocks(*GATED["gh release create"])
+
+    def test_gh_release_edit(self):
+        self.assert_blocks(*GATED["gh release edit"])
+
+    def test_release_notes_hidden_in_a_file(self):
+        self.assert_blocks('gh release create v1.2.0 --notes-file notes.md', "P3", "notes.md")
 
 
 class ReadableTexts(unittest.TestCase):
