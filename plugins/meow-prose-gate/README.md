@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose-gate
 answers: what meow-prose-gate does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose-gate@0.2.0]
+describes: [meow-prose-gate@0.2.1]
 ---
 
 # meow-prose-gate
@@ -33,8 +33,8 @@ quotes a span you can find in the command:
 Fenced code, code spans and URLs are never checked, and P1 skips any word
 holding a `/`, a `\`, an `_` or a file extension, such as
 `plugins/deep-dive/`, because that names a thing. A text given inline, in a
-heredoc read with `-F -`, or in `$(cat <<'EOF' ... EOF)` is readable and
-passes P3.
+heredoc read with `-F -`, `-F /dev/stdin` or `-F /dev/fd/0`, or in
+`$(cat <<'EOF' ... EOF)` is readable and passes P3.
 
 Unexplained acronyms, American spellings and a bold phrase opening a
 paragraph are left to the writing skill and the reviewer in `meow-prose`,

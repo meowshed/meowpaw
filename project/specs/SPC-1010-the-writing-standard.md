@@ -127,7 +127,8 @@ settles it the same way every time (REQ-3187):
 - P2, a line holding only bold text, such as `**Why.**`, with an optional
   colon or full stop after it.
 - P3, a text hidden behind a path the hook can't read: the value of `-F`,
-  `--file`, `--body-file` or `--notes-file` other than `-`, or a substitution
+  `--file`, `--body-file` or `--notes-file` other than `-`, `/dev/stdin` or
+  `/dev/fd/0`, which each name standard input, or a substitution
   such as `$(cat notes.md)` or `$(< notes.md)`, which the hook sees before the
   shell expands it. `-F -` with a heredoc and `$(cat <<'EOF' ... EOF)` are
   readable and pass.
