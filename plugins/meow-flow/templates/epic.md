@@ -35,7 +35,7 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
 
 - [ ] T-001 TSK-NNNN <what, with the path it touches>
       closes: REQ-NNNN
-      depends: TSK-NNNN - and why, since a convenience isn't a dependency
+      depends: TSK-NNNN (not blocking) - why, or (blocking) where it waits
 
 ## Coverage
 

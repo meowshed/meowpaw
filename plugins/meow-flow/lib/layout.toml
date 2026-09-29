@@ -113,8 +113,11 @@ dir = "tasks"
 # A task names the epic or the defect that authorises it, exactly one of the
 # two, which `one-authority` checks on drafts: three planning tasks approved
 # before ADR-1440 name neither, and keep the rules they were approved under.
+# `dependency-declared` asks each dependency line to say whether it blocks,
+# on drafts only, because an approved bare line keeps the order it was
+# approved with (ADR-1800).
 fields = ["closes"]
-draft_rules = ["one-authority"]
+draft_rules = ["one-authority", "dependency-declared"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 sections = ["What to do", "Depends on", "Evidence", "Left alone"]
 draft_sections = ["Acceptance criteria"]
