@@ -231,7 +231,7 @@ REQ-3012, REQ-3014, REQ-3016, REQ-3018, REQ-3019) (ADR-1240).
 The front matter check also reports a field its kind must not carry, and a
 field its kind must fill that is empty. The coverage check is the
 decomposition's named coverage check, and `check` runs it on every change
-(REQ-3102, REQ-3646). A task or an epic may name any number of requirements, and a requirement may be named by any number of them (REQ-3648) (not yet; the check still reports a requirement landing in two tasks until EPC-2200 lands).
+(REQ-3102, REQ-3646). A task or an epic may name any number of requirements, and a requirement may be named by any number of them (REQ-3648).
 
 Each finding names the file, and the line where there is one. `paw
 check` runs every check and exits 0 when none found anything and 1 when any

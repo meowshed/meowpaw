@@ -58,8 +58,11 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-3800 derive each requirement's state from the tasks, epics and defects that name it
+- [x] T-001 TSK-3800 derive each requirement's state from the tasks, epics and defects that name it
       closes: REQ-3600, REQ-3602, REQ-3604, REQ-3608, REQ-3610, REQ-3620, REQ-3622, REQ-3646, REQ-3648
+      evidence: 15 checks in `RequirementState`, 9 seen failing at the
+      pull request's first commit, and 241 `meow-flow` fixtures passing, in
+      #752.
 
 - [ ] T-002 TSK-3810 give `paw` seven steps, drop the Cover gate, and let a task realise a decision
       closes: REQ-3638, REQ-3630
