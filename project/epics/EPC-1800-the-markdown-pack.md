@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-28
 realises: ADR-1900
-checked-at:
+checked-at: "#624"
 ---
 
 # A Markdown pack binds the verbs from the configuration, checks the settings behind them, and reports an unreachable link as unreachable
@@ -97,6 +97,53 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-3100 - the unit and its skill file must exist
       evidence: 7 checks seen failing at the cover commit 4142a15, and
       passing unchanged in #677.
+
+## Verified
+
+I checked this under #624 on `main` after #677, gathering the evidence there
+and carrying none over from the tasks. `meow-verbs evidence --keep format lint
+check test build` runs on this change's own tree, each result kept in
+`project/evidence/`, as the pull request cites. The 47 fixtures in
+`plugins/meow-markdown/tests/test_markdown.py` run 47, OK, with one skipped:
+the `test` verb has no lychee on `PATH`, so it skips
+`Links.test_criterion_5_the_real_lychee_reports_a_missing_file`. I ran that
+fixture again under `mise exec lychee@0.24.2`, and it passes against lychee
+0.24.2. Every criterion is met:
+
+| Criterion                                                                                                                                                         | Evidence on `main` after #677                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Two tracked `*.md` files are detected, a lone `README.md` isn't, and a lone README beside a `.markdownlint.yaml` is                                            | The three `Detection` fixtures pass                                                                                                                                                                                                               |
+| 2. `bind` prints each verb from the configuration it finds, nothing for a declared verb, and names a `mise.toml` with a pointer                                   | The seven `Bind` fixtures and `Runner.test_criterion_3_a_mise_toml_is_named_with_the_mise_pack` pass                                                                                                                                              |
+| 3. `check` exits 1 naming a missing render target, and 0 on `github` or `forgejo`                                                                                 | The three `RenderTarget` fixtures pass                                                                                                                                                                                                            |
+| 4. `check` finds markdownlint settings the `lint` verb lacks, ignores or never applies, and `status` lists `.markdownlint-cli2.yaml` as read by markdownlint-cli2 | The six `MarkdownlintSettings` fixtures and `Status.test_criterion_4_a_markdownlint_cli2_file_is_read_by_cli2_alone` pass. `meow-markdown status` on this repository prints `.markdownlint-cli2.yaml: read by markdownlint-cli2 alone`, exiting 0 |
+| 5. `check` names a `lychee.toml` without `max_retries`, and passes all three settings in the file or the flags                                                    | The four `LinkSettings` fixtures pass                                                                                                                                                                                                             |
+| 6. `links` tells unreachable, finding, skipped, tool absent, tool broken and unresolved apart, and the real lychee exits 1 on a missing file                      | The nine `Links` fixtures pass, the real-lychee one under `mise exec lychee@0.24.2` only                                                                                                                                                          |
+| 7. A test finds each of RES-0111's reviewer points in `reviewing.md`                                                                                              | `Reviewing.test_criterion_1_reviewing_carries_each_reviewer_point` passes                                                                                                                                                                         |
+| 8. `git status --porcelain --ignored` reads the same before and after `status`, `bind` and `check`                                                                | `Tree.test_criterion_5_status_and_bind_leave_the_tree_as_it_was` and `CheckTree.test_criterion_6_check_leaves_the_tree_as_it_was` pass                                                                                                            |
+| 9. Every requirement lands in one closed task, and REQ-2424 and REQ-2484 read as postponed                                                                        | `paw show` derives REQ-2352 as closed by TSK-3100, REQ-2434 and REQ-2452 by TSK-3110, REQ-2438 and REQ-2454 by TSK-3120 and REQ-0083 by TSK-3130, and REQ-2424 and REQ-2484 as postponed by ADR-1900. `paw check coverage` reports 0 findings     |
+
+Each fixture above asserts the exit status and the line the program prints, so
+each would fail if the program broke its requirement. I judged that by reading
+the assertions and didn't break the program to watch them fail.
+
+The real-lychee half of criterion 6 is held by a fixture the `test` verb skips
+on a machine with no lychee, and this repository's `mise.toml` installs none.
+The criterion is met, because the run under #624 passed, but the gate doesn't
+hold it: a later change that breaks the real run passes the gate unseen.
+Declaring lychee as a tool in `mise.toml` would make the gate run it.
+
+### Documentation
+
+`plugins/meow-markdown/README.md` describes `status`, `bind`, `check` and
+`links`, each binding and each exit status, and the documentation index lists
+the unit. The `test` verb checked the pages.
+
+### Postponements
+
+REQ-2424 stays postponed until an approved decision gives a pack a command
+that writes or edits a tool's configuration file; `paw find` finds none.
+REQ-2484 stays postponed until the first pack for an ecosystem whose manifest
+declares scripts; `meow-markdown` is the only language pack in `plugins/`.
 
 ## Coverage
 

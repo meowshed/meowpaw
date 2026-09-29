@@ -309,8 +309,8 @@ how it reports remote includes and secret variables.
 [SPC-1190](specs/SPC-1190-the-language-packs.md) states what every language
 pack keeps: detection from tracked files, what it runs and writes, its exit
 statuses and its skill. [SPC-1195](specs/SPC-1195-the-markdown-pack.md) states
-the Markdown pack within it. EPC-1800 realises both, and nothing implements
-them yet.
+the Markdown pack within it. `meow-markdown` implements both, which EPC-1800
+realised, verified under issue 624.
 
 ## Epics and tasks
 
@@ -512,8 +512,9 @@ verified against every acceptance criterion under issue 596.
 TSK-2530 to TSK-2550, none of them started, and every requirement ADR-1620 addresses lands in one of them.
 
 [EPC-1800](epics/EPC-1800-the-markdown-pack.md) realises ADR-1900 in four
-tasks, TSK-3100 to TSK-3130, none of them started. Every requirement ADR-1900
-addresses lands in one of them, and REQ-2424 and REQ-2484 are postponed.
+tasks, TSK-3100 to TSK-3130, each closed with evidence, and was verified
+against every acceptance criterion under issue 624. REQ-2424 and REQ-2484 stay
+postponed.
 [EPC-1900](epics/EPC-1900-the-unattended-runs-plan.md) realises ADR-2000 in
 two tasks, TSK-3300 and TSK-3310, neither of them started, and each of the two
 requirements ADR-2000 addresses lands in one of them.
