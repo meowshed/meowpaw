@@ -72,6 +72,8 @@ where lychee can't run. The `test` verb runs the Markdown suite with lychee
 
 ## Tasks
 
-- [ ] T-001 TSK-3170 hold every class `links` reports with a fixture, and run
+- [x] T-001 TSK-3170 hold every class `links` reports with a fixture, and run
       the real lychee in the `test` verb, in
       `plugins/meow-markdown/tests/test_markdown.py` and `.meowpaw/profile.toml`
+      evidence: 1 check seen failing first, 4 changed copies of `links` each
+      caught, 57 `meow-markdown` fixtures passing, in #718.

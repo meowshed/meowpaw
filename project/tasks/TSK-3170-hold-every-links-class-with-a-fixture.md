@@ -54,18 +54,56 @@ first, in a commit of their own, and see them fail.
 
 ## Depends on
 
-Nothing. BUG-1323 is approved.
+BUG-1324, added while this task ran and fixed first in #724: until then
+`check` read `lychee@0.24.2` in the `test` verb as a link check, and
+`Adopted.test_criterion_7_check_passes_on_this_repository` failed. BUG-1323
+is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-markdown/tests/test_markdown.py
+- Failing run: project/evidence/f0f6fa7e6af6.txt
+- Landed in: #718
+- Judgement: 4: CI runs `mise run all`, which runs no Python suite, so only a local run of the `test` verb holds the real-lychee fixture
+
+The failing run is the checks alone, before the `test` verb ran the suite
+under lychee: `meow-verbs run test` exited 1 with `FAILED (failures=1)`,
+naming `test_criterion_5_the_real_lychee_reports_a_missing_file`. Criteria 1
+to 3 pass against the current binary, as the task expects, because `links`
+already classified each case right. So I showed they can fail another way,
+described under Evidence.
 
 ## Evidence
 
-Not yet.
+The stand-in lychee in `Links.links` writes each argument it gets to
+`bin/lychee.args`, and
+`Links.test_criterion_2_links_passes_lychee_its_arguments` asserts them. New
+fixtures give a 429, a 408 and a 401 as `unreachable` and a 410 as a finding.
+The `tool broken` fixture now has lychee exit 1 after printing a clean report,
+so only its status can break the run, and puts an unknown map and a missing
+`timeout_map` in separate cases. The real-lychee fixture fails where no lychee
+runs, and the `test` verb runs the Markdown suite under
+`mise exec lychee@0.24.2 --`.
+
+I built one binary with four changed copies of `links`: 429 moved to
+`finding` and 410 to `unreachable`, `--no-progress` dropped, exit 1 accepted,
+and unknown maps allowed. The fixtures caught each one, and the unchanged
+binary passes:
+
+```text
+$ mise exec lychee@0.24.2 -- python3 -m unittest test_markdown.Links   # four changes built in
+Ran 12 tests
+FAILED (failures=6)                     # exit 1; 429, 410, arguments x2, exit 1, unknown map
+$ mise exec lychee@0.24.2 -- python3 -m unittest test_markdown         # unchanged binary
+Ran 57 tests
+OK                                      # exit 0
+$ python3 -m unittest test_markdown.Links                              # no lychee on PATH
+FAILED (failures=1)                     # exit 1; the real-lychee fixture
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 
