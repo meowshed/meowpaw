@@ -1,8 +1,8 @@
 ---
 id: ADR-1490
 artifact: adr
-status: approved
-revised: 2026-09-27
+status: superseded
+revised: 2026-09-29
 addresses:
   [
     REQ-0132,
@@ -21,6 +21,8 @@ supersedes: []
 ---
 
 # 1490. A record is reviewed by an agent that didn't write it, and its verdict is labelled as an agent's
+
+**Superseded by ADR-2300.**
 
 ## Decision
 

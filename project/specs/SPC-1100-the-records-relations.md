@@ -2,7 +2,7 @@
 id: SPC-1100
 artifact: spec
 status: live
-revised: 2026-09-27
+revised: 2026-09-29
 checked-at: "#398"
 states:
   [
@@ -11,7 +11,6 @@ states:
     REQ-0143,
     REQ-0161,
     REQ-0237,
-    REQ-0325,
     REQ-0362,
     REQ-0510,
     REQ-0516,
@@ -42,10 +41,7 @@ states:
     REQ-0694,
     REQ-0696,
     REQ-0704,
-    REQ-0706,
     REQ-0710,
-    REQ-0712,
-    REQ-0714,
     REQ-0716,
     REQ-1600,
     REQ-1601,
@@ -104,8 +100,8 @@ relation resolves to an artifact that exists (REQ-0654).
 (REQ-0642, REQ-0652):
 
 ```text
-REQ-3200 requirement, approved: project/requirements/REQ-3200-ten-steps-in-order.md
-The method MUST proceed through ten named steps ...
+REQ-3638 requirement, approved: project/requirements/REQ-3638-seven-steps-in-order.md
+The method MUST proceed through seven named steps ...
 
 Names
   elaborates: RES-0001
@@ -201,9 +197,11 @@ A requirement stores only a decided status, from the one vocabulary
 `lib/layout.toml` declares, and the program derives the observed one (REQ-0582,
 REQ-0584, REQ-0586, REQ-0591). `show` prints each task that closes a
 requirement with its mark, and the issue its epic was verified under, or
-"checked by nothing"; a requirement is verified only where such a check exists
-(REQ-0712, REQ-0714). `status` reports an epic as verified only when `check`
-reports nothing on the epic, its decision or its tasks (REQ-0706), and says the
+"checked by nothing". Under ADR-2300 a requirement is closed when a closed
+task or epic names it and no open one does, open while an open defect names it
+in `violates`, and has no state after closed (REQ-3600, REQ-3602, REQ-3608,
+REQ-3610) (not yet; until EPC-2200 lands, `show` still derives verified from
+`checked-at`). `status` says the
 record is local to this machine where its root is under no version control
 (REQ-0510, REQ-0527).
 
@@ -220,9 +218,9 @@ A decision may carry `postpones:`, beside or in place of `addresses:`, and
 carries at least one of the two. A requirement an approved decision postpones
 and no task closes is derived as postponed: `show` names the decision and
 `status` counts it, and a decision that only postpones needs no epic and no
-specification. The verify step lists every postponement and its condition
-whenever an epic is verified, which is where a deferral is looked at again
-(REQ-0325) (ADR-1330).
+specification. `status` lists every postponement and its condition on each
+run, which is where a deferral is looked at again (REQ-3622) (ADR-2300) (not
+yet; until EPC-2200 lands, the verify step lists them).
 
 ## Failure paths
 

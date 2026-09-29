@@ -3,23 +3,17 @@ id: REQ-3524
 artifact: requirement
 topic: the-method
 class: functional
-status: approved
-revised: 2026-09-28
+status: withdrawn
+revised: 2026-09-29
 elaborates: RES-0309, RES-0063
 verification: evaluation
 ---
 
 # REQ-3524
 
-A refutation that verification confirms MUST be recorded as a draft defect
-record that names in `violates` the requirement it shows unmet, records its
-`severity`, records as its reproduction the input or condition that broke the
-requirement, what verification ran or read to confirm it and the revision it
-was confirmed at, and leaves its triage unwritten: the `## Triage` section and
-the `enters` field stay empty. Where an open defect record already names the
-same requirement and a reproduction that fails for the same cause,
-verification cites that defect in the epic's `## Verified` section and writes
-no second one.
+**Withdrawn by ADR-2300.**
+
+It read: a refutation that verification confirms MUST be recorded as a draft defect record that names in `violates` the requirement it shows unmet, records its `severity`, records as its reproduction the input or condition that broke the requirement, what verification ran or read to confirm it and the revision it was confirmed at, and leaves its triage unwritten: the `## Triage` section and the `enters` field stay empty. Where an open defect record already names the same requirement and a reproduction that fails for the same cause, verification cites that defect in the epic's `## Verified` section and writes no second one.
 
 A confirmed refutation is the evidence a defect record exists to hold. Triage
 decides whether the work or the requirement is wrong, and so where the defect
@@ -40,3 +34,5 @@ permits the write, and this requirement obliges it.
   name the requirement, leave triage unwritten. I kept one requirement,
   because all three are properties of the one record an evaluation checks
   together, and the triage clause has no reason to change on its own.
+
+ADR-2300 removes the verification step and the skeptic, so no step is left for this rule to bind.

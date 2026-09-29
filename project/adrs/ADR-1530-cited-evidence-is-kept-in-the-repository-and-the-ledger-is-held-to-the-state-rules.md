@@ -1,8 +1,8 @@
 ---
 id: ADR-1530
 artifact: adr
-status: approved
-revised: 2026-09-27
+status: superseded
+revised: 2026-09-29
 addresses:
   [
     REQ-0752,
@@ -25,6 +25,8 @@ supersedes: []
 ---
 
 # 1530. Cited evidence is kept in the repository, and the ledger is held to the state rules
+
+**Superseded by ADR-2300.**
 
 ## Decision
 
