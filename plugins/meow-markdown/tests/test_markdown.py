@@ -559,5 +559,72 @@ class LinkSettings(Check):
                 self.assertEqual(said, bool(status), done.stdout)
 
 
+SKILL_DIR = UNIT / "skills" / "markdown"
+FORBIDS = re.compile(r"\b(never|must not|don't|do not)\b", re.IGNORECASE)
+
+
+def blocks(name):
+    """The file's paragraphs and list items, each one block; a file not written yet has none (RES-0075)."""
+    path = SKILL_DIR / name
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    return [block for block in re.split(r"\n\s*\n|\n(?=\s*(?:[-*]|\d+\.)\s)", text) if block.strip()]
+
+
+class Prompt(unittest.TestCase):
+    def assertSaid(self, name, *patterns):
+        """Some one block of `name` matches every pattern, so the terms are said together and not scattered."""
+        found = [b for b in blocks(name) if all(re.search(p, b, re.IGNORECASE) for p in patterns)]
+        self.assertTrue(found, f"no block of {name} matches all of {patterns}")
+
+
+class Reviewing(Prompt):
+    """TSK-3130 criterion 1, REQ-0083: `reviewing.md` carries RES-0111's six reviewer points."""
+
+    POINTS = {
+        "the heading outline as the argument": (r"heading", r"outline", r"argument"),
+        "a table against a list": (r"\btables?\b", r"\blists?\b"),
+        "the language tag on a fence": (r"fence", r"language tag"),
+        "reference links for a source cited more than twice": (r"reference[- ]links?", r"more than twice"),
+        "links that survive a move": (r"\blinks?\b", r"\b(survives?|moved?|moving)\b"),
+        "a diagram claiming what the prose doesn't": (r"diagram", r"\bprose\b"),
+    }
+
+    def test_criterion_1_reviewing_carries_each_reviewer_point(self):
+        """TSK-3130 criterion 1, REQ-0083: each of the six points RES-0111 names is in `reviewing.md`."""
+        for point, patterns in self.POINTS.items():
+            with self.subTest(point=point):
+                self.assertSaid("reviewing.md", *patterns)
+
+
+class Skill(Prompt):
+    """TSK-3130 criterion 2, REQ-0083: what the skill names, forbids and dates."""
+
+    def test_criterion_2_the_skill_loads_reviewing_on_review(self):
+        """TSK-3130 criterion 2, REQ-0083: the skill names `reviewing.md` as the file to load on review."""
+        self.assertSaid("SKILL.md", r"reviewing\.md", r"\breview")
+
+    def test_criterion_2_the_skill_forbids_markdownlint_cli_on_a_cli2_file(self):
+        """TSK-3130 criterion 2, REQ-0083: running markdownlint-cli against a `.markdownlint-cli2.*` file is forbidden."""
+        self.assertSaid("SKILL.md", FORBIDS.pattern, FRONT_END_CLI.pattern, r"\.markdownlint-cli2")
+
+    def test_criterion_2_the_skill_forbids_an_unreachable_link_failing_unsaid(self):
+        """TSK-3130 criterion 2, REQ-0083: failing a check on an unreachable link without saying so is forbidden."""
+        self.assertSaid("SKILL.md", FORBIDS.pattern, r"unreachable", r"\bfail")
+
+    def test_criterion_2_the_skill_forbids_a_spell_check_with_no_word_list(self):
+        """TSK-3130 criterion 2, REQ-0083: a spell check with no project word list is forbidden."""
+        self.assertSaid("SKILL.md", FORBIDS.pattern, r"spell", r"word list")
+
+    def test_criterion_2_the_skill_names_meow_prose_as_the_writing_standard(self):
+        """TSK-3130 criterion 2, REQ-0083: the skill names `meow-prose` as the owner of the writing standard."""
+        self.assertSaid("SKILL.md", r"meow-prose", r"writing standard")
+
+    def test_criterion_2_the_skill_names_the_versions_observed(self):
+        """TSK-3130 criterion 2, REQ-0083: the skill names the tool versions RES-0294 observed."""
+        for tool, version in (("lychee", "0.24.2"), ("markdownlint-cli2", "0.23.2"), ("markdownlint-cli", "0.49.1")):
+            with self.subTest(tool=tool):
+                self.assertSaid("SKILL.md", rf"{re.escape(tool)}`? {re.escape(version)}")
+
+
 if __name__ == "__main__":
     unittest.main()

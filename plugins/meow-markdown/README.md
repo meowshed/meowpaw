@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-markdown@0.3.0]
+describes: [meow-markdown@0.4.0]
 ---
 
 # meow-markdown
@@ -10,7 +10,8 @@ describes: [meow-markdown@0.3.0]
 `meow-markdown` tells you whether your repository holds a Markdown corpus,
 lists the tools you configured for it, prints a `[verbs]` table bound from
 that configuration, checks the settings behind your verbs, and runs your link
-check. It writes no file. `status`, `bind` and `check` read the files git
+check. Its skill tells Claude Code what a reviewer of a Markdown document
+checks that no command reports. It writes no file. `status`, `bind` and `check` read the files git
 tracks and run git alone, and `links` runs lychee. It installs on its own, with
 no other part of the `meowpaw` harness.
 
@@ -174,10 +175,34 @@ exit 1 on a finding, and every command exits 3 when it can't:
 `bind` exits 0 whatever comments its table holds, because a verb printed with
 its reason is settled.
 
+## Review a document
+
+When Claude Code reviews a Markdown document, the skill has it read your
+render target first, and then load `reviewing.md`, which holds six points no
+command reports:
+
+1. Whether the heading outline, read alone, is the document's argument.
+2. Whether a table or a list fits what the reader compares.
+3. Whether each fence carries the right language tag, where the linter accepts
+   any tag.
+4. Reference links for a source cited more than twice.
+5. Relative links written in a style that survives a move.
+6. Whether a diagram claims something the prose doesn't.
+
+The skill carries what it knows of front matter, admonitions and diagram
+blocks for each known render target, and judges none of them for a target it
+doesn't know. It reports a clean lint as clean structure and never as a good
+document, and a style linter such as Vale as checking consistency, never
+quality. It never runs markdownlint-cli against a `.markdownlint-cli2.*` file,
+never fails a check on an unreachable link without saying it was unreachable,
+and never runs a spell check where you keep no project word list. The writing
+standard belongs to `meow-prose`, not to this pack.
+
 ## What it costs you
 
 The skill's description stays in context on every turn, within the 380
-characters the unit's budget states. The program is a native binary shipped
+characters the unit's budget states, and `reviewing.md` costs context only
+when a Markdown document is reviewed. The program is a native binary shipped
 inside the unit, and needs git on the machine. `links` reaches every remote
 address your documents cite on each run. On a machine the unit carries
 no binary for, it reports the repository as unresolved and exits 3.
@@ -186,4 +211,5 @@ no binary for, it reports the repository as unresolved and exits 3.
 
 Claude Code 2.1.280 or later, declared in
 `plugins/meow-markdown/requires.toml`, and git. `links` needs lychee on
-`PATH`, and the pack was observed against lychee 0.24.2.
+`PATH`. The pack was observed against lychee 0.24.2, markdownlint-cli2 0.23.2
+and markdownlint-cli 0.49.1.
