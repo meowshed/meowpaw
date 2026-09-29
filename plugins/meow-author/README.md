@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.3.0]
+describes: [meow-author@0.4.0]
 ---
 
 # meow-author
@@ -46,12 +46,34 @@ file and the line, on:
   `<example>` and `<input>`, a tag opened inside another, a tag never closed,
   or text outside every tag;
 - a skill or agent with no `description`;
+- an agent that leaves out one of the six fields below, or holds a value the
+  table doesn't accept, naming the file and the field;
+- an agent whose front matter doesn't parse, with that reason alone, because
+  no field can be read from it;
 - a plugin shipping a `commands/` directory, where a command is a skill only
   a person invokes;
 - a file in a skill's directory that its `SKILL.md` never names;
 - a path climbing out of a file with no directory variable in front of it,
   such as the platform's variable for the skill's or the plugin's directory;
 - a skill or agent whose procedure never says where it stops.
+
+An agent writes out six fields, because the platform has a default for each
+one and a default is a value nobody chose:
+
+| Field          | What the check accepts                                    | Why                                                           |
+| -------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| `maxTurns`     | A positive integer                                        | The runner stops the agent there, so a loop can't run forever |
+| `tools`        | A list, or a comma-separated string, `[]` included        | An agent holds only the tools someone chose for it            |
+| `model`        | `sonnet`, `opus`, `haiku`, `fable` or a `claude-` name    | `inherit` leaves the cost to whichever session dispatches it  |
+| `effort`       | `low`, `medium`, `high`, `xhigh` or `max`                 | The effort sets the cost of every turn the agent takes        |
+| `omitClaudeMd` | `true` or `false`                                         | It says whether the agent judges by the repository's rules    |
+| `skills`       | A list of skill names, `[]` where the agent preloads none | The agent loads its skills, so its dispatcher doesn't         |
+
+In a plugin's `agents/` directory the check also fails a `tools` list holding
+`*`, `Agent` or `Task`, alone or with a restriction such as `Agent(worker)`,
+because a shipped agent that dispatches another one multiplies the cost the
+repository agreed to. Your own agents under `.claude/agents/` may list any
+tools, once they write the list.
 
 It exits 0 when it finds nothing, 1 on a finding, and 3 when there is nothing
 to check or its binary is missing for your machine.
