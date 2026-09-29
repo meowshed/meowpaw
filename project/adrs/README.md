@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-69 decisions in all: 69 approved.
+70 decisions in all: 70 approved.
 
 | Identifier                                                                                                                                            | What it concluded                                                                                                                          | Status   |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
@@ -83,6 +83,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-1700](ADR-1700-every-shipped-agent-declares-its-turns-tools-model-effort-instructions-and-skills-and-meow-author-check-fails-one-that-doesnt.md) | Every shipped agent declares its turns, tools, model, effort, instructions and skills, and meow-author check fails one that doesn't        | approved |
 | [ADR-1710](ADR-1710-a-delegated-agent-reports-one-of-four-outcomes-and-a-denied-tool-ends-it-as-blocked.md)                                           | A delegated agent reports one of four outcomes, and a denied tool ends it as BLOCKED                                                       | approved |
 | [ADR-1800](ADR-1800-a-tasks-dependency-says-whether-it-blocks-and-only-an-epic-or-a-defect-groups-tasks.md)                                           | A task's dependency says whether it blocks, and only an epic or a defect groups tasks                                                      | approved |
+| [ADR-1810](ADR-1810-every-github-request-goes-through-one-layer-that-reads-its-limits-stops-at-a-stated-wait-and-writes-only-issues.md)               | Every GitHub request goes through one layer that reads its limits, stops at a stated wait, and writes only issues                          | approved |
 | [ADR-1900](ADR-1900-a-markdown-pack-reads-the-settings-behind-each-verb-and-reports-an-unreachable-link-as-unreachable.md)                            | A Markdown pack reads the settings behind each verb, and reports an unreachable link as unreachable                                        | approved |
 | [ADR-2000](ADR-2000-an-unattended-run-is-planned-from-an-authority-the-repository-declares-and-the-plan-starts-nothing.md)                            | An unattended run is planned from an authority the repository declares, and the plan starts nothing                                        | approved |
 | [ADR-2100](ADR-2100-a-read-only-agent-routes-each-request-before-work-starts.md)                                                                      | A read-only agent routes each request on the repository before work starts, and the route is reported before any edit                      | approved |
