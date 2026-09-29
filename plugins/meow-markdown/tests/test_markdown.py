@@ -165,6 +165,31 @@ class Status(Fixture):
         self.assertIsNone(FRONT_END_CLI.search(said), lines[0])
 
 
+class Markdownlintrc(Fixture):
+    """TSK-3140, BUG-1320, REQ-2352: a root `.markdownlintrc` configures markdownlint-cli (RES-0295)."""
+
+    FILES = {**TWO, ".markdownlintrc": '{ "MD013": false }\n'}
+
+    def test_criterion_1_a_markdownlintrc_binds_markdownlint_cli(self):
+        """TSK-3140 criterion 1, REQ-2352: lint runs markdownlint-cli, with `meow-markdown check` in a comment."""
+        lines = self.bind(self.FILES)
+        line = "lint = \"markdownlint '**/*.md'\""
+        self.assertIn(line, lines)
+        self.assertNotIn('lint = "meow-markdown check"', lines)
+        comment = self.following(lines, line)
+        self.assertTrue(comment.startswith("#"), lines)
+        self.assertIn("meow-markdown check", comment)
+
+    def test_criterion_2_status_lists_a_markdownlintrc(self):
+        """TSK-3140 criterion 2, REQ-2352: `status` lists the file as read by markdownlint-cli alone."""
+        done = self.repo(self.FILES).run("status")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("markdownlint configuration: none tracked", done.stdout)
+        lines = [text for text in done.stdout.splitlines() if ".markdownlintrc" in text]
+        self.assertEqual(len(lines), 1, done.stdout)
+        self.assertIn("read by markdownlint-cli alone", lines[0])
+
+
 class Tree(Fixture):
     """TSK-3100 criterion 5, REQ-2352: `status` and `bind` write nothing, tracked or ignored."""
 
