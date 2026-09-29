@@ -68,5 +68,7 @@ rule's message.
 
 ## Tasks
 
-- [ ] T-001 TSK-2920 show `status` waiting on a blocking dependency, in
+- [x] T-001 TSK-2920 show `status` waiting on a blocking dependency, in
       `plugins/meow-flow/tests/test_record.py`
+      evidence: 2 checks seen failing against the reproduction's build, 213
+      `meow-flow` record fixtures passing, in #680.

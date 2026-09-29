@@ -44,14 +44,37 @@ Nothing.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/ff9850dbcc81.txt
+- Landed in: #680
+- Judgement: none
 
 ## Evidence
 
-Not yet.
+`Dependencies.test_status_waits_on_a_blocking_dependency` in
+`plugins/meow-flow/tests/test_record.py` gives TSK-0002 a `(blocking)` line,
+then a bare line on the approved task, with the epic listing TSK-0002 first,
+and asserts that `paw status` names TSK-0001 as next. The three
+`dependency-declared` fixtures now assert the rule's message on the reported
+line.
+
+The checks pass against `main`, whose code meets REQ-1358, so the failing run
+is against BUG-1300's build: `.map(|_doc| true)` in place of the dependency
+test in `paw status`. `meow-verbs run test` exited 1 with
+`FAILED (failures=2)`, one failure for each line of the new fixture, kept as
+`project/evidence/ff9850dbcc81.txt`, whose tree is that build's. The change
+was then reverted and the units rebuilt, and the suite passes:
+
+```text
+$ python3 -m unittest plugins/meow-flow/tests/test_record.py
+Ran 213 tests
+OK                                   # exit 0
+```
+
+No shipped behaviour changes, so no unit's version moves.
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 
