@@ -102,14 +102,68 @@ Nothing. ADR-1700 and EPC-1650 are approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-author/tests/test_author.py tools/test_shipped_agents.py
+- Failing run: project/evidence/27a4dd34eda3.txt project/evidence/e309e93a6301.txt
+- Landed in: #667
+- Judgement: 6: closed by the gate's run at the merging revision, because only that revision holds both the new check and the agents' declarations, and `ShippedAgents` pins each agent's values to SPC-1030's table; 7: a hand-run evaluation read by a person, because a model's run never runs in CI
+
+The checks are class `AgentFields`, one for each fixture the acceptance
+criteria name. The failing run is the `test` verb exiting 1 with 26 failures,
+every one in `AgentFields`, each because the check exited 0 where it should
+exit 1. The cover step first wrote this section as prose that `paw ready`
+couldn't read, so the implement step rewrote it into the four lines with the
+same checks, run and judgements.
+
+A skeptic found that the check reads whether `omitClaudeMd` and `skills` are
+written and not whether each holds the value decided for that agent. So
+`tools/test_shipped_agents.py`, class `ShippedAgents`, compares every agent
+under `plugins/*/agents/` with its row in SPC-1030's table, and fails a
+flipped value. Its failing run, `e309e93a6301.txt`, is the `test` verb exiting
+1, because `meow-flow:router`, which #669 shipped after this task was
+written, had no row and declared none of the fields.
 
 ## Evidence
 
-Not yet.
+`agent_fields` in `crates/meow/src/author.rs` reads an agent's front matter
+as YAML and fails, naming the file and the field, on each of the six fields
+SPC-1030 states when it is missing or holds a value the table doesn't accept.
+In a unit's `agents/` directory it also fails a `tools` list holding `*`,
+`Agent` or `Task`, alone or with a restriction, read as a list or as a
+comma-separated string. A unit counts as shipped when it sits in a `plugins/`
+directory or carries a plugin manifest, so `.claude/` passes the `tools` rule
+once it writes a list. Front matter that doesn't parse fails with the parser's
+reason and runs no field rule. The `author` feature now builds with
+`yaml-rust2`, which the `gotask` feature already uses.
+
+`record-reviewer`, `router` and `prose` declare the values in SPC-1030's
+table, and
+`plugins/meow-flow/evals/review-without-delegating/` is the hand-run case for
+criterion 7, with its threshold in `thresholds.toml`. Nobody has run it yet,
+so criterion 7 is open until a person runs it and keeps the transcript.
+
+The 26 checks in `AgentFields` failed first: the `test` verb exited 1, kept
+as `project/evidence/27a4dd34eda3.txt`, in the commit that held the checks
+alone. They pass now, and `git diff 4aad79e -- plugins/meow-author/tests/test_author.py`
+prints nothing:
+
+```text
+$ python3 -m unittest plugins/meow-author/tests/test_author.py
+Ran 40 tests in 1.740s
+OK                                   # exit 0
+$ plugins/meow-author/bin/meow-author check
+51 files, 0 authoring failures       # exit 0
+```
+
+`router` joined the harness in #669 after this task was written, so it gains
+the six fields and a row in SPC-1030's table in this change; without them the
+check fails it and the gate goes red. `ShippedAgents` passes once it has
+both.
+
+`meow-author` goes to 0.4.0, because the check fails agents it passed before,
+and `meow-flow` to 0.39.2 and `meow-prose` to 0.4.1 for their agents'
+declarations. `meow-verbs evidence --keep format lint check test build` exits
+0 on this change's own tree, each result kept in `project/evidence/`, as the
+pull request cites.
 
 ## Left alone
 

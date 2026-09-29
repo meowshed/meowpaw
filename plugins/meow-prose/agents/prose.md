@@ -1,7 +1,11 @@
 ---
 name: prose
 description: Reviews a finished text line by line against the meow-prose writing standard and reports findings, without editing it. Use when the user asks to review, check, proofread or critique a text, including code comments in a change, and at the review step before a text is published.
-tools: Read, Grep, Glob
+tools: [Read, Grep, Glob]
+maxTurns: 20
+model: sonnet
+effort: high
+omitClaudeMd: true
 skills: [meow-prose:writing]
 ---
 

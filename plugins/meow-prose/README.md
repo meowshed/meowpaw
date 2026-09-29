@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose
 answers: what meow-prose does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose@0.4.0]
+describes: [meow-prose@0.4.1]
 ---
 
 # meow-prose
@@ -61,6 +61,9 @@ line by line against the same standard. It reports each finding with its line,
 the rule it breaks and the smallest fix, and it edits nothing and blocks
 nothing, so you decide what to change. It reads a quotation without judging
 it, and on a change to code it reads only the files the change touched.
+It runs on `sonnet` at `high` effort for at most 20 turns, preloads the
+writing standard and leaves out your repository's `CLAUDE.md`, because it
+judges against the standard and not against your repository's rules.
 
 ## Replace the standard
 
