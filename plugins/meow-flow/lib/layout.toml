@@ -104,6 +104,10 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]
 rules = ["realises-one", "done-has-evidence", "added-says-why", "dropped-says-why", "defect-epic-ordered"]
+# A task sits under its epic or its defect and nothing else, so the task, epic
+# and defect kinds forbid every grouping field, and an epic forbids `epic`,
+# which would place it under another epic (ADR-1800).
+forbidden_fields = ["epic", "milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
 
 [[kind]]
 name = "task"
@@ -121,6 +125,7 @@ draft_rules = ["one-authority", "dependency-declared"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 sections = ["What to do", "Depends on", "Evidence", "Left alone"]
 draft_sections = ["Acceptance criteria"]
+forbidden_fields = ["milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
 
 [[kind]]
 name = "defect"
@@ -133,7 +138,7 @@ fields = ["severity", "found"]
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
-forbidden_fields = ["priority"]
+forbidden_fields = ["priority", "milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
 # `enters` names the step a defect enters at, required once its Triage is
 # written, which is a draft rule so defects approved before ADR-1440 keep the
 # rules they were approved under.
