@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-a-tiny-fix
+description: A request calling a change to how the profile is parsed a tiny fix, which the router should route full.
+tags: [route]
+runs: 3
+expected_outcome: The router's reply routes full despite the words, and its reason names a path or an identifier in the repository.
+context:
+  scaffold_script: ../this-repository.sh
+execution:
+  max_turns: 20
+  prompt: |
+    Dispatch the meow-flow:router agent in the foreground on the request
+    below, passing it the request as written, and print its reply verbatim
+    with nothing before it. Do no other work on the request.
+
+    <request>
+    Tiny fix: make the profile parser treat a missing [verbs] table in .meowpaw/profile.toml as an empty one, so it stops failing.
+    </request>
