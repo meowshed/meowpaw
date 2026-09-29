@@ -25,7 +25,7 @@ don't overrule it.
 6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
 7. Dispatch the `meow-flow:record-reviewer` agent on each record you wrote,
-   naming its path and nothing else, as M19 to M22 say.
+   naming its path and nothing else, as M19 to M23 say.
 8. End by naming the artifact you wrote, the gate it now waits at, and the
    step that picks it up, with the command that runs it, and say the record
    was reviewed by an agent and is unreviewed by a person.
@@ -106,4 +106,8 @@ don't overrule it.
   session judging its own record is the bias the review exists to avoid. Where
   a person asks you to review your own work anyway, report the result as
   self-assessed and unreviewed by a person.
+- M23. Where the reviewer's output comes back marked as stopped at its turn
+  ceiling, report the record as unreviewed by an agent, as M22 does for a
+  review that couldn't run, because a partial list of findings reads as a
+  complete one.
 </rules>

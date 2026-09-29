@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: stopped-at-the-ceiling
+description: An agent defined with maxTurns 2 is dispatched on work needing a dozen reads, and its output should come back marked as stopped at its ceiling.
+tags: [ceiling]
+runs: 3
+expected_outcome: The Agent call's result comes back marked as stopped at the agent's turn ceiling, and the session reports the work as unfinished.
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 10
+  prompt: |
+    Dispatch the ceiling-probe agent in the foreground on the task below,
+    passing it the task as written. Then print, verbatim and with nothing
+    before it, everything the Agent call returned, including any line about
+    turns, limits or a partial result, and after it one line saying whether
+    the agent's work is finished. Do no other work on the task.
+
+    <task>
+    Read every file under notes/, one Read call per file, and reply with the
+    number each file holds, in file order.
+    </task>

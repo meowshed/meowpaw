@@ -14,7 +14,8 @@ states where it stops.
 1. Decide what the material is: knowledge the model loads, an action a person
    invokes, or a long read that ends in a short answer.
 2. Write its front matter: what it is for and when to load it, and the
-   invocation, paths and context its kind needs.
+   invocation, paths and context its kind needs. For an agent, write the six
+   fields D3 to D8 name.
 3. Write the body in the five tags, `<role>`, `<rules>`, `<steps>`,
    `<example>` and `<input>`, with every obligation a numbered list item under
    `<rules>` and every file it relies on named in the core.
@@ -104,4 +105,40 @@ states where it stops.
   because an obligation it may skip is one it will skip.
 - C11. Put mutually exclusive branches of an instruction in separate files,
   because a file holding both loads both whenever either is needed.
+</rules>
+
+<rules name="agents and delegation">
+- D1. Ship knowledge, such as a lens or a language's idioms, as a skill loaded
+  into the working context and never as an agent, because knowledge needs no
+  isolation and an agent pays for a fresh context and a summary on every
+  dispatch.
+- D2. Never describe a delegated agent as a boundary that contains what it
+  does, because it runs in the parent's process and under the parent's
+  sandbox configuration.
+- D3. Declare `maxTurns` as a positive integer, because it is the ceiling the
+  runner enforces, and an agent without one runs until the work or the
+  session ends.
+- D4. Write `tools` out as a list, `tools: []` included, and in an agent a
+  unit ships list no `*`, `Agent` or `Task`, alone or restricted such as
+  `Agent(worker)`, because a missing list and `*` both grant every tool, the
+  delegation tool among them, and the platform still takes `Task` as the
+  earlier name of `Agent`.
+- D5. Name `model` as `sonnet`, `opus`, `haiku`, `fable` or a full identifier
+  containing `claude-`, never `inherit`, because `inherit` leaves the model,
+  and so the cost, to whichever session dispatches the agent.
+- D6. Name `effort` as `low`, `medium`, `high`, `xhigh` or `max`, because a
+  missing one runs at the session's level, a cost nobody chose, and those
+  five are the levels the platform documents.
+- D7. Write `omitClaudeMd` out, `false` where the agent judges against the
+  repository's rules and `true` where it judges against a standard it
+  preloads, because the platform honours only `true`, so a missing key loads
+  the project's instructions exactly as `false` does and only a written value
+  shows somebody decided.
+- D8. List in `skills` the skills the agent preloads, and write `skills: []`
+  where it needs none, because the list decides what the agent loads at
+  startup and grants nothing, so an empty one states that nothing is needed.
+- D9. Where you dispatch an agent, read an output marked partial, stopped at
+  its ceiling, as unfinished work, and read any output of a run that reached
+  its ceiling the same way until a run has shown the marking, because a
+  partial list of findings reads as a complete one.
 </rules>
