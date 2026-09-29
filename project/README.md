@@ -568,9 +568,10 @@ addresses lands in one of them.
 | [BUG-1260](bugs/BUG-1260-the-cover-gate-accepts-a-run-that-is-not-kept.md)            | `paw ready implement` accepted a Failing run outside the repository, a directory, or the check itself             |
 | [BUG-1261](bugs/BUG-1261-the-cover-gate-lets-an-unchecked-criterion-go-unnamed.md)    | `paw ready implement` accepted a Cover that left a criterion nothing checks unnamed                               |
 | [BUG-1262](bugs/BUG-1262-the-cover-gate-accepts-a-run-that-is-not-evidence.md)        | `paw ready implement` accepted a Failing run outside the evidence directory, or one git ignores                   |
+| [BUG-1300](bugs/BUG-1300-no-check-shows-status-waiting-on-a-blocking-dependency.md)   | No check showed `paw status` waiting on a blocking dependency                                                     |
 | [BUG-1340](bugs/BUG-1340-an-approved-record-in-another-yaml-form-goes-unprotected.md) | `meow-unattended plan` left an approved record with a quoted, commented or CRLF status without a deny rule        |
 
-Twenty-eight are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Twenty-nine are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.
