@@ -5,3 +5,11 @@
 # manifest has no field for a minimum platform version, so the unit states it
 # here: the version its behaviour was last tested on, 2026-09-26.
 claude_code = "2.1.283"
+
+# The version on which the router's `tools: Read, Grep, Glob` allowlist was
+# last observed holding (ADR-2100), and the dispatch mode it was observed in.
+# The platform decides which tools a subagent holds, so a newer version is
+# observed again before this unit states it. Observed 2026-09-29, in a
+# foreground dispatch from `claude -p`; an interactive session is unmeasured.
+router_allowlist_observed = "2.1.283"
+router_allowlist_dispatch = "foreground, from claude -p"

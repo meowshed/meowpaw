@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-three-changes
+description: A request for three unrelated changes, which the router should list as three entries.
+tags: [route]
+runs: 3
+expected_outcome: The router's reply lists three entries, each with its own size and shape.
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 20
+  prompt: |
+    Dispatch the meow-flow:router agent in the foreground on the request
+    below, passing it the request as written, and print its reply verbatim
+    with nothing before it. Do no other work on the request.
+
+    <request>
+    Three things: fix the spelling of 'recieve' wherever it appears in the meow-git README, add a --json flag to paw status, and make the licence unit accept a REUSE.toml with no annotations.
+    </request>
