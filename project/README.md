@@ -35,13 +35,13 @@ it.
 
 ## Research
 
-141 documents, indexed by
+142 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
 ## Requirements
 
-1,121 obligations, withdrawn ones included, indexed by
+1,123 obligations, withdrawn ones included, indexed by
 [requirements/README.md](requirements/README.md). Each is one file carrying
 one obligation, and it declares whether it's functional or non-functional and
 which of the four kinds of check verifies it: a static check, a behavioural
@@ -225,6 +225,11 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-2100](adrs/ADR-2100-a-read-only-agent-routes-each-request-before-work-starts.md):
   a read-only agent routes each request on the repository before work starts,
   and the route is reported before any edit.
+- [ADR-1700](adrs/ADR-1700-every-shipped-agent-declares-its-turns-tools-model-effort-instructions-and-skills-and-meow-author-check-fails-one-that-doesnt.md):
+  every shipped agent declares its turn ceiling, tools, model, effort,
+  instructions and preloaded skills, and holds no delegation tool, and
+  `meow-author check` fails one that doesn't. It withdraws REQ-0820 and
+  postpones REQ-3271, the session's nesting depth.
 
 ## Specifications
 
@@ -237,7 +242,8 @@ selects it, and not on its own.
 [SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to what
 the harness says is measured,
 [SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
-prompt the harness ships is written, and
+prompt the harness ships is written and what an agent declares, which
+EPC-1650 realises, and
 [SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
 which follows both. The work realising them has landed, and each leaves
 `checked-at` empty until its epics are verified.
@@ -519,6 +525,9 @@ each requirement ADR-1800 addresses lands in one of them.
 [EPC-2100](epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realises
 ADR-2200 in two tasks, TSK-3700 and TSK-3710, neither of them started, and
 every requirement ADR-2200 addresses lands in one of them.
+[EPC-1650](epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
+ADR-1700 in two tasks, TSK-2700 and TSK-2701, neither of them started, and
+every requirement ADR-1700 addresses lands in one of them.
 
 [EPC-2000](epics/EPC-2000-the-route-before-work.md) realises ADR-2100 in two
 tasks, TSK-3500 and TSK-3510, none of them started. Every requirement ADR-2100
