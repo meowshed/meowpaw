@@ -282,7 +282,8 @@ realised, were verified under issue 625.
 
 [SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
 run's plan: the authority a repository declares, the command `plan` prints,
-and the snapshot it writes. `checked-at` is empty until EPC-1900 is verified.
+and the snapshot it writes. `meow-unattended` implements it, verified under
+issue 626.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -530,8 +531,8 @@ tasks, TSK-3100 to TSK-3130, each closed with evidence, and was verified
 against every acceptance criterion under issue 624. REQ-2424 and REQ-2484 stay
 postponed.
 [EPC-1900](epics/EPC-1900-the-unattended-runs-plan.md) realises ADR-2000 in
-two tasks, TSK-3300 and TSK-3310, neither of them started, and each of the two
-requirements ADR-2000 addresses lands in one of them.
+two tasks, TSK-3300 and TSK-3310, each closed with evidence, and was verified
+against every acceptance criterion under issue 626.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
