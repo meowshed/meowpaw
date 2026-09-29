@@ -2,7 +2,7 @@
 id: TSK-3130
 artifact: task
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 epic: EPC-1800
 closes: [REQ-0083]
 issue: 637
@@ -51,14 +51,50 @@ TSK-3100, because the unit and its skill file come from it.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: `plugins/meow-markdown/tests/test_markdown.py`
+- Failing run: `project/evidence/cfe2a8d9882c.txt`
+- Landed in: #677
+- Judgement: 3: the gate's `prompts` and `budget` tasks hold it, and they pass before the work, so no check of it could be seen failing; 4: the pull request's reviewer reads the skill's order against RES-0111's, because the order of a prompt's sections is read, not matched
 
 ## Evidence
 
-Not yet.
+The cover commit 4142a15 added seven checks to
+`plugins/meow-markdown/tests/test_markdown.py`, and they failed there before
+the work, as `project/evidence/cfe2a8d9882c.txt` records. With the skill and
+`reviewing.md` written, the same checks pass unchanged:
+
+```text
+$ python3 -m unittest plugins/meow-markdown/tests/test_markdown.py -k Reviewing -k Skill
+Ran 7 tests in 0.002s
+OK
+exit status 0
+```
+
+The unit's whole test file passes, with one test skipped because lychee isn't
+installed on this machine, so TSK-3120's real lychee run couldn't be made:
+
+```text
+$ python3 -m unittest plugins/meow-markdown/tests/test_markdown.py
+Ran 47 tests in 5.529s
+OK (skipped=1)
+exit status 0
+```
+
+`git diff 4142a15 -- plugins/meow-markdown/tests/test_markdown.py` printed
+nothing, so the checks are the ones the cover commit holds. Criterion 3:
+`mise run prompts` printed `53 files, 0 authoring failures` and `mise run
+budget` printed `meow-markdown: 326 of 380 characters on every turn`, both
+exit status 0. Criterion 4 waits on the pull request's reviewer.
+
+The render-target table in `SKILL.md` comes from the renderers' documentation
+as I know it, not from an observation the pack made, and the skill says so and
+tells the model to check the renderer's configuration before reporting a
+finding on it. `meow-markdown` rises to 0.4.0, a minor, because the skill
+gained a capability.
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 
