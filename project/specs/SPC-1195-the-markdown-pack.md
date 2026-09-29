@@ -107,8 +107,8 @@ printed as unresolved or unbound with its reason is settled (ADR-1900).
 | Finding                                                                  | When                                                                                                                                          |
 | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `no render target: declare [markdown] target`                            | `[markdown] target` is missing or empty (REQ-2452)                                                                                            |
-| `markdownlint-cli2 runs its defaults: no configuration file`             | The `lint` command runs `markdownlint-cli2` and git tracks no markdownlint configuration (REQ-2434)                                           |
-| `markdownlint ignores <file>`                                            | The `lint` command runs `markdownlint` and a `.markdownlint-cli2.*` file is tracked (REQ-2434)                                                |
+| `markdownlint-cli2 runs its defaults: no configuration file`             | The `lint` command runs `markdownlint-cli2`, names no file after a `--config` word, and git tracks no markdownlint configuration (REQ-2434)   |
+| `markdownlint ignores <file>`                                            | The `lint` command runs `markdownlint` or `markdownlint-cli`, and a `.markdownlint-cli2.*` file is tracked (REQ-2434)                         |
 | `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets rules (REQ-2434)                                     |
 | `link check declares no <setting>`                                       | A verb runs `lychee` or `meow-markdown links`, and neither its settings file nor its flags set `offline`, `max_retries` or `cache` (REQ-2454) |
 | `<file> doesn't parse as TOML: <message>`                                | The link check's settings file doesn't parse                                                                                                  |
@@ -116,8 +116,11 @@ printed as unresolved or unbound with its reason is settled (ADR-1900).
 
 Any string in `[markdown] target` is a declaration. A command runs a tool
 where one of its words, split at white space and the shell's `;`, `&`, `|`,
-`(` and `)`, has the tool's name as its last path component, so `npx
-markdownlint-cli2` and `node_modules/.bin/markdownlint` both count. The finding
+`(` and `)`, has the tool's name as its last path component with any
+`@<version>` suffix removed, so `npx markdownlint-cli2@0.23.2` and
+`node_modules/.bin/markdownlint` both count (RES-0295). A `--config` word
+followed by a path gives markdownlint-cli2 its configuration, and a
+`--config=<path>` word doesn't, because markdownlint-cli2 reads it as a glob. The finding
 for two configurations in one directory is read from the files, whatever the
 verb runs. A `.markdownlint-cli2.jsonc`, `.json`, `.yaml` or `.yml` sets rules where
 its `config` key holds a value other than null or an empty object, and one
