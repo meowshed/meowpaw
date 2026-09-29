@@ -4,7 +4,7 @@ artifact: epic
 status: approved
 revised: 2026-09-28
 realises: ADR-1620
-checked-at:
+checked-at: "#745"
 ---
 
 # The chain gains a cover step, and paw ready gates the implementation on the task's Cover
@@ -91,6 +91,14 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 TSK-2540 and TSK-2550 touch different files except `meow-flow`'s version and
 its README's `describes`, so whichever lands second takes the next minor
 version above the first.
+
+## Verified
+
+Closed with its tasks under ADR-2300, which replaces verification with the
+tasks that close each requirement. `checked-at` names #745, the last change of
+its work, because the program still reads the field until EPC-2200 lands, and
+TSK-3860 removes this section with every other. Criterion 9 was never met, and
+ADR-2300 folds the cover step it tested into implement.
 
 ## Coverage
 

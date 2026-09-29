@@ -2,10 +2,12 @@
 id: SPC-1040
 artifact: spec
 status: live
-revised: 2026-09-27
+revised: 2026-09-29
 checked-at: "#115"
 states:
   [
+    REQ-3634,
+    REQ-3636,
     REQ-0130,
     REQ-0131,
     REQ-0134,
@@ -18,7 +20,6 @@ states:
     REQ-0148,
     REQ-0150,
     REQ-0154,
-    REQ-0156,
     REQ-0158,
     REQ-0452,
     REQ-0454,
@@ -28,7 +29,6 @@ states:
     REQ-0756,
     REQ-0758,
     REQ-2908,
-    REQ-2956,
     REQ-2958,
     REQ-2960,
     REQ-2962,
@@ -47,7 +47,10 @@ states:
 ## Scope
 
 This covers the five verification verbs a repository declares and the unit
-that resolves, reports and runs them, `meow-verbs`. It states where a verb
+that resolves, reports and runs them, `meow-verbs`. ADR-2300 renames the
+unit `meow-checks`, named for what it does for the reader, and keeps
+`meow-verbs` one release as a stub that says so (REQ-3634, REQ-3636) (not
+yet; EPC-2200 realises it). It states where a verb
 resolves from, what an unresolved verb reports, and what a run records.
 
 It leaves binding a verb to a runner's tasks and language packs to later
@@ -147,7 +150,7 @@ read.
 ### What `run` reports
 
 `meow-verbs run <verb>...` runs each named verb in the order given and reports
-each one (REQ-0144, REQ-0156):
+each one (REQ-0144):
 
 - a verb that ran: the exact command, its exit status, how long it took, and
   its whole output, standard output and standard error in the order they
@@ -202,7 +205,7 @@ a record carrying no targets field as a whole run.
 every current one when none is named, into the repository at
 `<record root>/evidence/<record>.txt`, which is `project/evidence/` unless the
 profile moves the record with `[record] root`, or under the `evidence_dir` the
-profile declares under `[verbs]` (REQ-2956). It asks git whether each kept file
+profile declares under `[verbs]` (ADR-1550). ADR-2300 removes kept evidence, so `--keep` goes with EPC-2200 (REQ-3614) (not yet). It asks git whether each kept file
 is ignored: an ignored one is named with its rule, left in place, and exits 1,
 and where git can't answer it exits 3 (ADR-1550). The file opens with `meow-verbs evidence 1`,
 then the verb, the command, the targets, the outcome, the exit status, the tree
