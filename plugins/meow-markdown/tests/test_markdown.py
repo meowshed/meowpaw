@@ -341,6 +341,43 @@ class LintCommand(Check):
         self.assertIn("markdownlint ignores .markdownlint-cli2.jsonc", done.stdout.splitlines())
 
 
+CLI_DEFAULTS = "markdownlint runs its defaults: no configuration file"
+
+
+class MarkdownlintCliDefaults(Check):
+    """TSK-3160, BUG-1322, REQ-2434: markdownlint-cli with nothing configuring it runs its defaults (RES-0295, RES-0296)."""
+
+    def cli_defaults(self, flags, extra):
+        lint = f"lint = \"markdownlint {flags}'**/*.md'\"\n"
+        done = self.check({**TWO, ".meowpaw/profile.toml": verbs(lint), **extra})
+        return done, CLI_DEFAULTS in done.stdout.splitlines()
+
+    def test_criterion_1_markdownlint_cli_with_no_configuration_runs_its_defaults(self):
+        """TSK-3160 criterion 1, REQ-2434: no configuration exits 1 with the finding; each place cli reads settles it."""
+        mdl = {".config/mdl.json": JSONC}
+        for name, flags, extra, status in (
+                ("none", "", {}, 1),
+                (".markdownlintrc", "", {".markdownlintrc": JSONC}, 0),
+                (".markdownlint.jsonc", "", {".markdownlint.jsonc": JSONC}, 0),
+                ("-c", "-c .config/mdl.json ", mdl, 0),
+                ("--config", "--config .config/mdl.json ", mdl, 0),
+                ("--config=", "--config=.config/mdl.json ", mdl, 0)):
+            with self.subTest(case=name):
+                done, said = self.cli_defaults(flags, extra)
+                self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+                self.assertEqual(said, bool(status), done.stdout)
+
+    def test_criterion_2_what_markdownlint_cli_does_not_read_is_no_configuration(self):
+        """TSK-3160 criterion 2, REQ-2434: a nested `.markdownlint.json` and `-c=<path>` leave the defaults running."""
+        mdl = {".config/mdl.json": JSONC}
+        for name, flags, extra in (("nested", "", {"docs/.markdownlint.json": JSONC}),
+                                   ("-c=", "-c=.config/mdl.json ", mdl)):
+            with self.subTest(case=name):
+                done, said = self.cli_defaults(flags, extra)
+                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                self.assertTrue(said, done.stdout)
+
+
 class CheckUnresolved(Check):
     """TSK-3110 criterion 5, REQ-2434 and REQ-2452: no profile, or one that doesn't parse, is unresolved."""
 
