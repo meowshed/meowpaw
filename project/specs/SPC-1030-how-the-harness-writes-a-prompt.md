@@ -7,6 +7,7 @@ checked-at: "#490"
 states:
   [
     REQ-0077,
+    REQ-0816,
     REQ-1050,
     REQ-1052,
     REQ-1054,
@@ -64,6 +65,7 @@ states:
     REQ-2972,
     REQ-2974,
     REQ-2976,
+    REQ-2978,
     REQ-2982,
     REQ-2984,
     REQ-2988,
@@ -86,7 +88,11 @@ change to a prompt is measured to SPC-1020.
 
 ADR-1020, ADR-1030 and ADR-1050 decide the form, ADR-1040 how the reply shape
 reaches a subordinate agent, ADR-1450 how the capability ships and is checked,
-and ADR-1700 what an agent declares.
+ADR-1700 what an agent declares, and ADR-1710 what an agent reports and what it
+does when a tool is denied. EPC-1651 realises ADR-1710, and until its tasks
+land the shipped agents write no outcome line and `meow-author check` asks for
+none. What a dispatcher does with each outcome belongs to the specification of
+the chain.
 
 ## Boundary
 
@@ -305,6 +311,59 @@ its ceiling, and whatever dispatched it reads that output as unfinished work
 documentation, and no run has shown it yet, so the hand-run case EPC-1650
 adds is the first that can (ADR-1700).
 
+### What an agent reports
+
+An agent a unit ships ends every dispatch with one outcome from a closed set of
+four, written on a line of its own as `outcome:`, a space and the word, so the skill
+that dispatched it acts on the word without reading the rest (REQ-0816):
+
+| Outcome              | The agent reports it when                                           |
+| -------------------- | ------------------------------------------------------------------- |
+| `DONE`               | It did the work its rules set, whatever it found                    |
+| `DONE_WITH_CONCERNS` | It finished, and part of the work couldn't run                      |
+| `NEEDS_CONTEXT`      | The brief names nothing it can work on                              |
+| `BLOCKED`            | A tool call was denied, or an input its rules need couldn't be read |
+
+The outcome says whether the work happened, and the rest of the report says
+what it found. A review that found six defects is `DONE`, a clean one is
+`DONE`, and a route marked `ambiguous` is `DONE`. The specification of the
+chain gives each shipped agent's rows in full, with what its dispatcher does
+on each.
+
+The line reads `outcome:`, a space and one of the four words, and nothing
+else.
+Where the outcome isn't `DONE`, one sentence naming the cause follows it, such
+as `Read was denied on project/adrs/ADR-0001.md`: the part that didn't run,
+what the brief lacked, or the tool denied and what it was called on. Each
+shipped agent places the two lines as follows:
+
+| Agent                       | The outcome line                                            | The cause                          |
+| --------------------------- | ----------------------------------------------------------- | ---------------------------------- |
+| `meow-flow:record-reviewer` | The second line, below its fixed label, before the findings | The third line                     |
+| `meow-prose:prose`          | The first line, before the verdict                          | The second line                    |
+| `meow-flow:router`          | The first field, `outcome:`, before `size:`                 | A `cause:` field, after `outcome:` |
+
+An agent that opens its report with a fixed line keeps that line first and
+puts the outcome line second. Any other agent puts the outcome line first.
+
+`record-reviewer` and `prose` quote nothing they read beyond the span a
+finding names, 25 words at most, and cap no number of findings (REQ-0816). A
+finding names its line, so a longer span, such as a table row, is found
+there.
+
+Every shipped agent carries the denial rule, in the same words: where a tool
+call is denied, the agent issues no second call in another form, reaches the
+same result with no other tool, asks nobody for the permission, and ends with
+`outcome: BLOCKED` and one sentence naming the tool and what it was called on
+(REQ-2978). A denied call is `BLOCKED` whatever it was called on, a cited
+record included. A cited record or file that doesn't exist or doesn't resolve
+is not a denial, and a reviewer reports it as `DONE_WITH_CONCERNS`. Under a
+run with permission prompts disabled, every permission request becomes a
+denial at once, so a shipped agent ends on its first denial and nothing waits
+on an answer. `meow-author check` reads the four words in a definition, and
+review holds the denial rule, because no pattern tells its wording from a near
+miss.
+
 ### Delegation
 
 Knowledge, such as a design lens or a language's idioms, ships as a skill
@@ -342,6 +401,9 @@ it is given, such as `.claude/`, and fails, naming the file and the line, on:
   `tools` is read as a YAML list or as a comma-separated string;
 - an agent whose front matter doesn't parse, with that reason and no field
   rule run on it;
+- an agent in a unit's `agents/` directory whose body doesn't name all four
+  outcomes, naming each missing word. A repository's own agent isn't read for
+  this rule;
 - a plugin shipping a `commands/` directory;
 - a file in a skill's directory that its `SKILL.md` never names;
 - a path into the unit written without the directory variable;
@@ -353,16 +415,20 @@ One check audits every unit, because the format is uniform across them
 
 ## Failure paths
 
-| Condition                                          | What happens                                                                     |
-| -------------------------------------------------- | -------------------------------------------------------------------------------- |
-| A prompt uses a heading or an unknown tag          | The check fails in the gate, naming the file and the line                        |
-| A prompt nests a tag inside another                | The check fails, because the vocabulary is top-level only                        |
-| A core names no supporting file for a kind of work | The model loads nothing for it, and the unit is defective against REQ-1124       |
-| A core grows past 5,000 tokens                     | The tail is lost after compaction, which is a defect against REQ-1064            |
-| A unit exceeds its stated budget                   | The overrun is reported as a defect and the material moves into supporting files |
-| The model does not load a unit that must hold      | The routing measurement shows it, and the description is the thing that changes  |
-| A description loads its unit on a near miss        | The routing measurement shows it, and the wording is narrowed before it ships    |
-| An agent leaves out a declared field               | The check fails in the gate, naming the file and the field                       |
-| A shipped agent lists `Agent`, `Task` or `*`       | The check fails, naming the file and the `tools` field                           |
-| A shipped agent names a model the account lacks    | The dispatch fails to start, and a repository replaces the agent with its own    |
-| An agent reaches its `maxTurns`                    | Its output comes back marked partial, and the dispatcher reads it as unfinished  |
+| Condition                                                        | What happens                                                                       |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| A prompt uses a heading or an unknown tag                        | The check fails in the gate, naming the file and the line                          |
+| A prompt nests a tag inside another                              | The check fails, because the vocabulary is top-level only                          |
+| A core names no supporting file for a kind of work               | The model loads nothing for it, and the unit is defective against REQ-1124         |
+| A core grows past 5,000 tokens                                   | The tail is lost after compaction, which is a defect against REQ-1064              |
+| A unit exceeds its stated budget                                 | The overrun is reported as a defect and the material moves into supporting files   |
+| The model does not load a unit that must hold                    | The routing measurement shows it, and the description is the thing that changes    |
+| A description loads its unit on a near miss                      | The routing measurement shows it, and the wording is narrowed before it ships      |
+| An agent leaves out a declared field                             | The check fails in the gate, naming the file and the field                         |
+| A shipped agent lists `Agent`, `Task` or `*`                     | The check fails, naming the file and the `tools` field                             |
+| A shipped agent names a model the account lacks                  | The dispatch fails to start, and a repository replaces the agent with its own      |
+| An agent reaches its `maxTurns`                                  | Its output comes back marked partial, and the dispatcher reads it as unfinished    |
+| A unit's agent doesn't name all four outcomes                    | The check fails, naming the file and each missing word                             |
+| A shipped agent's tool call is denied                            | The agent makes no other call for it and ends with `outcome: BLOCKED` and the tool |
+| A shipped agent's report carries no outcome line                 | Its dispatcher reads it as work that didn't run                                    |
+| A background agent's permission prompt in an interactive session | It waits in the main session for the person, with no timeout the harness sets      |
