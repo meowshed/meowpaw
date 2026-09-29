@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-markdown@0.4.3]
+describes: [meow-markdown@0.4.4]
 ---
 
 # meow-markdown
