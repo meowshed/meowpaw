@@ -307,6 +307,15 @@ class Project(unittest.TestCase):
                 self.assertFalse([a for a in call if a == flag or a.startswith(flag + "=")], call)
             fields = [call[i + 1].partition("=")[0] for i, a in enumerate(call[:-1]) if a in ("-f", "-F", "--field", "--raw-field")]
             self.assertLessEqual(set(fields), {"title", "body"}, call)
+            # BUG-1301: each call has exactly one of the three shapes `project` sends, so a grouping sent through
+            # `--input`, an `--add-` flag or an extra argument of any other kind fails here.
+            self.assertEqual(call[0], "api", call)
+            self.assertRegex(call[1], r"^repos/o/r/issues(/\d+)?$", call)
+            if len(call) > 2:
+                self.assertEqual(len(call), 8, call)
+                self.assertIn(call[2:4], (["-X", "POST"], ["-X", "PATCH"]), call)
+                self.assertEqual([call[4], call[6]], ["-f", "-f"], call)
+                self.assertTrue(call[5].startswith("title=") and call[7].startswith("body="), call)
         self.assertIn("- TSK-0001 (not blocking): shares a helper", self.state(root)["issues"]["2"]["body"])
 
     def test_a_draft_epic_projects_nothing(self):
