@@ -544,8 +544,8 @@ fn approved(record: &Path) -> Vec<PathBuf> {
                     .find(|(k, _)| k == key)
                     .map(|(_, v)| v.as_str())
             };
-            matches!(field("artifact"), Some("requirement" | "adr"))
-                && field("status") == Some("approved")
+            matches!(field("artifact").map(bare), Some("requirement" | "adr"))
+                && field("status").map(bare) == Some("approved")
         })
         .collect()
 }
@@ -568,8 +568,10 @@ fn markdown_under(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// The top-level `key: value` pairs of a file's YAML front matter.
+/// The top-level `key: value` pairs of a file's YAML front matter, with LF or
+/// CRLF line endings.
 fn front_matter(text: &str) -> Vec<(String, String)> {
+    let text = text.replace("\r\n", "\n");
     let Some(rest) = text.strip_prefix("---\n") else {
         return Vec::new();
     };
@@ -580,6 +582,13 @@ fn front_matter(text: &str) -> Vec<(String, String)> {
         .filter_map(|line| line.split_once(':'))
         .map(|(k, v)| (k.trim().to_string(), v.trim().to_string()))
         .collect()
+}
+
+/// A value without its trailing comment and its quotes, as `paw check` reads
+/// it, so the two agree on which records are approved.
+fn bare(value: &str) -> &str {
+    let value = value.split(" #").next().unwrap_or(value).trim();
+    value.trim_matches('"').trim_matches('\'')
 }
 
 /// A path with forward slashes, so a deny rule reads the same on every system.
@@ -644,6 +653,13 @@ mod tests {
     fn front_matter_reads_top_level_keys() {
         let fields = front_matter("---\nid: X\nstatus: approved\n---\n\n# X\n");
         assert_eq!(fields[1], ("status".to_string(), "approved".to_string()));
+    }
+
+    #[test]
+    fn front_matter_reads_crlf_and_bare_values() {
+        let fields = front_matter("---\r\nstatus: \"approved\" # frozen\r\n---\r\n");
+        assert_eq!(fields.len(), 1, "{fields:?}");
+        assert_eq!(bare(&fields[0].1), "approved");
     }
 
     #[test]
