@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1720
 closes: [REQ-2576]
-issue:
+issue: 709
+projected: 8487dbae3b7c
 ---
 
 # Write only issues, and ask before a `gh` command changes governance
