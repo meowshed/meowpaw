@@ -338,9 +338,9 @@ approvals and waiting report are verified under issue 249. ADR-1490 adds the
 review a record gets before its gate, and EPC-1470 realises it. ADR-1620 adds
 the cover step, its gate and the task's Cover section, and EPC-1580 realises
 them. `paw ready` knows the ten steps and gates the implementation on the
-Cover, and the method's prompts name the ten steps and where each step's
-artifact lands. Until the rest of the epic lands, `status` and the driver run
-nine steps without cover. ADR-1800 lets a task's dependency say whether it
+Cover, `status` names cover before implement, the driver continues past
+cover, and the method's prompts name the ten steps and where each step's
+artifact lands. ADR-1800 lets a task's dependency say whether it
 blocks, and EPC-1710 realises it; until it lands, `paw` reads every `TSK-`
 identifier under `## Depends on` as blocking and no rule asks a draft for the
 marker.
@@ -679,7 +679,7 @@ has reached and the next one:
 - its epic is a draft: waiting for the epic's approval
 - its epic has tasks not done: for the first task whose blocking
   dependencies are done, next is `cover` while its Cover isn't filled, and `implement` once it
-  is (not yet; see Scope), and the line keeps the form `(<epic>, <n> of <m> tasks done)`
+  is, and the line keeps the form `(<epic>, <n> of <m> tasks done)`
 - every task is done and the epic has no `checked-at`: next is `document`, then
   `verify`
 - the epic carries `checked-at`: realised
@@ -733,7 +733,7 @@ or the record a person names (REQ-3202). It runs that item's next step through
 the `method` skill, and stops where the step ends at an approval gate, as the
 step would (REQ-0204). Where the step ends without one, as cover does, it
 runs `status` again and continues, so one invocation takes an approved task
-through cover and implement to the next gate (not yet; see Scope). At every stop it reports which step it reached, why it
+through cover and implement to the next gate. At every stop it reports which step it reached, why it
 stopped and what the next invocation will do (REQ-0208). It keeps no state of
 its own, so run again after an approval it continues from the step after the
 approved one, and run again with nothing approved it says it is waiting

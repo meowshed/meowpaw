@@ -812,7 +812,8 @@ class Chain(unittest.TestCase):
     NEXT = "next: {step} TSK-0001 (EPC-0001, 0 of 1 task done)"
 
     def cover(self, repository):
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "## Cover\n\n" + FILLED + "\n\n## Evidence")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
+                        "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + FILLED + "\n\n## Evidence")
         for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
             path = repository.path / name
             path.parent.mkdir(parents=True, exist_ok=True)
