@@ -459,6 +459,10 @@ FORBIDDEN = ("https://httpbin.org/status/403", {"text": "Rejected status code: 4
 UNAVAILABLE = ("https://httpbin.org/status/503", {"text": "Rejected status code: 503 Service Unavailable", "code": 503})
 GONE = ("https://httpbin.org/status/404", {"text": "Rejected status code: 404 Not Found", "code": 404})
 MOVED = ("https://httpbin.org/status/301", {"text": "Rejected status code: 301 Moved Permanently", "code": 301})
+THROTTLED = ("https://httpbin.org/status/429", {"text": "Rejected status code: 429 Too Many Requests", "code": 429})
+SLOW = ("https://httpbin.org/status/408", {"text": "Rejected status code: 408 Request Timeout", "code": 408})
+REFUSED = ("https://httpbin.org/status/401", {"text": "Rejected status code: 401 Unauthorized", "code": 401})
+REMOVED = ("https://httpbin.org/status/410", {"text": "Rejected status code: 410 Gone", "code": 410})
 EXCLUDED = {"text": "Excluded", "details": "This is due to your 'exclude' values"}
 NOT_FOUND = {"text": "File not found. Check if file exists and path is correct",
              "details": "File not found. Check if file exists and path is correct"}
@@ -491,10 +495,11 @@ def without_lychee(path):
 class Links(Fixture):
     """`links` runs a stand-in lychee printing RES-0294's JSON, and classifies each result from it."""
 
-    def links(self, output, status, stderr="", files=None):
+    def links(self, output, status, stderr="", files=None, inputs=()):
         """Run `links` with a stand-in lychee that prints `output` and exits `status`; None puts no lychee on PATH.
 
-        `output` may be a function of the fixture's root, for an address inside it."""
+        `output` may be a function of the fixture's root, for an address inside it. The stand-in writes each
+        argument it got to `bin/lychee.args` beside the fixture, one to a line."""
         repository = self.repo({**TWO, ".meowpaw/profile.toml": LINKS_PROFILE} if files is None else files)
         path = without_lychee(repository.env.get("PATH", ""))
         if callable(output):
@@ -505,12 +510,12 @@ class Links(Fixture):
             text = stand_in / "lychee.out"
             text.write_text(output if isinstance(output, str) else json.dumps(output, indent=2), encoding="utf-8")
             script = stand_in / "lychee"
-            script.write_text(f"#!/bin/sh\ncat '{text}'\nprintf '%s' '{stderr}' >&2\nexit {status}\n",
-                              encoding="utf-8")
+            script.write_text(f"#!/bin/sh\nprintf '%s\\n' \"$@\" > '{stand_in / 'lychee.args'}'\n"
+                              f"cat '{text}'\nprintf '%s' '{stderr}' >&2\nexit {status}\n", encoding="utf-8")
             script.chmod(0o755)
             path = f"{stand_in}{os.pathsep}{path}"
         repository.env["PATH"] = path
-        return repository, repository.run("links")
+        return repository, repository.run("links", *inputs)
 
     def said(self, done, url, label, line=None):
         """The one line naming `url`, which carries `label`, the file and its line."""
@@ -535,6 +540,29 @@ class Links(Fixture):
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         for url, line in ((FORBIDDEN[0], 3), (UNAVAILABLE[0], 4)):
             self.assertNotIn("finding", self.said(done, url, "unreachable", line))
+
+    def test_criterion_1_throttled_and_refused_responses_are_unreachable(self):
+        """BUG-1323, REQ-2438: a 429, a 408 and a 401 print as `unreachable`, never `finding`, exiting 3."""
+        for url, status in (THROTTLED, SLOW, REFUSED):
+            with self.subTest(code=status["code"]):
+                _, done = self.links(report(errors=[(url, status, 3)]), 2)
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertNotIn("finding", self.said(done, url, "unreachable", 3))
+
+    def test_criterion_2_a_410_is_a_finding(self):
+        """BUG-1323, REQ-2438: a 410 prints as `finding`, exiting 1."""
+        _, done = self.links(report(errors=[(*REMOVED, 3)]), 2)
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertNotIn("unreachable", self.said(done, REMOVED[0], "finding", 3))
+
+    def test_criterion_2_links_passes_lychee_its_arguments(self):
+        """BUG-1323, REQ-2438: lychee gets `--format json --no-progress --` and `**/*.md`, or the inputs given."""
+        for inputs, expected in (((), ["**/*.md"]), (("README.md",), ["README.md"])):
+            with self.subTest(inputs=inputs):
+                repository, done = self.links(report(), 0, inputs=inputs)
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                args = (repository.root.parent / "bin" / "lychee.args").read_text(encoding="utf-8").splitlines()
+                self.assertEqual(args, ["--format", "json", "--no-progress", "--", *expected])
 
     def test_criterion_2_a_404_and_a_missing_file_are_findings(self):
         """TSK-3120 criterion 2, REQ-2438: a 404 and a missing relative file print as `finding`, exiting 1."""
@@ -576,12 +604,18 @@ class Links(Fixture):
         self.assertIn("tool absent: lychee", done.stdout + done.stderr)
 
     def test_criterion_4_a_lychee_that_fails_or_prints_no_json_is_tool_broken(self):
-        """TSK-3120 criterion 4, REQ-2438: exit 3, text that isn't JSON and a renamed `timeout_map` are `tool broken`."""
-        renamed = json.dumps(report(timeouts=[(*TIMEOUT, 3)])).replace('"timeout_map"', '"timeouts_map"')
+        """TSK-3120 criterion 4, BUG-1323, REQ-2438: exit 1 or 3, text that isn't JSON, an unknown map and a
+        missing map are each `tool broken`. The exit-1 stand-in prints a clean report, so only its status
+        can make the run broken."""
+        unknown = {**report(timeouts=[(*TIMEOUT, 3)]), "timeouts_map": {}}
+        missing = report(timeouts=[(*TIMEOUT, 3)])
+        del missing["timeout_map"]
         for name, output, status, stderr in (
+                ("exit 1", report(), 1, "No input specified"),
                 ("exit 3", "", 3, "Error while loading config"),
                 ("not JSON", "Issues found in 1 input. Find details below.\n", 0, ""),
-                ("renamed map", renamed, 2, "")):
+                ("unknown map", unknown, 2, ""),
+                ("missing map", missing, 2, "")):
             with self.subTest(case=name):
                 _, done = self.links(output, status, stderr)
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
@@ -597,11 +631,13 @@ class Links(Fixture):
         self.assertNotIn("finding", line)
 
     def test_criterion_5_the_real_lychee_reports_a_missing_file(self):
-        """TSK-3120 criterion 5, REQ-2438: lychee itself, on a missing relative file, makes `links` exit 1."""
+        """TSK-3120 criterion 5, BUG-1323, REQ-2438: lychee itself, on a missing relative file, makes `links` exit 1.
+
+        Where no lychee runs, the fixture fails and doesn't skip, because a skip reads as a pass in the gate."""
         found = shutil.which("lychee")
         runs = found and subprocess.run([found, "--version"], capture_output=True, text=True).returncode == 0
-        if not runs:
-            self.skipTest("lychee isn't installed, so the real run can't be made here")
+        self.assertTrue(runs, "no lychee runs on PATH; the `test` verb runs this suite under "
+                              "`mise exec lychee@0.24.2 --`")
         files = {**TWO, ".meowpaw/profile.toml": LINKS_PROFILE, "README.md": "# A\n\nSee [gone](missing.md).\n"}
         repository = self.repo(files)
         done = repository.run("links")
