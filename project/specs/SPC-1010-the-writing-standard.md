@@ -114,7 +114,10 @@ Its `PreToolUse` hook of type `command` runs `meow-prose-gate check` before a
 text is published, and publishing covers a commit, an issue, a pull request
 body, a review comment and a release note (REQ-3182). The program reads the
 shell command from the hook's input, and no model reads the text. It finds
-each `git commit` and each `gh` command in the command, and takes the text
+each `git commit` and each `gh` command in the command, including one with a
+global option before its subcommand, such as `git -C dir commit` or
+`gh -R owner/repo pr create`, and the hook routes both, as it does
+`git -c`. It takes the text
 from the arguments of `-m`, `--message`, `--title`, `--body` and `--notes`,
 their short forms for that tool, and each heredoc.
 

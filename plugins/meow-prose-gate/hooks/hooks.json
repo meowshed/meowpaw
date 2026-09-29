@@ -63,6 +63,30 @@
             "if": "Bash(gh release edit *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "if": "Bash(gh -R *)",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "if": "Bash(gh --repo *)",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "if": "Bash(git -C *)",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "if": "Bash(git -c *)",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
+            "timeout": 30
           }
         ]
       }

@@ -186,8 +186,19 @@ fn publishing(simple: &Simple) -> Option<Published> {
             ],
         )
     } else {
-        let group = words.get(start + 1).map(String::as_str);
-        let action = words.get(start + 2).map(String::as_str);
+        // `-R` and `--repo` name another repository and may come first.
+        let mut at = start + 1;
+        while let Some(word) = words.get(at) {
+            if word == "-R" || word == "--repo" {
+                at += 2;
+            } else if word.starts_with("--repo=") || (word.starts_with("-R") && word.len() > 2) {
+                at += 1;
+            } else {
+                break;
+            }
+        }
+        let group = words.get(at).map(String::as_str);
+        let action = words.get(at + 1).map(String::as_str);
         let publishes = matches!(group, Some("pr" | "issue" | "release"))
             && matches!(action, Some("create" | "edit" | "comment" | "review"));
         if !publishes {
