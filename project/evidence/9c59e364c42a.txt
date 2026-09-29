@@ -1,0 +1,154 @@
+meow-verbs evidence 1
+record: 9c59e364c42a
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: c4131649b1c64195f6f5576de52fc69b7537ae30
+time: 2026-09-29T08:09:07Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 31 tests
+...............................
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 12.793s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.629s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 4.834s
+
+OK
+............................................................................................................................FFFFFFFFFF..................................................................
+======================================================================
+FAIL: test_a_bare_dependency_in_a_draft_is_reported (test_record.Dependencies.test_a_bare_dependency_in_a_draft_is_reported)
+TSK-2900 criterion 1, REQ-1358: a draft's bare `- TSK-NNNN` line is reported by its line number
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2015, in test_a_bare_dependency_in_a_draft_is_reported
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : rules: 0 findings
+
+
+======================================================================
+FAIL: test_a_blocking_dependency_makes_the_task_wait (test_record.Dependencies.test_a_blocking_dependency_makes_the_task_wait)
+TSK-2900 criterion 3, REQ-1358: the same dependency marked `(blocking)` keeps `ready cover` and
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2057, in test_a_blocking_dependency_makes_the_task_wait
+    self.assertEqual(done.returncode, code, marker + " " + step + done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : not blocking coverpaw ready cover: not ready
+  TSK-0001, which TSK-0002 depends on, isn't done
+
+
+======================================================================
+FAIL: test_a_blocking_order_orders_a_defects_epic (test_record.Dependencies.test_a_blocking_order_orders_a_defects_epic)
+TSK-2900 criterion 4, REQ-1358: `(blocking)` on the task's line or the entry's `depends:`, or an
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2095, in test_a_blocking_order_orders_a_defects_epic
+    self.assertIn(self.UNORDERED, self.defect_epic(["- TSK-0001 (not blocking): shares a helper"]))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'realises the defect BUG-0001 with 2 tasks and no order between them' not found in 'rules: 0 findings\n'
+
+======================================================================
+FAIL: test_a_declared_dependency_passes (test_record.Dependencies.test_a_declared_dependency_passes)
+TSK-2900 criterion 1, REQ-1358: a draft's `(blocking)` and `(not blocking)` lines are reported by no
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2007, in test_a_declared_dependency_passes
+    self.assertIn(self.line_of(repository, variant), done.stdout, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'TSK-0002-a-second-task.md:23:' not found in 'rules: 0 findings\n' : rules: 0 findings
+
+
+======================================================================
+FAIL: test_a_line_naming_two_tasks_is_reported (test_record.Dependencies.test_a_line_naming_two_tasks_is_reported)
+TSK-2900 criterion 1, REQ-1358: a draft's line naming two identifiers is reported by its line number,
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2024, in test_a_line_naming_two_tasks_is_reported
+    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : rules: 0 findings
+
+
+======================================================================
+FAIL: test_a_not_blocking_dependency_leaves_the_task_ready (test_record.Dependencies.test_a_not_blocking_dependency_leaves_the_task_ready)
+TSK-2900 criterion 3, REQ-1358: a task whose only open dependency is `(not blocking)` is ready to
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2047, in test_a_not_blocking_dependency_leaves_the_task_ready
+    self.assertEqual(done.returncode, 0, step + done.stdout + done.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : coverpaw ready cover: not ready
+  TSK-0001, which TSK-0002 depends on, isn't done
+
+
+======================================================================
+FAIL: test_a_not_blocking_order_does_not_order_a_defects_epic (test_record.Dependencies.test_a_not_blocking_order_does_not_order_a_defects_epic)
+TSK-2900 criterion 4, REQ-1358: a task's line and an epic entry's `depends:` marked `(not blocking)`
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2084, in test_a_not_blocking_order_does_not_order_a_defects_epic
+    self.assertIn(self.UNORDERED, said)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'realises the defect BUG-0001 with 2 tasks and no order between them' not found in 'rules: 0 findings\n'
+
+======================================================================
+FAIL: test_an_approved_bare_dependency_still_blocks (test_record.Dependencies.test_an_approved_bare_dependency_still_blocks)
+TSK-2900 criterion 2, REQ-1358: an approved task's bare line is not reported and `ready implement`
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2039, in test_an_approved_bare_dependency_still_blocks
+    self.assertIn(self.line_of(draft, bare), draft.run("check", "rules").stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'TSK-0002-a-second-task.md:21:' not found in 'rules: 0 findings\n'
+
+======================================================================
+FAIL: test_status_names_a_task_whose_only_dependency_does_not_block (test_record.Dependencies.test_status_names_a_task_whose_only_dependency_does_not_block)
+TSK-2900 criterion 3, REQ-1358: `paw status` names as next the first task whose only open
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2067, in test_status_names_a_task_whose_only_dependency_does_not_block
+    self.assertRegex(done.stdout, r"next: \w+ TSK-0002 \(EPC-0001, 0 of 2 tasks done\)")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: 'next: \\w+ TSK-0002 \\(EPC-0001, 0 of 2 tasks done\\)' not found in 'Waiting for approval\n  nothing\n\nDecisions\n  ADR-0001 ADR-0001\n    next: implement TSK-0001 (EPC-0001, 0 of 2 tasks done)\n\nTasks\n  2 in all: 2 authorised by decisions, 0 by defects\n\nRequirements\n  1 in force: 0 verified, 0 closed and not yet verified, 1 in a task not yet done, 0 postponed, 0 checked by nothing\n  by verification: 1 static, 0 behavioural, 0 evaluation, 0 judgement (0 by an agent, 0 by a person)\n  0 of 1 rest on evaluation or judgement, not on a mechanical check\n\nOnly a new record can fix\n  nothing\n'
+
+======================================================================
+FAIL: test_the_templates_and_the_epic_step_show_both_markers (test_record.Dependencies.test_the_templates_and_the_epic_step_show_both_markers)
+TSK-2900 criterion 5, REQ-1358: the task and epic templates show both markers and no longer say a
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-declare-blocking-dependency/plugins/meow-flow/tests/test_record.py", line 2108, in test_the_templates_and_the_epic_step_show_both_markers
+    self.assertIn("(blocking)", depends_on)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '(blocking)' not found in '\n\nThe tasks that must be done first, as `TSK-` identifiers, and why.\n`paw ready cover` and `paw ready implement` read this section.\n'
+
+----------------------------------------------------------------------
+Ran 200 tests in 14.337s
+
+FAILED (failures=10)

@@ -100,10 +100,10 @@ Nothing. ADR-1800 and EPC-1710 are approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: plugins/meow-flow/tests/test_record.py, the class `Dependencies`
+- Failing run: project/evidence/9c59e364c42a.txt
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: 6: `meow-prose` ships no test directory, and a check in `meow-flow` reading its files would cross the boundary the `standalone` check holds, so the reviewer reads the two record types
 
 ## Evidence
 
