@@ -11,3 +11,7 @@ decision-missing-its-reasons = 0.66
 clean-requirement = 0.66
 review-before-the-gate = 0.66
 open-findings-kept = 0.66
+route-plain-words = 0.66
+route-a-tiny-fix = 0.66
+route-both-ways = 0.66
+route-three-changes = 0.66
