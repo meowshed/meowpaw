@@ -2094,6 +2094,10 @@ class Dependencies(unittest.TestCase):
             path.write_text("A file.\n", encoding="utf-8")
         return repository
 
+    # `dependency-declared`'s messages, so each test shows the line reported by that rule and by no other (BUG-1300).
+    UNMARKED = "names a dependency without (blocking) or (not blocking), where each line says whether it blocks"
+    TWO = "names 2 tasks on one dependency line, where each line names one task and says whether it blocks"
+
     def line_of(self, repository, text):
         lines = (repository.root / self.TASK).read_text(encoding="utf-8").splitlines()
         return f"{self.TASK.split('/')[1]}:{lines.index(text) + 1}:"
@@ -2107,7 +2111,7 @@ class Dependencies(unittest.TestCase):
         done = repository.run("check", "rules")
         for line in declared:
             self.assertNotIn(self.line_of(repository, line), done.stdout, line)
-        self.assertIn(self.line_of(repository, variant), done.stdout, done.stdout + done.stderr)
+        self.assertIn(self.line_of(repository, variant) + " " + self.UNMARKED, done.stdout, done.stdout + done.stderr)
 
     def test_a_bare_dependency_in_a_draft_is_reported(self):
         """TSK-2900 criterion 1, REQ-1358: a draft's bare `- TSK-NNNN` line is reported by its line number
@@ -2116,7 +2120,7 @@ class Dependencies(unittest.TestCase):
         repository = self.repo(["- TSK-0003 (not blocking): shares a helper", bare], status="draft")
         done = repository.run("check", "rules")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(self.line_of(repository, bare), done.stdout)
+        self.assertIn(self.line_of(repository, bare) + " " + self.UNMARKED, done.stdout)
 
     def test_a_line_naming_two_tasks_is_reported(self):
         """TSK-2900 criterion 1, REQ-1358: a draft's line naming two identifiers is reported by its line number,
@@ -2125,7 +2129,7 @@ class Dependencies(unittest.TestCase):
         repository = self.repo([two], status="draft")
         done = repository.run("check", "rules")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(self.line_of(repository, two), done.stdout)
+        self.assertIn(self.line_of(repository, two) + " " + self.TWO, done.stdout)
 
     def test_an_approved_bare_dependency_still_blocks(self):
         """TSK-2900 criterion 2, REQ-1358: an approved task's bare line is not reported and `ready implement`
@@ -2168,6 +2172,17 @@ class Dependencies(unittest.TestCase):
         done = repository.run("status")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertRegex(done.stdout, r"next: \w+ TSK-0002 \(EPC-0001, 0 of 2 tasks done\)")
+
+    def test_status_waits_on_a_blocking_dependency(self):
+        """TSK-2920 criterion 1, BUG-1300, REQ-1358: with the epic listing TSK-0002 first, a `(blocking)` line
+        and an approved task's bare line each make `paw status` pass over TSK-0002 and name TSK-0001, so only the
+        marker separates this outcome from the `(not blocking)` one above."""
+        for lines in (["- TSK-0001 (blocking): the parser lands there"], ["- TSK-0001"]):
+            with self.subTest(lines=lines):
+                done = self.repo(lines, first=True).run("status")
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                self.assertRegex(done.stdout, r"next: \w+ TSK-0001 \(EPC-0001, 0 of 2 tasks done\)")
+                self.assertNotRegex(done.stdout, r"next: \w+ TSK-0002")
 
     def defect_epic(self, task_lines, depends=None):
         """An epic realising BUG-0001 with two tasks, ordered only by `task_lines` or by an entry's `depends:`."""
