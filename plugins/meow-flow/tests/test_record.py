@@ -772,6 +772,7 @@ class Chain(unittest.TestCase):
                       done.stderr)
 
     def test_status_leads_with_drafts_and_places_each_decision(self):
+        """TSK-2540 criterion 1, REQ-3202: an open task with no Cover is placed at cover (REQ-0321 for the drafts)."""
         repository = self.repo()
         repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
         self.mark(repository, " ")
@@ -780,7 +781,7 @@ class Chain(unittest.TestCase):
         lines = done.stdout.splitlines()
         self.assertEqual(lines[0], "Waiting for approval")
         self.assertIn("RES-0002 research, draft", lines[1])
-        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
+        self.assertIn("next: cover TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
         self.mark_done(repository)
         self.assertIn("next: document, then verify EPC-0001 (1 task done)", repository.run("status").stdout)
         # A verified epic resting on draft research has drifted (ADR-1470).
@@ -794,10 +795,49 @@ class Chain(unittest.TestCase):
         self.assertIn("next: spec, then epic", repository.run("status").stdout)
 
     def test_status_prints_the_same_state_twice(self):
+        """TSK-2540 criterion 3, REQ-3202 and REQ-0210: status prints the same text twice, uncovered or covered."""
         repository = self.repo()
         first = repository.run("status").stdout
         self.assertIn("ADR-0001", first)
         self.assertEqual(first, repository.run("status").stdout)
+        self.mark(repository, " ")
+        first = repository.run("status").stdout
+        self.assertIn(self.NEXT.format(step="cover"), first)
+        self.assertEqual(first, repository.run("status").stdout)
+        self.cover(repository)
+        first = repository.run("status").stdout
+        self.assertIn(self.NEXT.format(step="implement"), first)
+        self.assertEqual(first, repository.run("status").stdout)
+
+    NEXT = "next: {step} TSK-0001 (EPC-0001, 0 of 1 task done)"
+
+    def cover(self, repository):
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "## Cover\n\n" + FILLED + "\n\n## Evidence")
+        for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
+            path = repository.path / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("A file.\n", encoding="utf-8")
+
+    def test_status_names_cover_for_an_uncovered_task(self):
+        """TSK-2540 criterion 1, REQ-3202: an open task with no Cover is next for cover, not implement."""
+        repository = self.repo()
+        self.mark(repository, " ")
+        done = repository.run("status")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn(self.NEXT.format(step="cover"), [l.strip() for l in done.stdout.splitlines()])
+        self.assertNotIn(self.NEXT.format(step="implement"), done.stdout)
+
+    def test_status_names_implement_once_covered(self):
+        """TSK-2540 criterion 2, REQ-3202: the same line names implement once the task's Cover is filled."""
+        repository = self.repo()
+        self.mark(repository, " ")
+        self.assertIn(self.NEXT.format(step="cover"), repository.run("status").stdout)
+        self.cover(repository)
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+        done = repository.run("status")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn(self.NEXT.format(step="implement"), [l.strip() for l in done.stdout.splitlines()])
+        self.assertNotIn(self.NEXT.format(step="cover"), done.stdout)
 
     def test_the_profile_template_names_no_language(self):
         repository = Repository()
@@ -1132,6 +1172,26 @@ class CoverCriteria(unittest.TestCase):
         """TSK-2571 criterion 4: `Judgement:` with nothing after it is neither a reason nor `none`."""
         lines = self.implement("- Checks: tests/t.py\n- Failing run: evidence/run.txt\n- Landed in: #1\n- Judgement:")
         self.assertTrue(any("Judgement" in l for l in lines), lines)
+
+
+class RunSkill(unittest.TestCase):
+    """SPC-1090 "The driver": `/meow-flow:run` continues past a step with no gate and stops at one (REQ-3202)."""
+
+    def steps(self):
+        text = (UNIT / "skills" / "run" / "SKILL.md").read_text(encoding="utf-8")
+        block = re.search(r'<steps name="drive the chain">(.*?)</steps>', text, re.S)
+        self.assertIsNotNone(block, "the run skill has no drive-the-chain steps")
+        items = re.findall(r"^(\d+)\. (.*?)(?=^\d+\. |\Z)", block.group(1), re.S | re.M)
+        return {int(number): " ".join(body.split()) for number, body in items}
+
+    def test_the_driver_continues_past_a_step_with_no_gate(self):
+        """TSK-2540 criterion 4, REQ-3202: a step reruns `paw status` and continues where no approval gate ends the step."""
+        steps = self.steps()
+        again = [body for body in steps.values()
+                 if re.search(r"\b(without|no) (an )?approval gate", body)
+                 and "paw status" in body and "again" in body and "continu" in body]
+        self.assertTrue(again, steps)
+        self.assertRegex(steps.get(5, ""), r"(?i)\bstop\b.*approval gate")
 
 
 class Show(unittest.TestCase):
