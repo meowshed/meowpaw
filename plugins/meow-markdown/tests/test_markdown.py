@@ -313,6 +313,34 @@ class MarkdownlintSettings(Check):
         self.assertNotIn("both configure rules", done.stdout)
 
 
+class LintCommand(Check):
+    """TSK-3150, BUG-1321, REQ-2434: `check` reads the lint command's program and `--config` as the tools do (RES-0295)."""
+
+    def test_criterion_1_a_config_flag_names_the_configuration(self):
+        """TSK-3150 criterion 1, REQ-2434: `--config <path>` is a configuration, and `--config=<path>` is a glob to cli2."""
+        for name, flag, status in (("separate word", "--config .config/mdl.jsonc", 0),
+                                   ("joined by =", "--config=.config/mdl.jsonc", 1)):
+            with self.subTest(case=name):
+                lint = f"lint = \"markdownlint-cli2 {flag} '**/*.md'\"\n"
+                done = self.check({**TWO, ".meowpaw/profile.toml": verbs(lint), ".config/mdl.jsonc": JSONC})
+                self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+                self.assertEqual(DEFAULTS in done.stdout.splitlines(), bool(status), done.stdout)
+
+    def test_criterion_2_a_versioned_cli2_is_read(self):
+        """TSK-3150 criterion 2, REQ-2434: `npx markdownlint-cli2@0.23.2` with no configuration runs its defaults."""
+        lint = "lint = \"npx --yes markdownlint-cli2@0.23.2 '**/*.md'\"\n"
+        done = self.check({**TWO, ".meowpaw/profile.toml": verbs(lint)})
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn(DEFAULTS, done.stdout.splitlines())
+
+    def test_criterion_3_a_versioned_markdownlint_cli_is_read(self):
+        """TSK-3150 criterion 3, REQ-2434: `npx markdownlint-cli@0.49.1` ignores a tracked `.markdownlint-cli2.jsonc`."""
+        lint = "lint = \"npx markdownlint-cli@0.49.1 '**/*.md'\"\n"
+        done = self.check({**TWO, ".meowpaw/profile.toml": verbs(lint), ".markdownlint-cli2.jsonc": '{ "config": {} }\n'})
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("markdownlint ignores .markdownlint-cli2.jsonc", done.stdout.splitlines())
+
+
 class CheckUnresolved(Check):
     """TSK-3110 criterion 5, REQ-2434 and REQ-2452: no profile, or one that doesn't parse, is unresolved."""
 
