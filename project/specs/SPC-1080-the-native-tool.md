@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-09-28
+revised: 2026-09-29
 checked-at: "#625"
 states:
   [
@@ -73,6 +73,13 @@ states:
     REQ-2558,
     REQ-2560,
     REQ-2564,
+    REQ-2566,
+    REQ-2568,
+    REQ-2572,
+    REQ-2574,
+    REQ-2576,
+    REQ-2578,
+    REQ-2582,
     REQ-2826,
     REQ-2832,
     REQ-2906,
@@ -96,7 +103,8 @@ launchers and release implements it, verified under issue 160. ADR-1610
 decides how this repository's five verbs check the crate, and EPC-1570
 realises that. BUG-1240 and TSK-2520 bring the launchers and the build
 script under the same verbs. ADR-1800 adds the check that `project` groups
-an issue nowhere, and EPC-1710 realised it, verified under issue 625.
+an issue nowhere, and EPC-1710 realised it, verified under issue 625. ADR-1810
+sends every GitHub request through one layer, and EPC-1720 realises it.
 
 ## Boundary
 
@@ -109,6 +117,7 @@ an issue nowhere, and EPC-1710 realised it, verified under issue 625.
 | `.github/workflows/build.yml`   | The six-target build, run by CI when the crate changes and by the release  |
 | `.github/workflows/release.yml` | The release: one archive per unit, a marketplace file                      |
 | `retran/meow.retran.me`         | The site serving the marketplace file at `meow.retran.me`                  |
+| `plugins/meow-github/hooks/`    | The hook that runs `meow-github governance-guard` before a Bash command    |
 
 ## Behaviour
 
@@ -289,28 +298,154 @@ missing binary (REQ-0036, REQ-0038, REQ-0040) (ADR-1270).
 
 The feature `github` carries `history`, which `meow-github` ships: it reads a
 GitHub repository's issues, pull requests with whether each merged,
-conversation comments and review comments through `gh api` with `--paginate
---slurp --cache 1h`, and prints them as one JSON document (REQ-2826, REQ-2906,
-REQ-2558, REQ-2560, REQ-2564). It takes each field by name and fails by name on
-a missing one (REQ-2556), writes nothing to the code host (REQ-2832), and
-reports a refused or impossible read as unread, naming the listing, with no
-partial document (ADR-1290).
+conversation comments and review comments through the request layer, one page
+a call, following each listing's `Link` header with `--cache 1h`, and prints
+them as one JSON document (REQ-2826, REQ-2906, REQ-2558, REQ-2560, REQ-2564).
+It takes each field by name and fails by name on a missing one (REQ-2556),
+writes nothing to the code host (REQ-2832), and reports a refused, throttled or
+impossible read as unread, naming the listings it read, with no partial
+document (ADR-1290). The document also carries `credential`, the credential's
+form, and `budget`, the budget lines the next section states (REQ-2568,
+REQ-2582) (ADR-1810).
+
+### The GitHub request layer
+
+Every request `meow-github` sends to GitHub goes through one request layer,
+`crates/meow/src/github/request.rs`, and no other code in the `github` feature
+starts `gh`. The layer runs `gh api --include`, so it reads the status line,
+the headers and the body of every response, a refused one included. Naming the
+repository reads `repos/{owner}/{repo}` through it (ADR-1810).
+
+The layer reads `x-ratelimit-limit`, `x-ratelimit-remaining`,
+`x-ratelimit-used`, `x-ratelimit-resource`, `x-ratelimit-reset`, `retry-after`
+and `Date` on every response, matching the names without regard to case. It
+records a response carrying none of them as carrying none, and the run goes on
+(REQ-2566). The layer sends a run's first call without `--cache`, and each
+uncached response, every write among them, records the offset between its
+`Date` and the local clock when it arrived. A cached response is a replay when
+its `Date` is 60 seconds or more before the moment the layer started the call,
+moved onto GitHub's clock by that offset. The layer doesn't read a replay's
+limit headers as current and doesn't count it as a request (REQ-2566).
+
+One table per service turns a header into a wait, and no other code converts
+a header into a duration (REQ-2578). A value that doesn't parse in its unit
+gives no wait: the run reports the wait as unknown, sends nothing more and
+exits 3. GitHub's rows:
+
+| Header              | Unit              | The wait it gives                                            |
+| ------------------- | ----------------- | ------------------------------------------------------------ |
+| `retry-after`       | seconds           | that many seconds from when the response arrived             |
+| `x-ratelimit-reset` | UTC epoch seconds | the reset minus the response's `Date`, from when it arrived  |
+| `Date`              | HTTP date         | none; it is the reference `x-ratelimit-reset` is measured to |
+
+A response is throttled when it is a 429, or a 403 carrying `retry-after`,
+`x-ratelimit-remaining: 0` or a message naming a secondary rate limit. Its
+wait is `retry-after` where present, the reset where `remaining` is 0, and
+otherwise 60 seconds, doubled for each further secondary throttle in the same
+run. A fresh response with `remaining` at 0 holds the next request to the same
+resource the same way. By default the run then sends nothing more, the
+read-back listing included, prints
+`throttled: <method> <endpoint>, retry after <UTC time> (<header>)` and exits
+3 (REQ-2566). With `--wait`, which `history` and `project` both accept, the
+layer sleeps until that time, never less, and sends the throttled request
+again. Where the waits the run has slept, with this one added, would pass an
+hour, it starts no sleep and stops as throttled.
+
+The layer keeps four counts for the run, checks them before each request, and
+prints them as the last lines of every run's report (REQ-2568):
+
+- primary requests: the requests the run sent, and for each
+  `x-ratelimit-resource` the limit, remaining and reset the last fresh
+  response stated, the limit read from `x-ratelimit-limit`;
+- secondary points: 1 for each `GET` and 5 for each other method, over the
+  last minute, against 900;
+- content creation: each `POST`, over the last minute against 80 and over the
+  last hour against 500;
+- spacing: writes go one at a time, each at least one second after the
+  previous one.
+
+A request that would pass a ceiling isn't sent: the run stops as it does at a
+throttle, naming the count and when it frees. Each count covers the run alone.
+
+The first line of `project`'s report names the credential's form:
+`GH_TOKEN from the environment`, `GITHUB_TOKEN from the environment` or
+`gh's stored credential`, in the order of precedence `gh` documents, with
+`, inside a GitHub Actions workflow` added when `GITHUB_ACTIONS` is `true`
+(REQ-2582). The layer reads whether each variable is set and never its value.
+
+A 401 is reported as `unauthenticated: <method> <endpoint>`, and a 403 that
+isn't a throttle as `refused: <method> <endpoint> needs <permission>`
+(REQ-2574). A 404 on an object the record says exists is reported the same
+way with `, or it is hidden from this credential` added. The permission comes
+from `X-Accepted-GitHub-Permissions`, and otherwise from
+`X-Accepted-OAuth-Scopes` beside the credential's own `X-OAuth-Scopes`. Where
+both are empty, the report says `GitHub named no permission` and quotes
+GitHub's message. Each exits 3.
+
+The layer sends a write only to an endpoint on its allow list,
+`POST repos/{r}/issues` and `PATCH repos/{r}/issues/{n}`, and refuses any other
+method than `GET` before `gh` starts, as
+`refused by meow-github: <method> <endpoint> isn't a write this pack makes`
+(REQ-2576). The crate holds a governance list, and no allow-list entry matches
+it: `repos/{o}/{r}` itself, `branches/{b}/protection`, `rulesets`,
+`actions/permissions`, `actions/workflows/{id}/enable` and `/disable`,
+`actions/secrets`, `actions/variables`, `environments`, `hooks`,
+`collaborators` and `contents/.github/workflows/`, each with everything under
+it.
+
+`meow-github` ships a `PreToolUse` command hook on Bash that runs
+`meow-github governance-guard` on every command containing `gh` as a word
+(REQ-2576). The guard splits the command at `&&`, `||`, `;`, `|` and each new
+line, skips a part's leading variable assignments and a leading `env` with its
+assignments, and reads the part only when the next word is `gh`. It answers
+`ask` for a part that is one of these:
+
+- `gh api` to a path on the governance list with a method other than `GET`,
+  or with a field or an `--input` body and no method;
+- `gh api graphql` whose query contains `mutation`, or comes from a file or
+  from standard input;
+- `gh repo edit`, `gh repo rename`, `gh repo archive` or `gh repo delete`;
+- `gh workflow enable` or `gh workflow disable`;
+- `gh secret` or `gh variable` with `set` or `delete`.
+
+Its reason names the method and the endpoint and never the command. For any
+other command it prints nothing and exits 0.
 
 ### Projecting the record onto a tracker
 
 The record is the system of record and a tracker a projection of it, and the
 method completes with none (REQ-1372, REQ-1376, REQ-1380). A repository
 declares its tracker as `[tracker] kind` in its profile (REQ-1351).
-`meow-github project <epic>` projects an approved epic's tasks, one issue each,
-citing the requirements and dependencies and marked as a synchronisation's
-write, and records `issue:` and `projected:` on the task, reading each issue
-back (REQ-1350, REQ-1352, REQ-1354, REQ-1356, REQ-1360, REQ-1368, REQ-1382,
-REQ-1384, REQ-1386, REQ-1396). A replay changes nothing, a changed task
-updates its issue, an edited issue is reported and left, a closed issue on an
-unmarked task is reported, the issue's state is the tracker's and never
-written, and `--check` computes the state on demand and writes nothing
-(REQ-1353, REQ-1355, REQ-1378, REQ-1388, REQ-1392, REQ-1394, REQ-1400). The
-docs give the `gh` commands that project a task by hand (REQ-1402) (ADR-1310).
+`meow-github project <epic>` projects an approved epic's tasks through the
+request layer, one issue each, citing the requirements and dependencies and
+marked as a synchronisation's write, and records `issue:` and `projected:` on
+the task (REQ-1350, REQ-1352, REQ-1354, REQ-1356, REQ-1360, REQ-1382,
+REQ-1384, REQ-1386, REQ-1396). After its last create it reads the issues it
+created back in one uncached, paged listing,
+`repos/{r}/issues?state=all&since=<start>&per_page=100`, where `<start>` is
+the `Date` of the run's first response, and matches each by number. It reads
+an issue already mapped to a task on its own, and each link is read back from
+the tracker, in this run's listing or through its mapping in the next run
+(REQ-1368). The listing runs after a failed write or a refusal, and not after
+a throttle or a ceiling (ADR-1810).
+
+A replay changes nothing, a changed task updates its issue, an edited issue is
+reported and left, a closed issue on an unmarked task is reported, the issue's
+state is the tracker's and never written, and `--check` computes the state on
+demand and writes nothing (REQ-1353, REQ-1355, REQ-1378, REQ-1388, REQ-1392,
+REQ-1394, REQ-1400). The docs give the `gh` commands that project a task by
+hand, the headers to read and the one-second spacing between writes
+(REQ-1402) (ADR-1310, ADR-1810).
+
+Whenever `project` stops before it has visited every task, it prints
+`partial: projected TSK-a; created, not read back TSK-b; not projected TSK-c`
+after the read-back listing, where the listing runs, and exits 3 (REQ-2572).
+A task is projected when its issue was updated or found unchanged in this run,
+or was created and read back matching the record. A created issue the listing
+lacks, reads differently or didn't read goes under `created, not read back`,
+with what the listing showed where it ran. Its task holds the mapping, so the
+next run reads that issue through it and creates no second one.
+
 `project` groups an issue nowhere: it passes no `--milestone`, `--parent`,
 `--project` or `--label` and creates no blocked-by relation, and the issue's
 body carries each dependency line with its `(blocking)` or `(not blocking)`
@@ -336,17 +471,27 @@ verified from what was assumed (REQ-1734) (ADR-1200).
 
 ## Failure paths
 
-| Condition                               | What happens                                            |
-| --------------------------------------- | ------------------------------------------------------- |
-| No binary for the machine's target      | The launcher reports every check as unrun, never passed |
-| The binary has lost its executable bit  | The launcher sets it and runs the binary                |
-| A unit's feature fails to build         | The gate fails, naming the unit                         |
-| The crate isn't in the formatter's form | `format` and the gate fail, naming each file            |
-| Clippy reports a finding                | `lint` and the gate fail, naming the lint and the line  |
-| The crate fails its type check          | `check` and the gate fail, naming the error             |
-| The toolchain lacks rustfmt or clippy   | `format` or `lint` fails with cargo's own error         |
-| A shell file isn't in shfmt's form      | `format` and the gate fail, showing the diff            |
-| Shellcheck reports a finding            | `lint` and the gate fail, naming the code and the line  |
-| A target fails to build at release      | The release publishes nothing, and names the target     |
-| The dispatch to the site fails          | The release stays published; the step fails, naming it  |
-| The site's deployment fails             | The address keeps serving the previous file             |
+| Condition                                        | What happens                                                                                                 |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| No binary for the machine's target               | The launcher reports every check as unrun, never passed                                                      |
+| The binary has lost its executable bit           | The launcher sets it and runs the binary                                                                     |
+| A unit's feature fails to build                  | The gate fails, naming the unit                                                                              |
+| The crate isn't in the formatter's form          | `format` and the gate fail, naming each file                                                                 |
+| Clippy reports a finding                         | `lint` and the gate fail, naming the lint and the line                                                       |
+| The crate fails its type check                   | `check` and the gate fail, naming the error                                                                  |
+| The toolchain lacks rustfmt or clippy            | `format` or `lint` fails with cargo's own error                                                              |
+| A shell file isn't in shfmt's form               | `format` and the gate fail, showing the diff                                                                 |
+| Shellcheck reports a finding                     | `lint` and the gate fail, naming the code and the line                                                       |
+| A target fails to build at release               | The release publishes nothing, and names the target                                                          |
+| The dispatch to the site fails                   | The release stays published; the step fails, naming it                                                       |
+| The site's deployment fails                      | The address keeps serving the previous file                                                                  |
+| GitHub throttles a request                       | The run sends nothing more, prints `throttled`, the endpoint and when to retry, and exits 3                  |
+| A throttle with `--wait`                         | The layer sleeps until the stated time and resends, and stops as throttled once the waits would pass an hour |
+| A limit header's value doesn't parse in its unit | The wait is reported as unknown, the run sends nothing more and exits 3                                      |
+| A request would pass a budget's ceiling          | It isn't sent, and the run stops as at a throttle, naming the count and when it frees                        |
+| `project` stops before visiting every task       | It prints `partial:` with what it projected, created and didn't project, and exits 3                         |
+| GitHub answers 401                               | `unauthenticated:` with the method and endpoint, exit 3                                                      |
+| GitHub answers a 403 that isn't a throttle       | `refused:` with the method, endpoint and permission, or GitHub's message, exit 3                             |
+| GitHub answers 404 on a mapped object            | As a 403, adding that it may be hidden from this credential, exit 3                                          |
+| A write to an endpoint off the allow list        | Refused before `gh` starts, naming the method and the endpoint                                               |
+| A Bash command's `gh` changes governance         | The hook answers `ask`, naming the method and the endpoint                                                   |
