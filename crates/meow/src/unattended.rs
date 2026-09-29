@@ -43,9 +43,16 @@ struct Authority {
     mode: String,
     budget: toml::Value,
     gates: Vec<String>,
-    units: Vec<String>,
+    units: Vec<Unit>,
     merge_protected: bool,
     amend_approved: bool,
+}
+
+/// A declared unit, with the name and version its `plugin.json` holds.
+struct Unit {
+    entry: String,
+    name: String,
+    version: String,
 }
 
 pub fn main(args: &[String]) -> u8 {
@@ -81,9 +88,14 @@ fn plan(root: &Path) -> u8 {
         .and_then(|git| git.get("trunk"))
         .and_then(toml::Value::as_str)
         .map(str::to_string);
-    let authority = match resolve(table, trunk.is_some()) {
-        Ok(authority) => authority,
-        Err(refusals) => return unresolved(&refusals),
+    let env = env_refusals(root);
+    let authority = match resolve(table, trunk.is_some(), root) {
+        Ok(authority) if env.is_empty() => authority,
+        Ok(_) => return unresolved(&env),
+        Err(mut refusals) => {
+            refusals.extend(env);
+            return unresolved(&refusals);
+        }
     };
     let record = data
         .get("record")
@@ -146,6 +158,15 @@ fn plan(root: &Path) -> u8 {
     };
 
     println!("{}", table_text(&authority));
+    if authority.units.is_empty() {
+        println!("units: none declared");
+    } else {
+        println!("units, each with the name and version its plugin.json holds:");
+        for unit in &authority.units {
+            println!("  {}  {} {}", unit.entry, unit.name, unit.version);
+        }
+    }
+    println!();
     println!("The command that would start the run, one argument a line:");
     println!();
     let settings = kept.as_ref().map_or_else(
@@ -154,7 +175,7 @@ fn plan(root: &Path) -> u8 {
     );
     let mut line: Vec<String> = vec!["claude".into(), "-p".into(), "--bare".into()];
     for unit in &authority.units {
-        line.push(format!("--plugin-dir {}", quoted(unit)));
+        line.push(format!("--plugin-dir {}", quoted(&unit.entry)));
     }
     line.push(format!("--permission-mode {}", authority.mode));
     line.push("--permission-prompts none".into());
@@ -206,7 +227,7 @@ fn unresolved(refusals: &[String]) -> u8 {
 }
 
 /// The table's keys, checked, or every refusal found in it.
-fn resolve(table: &toml::Table, has_trunk: bool) -> Result<Authority, Vec<String>> {
+fn resolve(table: &toml::Table, has_trunk: bool, root: &Path) -> Result<Authority, Vec<String>> {
     let mut refusals = Vec::new();
     for key in REQUIRED {
         if !table.contains_key(key) {
@@ -246,7 +267,10 @@ fn resolve(table: &toml::Table, has_trunk: bool) -> Result<Authority, Vec<String
             ));
         }
     }
-    let units = strings(table, "units", &mut refusals);
+    let units: Vec<Unit> = strings(table, "units", &mut refusals)
+        .into_iter()
+        .filter_map(|entry| unit(root, entry, &mut refusals))
+        .collect();
     let merge_protected = flag(table, "merge_protected", &mut refusals);
     let amend_approved = flag(table, "amend_approved", &mut refusals);
     if merge_protected && table.contains_key("gates") && !gates.iter().any(|g| g == "merge") {
@@ -290,6 +314,61 @@ fn strings(table: &toml::Table, key: &str, refusals: &mut Vec<String>) -> Vec<St
     })
 }
 
+/// A `units` entry, loaded by name: a URL, and a directory that holds no
+/// `.claude-plugin/plugin.json` of its own, such as a folder of units whose
+/// children would load by discovery, are refused (REQ-2392).
+fn unit(root: &Path, entry: String, refusals: &mut Vec<String>) -> Option<Unit> {
+    if entry.contains("://") {
+        refusals.push(format!(
+            "unresolved: unit {entry} is a URL, and a unit loads from a directory"
+        ));
+        return None;
+    }
+    let manifest = root.join(&entry).join(".claude-plugin").join("plugin.json");
+    let Ok(text) = std::fs::read_to_string(&manifest) else {
+        refusals.push(format!(
+            "unresolved: unit {entry} is not a unit's own directory"
+        ));
+        return None;
+    };
+    let fields = serde_json::from_str::<Value>(&text).ok().and_then(|json| {
+        let field = |key: &str| json.get(key)?.as_str().map(str::to_string);
+        Some((field("name")?, field("version")?))
+    });
+    let Some((name, version)) = fields else {
+        refusals.push(format!(
+            "unresolved: unit {entry} has a plugin.json that states no name and version"
+        ));
+        return None;
+    };
+    Some(Unit {
+        entry,
+        name,
+        version,
+    })
+}
+
+/// Each repository settings file whose `env` block would reach the run
+/// (REQ-2392), naming the keys it sets.
+fn env_refusals(root: &Path) -> Vec<String> {
+    let mut refusals = Vec::new();
+    for name in [".claude/settings.json", ".claude/settings.local.json"] {
+        let Ok(text) = std::fs::read_to_string(root.join(name)) else {
+            continue;
+        };
+        let Ok(json) = serde_json::from_str::<Value>(&text) else {
+            continue;
+        };
+        if let Some(env) = json.get("env").and_then(Value::as_object)
+            && !env.is_empty()
+        {
+            let keys: Vec<&str> = env.keys().map(String::as_str).collect();
+            refusals.push(format!("unresolved: {name} sets env {}", keys.join(", ")));
+        }
+    }
+    refusals
+}
+
 fn flag(table: &toml::Table, key: &str, refusals: &mut Vec<String>) -> bool {
     match table.get(key) {
         None => false,
@@ -313,6 +392,7 @@ fn shown(value: &toml::Value) -> String {
 }
 
 fn table_text(authority: &Authority) -> String {
+    let entries: Vec<String> = authority.units.iter().map(|u| u.entry.clone()).collect();
     let list = |items: &[String]| {
         let quoted: Vec<String> = items.iter().map(|i| format!("{i:?}")).collect();
         format!("[{}]", quoted.join(", "))
@@ -322,7 +402,7 @@ fn table_text(authority: &Authority) -> String {
         authority.mode,
         authority.budget,
         list(&authority.gates),
-        list(&authority.units),
+        list(&entries),
         authority.merge_protected,
         authority.amend_approved
     )
@@ -340,11 +420,17 @@ fn snapshot(authority: &Authority, deny: &[String]) -> String {
     table.insert("permission_mode".into(), json!(authority.mode));
     table.insert("budget_usd".into(), budget);
     table.insert("gates".into(), json!(authority.gates));
-    table.insert("units".into(), json!(authority.units));
+    let entries: Vec<&str> = authority.units.iter().map(|u| u.entry.as_str()).collect();
+    table.insert("units".into(), json!(entries));
     table.insert("merge_protected".into(), json!(authority.merge_protected));
     table.insert("amend_approved".into(), json!(authority.amend_approved));
+    let units: Vec<Value> = authority
+        .units
+        .iter()
+        .map(|u| json!({ "path": u.entry, "name": u.name, "version": u.version }))
+        .collect();
     let content = json!({
-        "meowpaw": { "unattended": Value::Object(table) },
+        "meowpaw": { "unattended": Value::Object(table), "units": units },
         "permissions": { "deny": deny },
     });
     let mut text = serde_json::to_string_pretty(&content).unwrap_or_default();
@@ -532,6 +618,7 @@ mod tests {
         let refused = resolve(
             &table("permission_mode = \"bypassPermissions\"\nbudget_usd = -1\n"),
             true,
+            Path::new("/nonexistent"),
         )
         .err()
         .unwrap();
@@ -543,6 +630,7 @@ mod tests {
         let refused = resolve(
             &table("permission_mode = \"auto\"\nbudget_usd = \"5\"\ngates = []\nunits = []\n"),
             true,
+            Path::new("/nonexistent"),
         )
         .err()
         .unwrap();

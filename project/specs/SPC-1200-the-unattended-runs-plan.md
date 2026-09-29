@@ -22,9 +22,7 @@ removal of the run's credentials have no decision yet, so no specification
 states them.
 
 ADR-2000 decides this part and EPC-1900 realises it. TSK-3300 built `plan`,
-and until TSK-3310 lands, `plan` passes each `units` entry to `--plugin-dir`
-unchecked, refuses no `env` block, and names no unit's version in its output
-or its snapshot.
+and TSK-3310 made it load each unit by name.
 
 ## Boundary
 
@@ -182,7 +180,8 @@ writes no snapshot:
 | `merge_protected` is `false` and the profile declares no `[git] trunk`      | `unresolved: [git] trunk is not declared, so the push rules have no trunk to protect` |
 | A unit entry is a URL                                                       | `unresolved: unit <entry> is a URL, and a unit loads from a directory`                |
 | A unit entry holds no `.claude-plugin/plugin.json`                          | `unresolved: unit <entry> is not a unit's own directory`                              |
-| `.claude/settings.json` or `.claude/settings.local.json` has an `env` block | `unresolved: <file> sets env <key>, ...`, naming each key                             |
+| A unit's `plugin.json` doesn't state a `name` and a `version` as strings    | `unresolved: unit <entry> has a plugin.json that states no name and version`          |
+| `.claude/settings.json` or `.claude/settings.local.json` has an `env` block | `unresolved: <file> sets env <key>, ...`, naming each key on one line                 |
 | The state directory can't be written                                        | `unresolved: snapshot not written: <reason>`                                          |
 
 `plan --purge` with state writing off, or with no state directory, reports
