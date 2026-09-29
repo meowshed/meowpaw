@@ -2,7 +2,7 @@
 id: RES-0001
 artifact: research
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 ---
 
 # Research
@@ -164,12 +164,12 @@ here or in the sources below.
 | [Where the marketplace file lives](RES-0275-where-the-marketplace-file-lives.md)                         | A marketplace file on `retran.me` or `github.io` is a url marketplace; the domain's verification keeps `meowshed` off its subdomains.                                                                |
 | [Converting from documents and forge history](RES-0277-converting-from-documents-and-forge-history.md)   | A forge's history states obligations and decisions code doesn't, reads in a few requests, and a placed document goes only after approval.                                                            |
 | [This repository's crate under its own tools](RES-0278-this-repositorys-crate-under-its-own-tools.md)    | On `main` at #595, `crates/meow` passed the compiler and its tests, failed the formatter in 464 places and the linter on 15 errors, and no verb ran them.                                            |
+| [What a plugin agent can declare](RES-0284-what-a-plugin-agent-can-declare.md)                           | Claude Code 2.1.280 reads `maxTurns`, `tools`, `model`, `effort`, `omitClaudeMd` and `skills` from an agent a plugin ships, and a plugin can't set the session's nesting depth.                      |
 | [Dependencies and groupings](RES-0289-dependencies-and-groupings-on-the-record-and-on-github.md)         | A task's dependency line can't say it doesn't block, and GitHub offers four ways to group an issue and one dependency relation, which blocks.                                                        |
 | [The Markdown toolchain, as observed](RES-0294-the-markdown-toolchain-as-observed.md)                    | lychee 0.24.2 exits 2 for a site that is down exactly as for a broken link, and only its JSON tells them apart; markdownlint-cli ignores a markdownlint-cli2 configuration in silence.               |
 | [What bounds an unattended run's authority](RES-0299-what-bounds-an-unattended-runs-authority.md)        | On Claude Code 2.1.280, read with no run observed, flags and deny rules bound a run's authority, except a project's `env` block under `--bare`, unusual Bash forms and a script an Edit rule misses. |
 | [Refuting a verified claim](RES-0309-refuting-a-verified-claim.md)                                       | Four of 755 requirements this repository recorded as verified were unmet, a floor that ordinary work found; in a benchmark, model monitors caught 42% to 65% of shortcuts on multi-file work.        |
 | [A read-only agent routes a request](RES-0304-a-read-only-agent-routes-a-request.md)                     | On Claude Code 2.1.280 a plugin agent limited to Read, Grep and Glob can't write, and routing through it costs a dispatch on every request.                                                          |
-| [What a plugin agent can declare](RES-0284-what-a-plugin-agent-can-declare.md)                           | Claude Code 2.1.280 reads `maxTurns`, `tools`, `model`, `effort`, `omitClaudeMd` and `skills` from an agent a plugin ships, and a plugin can't set the session's nesting depth.                      |
 
 ## The situation
 
@@ -486,8 +486,10 @@ The six internal harnesses were read from their working trees on 2026-09-20:
 ## Open review findings
 
 An agent reviewed this record on 2026-09-28, when a change added RES-0304's row
-to the sources table. Each finding below concerns the body approved before that
-change, and each is left, because the body is frozen and a correction to it
+to the sources table, and again on 2026-09-29, when a change added RES-0284's
+row. The second review raised the last finding below and found the others
+unchanged. Each other finding concerns the body approved before those changes,
+and each is left, because the body is frozen and a correction to it
 arrives as a new record, which is work outside the change that added the row.
 No issue, task or planned research record picks any of them up yet, and nothing
 authorises that work, so each stays open until somebody writes the record that
@@ -521,3 +523,6 @@ does.
   text `research/skill-format.md` names a path that no longer exists, line 21 is
   a fragment, and finding 11a's number suggests an insertion. Left for the same
   reason.
+- RES-0304's row follows RES-0309's. Left, because the first finding asks for
+  this table to be generated, so ordering it by hand is work the generator
+  would undo.

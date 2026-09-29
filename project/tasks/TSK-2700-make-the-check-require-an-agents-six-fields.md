@@ -2,7 +2,7 @@
 id: TSK-2700
 artifact: task
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 epic: EPC-1650
 closes: [REQ-2974, REQ-2982, REQ-2984, REQ-2988, REQ-3270]
 issue:
@@ -23,11 +23,15 @@ stays green. One task, one branch, one pull request, one review.
    field, for each of: no `maxTurns`, no `tools`, no `model`, no `effort`, no
    `omitClaudeMd` and no `skills`. Closed by: `AgentFields.test_a_missing_<field>_fails`
    for each of the six, in `plugins/meow-author/tests/test_author.py`.
-2. Given a fixture unit's agent with `maxTurns: 0`, `model: inherit` or
-   `effort: extreme`, then the check exits 1 naming the file and the field.
-   Closed by: `AgentFields.test_a_zero_ceiling_fails`,
-   `AgentFields.test_inherit_fails` and
-   `AgentFields.test_an_unknown_effort_fails`.
+2. Given a fixture unit's agent with `maxTurns: 0`, `model: inherit`,
+   `model: opsu` or `effort: extreme`, or with a wrong type, `maxTurns: -1`,
+   `maxTurns: 2.5`, `effort: 3`, `omitClaudeMd: yes` or `skills` written as a
+   string, then the check exits 1 naming the file and the field. Closed by:
+   `AgentFields.test_a_zero_ceiling_fails`,
+   `AgentFields.test_inherit_fails`,
+   `AgentFields.test_an_unknown_model_alias_fails`,
+   `AgentFields.test_an_unknown_effort_fails` and
+   `AgentFields.test_a_wrong_type_fails` for each of the five wrong types.
 3. Given a unit's agent with `tools: "*"`, one listing `Agent`, one listing
    `Task`, one listing `Agent(worker)` and one naming `Agent` in a
    comma-separated `tools` string, then the check exits 1 naming the file and
@@ -39,10 +43,14 @@ stays green. One task, one branch, one pull request, one review.
 4. Given an agent whose front matter doesn't parse, then the check exits 1
    with that reason and reports no field. Closed by:
    `AgentFields.test_front_matter_that_does_not_parse_fails_alone`.
-5. Given a unit's agent declaring all six with `skills: []`, and a
+5. Given a unit's agent declaring all six with `skills: []`, one with
+   `tools: []`, one naming a full identifier such as `model: claude-opus-5-5`,
+   and a
    repository's own agent under a path such as `.claude/agents/` listing
    `Agent` or with `tools: "*"`, then the check exits 0 on each. Closed by:
    `AgentFields.test_an_agent_declaring_all_six_passes`,
+   `AgentFields.test_a_shipped_agent_with_no_tools_passes`,
+   `AgentFields.test_a_full_model_identifier_passes`,
    `AgentFields.test_a_repositorys_own_agent_may_list_agent` and
    `AgentFields.test_a_repositorys_own_agent_may_list_every_tool`. Each first
    asserts a refusal with one field removed, because the check passes an

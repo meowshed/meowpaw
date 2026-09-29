@@ -2,7 +2,7 @@
 id: EPC-1650
 artifact: epic
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 realises: ADR-1700
 checked-at:
 ---
@@ -24,10 +24,12 @@ the tasks below were written:
    with no `tools`, one with `tools: "*"`, one listing `Agent`, one listing
    `Task`, one listing `Agent(worker)`, one naming `Agent` in a
    comma-separated `tools` string, one with no `model`, one with
-   `model: inherit`, one with no `effort`, one with `effort: extreme`, one
-   with no `omitClaudeMd` and one with no `skills`. They show it failing with
+   `model: inherit`, one with `model: opsu`, one with no `effort`, one with
+   `effort: extreme`, one with no `omitClaudeMd`, one with no `skills`, and
+   one of each wrong type TSK-2700 lists. They show it failing with
    that reason on a front matter block that doesn't parse, and passing on one
-   declaring all six with `skills: []`, on a repository's own agent listing
+   declaring all six with `skills: []`, on a shipped agent with `tools: []`,
+   on one naming a full model identifier, on a repository's own agent listing
    `Agent` and on a repository's own agent with `tools: "*"`. The passing
    fixture's declarations are added only after the failing ones are seen
    failing against the current check.

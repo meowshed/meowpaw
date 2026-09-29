@@ -2,7 +2,7 @@
 id: ADR-1700
 artifact: adr
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 addresses:
   [REQ-2972, REQ-2974, REQ-2976, REQ-2982, REQ-2984, REQ-2988, REQ-3270]
 postpones: [REQ-3271]
@@ -20,8 +20,8 @@ the field. The six fields, and what the check accepts for each:
 | Field          | The check accepts                                                              | Requirement |
 | -------------- | ------------------------------------------------------------------------------ | ----------- |
 | `maxTurns`     | A positive integer                                                             | REQ-2974    |
-| `tools`        | A written list; in a unit's agents, one with no `*` and no `Agent` or `Task`   | REQ-3270    |
-| `model`        | An alias or a full model identifier, and not `inherit`                         | REQ-2988    |
+| `tools`        | A written list, empty included; in a unit's agents, no `*`, `Agent` or `Task`  | REQ-3270    |
+| `model`        | `sonnet`, `opus`, `haiku`, `fable`, or an identifier containing `claude-`      | REQ-2988    |
 | `effort`       | `low`, `medium`, `high`, `xhigh` or `max`                                      | REQ-2988    |
 | `omitClaudeMd` | `true` or `false`, written out                                                 | REQ-2982    |
 | `skills`       | A list of the skills the agent preloads, and an empty list where it needs none | REQ-2984    |
@@ -45,15 +45,22 @@ because it still delegates.
 Each rule has its reason, and the reasons come from RES-0284:
 
 - `maxTurns` is the ceiling the runner enforces, and it returns the output
-  marked partial when the agent reaches it. RES-0284 read the marking from
-  the code and the documentation, and realisation 4 is the first run to show
-  it.
+  marked partial when the agent reaches it, subject to the caveat on the
+  marking below.
 - A missing `tools` list and `*` both grant every tool, the delegation tool
   among them, so the list is what keeps the depth below a shipped agent at
   none. The platform's delegation tool is `Agent`, and it still recognises
-  the earlier name `Task`.
+  the earlier name `Task`. An empty list, `tools: []`, grants no tool at all,
+  and the runner starts such an agent without error, so it passes the rule
+  and can't delegate.
 - `inherit` leaves the model, and so the cost, to whichever session
-  dispatches the agent, so nobody chose what a dispatch of it costs.
+  dispatches the agent, so nobody chose what a dispatch of it costs. The check
+  accepts the four aliases RES-0284 found documented, or any value containing
+  `claude-`, which every full identifier does, provider prefixes included. A
+  fixed list of identifiers would fail every agent the day the platform adds
+  a model, and any string but `inherit` would pass a typo such as
+  `model: opsu`. The prefix keeps a new identifier passing and still catches
+  a misspelt alias, and a new alias fails until the check learns it.
 - `effort` is one of the five levels the documentation names. The binary also
   takes an integer, which the documentation doesn't name, so the next version
   may drop it. The check doesn't test an effort against the model, because
@@ -91,9 +98,12 @@ the record, the records it cites and a few searches, and `prose` reads one
 text and its standard.
 
 A dispatcher that gets an output marked partial treats the work as
-unfinished, until realisation 4 shows whether the marking appears. The method skill reports a record whose review stopped at its
+unfinished. The method skill reports a record whose review stopped at its
 ceiling as unreviewed by an agent, as M22 already says for a review that
 couldn't run, because a partial list of findings reads as a complete one.
+RES-0284 read the partial marking from the code and the documentation, and no
+run has shown it yet; realisation 4 is the first run that can. Every other
+mention of the marking in this record carries that caveat.
 
 `meow-author:write` gains the rules that a program can't check:
 
@@ -118,7 +128,7 @@ where a plugin can set it, which this decision postpones until a plugin's
 `settings.json` applies an `env` table or a depth key.
 
 After this decision every agent the harness ships runs under a turn ceiling
-the runner enforces, can't delegate, runs on a model and effort it names, and
+the runner enforces, holds no delegation tool, runs on a model and effort it names, and
 says whether it loads the project's instructions and which skills it
 preloads. A repository that runs the check over its own agents, by giving it
 their path, gets a failure for an agent of its own that leaves one of the six
@@ -127,13 +137,23 @@ fields out.
 What still doesn't work:
 
 - A repository whose gate doesn't pass its agents' path to the check gets no
-  check of its own agents. This repository's `prompts` task runs
-  `author check` with no path, so its own agents aren't checked either.
-
+  check of its own agents. This repository has no agents of its own yet, and
+  its `prompts` task runs `author check` with no path, so the first one that
+  lands goes unchecked until the task passes `.claude/`.
+- If realisation 4 shows no partial marking, a truncated review reads as
+  complete, and the last point under what would reverse it applies.
 - A session's own agents, including the platform's general-purpose agent,
   still nest up to three levels, because REQ-3271 waits on the platform.
 - A repository's own agents may still delegate, because REQ-3270 binds only
   the agents the harness ships.
+- The check withholds the delegation tool and doesn't make nested work
+  impossible. A shipped agent could still reach it through a skill with
+  `context: fork` run by the `Skill` tool, or through a shell tool starting
+  another model session, and the check refuses neither `Skill` nor a shell
+  tool in a `tools` list. Neither shipped agent holds either today, and
+  REQ-3270 records both paths as unenforced.
+- A new model alias fails the `model` rule until the check learns it, so an
+  agent that adopts one early fails the gate until `meow-author` is updated.
 - The check can't tell whether an agent's `skills` list is the right one, or
   whether a unit shipped knowledge as an agent. Review holds both.
 - A model alias follows whatever model the platform maps it to, so a shipped
@@ -170,15 +190,15 @@ whatever model the session had, at a cost nobody chose.
 
 ## Alternatives
 
-| Option                                                                 | Better at                                            | Why it lost                                                                                                                       |
-| ---------------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Rules in the write skill only, and no check                            | No change to the program, no gate failing elsewhere  | REQ-2694 asks for a program where one can settle the rule, and a rule a model reads is followed most of the time                  |
-| Require only the fields whose default is wrong, and keep `inherit`     | Fewer lines per agent, and a model the session chose | REQ-2988 asks every dispatch to state its model, and REQ-2982 asks for a choice per agent, which a default can't show             |
-| Write the depth variable into the repository's `.claude/settings.json` | Sets the depth for the whole session                 | REQ-1563 forbids editing a file the repository keeps, and it reaches only a repository that ran the setup                         |
-| The dispatching skill passes model and effort on each call             | No front matter change, and a call can pick per task | A call's arguments are in no file a check reads, and every skill that dispatches would have to repeat them                        |
-| Check the fields in `paw check`                                        | One command for the record and the material          | `paw check` reads the record, and `meow-author` owns the authoring rules and already reads every agent                            |
-| Withhold delegation with `disallowedTools: [Agent, Task]`              | Leaves every other tool granted, one line per agent  | RES-0284 found the loader reads the field but never read what it does at a dispatch, and REQ-3270 asks for a written list         |
-| Do nothing                                                             | No work                                              | Both shipped agents can delegate, run to no ceiling and cost whatever the session costs, and six approved requirements stay unmet |
+| Option                                                                 | Better at                                            | Why it lost                                                                                                                         |
+| ---------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Rules in the write skill only, and no check                            | No change to the program, no gate failing elsewhere  | REQ-2694 asks for a program where one can settle the rule, because an instruction is context and enforces nothing (RES-0202)        |
+| Require only the fields whose default is wrong, and keep `inherit`     | Fewer lines per agent, and a model the session chose | REQ-2988 asks every dispatch to state its model, and REQ-2982 asks for a choice per agent, which a default can't show               |
+| Write the depth variable into the repository's `.claude/settings.json` | Sets the depth for the whole session                 | REQ-1563 forbids editing a file the repository keeps, and it reaches only a repository that ran the setup                           |
+| The dispatching skill passes model and effort on each call             | No front matter change, and a call can pick per task | A call's arguments are in no file a check reads, and every skill that dispatches would have to repeat them                          |
+| Check the fields in `paw check`                                        | One command for the record and the material          | `paw check` reads the record, and `meow-author` owns the authoring rules and already reads every agent                              |
+| Withhold delegation with `disallowedTools: [Agent, Task]`              | Leaves every other tool granted, one line per agent  | RES-0284 found the loader reads the field but never read what it does at a dispatch, and REQ-3270 asks for a written list           |
+| Do nothing                                                             | No work                                              | Both shipped agents can delegate, run to no ceiling and cost whatever the session costs, and seven approved requirements stay unmet |
 
 ## What it costs
 
@@ -197,7 +217,14 @@ Naming `opus` for `record-reviewer` also sets its price. A repository whose
 session runs on a cheaper model pays the difference between `opus` and that
 model on every review, where `inherit` would have charged the session's rate.
 That repository pays it on each dispatch, and it can lower it by replacing the
-agent (REQ-2986). The platform's mapping of the alias can also change it, as
+agent (REQ-2986).
+
+The same holds for the other two costs the table sets. `prose` names
+`sonnet`, so a repository whose session runs a cheaper model pays the
+difference on every prose review. Both agents run at `high`, so every
+dispatch of either pays the tokens `high` spends over `medium`. The
+repository dispatching each agent pays both differences on every dispatch,
+and it can lower either by replacing the agent (REQ-2986). The platform's mapping of the alias can also change it, as
 the last point under what still doesn't work says.
 
 A review that reaches its ceiling ends unfinished, and the person waiting on
@@ -225,10 +252,19 @@ it is an edit to one agent.
 - I would drop the `inherit` refusal if the platform let a dispatcher cap what
   a dispatch of an agent costs, because the cost reason would then be met
   without naming a model.
-- I would go back to platform defaults for `model` if repositories replaced
-  the shipped agents (REQ-2986) because a named model isn't offered to them,
-  because the written field would then cost more dispatches than it makes
-  deliberate.
+- I would go back to platform defaults for `model` if issues or defect
+  records reported a shipped agent failing to start because its named model
+  isn't offered, because the written field would then cost more dispatches
+  than it makes deliberate. A replacement made under REQ-2986 happens in
+  another repository, where the harness can't see it, so a report is the only
+  signal.
+- I would raise a ceiling if a hand-run evaluation case or a defect record
+  showed a review of an ordinary record stopped at its ceiling, because the
+  ceilings are estimates and a stop on ordinary work means the estimate was
+  low.
+- I would withdraw the partial-output rule, and SPC-1090 would say a review
+  stopped at its ceiling goes undetected, if realisation 4 showed no marking,
+  because a rule that reads a marker the runner never writes guards nothing.
 
 ## Consequences
 
@@ -248,29 +284,24 @@ it is an edit to one agent.
 
 ## How I will know it was realised
 
-1. Crate tests over fixture agents show the check failing, naming the file
-   and the field, on an agent with no `maxTurns`, one with `maxTurns: 0`, one
-   with no `tools`, one with `tools: "*"`, one listing `Agent`, one listing
-   `Task`, one listing `Agent(worker)`, one naming `Agent` in a
-   comma-separated `tools` string, one with no `model`, one with
-   `model: inherit`, one with no `effort`, one with `effort: extreme`, one
-   with no `omitClaudeMd` and one with no `skills`. They show it failing with
-   that reason on a front matter block that doesn't parse, and passing on one
-   declaring all six with `skills: []`, on a repository's own agent listing
-   `Agent` and on a repository's own agent with `tools: "*"`. The
-   passing fixture's declarations are added only after the failing ones are
-   seen failing against the current check, so a rule that never fires isn't
-   counted as covered.
+1. Tests over fixture agents show the check failing, naming the file and the
+   field, on every missing field, every value the table refuses and every
+   wrong type, and failing with that reason on front matter that doesn't
+   parse. They show it passing on an agent declaring all six, on a shipped
+   agent with `tools: []` and on the repository-agent exceptions. The failing
+   fixtures are seen failing against the current check before the passing
+   one gains its declarations, so a rule that never fires isn't counted as
+   covered. TSK-2700 lists the fixtures.
 2. `mise run prompts` exits 0 at the merge revision with both shipped agents
    declaring the fields in the table above.
 3. A hand-run evaluation case under `plugins/meow-flow/evals/`, run by a
    person and never in CI, asks `record-reviewer` to hand part of its review
    to another agent, and its transcript shows no Agent call and the review
    done by the reviewer itself.
-4. A hand-run case dispatches an agent defined with `maxTurns: 2` on work
-   that needs more, and its output comes back marked as stopped at its
-   ceiling.
-5. A hand-run `meow-author` evaluation case asks for an agent that carries a
+4. A hand-run evaluation case under `plugins/meow-flow/evals/` dispatches an
+   agent defined with `maxTurns: 2` on work that needs more, and its output
+   comes back marked as stopped at its ceiling.
+5. A hand-run evaluation case under `plugins/meow-author/evals/` asks for an agent that carries a
    language's idioms, and the write skill produces a skill.
 6. `meow-prose:prose` and `meow-flow:record-reviewer`, each dispatched with a
    path alone, read the updated SPC-1030, SPC-1090 and write skill and report

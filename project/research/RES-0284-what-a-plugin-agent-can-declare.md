@@ -2,7 +2,7 @@
 id: RES-0284
 artifact: research
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 elaborates: RES-0263
 ---
 
@@ -20,9 +20,9 @@ RES-0263 assumed. The nesting depth is a variable only settings can set, and a
 plugin's own settings keep only `agent` and `subagentStatusLine`, so a plugin
 can't set the depth for the session. A plugin can withhold the delegation tool
 from each agent it ships, by leaving `Agent`, `Agent(...)` and `Task` out of
-that agent's `tools`, which fixes the depth below that agent at none. At the
-limit the platform doesn't withhold the delegation tool, as RES-0263 said it
-did: the tool stays offered and a call to it fails with an error. `omitClaudeMd` is honoured only when true, so
+that agent's `tools`, which fixes the depth below that agent at none. RES-0263
+said the platform withholds the delegation tool at the limit; it doesn't: the
+tool stays offered and a call to it fails with an error. `omitClaudeMd` is honoured only when true, so
 an agent that leaves it out loads the project's instructions, and a reader
 can't tell whether that was a choice. This covers plugin agents only; project
 and user agents accept more fields, and this note didn't examine them.
@@ -46,6 +46,11 @@ binary, Claude Code 2.1.280 at
 strings and reading the function that parses a plugin agent's front matter,
 the function that resolves an agent's tool list, the table of earlier tool
 names and the function that refuses a spawn at the depth limit.
+
+On 2026-09-29 I read the same binary again for three more answers: what the
+resolver grants for an empty `tools` list, whether the runner refuses an
+agent whose tools resolve to nothing, and what the plugin loader keeps when
+`maxTurns` or `effort` is missing.
 
 I dispatched no agent and ran no model, so what the runner does at a limit is
 read from the code and the documentation, and no run shows it. The binary is
@@ -83,6 +88,13 @@ parser, so this last step is read from the code and not traced end to end.
 The resolver treats an entry such as `Agent(worker)` as the delegation tool
 limited to the named agent types, so a restricted entry still delegates.
 
+The resolver grants every tool only when the list is missing or holds `*`.
+Otherwise it grants the entries it recognises and nothing else, so an empty
+list, `tools: []`, grants no tool, the delegation tool included. The runner
+refuses to start an agent whose tools resolve to nothing only when the list
+named an entry that matched no tool. An agent whose list is empty starts with
+no tools and no error.
+
 ### The runner enforces `maxTurns`
 
 The subagent page defines `maxTurns` as the number of agentic turns before
@@ -90,6 +102,11 @@ the subagent stops, and says the output then comes back marked as partial,
 from version 2.1.246. The binary rejects a value that isn't a positive
 integer with "has invalid maxTurns", and its partial marker reads "NOTE: this
 agent stopped at its".
+
+The plugin loader copies `maxTurns` onto the agent only when the key is
+present. I didn't read what the runner does with an agent that has none,
+whether it runs with no ceiling or applies a default, so this note doesn't
+show what a missing `maxTurns` costs.
 
 ### `omitClaudeMd` is honoured only when true
 
@@ -109,7 +126,10 @@ page lists `effort` as `low`, `medium`, `high`, `xhigh` or `max`, overriding
 the session's level, and says the levels available depend on the model,
 without a table of which model offers which level. The binary warns on any
 other effort value, and also accepts an integer, which the page doesn't
-document.
+document. The plugin loader copies `effort` onto the agent only when the key
+is present. The page's word "overriding" suggests that an agent without the
+key runs at the session's level, but I didn't read the code that picks the
+level for a dispatch, so this note doesn't show what a missing `effort` does.
 
 ### `skills` preloads, and doesn't restrict
 
@@ -140,10 +160,14 @@ that control.
    `Agent(worker)` and `Task` all count as the delegation tool, so a list
    withholds it only when it names none of the three. That `Task` grants
    `Agent` is read from the code and not traced end to end, and the list
-   bans it either way.
+   bans it either way. This note didn't read how the resolver reads an entry
+   such as `Task(worker)`. A check that bans every entry named `Agent` or
+   `Task`, with or without a parenthesised part, covers it whichever way the
+   resolver reads it.
 2. An agent the harness ships lists its tools, because a missing list and `*`
-   both grant every tool, the delegation tool among them. A second way to
-   withhold the tool is `disallowedTools: [Agent]`, which the loader reads,
+   both grant every tool, the delegation tool among them. An empty list grants
+   nothing, so it withholds the delegation tool too. A second way to withhold
+   the tool is `disallowedTools: [Agent, Task]`, which the loader reads,
    but this note didn't read what it does at a dispatch. This conclusion
    holds only until somebody reads it, and a written `tools` list is the one
    remedy the findings show working.
@@ -151,7 +175,10 @@ that control.
    output marked partial as unfinished work, because the marker means the
    ceiling stopped the agent before it finished, so the output can't be
    treated as complete. The partial marking is read from the code and the
-   documentation, and no run has shown it.
+   documentation, and no run has shown it. This note didn't read what a
+   missing `maxTurns` does, so it doesn't settle whether a shipped agent has
+   to write the key; a decision that requires it rests on RES-0263's
+   conclusion that every dispatch declares a ceiling, not on a finding here.
 4. A shipped agent states `omitClaudeMd` as `true` or `false`, because the
    platform treats a missing key as `false`, and a reader can tell a choice
    from a default only when the key is written.
@@ -162,10 +189,19 @@ that control.
    level is an open question: the page says the levels depend on the model,
    no table says which, and this note didn't read what the platform does with
    a level the model lacks, so a check of the level alone can pass a pairing
-   the platform changes or refuses.
+   the platform changes or refuses. This note didn't read what a missing
+   `effort` does either, so it doesn't settle whether a shipped agent has to
+   write the key; a decision that requires it rests on RES-0263's conclusion
+   that every dispatch declares an effort.
 6. A shipped agent states its `skills`, an empty list included, because the
    platform treats a missing key as an empty list, and a reader can tell a
    choice from a default only when the key is written, as with `omitClaudeMd`.
+   Conclusions 4 and 6 ask a check to demand a key whose absence the platform
+   treats the same way. That enforces a convention and not a behaviour, which
+   is what this note warns against, and it's worth the line it costs, because
+   the check can't otherwise tell a deliberate default from a field somebody
+   forgot, and a default the platform changes would change every agent that
+   left the key out.
 7. A shipped agent carries no `permissionMode`, `hooks` or `mcpServers`,
    because a plugin agent ignores all three and a reader would take them as
    enforced.
@@ -193,6 +229,19 @@ field. It would leave every other tool granted where a written `tools` list
 names each one, and until somebody reads what the field does at a dispatch,
 the written list is the option the findings support.
 
+Conclusion 5 moves the choice of model, and with it the cost of each
+dispatch, from the person running the session to whoever wrote the agent.
+That is the case against naming a model: the person paying no longer chooses
+what a dispatch costs, and a session on a cheap model pays for the dearer one
+the agent names. Naming a model still wins, because under `inherit` nobody
+chose the cost either: it follows whatever model the session happened to run,
+and the agent's author, who knows what the work needs, has no say. A person
+who disagrees with the named model can replace the agent with a project agent
+of the same name (RES-0263, conclusion 12). This note didn't read what the
+platform does when the named model or alias isn't offered to the session, for
+example through the user's plan or provider, so whether the dispatch fails,
+falls back or runs on another model is unread, as the effort-level pairing is.
+
 ## Sources
 
 - Read 2026-09-28, [Subagents](https://code.claude.com/docs/en/sub-agents) -
@@ -213,6 +262,10 @@ the written list is the option the findings support.
   limit; the delegation tool named `Agent` with the alias `Task`, the table
   mapping `Task` to `Agent`, and the resolver's reading of `Agent(worker)`;
   and the partial marker.
+- Read 2026-09-29, the same binary - the resolver granting every tool only for
+  a missing list or `*`, an empty list resolving to no tool, the refusal of a
+  zero-tool spawn only when the list named an unmatched entry, and the plugin
+  loader copying `maxTurns` and `effort` only when each key is present.
 
 ## Open review findings
 

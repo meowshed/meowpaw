@@ -2,7 +2,7 @@
 id: SPC-1030
 artifact: spec
 status: live
-revised: 2026-09-28
+revised: 2026-09-29
 checked-at: "#490"
 states:
   [
@@ -269,16 +269,22 @@ out, because the platform has a default for every one of them:
 | Field          | What it holds                                                                  | Requirement |
 | -------------- | ------------------------------------------------------------------------------ | ----------- |
 | `maxTurns`     | A positive integer, the ceiling on turns the runner enforces                   | REQ-2974    |
-| `tools`        | A written list; in a unit's agents, one with no `*` and no `Agent` or `Task`   | REQ-3270    |
-| `model`        | An alias or a full model identifier, and not `inherit`                         | REQ-2988    |
+| `tools`        | A written list, empty included; in a unit's agents, no `*`, `Agent` or `Task`  | REQ-3270    |
+| `model`        | `sonnet`, `opus`, `haiku`, `fable`, or an identifier containing `claude-`      | REQ-2988    |
 | `effort`       | `low`, `medium`, `high`, `xhigh` or `max`                                      | REQ-2988    |
 | `omitClaudeMd` | `true` or `false`, written out                                                 | REQ-2982    |
 | `skills`       | A list of the skills the agent preloads, and an empty list where it needs none | REQ-2984    |
 
 An agent a unit ships holds no tool that dispatches another agent: its
 `tools` list holds no `*` and names neither `Agent` nor `Task`, alone or with
-a restriction such as `Agent(worker)` (REQ-3270). A repository's own agent
-may list any tools, `*` included, once it writes the list.
+a restriction such as `Agent(worker)` (REQ-3270). An empty list, `tools: []`,
+grants no tool, so it passes (RES-0284). A repository's own agent may list any
+tools, `*` included, once it writes the list.
+
+The `model` rule accepts the four documented aliases (RES-0284) or any value
+containing `claude-`, which every full identifier does, so a new identifier
+passes, a misspelt alias such as `opsu` fails, and `inherit` fails because it
+leaves the cost to whichever session dispatches the agent (ADR-1700).
 
 An agent loads the project's instructions, with `omitClaudeMd: false`, where
 it judges against the repository's rules, and omits them where it judges
@@ -294,7 +300,9 @@ declare:
 
 An agent that reaches its `maxTurns` returns its output marked as stopped at
 its ceiling, and whatever dispatched it reads that output as unfinished work
-(REQ-2974).
+(REQ-2974). RES-0284 read the marking from the platform's code and
+documentation, and no run has shown it yet, so the hand-run case EPC-1650
+adds is the first that can (ADR-1700).
 
 ### Delegation
 

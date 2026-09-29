@@ -2,7 +2,7 @@
 id: TSK-2701
 artifact: task
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 epic: EPC-1650
 closes: [REQ-2972, REQ-2976]
 issue:
@@ -30,7 +30,7 @@ branch, one pull request, one review.
    says a review whose output is marked as stopped at its ceiling leaves the
    record unreviewed by an agent. Closed by:
    `MethodSkill.test_a_partial_review_is_unreviewed` in
-   `plugins/meow-flow/tests/`.
+   `plugins/meow-flow/tests/test_record.py`.
 3. Given a hand-run case that dispatches an agent defined with `maxTurns: 2`
    on work that needs more, when a person runs it, then its output comes back
    marked as stopped at its ceiling. Closed by: judgement, because the
