@@ -2,6 +2,11 @@
 name: router
 description: Routes one request to change a repository, reading the repository, and replies with its size, shape and reason, editing nothing.
 tools: Read, Grep, Glob
+maxTurns: 30
+model: sonnet
+effort: high
+omitClaudeMd: false
+skills: []
 ---
 
 <role>

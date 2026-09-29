@@ -129,6 +129,154 @@ class Check(unittest.TestCase):
         self.assertIn("unchecked", done.stdout)
 
 
+AGENT_FIELDS = {
+    "maxTurns": "30",
+    "tools": "[Read, Grep, Glob]",
+    "model": "opus",
+    "effort": "high",
+    "omitClaudeMd": "false",
+    "skills": "[]",
+}
+SHIPPED_AGENT = "plugins/meow-demo/agents/reviewer.md"
+OWN_AGENT = ".claude/agents/local.md"
+
+
+def agent(**changes):
+    """An agent declaring the six fields SPC-1030 states, with `changes` applied and a value of None removing a field."""
+    fields = dict(AGENT_FIELDS)
+    fields.update(changes)
+    lines = [f"{name}: {value}" for name, value in fields.items() if value is not None]
+    front = "\n".join(["name: reviewer", "description: Reviews the demo and reports findings, editing nothing."] + lines)
+    return f"---\n{front}\n---\n\n<role>\nYou review the demo.\n</role>\n"
+
+
+class AgentFields(unittest.TestCase):
+    """TSK-2700: an agent declares maxTurns, tools, model, effort, omitClaudeMd and skills, as SPC-1030 states."""
+
+    def repo(self, files):
+        repository = Repository(files)
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def refuses(self, path, text, field, *paths):
+        """The check exits 1 with a line naming `path` and `field`."""
+        done = self.repo({path: text}).check(*paths)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        named = [line for line in done.stdout.splitlines() if line.startswith(path) and field in line]
+        self.assertTrue(named, f"no failure names {path} and {field}:\n{done.stdout}")
+        return done
+
+    def passes(self, path, text, *paths):
+        done = self.repo({path: text}).check(*paths)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("0 authoring failures", done.stdout)
+
+    def test_a_missing_maxTurns_fails(self):
+        """TSK-2700 criterion 1, REQ-2974: an agent with no turn ceiling fails, naming maxTurns."""
+        self.refuses(SHIPPED_AGENT, agent(maxTurns=None), "maxTurns")
+
+    def test_a_missing_tools_fails(self):
+        """TSK-2700 criterion 1, REQ-3270: an agent with no written tools list fails, naming tools."""
+        self.refuses(SHIPPED_AGENT, agent(tools=None), "tools")
+
+    def test_a_missing_model_fails(self):
+        """TSK-2700 criterion 1, REQ-2988: an agent with no model fails, naming model."""
+        self.refuses(SHIPPED_AGENT, agent(model=None), "model")
+
+    def test_a_missing_effort_fails(self):
+        """TSK-2700 criterion 1, REQ-2988: an agent with no effort fails, naming effort."""
+        self.refuses(SHIPPED_AGENT, agent(effort=None), "effort")
+
+    def test_a_missing_omitClaudeMd_fails(self):
+        """TSK-2700 criterion 1, REQ-2982: an agent with no omitClaudeMd fails, naming omitClaudeMd."""
+        self.refuses(SHIPPED_AGENT, agent(omitClaudeMd=None), "omitClaudeMd")
+
+    def test_a_missing_skills_fails(self):
+        """TSK-2700 criterion 1, REQ-2984: an agent with no skills list fails, naming skills."""
+        self.refuses(SHIPPED_AGENT, agent(skills=None), "skills")
+
+    def test_a_zero_ceiling_fails(self):
+        """TSK-2700 criterion 2, REQ-2974: maxTurns is a positive integer, so 0 fails."""
+        self.refuses(SHIPPED_AGENT, agent(maxTurns="0"), "maxTurns")
+
+    def test_inherit_fails(self):
+        """TSK-2700 criterion 2, REQ-2988: inherit leaves the cost to the dispatcher, so it fails."""
+        self.refuses(SHIPPED_AGENT, agent(model="inherit"), "model")
+
+    def test_an_unknown_model_alias_fails(self):
+        """TSK-2700 criterion 2, REQ-2988: a misspelt alias such as opsu fails."""
+        self.refuses(SHIPPED_AGENT, agent(model="opsu"), "model")
+
+    def test_an_unknown_effort_fails(self):
+        """TSK-2700 criterion 2, REQ-2988: effort is low, medium, high, xhigh or max, so extreme fails."""
+        self.refuses(SHIPPED_AGENT, agent(effort="extreme"), "effort")
+
+    def test_a_wrong_type_fails(self):
+        """TSK-2700 criterion 2, REQ-2974, REQ-2988, REQ-2982, REQ-2984: a value of the wrong type fails, naming its field."""
+        cases = [
+            ("maxTurns", "-1"),
+            ("maxTurns", "2.5"),
+            ("effort", "3"),
+            ("omitClaudeMd", "yes"),
+            ("skills", "meow-prose:writing"),
+        ]
+        for field, value in cases:
+            with self.subTest(field=field, value=value):
+                self.refuses(SHIPPED_AGENT, agent(**{field: value}), field)
+
+    def test_a_shipped_agent_with_every_tool_fails(self):
+        """TSK-2700 criterion 3, REQ-3270: a shipped agent with tools "*" can dispatch another agent."""
+        self.refuses(SHIPPED_AGENT, agent(tools='"*"'), "tools")
+
+    def test_a_shipped_agent_listing_agent_fails(self):
+        """TSK-2700 criterion 3, REQ-3270: a shipped agent listing Agent fails."""
+        self.refuses(SHIPPED_AGENT, agent(tools="[Read, Agent]"), "tools")
+
+    def test_a_shipped_agent_listing_task_fails(self):
+        """TSK-2700 criterion 3, REQ-3270: a shipped agent listing Task, the older name, fails."""
+        self.refuses(SHIPPED_AGENT, agent(tools="[Read, Task]"), "tools")
+
+    def test_a_restricted_agent_entry_fails(self):
+        """TSK-2700 criterion 3, REQ-3270: Agent with a restriction still dispatches, so Agent(worker) fails."""
+        self.refuses(SHIPPED_AGENT, agent(tools='[Read, "Agent(worker)"]'), "tools")
+
+    def test_agent_in_a_comma_separated_list_fails(self):
+        """TSK-2700 criterion 3, REQ-3270: tools is read as a comma-separated string as well as a list."""
+        self.refuses(SHIPPED_AGENT, agent(tools="Read, Agent, Grep"), "tools")
+
+    def test_front_matter_that_does_not_parse_fails_alone(self):
+        """TSK-2700 criterion 4, REQ-2974, REQ-3270: front matter that doesn't parse fails with that reason, and no field rule runs."""
+        done = self.refuses(SHIPPED_AGENT, agent(tools="[Read, Grep"), "front matter")
+        failures = [line for line in done.stdout.splitlines() if line.startswith(SHIPPED_AGENT)]
+        self.assertEqual(len(failures), 1, done.stdout)
+        for field in AGENT_FIELDS:
+            self.assertNotIn(field, failures[0], done.stdout)
+
+    def test_an_agent_declaring_all_six_passes(self):
+        """TSK-2700 criterion 5, REQ-2974, REQ-2982, REQ-2984, REQ-2988, REQ-3270: all six with skills [] pass."""
+        self.refuses(SHIPPED_AGENT, agent(omitClaudeMd=None), "omitClaudeMd")
+        self.passes(SHIPPED_AGENT, agent(skills="[]"))
+
+    def test_a_shipped_agent_with_no_tools_passes(self):
+        """TSK-2700 criterion 5, REQ-3270: tools [] grants no tool, so it passes."""
+        self.refuses(SHIPPED_AGENT, agent(tools="[]", effort=None), "effort")
+        self.passes(SHIPPED_AGENT, agent(tools="[]"))
+
+    def test_a_full_model_identifier_passes(self):
+        """TSK-2700 criterion 5, REQ-2988: a value containing claude- is a full identifier, so it passes."""
+        self.refuses(SHIPPED_AGENT, agent(model="claude-opus-5-5", maxTurns=None), "maxTurns")
+        self.passes(SHIPPED_AGENT, agent(model="claude-opus-5-5"))
+
+    def test_a_repositorys_own_agent_may_list_agent(self):
+        """TSK-2700 criterion 5, REQ-3270: the tools rule binds a unit's agents, not a repository's own."""
+        self.refuses(OWN_AGENT, agent(tools="[Read, Agent]", skills=None), "skills", ".claude")
+        self.passes(OWN_AGENT, agent(tools="[Read, Agent]"), ".claude")
+
+    def test_a_repositorys_own_agent_may_list_every_tool(self):
+        """TSK-2700 criterion 5, REQ-3270: a repository's own agent may write tools "*"."""
+        self.refuses(OWN_AGENT, agent(tools='"*"', model=None), "model", ".claude")
+        self.passes(OWN_AGENT, agent(tools='"*"'), ".claude")
+
 
 class Cost(unittest.TestCase):
     """ADR-1460: meow-author cost reports each unit's cost against its budget."""

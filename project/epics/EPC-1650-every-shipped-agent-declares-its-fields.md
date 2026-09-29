@@ -66,11 +66,15 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-2700 make `meow-author check` in `crates/meow/src/author.rs`
-      require the six fields, declare them in both shipped agents, and add
-      the hand-run case that asks `record-reviewer` to delegate
-      closes: REQ-2974, REQ-2982, REQ-2984, REQ-2988, REQ-3270
-      depends: nothing
+- [>] T-001 [P] TSK-2700 make `meow-author check` in `crates/meow/src/author.rs`
+  require the six fields, declare them in both shipped agents, and add
+  the hand-run case that asks `record-reviewer` to delegate
+  closes: REQ-2974, REQ-2982, REQ-2984, REQ-2988, REQ-3270
+  evidence: the 26 `AgentFields` checks and `ShippedAgents` pass after
+  failing first, and `meow-author check` passes every shipped agent,
+  `router` included, in #667. TSK-2700 carries the runs. Criterion 3's
+  hand-run case waits for a person to run it and keep the transcript.
+  depends: nothing
 
 - [ ] T-002 [P] TSK-2701 give `meow-author:write` the rules a program can't
       check, give the method skill the partial-output rule, and add the

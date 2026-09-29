@@ -8,6 +8,7 @@
 use crate::profile;
 use regex::Regex;
 use std::path::{Path, PathBuf};
+use yaml_rust2::{Yaml, YamlLoader};
 
 const CLEAN: u8 = 0;
 const FOUND: u8 = 1;
@@ -20,6 +21,11 @@ const QUOTED: [&str; 2] = ["example", "input"];
 const PROMPT_DIRS: [&str; 4] = ["skills", "agents", "output-styles", "fragments"];
 /// Material that isn't shipped behaviour: measurement cases and fixtures.
 const SKIPPED: [&str; 3] = ["evals", "tests", "__pycache__"];
+/// The model aliases the platform documents (SPC-1030, RES-0284).
+const MODEL_ALIASES: [&str; 4] = ["sonnet", "opus", "haiku", "fable"];
+const EFFORTS: [&str; 5] = ["low", "medium", "high", "xhigh", "max"];
+/// The tools that dispatch another agent, `Task` being the older name.
+const DISPATCHING: [&str; 2] = ["Agent", "Task"];
 
 pub fn main(args: &[String]) -> u8 {
     match args.split_first() {
@@ -53,6 +59,7 @@ fn check(paths: &[String]) -> u8 {
     let mut failures = Vec::new();
     let mut files = 0;
     for unit in &units {
+        let shipped = ships(unit);
         if !unit.is_dir() {
             failures.push(format!("{}: is not a directory", unit.display()));
             continue;
@@ -84,6 +91,9 @@ fn check(paths: &[String]) -> u8 {
                     ));
                 }
             }
+            if is_agent {
+                failures.extend(agent_fields(&text, &where_, shipped));
+            }
             if is_core {
                 failures.extend(unnamed_files(&root, &path, &text));
             }
@@ -108,6 +118,144 @@ fn check(paths: &[String]) -> u8 {
         if failures.len() == 1 { "" } else { "s" }
     );
     if failures.is_empty() { CLEAN } else { FOUND }
+}
+
+/// Whether a directory is a unit the harness ships, rather than a
+/// repository's own material such as `.claude/`: it sits in a `plugins/`
+/// directory or carries a plugin manifest.
+fn ships(unit: &Path) -> bool {
+    let absolute = unit.canonicalize().unwrap_or_else(|_| unit.to_path_buf());
+    absolute
+        .parent()
+        .and_then(|p| p.file_name())
+        .is_some_and(|n| n == "plugins")
+        || unit.join(".claude-plugin").join("plugin.json").is_file()
+}
+
+/// Each defect in the six fields an agent declares, as SPC-1030 states them
+/// under "What an agent declares" (REQ-2974, REQ-2982, REQ-2984, REQ-2988,
+/// REQ-3270). Front matter that doesn't parse is the only failure reported,
+/// because no field can be read from it.
+fn agent_fields(text: &str, where_: &str, shipped: bool) -> Vec<String> {
+    let Some(front) = front_matter(text) else {
+        return Vec::new();
+    };
+    let map = match YamlLoader::load_from_str(front) {
+        Ok(docs) => match docs.into_iter().next() {
+            Some(Yaml::Hash(map)) => map,
+            Some(Yaml::Null) | None => Default::default(),
+            Some(_) => {
+                return vec![format!(
+                    "{where_}: its front matter doesn't parse: it isn't a mapping of fields"
+                )];
+            }
+        },
+        Err(error) => {
+            return vec![format!("{where_}: its front matter doesn't parse: {error}")];
+        }
+    };
+    let get = |key: &str| map.get(&Yaml::String(key.to_string()));
+    let mut out = Vec::new();
+    let mut fail = |field: &str, why: &str| out.push(format!("{where_}: {field} {why}"));
+    match get("maxTurns") {
+        None => fail(
+            "maxTurns",
+            "is missing, where a positive integer caps the agent's turns",
+        ),
+        Some(Yaml::Integer(n)) if *n > 0 => {}
+        Some(_) => fail("maxTurns", "is not a positive integer"),
+    }
+    match get("tools") {
+        None => fail(
+            "tools",
+            "is missing, where a written list names every tool the agent holds",
+        ),
+        Some(value) => match tool_names(value) {
+            None => fail(
+                "tools",
+                "is not a list or a comma-separated string of tool names",
+            ),
+            Some(names) if shipped => {
+                if names.iter().any(|n| {
+                    n == "*"
+                        || DISPATCHING
+                            .iter()
+                            .any(|d| n == d || n.starts_with(&format!("{d}(")))
+                }) {
+                    fail(
+                        "tools",
+                        "holds *, Agent or Task, where an agent a unit ships dispatches no other agent",
+                    );
+                }
+            }
+            Some(_) => {}
+        },
+    }
+    match get("model") {
+        None => fail(
+            "model",
+            "is missing, where sonnet, opus, haiku, fable or a claude- identifier belongs",
+        ),
+        Some(Yaml::String(m)) if MODEL_ALIASES.contains(&m.as_str()) || m.contains("claude-") => {}
+        Some(Yaml::String(m)) if m == "inherit" => fail(
+            "model",
+            "is inherit, which leaves the cost to whichever session dispatches the agent",
+        ),
+        Some(_) => fail(
+            "model",
+            "is not sonnet, opus, haiku, fable or an identifier containing claude-",
+        ),
+    }
+    match get("effort") {
+        None => fail(
+            "effort",
+            "is missing, where low, medium, high, xhigh or max belongs",
+        ),
+        Some(Yaml::String(e)) if EFFORTS.contains(&e.as_str()) => {}
+        Some(_) => fail("effort", "is not low, medium, high, xhigh or max"),
+    }
+    match get("omitClaudeMd") {
+        None => fail(
+            "omitClaudeMd",
+            "is missing, where true or false is written out",
+        ),
+        Some(Yaml::Boolean(_)) => {}
+        Some(_) => fail("omitClaudeMd", "is not true or false"),
+    }
+    match get("skills") {
+        None => fail(
+            "skills",
+            "is missing, where a list of the skills the agent preloads belongs, empty included",
+        ),
+        Some(Yaml::Array(items)) if items.iter().all(|i| matches!(i, Yaml::String(_))) => {}
+        Some(_) => fail("skills", "is not a list of skill names"),
+    }
+    out
+}
+
+/// The tool names a `tools` value holds, read as a YAML list or as a
+/// comma-separated string, or nothing where it is neither.
+fn tool_names(value: &Yaml) -> Option<Vec<String>> {
+    match value {
+        Yaml::Array(items) => items
+            .iter()
+            .map(|i| i.as_str().map(|s| s.trim().to_string()))
+            .collect(),
+        Yaml::String(s) => Some(
+            s.split(',')
+                .map(|n| n.trim().to_string())
+                .filter(|n| !n.is_empty())
+                .collect(),
+        ),
+        _ => None,
+    }
+}
+
+/// The text between a file's opening and closing `---` lines.
+fn front_matter(text: &str) -> Option<&str> {
+    let rest = text.strip_prefix("---\n")?;
+    let end = rest.find("\n---\n")?;
+    Some(&rest[..end])
 }
 
 fn shown(root: &Path, path: &Path) -> String {
