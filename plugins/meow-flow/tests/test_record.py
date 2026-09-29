@@ -2331,6 +2331,21 @@ class Grouping(unittest.TestCase):
         repository.edit(self.BUG, "violates: REQ-0001", "violates: REQ-0001\nmilestone: v1")
         self.reported(repository, self.BUG, "milestone")
 
+    # ADR-1800's forbidden groupings, and the fixture's last field on each kind, after which a test writes one.
+    GROUPINGS = ("milestone", "parent", "project", "sprint", "iteration", "label", "labels")
+    PLACES = {TASK: ("epic: EPC-0001", GROUPINGS), EPIC: ("realises: ADR-0001", ("epic",) + GROUPINGS),
+              BUG: ("violates: REQ-0001", GROUPINGS)}
+
+    def test_every_grouping_field_is_reported_on_every_kind(self):
+        """TSK-2930 criterion 1, BUG-1301, REQ-3320: each field ADR-1800 forbids, on each kind it forbids it on, is
+        reported by file, line and field, so a layout that drops one field from one kind fails here."""
+        for name, (last, fields) in self.PLACES.items():
+            for field in fields:
+                with self.subTest(kind=name, field=field):
+                    repository = self.repo()
+                    repository.edit(name, last, f"{last}\n{field}: x")
+                    self.reported(repository, name, field)
+
     def test_an_epic_under_an_epic_is_reported(self):
         """TSK-2910 criterion 3, REQ-3320: an epic carrying `epic:` is reported, because only an epic would place
         one epic under another."""
