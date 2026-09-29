@@ -290,12 +290,13 @@ An agent loads the project's instructions, with `omitClaudeMd: false`, where
 it judges against the repository's rules, and omits them where it judges
 against a standard it preloads (REQ-2982). An agent with a narrow job
 preloads the skills it needs through `skills`, so the conversation that
-dispatches it doesn't carry them (REQ-2984). The two agents the harness ships
+dispatches it doesn't carry them (REQ-2984). The agents the harness ships
 declare:
 
 | Agent                       | `maxTurns` | `model`  | `effort` | `omitClaudeMd` | `skills`               | `tools`          |
 | --------------------------- | ---------- | -------- | -------- | -------------- | ---------------------- | ---------------- |
 | `meow-flow:record-reviewer` | 30         | `opus`   | `high`   | `false`        | `[]`                   | Read, Grep, Glob |
+| `meow-flow:router`          | 30         | `sonnet` | `high`   | `false`        | `[]`                   | Read, Grep, Glob |
 | `meow-prose:prose`          | 20         | `sonnet` | `high`   | `true`         | `[meow-prose:writing]` | Read, Grep, Glob |
 
 An agent that reaches its `maxTurns` returns its output marked as stopped at
