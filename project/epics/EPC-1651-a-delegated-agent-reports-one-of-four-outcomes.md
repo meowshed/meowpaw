@@ -72,7 +72,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2702 give the three shipped agents the outcome line, the
+- [x] T-001 TSK-2702 give the three shipped agents the outcome line, the
       cause line and, for the two reviewers, the quoting rule; make
       `meow-author check` in `crates/meow/src/author.rs` require the four
       words; make the method skill and the review step's W13 act on each

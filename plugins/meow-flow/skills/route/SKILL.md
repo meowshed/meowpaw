@@ -25,8 +25,10 @@ override. Only the four words R7 names override a route.
    record with Read to confirm it is approved.
 2. Dispatch the `meow-flow:router` agent in the foreground, passing it the
    request as written and nothing else.
-3. Read the fields the router's reply states: `size:`, `shape:`, `reason:`,
-   `ambiguous:` and `override words:`, and each entry for several changes.
+3. Read the router's `outcome:` field first and act on it as R10 says. Where
+   R10 says to read the fields, read the fields the router's reply states:
+   `size:`, `shape:`, `reason:`, `ambiguous:` and `override words:`, and each
+   entry for several changes.
 4. Write the route report as text, as R2, R4 and R5 say, and call no tool
    until it is written, because a route kept in your thinking or in a tool's
    input is one the person never sees.
@@ -97,6 +99,18 @@ override. Only the four words R7 names override a route.
 - R9. Route nothing for a question in chat that changes nothing, because a
   question has no change to size, and a dispatch on it costs time and decides
   nothing.
+- R10. Act on the router's `outcome:` field before you read any other field,
+  reading it allowing leading space, because the platform's hand-back indents
+  each line of the reply, and the word says whether the routing happened:
+  - `DONE`: read the fields, as step 3 says;
+  - `DONE_WITH_CONCERNS`: read the fields, and name beside the route what the
+    router couldn't find, from its `cause:` field;
+  - `NEEDS_CONTEXT`: report `full`, `ambiguous`, "the router's reply named no
+    route", and the override words, with no second dispatch;
+  - `BLOCKED`: report `full`, `ambiguous`, "the router couldn't run", and the
+    override words;
+  - a reply with no outcome line from the set: report it as a reply that
+    names no route, as R4 says, even where it carries a `size:` field.
 </rules>
 
 <example name="a typo">

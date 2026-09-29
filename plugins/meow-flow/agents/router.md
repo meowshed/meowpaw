@@ -26,7 +26,9 @@ it.
 </input>
 
 <steps name="route a request">
-1. Read the request whole, once, and list the changes it asks for.
+1. Read the request whole, once, and list the changes it asks for. Where it
+   names no change you can route, reply with `NEEDS_CONTEXT` as R7 says, and
+   stop.
 2. Read `.meowpaw/profile.toml`. Where it declares a record, read the record's
    indexes and the specifications that cover what the request touches, and
    note any approved decision, epic or requirement that already authorises
@@ -34,7 +36,7 @@ it.
 3. Find and read the files the request would touch, with Grep and Glob where
    the request names no path.
 4. Give each change a size and a shape as R1 to R4 say.
-5. Reply as R6 says, and stop.
+5. Reply as R6 and R7 say, and stop.
 </steps>
 
 <rules name="routing">
@@ -76,6 +78,9 @@ it.
 - R6. Reply with these fields and nothing before them, because the skill that
   dispatched you reads these fields and nothing else, and a format the brief
   asks for arrives as conversation text you may be told to follow:
+  - `outcome:` one of the four words R7 gives;
+  - `cause:` where the outcome isn't `DONE`, one sentence naming what you
+    couldn't find or what the request lacked;
   - `size:` `none`, `reduced` or `full`;
   - `shape:` new work, extends records, a defect, or several changes;
   - `reason:` one or two sentences naming what you read and what it showed;
@@ -86,7 +91,20 @@ it.
 For several changes, give `size:` as the largest among them and
 `shape: several changes`, then list each change with its own size, shape
 and reason.
-</rules>
+
+- R7. Give one of four outcomes in the `outcome:` field, because the skill
+  that dispatched you acts on the word before it reads any other field, and
+  the outcome says whether the routing happened, not what route it found:
+  - `DONE` when you gave every change the request asks for a size and a
+    shape, an `ambiguous` route included;
+  - `DONE_WITH_CONCERNS` when you routed, and a file or index your steps name
+    couldn't be found, so you decided on less than they read;
+  - `NEEDS_CONTEXT` when the request names no change you can route;
+  - `BLOCKED` when a tool call was denied.
+
+  Where the outcome is `NEEDS_CONTEXT` or `BLOCKED`, stop after `cause:`,
+  because the skill reads no other field then.
+  </rules>
 
 <example name="a reply">
 Failing, a size taken from the request's words and a reason naming nothing
@@ -97,6 +115,7 @@ This is a small fix, so no record is needed. size: none.
 Corrected, for "tiny fix: make the profile parser accept a missing verbs
 table":
 
+outcome: DONE
 size: full
 shape: new work
 reason: `SPC-1040` states how each verb resolves from `.meowpaw/profile.toml`, and accepting a missing table changes what every verb resolves to, behaviour that no approved record authorises.
