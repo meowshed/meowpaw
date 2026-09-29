@@ -412,10 +412,16 @@ fn findings(corpus: &Corpus) -> Vec<String> {
         .unwrap_or("");
     let programs = programs(lint);
     let configurations = corpus.markdownlint();
-    if programs.contains(&"markdownlint-cli2") && configurations.is_empty() {
+    if programs.contains(&"markdownlint-cli2")
+        && configurations.is_empty()
+        && !names_a_config(&words(lint))
+    {
         found.push("markdownlint-cli2 runs its defaults: no configuration file".to_string());
     }
-    if programs.contains(&"markdownlint") {
+    if programs
+        .iter()
+        .any(|p| matches!(*p, "markdownlint" | "markdownlint-cli"))
+    {
         for file in configurations.iter().filter(|p| is_cli2(p)) {
             found.push(format!("markdownlint ignores {file}"));
         }
@@ -463,10 +469,10 @@ fn link_settings(corpus: &Corpus) -> Vec<String> {
     };
     for command in verbs.values().filter_map(toml::Value::as_str) {
         let words = words(command);
-        let direct = words.iter().any(|w| file_name(w) == "lychee");
+        let direct = words.iter().any(|w| program(w) == "lychee");
         let links = words
             .windows(2)
-            .any(|pair| file_name(pair[0]) == "meow-markdown" && pair[1] == "links");
+            .any(|pair| program(pair[0]) == "meow-markdown" && pair[1] == "links");
         if !direct && !links {
             continue;
         }
@@ -777,7 +783,24 @@ fn is_cli2(path: &str) -> bool {
 /// The name of each program a shell command runs or passes as a word, by its
 /// last path component, so `npx markdownlint-cli2` and a path both count.
 fn programs(command: &str) -> Vec<&str> {
-    words(command).into_iter().map(file_name).collect()
+    words(command).into_iter().map(program).collect()
+}
+
+/// A word as the program it names: its last path component without an
+/// `@<version>` suffix, since `npx markdownlint-cli2@0.23.2` runs
+/// markdownlint-cli2 (RES-0295).
+fn program(word: &str) -> &str {
+    let name = file_name(word);
+    match name.split_once('@') {
+        Some((bare, _)) if !bare.is_empty() => bare,
+        _ => name,
+    }
+}
+
+/// Whether a `--config` word is followed by the file it names. markdownlint-cli2
+/// reads `--config=<path>` as a glob, so that form names nothing (RES-0295).
+fn names_a_config(words: &[&str]) -> bool {
+    words.windows(2).any(|pair| pair[0] == "--config")
 }
 
 /// A shell command's words, split at white space and the shell's `;`, `&`,
@@ -886,7 +909,7 @@ mod tests {
     #[test]
     fn a_command_names_its_programs_by_their_last_component() {
         assert_eq!(
-            programs("npx markdownlint-cli2 '**/*.md' && node_modules/.bin/markdownlint x"),
+            programs("npx markdownlint-cli2@0.23.2 '**/*.md' && node_modules/.bin/markdownlint x"),
             ["npx", "markdownlint-cli2", "*.md", "markdownlint", "x"]
         );
     }
