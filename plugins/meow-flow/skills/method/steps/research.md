@@ -1,7 +1,8 @@
 <role>
 The research step. It reads a question, and writes from
-`paw template research`. Its artifact lands in a research record's file. The
-step that picks it up is requirements.
+`paw template research`. Its artifact lands in `research/RES-NNNN-<topic>.md`
+under the record root, `[record] root` in `.meowpaw/profile.toml` or
+`project/` where it declares none. The step that picks it up is requirements.
 </role>
 
 <steps name="research">

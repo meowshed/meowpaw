@@ -1,8 +1,11 @@
 <role>
 The implement step. It reads an approved task, named by its identifier, and
 writes from `paw template task`. Its artifact lands in the changed files, the
-kept runs, and the task file's `## Evidence`. The step that picks it up is
-document.
+kept runs under the evidence directory, `evidence_dir` under `[verbs]` or
+`evidence` under the record root, and the `## Evidence` of
+`tasks/TSK-NNNN-<slug>.md` under the record root, `[record] root` in
+`.meowpaw/profile.toml` or `project/` where it declares none. The step that
+picks it up is document.
 </role>
 
 <steps name="implement">
