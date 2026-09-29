@@ -9,6 +9,7 @@ test, so the fixtures can first run against a program that reports nothing
 and be seen failing (REQ-2072).
 """
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -332,6 +333,58 @@ class Launcher(unittest.TestCase):
                 self.assertIn(f"meow-author {subcommand}: unchecked: ", done.stdout)
                 self.assertIn(machine, done.stdout)
                 self.assertIn("reinstall the unit", done.stdout)
+
+
+def rules(text):
+    """Each numbered rule under a `<rules>` tag, as (identifier, text), the text lower case with backticks
+    kept and every run of white space one space, so a wrapped rule reads as one line."""
+    found = []
+    for block in re.findall(r"<rules\b[^>]*>(.*?)</rules>", text, re.DOTALL):
+        for ident, body in re.findall(r"^- ([A-Z]+\d+)\.\s(.*?)(?=^- [A-Z]+\d+\.\s|\Z)", block, re.MULTILINE | re.DOTALL):
+            found.append((ident, re.sub(r"\s+", " ", body).strip().lower()))
+    return found
+
+
+class WriteSkill(unittest.TestCase):
+    """ADR-1700, SPC-1030: the write skill carries the delegation rules no program can check, each a numbered
+    rule under a `<rules>` tag that states its reason."""
+
+    def rule(self, *patterns):
+        """The rules matching every pattern and stating a reason, or a failure naming what was looked for."""
+        text = (UNIT / "skills" / "write" / "SKILL.md").read_text(encoding="utf-8")
+        matching = [ident for ident, body in rules(text) if "because" in body and all(re.search(p, body) for p in patterns)]
+        self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+        return matching
+
+    def test_knowledge_ships_as_a_skill_and_never_as_an_agent(self):
+        """TSK-2701 criterion 1, REQ-2972: knowledge ships as a skill loaded into the working context, never as
+        an agent."""
+        self.rule(r"\bknowledge\b", r"\bskill\b", r"\b(never|not)\b[^.]*\bagent\b")
+
+    def test_a_delegated_agent_is_no_isolation_boundary(self):
+        """TSK-2701 criterion 1, REQ-2976: no text treats a delegated agent as an isolation boundary, because it
+        runs under the parent's sandbox configuration."""
+        self.rule(r"\bagent\b", r"\bboundary\b", r"\bsandbox\b")
+
+    def test_each_of_the_six_fields_has_its_rule(self):
+        """TSK-2701 criterion 1: one rule for each of the six fields SPC-1030 states under "What an agent
+        declares", with the reason ADR-1700 gives: maxTurns REQ-2974, tools REQ-3270, model and effort REQ-2988,
+        omitClaudeMd REQ-2982, skills REQ-2984."""
+        fields = {
+            "maxTurns": r"\bceiling\b",
+            "tools": r"`agent`",
+            "model": r"`inherit`",
+            "effort": r"`xhigh`",
+            "omitClaudeMd": r"\binstructions\b",
+            "skills": r"\bpreload",
+        }
+        for field, reason in fields.items():
+            with self.subTest(field=field):
+                self.rule(re.escape(f"`{field.lower()}`"), reason)
+
+    def test_a_partial_output_is_unfinished(self):
+        """TSK-2701 criterion 1, REQ-2974: a dispatcher reads an output marked partial as unfinished work."""
+        self.rule(r"\bdispatch", r"\bpartial\b", r"\bunfinished\b")
 
 
 if __name__ == "__main__":

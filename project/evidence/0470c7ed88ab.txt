@@ -1,0 +1,185 @@
+meow-verbs evidence 1
+record: 0470c7ed88ab
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 1
+tree: 28900ad0d21cf1dad01837dcdfc57e382574ddeb
+time: 2026-09-29T13:29:07Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+built meow-unattended for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 37 tests
+.....................................
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+............................................................
+----------------------------------------------------------------------
+Ran 60 tests in 13.696s
+
+OK
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 0.512s
+
+OK
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 5.002s
+
+OK
+...........................................................................................................................................................................................................
+----------------------------------------------------------------------
+Ran 203 tests in 15.005s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.192s
+
+OK
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 2.130s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 1.008s
+
+OK
+..................FFFFFFFFF
+======================================================================
+FAIL: test_a_delegated_agent_is_no_isolation_boundary (test_author.WriteSkill.test_a_delegated_agent_is_no_isolation_boundary)
+TSK-2701 criterion 1, REQ-2976: no text treats a delegated agent as an isolation boundary, because it
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 219, in test_a_delegated_agent_is_no_isolation_boundary
+    self.rule(r"\bagent\b", r"\bboundary\b", r"\bsandbox\b")
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('\\bagent\\b', '\\bboundary\\b', '\\bsandbox\\b') and states a reason
+
+======================================================================
+FAIL: test_a_partial_output_is_unfinished (test_author.WriteSkill.test_a_partial_output_is_unfinished)
+TSK-2701 criterion 1, REQ-2974: a dispatcher reads an output marked partial as unfinished work.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 239, in test_a_partial_output_is_unfinished
+    self.rule(r"\bdispatch", r"\bpartial\b", r"\bunfinished\b")
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('\\bdispatch', '\\bpartial\\b', '\\bunfinished\\b') and states a reason
+
+======================================================================
+FAIL: test_each_of_the_six_fields_has_its_rule (test_author.WriteSkill.test_each_of_the_six_fields_has_its_rule) (field='maxTurns')
+TSK-2701 criterion 1: one rule for each of the six fields SPC-1030 states under "What an agent
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 235, in test_each_of_the_six_fields_has_its_rule
+    self.rule(re.escape(f"`{field.lower()}`"), reason)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('`maxturns`', '\\bceiling\\b') and states a reason
+
+======================================================================
+FAIL: test_each_of_the_six_fields_has_its_rule (test_author.WriteSkill.test_each_of_the_six_fields_has_its_rule) (field='tools')
+TSK-2701 criterion 1: one rule for each of the six fields SPC-1030 states under "What an agent
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 235, in test_each_of_the_six_fields_has_its_rule
+    self.rule(re.escape(f"`{field.lower()}`"), reason)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('`tools`', '`agent`') and states a reason
+
+======================================================================
+FAIL: test_each_of_the_six_fields_has_its_rule (test_author.WriteSkill.test_each_of_the_six_fields_has_its_rule) (field='model')
+TSK-2701 criterion 1: one rule for each of the six fields SPC-1030 states under "What an agent
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 235, in test_each_of_the_six_fields_has_its_rule
+    self.rule(re.escape(f"`{field.lower()}`"), reason)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('`model`', '`inherit`') and states a reason
+
+======================================================================
+FAIL: test_each_of_the_six_fields_has_its_rule (test_author.WriteSkill.test_each_of_the_six_fields_has_its_rule) (field='effort')
+TSK-2701 criterion 1: one rule for each of the six fields SPC-1030 states under "What an agent
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 235, in test_each_of_the_six_fields_has_its_rule
+    self.rule(re.escape(f"`{field.lower()}`"), reason)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('`effort`', '`xhigh`') and states a reason
+
+======================================================================
+FAIL: test_each_of_the_six_fields_has_its_rule (test_author.WriteSkill.test_each_of_the_six_fields_has_its_rule) (field='omitClaudeMd')
+TSK-2701 criterion 1: one rule for each of the six fields SPC-1030 states under "What an agent
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 235, in test_each_of_the_six_fields_has_its_rule
+    self.rule(re.escape(f"`{field.lower()}`"), reason)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('`omitclaudemd`', '\\binstructions\\b') and states a reason
+
+======================================================================
+FAIL: test_each_of_the_six_fields_has_its_rule (test_author.WriteSkill.test_each_of_the_six_fields_has_its_rule) (field='skills')
+TSK-2701 criterion 1: one rule for each of the six fields SPC-1030 states under "What an agent
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 235, in test_each_of_the_six_fields_has_its_rule
+    self.rule(re.escape(f"`{field.lower()}`"), reason)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('`skills`', '\\bpreload') and states a reason
+
+======================================================================
+FAIL: test_knowledge_ships_as_a_skill_and_never_as_an_agent (test_author.WriteSkill.test_knowledge_ships_as_a_skill_and_never_as_an_agent)
+TSK-2701 criterion 1, REQ-2972: knowledge ships as a skill loaded into the working context, never as
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 214, in test_knowledge_ships_as_a_skill_and_never_as_an_agent
+    self.rule(r"\bknowledge\b", r"\bskill\b", r"\b(never|not)\b[^.]*\bagent\b")
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/retran/workspace/meowpaw.feat-delegation-write-rules/plugins/meow-author/tests/test_author.py", line 208, in rule
+    self.assertTrue(matching, f"no rule under <rules> in the write skill matches {patterns} and states a reason")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true : no rule under <rules> in the write skill matches ('\\bknowledge\\b', '\\bskill\\b', '\\b(never|not)\\b[^.]*\\bagent\\b') and states a reason
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.777s
+
+FAILED (failures=9)

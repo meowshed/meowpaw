@@ -80,10 +80,23 @@ that hold whether or not TSK-2700's check has landed.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: plugins/meow-author/tests/test_author.py plugins/meow-flow/tests/test_record.py
+- Failing run: project/evidence/7e8fcf9d28fb.txt project/evidence/0470c7ed88ab.txt
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: 3: the platform writes the partial marking, and only a hand-run transcript shows it; 4: a person reads the model's output in the kept transcript; 5: REQ-2976 names an agent as its verifier, and a person reads both reports; 6: the kept run of `format lint test` at implement closes it
+
+Criterion 1 is covered by the class `WriteSkill` in `test_author.py`:
+`test_knowledge_ships_as_a_skill_and_never_as_an_agent`,
+`test_a_delegated_agent_is_no_isolation_boundary`,
+`test_each_of_the_six_fields_has_its_rule` and
+`test_a_partial_output_is_unfinished`. The `prompts` check in the gate holds
+the tags. Criterion 2 is covered by
+`MethodSkill.test_a_partial_review_is_unreviewed` in `test_record.py`.
+
+The two runs are kept because the `test` verb stops at the first unit that
+fails. In `7e8fcf9d28fb.txt`, criterion 2's check fails and the verb stops
+before `meow-author`'s tests. `0470c7ed88ab.txt` comes from a tree holding
+criterion 1's checks alone, where its four checks report nine failures.
 
 ## Evidence
 
