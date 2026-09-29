@@ -424,6 +424,30 @@ class Snapshot(Fixture):
         _, output, _, _ = self.snapshot({**self.profile(GIT, table()), **RECORD_FILES})
         self.assertEqual(output.count("no record to protect"), 1, output)
 
+    def test_approved_in_every_front_matter_form(self):
+        """TSK-3320 criterion 1, BUG-1340: an approved record is denied Edit whether its status is
+        quoted, carries a comment or sits in a CRLF file, and a quoted draft is not."""
+        forms = {
+            "REQ-0001-plain.md": "status: approved\n",
+            "REQ-0002-quoted.md": 'status: "approved"\n',
+            "REQ-0003-commented.md": "status: approved # frozen\n",
+            "REQ-0004-crlf.md": "status: approved\n",
+            "REQ-0005-draft.md": 'status: "draft"\n',
+        }
+        files = {f"project/requirements/{name}": (f"---\nid: {name[:8]}\nartifact: requirement\n{status}"
+                                                  f"revised: 2026-09-29\n---\n\n# {name[:8]}\n")
+                 for name, status in forms.items()}
+        repository = self.repo({**self.profile(GIT, RECORD, table()), **files})
+        crlf = repository.root / "project/requirements/REQ-0004-crlf.md"
+        crlf.write_bytes(crlf.read_bytes().replace(b"\n", b"\r\n"))
+        output, _, path = self.plan(repository)
+        prefix = f"Edit(/{repository.root}/project/requirements/"
+        denied = sorted(rule for rule in self.deny(json.loads(path.read_text(encoding="utf-8")))
+                        if rule.startswith(prefix))
+        approved = sorted(f"{prefix}{name})" for name in forms if "draft" not in name)
+        self.assertEqual(len(approved), 4)
+        self.assertEqual(denied, approved, output)
+
 
 class State(Fixture):
     """TSK-3300 criterion 9, REQ-2388: state writing can be switched off, and kept plans purged."""

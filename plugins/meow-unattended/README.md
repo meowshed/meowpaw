@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what meow-unattended plans, what it writes and what its deny rules don't stop
 kind: reference
-describes: [meow-unattended@0.2.0]
+describes: [meow-unattended@0.2.1]
 ---
 
 # meow-unattended
