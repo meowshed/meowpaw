@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1650
 closes: [REQ-2972, REQ-2976]
-issue:
+issue: 660
+projected: c46ec446735d
 ---
 
 # Write the delegation rules into the write skill, and the partial-output rule into the method skill
