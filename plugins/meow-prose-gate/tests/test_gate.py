@@ -100,6 +100,9 @@ class TruePositives(unittest.TestCase):
     def test_p3_a_commit_message_hidden_in_a_file(self):
         self.assert_blocks("git commit --allow-empty -F notes.txt", "P3", "notes.txt")
 
+    def test_p1_in_a_heredoc_read_through_dev_stdin(self):
+        self.assert_blocks("git commit --allow-empty -F /dev/stdin <<'MSG'\na silver bullet\nMSG", "P1", "silver bullet")
+
     def test_p3_a_substitution_reading_a_file(self):
         self.assert_blocks('gh pr create --title "Cache" --body "$(cat notes.md)"', "P3", "notes.md")
 
@@ -171,6 +174,14 @@ class ReadableTexts(unittest.TestCase):
         self.assert_passes(
             "git commit --allow-empty -F - <<'MSG'\nCache rendered pages\n\n"
             "The server skips the template step on a repeat request.\nMSG")
+
+    def test_a_heredoc_read_through_dev_stdin(self):
+        self.assert_passes("git commit --allow-empty -F /dev/stdin <<'MSG'\nCache pages\nMSG")
+
+    def test_a_body_read_through_dev_fd_0(self):
+        self.assert_passes(
+            "gh pr create --title \"Cache pages\" --body-file /dev/fd/0 <<'EOF'\n"
+            "The server skips the template step on a repeat request.\nEOF")
 
     def test_a_heredoc_inside_a_substitution(self):
         self.assert_passes(
