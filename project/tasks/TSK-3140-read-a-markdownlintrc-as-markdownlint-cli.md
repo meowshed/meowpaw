@@ -51,14 +51,34 @@ Nothing. BUG-1320 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-markdown/tests/test_markdown.py
+- Failing run: project/evidence/b92cd9bb18ec.txt
+- Landed in: #693
+- Judgement: none
 
 ## Evidence
 
-Not yet.
+`Corpus::markdownlintrc` in `crates/meow/src/markdown.rs` lists each tracked
+`.markdownlintrc`. `status` prints it as read by markdownlint-cli alone, run
+in its directory, and `bind` prints `lint = "markdownlint '**/*.md'"` with the
+comment naming `meow-markdown check` where a root `.markdownlintrc` is the only
+markdownlint configuration. SPC-1195 and `plugins/meow-markdown/README.md`
+state the file, and `meow-markdown` goes to 0.4.1.
+
+The two checks in the class `Markdownlintrc` failed first: `meow-verbs run
+test` exited 1 with `FAILED (failures=2, skipped=1)` in the Markdown suite,
+kept as `project/evidence/b92cd9bb18ec.txt`, in the commit that held the
+checks alone. They pass now:
+
+```text
+$ python3 -m unittest test_markdown    # in plugins/meow-markdown/tests
+Ran 49 tests
+OK (skipped=1)                         # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 

@@ -61,5 +61,7 @@ alone.
 
 ## Tasks
 
-- [ ] T-001 TSK-3140 read a `.markdownlintrc` as a markdownlint-cli
+- [x] T-001 TSK-3140 read a `.markdownlintrc` as a markdownlint-cli
       configuration in `status` and `bind`, in `crates/meow/src/markdown.rs`
+      evidence: 2 checks seen failing first, 49 `meow-markdown` fixtures
+      passing, in #693.
