@@ -51,10 +51,10 @@ TSK-3100, because the unit and its skill file come from it.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: `plugins/meow-markdown/tests/test_markdown.py`
+- Failing run: `project/evidence/cfe2a8d9882c.txt`
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: 3: the gate's `prompts` and `budget` tasks hold it, and they pass before the work, so no check of it could be seen failing; 4: the pull request's reviewer reads the skill's order against RES-0111's, because the order of a prompt's sections is read, not matched
 
 ## Evidence
 
