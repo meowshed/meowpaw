@@ -9,6 +9,10 @@ __pycache__/
 # The runner writes into the plugin it evaluates, so the pattern has to reach
 # there; `evals/results/` alone is anchored to this file's own directory.
 plugins/*/evals/results/
+# A case that resumes a history gets the resumed session's transcript written
+# beside that history, under the history's session identifier.
+plugins/*/evals/*/00000000-0000-4000-8000-000000000001/
+plugins/*/evals/*/00000000-0000-4000-8000-000000000001.jsonl
 
 # The native tool: its build and the binaries each unit carries (SPC-1080)
 /target/

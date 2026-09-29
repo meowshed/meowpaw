@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-given
+description: A request carrying route none, which the session should follow without dispatching the router.
+tags: [route]
+runs: 3
+expected_outcome: The session dispatches no router, reports the route none as given and that no router ran, then fixes the typo.
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 15
+  prompt: |
+    route none. Fix the typo in docs/troubleshooting.md: its first sentence says each entry strats from the message a unit prints.

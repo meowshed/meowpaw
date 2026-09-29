@@ -13,7 +13,8 @@ don't overrule it.
 <steps name="run a step">
 1. Name the step and the identifiers of its input. The steps, in order, are
    research, requirements, design, spec, epic, cover, implement, document,
-   verify and review.
+   verify and review. The route skill, `meow-flow:route`, runs before the
+   first of them and names the step a request enters at.
 2. Read the repository's principles before producing anything: `CLAUDE.md`,
    and each file `.meowpaw/profile.toml` names under `[method] principles`.
 3. Run `${CLAUDE_SKILL_DIR}/../../bin/paw ready <step> <id>...`. On exit 1, stop and report each line it

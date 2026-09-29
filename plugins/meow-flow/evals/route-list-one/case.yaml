@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-list-one
+description: A route one given after a several-changes route, which should run the list as one change at the largest size.
+tags: [route]
+runs: 3
+expected_outcome: The session reports one change at the size full, the largest among the entries, and proceeds with no question.
+context:
+  scaffold_script: scaffold.sh
+  history_file: history.jsonl
+execution:
+  max_turns: 12
+  prompt: |
+    route one

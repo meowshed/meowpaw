@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-a-question
+description: A question in chat that changes nothing, which the session should answer without routing.
+tags: [route]
+runs: 3
+expected_outcome: The session answers the question, dispatches no router and loads no route skill.
+context:
+  scaffold_script: scaffold.sh
+execution:
+  max_turns: 10
+  prompt: |
+    What fields does the meow-flow router agent reply with?

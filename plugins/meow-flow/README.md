@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.39.5]
+describes: [meow-flow@0.40.0]
 ---
 
 # meow-flow
