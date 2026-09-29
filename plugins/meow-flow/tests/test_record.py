@@ -902,8 +902,10 @@ FILLED = """- Checks: tests/test_a_task.py
 - Judgement: 2: whether the page reads well rests on a reader"""
 
 CRITERIA = """1. Given a task, then a check passes.
+   Closed by: tests/test_a_task.py.
 2. Given a page, then it reads well.
-3. Given a table, then it is ordered as a reader expects."""
+3. Given a table, then it is ordered as a reader expects.
+   Closed by: tests/test_a_task.py."""
 
 
 class TasklessEpic(unittest.TestCase):
@@ -1174,6 +1176,49 @@ class CoverRun(unittest.TestCase):
         done = self.implement("kept/run.txt", profile=profile)
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.refused(self.implement("project/evidence/run.txt", profile=profile), "project/evidence/run.txt")
+
+
+class CoverClosedBy(unittest.TestCase):
+    """BUG-1263, REQ-3216: a criterion with no `Closed by:` line names nothing that checks it, so it is named under
+    `Judgement` with a reason whatever `Checks` lists."""
+
+    CRITERIA = ("1. Given a task, then a check passes.\n   Closed by: tests/test_a_task.py.\n"
+                "2. Given a page, then it reads well.\n"
+                "3. Given a table, then it is ordered as a reader expects.")
+
+    def implement(self, judgement):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        cover = FILLED.replace("- Judgement: 2: whether the page reads well rests on a reader", "- Judgement: " + judgement)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
+                        "## Acceptance criteria\n\n" + self.CRITERIA + "\n\n## Cover\n\n" + cover + "\n\n## Evidence")
+        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
+            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
+            (repository.path / name).write_text("A file.\n", encoding="utf-8")
+        return repository.run("ready", "implement", "TSK-0001")
+
+    def named(self, done, number):
+        return [l for l in done.stdout.splitlines() if re.search(rf"\bcriterion {number}\b", l)]
+
+    def test_a_criterion_naming_no_check_is_named_under_judgement(self):
+        """TSK-2573 criterion 1: with a check listed, criteria 2 and 3 carry no `Closed by:` and `Judgement` is none."""
+        done = self.implement("none")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        for number in ("2", "3"):
+            self.assertTrue(self.named(done, number), done.stdout)
+        self.assertFalse(self.named(done, "1"), done.stdout)
+
+    def test_a_reason_with_no_letter_is_no_reason(self):
+        """TSK-2573 criterion 2: `2: .; 3: -` names the criteria and gives no reason."""
+        done = self.implement("2: .; 3: -")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        for number in ("2", "3"):
+            self.assertTrue(any("no reason" in l for l in self.named(done, number)), done.stdout)
+
+    def test_every_criterion_named_or_closed_is_ready(self):
+        """TSK-2573 criterion 3: criterion 1 names its check, and 2 and 3 rest on judgement with a reason."""
+        done = self.implement("2: a reader decides; 3: a reader decides")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
 
 class CoverCriteria(unittest.TestCase):
