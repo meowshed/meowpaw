@@ -5,8 +5,9 @@
 //! configured, the `[verbs]` table that configuration binds, and the settings
 //! behind its verbs that are missing or have no effect (SPC-1195).
 //!
-//! The program reads the files git tracks, runs git alone and writes nothing
-//! (SPC-1190), so detection and binding start none of the tools they name.
+//! `status`, `bind` and `check` read the files git tracks, run git alone and
+//! write nothing (SPC-1190), so detection and binding start none of the tools
+//! they name. `links` runs lychee and classifies each result from its JSON.
 
 use crate::profile::{self, Profile};
 use std::collections::BTreeSet;
@@ -15,7 +16,7 @@ use yaml_rust2::{Yaml, YamlLoader};
 
 const UNRESOLVED: u8 = 3;
 const FOUND: u8 = 1;
-const USAGE: &str = "usage: meow-markdown status | bind | check";
+const USAGE: &str = "usage: meow-markdown status | bind | check | links [<input>...]";
 const KNOWN_TARGETS: [&str; 7] = [
     "github",
     "gitlab",
@@ -59,6 +60,7 @@ pub fn main(args: &[String]) -> u8 {
         ["status"] => status(),
         ["bind"] => bind(),
         ["check"] => check(),
+        ["links", inputs @ ..] => links(inputs),
         _ => {
             eprintln!("{USAGE}");
             2
@@ -355,9 +357,10 @@ fn bind() -> u8 {
 }
 
 /// The findings in the settings behind the verbs: a missing render target
-/// (REQ-2452), and a markdownlint configuration the `lint` verb lacks, ignores
-/// or never applies (REQ-2434). It reads the profile and the tracked files,
-/// and exits 1 on any finding.
+/// (REQ-2452), a markdownlint configuration the `lint` verb lacks, ignores or
+/// never applies (REQ-2434), and a link check that leaves its network
+/// behaviour undeclared (REQ-2454). It reads the profile and the tracked
+/// files, and exits 1 on any finding.
 fn check() -> u8 {
     println!("meow-markdown check");
     let corpus = match Corpus::read() {
@@ -426,7 +429,328 @@ fn findings(corpus: &Corpus) -> Vec<String> {
             ));
         }
     }
+    for finding in link_settings(corpus) {
+        if !found.contains(&finding) {
+            found.push(finding);
+        }
+    }
     found
+}
+
+/// The settings a link check must declare, by their names in `lychee.toml`.
+const LINK_SETTINGS: [&str; 3] = ["offline", "max_retries", "cache"];
+
+/// The findings for each verb that runs `lychee` or `meow-markdown links`:
+/// a setting neither its settings file nor its flags declare, a settings file
+/// that doesn't parse, and a cache the repository's ignore files leave
+/// unignored (REQ-2454).
+fn link_settings(corpus: &Corpus) -> Vec<String> {
+    let mut found = Vec::new();
+    let Some(verbs) = corpus.profile.get("verbs").and_then(toml::Value::as_table) else {
+        return found;
+    };
+    for command in verbs.values().filter_map(toml::Value::as_str) {
+        let words = words(command);
+        let direct = words.iter().any(|w| file_name(w) == "lychee");
+        let links = words
+            .windows(2)
+            .any(|pair| file_name(pair[0]) == "meow-markdown" && pair[1] == "links");
+        if !direct && !links {
+            continue;
+        }
+        let flags = if direct {
+            LinkFlags::read(&words)
+        } else {
+            LinkFlags::default()
+        };
+        let file = flags.config.clone().unwrap_or_else(|| "lychee.toml".into());
+        let mut settings = toml::Table::new();
+        if let Ok(text) = std::fs::read_to_string(corpus.root.join(&file)) {
+            match text.parse::<toml::Table>() {
+                Ok(table) => settings = table,
+                Err(error) => {
+                    let message = error.message().replace('\n', " ");
+                    found.push(format!("{file} doesn't parse as TOML: {message}"));
+                    continue;
+                }
+            }
+        }
+        for setting in LINK_SETTINGS {
+            let flagged = match setting {
+                "offline" => flags.offline,
+                "max_retries" => flags.max_retries,
+                _ => flags.cache.is_some(),
+            };
+            if !flagged && !settings.contains_key(setting) {
+                found.push(format!("link check declares no {setting}"));
+            }
+        }
+        let cached = flags
+            .cache
+            .unwrap_or_else(|| settings.get("cache").and_then(toml::Value::as_bool) == Some(true));
+        if cached && !ignored(&corpus.root, ".lycheecache") {
+            found.push(".lycheecache isn't ignored".to_string());
+        }
+    }
+    found
+}
+
+/// What a `lychee` command's own flags declare (RES-0294): `--offline`,
+/// `--max-retries` and `--cache`, the last two with an optional value, and
+/// the settings file `--config` names.
+#[derive(Default)]
+struct LinkFlags {
+    offline: bool,
+    max_retries: bool,
+    /// Whether the flags turn the cache on, where they set it at all.
+    cache: Option<bool>,
+    config: Option<String>,
+}
+
+impl LinkFlags {
+    fn read(words: &[&str]) -> LinkFlags {
+        let mut flags = LinkFlags::default();
+        for (i, word) in words.iter().enumerate() {
+            let (name, value) = match word.split_once('=') {
+                Some((name, value)) => (name, Some(value)),
+                None => (*word, None),
+            };
+            match name {
+                "--offline" => flags.offline = true,
+                "--max-retries" => flags.max_retries = true,
+                "--cache" => flags.cache = Some(value != Some("false")),
+                "--config" | "-c" => {
+                    flags.config = value
+                        .map(str::to_string)
+                        .or_else(|| words.get(i + 1).map(|w| w.to_string()));
+                }
+                _ => {}
+            }
+        }
+        flags
+    }
+}
+
+/// Whether an ignore file the repository holds ignores `path`. A global
+/// excludes file and `.git/info/exclude` protect one clone only, so they
+/// don't count.
+fn ignored(root: &std::path::Path, path: &str) -> bool {
+    let Ok(done) = profile::reading_git()
+        .args(["check-ignore", "--verbose", "--", path])
+        .current_dir(root)
+        .output()
+    else {
+        return false;
+    };
+    let text = String::from_utf8_lossy(&done.stdout);
+    text.lines().any(|line| {
+        let mut parts = line.splitn(3, ':');
+        let (Some(source), Some(_), Some(rest)) = (parts.next(), parts.next(), parts.next()) else {
+            return false;
+        };
+        let pattern = rest.split('\t').next().unwrap_or("");
+        !source.is_empty()
+            && !source.starts_with(".git/")
+            && !std::path::Path::new(source).is_absolute()
+            && !pattern.starts_with('!')
+    })
+}
+
+/// The maps `links` reads from lychee's JSON, and the ones it knows and passes
+/// over: a success, a redirect that resolved, and a suggestion for an address
+/// already in `error_map` (RES-0294).
+const READ_MAPS: [&str; 3] = ["error_map", "timeout_map", "excluded_map"];
+const KNOWN_MAPS: [&str; 6] = [
+    "success_map",
+    "error_map",
+    "timeout_map",
+    "suggestion_map",
+    "redirect_map",
+    "excluded_map",
+];
+
+/// How `links` classifies one result (SPC-1195).
+#[derive(Clone, Copy, PartialEq)]
+enum Class {
+    Finding,
+    Unreachable,
+    Unresolved,
+    Skipped,
+}
+
+impl Class {
+    fn label(self) -> &'static str {
+        match self {
+            Class::Finding => "finding",
+            Class::Unreachable => "unreachable",
+            Class::Unresolved => "unresolved",
+            Class::Skipped => "skipped",
+        }
+    }
+}
+
+/// Runs lychee from the root and classifies each result from its JSON, never
+/// from its exit status, because lychee exits 2 for a timeout as for a broken
+/// link (RES-0294, REQ-2438). It exits 1 on any finding, 3 where none is and
+/// anything is unreachable, unresolved, absent or broken, and 0 otherwise.
+fn links(inputs: &[&str]) -> u8 {
+    println!("meow-markdown links");
+    let corpus = match Corpus::read() {
+        Ok(corpus) => corpus,
+        Err(reason) => {
+            println!("unresolved: {reason}");
+            return UNRESOLVED;
+        }
+    };
+    let inputs: Vec<&str> = if inputs.is_empty() {
+        vec!["**/*.md"]
+    } else {
+        inputs.to_vec()
+    };
+    let ran = std::process::Command::new("lychee")
+        .args(["--format", "json", "--no-progress", "--"])
+        .args(&inputs)
+        .current_dir(&corpus.root)
+        .stdin(std::process::Stdio::null())
+        .output();
+    let done = match ran {
+        Ok(done) => done,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            println!("tool absent: lychee");
+            return UNRESOLVED;
+        }
+        Err(error) => {
+            println!("tool broken: lychee didn't start: {error}");
+            return UNRESOLVED;
+        }
+    };
+    if !matches!(done.status.code(), Some(0 | 2)) {
+        let said = String::from_utf8_lossy(&done.stderr);
+        let said = said
+            .lines()
+            .find(|l| !l.trim().is_empty())
+            .unwrap_or("")
+            .trim();
+        let status = done
+            .status
+            .code()
+            .map_or("no exit status".to_string(), |code| {
+                format!("exit status {code}")
+            });
+        println!("tool broken: lychee ended with {status}, checking nothing: {said}");
+        return UNRESOLVED;
+    }
+    let results = match classify(&done.stdout, &corpus.root) {
+        Ok(results) => results,
+        Err(reason) => {
+            println!("tool broken: lychee printed {reason}");
+            return UNRESOLVED;
+        }
+    };
+    for (class, heading) in [
+        (Class::Finding, "findings"),
+        (Class::Unreachable, "unreachable, so not checked"),
+        (Class::Unresolved, "unresolved, matching no class"),
+    ] {
+        let lines: Vec<&String> = results
+            .iter()
+            .filter(|(c, _)| *c == class)
+            .map(|(_, line)| line)
+            .collect();
+        if !lines.is_empty() {
+            println!("{heading}:");
+            for line in lines {
+                println!("  {line}");
+            }
+        }
+    }
+    let skipped: Vec<&String> = results
+        .iter()
+        .filter(|(c, _)| *c == Class::Skipped)
+        .map(|(_, line)| line)
+        .collect();
+    if !skipped.is_empty() {
+        println!("skipped, never checked: {}", skipped.len());
+        for line in skipped {
+            println!("  {line}");
+        }
+    }
+    let any = |class| results.iter().any(|(c, _)| *c == class);
+    if any(Class::Finding) {
+        FOUND
+    } else if any(Class::Unreachable) || any(Class::Unresolved) {
+        UNRESOLVED
+    } else {
+        println!("every checked link resolved");
+        0
+    }
+}
+
+/// Each result in lychee's JSON with its class and the line that reports it,
+/// or what made the output unreadable.
+fn classify(stdout: &[u8], root: &std::path::Path) -> Result<Vec<(Class, String)>, String> {
+    let json: serde_json::Value =
+        serde_json::from_slice(stdout).map_err(|_| "output that isn't JSON".to_string())?;
+    let Some(report) = json.as_object() else {
+        return Err("JSON that isn't an object".into());
+    };
+    for key in report.keys().filter(|k| k.ends_with("_map")) {
+        if !KNOWN_MAPS.contains(&key.as_str()) {
+            return Err(format!("{key}, a map links doesn't know"));
+        }
+    }
+    let mut results = Vec::new();
+    for map in READ_MAPS {
+        let Some(sources) = report.get(map).and_then(serde_json::Value::as_object) else {
+            return Err(format!("no {map}"));
+        };
+        for (source, entries) in sources {
+            let source = shown(source, root);
+            for entry in entries.as_array().into_iter().flatten() {
+                let url = entry["url"].as_str().unwrap_or("");
+                let status = &entry["status"];
+                let text = status["text"].as_str().unwrap_or("");
+                let class = match map {
+                    "timeout_map" => Class::Unreachable,
+                    "excluded_map" => Class::Skipped,
+                    _ => error_class(url, status),
+                };
+                let at = entry["span"]["line"]
+                    .as_u64()
+                    .map_or(String::new(), |line| format!(":{line}"));
+                results.push((
+                    class,
+                    format!("{}: {source}{at}: {url}: {text}", class.label()),
+                ));
+            }
+        }
+    }
+    Ok(results)
+}
+
+/// The class of an entry in `error_map`, from its address and its status.
+fn error_class(url: &str, status: &serde_json::Value) -> Class {
+    match status["code"].as_u64() {
+        Some(500..=599 | 429 | 408 | 401 | 403) => Class::Unreachable,
+        Some(400..=499) => Class::Finding,
+        Some(_) => Class::Unresolved,
+        None if url.starts_with("file://")
+            && status["text"]
+                .as_str()
+                .is_some_and(|t| t.starts_with("File not found")) =>
+        {
+            Class::Finding
+        }
+        None if url.starts_with("http://") || url.starts_with("https://") => Class::Unreachable,
+        None => Class::Unresolved,
+    }
+}
+
+/// An input as lychee named it, relative to the root where it lies inside.
+fn shown(source: &str, root: &std::path::Path) -> String {
+    std::path::Path::new(source)
+        .strip_prefix(root)
+        .map_or(source.to_string(), |p| p.to_string_lossy().into_owned())
 }
 
 /// The directory a tracked path lies in, empty at the root.
@@ -441,11 +765,16 @@ fn is_cli2(path: &str) -> bool {
 /// The name of each program a shell command runs or passes as a word, by its
 /// last path component, so `npx markdownlint-cli2` and a path both count.
 fn programs(command: &str) -> Vec<&str> {
+    words(command).into_iter().map(file_name).collect()
+}
+
+/// A shell command's words, split at white space and the shell's `;`, `&`,
+/// `|`, `(` and `)`, with their quotes removed.
+fn words(command: &str) -> Vec<&str> {
     command
         .split(|c: char| c.is_whitespace() || ";&|()".contains(c))
         .map(|word| word.trim_matches(['\'', '"']))
         .filter(|word| !word.is_empty())
-        .map(file_name)
         .collect()
 }
 

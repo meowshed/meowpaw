@@ -2,7 +2,7 @@
 id: TSK-3120
 artifact: task
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 epic: EPC-1800
 closes: [REQ-2438, REQ-2454]
 issue: 636
@@ -70,7 +70,7 @@ since both add to `check`.
 
 - Checks: `plugins/meow-markdown/tests/test_markdown.py`
 - Failing run: `project/evidence/9ef867a56681.txt`
-- Landed in: not yet
+- Landed in: #671
 - Judgement: 5: CI has no lychee, so the check reports itself as skipped there, and only a kept run with lychee 0.24.2 on `PATH` shows it passing
 
 The checks are `Links.test_criterion_1_*` to `test_criterion_5_*` for criteria
@@ -83,7 +83,38 @@ criterion 5 check ran and failed rather than skipping.
 
 ## Evidence
 
-Not yet.
+`crates/meow/src/markdown.rs` gains `links`: it runs
+`lychee --format json --no-progress -- <inputs>` at the root, reports
+`tool absent` where lychee isn't on `PATH` and `tool broken` where lychee exits
+anything but 0 or 2 or prints JSON without the maps it reads, and classifies
+each entry from the JSON alone. `check` gains the link check's settings: for
+each verb running `lychee` or `meow-markdown links` it reads `lychee.toml`, or
+the file `--config` names, and a direct `lychee` command's flags, and reports
+each of `offline`, `max_retries` and `cache` left undeclared, a settings file
+that doesn't parse, and a cache that `git check-ignore --verbose` finds no
+repository ignore file covering. `meow-markdown` is 0.3.0, and its README,
+the launcher's usage line and SPC-1195 say how `links` classifies and prints.
+
+The 13 checks failed first, in the cover commit 97915b4, kept as
+`project/evidence/9ef867a56681.txt`. They pass now, unchanged, since
+`git diff 97915b4 -- plugins/meow-markdown/tests/test_markdown.py` prints
+nothing:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-markdown/tests
+Ran 40 tests
+OK (skipped=1)                                   # exit 0; criterion 5 skips, no lychee
+$ PATH=<lychee 0.24.2>:$PATH python3 -m unittest -v test_markdown.Links test_markdown.LinkSettings
+Ran 13 tests
+OK                                               # exit 0; criterion 5 ran against lychee 0.24.2
+$ plugins/meow-markdown/bin/meow-markdown check   # in this repository
+meow-markdown check
+no findings                                      # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 
