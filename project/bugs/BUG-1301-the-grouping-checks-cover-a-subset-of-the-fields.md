@@ -66,6 +66,9 @@ reproduction's changes.
 
 ## Tasks
 
-- [ ] T-001 TSK-2930 check every grouping field on every kind and the shape
+- [x] T-001 TSK-2930 check every grouping field on every kind and the shape
       of every tracker call, in `plugins/meow-flow/tests/test_record.py` and
       `plugins/meow-github/tests/test_github.py`
+      evidence: 15 checks seen failing against the reproduction's changes,
+      214 `meow-flow` record fixtures and 14 `meow-github` fixtures passing,
+      in #691.
