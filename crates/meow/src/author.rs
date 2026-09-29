@@ -26,6 +26,9 @@ const MODEL_ALIASES: [&str; 4] = ["sonnet", "opus", "haiku", "fable"];
 const EFFORTS: [&str; 5] = ["low", "medium", "high", "xhigh", "max"];
 /// The tools that dispatch another agent, `Task` being the older name.
 const DISPATCHING: [&str; 2] = ["Agent", "Task"];
+/// The four outcomes an agent a unit ships reports (SPC-1030 "What an agent
+/// reports", REQ-0816).
+const OUTCOMES: [&str; 4] = ["DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED"];
 
 pub fn main(args: &[String]) -> u8 {
     match args.split_first() {
@@ -93,6 +96,9 @@ fn check(paths: &[String]) -> u8 {
             }
             if is_agent {
                 failures.extend(agent_fields(&text, &where_, shipped));
+            }
+            if is_agent && shipped {
+                failures.extend(missing_outcomes(&text, &where_));
             }
             if is_core {
                 failures.extend(unnamed_files(&root, &path, &text));
@@ -231,6 +237,27 @@ fn agent_fields(text: &str, where_: &str, shipped: bool) -> Vec<String> {
         Some(_) => fail("skills", "is not a list of skill names"),
     }
     out
+}
+
+/// One failure for each of the four outcomes an agent's body doesn't name,
+/// each read as a whole word, so `DONE_WITH_CONCERNS` doesn't name `DONE`
+/// (SPC-1030 "The check", REQ-0816). Only an agent a unit ships is read,
+/// because a repository's own agent follows no outcome rule.
+fn missing_outcomes(text: &str, where_: &str) -> Vec<String> {
+    let (body, _) = body(text);
+    OUTCOMES
+        .iter()
+        .filter(|word| {
+            let whole = Regex::new(&format!(r"(^|[^A-Za-z_]){word}($|[^A-Za-z_])"))
+                .expect("outcome pattern");
+            !whole.is_match(body)
+        })
+        .map(|word| {
+            format!(
+                "{where_}: its body doesn't name the outcome {word}, where an agent a unit ships names all four it may report"
+            )
+        })
+        .collect()
 }
 
 /// The tool names a `tools` value holds, read as a YAML list or as a
@@ -671,5 +698,68 @@ mod tests {
             unanchored_paths("<steps>\n1. Run `../../bin/x`.\n</steps>", "x").len(),
             1
         );
+    }
+
+    /// An agent declaring the six fields SPC-1030 states, with `role` as its
+    /// body, so the outcome rule is the only one it can fail.
+    fn outcome_agent(role: &str) -> String {
+        format!(
+            "---\nname: reviewer\ndescription: Reviews the demo and reports findings, editing nothing.\n\
+             tools: [Read, Grep, Glob]\nmaxTurns: 30\nmodel: opus\neffort: high\n\
+             omitClaudeMd: false\nskills: []\n---\n\n<role>\n{role}\n</role>\n"
+        )
+    }
+
+    /// `meow-author check`'s exit status over one agent written at
+    /// `agents/reviewer.md` inside `unit`, which sits in a scratch directory.
+    fn check_agent(case: &str, unit: &str, role: &str) -> u8 {
+        let dir = std::env::temp_dir().join(format!("meow-author-{case}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let agents = dir.join(unit).join("agents");
+        std::fs::create_dir_all(&agents).unwrap();
+        std::fs::write(agents.join("reviewer.md"), outcome_agent(role)).unwrap();
+        let status = check(&[dir.join(unit).display().to_string()]);
+        let _ = std::fs::remove_dir_all(&dir);
+        status
+    }
+
+    const ALL_FOUR: &str = "You review the demo and end with outcome: DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT or BLOCKED.";
+
+    #[test]
+    fn a_unit_agent_naming_no_outcome_fails() {
+        // TSK-2702 criterion 1, REQ-0816: a unit's agent naming none of the
+        // four outcomes fails (SPC-1030 "The check").
+        assert_eq!(
+            check_agent("none", "plugins/meow-demo", "You review the demo."),
+            FOUND
+        );
+    }
+
+    #[test]
+    fn a_unit_agent_missing_only_blocked_fails() {
+        // TSK-2702 criterion 1, REQ-0816: a unit's agent naming three of the
+        // four outcomes, all but BLOCKED, fails.
+        assert_eq!(
+            check_agent(
+                "three",
+                "plugins/meow-demo",
+                "You review the demo and end with outcome: DONE, DONE_WITH_CONCERNS or NEEDS_CONTEXT."
+            ),
+            FOUND
+        );
+    }
+
+    #[test]
+    fn a_unit_agent_naming_all_four_passes() {
+        // TSK-2702 criterion 1, REQ-0816: a unit's agent naming all four
+        // outcomes passes.
+        assert_eq!(check_agent("four", "plugins/meow-demo", ALL_FOUR), CLEAN);
+    }
+
+    #[test]
+    fn a_repository_agent_naming_no_outcome_passes() {
+        // TSK-2702 criterion 1, REQ-0816: a repository's own agent under
+        // `.claude/agents/` isn't read for the outcome rule.
+        assert_eq!(check_agent("own", ".claude", "You review the demo."), CLEAN);
     }
 }

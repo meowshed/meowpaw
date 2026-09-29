@@ -2308,6 +2308,33 @@ def flat(text):
     return re.sub(r"\s+", " ", re.sub(r"#+\s*", "", text.replace("`", ""))).lower().strip()
 
 
+OUTCOMES = ("DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED")
+
+
+def word_in(word, text):
+    """Whether `text` names the outcome `word` as a whole word, so DONE_WITH_CONCERNS doesn't name DONE."""
+    return re.search(rf"(?<![A-Za-z_]){word}(?![A-Za-z_])", text) is not None
+
+
+def outcomes_named(text):
+    return {w for w in OUTCOMES if word_in(w, text)}
+
+
+def sentences(text):
+    """Each sentence of a prompt, with a list item and a table row each ending one, white space made single and
+    backticks dropped, so a rule is read clause by clause whether it is prose, a list or a table."""
+    out = []
+    for part in re.split(r"\n(?=\s*(?:[-|*]|\d+\.)\s)|\n\s*\n", text):
+        part = re.sub(r"\s+", " ", part.replace("`", "")).strip()
+        out.extend(s for s in re.split(r"(?<=[.;])\s+", part) if s)
+    return out
+
+
+def together(text, word, pattern):
+    """Whether one sentence of `text` names the outcome `word` and matches `pattern`, ignoring case."""
+    return any(word_in(word, s) and re.search(pattern, s, re.IGNORECASE) for s in sentences(text))
+
+
 def tagged(text, tag):
     found = re.search(rf"<{tag}\b[^>]*>(.*?)</{tag}>", text, re.DOTALL)
     return found.group(1) if found else ""
@@ -2482,6 +2509,64 @@ class MethodSkill(unittest.TestCase):
         beside = {idents[i] for i in (idents.index("M22") - 1, idents.index("M22") + 1) if 0 <= i < len(idents)}
         self.assertTrue(beside & set(matching), f"the rule {matching} isn't beside M22")
 
+    def test_the_skill_acts_on_the_reviewers_outcome(self):
+        """TSK-2702 criterion 4, REQ-0816, SPC-1090 "The review before a gate": a rule beside M22 and M23 acts on
+        each of the four outcomes by the table's row, dispatches once more after NEEDS_CONTEXT and no more, reads
+        the line allowing leading space, and reports a return with no outcome line as unreviewed by an agent."""
+        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
+        items = re.findall(r"^- (M\d+)\.\s(.*?)(?=^- M\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
+        idents = [ident for ident, _ in items]
+        self.assertIn("M22", idents)
+        self.assertIn("M23", idents)
+        acting = [(ident, body) for ident, body in items if "outcome" in body and "NEEDS_CONTEXT" in body]
+        self.assertTrue(acting, "no rule in the method skill acts on the reviewer's outcome")
+        near = {idents[i] for anchor in ("M22", "M23") for i in (idents.index(anchor) - 1, idents.index(anchor) + 1)
+                if 0 <= i < len(idents)} - {"M22", "M23"}
+        self.assertTrue(near & {ident for ident, _ in acting}, f"the rules {[i for i, _ in acting]} aren't beside M22 and M23")
+        rule = "\n".join(body for _, body in acting)
+        self.assertEqual(outcomes_named(rule), set(OUTCOMES))
+        for word, pattern, what in (
+            ("DONE", r"finding", "DONE acts on the findings"),
+            ("DONE_WITH_CONCERNS", r"gate report", "DONE_WITH_CONCERNS names the part that didn't run in the gate report"),
+            ("NEEDS_CONTEXT", r"\bbrief\b", "NEEDS_CONTEXT corrects the brief"),
+            ("NEEDS_CONTEXT", r"once more|one more|again|second dispatch|dispatch(es)? (a|one) second", "NEEDS_CONTEXT dispatches once more"),
+            ("NEEDS_CONTEXT", r"\bround\b", "the second dispatch doesn't count as a repair round"),
+            ("BLOCKED", r"unreviewed by an agent", "BLOCKED leaves the record unreviewed by an agent"),
+            ("BLOCKED", r"\btool\b", "BLOCKED names the tool"),
+        ):
+            with self.subTest(what=what):
+                self.assertTrue(together(rule, word, pattern), what)
+        with self.subTest(what="a second NEEDS_CONTEXT ends it, unreviewed, naming the brief sent"):
+            self.assertTrue(any(re.search(r"\b(second|another|again)\b", s, re.I) and "unreviewed by an agent" in s.lower()
+                                and "brief" in s.lower() for s in sentences(rule) if word_in("NEEDS_CONTEXT", s)), rule)
+        with self.subTest(what="leading space"):
+            self.assertRegex(flat(rule), r"leading (white ?)?space")
+        with self.subTest(what="no outcome line is unreviewed by an agent"):
+            self.assertTrue(any("no outcome line" in s.lower() and "unreviewed by an agent" in s.lower()
+                                for s in sentences(rule)), rule)
+
+    def test_the_review_step_dispatches_the_two_reviewers(self):
+        """TSK-2702 criterion 5, REQ-0816, SPC-1090 "The review before a gate": W13 dispatches record-reviewer for
+        each record and prose for each other prose text, names each by its path or as text, keeps a read-only
+        agent for the code, and reports a review with no outcome line as not run."""
+        text = self.step("review")
+        found = re.search(r"^- W13\.\s(.*?)(?=^- W\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(found, "the review step has no W13")
+        rule = found.group(1)
+        whole = flat(rule)
+        for pattern, what in (
+            (r"record-reviewer[^.;]*\beach record|\beach record[^.;]*record-reviewer", "record-reviewer for each record"),
+            (r"\bprose\b[^.;]*\bother prose text|\bother prose text[^.;]*\bprose\b", "prose for each other prose text"),
+            (r"\bby its path\b|\bits path\b", "each named by its path"),
+            (r"\bas text\b", "a text with no file goes in the brief as text"),
+            (r"\bread-only\b[^.;]*\bcode\b|\bcode\b[^.;]*\bread-only\b", "a read-only agent for the code"),
+        ):
+            with self.subTest(what=what):
+                self.assertRegex(whole, pattern)
+        with self.subTest(what="no outcome line is not run"):
+            self.assertTrue(any("no outcome line" in s.lower() and re.search(r"\bnot run\b", s.lower())
+                                for s in sentences(rule)), rule)
+
     def chain(self, text):
         block = next(b for b in re.findall(r"```text\n(.*?)```", text, re.DOTALL) if "research ->" in b)
         return tuple(name.strip() for name in block.split("->")), text.split(block, 1)[0]
@@ -2498,6 +2583,80 @@ class MethodSkill(unittest.TestCase):
         introduction = before.rstrip().removesuffix("```text").rstrip().rsplit("\n\n", 1)[-1].lower()
         self.assertNotRegex(introduction, r"\bnine\b")
         self.assertRegex(introduction, r"\bten\b")
+
+
+AGENTS = UNIT / "agents"
+
+
+class AgentReports(unittest.TestCase):
+    """TSK-2702 criterion 3, REQ-0816, SPC-1030 "What an agent reports" and SPC-1090's rows for each agent:
+    `record-reviewer` and `router` state when they report each outcome and where the outcome and cause go, and
+    `record-reviewer` quotes no more than the span a finding names, 25 words at most."""
+
+    def agent(self, name):
+        return (AGENTS / f"{name}.md").read_text(encoding="utf-8").split("---\n", 2)[2]
+
+    def when(self, text, rows):
+        for word, pattern in rows:
+            with self.subTest(outcome=word):
+                self.assertTrue(together(text, word, pattern), f"no sentence says when {word} is reported ({pattern})")
+
+    def test_the_reviewer_names_the_four_outcomes(self):
+        """TSK-2702 criterion 3, REQ-0816: record-reviewer names DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT and BLOCKED."""
+        self.assertEqual(outcomes_named(self.agent("record-reviewer")), set(OUTCOMES))
+
+    def test_the_reviewer_says_when_it_reports_each_outcome(self):
+        """TSK-2702 criterion 3, REQ-0816, SPC-1090 "The review before a gate": DONE after every question, whatever
+        it found; DONE_WITH_CONCERNS where a cited record couldn't be reached or the kind has no question set;
+        NEEDS_CONTEXT where the path doesn't exist or holds no record; BLOCKED where a tool call was denied."""
+        self.when(self.agent("record-reviewer"), (
+            ("DONE", r"every question"),
+            ("DONE_WITH_CONCERNS", r"reach|no (question )?set|could ?n.t run|did ?n.t run"),
+            ("NEEDS_CONTEXT", r"exist|no record|names nothing"),
+            ("BLOCKED", r"denied"),
+        ))
+
+    def test_the_reviewers_outcome_is_its_second_line_and_the_cause_its_third(self):
+        """TSK-2702 criterion 3, REQ-0816, SPC-1030 "What an agent reports": the outcome line goes second, below the
+        fixed label, and the cause third."""
+        text = self.agent("record-reviewer")
+        self.assertTrue(any("outcome:" in s and re.search(r"second line", s, re.I) for s in sentences(text)),
+                        "no sentence puts outcome: on the second line")
+        self.assertTrue(any(re.search(r"\bcause\b", s, re.I) and re.search(r"third line", s, re.I) for s in sentences(text)),
+                        "no sentence puts the cause on the third line")
+        self.assertIn("Agent review, not a person's approval; the reviewer may share the author's model family.", text)
+
+    def test_the_reviewer_quotes_no_more_than_the_span(self):
+        """TSK-2702 criterion 3, REQ-0816, SPC-1030 "What an agent reports": record-reviewer quotes nothing beyond
+        the span a finding names, 25 words at most."""
+        text = self.agent("record-reviewer")
+        self.assertTrue(any(re.search(r"\bquot", s, re.I) and re.search(r"\bspan\b", s, re.I) and re.search(r"\b25 words\b", s)
+                            for s in sentences(text)), "no rule limits a quotation to the finding's span, 25 words at most")
+
+    def test_the_router_names_the_four_outcomes(self):
+        """TSK-2702 criterion 3, REQ-0816: router names DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT and BLOCKED."""
+        self.assertEqual(outcomes_named(self.agent("router")), set(OUTCOMES))
+
+    def test_the_router_says_when_it_reports_each_outcome(self):
+        """TSK-2702 criterion 3, REQ-0816, SPC-1090 "The route": DONE where every change has a size and a shape;
+        DONE_WITH_CONCERNS where a file or index its steps name couldn't be found; NEEDS_CONTEXT where the request
+        names no change it can route; BLOCKED where a tool call was denied."""
+        self.when(self.agent("router"), (
+            ("DONE", r"size and (a )?shape|every change"),
+            ("DONE_WITH_CONCERNS", r"could ?n.t (be )?f(ou)?nd|not found|missing"),
+            ("NEEDS_CONTEXT", r"no change|names nothing|nothing (it|you) can route"),
+            ("BLOCKED", r"denied"),
+        ))
+
+    def test_the_routers_first_field_is_outcome_and_cause_follows_it(self):
+        """TSK-2702 criterion 3, REQ-0816, SPC-1030 "What an agent reports": the router's first field is outcome:,
+        before size:, and a cause: field follows it."""
+        fields = re.findall(r"^\s*- `([a-z ]+):`", tagged(self.agent("router"), "rules"), re.MULTILINE)
+        self.assertTrue(fields, "the router's rules list no fields")
+        self.assertEqual(fields[0], "outcome", fields)
+        self.assertIn("cause", fields)
+        self.assertLess(fields.index("outcome"), fields.index("cause"))
+        self.assertLess(fields.index("outcome"), fields.index("size"))
 
 
 if __name__ == "__main__":

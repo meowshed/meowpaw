@@ -51,11 +51,18 @@ it up is none, the chain ends here.
 - W12. Judge each changed page against the kind it names, and report a page
   that serves two kinds or a how-to that justifies itself as a finding,
   because no program can tell a page's kind from its text.
-- W13. Where this session produced the work under review, dispatch the review
-  to an agent with read-only tools, naming what to review and not who wrote
-  it, and where none can be dispatched, report the verdict as self-assessed,
-  because a model judging its own output is biased in a direction capability
-  doesn't correct.
+- W13. Where this session produced the work under review, dispatch
+  `meow-flow:record-reviewer` for each record the change writes and
+  `meow-prose:prose` for each other prose text in it, such as a page, a commit
+  message or a pull request body, naming each by its path alone, or as text
+  where it exists in no file, and not who wrote it, because a model judging
+  its own output is biased in a direction capability doesn't correct. Read
+  each of the two agents' outcome as the method skill's M24 says, with the
+  text in place of the record, and report a `BLOCKED` review, or one with no
+  outcome line from the set, as not run, never as self-assessed or passed.
+  Dispatch the review of the code to an agent with read-only tools that you
+  pick, read its return as a verdict, because it follows no outcome rule, and
+  where no agent can be dispatched, report that verdict as self-assessed.
 - W14. Name the verdict as an agent's, never as a person's approval, because
   an agent covers more than a person and can't answer whether the work should
   exist.
