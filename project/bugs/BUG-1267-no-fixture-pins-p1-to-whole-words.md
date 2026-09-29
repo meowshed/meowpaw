@@ -59,6 +59,8 @@ with its word boundaries removed.
 
 ## Tasks
 
-- [ ] T-001 TSK-2577 pin P1 to whole words, in
+- [x] T-001 TSK-2577 pin P1 to whole words, in
       `plugins/meow-prose-gate/tests/test_gate.py` and
       `crates/meow/src/prose.rs`
+      evidence: both checks seen failing against P1 without word
+      boundaries, 34 `meow-prose-gate` fixtures passing, in #720.

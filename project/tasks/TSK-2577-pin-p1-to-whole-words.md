@@ -43,14 +43,45 @@ Nothing. BUG-1267 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-prose-gate/tests/test_gate.py,
+  crates/meow/src/prose.rs
+- Failing run: project/evidence/861cbef48d99.txt
+- Landed in: #720
+- Judgement: none
+
+The failing run is the `test` verb against P1 with its two `\b` removed in
+the working tree, never committed. The verb stops at the crate's tests, so the
+kept run shows the Rust check failing and not the Python one. I ran the Python
+fixture against the same build by hand, as the Evidence section records.
 
 ## Evidence
 
-Not yet.
+`ReadableTexts.test_an_idiom_inside_longer_words_passes` in
+`plugins/meow-prose-gate/tests/test_gate.py` and
+`an_idiom_inside_longer_words_is_no_finding` in `crates/meow/src/prose.rs`
+each hold `circle backend`, `deep diver` and `undercircle back` and expect no
+finding. The program is unchanged.
+
+Against P1 with its word boundaries removed, the `test` verb exited 1 with
+`an_idiom_inside_longer_words_is_no_finding --- FAILED` and
+`test result: FAILED. 38 passed; 1 failed`, kept as
+`project/evidence/861cbef48d99.txt`. The Python fixture failed against the
+same build:
+
+```text
+$ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests
+FAIL: test_an_idiom_inside_longer_words_passes
+  (2, 'P1 | "circle back" | ...', '') != (0, '', '')
+Ran 34 tests
+FAILED (failures=1)                # exit 1
+```
+
+With `rule_p1` restored and the units rebuilt, both pass: the same command
+prints `Ran 34 tests` and `OK`, exit 0.
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 
