@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-markdown@0.4.0]
+describes: [meow-markdown@0.4.1]
 ---
 
 # meow-markdown
@@ -48,8 +48,9 @@ every repository has one.
    declared and unknown to the skill.
 3. Each markdownlint configuration file git tracks, by directory, with the
    front ends that read it. markdownlint-cli2 alone reads a
-   `.markdownlint-cli2.*` file, and markdownlint-cli2 and markdownlint-cli both
-   read a `.markdownlint.*` file.
+   `.markdownlint-cli2.*` file, markdownlint-cli2 and markdownlint-cli both
+   read a `.markdownlint.*` file, and markdownlint-cli alone reads a
+   `.markdownlintrc`, when it runs in that file's directory.
 4. Each other tool it recognises: prettier, mdformat, remark-lint, textlint,
    lychee and a site generator's configuration.
 5. Where `lychee.toml` sets `cache = true`, a line saying lychee writes
@@ -77,6 +78,7 @@ Each verb takes the first binding that applies:
 | `format` | `prettier --check '**/*.md'`   | A `.prettierrc*`, a `prettier.config.*` or a `package.json` with a `prettier` key |
 | `format` | `mdformat --check .`           | A `.mdformat.toml`                                                                |
 | `lint`   | `markdownlint-cli2 '**/*.md'`  | A `.markdownlint-cli2.*` or `.markdownlint.*` file                                |
+| `lint`   | `markdownlint '**/*.md'`       | A `.markdownlintrc` at the root, which markdownlint-cli2 ignores                  |
 | `lint`   | `meow-markdown check`          | No linter configuration of any kind                                               |
 | `check`  | nothing, printed as unresolved | Always, since Markdown has no types                                               |
 | `test`   | `meow-markdown links`          | A `lychee.toml`                                                                   |
