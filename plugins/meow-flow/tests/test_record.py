@@ -2088,7 +2088,7 @@ class Dependencies(unittest.TestCase):
             entries = ["- [ ] T-001 TSK-0002 the second task\n      closes: REQ-0001",
                        "- [ ] T-002 TSK-0001 the task\n      closes: REQ-0001"]
         repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n" + "\n\n".join(entries))
-        for name in ("tests/test_a_task.py", "evidence/a-failing-run.txt"):
+        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
             path = repository.path / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("A file.\n", encoding="utf-8")

@@ -72,5 +72,5 @@ under the directory `[verbs] evidence_dir` declares, accepted.
 
 - [x] T-001 TSK-2572 refuse a Failing run outside the evidence directory or
       ignored by git, in `crates/meow/src/record.rs`
-      evidence: 3 checks seen failing first, 196 `meow-flow` fixtures
+      evidence: 3 checks seen failing first, 206 `meow-flow` fixtures
       passing, in #666.

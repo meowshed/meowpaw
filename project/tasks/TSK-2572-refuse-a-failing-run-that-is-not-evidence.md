@@ -69,8 +69,9 @@ Nothing. BUG-1262 is approved.
 a file in the repository. It refuses a run outside the evidence directory,
 which `evidence_dir` reads from `[verbs] evidence_dir` or places at `evidence`
 under the record root, and a run `git check-ignore` reports as ignored. The
-fixtures' failing run moved from `evidence/` to `project/evidence/`, and
-SPC-1090's section "The gate" states the rule. `meow-flow` goes to 0.36.1.
+fixtures' failing run moved from `evidence/` to `project/evidence/`,
+including the `Dependencies` fixture #662 added, and
+SPC-1090's section "The gate" states the rule. `meow-flow` goes to 0.37.1.
 
 The three checks in the class `CoverRun` failed first: `meow-verbs run test`
 exited 1 with `FAILED (failures=3)`, kept as
@@ -79,7 +80,7 @@ They pass now:
 
 ```text
 $ python3 -m unittest test_record    # in plugins/meow-flow/tests
-Ran 196 tests
+Ran 206 tests
 OK                                   # exit 0
 ```
 
