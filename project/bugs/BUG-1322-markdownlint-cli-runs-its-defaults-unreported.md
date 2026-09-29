@@ -59,5 +59,7 @@ in the class `MarkdownlintCliDefaults`.
 
 ## Tasks
 
-- [ ] T-001 TSK-3160 report markdownlint-cli running its defaults, in
+- [x] T-001 TSK-3160 report markdownlint-cli running its defaults, in
       `crates/meow/src/markdown.rs`
+      evidence: 3 cases seen failing first, 54 `meow-markdown` fixtures
+      passing, in #703.
