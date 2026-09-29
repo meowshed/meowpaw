@@ -1,7 +1,7 @@
 {
   "name": "meow-flow",
-  "version": "0.39.5",
-  "description": "Runs the method's ten steps from research to review, each refused by a native program until its input is approved, drives them to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it. It keeps up to 625 characters in context on every turn.",
+  "version": "0.40.0",
+  "description": "Runs the method's ten steps from research to review, each refused by a native program until its input is approved, routes each request before work starts, drives the steps to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it. It keeps up to 960 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"

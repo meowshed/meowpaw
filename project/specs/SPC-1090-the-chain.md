@@ -349,8 +349,11 @@ ADR-2200 adds the skeptic that tries to refute each
 requirement an epic claims before its verification is recorded, and the draft
 defect verification writes for each refutation it confirms; no epic realises
 it yet, so the verify step dispatches no skeptic and writes no defect today.
-ADR-2100 decides the route, and EPC-2000 realises it. The router ships, and
-until the `route` skill that dispatches it lands, a request starts unrouted.
+ADR-2100 decides the route, and EPC-2000 realises it: the `route` skill
+dispatches the router and reports the route before any edit, and the method
+skill and this repository's `CLAUDE.md` name it. Its cases run by hand, so
+whether the skill loads before work on each model is measured there and not by
+the gate.
 ADR-1710 adds the outcome each dispatched agent reports and what its
 dispatcher does with it, and EPC-1651 realises it. Until its tasks land, the
 agents write no outcome line, and the method skill and the review step read a
@@ -371,7 +374,7 @@ bound ends the run, with the loop runner SPC-1201 states.
 | `plugins/meow-flow/skills/run/SKILL.md`       | `/meow-flow:run`, the command that drives the chain                     |
 | `plugins/meow-flow/agents/record-reviewer.md` | The agent that reviews a record before its gate                         |
 | `plugins/meow-flow/agents/skeptic.md`         | The agent that tries to refute what an epic claims (not yet; see Scope) |
-| `plugins/meow-flow/skills/route/SKILL.md`     | The skill that routes a request before work starts (not yet; see Scope) |
+| `plugins/meow-flow/skills/route/SKILL.md`     | The skill that routes a request before work starts                      |
 | `plugins/meow-flow/agents/router.md`          | The read-only agent the route skill dispatches                          |
 | `plugins/meow-flow/templates/<kind>.md`       | The unit's template for each kind                                       |
 | `.meowpaw/templates/<kind>.md`                | A repository's own template, which overrides the unit's                 |

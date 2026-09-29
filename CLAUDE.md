@@ -115,10 +115,12 @@ write a plugin and no approved specification covers it, stop and go back. The
 whole claim of this project is that this order is cheaper, so a project that
 exempts itself from its own method has disproved it before shipping.
 
-Classify work before the chain starts. Trivial work - a typo, a formatting fix,
-a link - skips it. That exemption is narrow on purpose: a method costing ten
-steps for a one-line fix is one people route around, and then it reports a
-process it never performed. Anything that changes behaviour isn't trivial.
+Classify work before the chain starts: the route skill, `meow-flow:route`,
+routes each request and reports the route before any edit. Trivial work - a
+typo, a formatting fix, a link - skips the chain. That exemption is narrow on
+purpose: a method costing ten steps for a one-line fix is one people route
+around, and then it reports a process it never performed. Anything that
+changes behaviour isn't trivial.
 </principle>
 
 <principle name="living_and_record">

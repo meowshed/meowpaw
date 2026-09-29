@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+schema_version: "1"
+name: route-overridden-up
+description: A route full given after the session routed a request none, which should change the route with no further question.
+tags: [route]
+runs: 3
+expected_outcome: The session reports the route as full, names the none route the router gave, and proceeds to the research step with no question.
+context:
+  scaffold_script: scaffold.sh
+  history_file: history.jsonl
+execution:
+  max_turns: 15
+  prompt: |
+    route full
