@@ -59,10 +59,15 @@ from it.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: `plugins/meow-markdown/tests/test_markdown.py`, classes
+  `RenderTarget` (criterion 1), `MarkdownlintSettings` (criteria 2 to 4),
+  `CheckUnresolved` (criterion 5), `CheckTree` (criterion 6) and `Adopted`
+  (criterion 7), each test named `test_criterion_N_...`
+- Failing run: `project/evidence/d8c083022377.txt`
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: none. Criterion 7's `lint` run is shown by the kept `lint`
+  evidence at implementation, because a check inside `test` that ran the whole
+  `lint` verb would run the gate within the gate
 
 ## Evidence
 

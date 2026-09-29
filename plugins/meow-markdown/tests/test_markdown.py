@@ -13,6 +13,7 @@ import os
 import re
 import subprocess
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -187,6 +188,160 @@ class Tree(Fixture):
                     self.assertIn(done.returncode, expected, f"{command}: {done.stdout}{done.stderr}")
                     self.assertTrue((done.stdout + done.stderr).strip(), command)
                 self.assertEqual(repository.tree(), before)
+
+
+
+NO_TARGET = "no render target: declare [markdown] target"
+DEFAULTS = "markdownlint-cli2 runs its defaults: no configuration file"
+CLI2 = "lint = \"markdownlint-cli2 '**/*.md'\"\n"
+CLI = "lint = \"markdownlint '**/*.md'\"\n"
+RULE = "config:\n  MD013: false\n"
+JSONC = '{ "MD013": false }\n'
+
+
+def verbs(lint, target='"github"'):
+    """A profile declaring a render target, and a `lint` verb where `lint` is given."""
+    text = "" if target is None else f"[markdown]\ntarget = {target}\n"
+    return text + ("" if lint is None else f"\n[verbs]\n{lint}")
+
+
+class Check(Fixture):
+    def check(self, files):
+        return self.repo(files).run("check")
+
+
+class RenderTarget(Check):
+    """TSK-3110 criterion 1, REQ-2452: `check` reports a missing render target, and takes any declared one."""
+
+    def test_criterion_1_a_missing_target_is_a_finding(self):
+        """TSK-3110 criterion 1, REQ-2452: no `[markdown] target` exits 1 naming the missing target."""
+        done = self.check({**TWO, ".meowpaw/profile.toml": '[docs]\nstyle = "meow-prose"\n'})
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn(NO_TARGET, done.stdout)
+
+    def test_criterion_1_an_empty_target_is_a_finding(self):
+        """TSK-3110 criterion 1, REQ-2452: an empty `[markdown] target` counts as missing."""
+        done = self.check({**TWO, ".meowpaw/profile.toml": verbs(None, '""')})
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn(NO_TARGET, done.stdout)
+
+    def test_criterion_1_a_declared_target_passes(self):
+        """TSK-3110 criterion 1, REQ-2452: `github`, and `forgejo` the skill doesn't know, both exit 0."""
+        for target in ("github", "forgejo"):
+            with self.subTest(target=target):
+                done = self.check({**TWO, ".meowpaw/profile.toml": verbs(None, f'"{target}"')})
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                self.assertNotIn(NO_TARGET, done.stdout + done.stderr)
+
+
+class MarkdownlintSettings(Check):
+    """TSK-3110 criteria 2 to 4, REQ-2434: markdownlint settings the `lint` verb ignores, lacks or overrides."""
+
+    def test_criterion_2_markdownlint_cli2_with_no_configuration_runs_its_defaults(self):
+        """TSK-3110 criterion 2, REQ-2434: a `lint` verb running markdownlint-cli2 with no configuration file."""
+        done = self.check({**TWO, ".meowpaw/profile.toml": verbs(CLI2)})
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn(DEFAULTS, done.stdout)
+
+    def test_criterion_2_markdownlint_cli2_with_a_configuration_passes(self):
+        """TSK-3110 criterion 2, REQ-2434: a tracked `.markdownlint-cli2.yaml` settles the defaults finding."""
+        done = self.check({**TWO, ".meowpaw/profile.toml": verbs(CLI2), ".markdownlint-cli2.yaml": RULE})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn(DEFAULTS, done.stdout)
+
+    def test_criterion_3_markdownlint_ignores_a_cli2_file(self):
+        """TSK-3110 criterion 3, REQ-2434: markdownlint beside a tracked `.markdownlint-cli2.jsonc` exits 1 naming it."""
+        done = self.check({**TWO, ".meowpaw/profile.toml": verbs(CLI), ".markdownlint-cli2.jsonc": '{ "config": {} }\n'})
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("markdownlint ignores .markdownlint-cli2.jsonc", done.stdout)
+
+    def test_criterion_3_markdownlint_cli2_reads_its_own_file(self):
+        """TSK-3110 criterion 3, REQ-2434: markdownlint-cli2 beside the same file draws no finding."""
+        done = self.check({**TWO, ".meowpaw/profile.toml": verbs(CLI2), ".markdownlint-cli2.jsonc": '{ "config": {} }\n'})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("ignores", done.stdout)
+
+    def test_criterion_4_two_configurations_in_one_directory(self):
+        """TSK-3110 criterion 4, REQ-2434: both files named, and markdownlint-cli2 applies the `.markdownlint.jsonc`."""
+        applies = re.compile(r"markdownlint-cli2 applies \S*\.markdownlint\.jsonc\b")
+        for lint in (None, CLI2, CLI, 'lint = "true"\n'):
+            for directory in ("", "docs/"):
+                with self.subTest(lint=lint, directory=directory or "."):
+                    done = self.check({**TWO, ".meowpaw/profile.toml": verbs(lint),
+                                       f"{directory}.markdownlint.jsonc": JSONC,
+                                       f"{directory}.markdownlint-cli2.yaml": RULE})
+                    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                    lines = [line for line in done.stdout.splitlines() if "both configure rules" in line]
+                    self.assertEqual(len(lines), 1, done.stdout)
+                    self.assertIn(".markdownlint.jsonc", lines[0])
+                    self.assertIn(".markdownlint-cli2.yaml", lines[0])
+                    self.assertRegex(lines[0], applies)
+                    if directory:
+                        self.assertTrue(lines[0].startswith("docs"), lines[0])
+
+    def test_criterion_4_a_cli2_file_setting_no_rule_is_no_finding(self):
+        """TSK-3110 criterion 4, REQ-2434: a `.markdownlint-cli2.yaml` with no `config` overrides nothing."""
+        done = self.check({**TWO, ".markdownlint.jsonc": JSONC, ".markdownlint-cli2.yaml": "ignores:\n  - vendor\n"})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("both configure rules", done.stdout)
+
+
+class CheckUnresolved(Check):
+    """TSK-3110 criterion 5, REQ-2434 and REQ-2452: no profile, or one that doesn't parse, is unresolved."""
+
+    def test_criterion_5_a_missing_profile_is_unresolved(self):
+        """TSK-3110 criterion 5: a missing profile prints unresolved and exits 3."""
+        done = self.check({"README.md": DOC, "docs/guide.md": DOC})
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: ", done.stdout + done.stderr)
+
+    def test_criterion_5_a_profile_that_does_not_parse_is_unresolved(self):
+        """TSK-3110 criterion 5: a profile that doesn't parse prints unresolved and exits 3."""
+        done = self.check({**TWO, ".meowpaw/profile.toml": "[markdown\ntarget = \n"})
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: ", done.stdout + done.stderr)
+
+
+class CheckTree(Fixture):
+    """TSK-3110 criterion 6, REQ-2434 and REQ-2452: `check` writes nothing, tracked or ignored."""
+
+    FIXTURES = {
+        "no target": ({**TWO, ".meowpaw/profile.toml": '[docs]\nstyle = "meow-prose"\n'}, 1),
+        "github": (TWO, 0),
+        "forgejo": ({**TWO, ".meowpaw/profile.toml": verbs(None, '"forgejo"')}, 0),
+        "defaults": ({**TWO, ".meowpaw/profile.toml": verbs(CLI2)}, 1),
+        "ignored": ({**TWO, ".meowpaw/profile.toml": verbs(CLI), ".markdownlint-cli2.jsonc": "{}\n"}, 1),
+        "overridden": ({**TWO, ".markdownlint.jsonc": JSONC, ".markdownlint-cli2.yaml": RULE}, 1),
+        "no profile": ({"README.md": DOC, "docs/guide.md": DOC}, 3),
+        "unparseable": ({**TWO, ".meowpaw/profile.toml": "[markdown\n"}, 3),
+    }
+
+    def test_criterion_6_check_leaves_the_tree_as_it_was(self):
+        """TSK-3110 criterion 6: `git status --porcelain --ignored` reads the same before and after `check`."""
+        for name, (files, status) in self.FIXTURES.items():
+            with self.subTest(fixture=name):
+                repository = self.repo(files)
+                before = repository.tree()
+                done = repository.run("check")
+                self.assertEqual(done.returncode, status, done.stdout + done.stderr)
+                self.assertEqual(repository.tree(), before)
+
+
+class Adopted(unittest.TestCase):
+    """TSK-3110 criterion 7, REQ-2434 and REQ-2452: this repository declares its target and lints with `check`."""
+
+    def test_criterion_7_the_profile_declares_github_and_lint_runs_check(self):
+        """TSK-3110 criterion 7, REQ-2452 and REQ-2434: `[markdown] target` and the `lint` verb, by the program's path."""
+        profile = tomllib.loads((ROOT / ".meowpaw" / "profile.toml").read_text(encoding="utf-8"))
+        self.assertEqual(profile.get("markdown", {}).get("target"), "github")
+        self.assertIn("plugins/meow-markdown/bin/meow-markdown check", profile["verbs"]["lint"])
+
+    def test_criterion_7_check_passes_on_this_repository(self):
+        """TSK-3110 criterion 7, REQ-2434 and REQ-2452: `check` finds nothing in this repository."""
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("MISE_", "__MISE_"))}
+        done = subprocess.run([str(BIN), "check"], cwd=ROOT, capture_output=True, text=True, env=env,
+                              stdin=subprocess.DEVNULL)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
 
 if __name__ == "__main__":
