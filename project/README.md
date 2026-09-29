@@ -515,7 +515,8 @@ every acceptance criterion under issue 587.
 [EPC-1590](epics/EPC-1590-the-prose-gate-is-a-program.md) realises ADR-1600
 through TSK-2470, which BUG-1230 carries and which landed before the epic, and
 was verified under issue 597. Four criteria are met and the fifth in part:
-REQ-3182 is met in part, and BUG-1265 records the fixtures it lacks.
+REQ-3182 is met in part, because the squash message a merge writes goes
+unread, and TSK-2575 added the fixtures BUG-1265 recorded as missing.
 
 [EPC-1570](epics/EPC-1570-the-crate-under-the-five-verbs.md) realises ADR-1610
 in four tasks, TSK-2480 to TSK-2510, each closed with evidence, and was
@@ -601,9 +602,7 @@ addresses lands in one of them.
 | [BUG-1341](bugs/BUG-1341-a-unit-path-is-printed-relative-to-the-root.md)                     | `meow-unattended plan` printed each unit relative to the root, which names nothing from a subdirectory            |
 | [BUG-1342](bugs/BUG-1342-the-unattended-suite-passes-a-plan-that-ignores-the-declaration.md) | The `meow-unattended` checks passed nine versions of `plan` that ignore what the repository declares              |
 
-Thirty-three are closed. BUG-1040, BUG-1100 and BUG-1265 are open. BUG-1265
-enters at cover, because the prose gate holds every command it reads but no
-fixture shows it for seven of them. BUG-1040 routes to design, because the mechanism
+Thirty-four are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.

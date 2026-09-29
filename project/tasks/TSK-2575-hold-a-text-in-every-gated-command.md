@@ -5,7 +5,7 @@ status: approved
 revised: 2026-09-29
 bug: BUG-1265
 closes: []
-issue:
+issue: 711
 ---
 
 # Show the prose gate holding a text in every command it reads
@@ -47,14 +47,43 @@ Nothing. BUG-1265 is approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-prose-gate/tests/test_gate.py
+- Failing run: project/evidence/ec5fc5600a5d.txt
+- Landed in: #713
+- Judgement: none
+
+The failing run is criterion 3's fixture alone, before the seven commands had
+one: it named each of their seven `if` patterns as routed with no fixture.
+Criteria 1 and 2 pass against the current binary, as the task expects,
+because the program already held each form.
 
 ## Evidence
 
-Not yet.
+The class `EveryGatedCommand` in
+`plugins/meow-prose-gate/tests/test_gate.py` holds one test per command
+`hooks/hooks.json` routes, each run through the unit's launcher and each
+asserting exit 2 and a span found verbatim in the command. The text reaches
+the program through `-m`, `--body`, `-b`, `--notes` and `-n`, and
+`test_release_notes_hidden_in_a_file` holds `--notes-file notes.md` as P3.
+The table `GATED` keys each blocking command by the command its pattern
+names, and `TheHook.test_each_routed_command_has_a_blocking_fixture` asserts
+that the set of `if` patterns equals the set `GATED` gives. So a pattern with
+no fixture fails, and so does a fixture whose pattern was deleted.
+
+That check failed first, in the commit that held it alone:
+`meow-verbs run test` exited 1 with `FAILED (failures=1)`, naming the seven
+patterns from `gh pr edit` to `gh release edit`, kept as
+`project/evidence/ec5fc5600a5d.txt`. It passes now:
+
+```text
+$ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests
+Ran 31 tests
+OK                                 # exit 0
+```
+
+`meow-verbs evidence --keep format lint check test build` exits 0 on this
+change's own tree, each result kept in `project/evidence/`, as the pull
+request cites.
 
 ## Left alone
 
