@@ -3,7 +3,7 @@ id: SPC-1195
 artifact: spec
 status: live
 revised: 2026-09-29
-checked-at:
+checked-at: "#624"
 states: [REQ-0083, REQ-2352, REQ-2434, REQ-2438, REQ-2452, REQ-2454]
 ---
 
@@ -20,7 +20,7 @@ states only what is Markdown's. It leaves spelling, prose linting, diagram
 parsing and site builds unbound. Running a verb is SPC-1040's, and the writing
 standard is SPC-1010's.
 
-ADR-1900 decides this part and EPC-1800 realises it.
+ADR-1900 decides this part and EPC-1800 realised it, verified under issue 624.
 
 ## Boundary
 
