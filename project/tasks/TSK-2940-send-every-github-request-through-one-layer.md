@@ -97,7 +97,7 @@ Nothing.
 
 - Checks: plugins/meow-github/tests/test_github.py, crates/meow/src/github/request.rs
 - Failing run: project/evidence/5c33f71ed1dc.txt project/evidence/97bd1ebb8bc1.txt
-- Landed in: not yet
+- Landed in: #723
 - Judgement: 7: whether a replay is counted as a request is printed only once TSK-2950 adds the budget lines, so until then the checks read the replay test through whether a `remaining` of 0 holds the next call
 
 The checks, each naming its criterion and requirement in its docstring or
@@ -120,8 +120,28 @@ subtests, on a tree that differs from this one only by the line in
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+The checks failed first: `5c33f71ed1dc` fails both crate tests and
+`97bd1ebb8bc1` fails all seven fixtures at the cover commit. At this revision,
+after `crates/meow/build-units`,
+`python3 -m unittest -v plugins/meow-github/tests/test_github.py` exits 0 and
+prints `Ran 21 tests` and `OK`, the seven fixtures above among them, and
+`cargo test --no-default-features --features github github::request` exits 0
+with `2 passed; 0 failed`. The verbs `format lint check test build` ran with
+`meow-verbs evidence --keep` in the commit that closes the task, and the kept
+records sit in `project/evidence/`.
+
+`git diff 69e5b04e -- plugins/meow-github/tests/test_github.py crates/meow/src/github/request.rs`
+leaves the nine checks as they were written. It changes only the stub `wait`
+above the crate tests, and in the fixture file the `History` and `Project`
+stand-ins, which now print a header block under `--include`, as this task
+says. Two older checks change with them. `test_history_reads_every_listing_and_page`
+now expects one page a call and no `--cache` on the first call.
+`test_project_groups_an_issue_nowhere` (TSK-2910) reads each call's shape
+without the layer's trailing `--include`, and asserts that it's there.
+
+A response carrying no rate-limit header changes nothing in the layer, which
+holds no count yet. TSK-2950's budget lines are where it is reported as
+carrying none.
 
 ## Left alone
 

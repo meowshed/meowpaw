@@ -31,13 +31,33 @@ LISTINGS = {
     "repos/o/r/pulls/comments?per_page=100": [[{"pull_request_url": "https://api.github.com/repos/o/r/pulls/2", "path": "a.txt",
                                                "user": {"login": "bo"}, "body": "Why here?", "html_url": "https://github.com/o/r/pull/2#r1"}]],
 }
-STAND_IN = """#!/bin/sh
-printf '%s\\n' "$*" >> "$GH_LOG"
-if [ "$1" = "api" ] && [ "$2" = "$GH_REFUSE" ]; then
-  echo "HTTP 403: Resource not accessible by integration" >&2
-  exit 1
-fi
-exec python3 -c 'import json, sys; print(json.dumps(json.load(open(sys.argv[1]))[sys.argv[2]]))' "$GH_DATA" "$2"
+# ADR-1810: under `--include` the stand-in prints a status line and a header block before the body, with a `Link`
+# header naming the next page, and a refused call's block too, as RES-0290 saw gh 2.101.0 do.
+STAND_IN = """#!/usr/bin/env python3
+import email.utils, json, os, sys
+args = sys.argv[1:]
+open(os.environ["GH_LOG"], "a").write(" ".join(args) + "\\n")
+path = args[1].removeprefix("https://api.github.com/")
+base, _, page = path.partition("&page=")
+page = int(page or 1)
+link = None
+if path == os.environ["GH_REFUSE"]:
+    status, body = 403, {"message": "Resource not accessible by integration"}
+else:
+    pages = json.load(open(os.environ["GH_DATA"]))[base]
+    status, body = 200, pages[page - 1]
+    if page < len(pages):
+        link = f'<https://api.github.com/{base}&page={page + 1}>; rel="next"'
+if "--include" in args:
+    print(f"HTTP/2.0 {status} {'OK' if status == 200 else 'Forbidden'}")
+    print("Date: " + email.utils.formatdate(usegmt=True))
+    if link:
+        print("Link: " + link)
+    print()
+print(json.dumps(body))
+if status >= 400:
+    print(f"gh: {body['message']} (HTTP {status})", file=sys.stderr)
+    sys.exit(1)
 """
 
 
@@ -64,9 +84,12 @@ class History(unittest.TestCase):
         self.assertEqual(history["issues"][0]["labels"], ["bug"])
         self.assertEqual(history["comments"], [{"on": 3, "author": "bo", "body": "A warning is ignored.", "url": "https://github.com/o/r/pull/3#c1"}])
         self.assertEqual(history["review_comments"][0]["on"], 2)
-        self.assertEqual(len(calls), 4)
-        for call in calls:
-            self.assertTrue(call.endswith("--paginate --slurp --cache 1h"), call)
+        # ADR-1810: one page a call, following `Link`, and every read but the run's first through the cache.
+        self.assertEqual(len(calls), 5, calls)
+        self.assertIn("repos/o/r/issues?state=all&per_page=100&page=2", calls[1])
+        self.assertTrue(calls[0].endswith(" --include"), calls[0])
+        for call in calls[1:]:
+            self.assertTrue(call.endswith(" --include --cache 1h"), call)
 
     def test_a_missing_field_fails_by_name(self):
         listings = dict(LISTINGS)
@@ -112,6 +135,11 @@ elif method == "PATCH":
 else:
     out = state["issues"][parts[-1]]
 json.dump(state, open(state_path, "w"))
+if "--include" in args:
+    import email.utils
+    print(f"HTTP/2.0 {201 if method == 'POST' else 200} OK")
+    print("Date: " + email.utils.formatdate(usegmt=True))
+    print()
 print(json.dumps(out))
 """
 
@@ -305,6 +333,11 @@ class Project(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         calls = self.state(root)["calls"]
         self.assertTrue(self.writes(root), calls)
+        # ADR-1810: every call ends with the request layer's `--include`, which groups nothing; the shape is read
+        # without it.
+        for call in calls:
+            self.assertEqual(call[-1], "--include", call)
+        calls = [call[:-1] for call in calls]
         for call in calls:
             for flag in ("--milestone", "--parent", "--project", "--label"):
                 self.assertFalse([a for a in call if a == flag or a.startswith(flag + "=")], call)

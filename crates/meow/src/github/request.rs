@@ -2,13 +2,443 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! The GitHub request layer (ADR-1810). SPC-1080 states the behaviour.
+//!
+//! Every request the `github` feature sends goes through [`Layer`], which runs
+//! `gh api --include` and reads the status line, the headers and the body of
+//! each response, a refused one included. It tells a replay from `--cache`
+//! apart from a fresh response, turns a header into a wait through [`wait`]
+//! alone, and stops the run at a throttle unless `--wait` asks it to sleep.
+//!
+//! The clock is the system's. Where `MEOW_GITHUB_CLOCK` names a file, the
+//! layer reads the time from it and sleeps by adding the seconds to it, so the
+//! unit's fixtures run without waiting in real time.
+
+use serde_json::Value;
+use std::collections::BTreeMap;
+use std::process::{Command, Stdio};
+
+/// The most a run sleeps in all: a primary reset is at most an hour away, so
+/// a run still throttled after an hour has another cause.
+const HOUR: u64 = 3_600;
+/// A cached response whose `Date` lies this many seconds or more before the
+/// call started, on GitHub's clock, is a replay.
+const REPLAY: f64 = 60.0;
+/// The first wait at a secondary throttle that states none, doubled for each
+/// further one in the run.
+const SECONDARY: u64 = 60;
+const MONTHS: [&str; 12] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/// Why a request gave the caller no body.
+pub(crate) enum Failure {
+    /// The run is throttled: the `throttled:` line to print, after which it
+    /// sends nothing more.
+    Throttled(String),
+    /// Anything else, as `gh` or GitHub said it.
+    Failed(String),
+}
+
+impl std::fmt::Display for Failure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Failure::Throttled(line) | Failure::Failed(line) => f.write_str(line),
+        }
+    }
+}
+
+/// A wait a response stated, or implied, before the next request may go.
+#[derive(Clone)]
+struct Stop {
+    /// The seconds to wait from `arrived`, or `None` where the header didn't
+    /// parse in its unit.
+    wait: Option<u64>,
+    /// The local time the response arrived.
+    arrived: f64,
+    /// The response's `Date`, in UTC epoch seconds.
+    date: Option<i64>,
+    header: String,
+    value: String,
+}
+
+/// The run's request layer: one per run, so the offset, the waits slept and
+/// the held resources cover the run alone.
+pub(crate) struct Layer {
+    wait: bool,
+    sent: bool,
+    /// The local clock less GitHub's, from the last uncached response.
+    offset: Option<f64>,
+    slept: u64,
+    secondary: u32,
+    /// Each resource a fresh response left at `remaining: 0`, with its reset.
+    held: BTreeMap<String, Stop>,
+}
+
+struct Response {
+    status: u16,
+    headers: Vec<(String, String)>,
+    body: Value,
+}
+
+impl Response {
+    fn header(&self, name: &str) -> Option<&str> {
+        self.headers
+            .iter()
+            .find(|(n, _)| n.eq_ignore_ascii_case(name))
+            .map(|(_, v)| v.as_str())
+    }
+}
+
+impl Layer {
+    /// A layer that sleeps at a throttle where `wait` is set, and otherwise
+    /// stops the run there.
+    pub(crate) fn new(wait: bool) -> Self {
+        Layer {
+            wait,
+            sent: false,
+            offset: None,
+            slept: 0,
+            secondary: 0,
+            held: BTreeMap::new(),
+        }
+    }
+
+    /// Reads `endpoint`, through `gh`'s cache for an hour where `cache` is set,
+    /// except on the run's first call, which is always sent fresh.
+    pub(crate) fn get(&mut self, endpoint: &str, cache: bool) -> Result<Value, Failure> {
+        self.send("GET", endpoint, &[], cache)
+    }
+
+    /// Sends `method` to `endpoint` with each field as `-f name=value`.
+    pub(crate) fn write(
+        &mut self,
+        method: &str,
+        endpoint: &str,
+        fields: &[(&str, &str)],
+    ) -> Result<Value, Failure> {
+        self.send(method, endpoint, fields, false)
+    }
+
+    /// Reads one page of a listing, returning its body and the address of the
+    /// next page that its `Link` header names.
+    pub(crate) fn page(&mut self, endpoint: &str) -> Result<(Value, Option<String>), Failure> {
+        self.exchange("GET", endpoint, &[], true).map(|r| {
+            let next = r.header("link").and_then(next_page);
+            (r.body, next)
+        })
+    }
+
+    fn send(
+        &mut self,
+        method: &str,
+        endpoint: &str,
+        fields: &[(&str, &str)],
+        cache: bool,
+    ) -> Result<Value, Failure> {
+        self.exchange(method, endpoint, fields, cache)
+            .map(|r| r.body)
+    }
+
+    fn exchange(
+        &mut self,
+        method: &str,
+        endpoint: &str,
+        fields: &[(&str, &str)],
+        cache: bool,
+    ) -> Result<Response, Failure> {
+        loop {
+            if let Some(stop) = self.held.get(resource_of(endpoint)).cloned() {
+                self.stop(method, endpoint, &stop)?;
+                self.held.remove(resource_of(endpoint));
+            }
+            let cached = cache && self.sent;
+            self.sent = true;
+            let mut args = vec!["api".to_string(), endpoint.to_string()];
+            if method != "GET" {
+                args.extend(["-X".to_string(), method.to_string()]);
+            }
+            for (name, value) in fields {
+                args.extend(["-f".to_string(), format!("{name}={value}")]);
+            }
+            args.push("--include".to_string());
+            if cached {
+                args.extend(["--cache".to_string(), "1h".to_string()]);
+            }
+            let started = now();
+            let out = Command::new("gh")
+                .args(&args)
+                .env("GH_PROMPT_DISABLED", "1")
+                .stdin(Stdio::null())
+                .output()
+                .map_err(|e| {
+                    Failure::Failed(format!(
+                        "gh couldn't run ({e}); install GitHub's client, gh, and sign in with `gh auth login`"
+                    ))
+                })?;
+            let arrived = now();
+            let said = String::from_utf8_lossy(&out.stderr).trim().to_string();
+            let response = match parse(&String::from_utf8_lossy(&out.stdout)) {
+                Ok(response) => response,
+                Err(e) if out.status.success() || said.is_empty() => {
+                    return Err(Failure::Failed(format!(
+                        "gh exited with {}: {e}",
+                        out.status
+                    )));
+                }
+                Err(_) => return Err(Failure::Failed(said)),
+            };
+            let date = response.header("date").and_then(http_date);
+            let fresh = if cached {
+                match (self.offset, date) {
+                    (Some(offset), Some(date)) => date as f64 > started - offset - REPLAY,
+                    _ => true,
+                }
+            } else {
+                if let Some(date) = date {
+                    self.offset = Some(arrived - date as f64);
+                }
+                true
+            };
+            let stop = |header: &str, value: &str| Stop {
+                wait: wait(
+                    "github",
+                    header,
+                    value,
+                    response.header("date").unwrap_or(""),
+                ),
+                arrived,
+                date,
+                header: header.to_string(),
+                value: value.to_string(),
+            };
+            let spent = response.header("x-ratelimit-remaining").map(str::trim) == Some("0");
+            let reset = response.header("x-ratelimit-reset").unwrap_or("");
+            let message = response
+                .body
+                .get("message")
+                .and_then(Value::as_str)
+                .unwrap_or("");
+            let retry_after = response.header("retry-after");
+            let throttled = response.status == 429
+                || (response.status == 403
+                    && (retry_after.is_some()
+                        || spent
+                        || message.to_lowercase().contains("secondary rate limit")));
+            if throttled {
+                let stop = if let Some(value) = retry_after {
+                    stop("retry-after", value)
+                } else if spent {
+                    stop("x-ratelimit-reset", reset)
+                } else {
+                    let wait = SECONDARY << self.secondary.min(6);
+                    self.secondary += 1;
+                    Stop {
+                        wait: Some(wait),
+                        arrived,
+                        date,
+                        header: "a secondary rate limit, which states no wait".to_string(),
+                        value: String::new(),
+                    }
+                };
+                self.stop(method, endpoint, &stop)?;
+                continue;
+            }
+            if fresh && (200..300).contains(&response.status) {
+                let resource = response
+                    .header("x-ratelimit-resource")
+                    .unwrap_or(resource_of(endpoint))
+                    .to_string();
+                if spent {
+                    self.held.insert(resource, stop("x-ratelimit-reset", reset));
+                } else {
+                    self.held.remove(&resource);
+                }
+            }
+            if (200..300).contains(&response.status) {
+                return Ok(response);
+            }
+            let why = if message.is_empty() {
+                said
+            } else {
+                message.to_string()
+            };
+            return Err(Failure::Failed(format!("HTTP {}: {why}", response.status)));
+        }
+    }
+
+    /// Sleeps out `stop` under `--wait`, while the run's waits stay within an
+    /// hour, and otherwise stops the run as throttled.
+    fn stop(&mut self, method: &str, endpoint: &str, stop: &Stop) -> Result<(), Failure> {
+        let Some(wait) = stop.wait else {
+            return Err(Failure::Throttled(format!(
+                "throttled: {method} {endpoint}, retry after unknown ({}: `{}` doesn't parse in its unit)",
+                stop.header, stop.value
+            )));
+        };
+        let reference = stop
+            .date
+            .unwrap_or_else(|| (stop.arrived - self.offset.unwrap_or(0.0)) as i64);
+        let line = format!(
+            "throttled: {method} {endpoint}, retry after {} ({})",
+            utc(reference + wait as i64),
+            stop.header
+        );
+        if !self.wait || self.slept + wait > HOUR {
+            return Err(Failure::Throttled(line));
+        }
+        self.slept += wait;
+        let left = stop.arrived + wait as f64 - now();
+        if left > 0.0 {
+            sleep(left);
+        }
+        Ok(())
+    }
+}
+
+/// The resource GitHub counts a request against, before its answer names it.
+fn resource_of(endpoint: &str) -> &'static str {
+    let path = endpoint.trim_start_matches("https://api.github.com/");
+    if path.starts_with("search/") {
+        "search"
+    } else if path.starts_with("graphql") {
+        "graphql"
+    } else {
+        "core"
+    }
+}
+
+/// The status line, the headers and the body `gh api --include` printed.
+fn parse(out: &str) -> Result<Response, String> {
+    let mut lines = out.split('\n');
+    let status = lines
+        .next()
+        .filter(|l| l.starts_with("HTTP/"))
+        .and_then(|l| l.split_whitespace().nth(1))
+        .and_then(|s| s.parse().ok())
+        .ok_or("gh printed no status line")?;
+    let mut headers = Vec::new();
+    for line in lines.by_ref() {
+        let line = line.trim_end_matches('\r');
+        if line.is_empty() {
+            break;
+        }
+        if let Some((name, value)) = line.split_once(':') {
+            headers.push((name.trim().to_string(), value.trim().to_string()));
+        }
+    }
+    let rest = lines.collect::<Vec<_>>().join("\n");
+    let body = if rest.trim().is_empty() {
+        Value::Null
+    } else {
+        serde_json::from_str(rest.trim()).map_err(|e| format!("gh printed no JSON ({e})"))?
+    };
+    Ok(Response {
+        status,
+        headers,
+        body,
+    })
+}
+
+/// The address a `Link` header names as `rel="next"`, as a path `gh api` reads.
+fn next_page(link: &str) -> Option<String> {
+    link.split(',').find_map(|part| {
+        let (address, params) = part.split_once(';')?;
+        params
+            .split(';')
+            .any(|p| p.trim() == "rel=\"next\"")
+            .then(|| {
+                let address = address.trim().trim_start_matches('<').trim_end_matches('>');
+                address
+                    .strip_prefix("https://api.github.com/")
+                    .unwrap_or(address)
+                    .to_string()
+            })
+    })
+}
 
 /// The wait, in seconds from when the response arrived, that `header` holding
 /// `value` gives under `service`'s table, measured against the response's
-/// `Date`; `None` where the value doesn't parse in the table's unit.
-#[allow(dead_code)]
-pub(crate) fn wait(_service: &str, _header: &str, _value: &str, _date: &str) -> Option<u64> {
-    None
+/// `Date`; `None` where the value doesn't parse in the table's unit. This is
+/// the only conversion from a header to a duration (REQ-2578).
+pub(crate) fn wait(service: &str, header: &str, value: &str, date: &str) -> Option<u64> {
+    match (service, header.to_ascii_lowercase().as_str()) {
+        // Seconds.
+        ("github", "retry-after") => value.trim().parse().ok(),
+        // UTC epoch seconds, measured to the response's `Date`.
+        ("github", "x-ratelimit-reset") => {
+            let reset: i64 = value.trim().parse().ok()?;
+            Some(reset.saturating_sub(http_date(date)?).max(0) as u64)
+        }
+        _ => None,
+    }
+}
+
+/// An HTTP date, such as `Tue, 29 Sep 2026 14:30:37 GMT`, in UTC epoch seconds.
+fn http_date(text: &str) -> Option<i64> {
+    let parts: Vec<&str> = text.split_whitespace().collect();
+    let [_, day, month, year, time, "GMT"] = parts.as_slice() else {
+        return None;
+    };
+    let month = MONTHS.iter().position(|m| m == month)? as i64 + 1;
+    let clock: Vec<i64> = time
+        .split(':')
+        .map(|n| n.parse().ok())
+        .collect::<Option<_>>()?;
+    let [h, m, s] = clock.as_slice() else {
+        return None;
+    };
+    let days = days_from_civil(year.parse().ok()?, month, day.parse().ok()?);
+    Some(days * 86_400 + h * 3_600 + m * 60 + s)
+}
+
+fn days_from_civil(year: i64, month: i64, day: i64) -> i64 {
+    let y = if month <= 2 { year - 1 } else { year };
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let doy = (153 * (month + if month > 2 { -3 } else { 9 }) + 2) / 5 + day - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146_097 + doe - 719_468
+}
+
+/// UTC epoch seconds as `2026-09-29T14:31:07Z`.
+fn utc(epoch: i64) -> String {
+    let (days, secs) = (epoch.div_euclid(86_400), epoch.rem_euclid(86_400));
+    let z = days + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = yoe + era * 400 + i64::from(month <= 2);
+    format!(
+        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
+        secs / 3_600,
+        secs % 3_600 / 60,
+        secs % 60
+    )
+}
+
+fn now() -> f64 {
+    if let Some(file) = std::env::var_os("MEOW_GITHUB_CLOCK") {
+        return std::fs::read_to_string(file)
+            .ok()
+            .and_then(|t| t.trim().parse().ok())
+            .unwrap_or(0.0);
+    }
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0)
+}
+
+fn sleep(seconds: f64) {
+    if let Some(file) = std::env::var_os("MEOW_GITHUB_CLOCK") {
+        let _ = std::fs::write(file, (now() + seconds).to_string());
+        return;
+    }
+    std::thread::sleep(std::time::Duration::from_secs_f64(seconds));
 }
 
 #[cfg(test)]
