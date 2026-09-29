@@ -2,8 +2,8 @@
 id: SPC-1010
 artifact: spec
 status: live
-revised: 2026-09-28
-checked-at:
+revised: 2026-09-29
+checked-at: "#597"
 states:
   [
     REQ-0990,
