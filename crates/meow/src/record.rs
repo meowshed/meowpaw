@@ -2523,6 +2523,10 @@ fn cover_gaps(task: &Doc, repository: &Path) -> Vec<String> {
             gaps.push(format!(
                 "{id}'s Cover names the run {path} under Failing run, {gap}"
             ));
+        } else if let Some(gap) = not_evidence(repository, &path) {
+            gaps.push(format!(
+                "{id}'s Cover names the run {path} under Failing run, {gap}"
+            ));
         }
     }
     if none("Landed in") {
@@ -2555,6 +2559,54 @@ fn unkept(repository: &Path, path: &str) -> Option<&'static str> {
         return Some("and it isn't a file");
     }
     None
+}
+
+/// Why a failing run, already a file in the repository, isn't kept as
+/// evidence, or nothing where it is: it lies under the evidence directory and
+/// git doesn't ignore it, because ADR-1550 keeps evidence there and a file git
+/// won't commit reaches no clone (BUG-1262, REQ-3207). Where git can't answer,
+/// the run isn't refused on that ground, as ADR-1550 reports it unchecked.
+fn not_evidence(repository: &Path, path: &str) -> Option<String> {
+    let dir = evidence_dir(repository);
+    let resolved = repository.join(path).canonicalize().ok()?;
+    let inside = repository
+        .join(&dir)
+        .canonicalize()
+        .is_ok_and(|d| resolved.starts_with(d));
+    if !inside {
+        return Some(format!(
+            "and it lies outside the evidence directory {dir}, where a kept run lands"
+        ));
+    }
+    let ignored = profile::reading_git()
+        .current_dir(repository)
+        .args(["check-ignore", "-q", "--", path])
+        .status()
+        .is_ok_and(|s| s.code() == Some(0));
+    ignored.then(|| "and git ignores it, so no clone receives it".to_string())
+}
+
+/// Where kept evidence lives: `evidence_dir` under `[verbs]`, or `evidence`
+/// under the record's root, a copy of the verbs' own reading, since neither
+/// unit may depend on the other (ADR-1550).
+fn evidence_dir(repository: &Path) -> String {
+    let table = match profile::read(repository) {
+        Profile::Parsed(table) => table,
+        _ => Default::default(),
+    };
+    let text = |section: &str, key: &str| {
+        table
+            .get(section)
+            .and_then(|v| v.get(key))
+            .and_then(|v| v.as_str())
+            .map(|d| d.trim_end_matches('/').to_string())
+    };
+    text("verbs", "evidence_dir").unwrap_or_else(|| {
+        format!(
+            "{}/evidence",
+            text("record", "root").unwrap_or_else(|| "project".to_string())
+        )
+    })
 }
 
 /// The paths a Cover line names, or none where it reads `none`.
