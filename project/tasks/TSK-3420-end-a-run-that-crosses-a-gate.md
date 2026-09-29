@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1920
 closes: []
-issue:
+issue: 738
+projected: 2fdad6246ef5
 ---
 
 # End a run `crossed` when a call or an evaluation decides a status or changes an approved record

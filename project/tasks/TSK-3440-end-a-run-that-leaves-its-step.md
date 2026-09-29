@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1920
 closes: [REQ-0888]
-issue:
+issue: 740
+projected: 9a5324d8e467
 ---
 
 # End a run `off-step` when a call writes another step's files or leaves its input unready

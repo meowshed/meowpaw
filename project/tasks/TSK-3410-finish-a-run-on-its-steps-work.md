@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-29
 epic: EPC-1920
 closes: [REQ-0884]
-issue:
+issue: 737
+projected: 9c9bdfa1e4da
 ---
 
 # Bind a run to one step, and finish it only when the step's work is done and the verbs pass at one tree
