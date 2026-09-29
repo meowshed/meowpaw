@@ -185,6 +185,11 @@ class ReadableTexts(unittest.TestCase):
         self.assert_passes(pr(
             "The notes are at https://example.com/deep-dive and in plugins/deep-dive/rule-of-thumb.md now."))
 
+    def test_an_idiom_inside_longer_words_passes(self):
+        self.assert_passes(
+            'git commit -m "Route the circle backend through the cache" -m "a deep diver reads the '
+            'undercircle back pages"')
+
     def test_the_rules_the_gate_left_to_the_reviewer(self):
         self.assert_passes(
             'git commit --allow-empty -m "Normalize the retry behavior" -m "The worker moves a batch to the DLQ '
