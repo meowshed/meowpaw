@@ -1,13 +1,15 @@
 ---
 id: ADR-1560
 artifact: adr
-status: approved
-revised: 2026-09-27
+status: superseded
+revised: 2026-09-29
 addresses: [REQ-0452, REQ-0454, REQ-0456]
 supersedes: []
 ---
 
 # 1560. Evidence stays bound to its tree, and the evidence behind each claim is listed
+
+**Superseded by ADR-2300.**
 
 ## Decision
 

@@ -301,7 +301,7 @@ status. `checked-at` is empty until EPC-1910 and EPC-1920 are verified.
 the gate each checks, the state of the record, the command that drives it,
 and the route that comes before the first step. `meow-flow` implements it,
 verified under issue 368, except the cover step ADR-1620 adds, which EPC-1580
-realises, the skeptic ADR-2200 adds, which EPC-2100 realises, and the route ADR-2100 adds,
+realises, the seven-step chain ADR-2300 decides, which EPC-2200 realises, and the route ADR-2100 adds,
 which EPC-2000 realises, and the outcome each dispatched agent reports, which
 ADR-1710 adds and EPC-1651 realises. The blocking dependency ADR-1800 adds, which EPC-1710
 realised, was verified under issue 625.
@@ -536,7 +536,8 @@ in four tasks, TSK-2480 to TSK-2510, each closed with evidence, and was
 verified against every acceptance criterion under issue 596.
 
 [EPC-1580](epics/EPC-1580-the-cover-step.md) realises ADR-1620 in three tasks,
-TSK-2530 to TSK-2550, none of them started, and every requirement ADR-1620 addresses lands in one of them.
+TSK-2530 to TSK-2550, each closed with evidence, and closed with them under
+ADR-2300.
 
 [EPC-1800](epics/EPC-1800-the-markdown-pack.md) realises ADR-1900 in four
 tasks, TSK-3100 to TSK-3130, each closed with evidence, and was verified
@@ -562,9 +563,13 @@ five tasks, TSK-2940 to TSK-2980, none of them started, and each of the seven
 requirements ADR-1810 addresses lands in one of them. REQ-2580 stays
 postponed.
 
-[EPC-2100](epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realises
-ADR-2200 in two tasks, TSK-3700 and TSK-3710, neither of them started, and
-every requirement ADR-2200 addresses lands in one of them.
+[EPC-2100](epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realised
+ADR-2200 in two tasks, TSK-3700 and TSK-3710, both dropped when ADR-2300
+superseded ADR-2200.
+
+[EPC-2200](epics/EPC-2200-the-seven-step-chain.md) realises ADR-2300 in eight
+tasks, TSK-3800 to TSK-3870, none of them started, and each of the 28
+requirements ADR-2300 addresses lands in one of them.
 [EPC-1650](epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
 ADR-1700 in two tasks, TSK-2700 and TSK-2701, neither of them started, and
 every requirement ADR-1700 addresses lands in one of them.

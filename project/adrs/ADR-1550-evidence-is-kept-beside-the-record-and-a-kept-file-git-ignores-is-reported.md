@@ -1,13 +1,15 @@
 ---
 id: ADR-1550
 artifact: adr
-status: approved
-revised: 2026-09-27
+status: superseded
+revised: 2026-09-29
 addresses: [REQ-2956]
 supersedes: []
 ---
 
 # 1550. Evidence is kept beside the record by default, and a kept file git ignores is reported
+
+**Superseded by ADR-2300.**
 
 ## Decision
 

@@ -6,15 +6,39 @@ revised: 2026-09-29
 checked-at: "#625"
 states:
   [
+    REQ-3600,
+    REQ-3602,
+    REQ-3604,
+    REQ-3606,
+    REQ-3608,
+    REQ-3610,
+    REQ-3612,
+    REQ-3614,
+    REQ-3616,
+    REQ-3618,
+    REQ-3620,
+    REQ-3622,
+    REQ-3624,
+    REQ-3626,
+    REQ-3628,
+    REQ-3630,
+    REQ-3632,
+    REQ-3638,
+    REQ-3640,
+    REQ-3642,
+    REQ-3644,
+    REQ-3646,
+    REQ-3648,
+    REQ-3650,
+    REQ-3652,
+    REQ-3654,
     REQ-0132,
     REQ-0816,
     REQ-0147,
     REQ-0149,
     REQ-0151,
     REQ-0157,
-    REQ-3200,
     REQ-3203,
-    REQ-3207,
     REQ-3216,
     REQ-1358,
     REQ-0192,
@@ -79,36 +103,16 @@ states:
     REQ-0275,
     REQ-0276,
     REQ-0277,
-    REQ-0278,
-    REQ-0279,
-    REQ-0280,
-    REQ-0281,
-    REQ-0282,
-    REQ-0283,
-    REQ-0284,
     REQ-0285,
-    REQ-0286,
     REQ-0287,
-    REQ-0288,
     REQ-0289,
-    REQ-0290,
     REQ-0291,
-    REQ-0292,
-    REQ-0293,
-    REQ-0294,
-    REQ-0295,
-    REQ-0296,
-    REQ-0297,
     REQ-0298,
-    REQ-0299,
     REQ-0300,
     REQ-0301,
-    REQ-0302,
     REQ-0303,
-    REQ-0304,
     REQ-0305,
     REQ-0306,
-    REQ-0307,
     REQ-0308,
     REQ-0310,
     REQ-0311,
@@ -117,15 +121,12 @@ states:
     REQ-0314,
     REQ-0315,
     REQ-0316,
-    REQ-0317,
     REQ-0318,
-    REQ-0319,
     REQ-0320,
     REQ-0321,
     REQ-0322,
     REQ-0323,
     REQ-0324,
-    REQ-0325,
     REQ-0326,
     REQ-0327,
     REQ-0329,
@@ -223,7 +224,6 @@ states:
     REQ-1958,
     REQ-1960,
     REQ-1962,
-    REQ-1964,
     REQ-2130,
     REQ-2131,
     REQ-2132,
@@ -265,7 +265,6 @@ states:
     REQ-2782,
     REQ-2794,
     REQ-2796,
-    REQ-2828,
     REQ-2830,
     REQ-2834,
     REQ-2836,
@@ -312,14 +311,10 @@ states:
     REQ-3124,
     REQ-3126,
     REQ-3128,
-    REQ-3170,
     REQ-3172,
     REQ-3174,
     REQ-3180,
     REQ-3202,
-    REQ-3520,
-    REQ-3522,
-    REQ-3524,
   ]
 ---
 
@@ -327,7 +322,7 @@ states:
 
 ## Scope
 
-This covers how the method's ten steps run: invoking one, the gate each
+This covers how the method's steps run: invoking one, the gate each
 checks before it writes, the command that drives them, and the state of the
 chain as the record shows it. It leaves each artifact's content rules to the
 specifications of the steps that write them. It also covers the route, which
@@ -345,10 +340,16 @@ cover, and the method's prompts name the ten steps and where each step's
 artifact lands. ADR-1800 lets a task's dependency say whether it blocks, and
 EPC-1710 realised it, verified under issue 625: `paw` waits only on a
 blocking dependency, and `dependency-declared` asks a draft for the marker.
-ADR-2200 adds the skeptic that tries to refute each
-requirement an epic claims before its verification is recorded, and the draft
-defect verification writes for each refutation it confirms; no epic realises
-it yet, so the verify step dispatches no skeptic and writes no defect today.
+ADR-2300 shortens the chain to seven steps and supersedes ADR-1490, ADR-1530,
+ADR-1550, ADR-1560 and ADR-2200: a requirement closes with the tasks that name
+it, verify goes, cover and document fold into implement, no agent reviews a
+record, and the repository keeps no run output. EPC-2200 realises it. Until
+its tasks land, `paw` still knows the ten steps below marked as going, the
+Cover section still gates the implementation, and the method skill still
+dispatches the record reviewer; each passage this changes says "not yet".
+The skeptic ADR-2200 decided is dropped, and nothing dispatches it. The
+records written under the old chain migrate to the new shape (REQ-3652), and
+`meow-method` leaves the marketplace (REQ-3654).
 ADR-2100 decides the route, and EPC-2000 realises it: the `route` skill
 dispatches the router and reports the route before any edit, and the method
 skill and this repository's `CLAUDE.md` name it. Its cases run by hand, so
@@ -473,25 +474,28 @@ A route is recorded nowhere but the reply.
 
 ### The steps
 
-The chain runs the ten steps below in this order, each writing one kind of
-artifact (REQ-3200). Cover runs once for each task, between the epic and its
-implementation: it writes the task's checks, runs them and sees them fail,
-keeps that run, lands the checks, and fills the task's `## Cover` section. It
-ends without an approval gate, because the change carrying the checks is
-reviewed as an implementation is.
+The chain runs seven steps in this order, each writing one kind of artifact
+(REQ-3638) (not yet; see Scope): research, requirements, design, spec, epic,
+implement and review. A task's pull request carries the whole task: its tests
+first, in a commit of their own where they fail, then the implementation, the
+documentation it changes and its record marks (REQ-3616, REQ-3618, REQ-3640,
+REQ-3642). Its merge closes the task, its epic where the task was the last
+open one, and each requirement nothing open still names (REQ-3604). The
+table shows the ten steps `paw` knows today, of which cover, document and
+verify go.
 
-| Step         | Reads                                                                                                                                                                                                                                                                                                                                                                               | Writes                                                                                                             |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| research     | a question, REQ-2137, REQ-2139                                                                                                                                                                                                                                                                                                                                                      | a research record                                                                                                  |
-| requirements | approved research, REQ-2131, REQ-2132, REQ-2133, REQ-2134                                                                                                                                                                                                                                                                                                                           | requirement records                                                                                                |
-| design       | approved requirements, REQ-1230, REQ-1231, REQ-1232, REQ-1233, REQ-1234, REQ-1235, REQ-1236, REQ-1237, REQ-1238, REQ-1239, REQ-1240, REQ-1242, REQ-1244, REQ-1246, REQ-1248, REQ-1250, REQ-1252, REQ-1254, REQ-1256, REQ-1258, REQ-2138, REQ-2140, REQ-2760, REQ-2762, REQ-2764, REQ-2766, REQ-2768, REQ-2770, REQ-2772, REQ-2776, REQ-2778, REQ-2780, REQ-2782, REQ-2794, REQ-2796 | a decision record                                                                                                  |
-| spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated                                                                                         |
-| epic         | an approved decision or defect                                                                                                                                                                                                                                                                                                                                                      | an epic and its task records                                                                                       |
-| cover        | an approved task, REQ-3207, REQ-3216                                                                                                                                                                                                                                                                                                                                                | the task's checks, its kept failing run and its Cover                                                              |
-| implement    | a covered task, REQ-2266                                                                                                                                                                                                                                                                                                                                                            | the change, and the task's evidence                                                                                |
-| document     | an epic whose tasks are all done                                                                                                                                                                                                                                                                                                                                                    | the user-facing documentation, updated                                                                             |
-| verify       | an epic whose tasks are all done, REQ-2260, REQ-2262, REQ-2264                                                                                                                                                                                                                                                                                                                      | the epic's `## Verified` and `checked-at`, and a draft defect for each refutation it confirms (not yet; see Scope) |
-| review       | a verified epic, REQ-2268                                                                                                                                                                                                                                                                                                                                                           | findings in place, never a file                                                                                    |
+| Step         | Reads                                                                                                                                                                                                                                                                                                                                                                               | Writes                                                       |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| research     | a question, REQ-2137, REQ-2139                                                                                                                                                                                                                                                                                                                                                      | a research record                                            |
+| requirements | approved research, REQ-2131, REQ-2132, REQ-2133, REQ-2134                                                                                                                                                                                                                                                                                                                           | requirement records                                          |
+| design       | approved requirements, REQ-1230, REQ-1231, REQ-1232, REQ-1233, REQ-1234, REQ-1235, REQ-1236, REQ-1237, REQ-1238, REQ-1239, REQ-1240, REQ-1242, REQ-1244, REQ-1246, REQ-1248, REQ-1250, REQ-1252, REQ-1254, REQ-1256, REQ-1258, REQ-2138, REQ-2140, REQ-2760, REQ-2762, REQ-2764, REQ-2766, REQ-2768, REQ-2770, REQ-2772, REQ-2776, REQ-2778, REQ-2780, REQ-2782, REQ-2794, REQ-2796 | a decision record                                            |
+| spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated                                   |
+| epic         | an approved decision or defect                                                                                                                                                                                                                                                                                                                                                      | an epic and its task records                                 |
+| cover        | an approved task, REQ-3216                                                                                                                                                                                                                                                                                                                                                          | the task's checks, its kept failing run and its Cover        |
+| implement    | a covered task, REQ-2266                                                                                                                                                                                                                                                                                                                                                            | the change, and the task's evidence                          |
+| document     | an epic whose tasks are all done                                                                                                                                                                                                                                                                                                                                                    | the user-facing documentation, updated                       |
+| verify       | an epic whose tasks are all done, REQ-2260, REQ-2262, REQ-2264                                                                                                                                                                                                                                                                                                                      | the epic's `## Verified` and `checked-at` (going; see Scope) |
+| review       | a verified epic, REQ-2268                                                                                                                                                                                                                                                                                                                                                           | findings in place, never a file                              |
 
 A person or the model invokes one step by naming it to the `method` skill, and
 the step does its own work and no later step's (REQ-0192, REQ-0194). Each step
@@ -502,25 +506,25 @@ wrote and the step that picks it up (REQ-0196).
 Each step's file names, in its role, where its artifact lands as a path
 pattern under the record root, `[record] root` in `.meowpaw/profile.toml` or
 `project/` where it declares none, so a step's output is found by path and not
-only by kind (REQ-3203, BUG-1264). A kept run lands under the evidence
+only by kind (REQ-3203, BUG-1264). Until ADR-2300's epic lands, a kept run lands under the evidence
 directory, `evidence_dir` under `[verbs]` or `evidence` under the record root.
 Document is the one step whose artifact isn't under the record root: its role
 names each page at its own path in the repository's documentation. Review is
 the exception: its role says it writes nothing into the repository
 (REQ-0544).
 
-| Step         | Its artifact lands in                                                                                                                                                        |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| research     | `research/RES-NNNN-<topic>.md`                                                                                                                                               |
-| requirements | one `requirements/REQ-NNNN-<slug>.md` for each obligation                                                                                                                    |
-| design       | `adrs/ADR-NNNN-<slug>.md`                                                                                                                                                    |
-| spec         | `specs/SPC-NNNN-<topic>.md`                                                                                                                                                  |
-| epic         | `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task                                                                                                  |
-| cover        | the check files, the kept failing run under the evidence directory, and the `## Cover` of `tasks/TSK-NNNN-<slug>.md`                                                         |
-| implement    | the changed files, the kept runs under the evidence directory, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md`                                                           |
-| document     | each user-facing page it changed, at its own path outside the record root                                                                                                    |
-| verify       | the epic's `## Verified` and `checked-at` in `epics/EPC-NNNN-<slug>.md`, and a draft defect for each refutation it confirms (not yet; see Scope); the kept evidence it cites |
-| review       | nothing in the repository (REQ-0544)                                                                                                                                         |
+| Step         | Its artifact lands in                                                                                                      |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| research     | `research/RES-NNNN-<topic>.md`                                                                                             |
+| requirements | one `requirements/REQ-NNNN-<slug>.md` for each obligation                                                                  |
+| design       | `adrs/ADR-NNNN-<slug>.md`                                                                                                  |
+| spec         | `specs/SPC-NNNN-<topic>.md`                                                                                                |
+| epic         | `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task                                                |
+| cover        | the check files, the kept failing run under the evidence directory, and the `## Cover` of `tasks/TSK-NNNN-<slug>.md`       |
+| implement    | the changed files, the kept runs under the evidence directory, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md`         |
+| document     | each user-facing page it changed, at its own path outside the record root                                                  |
+| verify       | the epic's `## Verified` and `checked-at` in `epics/EPC-NNNN-<slug>.md`, and the kept evidence it cites (going; see Scope) |
+| review       | nothing in the repository (REQ-0544)                                                                                       |
 
 No step requires a practice command to be installed (REQ-2130). A step asks
 at most three clarifying questions, and chooses and records a default for the
@@ -533,20 +537,19 @@ Each step's file carries the obligations of its step as labelled rules, and
 the `task` and `bug` templates carry the obligations of their kinds (ADR-1160).
 The rules name no requirement, because the files ship to other repositories.
 
-| Step or template | Holds                                                                                                                                                                                                                                                    |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                     |
-| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                       |
-| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                         |
-| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                 |
-| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                     |
-| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104                                                                                                     |
-| document         | REQ-0287, REQ-0289, REQ-0290, REQ-0292, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-1964, REQ-2836                                                                                                     |
-| verify           | REQ-0241, REQ-0275, REQ-0277, REQ-0278, REQ-0279, REQ-0280, REQ-0281, REQ-0282, REQ-0283, REQ-0284, REQ-0286, REQ-0288, REQ-0291, REQ-0293, REQ-0295, REQ-0296, REQ-0297, REQ-0299, REQ-0307, REQ-0317, REQ-0319, REQ-0325, REQ-0327, REQ-0329, REQ-3520 |
-| review           | REQ-0304, REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108                                                                       |
-| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                     |
+| Step or template | Holds                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                                                                                                                       |
+| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                                                                                                                         |
+| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                                                                                                                                                           |
+| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                                                                                                                   |
+| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                                                                                                                                                       |
+| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-0241, REQ-0275, REQ-0277, REQ-0291, REQ-0327, REQ-0329, REQ-3616, REQ-3618, REQ-3640, REQ-3642, REQ-3644 |
+| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108                                                                                                                                                                                                                   |
+| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                                                                                       |
 
-The document step reads `[docs] style` from `.meowpaw/profile.toml`: a path
+The implement step holds what the document and verify steps held, since
+their work lands in the task's pull request (not yet; see Scope). It reads `[docs] style` from `.meowpaw/profile.toml`: a path
 to the repository's own style guide, or the name of an installed unit that
 ships one. Where the profile declares none, the step says so and writes to the
 writing standard in force. It reports which verb checked the documentation it
@@ -584,43 +587,16 @@ defects did (REQ-0374).
 
 The implement step begins a defect's task by running its reproduction and
 seeing it fail, and a defect a gate caught and the same change closed needs no
-record of its own (REQ-3174). The verify step closes an epic while a defect it
-uncovered is still open only where that defect is recorded. Where the defect
-contradicts an acceptance criterion, the step names both and says why closing
-is right (REQ-3170) (ADR-1440).
-
-Before it records an epic's verification, the verify step dispatches the
-`skeptic` agent, which tries to refute each requirement the epic's authorising
-record addresses (REQ-3522) (not yet; see Scope). The step confirms each
-refutation by running what it names or reading the lines it names, and writes
-each one it confirms as a draft defect naming the requirement in `violates`,
-with its `severity`, the refutation and the revision it was confirmed at as
-its reproduction, its Triage empty and no `enters` (REQ-3524). Triage stays
-unwritten because deciding whether the work or the requirement is wrong
-belongs to a person.
-
-The step records the outcome in a `Refutation` paragraph under the epic's
-`## Verified`. The paragraph names the dispatch, each requirement the agent
-reported not refuted or not judged, each confirmed refutation with its
-defect, and each rejected refutation with the command the step ran or the
-lines it read and its reason. Where the step runs somewhere it can't dispatch
-an agent, such as inside a subagent, the paragraph reads `Refutation: not
-attempted, no agent could be dispatched`, names that cause, and the step
-reports the verification as self-assessed (REQ-3522).
-
-Where the step judges that closing over a confirmed defect isn't right, it
-writes no `## Verified` and no `checked-at`, so the epic stays at verify, and
-it stops at the defect's approval gate; once the fix lands, verify runs again
-with a fresh skeptic. The review step judges each rejected refutation it reads
-in the `Refutation` paragraph, and returns the work to verify where it sides
-with the skeptic over lines the step read. The verify run that follows
-dispatches no skeptic, because no fix has landed, treats that refutation as
-confirmed, and marks its draft defect as not reproduced by a run (ADR-2200).
+record of its own (REQ-3174). A requirement an open defect names in `violates` is
+open until the defect closes, whatever its tasks say (REQ-3610) (not yet; see
+Scope).
 
 The implement step cites each verb's result under a task's Evidence as
 `meow-verbs evidence` prints it, with the record and the tree id, and records
 the command, its exit status and its output where `meow-verbs` isn't
-installed, because `meow-flow` works without it (REQ-0146) (ADR-1480).
+installed, because `meow-flow` works without it (REQ-0146) (ADR-1480). The
+repository keeps no run output, so the Evidence names the checks and the pull
+request (REQ-3614) (not yet; see Scope).
 
 ### The gate
 
@@ -639,8 +615,8 @@ own line (REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
 | cover        | the named task and its epic or defect are approved, and each task it depends on is done                   |
 | implement    | all that `cover` needs holds, and the task's `## Cover` section is filled                                 |
 | document     | every task of the named epic is done or dropped                                                           |
-| verify       | every task of the named epic is done or dropped (REQ-0294)                                                |
-| review       | the named epic carries `checked-at` (REQ-0302)                                                            |
+| verify       | every task of the named epic is done or dropped (going; see Scope)                                        |
+| review       | the named epic carries `checked-at` (going; see Scope)                                                    |
 
 A task is done when its epic marks it `[x]`, and dropped when it is marked
 `[~]`. A task entry may carry `[P]` between its number and its identifier,
@@ -665,8 +641,10 @@ so a task whose only open dependency doesn't block is ready. An epic entry's
 and reads the same way. Readiness reads only the task's own line, and nothing
 checks that an epic entry's marker agrees with it.
 
-A task's `## Cover` section reads `Not yet.` until the cover step fills it
-with four lines:
+Under ADR-2300 the `## Cover` section goes, and the task's first commit holds
+its failing tests (REQ-3616, REQ-3642) (not yet; see Scope). Until then, a
+task's `## Cover` section reads `Not yet.` until the cover step fills it with
+four lines:
 
 ```text
 - Checks: <the path of each check it wrote, or none>
@@ -678,7 +656,7 @@ with four lines:
 The section is filled when `Landed in` names something, each path under
 `Checks` exists, the path under `Failing run` exists, and each number under
 `Judgement` carries a reason, because the failing run is the cover step's
-evidence (REQ-3207) and a criterion resting on judgement is named with its
+evidence (ADR-1620) and a criterion resting on judgement is named with its
 reason before the implementation starts (REQ-3216). A path under `Checks` or
 `Failing run` is relative to the repository's root and names a regular file
 inside it, and `Failing run` names none of the checks, because a file outside
@@ -723,6 +701,13 @@ has reached and the next one:
   `verify`
 - the epic carries `checked-at`: realised
 
+Under ADR-2300, an epic whose tasks are all done or dropped is closed, and the
+line names no step whose work has landed (REQ-3620). Each requirement is open
+or closed as REQ-3600, REQ-3608 and REQ-3610 derive it, a task or an epic may
+name any number of requirements and a requirement any number of them
+(REQ-3646, REQ-3648), and every postponed requirement is listed with the
+condition that would end its postponement (REQ-3622) (not yet; see Scope).
+
 Run twice with nothing changed, it prints the same text (REQ-0210).
 
 ### Approvals
@@ -741,13 +726,18 @@ runs it, so a session opens with the pending approval before anything else
 
 ### The review before a gate
 
+Under ADR-2300 no agent reviews a record (REQ-3624): an agent reviews the
+task's change inside its pull request, the pull request fixes what it finds,
+and nothing is written into the record (REQ-3626) (not yet; see Scope). Until
+EPC-2200 lands, the following holds.
+
 Before it reports the gate a record waits at, the method skill dispatches
 `meow-flow:record-reviewer`, naming the record's path and nothing else, so the
 agent, which starts with no context of its own, isn't told who wrote it
 (REQ-0149, REQ-0151). The agent has `Read`, `Grep` and `Glob` alone (REQ-0819).
 It works through a fixed set of questions for the record's kind, plus two for
 every kind: does the record mix two kinds, and does each rule state its reason
-(REQ-2828, REQ-2830). It asks nothing `paw check` settles and reports each
+(REQ-2830) (ADR-1490). It asks nothing `paw check` settles and reports each
 finding as its judgement (REQ-0132, REQ-0147). Its report opens with
 `Agent review, not a person's approval; the reviewer may share the author's model family.`
 (REQ-0157).
