@@ -140,15 +140,18 @@ AGENT_FIELDS = {
 }
 SHIPPED_AGENT = "plugins/meow-demo/agents/reviewer.md"
 OWN_AGENT = ".claude/agents/local.md"
+OUTCOMES = ("DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED")
+NAMES_ALL_FOUR = "You review the demo and end with outcome: DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT or BLOCKED."
 
 
-def agent(**changes):
-    """An agent declaring the six fields SPC-1030 states, with `changes` applied and a value of None removing a field."""
+def agent(role=NAMES_ALL_FOUR, **changes):
+    """An agent declaring the six fields SPC-1030 states, with `changes` applied and a value of None removing a
+    field. Its body names the four outcomes unless `role` replaces it, so a field fixture fails on its field alone."""
     fields = dict(AGENT_FIELDS)
     fields.update(changes)
     lines = [f"{name}: {value}" for name, value in fields.items() if value is not None]
     front = "\n".join(["name: reviewer", "description: Reviews the demo and reports findings, editing nothing."] + lines)
-    return f"---\n{front}\n---\n\n<role>\nYou review the demo.\n</role>\n"
+    return f"---\n{front}\n---\n\n<role>\n{role}\n</role>\n"
 
 
 class AgentFields(unittest.TestCase):
@@ -277,6 +280,61 @@ class AgentFields(unittest.TestCase):
         """TSK-2700 criterion 5, REQ-3270: a repository's own agent may write tools "*"."""
         self.refuses(OWN_AGENT, agent(tools='"*"', model=None), "model", ".claude")
         self.passes(OWN_AGENT, agent(tools='"*"'), ".claude")
+
+
+class AgentOutcomes(unittest.TestCase):
+    """TSK-2702, REQ-0816, SPC-1030 "The check": an agent in a unit's `agents/` directory names the four outcomes
+    in its body, and a failure names the file and each missing word."""
+
+    def check(self, path, text, *paths):
+        repository = Repository({path: text})
+        self.addCleanup(repository.tmp.cleanup)
+        return repository.check(*paths)
+
+    def missing(self, done, path):
+        """The outcome words the check's failure lines for `path` name, read from the lines naming no field."""
+        lines = [line for line in done.stdout.splitlines() if line.startswith(path)]
+        words = set()
+        for line in lines:
+            words.update(w for w in OUTCOMES if re.search(rf"(?<![A-Z_]){w}(?![A-Z_])", line))
+        return words
+
+    def test_a_unit_agent_naming_no_outcome_fails_naming_each_word(self):
+        """TSK-2702 criterion 1, REQ-0816: a unit's agent naming none of the four fails, naming the file and all
+        four words."""
+        done = self.check(SHIPPED_AGENT, agent(role="You review the demo."))
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertEqual(self.missing(done, SHIPPED_AGENT), set(OUTCOMES), done.stdout)
+
+    def test_a_unit_agent_missing_only_blocked_fails_naming_blocked(self):
+        """TSK-2702 criterion 1, REQ-0816: a unit's agent naming all but BLOCKED fails, naming the file and
+        BLOCKED alone."""
+        role = "You review the demo and end with outcome: DONE, DONE_WITH_CONCERNS or NEEDS_CONTEXT."
+        done = self.check(SHIPPED_AGENT, agent(role=role))
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertEqual(self.missing(done, SHIPPED_AGENT), {"BLOCKED"}, done.stdout)
+
+    def test_a_unit_agent_missing_only_done_fails_naming_done(self):
+        """TSK-2702 criterion 1, REQ-0816: DONE_WITH_CONCERNS doesn't count as naming DONE, so an agent naming
+        the other three fails, naming DONE."""
+        role = "You review the demo and end with outcome: DONE_WITH_CONCERNS, NEEDS_CONTEXT or BLOCKED."
+        done = self.check(SHIPPED_AGENT, agent(role=role))
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertEqual(self.missing(done, SHIPPED_AGENT), {"DONE"}, done.stdout)
+
+    def test_a_unit_agent_naming_all_four_passes(self):
+        """TSK-2702 criterion 1, REQ-0816: a unit's agent naming all four passes."""
+        done = self.check(SHIPPED_AGENT, agent())
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("0 authoring failures", done.stdout)
+
+    def test_a_repositorys_own_agent_naming_none_passes(self):
+        """TSK-2702 criterion 1, REQ-0816: a repository's own agent under `.claude/agents/` isn't read for the
+        outcome rule. The same text in a unit fails, so this passing isn't a check that reads nothing."""
+        self.assertEqual(self.check(SHIPPED_AGENT, agent(role="You review the demo.")).returncode, 1)
+        done = self.check(OWN_AGENT, agent(role="You review the demo."), ".claude")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("0 authoring failures", done.stdout)
 
 
 class Cost(unittest.TestCase):

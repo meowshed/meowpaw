@@ -672,4 +672,67 @@ mod tests {
             1
         );
     }
+
+    /// An agent declaring the six fields SPC-1030 states, with `role` as its
+    /// body, so the outcome rule is the only one it can fail.
+    fn outcome_agent(role: &str) -> String {
+        format!(
+            "---\nname: reviewer\ndescription: Reviews the demo and reports findings, editing nothing.\n\
+             tools: [Read, Grep, Glob]\nmaxTurns: 30\nmodel: opus\neffort: high\n\
+             omitClaudeMd: false\nskills: []\n---\n\n<role>\n{role}\n</role>\n"
+        )
+    }
+
+    /// `meow-author check`'s exit status over one agent written at
+    /// `agents/reviewer.md` inside `unit`, which sits in a scratch directory.
+    fn check_agent(case: &str, unit: &str, role: &str) -> u8 {
+        let dir = std::env::temp_dir().join(format!("meow-author-{case}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let agents = dir.join(unit).join("agents");
+        std::fs::create_dir_all(&agents).unwrap();
+        std::fs::write(agents.join("reviewer.md"), outcome_agent(role)).unwrap();
+        let status = check(&[dir.join(unit).display().to_string()]);
+        let _ = std::fs::remove_dir_all(&dir);
+        status
+    }
+
+    const ALL_FOUR: &str = "You review the demo and end with outcome: DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT or BLOCKED.";
+
+    #[test]
+    fn a_unit_agent_naming_no_outcome_fails() {
+        // TSK-2702 criterion 1, REQ-0816: a unit's agent naming none of the
+        // four outcomes fails (SPC-1030 "The check").
+        assert_eq!(
+            check_agent("none", "plugins/meow-demo", "You review the demo."),
+            FOUND
+        );
+    }
+
+    #[test]
+    fn a_unit_agent_missing_only_blocked_fails() {
+        // TSK-2702 criterion 1, REQ-0816: a unit's agent naming three of the
+        // four outcomes, all but BLOCKED, fails.
+        assert_eq!(
+            check_agent(
+                "three",
+                "plugins/meow-demo",
+                "You review the demo and end with outcome: DONE, DONE_WITH_CONCERNS or NEEDS_CONTEXT."
+            ),
+            FOUND
+        );
+    }
+
+    #[test]
+    fn a_unit_agent_naming_all_four_passes() {
+        // TSK-2702 criterion 1, REQ-0816: a unit's agent naming all four
+        // outcomes passes.
+        assert_eq!(check_agent("four", "plugins/meow-demo", ALL_FOUR), CLEAN);
+    }
+
+    #[test]
+    fn a_repository_agent_naming_no_outcome_passes() {
+        // TSK-2702 criterion 1, REQ-0816: a repository's own agent under
+        // `.claude/agents/` isn't read for the outcome rule.
+        assert_eq!(check_agent("own", ".claude", "You review the demo."), CLEAN);
+    }
 }
