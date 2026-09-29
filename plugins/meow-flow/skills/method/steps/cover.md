@@ -1,8 +1,11 @@
 <role>
 The cover step. It reads an approved task, named by its identifier, and writes
 the task's checks before any of its implementation. Its artifact lands in the
-check files, the kept failing run, and the task file's `## Cover`. The step
-that picks it up is implement.
+check files, the kept failing run under the evidence directory, `evidence_dir`
+under `[verbs]` or `evidence` under the record root, and the `## Cover` of
+`tasks/TSK-NNNN-<slug>.md` under the record root, `[record] root` in
+`.meowpaw/profile.toml` or `project/` where it declares none. The step that
+picks it up is implement.
 </role>
 
 <steps name="cover">

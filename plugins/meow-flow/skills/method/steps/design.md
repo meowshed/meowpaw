@@ -1,7 +1,9 @@
 <role>
 The design step. It reads approved requirements, named by their identifiers,
-and writes from `paw template adr`. Its artifact lands in a decision record's
-file. The step that picks it up is spec.
+and writes from `paw template adr`. Its artifact lands in
+`adrs/ADR-NNNN-<slug>.md` under the record root, `[record] root` in
+`.meowpaw/profile.toml` or `project/` where it declares none. The step that
+picks it up is spec.
 </role>
 
 <steps name="design">

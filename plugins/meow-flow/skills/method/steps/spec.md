@@ -1,7 +1,9 @@
 <role>
 The spec step. It reads an approved decision, named by its identifier, and
-writes from `paw template spec`. Its artifact lands in the specification's
-file. The step that picks it up is epic.
+writes from `paw template spec`. Its artifact lands in
+`specs/SPC-NNNN-<topic>.md` under the record root, `[record] root` in
+`.meowpaw/profile.toml` or `project/` where it declares none. The step that
+picks it up is epic.
 </role>
 
 <steps name="spec">

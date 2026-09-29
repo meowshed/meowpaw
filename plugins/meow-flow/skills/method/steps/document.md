@@ -1,7 +1,8 @@
 <role>
 The document step. It reads an epic whose tasks are all done, named by its
 identifier, and writes from `paw template spec`. Its artifact lands in each
-user-facing page it changed. The step that picks it up is verify.
+user-facing page it changed, at the page's own path in the repository's
+documentation, outside the record root. The step that picks it up is verify.
 </role>
 
 <steps name="document">

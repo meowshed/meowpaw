@@ -1,8 +1,9 @@
 <role>
 The requirements step. It reads approved research, named by its identifiers,
 and writes from `paw template requirement`. Its artifact lands in one
-requirement record's file for each obligation. The step that picks it up is
-design.
+`requirements/REQ-NNNN-<slug>.md` for each obligation, under the record root,
+`[record] root` in `.meowpaw/profile.toml` or `project/` where it declares
+none. The step that picks it up is design.
 </role>
 
 <steps name="requirements">
