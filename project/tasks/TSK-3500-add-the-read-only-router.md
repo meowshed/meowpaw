@@ -92,7 +92,7 @@ Nothing: the agent stands alone, and the route skill is the one that needs it.
 
 - Checks: plugins/meow-flow/tests/test_route.py
 - Failing run: project/evidence/c43d863413e3.txt
-- Landed in: #668
+- Landed in: #669
 - Judgement: 3: it dispatches the router on a model, and model calls run by hand and never in the gate; 4: the cases dispatch the router on a model, run by hand; 5: the case dispatches the router on a model, run by hand; 6: the case dispatches the router on a model, run by hand; 7: the existing budget check closes it, and it passes before the agent exists, so no failing run can be kept for it
 
 The checks are the class `RouterAgent`, each naming its criterion and
