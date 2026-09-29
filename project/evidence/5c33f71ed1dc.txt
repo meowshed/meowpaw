@@ -1,0 +1,56 @@
+meow-verbs evidence 1
+record: 5c33f71ed1dc
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 101
+tree: e669ce4b7235466e5dafa61f2b7c2131879c744d
+time: 2026-09-29T15:25:28Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+built meow-unattended for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 40 tests
+.......... 10/40
+github::request::tests::reset_is_read_in_epoch_seconds --- FAILED
+. 12/40
+github::request::tests::only_the_layer_starts_gh --- FAILED
+...........................
+failures:
+
+---- github::request::tests::reset_is_read_in_epoch_seconds stdout ----
+
+thread 'github::request::tests::reset_is_read_in_epoch_seconds' (207059944) panicked at src/github/request.rs:25:9:
+assertion `left == right` failed
+  left: None
+ right: Some(3207)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- github::request::tests::only_the_layer_starts_gh stdout ----
+
+thread 'github::request::tests::only_the_layer_starts_gh' (207059942) panicked at src/github/request.rs:63:9:
+assertion `left == right` failed
+  left: ["github.rs"]
+ right: ["github/request.rs"]
+
+
+failures:
+    github::request::tests::only_the_layer_starts_gh
+    github::request::tests::reset_is_read_in_epoch_seconds
+
+test result: FAILED. 38 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+error: test failed, to rerun pass `--bin meow`
+[crate] ERROR task failed

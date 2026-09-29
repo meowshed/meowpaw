@@ -96,7 +96,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-2940 add the request layer in
+- [x] T-001 TSK-2940 add the request layer in
       `crates/meow/src/github/request.rs`, move `history`, `project` and
       naming the repository onto it, read the limit headers, tell a replay
       from a fresh response, derive every wait from one table, stop at a
