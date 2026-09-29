@@ -49,13 +49,35 @@ Nothing. BUG-1341 is approved, and TSK-3320 has landed.
 - Checks: plugins/meow-unattended/tests/test_unattended.py,
   `Units.test_unit_paths_hold_from_a_subdirectory`
 - Failing run: project/evidence/0765f11da365.txt
-- Landed in: not yet
+- Landed in: #683
 - Judgement: 2: the kept run of the five verbs at the revision that merges
   closes it, and no check written before the work can
 
 ## Evidence
 
-Not yet.
+`unit()` in `crates/meow/src/unattended.rs` now keeps the unit directory it
+read the manifest from, resolved against the repository root and
+canonicalised, and `plan` prints that path after `--plugin-dir` and stores it
+as the snapshot's `units[].path`. The resolved table and the output's list of
+units keep the declared entry. SPC-1200's sections "The command line" and "The
+snapshot" and the unit's README state the absolute path. `meow-unattended` is
+0.2.2.
+
+The check failed first: `meow-verbs run test` exited 1 with
+`FAILED (failures=1)` on `Units.test_unit_paths_hold_from_a_subdirectory`,
+which read `['units/alpha', 'units/beta']` where it expected the absolute
+paths, kept as `project/evidence/0765f11da365.txt` in the commit that held the
+check alone. It passes now, unchanged:
+
+```text
+$ python3 -m unittest test_unattended    # in plugins/meow-unattended/tests
+Ran 19 tests
+OK                                       # exit 0
+```
+
+Criterion 2: `meow-verbs run format lint check test build` passes on this
+change's tree, and `meow-verbs evidence --keep` keeps each result in
+`project/evidence/`, as the pull request cites.
 
 ## Left alone
 

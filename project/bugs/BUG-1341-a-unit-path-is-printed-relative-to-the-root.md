@@ -68,5 +68,7 @@ absolute and to name the declared unit's directory.
 
 ## Tasks
 
-- [ ] T-001 TSK-3330 print and record each unit as its absolute path, in
+- [x] T-001 TSK-3330 print and record each unit as its absolute path, in
       `crates/meow/src/unattended.rs`
+      evidence: 1 check seen failing first, 19 `meow-unattended` fixtures
+      passing, in #683.
