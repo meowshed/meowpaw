@@ -350,9 +350,9 @@ class WriteSkill(unittest.TestCase):
     rule under a `<rules>` tag that states its reason."""
 
     # REQ-2972: knowledge ships as a skill, and never as an agent.
-    KNOWLEDGE = (r"\bknowledge\b", r"\bskill\b", r"\b(never|not)\b[^.]*\bagent\b")
+    KNOWLEDGE = (r"\bknowledge\b", r"\bas a skill\b[^.;]*\bnever as an agent\b")
     # REQ-2976: a delegated agent is no boundary that contains what it does.
-    BOUNDARY = (r"\bagent\b", r"\bboundary\b", r"\bsandbox\b")
+    BOUNDARY = (r"\bagent\b", r"\b(never|not|no)\b[^.;,]*\bboundary\b", r"\bsandbox\b")
 
     @staticmethod
     def matches(body, patterns):
