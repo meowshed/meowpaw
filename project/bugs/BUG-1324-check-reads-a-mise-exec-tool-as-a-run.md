@@ -64,5 +64,7 @@ runs.
 
 ## Tasks
 
-- [ ] T-001 TSK-3180 read the tools `mise exec` loads as no run, in
+- [x] T-001 TSK-3180 read the tools `mise exec` loads as no run, in
       `crates/meow/src/markdown.rs`
+      evidence: 2 checks seen failing first, 56 `meow-markdown` fixtures
+      passing, in #724.
