@@ -1,0 +1,44 @@
+meow-verbs evidence 1
+record: 861cbef48d99
+verb: test
+command: crates/meow/build-units && mise run crate && python3 -m unittest discover -s plugins/meow-verbs/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-method/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py
+targets: none
+outcome: failed
+exit status: 101
+tree: c00f8a58eda1ce8fa76532f90490a9dcb981ef45
+time: 2026-09-29T17:27:48Z
+
+built meow-verbs for aarch64-apple-darwin
+built meow-scm for aarch64-apple-darwin
+built meow-git for aarch64-apple-darwin
+built meow-flow for aarch64-apple-darwin
+built meow-github for aarch64-apple-darwin
+built meow-licence for aarch64-apple-darwin
+built meow-author for aarch64-apple-darwin
+built meow-mise for aarch64-apple-darwin
+built meow-gotask for aarch64-apple-darwin
+built meow-prose-gate for aarch64-apple-darwin
+built meow-markdown for aarch64-apple-darwin
+built meow-unattended for aarch64-apple-darwin
+[crate] $ cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features
+
+running 39 tests
+..................................... 37/39
+prose::tests::an_idiom_inside_longer_words_is_no_finding --- FAILED
+.
+failures:
+
+---- prose::tests::an_idiom_inside_longer_words_is_no_finding stdout ----
+
+thread 'prose::tests::an_idiom_inside_longer_words_is_no_finding' (211705795) panicked at src/prose.rs:748:9:
+assertion failed: rules("git commit -m \"Route the circle backend\" -m \"a deep diver\" -m \"undercircle back\"").is_empty()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    prose::tests::an_idiom_inside_longer_words_is_no_finding
+
+test result: FAILED. 38 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `--bin meow`
+[crate] ERROR task failed

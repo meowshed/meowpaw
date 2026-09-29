@@ -608,6 +608,7 @@ addresses lands in one of them.
 | [BUG-1264](bugs/BUG-1264-the-step-roles-name-no-location-under-the-record-root.md)           | The method's step roles named a kind of file where REQ-3203 asks for a location under the record root             |
 | [BUG-1265](bugs/BUG-1265-no-fixture-holds-a-release-note-or-seven-of-the-gated-commands.md)  | No fixture showed the prose gate holding a release note, or seven of the ten commands it reads                    |
 | [BUG-1266](bugs/BUG-1266-the-no-model-check-reads-one-hook-event.md)                         | The prose gate's no-model check read the `PreToolUse` hooks only                                                  |
+| [BUG-1267](bugs/BUG-1267-no-fixture-pins-p1-to-whole-words.md)                               | No fixture pinned the prose gate's P1 to whole words                                                              |
 | [BUG-1300](bugs/BUG-1300-no-check-shows-status-waiting-on-a-blocking-dependency.md)          | No check showed `paw status` waiting on a blocking dependency                                                     |
 | [BUG-1301](bugs/BUG-1301-the-grouping-checks-cover-a-subset-of-the-fields.md)                | The grouping checks covered a subset of the fields ADR-1800 forbids                                               |
 | [BUG-1320](bugs/BUG-1320-a-markdownlintrc-is-read-as-no-linter.md)                           | `meow-markdown` bound `lint` to its own check beside a `.markdownlintrc`, and listed no configuration             |
@@ -618,7 +619,7 @@ addresses lands in one of them.
 | [BUG-1341](bugs/BUG-1341-a-unit-path-is-printed-relative-to-the-root.md)                     | `meow-unattended plan` printed each unit relative to the root, which names nothing from a subdirectory            |
 | [BUG-1342](bugs/BUG-1342-the-unattended-suite-passes-a-plan-that-ignores-the-declaration.md) | The `meow-unattended` checks passed nine versions of `plan` that ignore what the repository declares              |
 
-Thirty-five are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
+Thirty-six are closed. BUG-1040 and BUG-1100 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.
