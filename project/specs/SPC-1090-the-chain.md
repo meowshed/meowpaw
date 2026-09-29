@@ -697,16 +697,18 @@ has reached and the next one:
 - its epic has tasks not done: for the first task whose blocking
   dependencies are done, next is `cover` while its Cover isn't filled, and `implement` once it
   is, and the line keeps the form `(<epic>, <n> of <m> tasks done)`
-- every task is done and the epic has no `checked-at`: next is `document`, then
-  `verify`
-- the epic carries `checked-at`: realised
+- every task is done or dropped: closed, and no step whose work has landed is
+  named (REQ-3604, REQ-3620)
 
-Under ADR-2300, an epic whose tasks are all done or dropped is closed, and the
-line names no step whose work has landed (REQ-3620). Each requirement is open
-or closed as REQ-3600, REQ-3608 and REQ-3610 derive it, a task or an epic may
-name any number of requirements and a requirement any number of them
-(REQ-3646, REQ-3648), and every postponed requirement is listed with the
-condition that would end its postponement (REQ-3622) (not yet; see Scope).
+Each requirement is open or closed as REQ-3600, REQ-3608 and REQ-3610 derive
+it: closed when a task naming it is done and none naming it is open, open
+while an open defect names it in `violates`, and open when nothing names it,
+with no state after closed. A defect closes with its tasks, and one with no
+task closed in the change that recorded it unless its Closed by opens with
+"Not" or "Open". A task or an epic may name any number of requirements and a
+requirement any number of them (REQ-3646, REQ-3648). `status` lists every
+postponed requirement under Postponed with the first entry of its decision's
+What would reverse it (REQ-3622).
 
 Run twice with nothing changed, it prints the same text (REQ-0210).
 

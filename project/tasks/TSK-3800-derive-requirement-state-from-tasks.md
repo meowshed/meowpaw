@@ -50,9 +50,19 @@ the task until they are filled.
 
 ## Evidence
 
-Not yet.
+In #752. The class `RequirementState` in `plugins/meow-flow/tests/test_record.py`
+holds 15 checks, one or more for each criterion. The nine in the pull
+request's first commit failed against `main`, and all 241 `meow-flow`
+fixtures pass with the change. `meow-verbs run format lint check test` passed
+all four verbs. An agent's code review found seven defects in the first
+version, among them a defect with only dropped fixes counted closed and a
+postponement listed apart from its count, and the pull request fixes each.
 
 ## Left alone
+
+`check frozen` still lets an approved epic change only while its `checked-at`
+is empty, because TSK-3860 removes the field from every record and the rule
+with it. `paw ready` still knows the ten steps, which TSK-3810 changes.
 
 The in-flight worktrees for TSK-2703, TSK-2950, TSK-3350 and TSK-3700 are
 postponed by the owner and left as they are.

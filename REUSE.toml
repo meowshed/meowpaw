@@ -30,6 +30,7 @@ path = [
   ".github/**",
   "tools/**",
   "crates/meow/Cargo.lock",
+  "renovate.json",
   "plugins/**",
   ".claude-plugin/**",
 ]
