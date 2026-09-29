@@ -107,15 +107,67 @@ already exist.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-unattended/tests/test_unattended.py
+- Failing run: project/evidence/5a1520eda28c.txt
+- Landed in: #663
+- Judgement: 11: the check reads `claude --help` from a third party's
+  installed program, which no fixture pins and CI doesn't have, so the
+  implementer keeps the help text and names the version read; 12: the kept
+  run of the five verbs at the revision that merges closes it, and no check
+  written before the work can
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`crates/meow/src/unattended.rs` is the `unattended` feature: `plan` and
+`plan --purge`, reading the table through the profile reader, finding the
+state directory and the work tree's key as the evidence ledger does, and
+writing the snapshot through a temporary file renamed into place.
+`build-units` builds it into `plugins/meow-unattended/bin/`, and the unit ships
+its launcher, a README stating the four limits and the need for
+`ANTHROPIC_API_KEY`, `budget.toml` at zero characters, `requires.toml` naming
+2.1.283 and `plugin.json` at 0.1.0, with a marketplace entry and a row in the
+documentation index. The profile's `test` verb already ran the unit's test
+directory.
+
+The 13 checks failed first: `meow-verbs run test` exited 1 with
+`FAILED (failures=21)` for the unit's file, counting the subtests, kept as
+`project/evidence/5a1520eda28c.txt`, in the cover commit f9e8b4e, which held
+the checks alone and became 34f2f7a when the branch was rebased onto
+`origin/main`. They pass now, unchanged, since
+`git diff f9e8b4ed30a9650f2bc2b914e8a21582acf3bb45 -- plugins/meow-unattended/tests/test_unattended.py`
+prints nothing:
+
+```text
+$ python3 -m unittest discover -s plugins/meow-unattended/tests
+Ran 13 tests
+OK                                               # exit 0
+```
+
+Criterion 11: the installed Claude Code is 2.1.280, not 2.1.283, so I read
+`claude --help` from 2.1.280 (exit 0). It lists every flag criterion 5 names:
+`-p, --print`, `--bare`, `--plugin-dir <path>`, `--permission-mode <mode>`
+with `dontAsk` among its choices, `--permission-prompts <target>` with `none`
+among its choices, `--disallowed-tools <tools...>`,
+`--output-format <format>`, `--verbose`, `--max-budget-usd <amount>` and
+`--settings <file-or-json>`. A flag that changed between 2.1.280 and 2.1.283
+wouldn't show in this reading.
+
+Criterion 12: `meow-verbs run format lint check test build` passes on this
+change's tree, and `meow-verbs evidence --keep` keeps each result in
+`project/evidence/`, as the pull request cites.
+
+SPC-1200 didn't state four refusals the table reader needs, so I chose each
+and SPC-1200 now states it: an unparseable profile, a `gates` or `units` that
+isn't a list of strings, a `merge_protected` or `amend_approved` that isn't
+`true` or `false`, and a missing `[git] trunk` while the push rules need one.
+It also didn't state `plan --purge` with state writing off, which reports
+`unresolved: snapshots not purged` and exits 3. The snapshot stores the
+resolved table under a top-level `meowpaw.unattended` key; no run has shown
+whether Claude Code warns on a settings key it doesn't know.
+
+`docs/README.md`, which this task leaves to the document step, gained only the
+row `tools/check_docs.py --write` generates for the unit's page, because the
+documentation check fails on a unit page missing from it.
 
 ## Left alone
 
