@@ -291,6 +291,24 @@ class Project(unittest.TestCase):
         self.assertFalse((root / "state.json").exists())
         self.assertNotIn("issue: 1", self.task(root, "TSK-0001-first.md"))
 
+    def test_project_groups_an_issue_nowhere(self):
+        """TSK-2910 criterion 4, REQ-3320: `project` passes no grouping argument and no grouping field, so an issue
+        sits under nothing on the tracker, and the body copies a dependency line's `(not blocking)` as written."""
+        root = self.repository()
+        path = root / "project" / "tasks" / "TSK-0002-second.md"
+        path.write_text(path.read_text(encoding="utf-8").replace(
+            "TSK-0001, whose check this reports.", "- TSK-0001 (not blocking): shares a helper"), encoding="utf-8")
+        done = self.project(root)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        calls = self.state(root)["calls"]
+        self.assertTrue(self.writes(root), calls)
+        for call in calls:
+            for flag in ("--milestone", "--parent", "--project", "--label"):
+                self.assertFalse([a for a in call if a == flag or a.startswith(flag + "=")], call)
+            fields = [call[i + 1].partition("=")[0] for i, a in enumerate(call[:-1]) if a in ("-f", "-F", "--field", "--raw-field")]
+            self.assertLessEqual(set(fields), {"title", "body"}, call)
+        self.assertIn("- TSK-0001 (not blocking): shares a helper", self.state(root)["issues"]["2"]["body"])
+
     def test_a_draft_epic_projects_nothing(self):
         root = self.repository(status="draft")
         done = self.project(root)

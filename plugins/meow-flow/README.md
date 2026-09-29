@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.38.0]
+describes: [meow-flow@0.39.0]
 ---
 
 # meow-flow
@@ -106,6 +106,11 @@ A defect authorises work as a decision does. Where the fix is one task, the
 defect record carries it under `## Tasks`, with the same marks an epic uses,
 and the task names `bug: BUG-NNNN` in place of `epic`. `paw status` counts the
 tasks decisions authorised and the tasks defects did.
+
+A task sits under its epic or its defect and nothing else, so `paw check`
+reports a task, an epic or a defect carrying a grouping field, `milestone`,
+`parent`, `project`, `sprint`, `iteration`, `label` or `labels`, whatever its
+status, and an epic carrying `epic`.
 
 A defect is reproduced before it is triaged, and its triage names in `enters`
 the step it enters at: `cover`, `implement` or `design` where it violates a requirement,
@@ -235,7 +240,7 @@ rules: 0 findings
 
 | Check          | Reports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `front-matter` | A field the kind requires that's missing, a status the kind doesn't store, a bad `revised`; a retired field or status, which `lib/layout.toml` lists with what replaced it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `front-matter` | A field the kind requires that's missing, a field the kind forbids, a status the kind doesn't store, a bad `revised`; a retired field or status, which `lib/layout.toml` lists with what replaced it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `identifiers`  | A file whose name and `id` disagree, an identifier used twice, a cited requirement not found                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `relations`    | An identifier in a relation field with no file, one in a draft's prose outside code, and a link in the record to a missing file; a suspect citation in a draft or living artifact, one whose target was revised after it, or an epic or defect it cites that is withdrawn or superseded                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `index`        | A file its kind's index doesn't list, and an index entry with no file; a specification listed before one it cites                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |

@@ -2,7 +2,7 @@
 id: TSK-2910
 artifact: task
 status: approved
-revised: 2026-09-28
+revised: 2026-09-29
 epic: EPC-1710
 closes: [REQ-3320]
 issue: 642
@@ -72,14 +72,40 @@ Nothing. ADR-1800 and EPC-1710 are approved.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
+- Checks: plugins/meow-flow/tests/test_record.py plugins/meow-github/tests/test_github.py
+- Failing run: project/evidence/27c4d319f7ce.txt
+- Landed in: #670
+- Judgement: 4: `Project.test_project_groups_an_issue_nowhere` passes before the work, because `project` already sends only a title and a body and copies the dependency line as written, so the check guards against a regression and the reviewer reads it, and it doesn't run in the failing run, which stops at the `meow-flow` suite; 5: the whole run of the five verbs is the implementation's kept evidence, and no check is written for it here
 
 ## Evidence
 
-Not yet.
+Done. Closes REQ-3320.
+
+The checks failed first: the cover commit 063957639db4, rebased as 513dd310
+onto main, kept
+`project/evidence/27c4d319f7ce.txt`, where the `meow-flow` suite exits 1 with
+seven failures, one for each `Grouping` test and two for the subtests of
+`test_a_task_under_its_epic_or_defect_passes`.
+
+The change is the layout alone: `crates/meow/src/record.rs` already reports a
+forbidden field, and `crates/meow/src/github/project.rs` is unchanged.
+
+`python3 -m unittest test_record.Grouping`, from
+`plugins/meow-flow/tests`, exited 0 and printed `Ran 6 tests` and `OK`. The
+whole file, `python3 -m unittest test_record`, exited 0 and printed
+`Ran 209 tests` and `OK`. `python3 -m unittest test_github`, from
+`plugins/meow-github/tests`, exited 0 and printed `Ran 14 tests` and `OK`,
+`Project.test_project_groups_an_issue_nowhere` among them.
+
+`plugins/meow-flow/bin/paw check` exited 0 and printed 0 findings for every
+check, with the coverage line `792 of 1107 requirements in force land in a
+task`, so no record in this repository carries a grouping field.
+
+`git diff 063957639db42685ae09fc0c895789e45fa19973 --
+plugins/meow-flow/tests/test_record.py plugins/meow-github/tests/test_github.py`
+printed nothing, so the checks are as the cover wrote them.
+
+The five verbs' run is kept under `project/evidence/` in this change.
 
 ## Left alone
 
