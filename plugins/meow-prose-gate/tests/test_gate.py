@@ -120,6 +120,10 @@ GATED = {
     "gh issue comment": ('gh issue comment 7 -b "The retry is under the hood of the worker."', "P1", "under the hood"),
     "gh release create": ('gh release create v1.2.0 --title "1.2.0" --notes "Caching was the low-hanging fruit."', "P1", "low-hanging fruit"),
     "gh release edit": ('gh release edit v1.2.0 -n "A game changer for slow pages."', "P1", "game changer"),
+    "gh -R": ('gh -R o/r pr create --title "Cache pages" --body "the low-hanging fruit"', "P1", "low-hanging fruit"),
+    "gh --repo": ('gh --repo=o/r release create v1.2.0 --notes "a silver bullet"', "P1", "silver bullet"),
+    "git -C": ('git -C sub commit -m "a silver bullet"', "P1", "silver bullet"),
+    "git -c": ('git -c user.name=x commit -m "a deep dive"', "P1", "deep dive"),
 }
 
 
@@ -158,6 +162,19 @@ class EveryGatedCommand(unittest.TestCase):
 
     def test_gh_release_edit(self):
         self.assert_blocks(*GATED["gh release edit"])
+
+    def test_gh_short_repo_option(self):
+        self.assert_blocks(*GATED["gh -R"])
+
+    def test_gh_long_repo_option(self):
+        self.assert_blocks(*GATED["gh --repo"])
+        self.assert_blocks('gh --repo o/r issue comment 5 --body "the low-hanging fruit"', "P1", "low-hanging fruit")
+
+    def test_git_directory_option(self):
+        self.assert_blocks(*GATED["git -C"])
+
+    def test_git_config_option(self):
+        self.assert_blocks(*GATED["git -c"])
 
     def test_release_notes_hidden_in_a_file(self):
         self.assert_blocks('gh release create v1.2.0 --notes-file notes.md', "P3", "notes.md")
@@ -208,6 +225,9 @@ class ReadableTexts(unittest.TestCase):
 
     def test_a_bold_opener_with_text_after_it(self):
         self.assert_passes(pr("**Note:** the verbs run through the crate now."))
+
+    def test_a_repo_option_before_a_command_that_publishes_nothing(self):
+        self.assert_passes('gh -R o/r pr list --search "the low-hanging fruit"')
 
     def test_an_idiom_in_a_command_that_publishes_nothing(self):
         self.assert_passes('git commit -m "Cache pages" && grep -c "low-hanging fruit" notes.txt')

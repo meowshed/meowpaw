@@ -1,6 +1,6 @@
 {
   "name": "meow-prose-gate",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Stops Claude Code from publishing a commit message, pull request, issue, comment or release note that uses a stock idiom from a fixed list, a line of bold text in place of a heading, or text hidden in a file the gate can't read. A program checks each by exact match and quotes what it found, so it costs no model call and keeps nothing in context.",
   "author": {
     "name": "Andrew Vasilyev",
