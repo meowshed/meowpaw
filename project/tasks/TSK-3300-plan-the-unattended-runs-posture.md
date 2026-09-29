@@ -107,10 +107,14 @@ already exist.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: plugins/meow-unattended/tests/test_unattended.py
+- Failing run: project/evidence/5a1520eda28c.txt
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: 11: the check reads `claude --help` from a third party's
+  installed program, which no fixture pins and CI doesn't have, so the
+  implementer keeps the help text and names the version read; 12: the kept
+  run of the five verbs at the revision that merges closes it, and no check
+  written before the work can
 
 ## Evidence
 
