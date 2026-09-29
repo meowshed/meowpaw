@@ -56,7 +56,7 @@ Nothing. BUG-1342 is approved, and TSK-3330 has landed.
 
 - Checks: plugins/meow-unattended/tests/test_unattended.py
 - Failing run: project/evidence/c763123d81b8.txt
-- Landed in: not yet
+- Landed in: #694
 - Judgement: 1: a mutant is a program nobody ships, so the failing runs
   come from binaries built outside the tree, and review reads each mutation
   in BUG-1342's table and the result for each in Evidence; 3: the kept run of the five verbs at the
@@ -64,7 +64,48 @@ Nothing. BUG-1342 is approved, and TSK-3330 has landed.
 
 ## Evidence
 
-Not yet.
+The checks now run the posture test for each of the five modes and compare
+the snapshot's `meowpaw.unattended` with the declared table. They count each
+flag exactly once within the printed command, refuse `yolo` as a mode, and
+declare `trunk = "trunk-x"` and `root = "records"`. The record fixture holds
+an approved epic and research file, with approved files under `project/`
+outside the record. Each limit is matched by its whole sentence.
+
+Criterion 1. Before the change, each mutant BUG-1342 names, built alone with
+`cargo build --release --features unattended` from a scratch copy of
+`crates/meow` and run through `MEOW_UNATTENDED_BIN`, passed the old suite with
+exit 0 and `OK`. Against the new suite each exits 1:
+
+| Mutant | Exit | Result                | Check that fails it                         |
+| ------ | ---- | --------------------- | ------------------------------------------- |
+| A      | 1    | `FAILED (failures=5)` | `Plan.test_command_line_states_the_posture` |
+| B      | 1    | `FAILED (failures=1)` | `Snapshot.test_push_rules`                  |
+| C      | 1    | `FAILED (failures=1)` | `Snapshot.test_approved_records_are_denied` |
+| D      | 1    | `FAILED (failures=5)` | `Plan.test_command_line_states_the_posture` |
+| E      | 1    | `FAILED (failures=1)` | `Snapshot.test_approved_records_are_denied` |
+| F      | 1    | `FAILED (failures=6)` | `Plan.test_command_line_states_the_posture` |
+| G      | 1    | `FAILED (failures=6)` | `Plan.test_command_line_states_the_posture` |
+| H      | 1    | `FAILED (failures=2)` | `Refusals.test_refused_values`              |
+| I      | 1    | `FAILED (failures=2)` | `Plan.test_output_states_the_limits`        |
+
+The kept failing run, `project/evidence/c763123d81b8.txt`, is
+`meow-verbs run test` with `MEOW_UNATTENDED_BIN` naming one binary that
+holds every mutant but D, which edits the same line as H. It exited 1 with
+`FAILED (failures=12)` across the posture, limits, push-rule, record and
+refusal checks. The kept file doesn't record `MEOW_UNATTENDED_BIN`, so this
+paragraph is what says the run tested a mutant.
+
+Criterion 2:
+
+```text
+$ python3 -m unittest test_unattended    # in plugins/meow-unattended/tests
+Ran 19 tests
+OK                                       # exit 0
+```
+
+Criterion 3: `meow-verbs run format lint check test build` passes on this
+change's tree, and `meow-verbs evidence --keep` keeps each result in
+`project/evidence/`, as the pull request cites.
 
 ## Left alone
 

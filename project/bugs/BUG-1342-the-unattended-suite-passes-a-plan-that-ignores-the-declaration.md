@@ -72,6 +72,8 @@ records. The checks live in
 
 ## Tasks
 
-- [ ] T-001 TSK-3340 make the `meow-unattended` checks fail on a plan that
+- [x] T-001 TSK-3340 make the `meow-unattended` checks fail on a plan that
       ignores the declaration, in
       `plugins/meow-unattended/tests/test_unattended.py`
+      evidence: each of the nine mutants fails the new suite, and the
+      shipped program passes its 19 checks, in #694.
