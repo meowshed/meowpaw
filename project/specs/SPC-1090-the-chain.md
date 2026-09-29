@@ -7,6 +7,7 @@ checked-at: "#625"
 states:
   [
     REQ-0132,
+    REQ-0816,
     REQ-0147,
     REQ-0149,
     REQ-0151,
@@ -292,6 +293,7 @@ states:
     REQ-2920,
     REQ-2922,
     REQ-2926,
+    REQ-2978,
     REQ-3092,
     REQ-3094,
     REQ-3096,
@@ -349,6 +351,10 @@ defect verification writes for each refutation it confirms; no epic realises
 it yet, so the verify step dispatches no skeptic and writes no defect today.
 ADR-2100 decides the route, and EPC-2000 realises it. The router ships, and
 until the `route` skill that dispatches it lands, a request starts unrouted.
+ADR-1710 adds the outcome each dispatched agent reports and what its
+dispatcher does with it, and EPC-1651 realises it. Until its tasks land, the
+agents write no outcome line, and the method skill and the review step read a
+report as they did before.
 
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
@@ -405,8 +411,10 @@ The skill dispatches `meow-flow:router`, whose front matter sets
 profile declares a record, and the files the request would touch (REQ-0342).
 It returns the size, the shape, a reason naming at least one path or
 identifier it read, whether the evidence was ambiguous, and the override words
-that would change the route. The router's own definition states these fields,
-and the skill reads them and nothing its brief adds. Where the evidence points
+that would change the route. Its first field is `outcome:`, and a `cause:`
+field follows it where the outcome isn't `DONE`, as SPC-1030 states. The
+router's own definition states these fields, and the skill reads them and
+nothing its brief adds. Where the evidence points
 to two sizes, the router takes the larger (REQ-0338), and the report says
 `ambiguous` and names the evidence on each side (REQ-0340).
 
@@ -438,6 +446,19 @@ passes its route in the brief the same way, and the subagent doesn't route
 again.
 
 A question in chat that changes nothing isn't routed.
+
+The skill acts on the router's outcome before it reads any other field, and
+each outcome maps onto a route result that already exists (REQ-0816):
+
+| Outcome              | The router reports it when                                                                            | The `route` skill                                                                                                 |
+| -------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `DONE`               | It gave every change the request asks for a size and a shape                                          | Reads the fields, as above                                                                                        |
+| `DONE_WITH_CONCERNS` | It routed, and a file or index its steps name couldn't be found, so it decided on less than they read | Reads the fields, and names beside the route what the router couldn't find                                        |
+| `NEEDS_CONTEXT`      | The request names no change it can route                                                              | Reports `full`, `ambiguous`, "the router's reply named no route", and the override words, with no second dispatch |
+| `BLOCKED`            | A tool call was denied                                                                                | Reports `full`, `ambiguous`, "the router couldn't run", and the override words                                    |
+
+A router reply with no outcome line from the set gets the row for a reply that
+names no size, even where it carries a `size:` field (REQ-2978).
 
 The failure paths below name the states that would otherwise read as a
 route, and each reports as itself.
@@ -739,9 +760,48 @@ ceiling is a review that didn't finish, so the skill reports the record as
 unreviewed by an agent, as it does for a review that couldn't run (REQ-2202)
 (ADR-1700).
 
-The review step dispatches a review of work the session produced to an agent
-with read-only tools, and its verdict names itself as an agent's (REQ-0149,
-REQ-0157).
+The skill acts on the reviewer's outcome line before it reads the findings
+(REQ-0816). It reads the line allowing leading space, because the platform's
+hand-back indents each line of the report, and it acts on the word itself and
+never asks a model to relay the report first:
+
+| Outcome              | The reviewer reports it when                                                                                       | The method skill                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `DONE`               | It worked through every question its rules set, whatever it found                                                  | Acts on the findings, as above                                                     |
+| `DONE_WITH_CONCERNS` | It finished, and part of the review couldn't run: a cited record it couldn't reach, or a kind with no question set | Acts on the findings, and names the part that didn't run in the gate report        |
+| `NEEDS_CONTEXT`      | The brief names nothing it can review: the path doesn't exist, or holds no record                                  | Corrects the brief and dispatches once more, which doesn't count as a repair round |
+| `BLOCKED`            | A tool call was denied                                                                                             | Reports the record as unreviewed by an agent, naming the tool and the input        |
+
+A second `NEEDS_CONTEXT` after the corrected brief leaves the record
+unreviewed by an agent, and the gate report names the brief the skill sent.
+Any other outcome from the second dispatch takes its own row.
+
+A `BLOCKED` review ends that dispatch (REQ-2978). The skill doesn't resume the
+agent, although the platform's hand-back offers `SendMessage` to continue it,
+doesn't dispatch the agent again under the same permissions in that session,
+and doesn't review the record itself. A report with no outcome line from the
+set leaves the record unreviewed by an agent too, which covers a reviewer
+replaced by a repository's own agent (REQ-2986) that writes no outcome line.
+
+The review step dispatches the review of work the session produced, and its
+verdict names itself as an agent's (REQ-0149, REQ-0157). It dispatches
+`meow-flow:record-reviewer` for each record the change writes, and
+`meow-prose:prose` for each other prose text in it, such as a documentation
+page, a commit message or a pull request body. It names each text by its path
+alone, and a text that exists in no file, such as a commit message, goes in
+the brief as text. It reads each of those two agents' outcome by the table
+above, with the text in place of the record, and reports a `BLOCKED` review,
+or one with no outcome line from the set, as not run, never as self-assessed
+and never as passed. The review of the code in the change goes to an agent
+with read-only tools that the session picks. That agent follows no outcome
+rule, so the step reads its return as a verdict, and where no agent can be
+dispatched, it reports the verdict as self-assessed.
+
+For `prose`, `DONE` covers a review narrowed to the scope the request asked
+for and one written for the default reader. `DONE_WITH_CONCERNS` is a review
+of a change to code in which a file the change touched couldn't be read.
+`BLOCKED` is a denied tool call or a file of its standard that couldn't be
+read.
 
 ### The driver
 
@@ -825,6 +885,12 @@ REQ-3112). Without the pack it reports the history as unread and names
 | `route reduced` for work no approved record authorises | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
 | A route came with the request or the brief             | The route as given, and that no router ran                                                                              |
 | The reviewer stops at its turn ceiling                 | The record is reported as unreviewed by an agent                                                                        |
+| The reviewer reports `BLOCKED`                         | The record is reported as unreviewed by an agent, naming the tool and the input, and the agent isn't resumed or re-sent |
+| The reviewer reports `NEEDS_CONTEXT` twice             | The record is reported as unreviewed by an agent, naming the brief sent                                                 |
+| The reviewer's report carries no outcome line          | The record is reported as unreviewed by an agent                                                                        |
+| The router reports `BLOCKED`                           | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
+| The router's reply carries no outcome line             | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
+| `prose` reports `BLOCKED` in the review step           | That text's review is reported as not run, naming the tool and the input                                                |
 | No binary for the machine                              | The launcher reports the record as not checked and exits 3                                                              |
 
 Where two of the route's rows apply, the report carries both, and the

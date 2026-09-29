@@ -230,6 +230,10 @@ Every decision below is approved and in force, as amended by the ones after it.
   instructions and preloaded skills, and holds no delegation tool, and
   `meow-author check` fails one that doesn't. It withdraws REQ-0820 and
   postpones REQ-3271, the session's nesting depth.
+- [ADR-1710](adrs/ADR-1710-a-delegated-agent-reports-one-of-four-outcomes-and-a-denied-tool-ends-it-as-blocked.md):
+  every shipped agent ends its report with one of four outcomes on a line of
+  its own, its dispatcher acts on that word, and a denied tool ends the agent
+  as `BLOCKED` with nothing retried, worked round or left waiting.
 
 ## Specifications
 
@@ -242,8 +246,8 @@ selects it, and not on its own.
 [SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to what
 the harness says is measured,
 [SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
-prompt the harness ships is written and what an agent declares, which
-EPC-1650 realises, and
+prompt the harness ships is written, what an agent declares, which EPC-1650
+realises, and what an agent reports, which EPC-1651 realises, and
 [SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
 which follows both. The work realising them has landed, and each leaves
 `checked-at` empty until its epics are verified.
@@ -279,7 +283,8 @@ the gate each checks, the state of the record, the command that drives it,
 and the route that comes before the first step. `meow-flow` implements it,
 verified under issue 368, except the cover step ADR-1620 adds, which EPC-1580
 realises, the skeptic ADR-2200 adds, which EPC-2100 realises, and the route ADR-2100 adds,
-which EPC-2000 realises. The blocking dependency ADR-1800 adds, which EPC-1710
+which EPC-2000 realises, and the outcome each dispatched agent reports, which
+ADR-1710 adds and EPC-1651 realises. The blocking dependency ADR-1800 adds, which EPC-1710
 realised, was verified under issue 625.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
@@ -529,6 +534,10 @@ every requirement ADR-2200 addresses lands in one of them.
 [EPC-1650](epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
 ADR-1700 in two tasks, TSK-2700 and TSK-2701, neither of them started, and
 every requirement ADR-1700 addresses lands in one of them.
+[EPC-1651](epics/EPC-1651-a-delegated-agent-reports-one-of-four-outcomes.md)
+realises ADR-1710 in two tasks, TSK-2702 and TSK-2703, neither of them
+started, and each of the two requirements ADR-1710 addresses lands in one of
+them.
 
 [EPC-2000](epics/EPC-2000-the-route-before-work.md) realises ADR-2100 in two
 tasks, TSK-3500 and TSK-3510, none of them started. Every requirement ADR-2100
