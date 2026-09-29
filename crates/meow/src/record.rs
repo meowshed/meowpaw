@@ -1834,6 +1834,7 @@ fn rules(record: &Record) -> Vec<Finding> {
     let date = Regex::new(r"\d{4}-\d{2}-\d{2}").expect("date pattern");
     let requirement = Regex::new(r"REQ-\d{4}").expect("requirement pattern");
     let authority = Regex::new(r"(?:ADR|BUG)-\d{4}").expect("authority pattern");
+    let task_id = Regex::new(r"TSK-\d{4}").expect("task pattern");
     // RES-0254: two keywords can't be cited by one check, "such a record" breaks
     // when its neighbour moves, and "No X MUST Y" negates a requirement.
     let keyword = Regex::new(r"\b(?:MUST|SHALL|SHOULD|MAY)(?: NOT)?\b").expect("keyword pattern");
@@ -2067,7 +2068,10 @@ fn rules(record: &Record) -> Vec<Finding> {
                     {
                         let tasks = entries(doc);
                         let ordered = tasks.iter().any(|(_, _, task, entry)| {
-                            entry.contains("depends:")
+                            entry
+                                .lines()
+                                .filter_map(|l| l.split_once("depends:"))
+                                .any(|(_, said)| !said.contains(NOT_BLOCKING))
                                 || known
                                     .get(task.as_str())
                                     .is_some_and(|t| !depends_on(t).is_empty())
@@ -2104,6 +2108,19 @@ fn rules(record: &Record) -> Vec<Finding> {
                     if named != 1 {
                         let field = doc.field("epic").or_else(|| doc.field("bug"));
                         out.push(Finding::at(doc, field.map(|f| f.line), format!("names {named} authorising records, where a task names exactly one epic or one defect")));
+                    }
+                }
+                "dependency-declared" => {
+                    for (line, text) in section_lines(doc, "Depends on") {
+                        let named = task_id.find_iter(text).count();
+                        if named > 1 {
+                            out.push(Finding::at(doc, Some(line), format!("names {named} tasks on one dependency line, where each line names one task and says whether it blocks")));
+                        } else if named == 1
+                            && !text.contains(BLOCKING)
+                            && !text.contains(NOT_BLOCKING)
+                        {
+                            out.push(Finding::at(doc, Some(line), "names a dependency without (blocking) or (not blocking), where each line says whether it blocks".into()));
+                        }
                     }
                 }
                 "addresses-or-postpones" => {
@@ -2237,18 +2254,22 @@ fn finished(mark: char) -> bool {
     mark == 'x' || mark == '~'
 }
 
-/// The tasks a task depends on: the `TSK-` identifiers under `## Depends on`.
+/// The marker a dependency line carries where it doesn't block (ADR-1800).
+const NOT_BLOCKING: &str = "(not blocking)";
+
+/// The marker a dependency line carries where it blocks (ADR-1800).
+const BLOCKING: &str = "(blocking)";
+
+/// The tasks a task waits on: the `TSK-` identifiers under `## Depends on`,
+/// leaving out each line marked `(not blocking)`. A line marked `(blocking)`,
+/// or marked neither way, blocks (SPC-1090 "The gate", REQ-1358).
 fn depends_on(task: &Doc) -> Vec<String> {
-    let section = Regex::new(r"(?ms)^## Depends on$(.*?)(?:^## |\z)").expect("section pattern");
     let id = Regex::new(r"TSK-\d{4}").expect("identifier pattern");
-    section
-        .captures(&task.text)
-        .map(|c| {
-            id.find_iter(&c[1])
-                .map(|m| m.as_str().to_string())
-                .collect()
-        })
-        .unwrap_or_default()
+    section_lines(task, "Depends on")
+        .into_iter()
+        .filter(|(_, line)| !line.contains(NOT_BLOCKING))
+        .flat_map(|(_, line)| id.find_iter(line).map(|m| m.as_str().to_string()))
+        .collect()
 }
 
 /// Whether a task is marked done or dropped by the epic it names.
