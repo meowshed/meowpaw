@@ -71,9 +71,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: 16 checks seen failing at the cover commit 0c9cec6, and 170
       `meow-flow` fixtures passing, in #616.
 
-- [ ] T-002 [P] TSK-2540 make `paw status` name cover before implement, and
+- [x] T-002 [P] TSK-2540 make `paw status` name cover before implement, and
       let `/meow-flow:run` continue past a step with no gate
       closes: REQ-3202
+      evidence: 5 checks seen failing at the cover commit 1383daf, and 193
+      `meow-flow` fixtures passing, in #658.
       depends: TSK-2530, because `status` decides between cover and
       implement with the Cover reading that task adds
 

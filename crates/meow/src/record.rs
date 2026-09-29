@@ -2639,6 +2639,7 @@ fn position(
     record: &Record,
     known: &BTreeMap<String, &Doc>,
     findings: &BTreeMap<String, usize>,
+    repository: &Path,
     decision: &Doc,
 ) -> String {
     let id = bare(decision.id());
@@ -2682,9 +2683,16 @@ fn position(
                 .map(|doc| depends_on(doc).iter().all(|d| task_finished(known, d)))
                 .unwrap_or(true)
         });
+        // A task is covered before it is implemented (SPC-1090 "The state"), and
+        // `ready implement` reads the same Cover, so the two agree (REQ-3202).
+        let step = |task: &str| match known.get(task) {
+            Some(doc) if cover_gaps(doc, repository).is_empty() => "implement",
+            _ => "cover",
+        };
         return match doable {
             Some(task) => format!(
-                "next: implement {task} ({epic_id}, {} of {} done)",
+                "next: {} {task} ({epic_id}, {} of {} done)",
+                step(task),
                 tasks.len() - open.len(),
                 count(tasks.len(), "task")
             ),
@@ -2811,7 +2819,10 @@ fn status(rest: &[String]) -> u8 {
     for decision in decisions {
         let id = bare(decision.id());
         say!("  {id} {}", title(decision));
-        say!("    {}", position(&record, &known, &findings, decision));
+        say!(
+            "    {}",
+            position(&record, &known, &findings, &repository, decision)
+        );
     }
     say!();
     say!("Tasks");
