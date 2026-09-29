@@ -820,13 +820,28 @@ fn names_a_cli_config(words: &[&str]) -> bool {
 }
 
 /// A shell command's words, split at white space and the shell's `;`, `&`,
-/// `|`, `(` and `)`, with their quotes removed.
+/// `|`, `(` and `)`, with their quotes removed. The words `mise exec` or
+/// `mise x` takes before its command, up to and including `--`, `-c` or
+/// `--command`, are left out, because they name tools mise loads onto `PATH`
+/// and runs none of (RES-0297).
 fn words(command: &str) -> Vec<&str> {
-    command
+    let all: Vec<&str> = command
         .split(|c: char| c.is_whitespace() || ";&|()".contains(c))
         .map(|word| word.trim_matches(['\'', '"']))
         .filter(|word| !word.is_empty())
-        .collect()
+        .collect();
+    let mut kept = Vec::with_capacity(all.len());
+    let mut loading = false;
+    for (at, word) in all.iter().enumerate() {
+        if loading {
+            loading = !matches!(*word, "--" | "-c" | "--command");
+        } else if matches!(*word, "exec" | "x") && at > 0 && program(all[at - 1]) == "mise" {
+            loading = true;
+        } else {
+            kept.push(*word);
+        }
+    }
+    kept
 }
 
 /// Whether a `.markdownlint-cli2.*` file's `config` key sets any rule. A

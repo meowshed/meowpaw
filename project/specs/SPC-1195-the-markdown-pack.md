@@ -119,7 +119,10 @@ Any string in `[markdown] target` is a declaration. A command runs a tool
 where one of its words, split at white space and the shell's `;`, `&`, `|`,
 `(` and `)`, has the tool's name as its last path component with any
 `@<version>` suffix removed, so `npx markdownlint-cli2@0.23.2` and
-`node_modules/.bin/markdownlint` both count (RES-0295). A `--config` word
+`node_modules/.bin/markdownlint` both count (RES-0295). The words `mise exec`
+or `mise x` takes before `--`, `-c` or `--command` name tools mise loads and
+runs none of, so `mise exec lychee@0.24.2 -- python3` runs no lychee
+(RES-0297). A `--config` word
 followed by a path gives markdownlint-cli2 its configuration, and a
 `--config=<path>` word doesn't, because markdownlint-cli2 reads it as a glob.
 markdownlint-cli takes its configuration from `-c <path>`, `--config <path>`
