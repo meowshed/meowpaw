@@ -200,6 +200,120 @@ class Refusals(Fixture):
                 checked += 1
         self.assertEqual(checked, 4)
 
+    def test_env_block_refused(self):
+        """TSK-3310 criterion 4, REQ-2392: an `env` block with two keys in `.claude/settings.json`, and
+        in `.claude/settings.local.json`, is unresolved naming the file and both keys, with exit 3."""
+        env = json.dumps({"env": {"FIXTURE_ONE": "1", "FIXTURE_TWO": "2"}}) + "\n"
+        checked = 0
+        for name in (".claude/settings.json", ".claude/settings.local.json"):
+            with self.subTest(file=name):
+                said = self.refused({**self.profile(GIT, table()), name: env}, f"unresolved: {name} sets env ")
+                lines = [line for line in said.splitlines() if f"unresolved: {name} sets env " in line]
+                self.assertEqual(len(lines), 1, said)
+                for key in ("FIXTURE_ONE", "FIXTURE_TWO"):
+                    self.assertEqual(lines[0].count(key), 1, said)
+                checked += 1
+        self.assertEqual(checked, 2)
+
+
+THREE = {
+    "units/c": ("gamma", "2.0.1"),
+    "units/a": ("alpha", "1.2.3"),
+    "units/b": ("beta", "0.4.0"),
+}
+
+
+def walk(value):
+    """Every object nested anywhere in a JSON value."""
+    if isinstance(value, dict):
+        yield value
+        children = value.values()
+    elif isinstance(value, list):
+        children = value
+    else:
+        return
+    for child in children:
+        yield from walk(child)
+
+
+def command_line(output):
+    """The printed command, from the line that starts `claude` to the `--settings` flag."""
+    start = re.search(r"^\s*claude\b", output, re.MULTILINE)
+    if start is None:
+        return ""
+    end = output.find("--settings", start.start())
+    return output[start.start():end if end >= 0 else len(output)]
+
+
+class Units(Fixture):
+    """TSK-3310 criteria 1 to 3, REQ-2392: `plan` loads each unit by name and nothing by discovery."""
+
+    def test_url_and_folder_refused(self):
+        """TSK-3310 criterion 1, REQ-2392: a URL entry and a folder of units that is no unit itself are
+        each unresolved, naming the entry, with exit 3 and no snapshot."""
+        cases = {
+            "URL": ('["https://example.com/units/alpha"]',
+                    "unresolved: unit https://example.com/units/alpha is a URL, and a unit loads from a directory"),
+            "folder of units": ('["units"]', "unresolved: unit units is not a unit's own directory"),
+        }
+        checked = 0
+        for name, (units, expected) in cases.items():
+            with self.subTest(case=name):
+                self.refused(self.profile(GIT, table(units=units)), expected)
+                checked += 1
+        self.assertEqual(checked, 2)
+
+    @staticmethod
+    def three_units():
+        files = {f"{path}/.claude-plugin/plugin.json": json.dumps({"name": name, "version": version}) + "\n"
+                 for path, (name, version) in THREE.items()}
+        declared = "[" + ", ".join(f'"{path}"' for path in THREE) + "]"
+        return {".meowpaw/profile.toml": GIT + table(units=declared), **files}
+
+    def test_one_plugin_dir_for_each_unit(self):
+        """TSK-3310 criterion 2, REQ-2392: `--bare` and exactly one `--plugin-dir` for each of three
+        units in the declared order, and the output and the snapshot name each unit with the `name` and
+        `version` its `plugin.json` holds."""
+        repository, output, _, snapshot = self.snapshot(self.three_units())
+        words = tokens(command_line(output))
+        self.assertEqual(words.count("--bare"), 1, output)
+        loaded = [(repository.root / value).resolve() for value in following(words, "--plugin-dir")]
+        self.assertEqual(loaded, [(repository.root / path).resolve() for path in THREE], output)
+        named = [obj for obj in walk(snapshot) if {"name", "version"} <= obj.keys()]
+        checked = 0
+        for name, version in THREE.values():
+            with self.subTest(unit=name):
+                lines = [line for line in output.splitlines()
+                         if re.search(rf"\b{name}\b", line) and version in line]
+                self.assertGreaterEqual(len(lines), 1, output)
+                matched = [obj for obj in named if obj["name"] == name and obj["version"] == version]
+                self.assertEqual(len(matched), 1, json.dumps(snapshot, indent=2))
+                checked += 1
+        self.assertEqual(checked, 3)
+
+    def test_repository_hooks_and_servers_not_named(self):
+        """TSK-3310 criterion 3, REQ-2392: a server in `.mcp.json` and a hook in `.claude/settings.json`
+        are named by neither the command line nor the snapshot, while each declared unit is."""
+        server = "fixture-discovered-server"
+        hook = "fixture-discovered-hook.sh"
+        files = {
+            **self.three_units(),
+            ".mcp.json": json.dumps({"mcpServers": {server: {"command": server}}}) + "\n",
+            ".claude/settings.json": json.dumps({"hooks": {"SessionStart": [
+                {"hooks": [{"type": "command", "command": hook}]}]}}) + "\n",
+        }
+        _, output, path, snapshot = self.snapshot(files)
+        content = path.read_text(encoding="utf-8")
+        command = command_line(output)
+        self.assertEqual(len(following(tokens(command), "--plugin-dir")), 3, output)
+        for text, where in ((command, "command line"), (content, "snapshot")):
+            for name in (server, hook, ".mcp.json"):
+                with self.subTest(where=where, name=name):
+                    self.assertEqual(text.count(name), 0, text)
+        named = [obj for obj in walk(snapshot) if {"name", "version"} <= obj.keys()]
+        self.assertEqual(sorted((obj["name"], obj["version"]) for obj in named), sorted(THREE.values()),
+                         content)
+
 
 class Plan(Fixture):
     """TSK-3300 criteria 4, 5 and 10, REQ-2388: the printed plan states the declared posture."""

@@ -66,10 +66,19 @@ snapshot that task adds.
 
 ## Cover
 
-- Checks: not yet
-- Failing run: not yet
+- Checks: plugins/meow-unattended/tests/test_unattended.py,
+  `Units.test_url_and_folder_refused`,
+  `Units.test_one_plugin_dir_for_each_unit`,
+  `Units.test_repository_hooks_and_servers_not_named` and
+  `Refusals.test_env_block_refused`
+- Failing run: project/evidence/4acbe0e3935f.txt
 - Landed in: not yet
-- Judgement: not yet
+- Judgement: 3: TSK-3300 already names no repository hook or server, so the
+  check's assertions that neither is named pass before this work, and it
+  fails only on its control, that the snapshot names each declared unit with
+  its version; review confirms that a regression naming either would fail
+  it. 5: the kept run of the five verbs at the revision that merges closes
+  it, and no check written before the work can
 
 ## Evidence
 
