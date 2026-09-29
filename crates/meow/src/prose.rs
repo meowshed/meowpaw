@@ -210,7 +210,7 @@ fn publishing(simple: &Simple) -> Option<Published> {
                 reads_input: &mut bool| {
         if is_path {
             let path = value.text();
-            if path == "-" {
+            if matches!(path.as_str(), "-" | "/dev/stdin" | "/dev/fd/0") {
                 *reads_input = true;
             } else {
                 paths.push(path);
