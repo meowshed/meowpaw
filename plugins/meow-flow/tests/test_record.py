@@ -746,13 +746,10 @@ class Chain(unittest.TestCase):
         for step in ("document", "verify"):
             self.assertEqual(self.ready(repository, step, "EPC-0001").returncode, 0, step)
 
-    def test_review_waits_for_verification(self):
-        repository = self.repo()
-        done = self.ready(repository, "review", "EPC-0001")
-        self.assertEqual(done.returncode, 1)
-        self.assertIn("EPC-0001 hasn't been verified", done.stdout)
-        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#1"')
-        self.assertEqual(self.ready(repository, "review", "EPC-0001").returncode, 0)
+    def test_review_needs_no_verification(self):
+        """ADR-2300: nothing writes checked-at, so review doesn't wait on it."""
+        done = self.ready(self.repo(), "review", "EPC-0001")
+        self.assertEqual(done.returncode, 0, done.stdout)
 
     def test_an_unknown_step_names_the_ten(self):
         """TSK-2530 criterion 1, REQ-3207 and REQ-3216: `ready` knows the ten steps, cover among them."""
@@ -2698,23 +2695,64 @@ class RequirementState(unittest.TestCase):
         repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nText.", "## Closed by\n\nNot closed.")
         self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
 
+    def defect_tasks(self, repository, *marks):
+        entries = "\n".join(f"- [{m}] T-00{i} TSK-000{i + 5} a fix" for i, m in enumerate(marks, 1))
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nText.",
+                        f"## Closed by\n\nNot closed.\n\n## Tasks\n\n{entries}")
+
     def test_a_defect_whose_tasks_are_done_is_closed(self):
-        """REQ-3610: a defect closes with its tasks, and the requirement closes again."""
+        """REQ-3610: a defect closes with its tasks, whatever its Closed by says, and the requirement closes again."""
         repository = self.repo()
         self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nText.",
-                        "## Closed by\n\nA fixture.\n\n## Tasks\n\n- [x] T-001 TSK-0009 the fix")
+        self.defect_tasks(repository, "x")
+        self.assertIn("State\n  closed\n", repository.run("show", "REQ-0001").stdout)
+
+    def test_a_defect_with_an_open_task_is_open(self):
+        """REQ-3610: one open fix task keeps the defect open, and its requirement with it."""
+        repository = self.repo()
+        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.defect_tasks(repository, "x", " ")
+        self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
+
+    def test_a_defect_whose_fixes_were_all_dropped_is_open(self):
+        """REQ-3610: dropping every fix closes nothing, as it closes no requirement."""
+        repository = self.repo()
+        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.defect_tasks(repository, "~")
+        self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
+
+    def test_a_draft_defect_with_no_task_is_open(self):
+        """REQ-3610: a defect still being written is open, whatever its Closed by says."""
+        repository = self.repo()
+        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: draft")
+        self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
+
+    def test_a_defect_an_epic_realises_closes_with_the_epics_tasks(self):
+        """REQ-3610: a defect realised by an epic is open while the epic's tasks are, and closed once one is done."""
+        repository = self.repo()
+        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nText.", "## Closed by\n\nNot closed.")
+        epic = (repository.root / "epics/EPC-0001-a-plan.md").read_text(encoding="utf-8")
+        epic = epic.replace("EPC-0001", "EPC-0002").replace("realises: ADR-0001", "realises: BUG-0001")
+        repository.write("epics/EPC-0002-the-fix.md", epic.replace("- [x] T-001 TSK-0001", "- [ ] T-001 TSK-0007"))
+        self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
+        repository.edit("epics/EPC-0002-the-fix.md", "- [ ] T-001 TSK-0007", "- [x] T-001 TSK-0007")
         self.assertIn("State\n  closed\n", repository.run("show", "REQ-0001").stdout)
 
     def test_tasks_and_requirements_relate_many_to_many(self):
-        """REQ-3646, REQ-3648: two tasks naming one requirement, and one naming two, is no coverage finding."""
+        """REQ-3646, REQ-3648: two tasks naming one requirement, and one naming three, is no coverage finding."""
         repository = self.repo()
         self.second_requirement(repository)
-        self.second_task(repository, "REQ-0001, REQ-0002")
+        text = (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8")
+        repository.write("requirements/REQ-0003-a-third.md", text.replace("REQ-0001", "REQ-0003"))
+        repository.edit("adrs/ADR-0001-a-choice.md", "REQ-0001, REQ-0002]", "REQ-0001, REQ-0002, REQ-0003]")
+        repository.edit("specs/SPC-0001-a-part.md", "REQ-0001, REQ-0002]", "REQ-0001, REQ-0002, REQ-0003]")
+        self.second_task(repository, "REQ-0001, REQ-0002, REQ-0003")
         for task in ("tasks/TSK-0001-a-task.md", "tasks/TSK-0002-another.md"):
             repository.edit(task, "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
         self.tasks(repository, "- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001",
-                   "- [ ] T-002 TSK-0002 another\n      closes: REQ-0001, REQ-0002")
+                   "- [ ] T-002 TSK-0002 another\n      closes: REQ-0001, REQ-0002, REQ-0003")
         done = repository.run("check", "coverage")
         self.assertEqual(done.returncode, 0, done.stdout)
 
@@ -2735,16 +2773,34 @@ class RequirementState(unittest.TestCase):
         self.assertNotIn("verify", status)
         self.assertNotIn("document", status)
 
-    def test_status_lists_each_postponement_with_its_condition(self):
-        """REQ-3622: status lists each postponed requirement with the condition that would end it."""
-        repository = self.repo()
+    def postpone(self, repository, reverse):
         self.second_requirement(repository, addressed=False)
         decision = (repository.root / "adrs/ADR-0001-a-choice.md").read_text(encoding="utf-8")
         decision = decision.replace("ADR-0001", "ADR-0002").replace("addresses: [REQ-0001]", "addresses: []\npostpones: [REQ-0002]")
-        decision = decision.replace("## What would reverse it\n\nText.", "## What would reverse it\n\n- A second repository asks for it.")
-        repository.write("adrs/ADR-0002-not-now.md", decision)
+        repository.write("adrs/ADR-0002-not-now.md", decision.replace("## What would reverse it\n\nText.", f"## What would reverse it\n\n{reverse}"))
+
+    def test_status_lists_each_postponement_with_its_condition(self):
+        """REQ-3622: status lists each postponed requirement with the first entry of the decision's What would reverse it."""
+        repository = self.repo()
+        self.postpone(repository, "- A second repository\n  asks for it.\n- The owner asks.")
+        self.assertIn("Postponed\n  REQ-0002 by ADR-0002, until: A second repository asks for it.\n\n",
+                      repository.run("status").stdout)
+
+    def test_a_numbered_condition_is_read_to_its_first_item(self):
+        """REQ-3622: a numbered list with no blank lines is read to its first item."""
+        repository = self.repo()
+        self.postpone(repository, "1. A second repository asks.\n2. The owner asks.")
+        self.assertIn("  REQ-0002 by ADR-0002, until: A second repository asks.\n\n", repository.run("status").stdout)
+
+    def test_a_postponement_whose_task_was_dropped_is_listed_and_counted_alike(self):
+        """REQ-3622: a requirement whose only task is dropped is postponed in the count and in the list."""
+        repository = self.repo()
+        self.postpone(repository, "- The owner asks.")
+        repository.edit("tasks/TSK-0001-a-task.md", "    REQ-0001,", "    REQ-0001,\n    REQ-0002,")
+        self.tasks(repository, "- [~] T-001 TSK-0001 the task\n      closes: REQ-0001, REQ-0002\n      dropped: not now")
         status = repository.run("status").stdout
-        self.assertIn("Postponed\n  REQ-0002 by ADR-0002, until: A second repository asks for it.\n", status)
+        self.assertIn("1 postponed", status)
+        self.assertIn("  REQ-0002 by ADR-0002, until: The owner asks.\n", status)
 
 
 if __name__ == "__main__":

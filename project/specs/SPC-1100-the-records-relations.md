@@ -195,9 +195,8 @@ naming none counted, and states the share resting on evaluation or judgement
 
 A requirement stores only a decided status, from the one vocabulary
 `lib/layout.toml` declares, and the program derives the observed one (REQ-0582,
-REQ-0584, REQ-0586, REQ-0591). `show` prints each task that closes a
-requirement with its mark, and the issue its epic was verified under, or
-"checked by nothing". Under ADR-2300 a requirement is closed when a closed
+REQ-0584, REQ-0586, REQ-0591). `show` prints each task that names a
+requirement with its mark and its epic, or "open, named by no task". Under ADR-2300 a requirement is closed when a closed
 task or epic names it and no open one does, open while an open defect names it
 in `violates`, and has no state after closed (REQ-3600, REQ-3602, REQ-3608,
 REQ-3610). `status` says the

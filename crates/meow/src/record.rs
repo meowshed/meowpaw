@@ -331,9 +331,11 @@ fn closing_tasks(
 }
 
 /// Whether a defect is still open (REQ-3610). It closes with its tasks, its
-/// own or those of an epic realising it, once each is done or dropped. One
-/// with no task closed in the change that recorded it, unless its Closed by
-/// opens with "Not" or "Open", which is how a defect still waiting says so.
+/// own or those of an epic realising it, once one is done and none is open,
+/// the rule a requirement closes by. A draft with no task done is open. An
+/// approved one with no task done closed in the change that recorded it,
+/// unless its Closed by opens with "Not" or "Open", which is how a defect
+/// still waiting says so.
 fn defect_open(record: &Record, defect: &Doc) -> bool {
     if !matches!(bare(defect.value("status")), "draft" | "approved") {
         return false;
@@ -345,8 +347,14 @@ fn defect_open(record: &Record, defect: &Doc) -> bool {
             tasks.extend(marks(epic));
         }
     }
-    if !tasks.is_empty() {
-        return !tasks.iter().all(|(_, mark)| finished(*mark));
+    if tasks.iter().any(|(_, mark)| !finished(*mark)) {
+        return true;
+    }
+    if tasks.iter().any(|(_, mark)| *mark == 'x') {
+        return false;
+    }
+    if bare(defect.value("status")) == "draft" {
+        return true;
     }
     let first = section_lines(defect, "Closed by")
         .into_iter()
@@ -392,8 +400,9 @@ fn postponed_by(record: &Record, id: &str) -> Option<String> {
     of_kind(record, "decision")
         .into_iter()
         .filter(|d| approved(d))
-        .find(|d| requirements_in(record, d.value("postpones")).contains(id))
+        .filter(|d| requirements_in(record, d.value("postpones")).contains(id))
         .map(|d| bare(d.id()).to_string())
+        .min()
 }
 
 fn check_frozen(rest: &[String]) -> u8 {
@@ -1241,8 +1250,9 @@ fn requirements_in(record: &Record, text: &str) -> BTreeSet<String> {
         .collect()
 }
 
-/// A decision's requirements land in exactly one task of the epic realising it,
-/// and every one of them is stated by a specification (REQ-0246).
+/// A decision's requirements land in at least one task of the epic realising
+/// it, any number of tasks may name one (REQ-3646, REQ-3648), and every one of
+/// them is stated by a specification (REQ-0246).
 fn coverage(record: &Record) -> Vec<Finding> {
     let mut out = Vec::new();
     let mut stated = BTreeSet::new();
@@ -1300,10 +1310,10 @@ fn coverage(record: &Record) -> Vec<Finding> {
             }
         }
         let addressed = requirements_in(record, decision.value("addresses"));
-        let mut claimed: BTreeMap<String, Vec<&str>> = BTreeMap::new();
+        let mut claimed: BTreeSet<String> = BTreeSet::new();
         for task in tasks.iter().filter(|t| bare(t.value("epic")) == epic_id) {
             for requirement in requirements_in(record, task.value("closes")) {
-                claimed.entry(requirement).or_default().push(&task.shown);
+                claimed.insert(requirement);
             }
         }
         let named = not_covered
@@ -1311,7 +1321,7 @@ fn coverage(record: &Record) -> Vec<Finding> {
             .map(|c| requirements_in(record, &c[1]))
             .unwrap_or_default();
         for requirement in &addressed {
-            if !claimed.contains_key(requirement) && !named.contains(requirement) {
+            if !claimed.contains(requirement) && !named.contains(requirement) {
                 out.push(Finding::at(
                     epic,
                     None,
@@ -1326,7 +1336,7 @@ fn coverage(record: &Record) -> Vec<Finding> {
                 ));
             }
         }
-        for requirement in claimed.keys() {
+        for requirement in &claimed {
             if !addressed.contains(requirement) {
                 out.push(Finding::at(
                     epic,
@@ -2399,11 +2409,6 @@ fn ready(rest: &[String]) -> u8 {
                     missing.push(format!("{task}, a task of {id}, isn't done"));
                 }
             }
-            "review" if bare(doc.value("checked-at")).is_empty() => {
-                missing.push(format!(
-                    "{id} hasn't been verified: its checked-at is empty"
-                ));
-            }
             _ => {}
         }
     }
@@ -2846,18 +2851,20 @@ fn postponements(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<String>
         .filter(|d| approved(d))
         .collect();
     decisions.sort_by_key(|d| bare(d.id()).to_string());
+    let item = Regex::new(r"^(?:[-*+]|\d+\.) +").expect("list item pattern");
     for decision in decisions {
         // The first paragraph or bullet, joined across its wrapped lines.
         let mut words: Vec<&str> = Vec::new();
         for (_, line) in section_lines(decision, "What would reverse it") {
             let line = line.trim();
-            if line.is_empty() || (line.starts_with("- ") && !words.is_empty()) {
-                if words.is_empty() {
-                    continue;
-                }
+            let starts = line.is_empty() || item.is_match(line) || line.starts_with('#');
+            if starts && !words.is_empty() {
                 break;
             }
-            words.push(line.trim_start_matches("- "));
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            words.push(item.find(line).map_or(line, |m| &line[m.end()..]));
         }
         let condition = if words.is_empty() {
             "no condition stated".to_string()
@@ -2866,7 +2873,11 @@ fn postponements(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<String>
         };
         for requirement in requirements_in(record, decision.value("postpones")) {
             let still = known.get(requirement.as_str()).is_some_and(|r| approved(r))
-                && closing_tasks(record, known, &requirement).is_empty();
+                && requirement_state(
+                    &closing_tasks(record, known, &requirement),
+                    Some(bare(decision.id())),
+                    &violated_by(record, &requirement),
+                ) == "postponed";
             if still {
                 out.push(format!(
                     "{requirement} by {}, until: {condition}",
