@@ -262,8 +262,7 @@ class Project(unittest.TestCase):
         text = self.task(root, "TSK-0002-second.md")
         self.assertIn("\nissue: 2\n", text)
         self.assertRegex(text, r"\nprojected: [0-9a-f]{12}\n---\n")
-        self.assertIn("TSK-0001: projected to issue #1 at", done.stdout)
-        self.assertIn("read back", done.stdout)
+        self.assertRegex(done.stdout, r"(?m)^TSK-0001: projected to issue #1 at [0-9a-f]{12}, read back$")
         gets = [c for c in self.state(root)["calls"] if "-X" not in c]
         self.assertEqual(len(gets), 1, gets)
         self.assertRegex(gets[0][1], LISTING)
@@ -448,7 +447,8 @@ class Project(unittest.TestCase):
 # headers on every response, and `cached` gives the age, `remaining` and reset of the headers a call sent with
 # `--cache` replays. A `null` among the `responses` lets that call through to the default answer. Each issue holds
 # the time on GitHub's clock it was written at, and the read-back listing answers with the issues written at or after
-# its `since`, less the numbers `omit` names.
+# its `since`, less the numbers `omit` names, with the body of each number `alter` names changed, and `page_size`
+# at a time where the script sets it, each page but the last naming the next in a `Link` header.
 LAYERED = """#!/usr/bin/env python3
 import calendar, email.utils, json, os, sys, time
 state_path = os.environ["GH_STATE"]
@@ -503,8 +503,15 @@ elif method == "PATCH":
     status, body = 200, state["issues"][path.split("/")[-1]]
 elif path.startswith("repos/o/r/issues?state=all&since="):
     since = calendar.timegm(time.strptime(path.split("since=")[1].split("&")[0], "%Y-%m-%dT%H:%M:%SZ"))
-    status, body = 200, [issue for issue in state["issues"].values()
-                         if issue["written"] >= since and issue["number"] not in script.get("omit", [])]
+    listed = [dict(issue, body="Rewritten.") if issue["number"] in script.get("alter", []) else issue
+              for issue in state["issues"].values()
+              if issue["written"] >= since and issue["number"] not in script.get("omit", [])]
+    size = script.get("page_size", len(listed) or 1)
+    page = int(path.split("&page=")[1]) if "&page=" in path else 1
+    if page * size < len(listed):
+        following = "https://api.github.com/" + path.split("&page=")[0] + f"&page={page + 1}"
+        headers["Link"] = f'<{following}>; rel="next"'
+    status, body = 200, listed[(page - 1) * size:page * size]
 elif path in script.get("listings", {}):
     status, body = 200, script["listings"][path]
 elif path.split("/")[-1] in state["issues"]:
@@ -849,26 +856,34 @@ class Partial(Layered, unittest.TestCase):
         self.assertEqual(left, "TSK-0003, TSK-0004, TSK-0005")
 
     def test_an_issue_the_listing_omits_is_not_read_back(self):
-        """TSK-2960 criterion 4, REQ-2572: where the listing omits a created issue, its task goes under `created, not
-        read back` with what the listing showed, and the task keeps `issue:`."""
-        root = Project.repository(self)
-        self.stand_in(root, {"omit": [2]})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
-        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
-        self.assertEqual(len(listings(self.calls(root))), 1)
-        projected, unread, left = groups(self, done)
-        self.assertEqual((projected, left), ("TSK-0001", "none"))
-        self.assertEqual(unread, "TSK-0002 (issue #2, not in the listing)")
-        self.assertIn("\nissue: 2\n", Project.task(self, root, "TSK-0002-second.md"))
+        """TSK-2960 criterion 4, REQ-2572: where the listing omits a created issue, or shows it with another body,
+        its task goes under `created, not read back` with what the listing showed, and the task keeps `issue:`."""
+        shown = (("omit", "not in the listing"), ("alter", "reads differently from what was written"))
+        for fault, reason in shown:
+            with self.subTest(fault=fault):
+                root = Project.repository(self)
+                self.stand_in(root, {fault: [2]})
+                done = self.meow_github(root, "project", "EPC-0001", "o/r")
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertEqual(len(listings(self.calls(root))), 1)
+                projected, unread, left = groups(self, done)
+                self.assertEqual((projected, left), ("TSK-0001", "none"))
+                self.assertEqual(unread, f"TSK-0002 (issue #2, {reason})")
+                self.assertIn("\nissue: 2\n", Project.task(self, root, "TSK-0002-second.md"))
 
     def test_created_issues_are_read_back_in_one_listing(self):
         """TSK-2960 criterion 5, REQ-2572: with five tasks and every create answered, the stand-in records one
-        read-back listing and no read of a single created issue, and the report holds no `partial:` line."""
-        root, done = self.five({})
+        read-back listing and no read of a single created issue, and the report holds no `partial:` line. The
+        stand-in answers the listing three issues a page, so a run reading only the first page reads two back
+        short."""
+        root, done = self.five({"page_size": 3})
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         calls = self.calls(root)
         self.assertEqual(len([c for c in calls if create(c)]), 5, calls)
         self.assertEqual(len(listings(calls)), 1, calls)
+        pages = [c["args"][1] for c in calls if "issues?state=all&since=" in c["args"][1]]
+        self.assertEqual(len(pages), 2, calls)
+        self.assertTrue(pages[1].endswith("&per_page=100&page=2"), pages)
         single = [c for c in calls if re.fullmatch(r"repos/o/r/issues/\d+", c["args"][1])]
         self.assertEqual(single, [], calls)
         self.assertEqual([line for line in done.stdout.splitlines() if line.startswith("partial:")], [])
