@@ -45,6 +45,8 @@ if name:
 name = config.get("overwrite", {}).get(str(n))
 if name:
     open(name, "w").write("overwritten by call %d\\n" % n)
+if config.get("remove_progress", {}).get(str(n)) and "--add-dir" in sys.argv:
+    os.remove(os.path.join(sys.argv[sys.argv.index("--add-dir") + 1], "progress.md"))
 if config.get("progress") and "--add-dir" in sys.argv:
     with open(os.path.join(sys.argv[sys.argv.index("--add-dir") + 1], "progress.md"), "a") as f:
         f.write("call %d\\n" % n)
@@ -575,6 +577,15 @@ class Idle(Case):
         changed = [line["tree_before"] != line["tree_after"] for line in lines]
         self.assertEqual(changed, [False, True, False, False])
 
+    def test_a_removed_progress_file_can_go_idle(self):
+        """TSK-3380, REQ-0886: a call that removes the progress file changes it, and two calls after it that change
+        nothing, with the file absent before and after each, end the run `idle`."""
+        f = self.fixture()
+        done, lines = self.run_of(f, "6", remove_progress={"1": True})
+        self.assertEqual(len(f.calls()), 3)
+        self.assertEqual(f.ending(), "idle")
+        self.assertEqual([line["progress_changed"] for line in lines], [True, False, False])
+
     def test_unidentified_tree_is_a_change(self):
         """TSK-3380 criterion 4, SPC-1201 "The loop": with a dirty submodule the tree id is `none` on every call,
         which counts as a change, so three calls run to the ceiling and each line is marked `unidentified`."""
@@ -600,9 +611,10 @@ class Unchanged(Case):
     def test_an_unchanged_tree_skips_the_verbs(self):
         f = self.fixture()
         f.configure(edit=False)
-        done = f.start(replaced("--iterations", "3"))
+        # TSK-3380: two calls are the ceiling too, so the run ends `idle` only where the idle check comes after the
+        # call and before the ceiling is checked again.
+        done = f.start(replaced("--iterations", "2"))
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        # TSK-3380: the second call that changes nothing ends the run, so the third is never made.
         self.assertEqual(len(f.calls()), 2)
         self.assertEqual(f.ending(), "idle")
         log = f.run_dirs()[0] / "log.jsonl"
