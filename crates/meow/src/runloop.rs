@@ -554,6 +554,11 @@ fn run(
         return Ok("finished");
     }
     let (mut spend, mut largest) = (0.0_f64, 0.0_f64);
+    let progress = context.progress.join("progress.md");
+    // A progress file the runner can't read counts as changed, as an
+    // unidentified tree does, so neither can end a run `idle`.
+    let digest = || std::fs::read(&progress).ok().map(|bytes| sha256(&bytes));
+    let mut idle_before = false;
     for iteration in 1..=terms.iterations {
         // The next call may cost as much as the largest so far, so the run
         // ends before a call that could pass the budget, not after it.
@@ -569,8 +574,15 @@ fn run(
         // Read after the last evaluation, so a verb that writes to the tree
         // never counts as a change this call made.
         let before = ledger::tree_id(root);
+        let progress_before = digest();
         let called = call(claude, root, terms, context, terms.budget_usd - spend)?;
         let after = ledger::tree_id(root);
+        let progress_after = digest();
+        let progress_changed = progress_before.is_none() || progress_before != progress_after;
+        let unidentified = before == ledger::UNBOUND || after == ledger::UNBOUND;
+        // An iteration changes nothing when both the tree and the progress
+        // file are as they were (REQ-0886).
+        let idle = !unidentified && before == after && !progress_changed;
         let result = called.result.as_ref();
         // A cost that isn't a number of dollars at or above 0 can't be summed.
         let cost = result
@@ -590,6 +602,8 @@ fn run(
                 .and_then(Value::as_array)
                 .map(Vec::len),
             "exit_status": called.status,
+            "progress_changed": progress_changed,
+            "unidentified": unidentified,
             "condition": null,
         });
         let logged = log_line(log, None, &line)?;
@@ -631,6 +645,11 @@ fn run(
             Some(false) => println!("iteration {iteration}: {shown}, the condition doesn't hold"),
             None => println!("iteration {iteration}: {shown}, the tree didn't change"),
         }
+        if idle && idle_before {
+            println!("two iterations in a row changed neither the tree nor the progress file");
+            return Ok("idle");
+        }
+        idle_before = idle;
     }
     Ok("ceiling")
 }
