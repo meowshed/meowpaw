@@ -88,8 +88,10 @@ A task is marked in the commit that advances it, never in a later pass.
       pull request's first commit.
       depends: TSK-3820 (blocking)
 
-- [ ] T-006 TSK-3850 rename `meow-verbs` to `meow-checks`, and keep `meow-verbs` one release as a stub
+- [x] T-006 TSK-3850 rename `meow-verbs` to `meow-checks`, and keep `meow-verbs` one release as a stub
       closes: REQ-3634, REQ-3636
+      evidence: 3 checks in `tools/test_marketplace.py`'s `Renamed`, each seen
+      failing at the pull request's first commit.
       depends: TSK-3830 (not blocking)
 
 - [ ] T-007 TSK-3860 migrate every record to the seven-step chain's shape

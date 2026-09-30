@@ -41,7 +41,7 @@ def last_release(root, name):
     """The highest released version of a unit, from its tags, or None."""
     tags = (git(root, "tag", "--list", f"{name}-v*") or "").split()
     # The version follows the unit's name and `-v`; a name such as
-    # `meow-verbs` holds `-v` itself, so the name is cut off, not split on.
+    # `meow-checks` holds `-v` itself, so the name is cut off, not split on.
     versions = [version(t[len(name) + 2:]) for t in tags if re.fullmatch(rf"{re.escape(name)}-v\d+\.\d+\.\d+", t)]
     return max(versions) if versions else None
 

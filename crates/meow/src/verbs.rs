@@ -228,7 +228,7 @@ fn status(root: &Path, as_json: bool) -> u8 {
     } else {
         report.path.clone()
     };
-    println!("meow-verbs status, profile {where_}\n");
+    println!("meow-checks status, profile {where_}\n");
     for (verb, entry) in &report.verbs {
         match entry {
             Entry::Resolved { command, subset } => {
@@ -247,7 +247,7 @@ fn status(root: &Path, as_json: bool) -> u8 {
         }
     }
     if !report.ignored.is_empty() {
-        println!("\nNot read by meow-verbs: {}", report.ignored.join(", "));
+        println!("\nNot read by meow-checks: {}", report.ignored.join(", "));
     }
     for notice in &report.notices {
         println!("\nnotice: {notice}");
@@ -314,13 +314,13 @@ fn run(root: &Path, args: &[String]) -> u8 {
     };
     if targets.is_some_and(|t| t.is_empty()) {
         eprintln!(
-            "meow-verbs run: `--` names no target, which could mean the whole work or nothing; name the targets or drop `--`"
+            "meow-checks run: `--` names no target, which could mean the whole work or nothing; name the targets or drop `--`"
         );
         return USAGE;
     }
     if names.is_empty() {
         eprintln!(
-            "meow-verbs run: name the verbs to run, from: {}",
+            "meow-checks run: name the verbs to run, from: {}",
             VERBS.join(" ")
         );
         return USAGE;
@@ -332,7 +332,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
         .collect();
     if !unknown.is_empty() {
         eprintln!(
-            "meow-verbs run: {} isn't a verb; the five are {}",
+            "meow-checks run: {} isn't a verb; the five are {}",
             unknown.join(", "),
             VERBS.join(" ")
         );
@@ -503,7 +503,7 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
     // kept and listed it are refused, naming the decision, for one release.
     if args.iter().any(|a| a == "--keep" || a == "--kept") {
         eprintln!(
-            "meow-verbs evidence: kept evidence was removed by ADR-2300; cite the line `evidence` prints, and the pull request"
+            "meow-checks evidence: kept evidence was removed by ADR-2300; cite the line `evidence` prints, and the pull request"
         );
         return USAGE;
     }
@@ -522,7 +522,7 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
         .collect();
     if !unknown.is_empty() {
         eprintln!(
-            "meow-verbs evidence: {} isn't a verb; the five are {}",
+            "meow-checks evidence: {} isn't a verb; the five are {}",
             unknown.join(", "),
             VERBS.join(" ")
         );
@@ -546,7 +546,7 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
         names.to_vec()
     };
     if wanted.is_empty() {
-        println!("no verb has a record for this work tree; run one with `meow-verbs run <verb>`");
+        println!("no verb has a record for this work tree; run one with `meow-checks run <verb>`");
         return UNRESOLVED;
     }
     let now = ledger::tree_id(root);
@@ -678,12 +678,12 @@ fn state(root: &Path, args: &[&str]) -> u8 {
                 PASSED
             }
             Err(reason) => {
-                eprintln!("meow-verbs state: {reason}");
+                eprintln!("meow-checks state: {reason}");
                 FAILED
             }
         },
         _ => {
-            eprintln!("usage: meow-verbs state [--purge]");
+            eprintln!("usage: meow-checks state [--purge]");
             USAGE
         }
     }
@@ -706,7 +706,7 @@ pub fn main(args: &[String]) -> u8 {
                 PASSED
             }
             Err(reason) => {
-                eprintln!("meow-verbs tree: {reason}");
+                eprintln!("meow-checks tree: {reason}");
                 FAILED
             }
         },
@@ -716,7 +716,7 @@ pub fn main(args: &[String]) -> u8 {
         ),
         _ => {
             eprintln!(
-                "usage: meow-verbs status [--json] | meow-verbs run <verb>... [-- <target>...] | meow-verbs evidence [--all] [verb...] | meow-verbs state [--purge] | meow-verbs tree <commit>"
+                "usage: meow-checks status [--json] | meow-checks run <verb>... [-- <target>...] | meow-checks evidence [--all] [verb...] | meow-checks state [--purge] | meow-checks tree <commit>"
             );
             USAGE
         }

@@ -15,7 +15,7 @@ decision, because code shows what a system does and never what it must do.
 
 ## Verbs
 
-Which verbs resolve and which don't, from `meow-verbs status` where that unit
+Which verbs resolve and which don't, from `meow-checks status` where that unit
 is installed, first, because how a repository is checked is the first thing a
 person hits.
 

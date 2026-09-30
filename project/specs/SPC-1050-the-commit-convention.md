@@ -63,7 +63,7 @@ docs = "none"
 one of `major`, `minor`, `patch` or `none` (REQ-1318). `subject_limit` is the
 subject's length in characters, 72 where it isn't declared (REQ-1302).
 `trailers` names each trailer every message carries (REQ-1308). A key the unit
-doesn't read is reported as ignored, as `meow-verbs` reports one.
+doesn't read is reported as ignored, as `meow-checks` reports one.
 
 ### What `convention` reports
 

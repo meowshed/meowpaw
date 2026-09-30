@@ -1,13 +1,13 @@
 ---
-reader: someone choosing or running meow-verbs
-answers: what meow-verbs does, what it adds to a session and how to run it
+reader: someone choosing or running meow-checks
+answers: what meow-checks does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-verbs@0.8.0]
+describes: [meow-checks@0.9.0]
 ---
 
-# meow-verbs
+# meow-checks
 
-`meow-verbs` runs your repository's checks the way the repository declared
+`meow-checks` runs your repository's checks the way the repository declared
 them, and reports a check nobody declared as unresolved, never as passed. It
 covers five verbs, `format`, `lint`, `check`, `test` and `build`, and it
 installs on its own, with no other part of the `meowpaw` harness.
@@ -18,7 +18,7 @@ Add the marketplace and install the unit:
 
 ```bash
 claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
-claude plugin install meow-verbs@meowpaw
+claude plugin install meow-checks@meowpaw
 ```
 
 ## Declare your verbs
@@ -39,7 +39,7 @@ as unresolved, which is the honest answer: nothing ran, so nothing passed.
 ## What Claude Code does with them
 
 When Claude Code formats, lints, type-checks, tests or builds, the
-`meow-verbs:verify` skill has it run the program in place of a command it
+`meow-checks:verify` skill has it run the program in place of a command it
 would otherwise choose. It first shows what each verb resolves to:
 
 ```text
@@ -65,7 +65,7 @@ record keeps the command, the outcome, the whole output and the git tree id of
 your working state before and after the verb, and `run` ends with one
 `recorded: <verb> <record> at tree <tree id>` line per verb.
 
-`meow-verbs evidence [verb...]` tells you whether those results still hold:
+`meow-checks evidence [verb...]` tells you whether those results still hold:
 
 ```text
 test: passed, record 3f9a1c0b2d4e, current at tree 6960e730d656
@@ -80,14 +80,14 @@ the work done only when `evidence` exits 0 or you accept what it reported.
 
 The repository keeps no run output. Where a record or a pull request cites a
 result, it cites the line `evidence` printed: the verb, the outcome, the record
-and the tree id. `meow-verbs tree <commit>` prints a commit's tree id, for
+and the tree id. `meow-checks tree <commit>` prints a commit's tree id, for
 comparing a cited result with the commit that carries the work.
 `evidence --keep` and `evidence --kept`, which kept and listed such files,
 exit 2 and say so, for one release. Where a submodule has uncommitted changes,
 no result is bound to a tree, and `evidence` names the submodule.
 
 The ledger itself is your machine's run state, kept outside the repository.
-`meow-verbs state` prints where it is, how many records it holds, the oldest
+`meow-checks state` prints where it is, how many records it holds, the oldest
 and newest and the lock, and `state --purge` empties
 it. A run drops records older than 30 days. `MEOWPAW_STATE_DIR` moves the state
 directory, and `MEOWPAW_STATE=off` writes nothing outside the repository, in
@@ -103,7 +103,7 @@ command = "./scripts/test"
 subset = "./scripts/test {targets}"
 ```
 
-Then `meow-verbs run test -- tests/login` runs the subset form, with each
+Then `meow-checks run test -- tests/login` runs the subset form, with each
 target quoted for the shell. A verb with no `subset` reports `no subset form`
 and runs nothing, because running the whole work under the part's name would
 tell you something narrower passed than did. `evidence` never counts a subset
@@ -124,7 +124,7 @@ verb is reported unresolved, as "no interpreter".
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
-in `plugins/meow-verbs/requires.toml`. It relies on these platform behaviours,
+in `plugins/meow-checks/requires.toml`. It relies on these platform behaviours,
 each documented by Claude Code:
 
 - a skill loaded by its description: [documentation](https://code.claude.com/docs/en/skills.md)
