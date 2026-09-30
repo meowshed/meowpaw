@@ -448,7 +448,9 @@ class Project(unittest.TestCase):
 # headers on every response, and `cached` gives the age, `remaining` and reset of the headers a call sent with
 # `--cache` replays. A `null` among the `responses` lets that call through to the default answer. Each issue holds
 # the time on GitHub's clock it was written at, and the read-back listing answers with the issues written at or after
-# its `since`, less the numbers `omit` names, with the body of each number `alter` names changed and the title of each number
+# its `since`, less the numbers `omit` names. A create writes its issue `lag` seconds before the `Date` of its
+# answer, and its answer carries the issue's `updated_at` unless `no_updated_at` is set. The listing leaves out
+# the numbers `omit` names, with the body of each number `alter` names changed and the title of each number
 # `retitle` names changed, and a read of one issue by number shows the body of each number `read_alter` names changed and the title of each
 # number `read_retitle` names changed, and `page_size`
 # at a time where the script sets it, each page but the last naming the next in a `Link` header.
@@ -499,7 +501,10 @@ if answer is not None:
     headers.update(answer.get("headers", {}))
 elif method == "POST":
     number = len(state["issues"]) + 1
-    state["issues"][str(number)] = {"number": number, "state": "open", "written": github_now, **fields}
+    written = github_now - script.get("lag", 0)
+    state["issues"][str(number)] = {"number": number, "state": "open", "written": written, **fields}
+    if not script.get("no_updated_at"):
+        state["issues"][str(number)]["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(written))
     status, body = 201, state["issues"][str(number)]
 elif method == "PATCH":
     state["issues"][path.split("/")[-1]].update(fields, written=github_now)
@@ -943,6 +948,28 @@ class ReadBack(Layered, unittest.TestCase):
         reads = [c["args"][1] for c in self.calls(root) if re.fullmatch(r"repos/o/r/issues/\d+", c["args"][1])]
         self.assertEqual(reads, ["repos/o/r/issues/2"])
         self.assertEqual([line for line in lines if line.startswith("partial:")], [])
+
+    def test_the_listing_starts_at_the_first_issues_own_time(self):
+        """TSK-4020 criterion 1, REQ-3322: with each issue written a second before its create's answer, the
+        repository named and two unmapped tasks, the listing starts at the first issue's `updated_at`, finds both
+        issues with no read by number, and the run exits 0."""
+        root = Project.repository(self)
+        self.stand_in(root, {"lag": 1})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        calls = self.calls(root)
+        self.assertEqual(listings(calls), [time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 1))])
+        self.assertEqual([c for c in calls if re.fullmatch(r"repos/o/r/issues/\d+", c["args"][1])], [])
+        self.assertEqual([line for line in done.stdout.splitlines() if line.startswith("partial:")], [])
+
+    def test_with_no_updated_at_the_listing_starts_at_the_first_date(self):
+        """TSK-4020 criterion 2, REQ-3322: where no create's answer carries `updated_at`, the listing starts at the
+        `Date` of the run's first response."""
+        root = Project.repository(self)
+        self.stand_in(root, {"lag": 1, "no_updated_at": True})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(listings(self.calls(root)), [time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START))],
+                         done.stdout + done.stderr)
 
     def test_a_throttled_read_by_number_stops_the_reads(self):
         """TSK-4040 criterion 4, REQ-3322, REQ-3326: with both created issues left out of the listing, a secondary
