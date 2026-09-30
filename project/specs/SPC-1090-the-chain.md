@@ -665,7 +665,11 @@ Run twice with nothing changed, it prints the same text (REQ-0210).
 ### Approvals
 
 An approval is a record's stored status moving from `draft` to `approved`, in a
-commit of its own, so it is durable and survives every session (REQ-0402). A
+commit of its own, so it is durable and survives every session (REQ-0402). Where a
+person asks for a decision to land in one pull request, the method skill
+writes its research, requirements, decision record, specification changes,
+epic and tasks in turn, each as `approved`, with no stop between them, and
+stops once at that pull request, whose merge is the approval (REQ-3650). A
 step that produces an artifact needing approval stops there, and never reads
 silence, a change of subject or an unrelated instruction as approval
 (REQ-0390, REQ-0400).

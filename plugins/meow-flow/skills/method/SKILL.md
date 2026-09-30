@@ -21,7 +21,8 @@ don't overrule it.
    report the record as not checked and stop.
 4. Read `${CLAUDE_SKILL_DIR}/steps/<step>.md` and follow it.
 5. Write each artifact from the template `${CLAUDE_SKILL_DIR}/../../bin/paw template <kind>` prints, as a
-   draft, because approval is a person's act and not yours.
+   draft, or as `approved` where M20 applies, because approval is a person's
+   act and not yours.
 6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
 7. End by naming the artifact you wrote, the gate it now waits at, and the
@@ -41,7 +42,7 @@ don't overrule it.
 - M4. Where the record and the work disagree, report it and fix the artifact,
   because an artifact that has drifted from the tree gets cited as true.
 - M5. Stop after writing an artifact that needs approval, and report the gate
-  it waits at, because the next step built on an unapproved input inherits a
+  it waits at, unless M20 applies, because the next step built on an unapproved input inherits a
   decision nobody made.
 - M6. Never take silence, a change of subject or an unrelated instruction as
   approval: only a person saying so approves, because an inferred approval is
@@ -93,11 +94,13 @@ don't overrule it.
 - M19. Dispatch no agent to review a record you wrote, because the person
   approving its pull request is its reader, and an agent's review of a record
   was a step nobody could act on.
-- M20. Land a decision's research, requirements, decision record,
-  specification changes, epic and tasks in one pull request where they are
-  written together, with the approved records they replace withdrawn in it,
-  because one reader approves them together, and a pull request for each adds
-  a merge and no review.
+- M20. Where a person asks for a decision to land in one pull request, write
+  its research, requirements, decision record, specification changes, epic
+  and tasks in turn without stopping at each gate, set each to `approved` in
+  that pull request so `paw ready` passes for the step after it, withdraw in
+  it the approved records they replace, and stop once, at the pull request,
+  because the person's merge of it is the one approval, and a pull request
+  for each record adds a merge and no review. Without that request, M5 holds.
 - M21. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
   realises the decision, and write no epic for it, because an epic holding one
   task is a second record for the same plan.
