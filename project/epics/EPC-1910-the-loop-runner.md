@@ -93,7 +93,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-3350 add `meow-loop` with `start`, which refuses incomplete
+- [x] T-001 TSK-3350 add `meow-loop` with `start`, which refuses incomplete
       terms, keeps a run's files under the state directory and the newest 20
       runs, holds the ceiling in its own
       process and ends `finished` when the verbs pass, in
