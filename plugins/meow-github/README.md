@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.10.0]
+describes: [meow-github@0.11.0]
 ---
 
 # meow-github
@@ -115,10 +115,11 @@ partial: projected TSK-1930; created, not read back TSK-1940 (issue #512, reads 
 
 A group with no task reads `none`. The reason is `couldn't be read`,
 `reads differently from what was written`, `the listing couldn't be read`,
-`the listing was throttled`, `no listing ran`, `no read ran` or
+`the listing was throttled`, `the listing's credential was rejected`,
+`no listing ran`, `no read ran` or
 `the task doesn't name it`.
 The run sends the listing after a write GitHub refused, and sends none after a
-throttle or a budget ceiling, where it sends nothing more at all. A task under
+throttle, a budget ceiling or a 401, where it sends nothing more at all. A task under
 `created, not read back` keeps its `issue:`, so the next run reads that issue
 through the mapping and creates no second one. The one exception is
 `the task doesn't name it`: the issue exists and the task file couldn't be
@@ -172,11 +173,12 @@ is missing for your machine, it names the machine and says to reinstall the
 unit.
 
 Where GitHub refuses a call, `history` and `project` name the method, the
-endpoint and the permission the call needed, and exit 3:
+endpoint and the permission the call needed, carry GitHub's own reason, and
+exit 3:
 
 ```text
-unauthenticated: POST repos/OWNER/REPO/issues
-refused: POST repos/OWNER/REPO/issues needs issues=write
+unauthenticated: POST repos/OWNER/REPO/issues; GitHub said "Bad credentials"
+refused: POST repos/OWNER/REPO/issues needs issues=write; GitHub said "Resource not accessible by personal access token"
 refused: GET repos/OWNER/REPO/issues/512 needs a permission: GitHub named no permission and said "Not Found", or it is hidden from this credential
 ```
 
@@ -195,9 +197,22 @@ first of these the response carries:
 - neither, as `a permission: GitHub named no permission and said "..."`, with
   GitHub's message quoted.
 
+A line that doesn't already quote GitHub's message ends with
+`; GitHub said "<message>"`, because a permission header says what an
+endpoint accepts and not why this credential was refused. After a 401 the
+run sends nothing more, the read-back listing included, because GitHub
+rejects an account's valid credentials too after several rejected requests.
+`project` then prints `stopped at the rejected credential above` and the
+`partial:` line.
+
+Wherever a line quotes GitHub's message, a control character or a line
+separator in it prints as a space, and a backslash or a double quote is
+escaped, so the message can't split the line or end its quotation.
+
 `project` prints the line on a line of its own, above the line saying what the
-refusal stopped: a task, the naming of the repository or the read-back. `history` prints it after `unread:`, and after the
-listing's name where a listing was refused.
+refusal stopped: a task, the naming of the repository or the read-back.
+`history` prints it after `unread:`, and after the listing's name where a
+listing was refused.
 
 Every call goes through one request layer that reads GitHub's rate-limit
 headers on each response. Where GitHub throttles a call, or a fresh response
