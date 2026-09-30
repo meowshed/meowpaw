@@ -13,6 +13,13 @@ supersedes: []
 
 ## Decision
 
+**Amended by ADR-2320.** The read-back listing's `<start>` is the earliest
+`updated_at` among the run's create answers, and the `Date` of the run's first
+response only where no create answer carries one.
+
+**Amended by ADR-2330.** Every refusal line ends with GitHub's own reason, and
+after a 401 the run sends no further request.
+
 `meow-github` sends every request to GitHub through one request layer,
 `crates/meow/src/github/request.rs`, and no other code in the crate's `github`
 feature starts `gh`. The layer runs `gh api --include`, so it gets the status
