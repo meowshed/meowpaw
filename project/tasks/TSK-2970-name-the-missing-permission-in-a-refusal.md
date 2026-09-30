@@ -67,8 +67,9 @@ on an object the record maps. `permission` takes the permission from
 `X-Accepted-GitHub-Permissions`, or else from `X-Accepted-OAuth-Scopes`
 beside `X-OAuth-Scopes`, or else quotes GitHub's message. `get_mapped` and a
 `PATCH` mark the object as one the record maps. `project` prints the line on
-a line of its own, and `history` prints it after `unread:` and the listing's
-name.
+a line of its own, above the line naming the task it concerns. `history`
+prints it after `unread:`, and after the listing's name where a listing was
+refused.
 
 Each criterion is closed by the check it names, in
 `plugins/meow-github/tests/test_github.py`:
@@ -84,7 +85,11 @@ What to do that no criterion names. No criterion rests on judgement. The six
 checks failed first, in the commit that holds them alone, where the `test`
 verb exited 1. A commit of its own then changes
 `History.test_a_refused_listing_leaves_the_history_unread`, which named
-`HTTP 403` after the endpoint, the form this task replaces. `format`, `lint`,
+`HTTP 403` after the endpoint, the form this task replaces. Review added
+`Refusal.test_a_404_on_an_unmapped_object_is_no_refusal`, which guards the
+arm that reports a 404 as a refusal only on an object the record maps, and
+passes on the commit that holds the six checks, and strengthened the others to
+read whole lines. `format`, `lint`,
 `check`, `test` and `build` each pass on the change's tree, as the pull
 request cites.
 
@@ -101,7 +106,9 @@ archived repository, is in the message. I left it out, because criterion 1
 and SPC-1080 fix the line as `refused: <method> <endpoint> needs <permission>`
 and quote the message only where no header names a permission. Review also
 asked whether a 401 should stop the run, since no later call can pass it.
-`project` goes on to the remaining tasks after a 401, as it did before this
+After a 401 on the read or the update of a mapped issue, `project` goes on
+to the remaining tasks. After a 401 on a create it creates nothing more, and
+still reads back the issues it created. Both are as they were before this
 task, and both questions need a change to the specification.
 
 No run against GitHub was refused, so the three header names are as SPC-1080
