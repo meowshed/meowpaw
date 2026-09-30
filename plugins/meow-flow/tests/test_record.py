@@ -2718,7 +2718,7 @@ class OffTheTrunk(unittest.TestCase):
 
     def test_the_remote_tracking_trunk_is_read(self):
         """Criterion 4, REQ-3660: where the trunk exists only as a remote-tracking branch, that branch is read, and
-        it wins over a local branch of the same name."""
+        a task approved on it is on the trunk whatever the local branch holds."""
         repository = self.repo()
         sha = self.git(repository, "rev-parse", "main").stdout.strip()
         self.git(repository, "update-ref", "refs/remotes/origin/main", sha)
@@ -2790,8 +2790,65 @@ class OffTheTrunk(unittest.TestCase):
         (repository.root / self.TASK).write_text(first, encoding="utf-8")
         status = repository.run("status").stdout
         self.assertIn("next: implement TSK-0002 (EPC-0001, 0 of 2 tasks done)", status)
+        self.assertNotIn("waiting:", status)
         self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 1)
         self.assertEqual(repository.run("ready", "implement", "TSK-0002").returncode, 0)
+        (repository.root / "tasks/TSK-0002-another.md").write_text(
+            first.replace("TSK-0001", "TSK-0002").replace("status: approved", "status: draft"), encoding="utf-8")
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "-m", "second is a draft here")
+        self.git(repository, "checkout", "-q", "main")
+        self.git(repository, "merge", "-q", "--ff-only", "work")
+        self.git(repository, "checkout", "-q", "work")
+        repository.edit("tasks/TSK-0002-another.md", "status: draft", "status: approved")
+        status = repository.run("status").stdout
+        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 2 tasks done)", status)
+
+    def test_a_decision_waits_only_when_every_startable_task_does(self):
+        """REQ-3662: with both tasks off the trunk the decision waits, naming the first."""
+        repository = self.repo()
+        self.second_task(repository)
+        status = repository.run("status").stdout
+        self.assertIn("waiting: TSK-0001 is not approved on main yet", status)
+        self.assertNotIn("next: implement", status)
+
+    def test_a_longer_identifier_and_a_stray_copy_are_told_apart(self):
+        """REQ-3660: `TSK-00010` on the trunk isn't `TSK-0001`, and a stray file of the identifier beside the
+        approved record doesn't hide it."""
+        repository = self.repo()
+        self.git(repository, "checkout", "-q", "main")
+        task = (repository.root / self.TASK)
+        repository.write("tasks/TSK-00010-other.md", "---\nid: TSK-00010\nstatus: approved\n---\n")
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "-m", "a longer identifier")
+        self.git(repository, "checkout", "-q", "work")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 1)
+        self.git(repository, "checkout", "-q", "main")
+        self.git(repository, "merge", "-q", "work")
+        repository.write("tasks/TSK-0001-a-old.md.orig", "junk\n")
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "-m", "a stray copy")
+        self.assertTrue(task.is_file())
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+
+    def test_a_record_root_of_another_name_is_guarded(self):
+        """REQ-3660: the guard follows `[record] root`, and reads a status written with quotes or a comment."""
+        repository = Repository(profile='[git]\ntrunk = "main"\n[record]\nroot = "rec/ord"\n', root="rec/ord")
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        repository.edit(self.TASK, "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
+        task = (repository.root / self.TASK).read_text(encoding="utf-8")
+        (repository.root / self.TASK).unlink()
+        self.git(repository, "checkout", "-q", "-b", "main")
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "-m", "base")
+        (repository.root / self.TASK).write_text(task, encoding="utf-8")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 1)
+        (repository.root / self.TASK).write_text(task.replace("status: approved", 'status: "approved" # agreed'), encoding="utf-8")
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "-m", "the task")
+        (repository.root / self.TASK).write_text(task, encoding="utf-8")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
 
     def test_a_record_outside_the_repository_is_said(self):
         """REQ-3664: a record root outside the repository is on no branch of it, so nothing is refused and status says so."""
@@ -2854,7 +2911,7 @@ class OffTheTrunk(unittest.TestCase):
         self.assertRegex(by["M6"], r"waits on a merge, and the person's merge is what approves it")
         text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
         steps = re.sub(r"\s+", " ", tagged(text, "steps"))
-        self.assertRegex(steps, r"7\. Where M20 applies and the check reported nothing, set the artifact to `approved`")
+        self.assertRegex(steps, r"7\. Where M20 applies and the check reported nothing, set each artifact the step wrote to `approved`")
         self.assertRegex(steps, r"where a step up to epic remains, go to step 1 for it")
         self.assertRegex(steps, r"8\. End by naming")
         self.assertRegex(steps, r"Where M20 applies and the check still reports a finding, name the draft and the finding")

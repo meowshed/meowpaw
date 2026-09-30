@@ -2789,6 +2789,15 @@ fn off_trunk<'a>(repository: &Path, trunk: &'a Trunk, task: &Doc) -> Option<&'a 
             .filter(|o| o.status.success())
             .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
     };
+    // A task reached through a link that leaves the repository is on no
+    // branch of it, so nothing is asked about it.
+    let outside = match (task.path.canonicalize(), repository.canonicalize()) {
+        (Ok(task), Ok(repository)) => !task.starts_with(repository),
+        _ => true,
+    };
+    if outside {
+        return None;
+    }
     let dir = Path::new(&task.shown)
         .parent()
         .map(|d| d.to_string_lossy().into_owned())
@@ -2796,20 +2805,29 @@ fn off_trunk<'a>(repository: &Path, trunk: &'a Trunk, task: &Doc) -> Option<&'a 
     let id = bare(task.id());
     let approved_on = |reference: &str| {
         let listed = git(&["ls-tree", "-r", "--name-only", "-z", reference, "--", &dir])?;
-        let path = listed.split('\0').find(|path| {
-            Path::new(path)
-                .file_name()
-                .and_then(|n| n.to_str())
-                .is_some_and(|n| {
-                    n.strip_prefix(id)
-                        .is_some_and(|rest| rest.starts_with('-') || rest.starts_with('.'))
-                })
-        })?;
-        let text = git(&["show", &format!("{reference}:{path}")])?;
-        let fields = parse_front_matter(&text)?;
-        fields
-            .iter()
-            .any(|f| f.key == "status" && bare(&f.value) == "approved")
+        // Every record file of that identifier is read, so a stray copy
+        // beside the approved one doesn't hide it.
+        listed
+            .split('\0')
+            .filter(|path| {
+                Path::new(path)
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .is_some_and(|n| {
+                        n.ends_with(".md")
+                            && n.strip_prefix(id)
+                                .is_some_and(|rest| rest.starts_with('-') || rest.starts_with('.'))
+                    })
+            })
+            .any(|path| {
+                git(&["show", &format!("{reference}:{path}")])
+                    .and_then(|text| parse_front_matter(&text))
+                    .is_some_and(|fields| {
+                        fields
+                            .iter()
+                            .any(|f| f.key == "status" && bare(&f.value) == "approved")
+                    })
+            })
             .then_some(())
     };
     let there = references.iter().any(|r| approved_on(r).is_some());

@@ -140,8 +140,9 @@ paw ready implement: not ready
 decision approved, and each task under its `## Depends on` done. It also
 refuses a task that isn't approved on the trunk you declare under `[git] trunk`
 yet, on its remote-tracking branch or its local one, because an approval on an unmerged branch still waits on its merge, and
-`paw status` shows that task as waiting. Where you declare no trunk, or the
-directory is no git work tree, it refuses nothing for that and `paw status`
+`paw status` shows that task as waiting. Where you declare no trunk, the
+directory is no git work tree, the trunk names no branch or the record sits
+outside the repository, it refuses nothing for that and `paw status`
 says an approval can't be told from one waiting on a merge. A decision
 one task realises needs no epic: the task names `realises: ADR-NNNN` in place
 of `epic:`, and it is done once its Evidence is written.

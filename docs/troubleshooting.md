@@ -129,7 +129,8 @@ nothing newly approved, it says what it is waiting on.
 `TSK-... is not approved on main yet` means the task is approved on your
 branch and not on the trunk your profile declares, so its approval still
 waits on a merge. Merge the change that approves the task, fetch if the merge
-happened on the code host, then run the step again.
+happened on the code host, then run the step again. `paw` reads the trunk's
+local branch and its branch on the remote named `origin`.
 
 ## meow-verbs is now meow-checks
 

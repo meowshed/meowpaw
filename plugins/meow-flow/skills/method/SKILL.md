@@ -25,8 +25,8 @@ don't overrule it.
    draft, because approval is a person's act and not yours.
 6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
-7. Where M20 applies and the check reported nothing, set the artifact to
-   `approved`, and where a step up to epic remains, go to step 1 for it.
+7. Where M20 applies and the check reported nothing, set each artifact the
+   step wrote to `approved`, and where a step up to epic remains, go to step 1 for it.
 8. End by naming the artifact you wrote, the gate it now waits at, and the
    step that picks it up, with the command that runs it, and say the record
    is unreviewed by a person. Where M20 applies, the gate is the pull request,
