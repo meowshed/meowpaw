@@ -31,10 +31,8 @@ report at all.
    `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs evidence` with the verbs the work
    needs. On exit 0, cite each result as it printed. On anything else, report
    what it printed and stop until the person accepts it or the verbs pass.
-6. Where a record will cite the results, run
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs evidence --keep` with the same
-   verbs, read each file it kept for secret material before it is committed,
-   cite the kept path beside the record, and stop there.
+6. Where a record or a pull request will cite the results, cite each line as
+   `evidence` printed it, and stop there.
 </steps>
 
 <rules name="reporting">
@@ -61,9 +59,9 @@ report at all.
   they say to, reporting it as the whole verb, because a whole run can take far
   longer than the part, and only the repository knows how its tool takes a
   part.
-- V7. Read a kept evidence file before it is committed, and remove it and
-  tell the person where it holds a token, a key or other secret material,
-  because a committed file reaches every clone and can't be taken back.
+- V7. Keep no run output in the repository, in a file or pasted into a
+  record, because a verb's output holds whatever the tool printed, a token
+  included, and a committed file reaches every clone and can't be taken back.
 </rules>
 
 <example name="an unresolved verb">

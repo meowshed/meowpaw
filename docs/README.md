@@ -11,7 +11,7 @@ describes:
     meow-prose-gate@0.2.2,
     meow-prose@0.5.0,
     meow-scm@0.4.2,
-    meow-verbs@0.7.1,
+    meow-verbs@0.8.0,
   ]
 ---
 

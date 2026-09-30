@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-verbs
 answers: what meow-verbs does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-verbs@0.7.1]
+describes: [meow-verbs@0.8.0]
 ---
 
 # meow-verbs
@@ -78,34 +78,20 @@ has no record, was unresolved or ran outside a git work tree, where no tree id
 exists. The skill runs `format` first, cites records in this form, and calls
 the work done only when `evidence` exits 0 or you accept what it reported.
 
-A result a record cites is kept in the repository, where anyone can check it:
-`meow-verbs evidence --keep [verb...]` copies each current record, with its
-whole output, to `<record>.txt` under `evidence/` in your record's folder,
-`project/evidence/` unless `[record] root` moves it, or under the
-`evidence_dir` you declare under `[verbs]`. The file opens with
-`meow-verbs evidence 1` and the record's verb, command, targets, outcome, exit
-status, tree id and time. A stale record isn't kept. After writing, it asks git
-whether the file is ignored: an ignored file is named with its rule and left
-in place, exiting 1, and where git can't answer it exits 3. The tree id leaves
-that directory out, so keeping a record doesn't make it stale, and
-`meow-verbs tree <commit>` prints a commit's tree id the same way, for
-comparing a kept record with the commit that carries it. Read a kept file
-before you commit it, because it holds whatever the verb printed.
-
-`meow-verbs evidence --kept` lists the evidence behind your change's claims:
-each kept file the branch adds against its base on the `trunk` you declare
-under `[git]`, committed or not, with its record, which is what a task cites,
-its outcome and whether it matches `HEAD`. Only the latest file per verb
-counts, and an earlier one shows as `superseded`. It exits 0 when every counted
-file passed and matches `HEAD`. Where a submodule has uncommitted changes, no
-result is bound to a tree, and `evidence` names the submodule.
+The repository keeps no run output. Where a record or a pull request cites a
+result, it cites the line `evidence` printed: the verb, the outcome, the record
+and the tree id. `meow-verbs tree <commit>` prints a commit's tree id, for
+comparing a cited result with the commit that carries the work.
+`evidence --keep` and `evidence --kept`, which kept and listed such files,
+exit 2 and say so, for one release. Where a submodule has uncommitted changes,
+no result is bound to a tree, and `evidence` names the submodule.
 
 The ledger itself is your machine's run state, kept outside the repository.
 `meow-verbs state` prints where it is, how many records it holds, the oldest
-and newest, the evidence directory and the lock, and `state --purge` empties
+and newest and the lock, and `state --purge` empties
 it. A run drops records older than 30 days. `MEOWPAW_STATE_DIR` moves the state
 directory, and `MEOWPAW_STATE=off` writes nothing outside the repository, in
-which case nothing is recorded and nothing can be kept. `evidence --all` adds
+which case nothing is recorded. `evidence --all` adds
 the other work trees of the same repository, each by its path.
 
 To run a verb over part of the work, such as one test, declare the form it

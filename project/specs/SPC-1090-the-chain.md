@@ -339,8 +339,7 @@ ADR-1550, ADR-1560 and ADR-2200: a requirement closes with the tasks that name
 it, verify goes, cover and document fold into implement, no agent reviews a
 record, and the repository keeps no run output. EPC-2200 realises it. `paw`
 and the method's prompts name the seven steps, and nothing dispatches a record
-reviewer. Kept evidence still exists until TSK-3830 lands, and each passage
-that waits on it says "not yet".
+reviewer. The repository keeps no run output, and the records written under the old chain keep their old sections until TSK-3860 migrates them.
 The skeptic ADR-2200 decided is dropped, and nothing dispatches it. The
 records written under the old chain migrate to the new shape (REQ-3652), and
 `meow-method` has left the marketplace (REQ-3654).

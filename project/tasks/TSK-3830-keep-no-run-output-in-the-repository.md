@@ -36,7 +36,18 @@ the task until they are filled.
 
 ## Evidence
 
-Not yet.
+`NoKeptEvidence` in `plugins/meow-verbs/tests/test_verbs.py` holds seven
+checks for criterion 2, the tree id and `tree <commit>`, three of them added
+with the review's fixes, and `tools/test_no_kept_evidence.py`
+holds two for criterion 1. The six in the pull request's first commit failed there.
+Criterion 3 needed no new check: `paw check` asks no task for a kept file
+since TSK-3810 removed the Cover gate, and it reports 0 findings on this
+record, whose tasks name checks and pull requests. The pull request deletes
+the 577 files of `project/evidence/`, which git history keeps.
+`meow-verbs run format lint check test` passed all four verbs.
+
+Left alone: records that cite a kept file by its path keep the citation until
+TSK-3860 rewrites it.
 
 ## Left alone
 

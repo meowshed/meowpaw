@@ -10,7 +10,7 @@ describes:
     meow-flow@0.44.0,
     meow-prose-gate@0.2.2,
     meow-scm@0.4.2,
-    meow-verbs@0.7.1,
+    meow-verbs@0.8.0,
   ]
 ---
 
