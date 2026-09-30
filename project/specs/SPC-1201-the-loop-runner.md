@@ -3,7 +3,6 @@ id: SPC-1201
 artifact: spec
 status: live
 revised: 2026-09-29
-checked-at:
 states:
   [
     REQ-0870,
@@ -505,11 +504,3 @@ signal and without an ending in `run.toml`, and the next `start` in that work
 tree takes the lock. It needs none, because the operating system frees the
 lock when the process ends, and stopping a run and recording who stopped it
 belong to a later decision (ADR-2010).
-
-## Open review findings
-
-- The reviewer suggested keeping the changed `run.toml` beside the run before
-  the runner writes the `tampered` ending into it, since the changed content
-  is the only evidence of what a call tried. Left open: it adds a file to the
-  run's layout that ADR-2010 doesn't name and no task builds, so it belongs
-  in the next change to the runner.

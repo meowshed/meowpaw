@@ -22,18 +22,3 @@ closing keyword closes the parent. A grouping field inside the record, such
 as a `milestone:` in a task's front matter, does the same harm from the other
 side: the task then answers to two plans, and whoever reads its status has to
 reconcile them.
-
-## Open review findings
-
-- The agent reviewer, round 1, finding 3 (preference): list RES-0022 beside
-  RES-0289 in `elaborates:`. I left it, because every requirement in the
-  record names one research document there, and RES-0289 elaborates RES-0022,
-  so the claim reaches RES-0022 through it.
-- The agent reviewer, round 1, finding 4 (preference): state only the tracker
-  half. I kept both halves, because the record half is what stops a grouping
-  field being added to a task later, and ADR-1800's forbidden fields check it.
-- The agent reviewer, round 2, finding 3 (preference): name in the statement
-  that a static search can't see a grouping built at runtime or written by an
-  agent following a prompt. I left it, because the statement forbids the
-  write whoever makes it, and a gap in how one check reaches it belongs to
-  the check and not to the obligation.

@@ -244,9 +244,3 @@ The agent's replies, as handed back, opened this way:
   platform's documentation of `tools` as an allowlist.
 - [`/meow:discover`](RES-0053-discover.md), read 2026-09-28 - the conclusions
   this record tests: classify on the repository, report first, write nothing.
-
-## Open review findings
-
-- Writing the conclusions as findings and implications, leaving "must" to the
-  requirements. Left: the template asks for each conclusion as an obligation,
-  and the other research records write them that way.

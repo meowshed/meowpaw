@@ -508,18 +508,3 @@ permission mode denied every edit, and each iteration wrote only
 showed the permission denials climbing on every line, and nobody read it
 until morning. The count of denials is in each log line for this reason, and
 the escalation list decided later is where it gets read.
-
-## Open review findings
-
-- The reviewers suggested moving the command line, the exit codes, the file
-  layout, the log fields and the retention count to the specification, so
-  they don't freeze here. Left open: SPC-1201 now states them and is where
-  they change, but the criteria above check them, and a decision whose
-  criteria name no terms can't be checked against what was built. A later
-  change in SPC-1201 that conflicts with this record goes through an
-  amendment.
-- The third reviewer asked for criteria covering a result with the subtype
-  `error_max_budget_usd`, a result without `total_cost_usd`, and the
-  retention of 20 runs. Left open: TSK-3370's criteria 2 and 3 and TSK-3350's
-  criterion 6 check each of them, and the epic copied these criteria before
-  the tasks were written.

@@ -284,13 +284,3 @@ and Write. The tools as this session's schema presents them on 2.1.280 take
   `-p` mode.
 - The Edit and Write tool schemas, read 2026-09-29 - the input fields each tool
   takes, as Claude Code 2.1.280 presents them to a session.
-
-## Open review findings
-
-- The record reviewer asked for a defect record showing that `paw ready`
-  exits 1 for a missing record root where the method's skill says exit 3. I
-  didn't file one, because no stated behaviour is unmet: SPC-1090's Failure
-  paths specify exit 1 for a missing root, "as `check` does", and the skill's
-  exit 3 covers a machine with no binary. The finding misread the skill, so I
-  corrected it and cut conclusion 2 to what a reader of the exit status can
-  tell, as the reviewer also asked.

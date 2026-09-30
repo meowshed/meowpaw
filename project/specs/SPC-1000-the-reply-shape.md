@@ -3,7 +3,6 @@ id: SPC-1000
 artifact: spec
 status: live
 revised: 2026-09-21
-checked-at: "#27"
 states:
   [
     REQ-0930,

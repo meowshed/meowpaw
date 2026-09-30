@@ -3,7 +3,6 @@ id: SPC-1020
 artifact: spec
 status: live
 revised: 2026-09-27
-checked-at:
 states:
   [
     REQ-0153,
