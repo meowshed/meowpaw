@@ -8,8 +8,8 @@ isolated, and a stand-in `claude` first on the path. The stand-in appends its
 argv and standard input to a call log, can create a file, overwrite one, and
 append a line to the progress file in the directory `--add-dir` names, edits
 `work.txt` on each call so the tree changes, and prints the JSON result its
-configuration names, with the subtype it names and without a cost where it
-says so. It never reads `--max-budget-usd`, so no ending comes from it. `CLAUDECODE` is removed from every run's environment, because the gate
+configuration names, with the subtype it names, the cost it names for that
+call and no cost where it says so. It never reads `--max-budget-usd`, so no ending comes from it. `CLAUDECODE` is removed from every run's environment, because the gate
 often runs inside a Claude Code session. `MEOW_LOOP_BIN` names the launcher to
 test. Each check counts what it matched and fails on a count of zero where one
 was expected (EPC-1910 criterion 13).
@@ -51,7 +51,8 @@ if config.get("progress") and "--add-dir" in sys.argv:
 time.sleep(config.get("sleep", {}).get(str(n), 0))
 if config.get("silent"):
     sys.exit(0)
-result = {"type": "result", "subtype": config.get("subtype", "success"), "total_cost_usd": config.get("cost", 0.1),
+cost = config.get("costs", {}).get(str(n), config.get("cost", 0.1))
+result = {"type": "result", "subtype": config.get("subtype", "success"), "total_cost_usd": cost,
           "result": config.get("result", "done"), "permission_denials": []}
 if config.get("no_cost"):
     del result["total_cost_usd"]
@@ -453,13 +454,12 @@ class Context(Case):
 class Budget(Case):
     """ADR-2010: the runner checks the budget before each call, and ends a run whose spend it can't count."""
 
-    TERMS = replaced("--budget-usd", "1.00")
-
-    def run_of(self, iterations="10", **config):
-        """A run with a budget of 1.00 whose verb never passes, and its calls, its log's lines and its result."""
+    def run_of(self, iterations="10", budget="1.00", **config):
+        """A run with a budget of 1.00, or the one named, whose verb never passes, and its calls, its log's lines
+        and its result."""
         f = self.fixture()
         f.configure(**config)
-        terms = list(self.TERMS)
+        terms = replaced("--budget-usd", budget)
         terms[terms.index("--iterations") + 1] = iterations
         done = f.start(terms)
         log = f.run_dirs()[0] / "log.jsonl"
@@ -468,23 +468,29 @@ class Budget(Case):
     def test_forecast_before_the_call(self):
         """TSK-3370 criterion 1, REQ-0878 and the budget halves of REQ-0870 and REQ-0876: with a budget of 1.00 and
         a stand-in that ignores its cap, a run costing 0.60 a call makes one call and ends `budget`, and one costing
-        0.30 a call makes three and never starts the fourth."""
+        0.30 a call makes three and never starts the fourth. Three more runs pin the forecast: 0.50 a call lands on
+        the budget, so the second call starts and the third doesn't; a first call of 0.40 followed by calls of 0.10
+        makes four calls, where a forecast from the last call's cost makes seven; and a budget of 0.3 with calls
+        of 0.1 makes three, though 0.2 + 0.1 is above 0.3 in binary floating point."""
+        runs = (({"cost": 0.60}, "1.00", 1), ({"cost": 0.30}, "1.00", 3), ({"cost": 0.50}, "1.00", 2),
+                ({"cost": 0.10, "costs": {"1": 0.40}}, "1.00", 4), ({"cost": 0.1}, "0.3", 3))
         matched = 0
-        for cost, calls in ((0.60, 1), (0.30, 3)):
-            f, done, lines = self.run_of(cost=cost)
+        for config, budget, calls in runs:
+            f, done, lines = self.run_of(budget=budget, **config)
             self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-            self.assertEqual(len(f.calls()), calls, cost)
-            self.assertEqual(len(lines), calls, cost)
+            self.assertEqual(len(f.calls()), calls, config)
+            self.assertEqual(len(lines), calls, config)
             self.assertEqual(f.ending(), "budget")
             self.assertEqual(done.stdout.strip().splitlines()[-1], "budget")
             matched += 1
-        self.assertEqual(matched, 2)
+        self.assertEqual(matched, 5)
 
     def test_unmetered(self):
         """TSK-3370 criterion 2: a call that prints no result, and one whose result has no `total_cost_usd`, each
-        end the run `unmetered` after that one call."""
+        end the run `unmetered` after that one call, and its line in the log holds no sum. A result with no cost
+        and the subtype of a reached cap ends `unmetered` too, because the cost is read first."""
         matched = 0
-        for config in ({"silent": True}, {"no_cost": True}):
+        for config in ({"silent": True}, {"no_cost": True}, {"no_cost": True, "subtype": "error_max_budget_usd"}):
             f, done, lines = self.run_of(**config)
             self.assertEqual(done.returncode, 1, str(config) + done.stdout + done.stderr)
             self.assertEqual(len(f.calls()), 1, config)
@@ -492,8 +498,10 @@ class Budget(Case):
             self.assertEqual(done.stdout.strip().splitlines()[-1], "unmetered")
             self.assertEqual(len(lines), 1, config)
             self.assertIsNone(lines[0]["condition"])
+            self.assertIn("sum_usd", lines[0])
+            self.assertIsNone(lines[0]["sum_usd"])
             matched += 1
-        self.assertEqual(matched, 2)
+        self.assertEqual(matched, 3)
 
     def test_platform_cap_ends_the_run(self):
         """TSK-3370 criterion 3: a call costing 0.01 whose result has the subtype `error_max_budget_usd` ends the
