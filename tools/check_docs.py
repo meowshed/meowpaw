@@ -9,7 +9,9 @@ A user-facing page is each unit's `README.md` and every Markdown file under
 kind and the unit versions it describes, so a version bump fails here until
 every page describing that unit is read again and restamped. A page never
 cites the record: an identifier in its prose or a link into `project/` sends
-the reader somewhere written for somebody else.
+the reader somewhere written for somebody else. A page, the root README, the
+constitution, the vision and the route file each state the number of steps
+the method skill names, and no other.
 
     python3 tools/check_docs.py [--root DIR]
 """
@@ -33,6 +35,17 @@ FENCE = re.compile(r"^\s*(```|~~~)")
 START = "<!-- check_docs index -->"
 END = "<!-- /check_docs index -->"
 NOT_WRITTEN = re.compile(r"^- `([a-z-]+)`:", re.M)
+WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve")
+NUMBER = r"(" + "|".join(WORDS) + r"|\d+)"
+# The ways a page states how many steps the method has. A count of anything
+# else, such as "install it in three steps", matches none of them.
+STEP_COUNTS = (
+    re.compile(rf"\b(?:the same|method's|method:|costs|costing|demands)\s+{NUMBER}\s+steps\b", re.I),
+    re.compile(rf"\b{NUMBER}\s+steps\s+(?:run in a chain|from research)\b", re.I),
+)
+STEP_LIST = re.compile(r"The steps, in order, are\s+(.*?)\.", re.S)
+# Pages outside `docs/` and the units that state the chain to a reader.
+LIVING = ("README.md", "CLAUDE.md", "llms.txt", "project/vision.md")
 
 
 def front_matter(text):
@@ -214,6 +227,42 @@ def write_index(root):
     index.write_text(f"{head}{START}\n\n{table(root)}\n\n{END}{tail}", encoding="utf-8")
 
 
+def method_steps(root):
+    """How many steps the method skill names, or None where no unit ships one."""
+    for skill in sorted((root / "plugins").glob("*/skills/method/SKILL.md")):
+        listed = STEP_LIST.search(skill.read_text(encoding="utf-8"))
+        if listed:
+            return len([name for name in re.split(r",|\band\b", listed.group(1)) if name.strip()])
+    return None
+
+
+def check_steps(root):
+    """A living page states the number of steps the method skill names, and no other."""
+    count = method_steps(root)
+    if count is None:
+        return []
+    out = []
+    for path in [root / name for name in LIVING] + pages(root):
+        if not path.is_file():
+            continue
+        lines = list(body_lines(path.read_text(encoding="utf-8")))
+        for index, (number, line) in enumerate(lines):
+            # A statement wraps, so read each line with the one before it, and
+            # report a match once, at the line it ends on.
+            before = lines[index - 1][1] if index else ""
+            joined = f"{before} {line}"
+            for pattern in STEP_COUNTS:
+                for match in pattern.finditer(joined):
+                    if match.end() <= len(before) + 1:
+                        continue
+                    said = match.group(1).lower()
+                    value = int(said) if said.isdigit() else WORDS.index(said)
+                    if value != count:
+                        named = WORDS[count] if count < len(WORDS) else str(count)
+                        out.append(f"{path.relative_to(root)}:{number}: states {said} steps, and the method names {named}")
+    return out
+
+
 ROUTE_ITEM = re.compile(r"^- \[[^\]]+\]\(([^)\s]+)\)(?:: .+)?$")
 
 
@@ -252,7 +301,7 @@ def check(root):
             failures.append(f"{unit}: has no README.md")
     for path in pages(root):
         failures += check_page(root, path, versions)
-    return failures + check_index(root) + check_route(root)
+    return failures + check_index(root) + check_route(root) + check_steps(root)
 
 
 def main():

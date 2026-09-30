@@ -2,10 +2,11 @@
 id: SPC-1110
 artifact: spec
 status: live
-revised: 2026-09-27
+revised: 2026-09-30
 checked-at: "#425"
 states:
   [
+    REQ-3632,
     REQ-2838,
     REQ-3130,
     REQ-3132,
@@ -147,7 +148,15 @@ It fails when:
 - the generated table in `docs/README.md` differs from the pages, or a kind is
   neither carried nor listed under `## Not written`;
 - `llms.txt` lacks its H1 or summary, links to a path that doesn't exist, or
-  carries a line that is neither a heading, the summary nor a link.
+  carries a line that is neither a heading, the summary nor a link;
+- a page, the root `README.md`, `CLAUDE.md`, `project/vision.md` or `llms.txt`
+  states a number of the method's steps other than the number the method
+  skill names (REQ-3632). The count is read from the skill's list, "The steps,
+  in order, are ...", and a statement is one of the forms a page uses for the
+  chain: "the same N steps", "the method's N steps", "costs N steps", "demands
+  N steps", "N steps run in a chain" and "N steps from research". A count of
+  anything else isn't read, and a repository shipping no method skill has no
+  count to hold.
 
 `python3 tools/check_docs.py --write` rewrites the table between the
 `<!-- check_docs index -->` and `<!-- /check_docs index -->` markers in
@@ -165,6 +174,7 @@ Each failure prints one line, and the check goes on to report the rest.
 | A `describes` naming no unit         | `<page>: describes <unit>, which doesn't exist`                      | Name an existing unit                                                    |
 | A version bump without a restamp     | `<page>: describes <unit>@<old>, the unit is at <new>`               | Read the page again and restamp it                                       |
 | A page citing the record             | `<page>:<line>: cites the record: <text>`                            | State the fact on the page, without the identifier, kind, status or link |
+| A page stating the wrong step count  | `<page>:<line>: states <n> steps, and the method names <m>`          | State the number the method skill names                                  |
 | A missing catalogue field            | `<unit>: plugin.json lacks <field>`                                  | Add the field to `plugin.json`                                           |
 | A homepage elsewhere                 | `<unit>: homepage doesn't point at plugins/<unit>/README.md`         | Point `homepage` at the unit's page                                      |
 | A description without the ceiling    | `<unit>: the description doesn't name its ceiling, <n>`              | Add the ceiling from `budget.toml` to the description                    |

@@ -35,7 +35,14 @@ the task until they are filled.
 
 ## Evidence
 
-Not yet.
+`tools/test_check_docs.py` holds five checks for the step count. Three failed
+at the pull request's first commit; the other two assert that the right count
+and a repository with no method skill pass, which held before the work.
+Planting "the same ten steps" in the root `README.md` made
+`python3 tools/check_docs.py` exit 1 with
+`README.md:15: states ten steps, and the method names seven`, and the
+repository as it stands reports 0 documentation failures.
+`meow-verbs run format lint check test` passed all four verbs.
 
 ## Left alone
 
