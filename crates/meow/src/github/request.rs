@@ -768,7 +768,7 @@ fn sleep(seconds: f64) {
 
 #[cfg(test)]
 mod tests {
-    use super::{printable, wait};
+    use super::{one_line, printable, wait};
 
     /// TSK-4030, REQ-3324: a message quoted in a report stays on one line and
     /// inside its quotation marks.
@@ -777,6 +777,9 @@ mod tests {
         assert_eq!(printable("Bad credentials"), "Bad credentials");
         assert_eq!(printable("two\nlines"), "two lines");
         assert_eq!(printable("say \"no\""), "say \\\"no\\\"");
+        assert_eq!(printable("a\\\"b"), "a\\\\\\\"b");
+        assert_eq!(printable("C:\\"), "C:\\\\");
+        assert_eq!(one_line("a\u{2028}b\rc"), "a b c");
     }
     use std::path::Path;
 

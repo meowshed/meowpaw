@@ -1056,16 +1056,16 @@ class Refusal(Layered, unittest.TestCase):
         listing = f"repos/o/r/issues?state=all&since={since}&per_page=100"
         unread = "TSK-0001 (issue #1, {why}), TSK-0002 (issue #2, {why})"
         cases = (
-            ("read", True, {"GET repos/o/r/issues/1": [rejected]}, "repos/o/r/issues/1",
+            ("read", True, {"GET repos/o/r/issues/1": [rejected]}, ["repos/o/r/issues/1"],
              ("none", "none", "TSK-0001, TSK-0002")),
-            ("update", True, {"PATCH repos/o/r/issues/1": [rejected]}, "repos/o/r/issues/1",
+            ("update", True, {"PATCH repos/o/r/issues/1": [rejected]}, ["repos/o/r/issues/1"] * 2,
              ("none", "none", "TSK-0001, TSK-0002")),
-            ("create", False, {"POST repos/o/r/issues": [None, rejected]}, "repos/o/r/issues",
+            ("create", False, {"POST repos/o/r/issues": [None, rejected]}, ["repos/o/r/issues"] * 2,
              ("none", "TSK-0001 (issue #1, no listing ran)", "TSK-0002")),
-            ("listing", False, {f"GET {listing}": [rejected]}, listing,
+            ("listing", False, {f"GET {listing}": [rejected]}, ["repos/o/r/issues"] * 2 + [listing],
              ("none", unread.format(why="the listing's credential was rejected"), "none")),
         )
-        for where, mapped, responses, last, expected in cases:
+        for where, mapped, responses, every, expected in cases:
             with self.subTest(where=where):
                 root = Project.repository(self)
                 self.stand_in(root, {})
@@ -1081,7 +1081,7 @@ class Refusal(Layered, unittest.TestCase):
                 done = self.meow_github(root, "project", "EPC-0001", "o/r")
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
                 sent = [call["args"][1] for call in self.calls(root)[before:]]
-                self.assertEqual(sent[-1], last, sent)
+                self.assertEqual(sent, every)
                 self.assertEqual(len([line for line in done.stdout.splitlines()
                                       if line.startswith("unauthenticated: ")
                                       and line.endswith('; GitHub said "Bad credentials"')]), 1, done.stdout)
