@@ -94,13 +94,13 @@ a marker naming the task and a fingerprint. The task gains `issue:` with the
 issue's number and `projected:` with the fingerprint, so the mapping lives in
 the repository. After its last create, the run reads the issues it created
 back in one listing of the issues written since it began, and matches each by
-number. The listing can lag a create by a few seconds, so the run reads each
+number. The listing can lag a create by seconds, so the run reads each
 issue it left out on its own, by number, before it reports that issue as not
 read back. Run it again and nothing changes. It refuses an epic that isn't
 approved.
 
-Where a run stops before it has projected every task, or the listing doesn't
-show a created issue as it was written, the report says which tasks are in which state and
+Where a run stops before it has projected every task, or neither the listing
+nor a read by number shows a created issue as it was written, the report says which tasks are in which state and
 the run exits 3:
 
 ```text

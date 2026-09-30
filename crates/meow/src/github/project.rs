@@ -245,7 +245,8 @@ fn throttled(line: &str) {
     println!("meow-github project: stopped at the throttle above, sending nothing more");
 }
 
-/// An issue this run created, until the listing reads it back.
+/// An issue this run created, until the listing or a read by number reads it
+/// back.
 struct Created {
     id: String,
     number: u64,
@@ -271,7 +272,7 @@ struct Outcome {
 
 impl Outcome {
     /// Puts a created issue's task under `projected`, as read back as written.
-    fn read_back(&mut self, c: Created) {
+    fn confirm(&mut self, c: Created) {
         println!(
             "{}: projected to issue #{} at {}, read back",
             c.id, c.number, c.print
@@ -336,9 +337,10 @@ fn read_back(layer: &mut Layer, repository: &str) -> Result<Vec<Value>, Failure>
     Ok(issues)
 }
 
-/// Reads the created issues back and sorts each task into `outcome`. The
-/// listing runs after a failed write or a refusal, and not after a throttle
-/// or a ceiling, because a request sent while throttled risks the integration.
+/// Reads the created issues back, in one listing and then by number for each
+/// the listing left out, and sorts each task into `outcome`. The listing runs
+/// after a failed write or a refusal, and not after a throttle or a ceiling,
+/// because a request sent while throttled risks the integration.
 fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &mut Outcome) {
     if created.is_empty() {
         return;
@@ -378,7 +380,7 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
             .iter()
             .find(|i| i.get("number").and_then(Value::as_u64) == Some(c.number));
         match found {
-            Some(issue) if written(issue, &c) => outcome.read_back(c),
+            Some(issue) if written(issue, &c) => outcome.confirm(c),
             Some(_) => outcome.leave(&[c], "reads differently from what was written"),
             None => missing.push(c),
         }
@@ -389,10 +391,18 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
     while let Some(c) = missing.next() {
         let endpoint = format!("repos/{repository}/issues/{}", c.number);
         match layer.get_mapped(&endpoint) {
-            Ok(issue) if written(&issue, &c) => outcome.read_back(c),
+            Ok(issue) if written(&issue, &c) => outcome.confirm(c),
             Ok(_) => outcome.leave(&[c], "reads differently from what was written"),
-            Err(Failure::Throttled(line)) => {
-                throttled(&line);
+            // A 401 stops the reads as a throttle does, because a rejected
+            // credential sent again counts towards GitHub's lockout.
+            Err(Failure::Throttled(line)) | Err(Failure::Refused(line))
+                if !line.starts_with("refused:") =>
+            {
+                if line.starts_with("unauthenticated:") {
+                    println!("{line}");
+                } else {
+                    throttled(&line);
+                }
                 outcome.throttled = true;
                 outcome.stopped = true;
                 let left: Vec<Created> = std::iter::once(c).chain(missing).collect();
