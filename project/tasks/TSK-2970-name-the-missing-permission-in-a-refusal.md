@@ -95,6 +95,15 @@ the credential states no scope. With neither header the line reads
 every refusal keeps the one shape. A `PATCH` to a mapped issue counts as a
 call on an object the record maps, as the read of it does.
 
+Review asked for GitHub's message on every refusal line, since a header can
+name a scope the credential already holds while the real reason, such as an
+archived repository, is in the message. I left it out, because criterion 1
+and SPC-1080 fix the line as `refused: <method> <endpoint> needs <permission>`
+and quote the message only where no header names a permission. Review also
+asked whether a 401 should stop the run, since no later call can pass it.
+`project` goes on to the remaining tasks after a 401, as it did before this
+task, and both questions need a change to the specification.
+
 No run against GitHub was refused, so the three header names are as SPC-1080
 states them and the stand-in sends them. `meow-github` goes to 0.9.0, and its
 README shows the three lines under "When it can't read".

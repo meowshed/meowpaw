@@ -76,7 +76,7 @@ fn name_repository(layer: &mut Layer, repository: Option<&str>) -> Result<String
             Err(Failure::Failed(e)) => Err(Failure::Failed(format!(
                 "couldn't name this directory's repository: {e}; name it as <owner>/<name>"
             ))),
-            Err(throttled) => Err(throttled),
+            Err(other) => Err(other),
         },
     }
 }

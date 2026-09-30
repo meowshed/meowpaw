@@ -174,7 +174,7 @@ endpoint and the permission the call needed, and exit 3:
 ```text
 unauthenticated: POST repos/OWNER/REPO/issues
 refused: POST repos/OWNER/REPO/issues needs issues=write
-refused: GET repos/OWNER/REPO/issues/512 needs issues=read, or it is hidden from this credential
+refused: GET repos/OWNER/REPO/issues/512 needs a permission: GitHub named no permission and said "Not Found", or it is hidden from this credential
 ```
 
 | Line                                     | GitHub answered                                                                            |
@@ -192,8 +192,9 @@ first of these the response carries:
 - neither, as `a permission: GitHub named no permission and said "..."`, with
   GitHub's message quoted.
 
-`project` prints the line on a line of its own, above the task it stopped at.
-`history` prints it after `unread:` and the listing's name.
+`project` prints the line on a line of its own, above the line naming the
+task it concerns. `history` prints it after `unread:`, and after the
+listing's name where a listing was refused.
 
 Every call goes through one request layer that reads GitHub's rate-limit
 headers on each response. Where GitHub throttles a call, or a fresh response
