@@ -46,6 +46,12 @@ pass under the new name, and `meow-verbs run format lint check test`, run as
 
 Left alone: frozen records keep the old name, and the ledger stays under
 `meowpaw/evidence` in the state directory, so no result is lost by the move.
+The crate's feature and module stay `verbs`, though What to do names the
+feature, because they name the code that runs the verbs and no user types
+them. The repository keeps no release notes file, so the old name lives only
+in the stub, the troubleshooting page and the check. The agent's review found
+a stub check that failed on a checkout built before the rename, and a release
+fixture that no longer held `-v` in a unit's name; both are fixed here.
 
 ## Left alone
 

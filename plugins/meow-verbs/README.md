@@ -9,8 +9,8 @@ describes: [meow-verbs@0.9.0, meow-checks@0.9.0]
 
 `meow-verbs` is now `meow-checks`, and this unit is a stub that says so. It
 carries no skill and no program, so the `verify` skill and the `meow-verbs`
-command are gone under this name. Each session it prints a short notice with
-the two commands that move your install:
+command are gone under this name. When a session starts it gives Claude a
+short notice to pass on to you, with the two commands that move your install:
 
 ```bash
 claude plugin install meow-checks@meowpaw
@@ -26,8 +26,8 @@ covers the rest.
 
 ## What it costs you
 
-Nothing in context on every turn. The notice is about 330 characters, printed
-once when a session starts.
+Nothing in context on every turn. The notice is about 400 characters, given
+to Claude once when a session starts.
 
 ## When it goes
 

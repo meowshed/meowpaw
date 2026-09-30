@@ -4,7 +4,10 @@
 
 # Tells the session this unit was renamed and how to move an install, because
 # the platform can't rename an installed plugin (ADR-2300).
+# A SessionStart hook's output reaches the model, not the screen, so the first
+# line asks the model to pass it on.
 cat <<'NOTICE'
+Tell the person this before anything else, in your first reply:
 meow-verbs is now meow-checks. This copy is a stub with no skill and no program.
 Move the install with:
 
