@@ -346,7 +346,7 @@ steps, which `paw ready` now refuses, and the method skill still dispatches
 the record reviewer; each passage this changes says "not yet".
 The skeptic ADR-2200 decided is dropped, and nothing dispatches it. The
 records written under the old chain migrate to the new shape (REQ-3652), and
-`meow-method` leaves the marketplace (REQ-3654).
+`meow-method` has left the marketplace (REQ-3654).
 ADR-2100 decides the route, and EPC-2000 realises it: the `route` skill
 dispatches the router and reports the route before any edit, and the method
 skill and this repository's `CLAUDE.md` name it. Its cases run by hand, so

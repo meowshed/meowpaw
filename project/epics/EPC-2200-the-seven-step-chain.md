@@ -89,8 +89,10 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-3652
       depends: TSK-3800 (blocking), TSK-3830 (blocking)
 
-- [ ] T-008 [P] TSK-3870 remove the `meow-method` stub from the marketplace
+- [x] T-008 [P] TSK-3870 remove the `meow-method` stub from the marketplace
       closes: REQ-3654
+      evidence: 3 checks in `tools/test_marketplace.py`, seen failing at the
+      pull request's first commit and passing after it.
 
 ## Coverage
 
