@@ -116,7 +116,19 @@ The line after a throttle no longer says the tasks above it were projected,
 because after this change they are created and not read back.
 
 No run against GitHub created an issue, so the listing is shown by the
-stand-in alone. `meow-github` goes to 0.8.0, and its README states the
+stand-in alone. One read against GitHub shows the listing includes an issue
+whose `updated_at` equals `since`: `repos/meowshed/meowpaw/issues` with
+`since` set to issue 778's `updated_at` listed 778. One case stays
+unobserved. A run given the repository's name whose first task is unmapped
+sends a create as its first request, so `<start>` is that create's own
+`Date`. If GitHub stamps the response a second after the issue, the listing
+starts after the issue and the run reports it `not in the listing` and exits 3. The task keeps `issue:`, so the next run reads the issue through the
+mapping. ADR-1810 fixes `<start>`, so a start taken before the first create
+needs an amendment to it.
+
+SPC-1080 says the line is printed whenever `project` stops before it has
+visited every task. Criterion 4 also needs it where every task was visited
+and one issue wasn't read back, and the specification doesn't say so yet. `meow-github` goes to 0.8.0, and its README states the
 listing and the `partial:` line.
 
 ## Left alone

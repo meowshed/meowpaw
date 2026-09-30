@@ -97,8 +97,8 @@ back in one listing of the issues written since it began, and matches each by
 number. Run it again and nothing changes. It refuses an epic that isn't
 approved.
 
-Where a run stops before its last task, or the listing doesn't show a created
-issue as it was written, the report says which tasks are in which state and
+Where a run stops before it has projected every task, or the listing doesn't
+show a created issue as it was written, the report says which tasks are in which state and
 the run exits 3:
 
 ```text

@@ -535,6 +535,8 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                                 "{id}: issue #{issue} updated, and the mapping couldn't be written to {}",
                                 task.path.display()
                             );
+                            // The issue was updated, which is what projected means.
+                            outcome.projected.push(id);
                             worst = worst.max(FOUND);
                         }
                     },
