@@ -136,7 +136,7 @@ the one that gets approved.
   and where that tool is missing it says so and does the work the expensive
   way.
 - **Demand the full method for a typo.** The harness classifies work first, and
-  trivial work skips the chain. A harness that costs ten steps for a one-line
+  trivial work skips the chain. A harness that costs seven steps for a one-line
   fix is one you work around, and then it reports a process it never performed.
 - **Oblige a repository to keep the record.** Three levels of adoption, each
   complete on its own.

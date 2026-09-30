@@ -1,7 +1,7 @@
 ---
 id: TSK-NNNN
 artifact: task
-status: draft # draft, then approved; done is derived from the authorising record's mark
+status: draft # draft, then approved; done is derived from the authorising record's mark, or from Evidence for a task naming realises
 revised: YYYY-MM-DD
 epic: EPC-NNNN # or bug: BUG-NNNN where a defect carries this task, or realises: ADR-NNNN where one task realises the decision; name one
 closes: [REQ-NNNN] # the requirements it closes, any number; a defect's task restores one and may close none
@@ -23,7 +23,8 @@ review: the tests first, then the change, its documentation and its marks.
    command's output>.
 
 Each criterion is a state, an action and an outcome someone can observe,
-never an adjective, and names the evidence that will close it. Where the work
+never an adjective, decidable from this task's own work, and names the
+evidence that will close it. Where the work
 predicts a measurable outcome, the criterion states the predicted number now,
 before the work. The repository's definition of done applies as well and
 isn't restated here.
@@ -46,8 +47,9 @@ is declared as not blocking, never left out.
 
 ## Evidence
 
-Not yet. Once done: the tests that close each criterion, each verb's
-outcome, the pull request, and in a sentence what its review found.
+Not yet. Before the implementation: each criterion no program can check,
+named as resting on judgement with the reason. Once done: the tests that
+close each criterion, each verb's outcome and the pull request.
 
 ## Left alone
 

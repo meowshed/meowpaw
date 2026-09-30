@@ -7,12 +7,15 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 </role>
 
 <steps name="epic">
-1. Write one epic realising exactly that record, with acceptance criteria
-   taken from the decision's list of how it will be known realised.
+1. Where one task realises the decision, write that task alone, naming
+   `realises: ADR-NNNN` in place of `epic:`, with the decision's criteria as
+   its own, and stop. Otherwise write one epic realising exactly that record,
+   with acceptance criteria taken from the decision's list of how it will be
+   known realised.
 2. Decompose it into tasks, each a vertical slice someone can observe, each a
    record of its own from the `task` template that cites every requirement it
    closes and names the tasks it depends on.
-3. Land every requirement the record addresses in exactly one task, or defer
+3. Land every requirement the record addresses in at least one task, or defer
    it under `## Not covered` with a reason, and run `paw check
    coverage` to prove it.
 4. Name the smallest set of tasks that would test the decision, and mark the
@@ -55,8 +58,15 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - E13. Name at least one thing the epic can measure before the work is
   finished, where one exists, and the smallest set of tasks that would test
   the decision.
-- E13. Carry no estimates.
-- E14. Write each acceptance criterion as something the project itself can
-  bring about; where a third party controls the behaviour, state what the
-  project ships and record the dependency.
+- E14. Carry no estimates, because an estimate in a record is read as a
+  promise.
+- E15. Write each acceptance criterion as something the project itself can
+  bring about, and as something the task's or the epic's own work decides,
+  never a later epic's; where a third party controls the behaviour, state
+  what the project ships and record the dependency, because a criterion that
+  waits on other work can't be met when it is checked.
+- E16. Write no epic for a decision one task realises, because an epic
+  holding one task is a second record for the same plan.
+- E17. Let a task close several requirements and several tasks close one,
+  because a requirement often needs a program change and a prompt change.
 </rules>

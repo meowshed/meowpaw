@@ -37,8 +37,9 @@ Design produces decision records. An epic realises exactly one authorising
 record, a decision or a defect, which is what makes it finite and what it
 projects onto when you use a tracker.
 
-Documentation comes before review, so review covers it. Review runs last, and
-its verdict names the step the work returns to.
+A task is one pull request: its tests first, then the change, its
+documentation and its record marks. Review runs last, inside that pull
+request, which fixes what the review finds.
 
 A step refuses to run when its input is missing or unapproved, and that refusal
 is the only thing enforcing the order. Trivial work skips the chain: the

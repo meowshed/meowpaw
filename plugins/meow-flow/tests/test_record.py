@@ -2043,7 +2043,7 @@ class MethodSkill(unittest.TestCase):
             for phrase in RECORD_ROOT + tuple(patterns):
                 with self.subTest(step=name, phrase=phrase):
                     self.assertIn(phrase, role)
-        self.assertIn("writes nothing into the repository", flat(tagged(self.step("review"), "role")))
+        self.assertIn("writes nothing into the record", flat(tagged(self.step("review"), "role")))
 
     def chain(self, text):
         block = next(b for b in re.findall(r"```text\n(.*?)```", text, re.DOTALL) if "research ->" in b)
@@ -2441,7 +2441,10 @@ class ShortChainPrompts(unittest.TestCase):
         self.assertRegex(text, r"see each (one|test) fail")
         self.assertRegex(text, r"(modify|weaken).{0,120}commit of its own.{0,60}why")
         self.assertRegex(text, r"documentation.{0,120}same pull request|same pull request.{0,120}documentation")
-        self.assertRegex(text, r"[Mm]ark the task")
+        self.assertRegex(text, r"mark the task.{0,80}same pull request")
+        self.assertRegex(text, r"Where every verb passed, mark the task")
+        self.assertRegex(text, r"Mark the task done only in a change whose verbs all passed, because")
+        self.assertNotRegex(text, r"its output")
 
     def test_review_is_a_code_review_in_the_pull_request(self):
         """Criterion 4, REQ-3626, REQ-3612: a review of the change in its pull request, fixed there, written into no
@@ -2449,7 +2452,11 @@ class ShortChainPrompts(unittest.TestCase):
         text = self.flat(METHOD / "steps" / "review.md")
         self.assertRegex(text, r"task's pull request")
         self.assertRegex(text, r"fix.{0,80}in (that|the same) pull request")
-        self.assertRegex(text, r"nothing into the (record|repository)")
+        self.assertRegex(text, r"Write nothing into the record")
+        self.assertNotRegex(text, r"Evidence")
+        self.assertRegex(text, r"agent with read-only tools")
+        self.assertRegex(text, r"fresh agent, at most twice")
+        self.assertRegex(text, r"End in one verdict")
         self.assertRegex(text, r"would (still )?pass against a wrong implementation")
 
     def test_the_templates_carry_no_cover_and_no_checked_at(self):
@@ -2463,11 +2470,26 @@ class ShortChainPrompts(unittest.TestCase):
         """Criterion 6, REQ-3638: the constitution and the root README give the chain with seven steps."""
         root = UNIT.parent.parent
         chain = r"research -> requirements -> design -> spec -> epic\s+-> implement -> review"
-        for name in ("CLAUDE.md", "README.md"):
+        for name in ("CLAUDE.md", "README.md", "project/vision.md"):
             text = (root / name).read_text(encoding="utf-8")
             self.assertRegex(text, chain, name)
-            self.assertNotRegex(text, r"\bten steps\b", name)
-            self.assertRegex(text, r"\bseven steps\b", name)
+        for name in ("CLAUDE.md", "README.md", "project/vision.md", "llms.txt", "plugins/meow-flow/README.md"):
+            text = re.sub(r"\s+", " ", (root / name).read_text(encoding="utf-8"))
+            self.assertNotRegex(text, r"(?i)\b(nine|ten) steps\b", name)
+            self.assertRegex(text, r"(?i)\bseven steps\b", name)
+
+    def test_a_criterion_is_decidable_from_its_own_work(self):
+        """REQ-3628: the task and epic templates and the epic step ask for a criterion its own work decides."""
+        templates = UNIT / "templates"
+        self.assertIn("decidable from this task's own work", self.flat(templates / "task.md"))
+        self.assertIn("decidable from this epic's own work", self.flat(templates / "epic.md"))
+        self.assertRegex(self.flat(METHOD / "steps" / "epic.md"), r"own work decides, never a later epic's")
+
+    def test_the_epic_step_writes_a_lone_task_with_no_epic(self):
+        """REQ-3630: the epic step writes one task naming `realises:` where one task realises the decision."""
+        text = self.flat(METHOD / "steps" / "epic.md")
+        self.assertRegex(text, r"Where one task realises the decision, write that task alone, naming `realises: ADR-NNNN`")
+        self.assertRegex(text, r"Write no epic for a decision one task realises, because")
 
 
 if __name__ == "__main__":

@@ -12,53 +12,58 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 1. Read the task and every requirement it cites in full, not a summary.
 2. Write at least one test for each acceptance criterion a program can check,
    naming in each the criterion and the requirement it proves, and write no
-   implementation yet.
+   implementation yet. Open the task's `## Evidence` with each criterion no
+   program can check, named as resting on judgement with the reason.
 3. Run the tests through `meow-verbs` and see each one fail, then commit them
    in a commit of their own, before any commit that implements the task.
 4. Make the change the task describes and nothing no requirement describes,
    and see the tests pass. Where the work contradicts an approved requirement,
    stop and report it: the fix is an amendment reviewed on its own.
 5. Bring the user-facing documentation the change invalidates into agreement
-   with it, in the same pull request, written to the style `[docs] style`
-   declares in `.meowpaw/profile.toml`, and run every example you changed.
+   with it, in the same pull request: its pages, the index they are listed in,
+   and any install or usage instruction. Run every example you changed.
 6. Run the repository's verbs through `meow-verbs`, and write under the task's
    `## Evidence` the tests that close each criterion, each verb's outcome and
-   the pull request. Where `meow-verbs` isn't installed, record the command,
-   its exit status and its output instead.
-7. Mark the task `[x]` in its epic or defect in the same pull request, with
-   one line of evidence, and stop there. A task that realises a decision
-   directly has no mark, and is done by its Evidence.
+   the pull request. Where `meow-verbs` isn't installed, record each command
+   and its exit status instead.
+7. Where every verb passed, mark the task `[x]` in its epic or defect in the
+   same pull request, with one line of evidence, and stop there. Where one
+   didn't, leave the task unmarked, report what failed, and stop.
 </steps>
 
 <rules name="implement">
 - I1. Read the task and every requirement it cites in full, not a summary of
-  either.
+  either, because a summary drops the clause the work turns on.
 - I2. Halt when a task this one depends on has failed, and report without
-  halting when a task running beside it has failed.
-- I3. Implement no behaviour that no requirement describes.
+  halting when a task running beside it has failed, because only the first
+  leaves this one nothing to build on.
+- I3. Implement no behaviour that no requirement describes, because behaviour
+  nobody required is behaviour nobody reviewed.
 - I4. Where the work contradicts an approved requirement, stop and write no
   code the requirement forbids; route it through an amendment stating the
   blast radius and the migration, which stops for approval as a change of its
-  own.
+  own, because a requirement bent in passing is one no reader sees change.
 - I5. Before an amendment blames an artifact, check the check, because a
   failing check may be wrong about what it measures.
 - I6. Where the work turns out to be uncovered by any requirement, stop and
-  return to the requirements step.
+  return to the requirements step, because work with no requirement closes
+  nothing.
 - I7. Claim the work done only with evidence: the tests that ran, each verb's
   result and the identifier of what it closes, because prose asserting
   success is not evidence.
 - I8. Name in each test the requirement it proves, cover every requirement
   with a test that would fail if it were violated, check a failure path as
   precisely as its success path, and never cite coverage as evidence that a
-  requirement is met.
+  requirement is met, because a line run is not a behaviour checked.
 - I9. Report outcomes faithfully, partial completion, skipped steps and checks
-  that couldn't run included.
+  that couldn't run included, because a report that leaves them out reads as
+  a pass.
 - I10. Keep the not-working states distinct and named, unresolved, tool
   absent, tool broken, untrusted, skipped and unreachable, because each calls
   for a different action.
 - I11. Work from the parts the task touches and the dependencies it may use,
   as the specification states them, not from structure inferred from the file
-  tree.
+  tree, because the tree shows what exists and not what is allowed.
 - I12. Where the task predicts a measurable outcome, write the predicted number
   under Acceptance criteria before the work starts, because a prediction
   written after the result fits it, and an approved task holds it frozen.
@@ -78,18 +83,49 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I17. Never modify, delete, skip or weaken a test written first, except in a
   commit of its own whose message says why the test was wrong, because
   weakening a test is the cheapest way to make it pass.
-- I18. Name in the task each criterion no program can check as resting on
-  judgement, with the reason, before the implementation starts, because an
-  unchecked criterion left unnamed reads as covered.
-- I19. Keep no run output in the repository, because the first commit shows
-  the tests failing and the gate shows them passing.
-- I20. Report what documentation you changed and what you left alone with the
-  reason, and edit only pages written for the project's users, because an
-  unreported silence reads as an omission.
-- I21. Name a page's kind before you write it, introduction, tutorial, how-to,
+- I18. Name under the task's `## Evidence`, before the implementation starts,
+  each criterion no program can check and each with no `Closed by:` line, as
+  resting on judgement with the reason, because an unchecked criterion left
+  unnamed reads as covered, and Evidence is the section an approved task may
+  still change.
+- I19. Keep no run output in the repository, in a file or in the task,
+  because the first commit shows the tests failing and the gate shows them
+  passing.
+- I20. Mark the task done only in a change whose verbs all passed, because a
+  done mark without the gate closes its requirements on nothing.
+- I21. Give a task that realises a decision directly no mark, because no epic
+  lists it, and it is done once its Evidence is written.
+- I22. Don't report the task finished while documentation it invalidated is
+  still published, and record the reason wherever a page is left un-updated,
+  because an unreported silence reads as an omission.
+- I23. Edit only pages written for the project's users, and change the record
+  only by the task's Evidence and its mark, because every other record
+  changes through its own step.
+- I24. Write to the documentation style `[docs] style` declares in
+  `.meowpaw/profile.toml`, never a default of your own, and where it declares
+  none, say so and write to the writing standard in force, because the style
+  is the repository's decision.
+- I25. Name a page's kind before you write it, introduction, tutorial, how-to,
   reference, explanation or troubleshooting, and keep each page to one kind,
   because the kind decides the page's shape.
-- I22. Check documentation through the repository's verbs and report it as
-  unchecked where none covers it, never by a check of your own, because a
-  check the repository didn't declare is a command you guessed.
+- I26. Give a how-to guide no justification, and link the explanation or the
+  decision instead, because a reader following steps needs the next step, not
+  the argument for it.
+- I27. Organise pages around what the reader is trying to do, never around the
+  shape of the source tree, because the reader arrives with a task and not
+  with a map of the code.
+- I28. Open the repository's introduction with what the project is, followed
+  by a quick start that works, and no promotional material, because a reader
+  deciding whether to use the project needs those two things first.
+- I29. Take reference for a public interface from the verb that generates it,
+  and where no verb does, report the reference as written by hand and
+  unchecked against the interface, because hand-written reference drifts from
+  the interface it describes.
+- I30. Check documentation through the repository's verbs, report the verb
+  that checked it or report it unchecked where none does, and never run a
+  check of your own, because a check the repository didn't declare is a
+  command you guessed.
+- I31. Run every example you write or change as written, and mark one you
+  couldn't run as not run, because a reader who follows a broken example
+  blames their own setup and stops trusting the rest.
 </rules>

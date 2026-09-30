@@ -490,7 +490,7 @@ Evidence is written, or dropped once it is withdrawn, rejected or superseded
 | spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated                                             |
 | epic         | an approved decision or defect                                                                                                                                                                                                                                                                                                                                                      | an epic and its task records                                           |
 | implement    | an approved task, REQ-2266, REQ-3216                                                                                                                                                                                                                                                                                                                                                | the tests first, the change, its documentation and the task's evidence |
-| review       | the task's pull request, REQ-2268                                                                                                                                                                                                                                                                                                                                                   | findings in place, never a file                                        |
+| review       | the task's pull request, REQ-2268                                                                                                                                                                                                                                                                                                                                                   | findings, fixed in the pull request                                    |
 
 A person or the model invokes one step by naming it to the `method` skill, and
 the step does its own work and no later step's (REQ-0192, REQ-0194). Each step
@@ -501,12 +501,10 @@ wrote and the step that picks it up (REQ-0196).
 Each step's file names, in its role, where its artifact lands as a path
 pattern under the record root, `[record] root` in `.meowpaw/profile.toml` or
 `project/` where it declares none, so a step's output is found by path and not
-only by kind (REQ-3203, BUG-1264). Until ADR-2300's epic lands, a kept run lands under the evidence
-directory, `evidence_dir` under `[verbs]` or `evidence` under the record root.
-Document is the one step whose artifact isn't under the record root: its role
-names each page at its own path in the repository's documentation. Review is
-the exception: its role says it writes nothing into the repository
-(REQ-0544).
+only by kind (REQ-3203, BUG-1264). Implement also names what lands outside
+the record root: the test files, the changed files and each user-facing page
+at its own path. Review is the exception: its role says it writes nothing
+into the record (REQ-0544, REQ-3626).
 
 | Step         | Its artifact lands in                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------ |
@@ -516,7 +514,7 @@ the exception: its role says it writes nothing into the repository
 | spec         | `specs/SPC-NNNN-<topic>.md`                                                                                              |
 | epic         | `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task                                              |
 | implement    | the test files, the changed files, each user-facing page it changed, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md` |
-| review       | nothing in the repository (REQ-0544)                                                                                     |
+| review       | nothing in the record; its fixes land in the task's pull request (REQ-0544, REQ-3626)                                    |
 
 No step requires a practice command to be installed (REQ-2130). A step asks
 at most three clarifying questions, and chooses and records a default for the
@@ -529,16 +527,16 @@ Each step's file carries the obligations of its step as labelled rules, and
 the `task` and `bug` templates carry the obligations of their kinds (ADR-1160).
 The rules name no requirement, because the files ship to other repositories.
 
-| Step or template | Holds                                                                                                                                                                                                                                                                                                                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                                                                                                                       |
-| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                                                                                                                         |
-| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                                                                                                                                                           |
-| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                                                                                                                   |
-| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                                                                                                                                                       |
-| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-0241, REQ-0275, REQ-0277, REQ-0291, REQ-0327, REQ-0329, REQ-3616, REQ-3618, REQ-3640, REQ-3642, REQ-3644 |
-| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108                                                                                                                                                                                                                   |
-| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                                                                                       |
+| Step or template | Holds                                                                                                                                                                                                                                                                                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                                                                     |
+| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                                                                       |
+| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                                                                                                         |
+| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                                                                 |
+| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                                                                                                     |
+| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-0277, REQ-3616, REQ-3618, REQ-3640, REQ-3642, REQ-3644 |
+| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108, REQ-3612, REQ-3626                                                                                                                                             |
+| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                                     |
 
 The implement step holds what the document and verify steps held, since
 their work lands in the task's pull request. It reads `[docs] style` from `.meowpaw/profile.toml`: a path
@@ -583,12 +581,13 @@ seeing it fail, and a defect a gate caught and the same change closed needs no
 record of its own (REQ-3174). A requirement an open defect names in `violates` is
 open until the defect closes, whatever its tasks say (REQ-3610).
 
-The implement step cites each verb's result under a task's Evidence as
-`meow-verbs evidence` prints it, with the record and the tree id, and records
-the command, its exit status and its output where `meow-verbs` isn't
-installed, because `meow-flow` works without it (REQ-0146) (ADR-1480). The
-repository keeps no run output, so the Evidence names the checks and the pull
-request (REQ-3614) (not yet; see Scope).
+The implement step writes under a task's Evidence the tests that close each
+criterion, each verb's outcome and the pull request, and records each command
+and its exit status where `meow-verbs` isn't installed, because `meow-flow`
+works without it (REQ-0146) (ADR-1480). It keeps no run output, in a file or
+in the task (REQ-3614), and marks the task done only in a change whose verbs
+all passed (REQ-3606). Before the implementation it names there each
+criterion no program can check as resting on judgement (REQ-3216).
 
 ### The gate
 
@@ -695,7 +694,7 @@ REQ-0157, REQ-0818, REQ-0819). Where no agent can be dispatched, it reports
 the verdict as self-assessed (REQ-2202). The review reports each test that
 would still pass against a wrong implementation (REQ-3612). Each finding that
 stands is fixed in that pull request, and the review writes nothing into the
-record but one sentence in the task's Evidence (REQ-3626, REQ-0544). The
+record (REQ-3626, REQ-0544). The
 fixes are reviewed once more, twice at most, and a finding still open then
 goes to the person in the pull request (REQ-0822, REQ-0823).
 
@@ -779,13 +778,9 @@ REQ-3112). Without the pack it reports the history as unread and names
 | A person overrode the router's route                   | The route as overridden, and the route the router gave                                                                  |
 | `route reduced` for work no approved record authorises | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
 | A route came with the request or the brief             | The route as given, and that no router ran                                                                              |
-| The reviewer stops at its turn ceiling                 | The record is reported as unreviewed by an agent                                                                        |
-| The reviewer reports `BLOCKED`                         | The record is reported as unreviewed by an agent, naming the tool and the input, and the agent isn't resumed or re-sent |
-| The reviewer reports `NEEDS_CONTEXT` twice             | The record is reported as unreviewed by an agent, naming the brief sent                                                 |
 | The reviewer's report carries no outcome line          | The record is reported as unreviewed by an agent                                                                        |
 | The router reports `BLOCKED`                           | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
 | The router's reply carries no outcome line             | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
-| `prose` reports `BLOCKED` in the review step           | That text's review is reported as not run, naming the tool and the input                                                |
 | No binary for the machine                              | The launcher reports the record as not checked and exits 3                                                              |
 
 Where two of the route's rows apply, the report carries both, and the

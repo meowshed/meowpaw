@@ -53,14 +53,22 @@ the task until they are filled.
 ## Evidence
 
 The class `ShortChainPrompts` in `plugins/meow-flow/tests/test_record.py`
-holds seven checks, one or more for each criterion, and each failed at the
-pull request's first commit. `meow-author check` reports 0 authoring failures
+holds nine checks, one or more for each criterion. The seven in the pull
+request's first commit failed there, and two more came with the review's
+fixes. `meow-author check` reports 0 authoring failures
 and the budget check reports `meow-flow` at 818 of 820 characters. The pull
 request removes the cover, document and verify step files, the record
 reviewer agent and its eight evaluation cases, and the `## Cover` and
 `checked-at` of the task and epic templates.
 
 ## Left alone
+
+SPC-1070 still says an approved task may change its `## Cover` and an epic is
+frozen once `checked-at` is set, SPC-1201 still names the verify gate and
+`evidence --keep`, and `project/README.md` still speaks of `checked-at` on two
+specifications, because the program behaves that way until TSK-3830 and
+TSK-3860 land. Most rules in `steps/epic.md` carry no reason, as they did
+before this task; the rules this task added or rewrote carry theirs.
 
 The in-flight worktrees for TSK-2703, TSK-2950, TSK-3350 and TSK-3700 are
 postponed by the owner and left as they are.

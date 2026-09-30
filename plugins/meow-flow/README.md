@@ -82,7 +82,7 @@ To run one step yourself, ask for it by name, such as "run the design step for
 | `spec`         | an approved decision           | the specification, updated  |
 | `epic`         | an approved decision or defect | an epic and its tasks       |
 | `implement`    | an approved task               | the change and its evidence |
-| `review`       | the task's pull request        | findings, never a file      |
+| `review`       | the task's pull request        | findings, fixed in it       |
 
 A task's pull request carries the whole task: its tests first, in a commit of
 their own where they fail, then the implementation, the documentation it
