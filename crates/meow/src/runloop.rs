@@ -366,16 +366,21 @@ struct Called {
 
 /// What every call of a run is given beside the terms, fixed at start.
 struct Context {
-    /// The run's `progress` directory, as an absolute path.
+    /// The run's `progress` directory, as an absolute path with every link
+    /// and `..` resolved, because a permission rule names the file as the
+    /// platform finds it.
     progress: PathBuf,
     preamble: String,
 }
 
 impl Context {
-    fn new(dir: &Path, terms: &Terms) -> Self {
-        let progress = std::path::absolute(dir.join("progress")).unwrap_or(dir.join("progress"));
+    fn new(dir: &Path, terms: &Terms) -> Result<Self, String> {
+        let progress = dir.join("progress");
+        let progress = progress
+            .canonicalize()
+            .map_err(|error| format!("can't resolve {}: {error}", progress.display()))?;
         let preamble = preamble(&progress.join("progress.md"), &terms.verbs);
-        Context { progress, preamble }
+        Ok(Context { progress, preamble })
     }
 }
 
@@ -392,13 +397,14 @@ iteration said is in this conversation.
 <rules name=\"the run\">
 - L1. Read `{file}` before you start, because it is the only place an earlier
   iteration could leave what it did, what is left and what failed.
-- L2. Before you stop, write in that file what the next iteration needs,
+- L2. Before you stop, bring that file up to date with what is done, what is
+  left and what failed, keeping what it already holds that is still true,
   because this conversation ends with the session and the file carries over.
 - L3. Work until the condition `verbs={verbs}` holds, and never report it as
   held, because the runner runs those verification verbs itself after this
   session and decides from their exit status whether the run is finished.
-- L4. Work within the run's bounds, because the runner holds them in its own
-  process and nothing this session writes or prints extends them.
+- L4. Never try to extend the run, because the runner holds its bounds in its
+  own process and nothing this session writes or prints changes them.
 </rules>
 ",
         file = progress.display(),
@@ -640,8 +646,9 @@ fn start(args: &[String]) -> u8 {
     remove_old_runs(&runs, &dir);
     println!("run {}", dir.display());
 
-    let context = Context::new(&dir, &terms);
-    let ending = match run(&root, &terms, &context, &claude, &log) {
+    let ending = match Context::new(&dir, &terms)
+        .and_then(|context| run(&root, &terms, &context, &claude, &log))
+    {
         Ok(ending) => ending,
         Err(reason) => return refuse(&reason),
     };

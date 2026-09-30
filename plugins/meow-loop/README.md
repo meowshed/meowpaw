@@ -68,6 +68,9 @@ claude -p --output-format json --no-session-persistence
        --max-budget-usd <budget> --append-system-prompt <preamble>
 ```
 
+`<run>` is the run's directory, an absolute path with every link resolved, and
+a permission rule writes an absolute path after one more slash.
+
 Each call is a new session: the runner passes no `--resume` and no
 `--continue`. `--setting-sources project` keeps the plugins you installed for
 yourself out of the call, so a call loads only the directories you name with
@@ -83,10 +86,8 @@ begins from the same stated context.
 
 What one iteration leaves for the next goes in `progress/progress.md`, which
 the preamble tells the model to read first and to write before it stops.
-`<run>` is the run's directory, an absolute path, and a permission rule writes
-an absolute path after one more slash. `--add-dir` and the two rules are there
-to let a call write that file. No real call has been observed writing it under
-`dontAsk` yet, so read the file after a run before you rely on it.
+`--add-dir` and the two rules are there to let a call write that file. No real
+call has been observed writing it under `dontAsk` yet.
 
 After a call, the runner compares the work tree's tree id with the one before
 the call. The tree id covers every tracked file and every untracked file git
