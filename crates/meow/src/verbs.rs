@@ -503,7 +503,7 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
     // kept and listed it are refused, naming the decision, for one release.
     if args.iter().any(|a| a == "--keep" || a == "--kept") {
         eprintln!(
-            "meow-verbs evidence: kept evidence was removed by ADR-2300; cite the pull request the verbs ran under"
+            "meow-verbs evidence: kept evidence was removed by ADR-2300; cite the line `evidence` prints, and the pull request"
         );
         return USAGE;
     }

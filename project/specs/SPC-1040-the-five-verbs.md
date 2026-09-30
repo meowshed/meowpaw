@@ -204,7 +204,7 @@ a record carrying no targets field as a whole run.
 The repository keeps no run output (REQ-3614). A record or a pull request
 cites a result as `evidence` prints it: the verb, the outcome, the record and
 the tree id. `evidence --keep` and `evidence --kept` exit 2, naming ADR-2300,
-and write nothing, for one release. The tree id covers the whole work tree,
+and write nothing, for one release. The tree id leaves no directory out,
 and `meow-verbs tree <commit>` prints a commit's tree id, for comparing a
 cited result with a commit (ADR-1530).
 

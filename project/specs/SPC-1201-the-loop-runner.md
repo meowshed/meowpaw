@@ -178,7 +178,7 @@ whose tree id changed or couldn't be identified. One evaluation:
    one with a dirty submodule, holds no condition;
 3. records each verb's result in the evidence ledger through the `verbs`
    code, with the tree before and after, as SPC-1040 states, so the person can
-   keep the run's final results with `meow-verbs evidence --keep`.
+   cite the run's final results as `meow-verbs evidence` prints them.
 
 The runner reads no pass back from the ledger and nothing the model printed,
 so a result whose text claims the work is done changes nothing, and no option

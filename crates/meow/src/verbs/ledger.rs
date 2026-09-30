@@ -29,9 +29,7 @@ fn temporary_index() -> PathBuf {
     std::env::temp_dir().join(format!("meow-index-{}-{nanos}", std::process::id()))
 }
 
-/// The tree id of the working state, leaving the evidence directory out,
-/// because the evidence describes the work and isn't part of it (ADR-1530);
-/// or `none` outside a git work tree.
+/// The tree id of the working state, or `none` outside a git work tree.
 pub fn tree_id(root: &Path) -> String {
     // An edit inside a submodule changes nothing in the parent's tree, so a
     // dirty submodule binds no result at all (ADR-1560).
@@ -114,7 +112,12 @@ pub fn tree_of_commit(root: &Path, commit: &str) -> std::result::Result<String, 
         .output()
         .map_err(|e| e.to_string())?;
     if !read.status.success() {
-        return Err(format!("{commit} is not a commit here"));
+        // git exits 1 for a name it can't resolve and 128 outside a work tree.
+        return Err(if read.status.code() == Some(1) {
+            format!("{commit} is not a commit here")
+        } else {
+            "this isn't a git work tree".to_string()
+        });
     }
     Ok(String::from_utf8_lossy(&read.stdout).trim().to_string())
 }

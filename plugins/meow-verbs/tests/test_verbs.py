@@ -398,7 +398,41 @@ class NoKeptEvidence(unittest.TestCase):
         """REQ-3614: `state` reports the ledger and no evidence directory."""
         repo = self.repo()
         repo.run("run", "test")
-        self.assertNotIn("evidence directory", repo.run("state").stdout)
+        done = repo.run("state")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("ledger: ", done.stdout)
+        self.assertNotIn("evidence directory", done.stdout)
+
+    def test_keep_is_refused_beside_all(self):
+        """REQ-3614: the refusal comes before anything is read, whatever else is asked."""
+        done = self.repo().run("evidence", "--all", "--keep")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+
+    def test_a_declared_evidence_directory_is_an_unread_key(self):
+        """REQ-3614: `evidence_dir` means nothing now, so status lists it as ignored and its files are part of the tree."""
+        repository = Repository(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "proof"\n'))
+        self.addCleanup(repository.close)
+        repository.git("init", "-q", "-b", "work")
+        self.assertIn("verbs.evidence_dir", repository.status()["ignored"])
+        self.assertEqual(repository.run("run", "test").returncode, 0)
+        (repository.root / "proof").mkdir()
+        (repository.root / "proof" / "a.txt").write_text("x", encoding="utf-8")
+        self.assertEqual(repository.run("evidence", "test").returncode, 1)
+
+    def test_tree_prints_a_commits_tree_id(self):
+        """ADR-1530: `tree <commit>` prints the id a result on that clean commit names, and refuses a bad ref."""
+        repo = self.repo()
+        (repo.root / "a.txt").write_text("a\n", encoding="utf-8")
+        repo.git("add", "-A")
+        repo.git("commit", "-q", "-m", "a")
+        done = repo.run("tree", "HEAD")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(done.stdout.strip(), repo.git("rev-parse", "HEAD^{tree}").stdout.strip())
+        repo.run("run", "test")
+        self.assertEqual(repo.records()[-1]["tree"], done.stdout.strip())
+        bad = repo.run("tree", "nope")
+        self.assertEqual(bad.returncode, 1, bad.stdout + bad.stderr)
+        self.assertIn("nope is not a commit here", bad.stdout + bad.stderr)
 
 
 class State(unittest.TestCase):
@@ -624,14 +658,6 @@ class Claims(unittest.TestCase):
         done = repo.run("evidence", "test")
         self.assertEqual(done.returncode, 3, done.stdout)
         self.assertIn("the submodule sub has uncommitted changes", done.stdout)
-
-    def branch(self, repo):
-        repo.run("run", "test")
-        repo.run("evidence", "--keep", "test")
-        repo.git("add", "-A")
-        repo.git("commit", "-q", "-m", "trunk evidence")
-        repo.git("checkout", "-q", "-b", "change")
-        (repo.root / "work.txt").write_text("w\n", encoding="utf-8")
 
 
 class Launcher(unittest.TestCase):
