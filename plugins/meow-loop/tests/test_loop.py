@@ -167,7 +167,13 @@ class Terms(Case):
             (without("--budget-usd"), "--budget-usd is required"),
             (without("--permission-mode"), "--permission-mode is required"),
             (replaced("--iterations", "0"), "--iterations 0 is not at least 1"),
+            (replaced("--iterations", "9223372036854775808"),
+             "--iterations 9223372036854775808 is above 9223372036854775807"),
             (replaced("--budget-usd", "0"), "--budget-usd 0 is not above 0"),
+            (replaced("--budget-usd", "+1e1"), "--budget-usd +1e1 is not a decimal number"),
+            (replaced("--budget-usd", "9" * 400), "--budget-usd " + "9" * 400 + " is too large or too small to hold"),
+            (replaced("--budget-usd", "0." + "0" * 400 + "1"),
+             "--budget-usd 0." + "0" * 400 + "1 is too large or too small to hold"),
             (replaced("--permission-mode", "acceptEdits"), "--permission-mode acceptEdits is refused"),
             (replaced("--permission-mode", "bypassPermissions"), "--permission-mode bypassPermissions is refused"),
         ]
@@ -178,7 +184,7 @@ class Terms(Case):
             self.assertIn(message, done.stderr)
             self.assertEqual(f.run_dirs(), [], message)
             matched += 1
-        self.assertEqual(matched, 8)
+        self.assertEqual(matched, 12)
         self.assertEqual(f.calls(), [])
 
 
@@ -198,6 +204,8 @@ class Refusals(Case):
         f = self.fixture()
         outside = f.base / "plain"
         outside.mkdir()
+        # The command line is checked first (SPC-1201), so the prompt file has to be readable here too.
+        (outside / "prompt.md").write_text("Make the flag exist.\n")
         bare = f.base / "nothing-on-path"
         bare.mkdir()
         states = [
@@ -221,6 +229,28 @@ class Refusals(Case):
             matched += 1
         self.assertEqual(matched, 5)
         self.assertEqual(f.calls(), [])
+
+    def test_a_claude_that_cannot_run_is_passed_over(self):
+        f = self.fixture({"sub/keep": ""})
+        unrunnable = f.base / "unrunnable"
+        unrunnable.mkdir()
+        (unrunnable / "claude").write_text(STAND_IN)
+        (unrunnable / "claude").chmod(0o644)
+        old = f.runs_dir() / f"{1:020d}-old"
+        old.mkdir(parents=True)
+        done = f.start(env={**f.env(), "PATH": f"{unrunnable}{os.pathsep}/usr/bin{os.pathsep}/bin"})
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: claude is not on the path", done.stdout)
+        self.assertEqual(f.run_dirs(), [old])
+        self.assertEqual(f.calls(), [])
+        # A relative entry is read from where the person stands, and the call starts in the root.
+        f.configure(create={"1": "done.flag"})
+        relative = os.path.join("..", "..", "bin")
+        done = f.start(replaced("--prompt", os.path.join("..", "prompt.md")), cwd=f.root / "sub",
+                       env={**f.env(), "PATH": os.pathsep.join([str(unrunnable), relative, os.environ["PATH"]])})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(len(f.calls()), 1)
+        self.assertTrue((f.root / "done.flag").is_file())
 
 
 class Lock(Case):
@@ -301,15 +331,45 @@ class Call(Case):
         self.assertEqual(len(calls), 1)
         argv, stdin = calls[0]["argv"], calls[0]["stdin"]
         self.assertEqual(stdin, "Make the flag exist.\n")
-        pairs = {("--output-format", "json"), ("--setting-sources", "project"), ("--permission-mode", "dontAsk"),
-                 ("--allowedTools", "Read"), ("--permission-prompts", "none"), ("--max-budget-usd", "10"),
-                 ("--plugin-dir", "/somewhere/else")}
-        seen = {(a, b) for a, b in zip(argv, argv[1:])}
-        self.assertEqual(pairs - seen, set())
-        for flag in ("-p", "--no-session-persistence"):
-            self.assertIn(flag, argv)
-        for flag in ("--resume", "--continue"):
-            self.assertNotIn(flag, argv)
+        self.assertEqual(argv, ["-p", "--output-format", "json", "--no-session-persistence",
+                                "--setting-sources", "project", "--plugin-dir", "/somewhere/else",
+                                "--permission-mode", "dontAsk", "--allowedTools", "Read",
+                                "--permission-prompts", "none", "--max-budget-usd", "10"])
+        carrying = [argument for argument in argv if "Make the flag exist" in argument]
+        self.assertEqual(carrying, [])
+
+
+    def test_a_claude_with_no_program_in_it_stops_the_run(self):
+        f = self.fixture()
+        (f.bin / "claude").write_text("no program the system can run\n")
+        done = f.start(replaced("--iterations", "2"))
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: claude can't be started", done.stdout)
+        self.assertNotIn("iteration", done.stdout)
+        runs = f.run_dirs()
+        self.assertEqual(len(runs), 1)
+        self.assertNotIn("ending", tomllib.loads((runs[0] / "run.toml").read_text()))
+        self.assertEqual((runs[0] / "log.jsonl").read_text(), "")
+
+
+class Unchanged(Case):
+    def test_an_unchanged_tree_skips_the_verbs(self):
+        f = self.fixture()
+        f.configure(edit=False)
+        done = f.start(replaced("--iterations", "3"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(len(f.calls()), 3)
+        self.assertEqual(f.ending(), "ceiling")
+        log = f.run_dirs()[0] / "log.jsonl"
+        lines = [json.loads(line) for line in log.read_text().splitlines()]
+        self.assertEqual(len(lines), 3)
+        for line in lines:
+            self.assertIsNone(line["condition"])
+            self.assertEqual(line["tree_before"], line["tree_after"])
+        ledger = f.state / "evidence" / f"{f.key()}.jsonl"
+        records = {entry["record"] for entry in map(json.loads, ledger.read_text().splitlines())
+                   if entry["verb"] == "test"}
+        self.assertEqual(len(records), 1)
 
 
 if __name__ == "__main__":

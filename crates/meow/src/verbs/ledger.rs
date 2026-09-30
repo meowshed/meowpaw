@@ -413,7 +413,7 @@ fn ledger_of(root: &Path) -> Option<(PathBuf, PathBuf)> {
 }
 
 /// Now, as an ISO 8601 time in UTC.
-fn now() -> String {
+pub fn now() -> String {
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())
@@ -435,6 +435,16 @@ fn now() -> String {
         rest % 3_600 / 60,
         rest % 60
     )
+}
+
+/// The directory holding a work tree's runs and the lock that lets one run
+/// hold it at a time, beside the ledger under the same state directory and
+/// keyed the same way (SPC-1201).
+#[cfg(feature = "loop")]
+pub fn runs_dir(root: &Path) -> Option<PathBuf> {
+    let (ledger, _) = ledger_of(root)?;
+    let key = ledger.file_stem()?.to_owned();
+    Some(ledger.parent()?.parent()?.join("runs").join(key))
 }
 
 /// One verb's result, as `run` hands it over.

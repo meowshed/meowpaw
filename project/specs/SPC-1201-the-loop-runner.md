@@ -105,8 +105,10 @@ inherits the platform's default mode. `--step` names one of the six steps in
 the table under "The step's test". `--inputs` names the identifiers that step
 reads, and every step but `research` requires it, while `research` refuses it.
 `review` isn't a step a run takes.
-`--iterations` is an integer of 1 or more, and `--budget-usd` a number above
-0, in US dollars. `--permission-mode` accepts `dontAsk` alone, because it's
+`--iterations` is an integer of 1 or more, written in digits alone, and
+`--budget-usd` a number above 0, in US dollars, written as digits with at
+most one point between them, because the amount reaches `claude` as typed
+and a form only the runner reads would fail every call. `--permission-mode` accepts `dontAsk` alone, because it's
 the one mode RES-0300 saw run a call. `bypassPermissions` is refused, because
 a run would then cross every permission the person hasn't declared
 (ADR-2010).
@@ -184,11 +186,11 @@ takes a completion phrase (REQ-0884).
 
 `start` works in this order: it checks the command line, then checks each
 state it can't read past, taking the work tree's lock as the last of those
-checks, then removes old runs, then writes the run's directory, named by a
-run id unique within the work tree. A refused start therefore creates no run
-directory and removes none. The only refusal that reaches the lock is a lock
-another process holds, and that lock's file already exists, so a refused
-start writes nothing. The directory `runs/<work tree key>/` and its lock
+checks, then writes the run's directory, named by a run id unique within the
+work tree, then removes old runs. A refused start therefore keeps no run
+directory and removes none: where the lock can't be taken or a file of the
+new run can't be written, it removes what that attempt created before it
+refuses. The directory `runs/<work tree key>/` and its lock
 file, which hold no run, stay after a run ends. The lock is an advisory lock the operating system holds on an
 open file in `<state>/meowpaw/runs/<work tree key>/` for the runner's
 process, so it ends whenever the process ends, and an interrupted run leaves
@@ -256,7 +258,9 @@ progress file or the previous call's output says (REQ-0876).
 
 After each call, the runner, in this order:
 
-1. appends the call's line to `log.jsonl`;
+1. appends the call's line to `log.jsonl`, with no result for the condition
+   yet, so a run killed during the verbs keeps the call it made, and writes
+   that line again with the result once step 6 has one;
 2. checks the three sha256 values again, and ends the run `tampered` on a
    mismatch, so a call that changes `run.toml` and also makes the verbs pass
    never ends `finished`;
@@ -453,35 +457,41 @@ file passes the hook (REQ-0888).
 
 Each usage error exits 2, creates no run directory and removes none:
 
-| State                                                                                         | Reported as                                       |
-| --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` or `--permission-mode` absent | `usage: <flag> is required`, once for each        |
-| `--step` names no step in the table, `review` among them                                      | `usage: --step <value> is not a step a run takes` |
-| `--inputs` given with `--step research`                                                       | `usage: research takes no --inputs`               |
-| `--inputs` absent with any other step                                                         | `usage: --step <step> needs --inputs`             |
-| The prompt file is missing or can't be read                                                   | `usage: --prompt <file> can't be read`            |
-| `--until verbs=` names no verb                                                                | `usage: --until names no verb`                    |
-| `--until verbs=` names something other than the five verbs                                    | `usage: <name> is not a verb`, once for each      |
-| `--iterations` isn't an integer of 1 or more                                                  | `usage: --iterations <value> is not at least 1`   |
-| `--budget-usd` isn't a number above 0                                                         | `usage: --budget-usd <value> is not above 0`      |
-| `--until` names a kind other than `verbs=`                                                    | `usage: --until <value> is not a condition kind`  |
-| `--permission-mode` is anything but `dontAsk`                                                 | `usage: --permission-mode <value> is refused`     |
+| State                                                                                         | Reported as                                                     |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` or `--permission-mode` absent | `usage: <flag> is required`, once for each                      |
+| `--step` names no step in the table, `review` among them                                      | `usage: --step <value> is not a step a run takes`               |
+| `--inputs` given with `--step research`                                                       | `usage: research takes no --inputs`                             |
+| `--inputs` absent with any other step                                                         | `usage: --step <step> needs --inputs`                           |
+| The prompt file is missing or can't be read                                                   | `usage: --prompt <file> can't be read`                          |
+| `--until verbs=` names no verb                                                                | `usage: --until names no verb`                                  |
+| `--until verbs=` names something other than the five verbs                                    | `usage: <name> is not a verb`, once for each                    |
+| `--iterations` isn't an integer of 1 or more                                                  | `usage: --iterations <value> is not at least 1`                 |
+| `--iterations` is above 9223372036854775807                                                   | `usage: --iterations <value> is above 9223372036854775807`      |
+| `--budget-usd` isn't digits with at most one point between them                               | `usage: --budget-usd <value> is not a decimal number`           |
+| `--budget-usd` is a decimal number that is 0                                                  | `usage: --budget-usd <value> is not above 0`                    |
+| `--budget-usd` is a decimal number the runner can't hold                                      | `usage: --budget-usd <value> is too large or too small to hold` |
+| `--until` names a kind other than `verbs=`                                                    | `usage: --until <value> is not a condition kind`                |
+| `--permission-mode` is anything but `dontAsk`                                                 | `usage: --permission-mode <value> is refused`                   |
 
 Each state the runner can't read past exits 3, reported as
 `unresolved: <what>`, and creates no run directory and removes none:
 
-| State                                          | Reported as                                                                 |
-| ---------------------------------------------- | --------------------------------------------------------------------------- |
-| `CLAUDECODE` is set                            | `unresolved: a run starts from a terminal outside Claude Code`              |
-| The current directory isn't in a git work tree | `unresolved: not a git work tree`                                           |
-| `MEOWPAW_STATE=off`                            | `unresolved: state writing is off, and a run needs state`                   |
-| No `claude` on the path                        | `unresolved: claude is not on the path`                                     |
-| A verb in the condition resolves to no command | `unresolved: verb <verb> resolves to no command`                            |
-| The record root is missing                     | `unresolved: record root <path> is missing`                                 |
-| The record root is ignored by git              | `unresolved: record root <path> is ignored by git`                          |
-| The record root lies outside the work tree     | `unresolved: record root <path> is outside the work tree`                   |
-| An input isn't ready for the step              | `unresolved: <line>`, once for each line `paw ready <step> <inputs>` prints |
-| Another process holds the work tree's lock     | `unresolved: a run already holds this work tree`                            |
+| State                                                | Reported as                                                                                |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `CLAUDECODE` is set                                  | `unresolved: a run starts from a terminal outside Claude Code`                             |
+| The current directory isn't in a git work tree       | `unresolved: not a git work tree`                                                          |
+| `MEOWPAW_STATE=off`                                  | `unresolved: state writing is off, and a run needs state`                                  |
+| No `claude` on the path that can be run              | `unresolved: claude is not on the path`                                                    |
+| A verb in the condition resolves to no command       | `unresolved: verb <verb> resolves to no command`                                           |
+| The record root is missing                           | `unresolved: record root <path> is missing`                                                |
+| The record root is ignored by git                    | `unresolved: record root <path> is ignored by git`                                         |
+| The record root lies outside the work tree           | `unresolved: record root <path> is outside the work tree`                                  |
+| An input isn't ready for the step                    | `unresolved: <line>`, once for each line `paw ready <step> <inputs>` prints                |
+| Another process holds the work tree's lock           | `unresolved: a run already holds this work tree`                                           |
+| No state directory can be named                      | `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME`            |
+| The lock file can't be opened                        | `unresolved: can't take the lock <path>: <error>`                                          |
+| The run's directory or a file in it can't be written | `unresolved: can't create a run in <directory>: <error>`, or `can't write <path>: <error>` |
 
 A failure to remove an old run doesn't refuse the start: the runner prints
 `can't remove <run id>: <error>` and goes on, because retention is
@@ -490,7 +500,13 @@ runner can't make to `log.jsonl` or `run.toml`, or a held verb command or
 `claude` it can't spawn, stops the run at once, before any further call. The
 runner prints `unresolved: <what>`, exits 3 and writes no ending, so the run
 reads as interrupted, and an unspawned verb counts neither as a pass nor as a
-fail, because an unresolved verb is never a pass.
+fail, because an unresolved verb is never a pass. For that verb it prints
+`unresolved: verb <verb> didn't run: <reason>`. A `claude` that can be run
+by its mode and still can't be started, such as a file with no program in
+it, is found only at the first call, after the run directory exists: a call
+that can't be spawned, or that exits 126 or 127 and prints no result, stops
+the run as `unresolved: claude can't be started`, so it never spends the
+ceiling on calls that didn't happen.
 
 The runner reports every usage error it finds before it exits, so one attempt
 names every flag to fix. The runner installs no signal handler, so a run
