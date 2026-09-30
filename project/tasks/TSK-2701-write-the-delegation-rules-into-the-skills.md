@@ -2,7 +2,7 @@
 id: TSK-2701
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1650
 closes: [REQ-2972, REQ-2976]
 issue: 660
@@ -16,6 +16,8 @@ says a delegated agent is no isolation boundary, and gives each of the six
 agent fields its rule and reason. The method skill reports a record whose
 review stopped at its turn ceiling as unreviewed by an agent. One task, one
 branch, one pull request, one review.
+
+**Amended by ADR-2300.** Criterion 5 names `prose` alone, since ADR-2300 removed `record-reviewer`. Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -43,14 +45,14 @@ branch, one pull request, one review.
    judgement, because a model's output is read by a person, and the kept
    transcript is the evidence.
 5. Given the updated SPC-1030, SPC-1090 and write skill, when
-   `meow-prose:prose` and `meow-flow:record-reviewer` are each dispatched
-   with a path alone, then neither reports a sentence treating a delegated
+   `meow-prose:prose` is dispatched
+   with a path alone, then it doesn't report a sentence treating a delegated
    agent as a boundary. Closed by: judgement, because REQ-2976 names an agent
    as its verifier; the task's evidence names both agents as the judge, and a
    person reads both reports before the task closes, because the two agents
    may share the author's model family.
-6. Given this change's tree, when `meow-verbs run format lint test` runs,
-   then each passes. Closed by: the kept evidence of that run.
+6. Given this change's tree, when `meow-checks run format lint test` runs,
+   then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -109,5 +111,4 @@ keeps what they print.
 
 `crates/meow/src/author.rs` and the two shipped agents, which TSK-2700
 changes. The session's nesting depth, REQ-3271, which ADR-1700 postpones.
-The user-facing pages beyond each README's `describes`, which the document
-step updates.
+The user-facing pages beyond each README's `describes`, which the implement step updates in the same pull request.

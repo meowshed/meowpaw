@@ -15,6 +15,8 @@ on the verbs, a ceiling and a budget, and the run repeats the prompt in fresh
 with every bound held in the runner's own process and the model unable to
 start a run.
 
+**Amended by ADR-2300.** ADR-2300 removed the cover step and kept evidence: each task's tests land first in its own pull request, and that commit shows them failing.
+
 ## Acceptance criteria
 
 Taken from ADR-2010, from its list of how I will know it was realised, before

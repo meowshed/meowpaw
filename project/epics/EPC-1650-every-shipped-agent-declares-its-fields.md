@@ -13,6 +13,8 @@ Realises exactly one authorising record, ADR-1700. The epic is complete when
 both agents the harness ships declare them and hold no delegation tool, and
 the write skill and the method skill carry the rules no program can check.
 
+**Amended by ADR-2300.** ADR-2300 removed `record-reviewer` and its evaluation cases, so criterion 3's hand-run case and the `record-reviewer` half of criterion 6 no longer apply, and criterion 7 is checked by `paw check coverage` in each task's gate.
+
 ## Acceptance criteria
 
 Taken from ADR-1700, from its list of how I will know it was realised, before

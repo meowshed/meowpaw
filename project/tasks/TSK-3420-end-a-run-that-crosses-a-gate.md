@@ -2,7 +2,7 @@
 id: TSK-3420
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1920
 closes: []
 issue: 738
@@ -18,6 +18,8 @@ renamed or changed outside what the step may change in it, ends the run
 `crossed`, naming each record. This task closes no requirement, because
 REQ-0888 closes in TSK-3440 (EPC-1920, Coverage). One task, one branch, one
 pull request, one review.
+
+**Amended by ADR-2300.** Criterion 2 drops the `verify` run and `checked-at`, which ADR-2300 removed. Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -37,9 +39,7 @@ on a count of zero where one was expected (EPC-1920 criterion 17).
 2. Given an `implement` run, when a stand-in rewords an acceptance criterion
    of the approved epic, then the run ends `crossed` naming the epic; when
    one marks the input task `x` in that epic and changes nothing else there,
-   then it doesn't. Given a `verify` run, when a stand-in rewords an
-   acceptance criterion, then it ends `crossed`; when one writes
-   `## Verified` and sets `checked-at`, then it doesn't. Given an `implement`
+   then it doesn't. Given an `implement`
    run of a task an approved defect authorises, when a stand-in marks the
    task `x` in the defect and changes nothing else, then the run doesn't end
    `crossed`; when one rewords the defect's reproduction, then it does.
@@ -61,8 +61,8 @@ on a count of zero where one was expected (EPC-1920 criterion 17).
 6. Given a call that both approves a draft and exits with the verbs passing,
    when the run ends, then it ends `crossed` and not `finished`. Closed by:
    `Crossed.test_crossed_before_finished`.
-7. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+7. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -71,7 +71,7 @@ evaluation that changed the tree, as SPC-1201's sections "The loop" and
 "Keeping to one step" state, with `crossed` in the endings table. Have the
 record code expose the frozen comparison with its exemptions switchable, and
 each kind's allowance after approval, as ADR-2020's consequences name. Take
-none of the comparison's exemptions: an epic whose `checked-at` is empty, a
+none of the comparison's exemptions: a
 status now `withdrawn` or `superseded`, and a line naming an authority each
 cross. Skip the comparison only where the tree ids before and after the call
 are both identified and equal.

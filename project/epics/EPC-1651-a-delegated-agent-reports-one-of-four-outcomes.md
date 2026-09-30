@@ -15,6 +15,8 @@ and the review step act on that word, a denied tool ends an agent as
 `BLOCKED` with nothing waiting, and `meow-author check` fails a unit's agent
 that doesn't name all four.
 
+**Amended by ADR-2300.** ADR-2300 removed `record-reviewer`, so the criteria read for the agents the harness ships, `router` and `prose`; the hand-run cases that exercise `record-reviewer` (criteria 3 to 7, where they name it) no longer apply, and criterion 8 is checked by `paw check coverage` in each task's gate.
+
 ## Acceptance criteria
 
 Taken from ADR-1710, from its list of how I will know it was realised, before

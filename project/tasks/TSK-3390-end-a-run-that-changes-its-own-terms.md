@@ -2,7 +2,7 @@
 id: TSK-3390
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1910
 closes: [REQ-0874]
 issue: 729
@@ -21,6 +21,8 @@ either way. The condition runs the command
 each verb resolved to at start, so an edit to `.meowpaw/profile.toml` can't
 weaken it. One task, one branch, one pull
 request, one review.
+
+**Amended by ADR-2300.** Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -68,8 +70,8 @@ criterion 13).
    the run ends, then it ends `tampered` with no call in the call log, which
    only the check before the first call can produce. Closed by:
    `Terms.test_tampered_before_the_call` (REQ-0874).
-9. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+9. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -89,8 +91,7 @@ Raise `meow-loop`'s minor version in `plugin.json`, and its README's
 `describes:` with it, because a run gains an ending and the unit a hook.
 
 Write the checks for criteria 1, 2 and 4 to 8 first, in a commit of their
-own, and see them fail, because the cover step keeps that failing run as the
-evidence that the checks can fail (EPC-1910, Coverage).
+own, and see them fail, because that commit is the evidence that the checks can fail (EPC-1910, Coverage).
 
 ## Depends on
 

@@ -15,6 +15,8 @@ step's work in the record and the named verbs pass at the tree that stands,
 and ends `crossed` or `off-step`, naming the cause, the call after a model
 decides a status, changes an approved record or writes another step's files.
 
+**Amended by ADR-2300.** ADR-2300 removed the cover and verify steps and `checked-at`, so the `verify` half of criterion 10 and the `checked-at` half of criterion 11 no longer apply, and each task's tests land first in its own pull request.
+
 ## Acceptance criteria
 
 Taken from ADR-2020, from its list of how I will know it was realised, before

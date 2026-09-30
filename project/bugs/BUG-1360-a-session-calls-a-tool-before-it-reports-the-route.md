@@ -63,6 +63,6 @@ change gets before it starts.
 
 ## Closed by
 
-Each route case at or above its threshold on Sonnet 5 and Opus 5.5 in a run
+Not closed. It closes with each route case at or above its threshold on Sonnet 5 and Opus 5.5 in a run
 by hand, with `no-write-before-route` passing in every run of every case but
 `route-a-question`.
