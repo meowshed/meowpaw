@@ -95,7 +95,7 @@ A task is marked in the commit that advances it, never in a later pass.
 
 - [x] T-007 TSK-3860 migrate every record to the seven-step chain's shape
       closes: REQ-3652
-      evidence: 11 checks in `MigratedShape` and 2 in
+      evidence: 15 checks in `MigratedShape` and 2 in
       `tools/test_record_shape.py`, 7 seen failing at the pull request's
       first commit, and `paw count` equal before and after.
       depends: TSK-3800 (blocking), TSK-3830 (blocking)

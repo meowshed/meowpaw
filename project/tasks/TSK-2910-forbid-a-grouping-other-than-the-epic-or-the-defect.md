@@ -75,8 +75,8 @@ Nothing. ADR-1800 and EPC-1710 are approved.
 Done. Closes REQ-3320.
 
 The checks failed first: the cover commit 063957639db4, rebased as 513dd310
-onto main, kept
-the run under #670, whose output is no longer kept, where the `meow-flow` suite exits 1 with
+onto main, was run
+under #670, whose output is no longer kept: the `meow-flow` suite exited 1 with
 seven failures, one for each `Grouping` test and two for the subtests of
 `test_a_task_under_its_epic_or_defect_passes`.
 

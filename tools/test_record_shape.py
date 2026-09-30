@@ -10,7 +10,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OLD = re.compile(r"^## (?:Cover|Verified|Open review findings)(?![A-Za-z0-9])|^checked-at:")
-FENCE = re.compile(r"^\s*(```|~~~)")
+FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+
+
+def unfenced(text):
+    """Each line outside fenced code with its number, read as `paw` reads a fence: a run of three or more
+    marks, closed by a bare run of the same mark at least as long."""
+    fence = None
+    for number, line in enumerate(text.splitlines(), 1):
+        found = FENCE.match(line)
+        opens = found and not (found.group(1)[0] == "`" and "`" in found.group(2))
+        if fence is None and opens:
+            fence = found.group(1)
+        elif fence and opens and found.group(1)[0] == fence[0] and len(found.group(1)) >= len(fence) \
+                and not found.group(2).strip():
+            fence = None
+        elif fence is None:
+            yield number, line
 
 
 class MigratedRecord(unittest.TestCase):
@@ -20,11 +36,8 @@ class MigratedRecord(unittest.TestCase):
         found, read = [], 0
         for path in sorted((ROOT / "project").rglob("*.md")):
             read += 1
-            fenced = False
-            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                if FENCE.match(line):
-                    fenced = not fenced
-                elif not fenced and OLD.match(line):
+            for number, line in unfenced(path.read_text(encoding="utf-8")):
+                if OLD.match(line):
                     found.append(f"{path.relative_to(ROOT)}:{number}")
         self.assertEqual(found[:20], [], f"{len(found)} lines in all")
         self.assertGreater(read, 1000, "the record wasn't read")

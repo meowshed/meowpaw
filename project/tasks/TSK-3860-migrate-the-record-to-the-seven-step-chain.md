@@ -31,9 +31,9 @@ Edit front matter as structured data and sections by heading, never by text subs
 
 ## Evidence
 
-`MigratedShape` in `plugins/meow-flow/tests/test_record.py` holds eleven
+`MigratedShape` in `plugins/meow-flow/tests/test_record.py` holds fifteen
 checks and `tools/test_record_shape.py` two. The seven in the pull request's
-first commit failed there, and six more came with the review's fixes.
+first commit failed there, and ten more came with the two reviews' fixes.
 Criterion 1's own command can't print nothing, because its pattern also
 matches `## Coverage`; the tool test reads the same three headings and the
 field on a word boundary, outside fenced code, and that is what holds it. `paw count` printed the same before and after:

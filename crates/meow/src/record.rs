@@ -464,15 +464,21 @@ fn check_frozen(rest: &[String]) -> u8 {
             continue;
         }
         // Removing a field or a section the record retired is a change of
-        // format and not of what was approved (ADR-2300).
-        // A record still carrying one is compared whole, so text added or
-        // changed under a retired heading is a change like any other.
-        let (before, after) = if carries_retired(&record.layout, &doc.text) {
+        // format and not of what was approved (ADR-2300). Only what the new
+        // text no longer carries is set aside, so text added or changed under
+        // a retired heading is a change like any other, and a record that
+        // never carried one is compared as it is.
+        let carried = retired_in(&record.layout, &before);
+        let gone: BTreeSet<String> = carried
+            .difference(&retired_in(&record.layout, &doc.text))
+            .cloned()
+            .collect();
+        let (before, after) = if gone.is_empty() {
             (before.clone(), doc.text.clone())
         } else {
             let pair = (
-                without_retired(&record.layout, &before),
-                without_retired(&record.layout, &doc.text),
+                without_retired(&record.layout, &before, &gone),
+                without_retired(&record.layout, &doc.text, &gone),
             );
             if pair.0 == pair.1 {
                 continue;
@@ -549,22 +555,29 @@ fn hash_citations(record: &Record, repository: &Path, base: &str) -> Vec<String>
     out
 }
 
-/// Whether a line opens or closes a fenced block: a run of three or more
-/// backticks or tildes, followed at most by an info string. A prose line that
-/// starts with an inline span, such as three backticks round a word, isn't
-/// one.
-fn fence_of(line: &str) -> Option<char> {
-    let line = line.trim_start();
-    let mark = line.chars().next().filter(|c| *c == '`' || *c == '~')?;
-    let run = line.chars().take_while(|c| *c == mark).count();
-    (run >= 3 && !line[run..].contains(mark)).then_some(mark)
+/// The fence a line opens or closes: its mark and the length of its run. An
+/// opening line is a run of three or more backticks or tildes, indented at
+/// most three spaces, followed at most by an info string, which for backticks
+/// holds no backtick. A prose line that starts with an inline span, such as
+/// three backticks round a word, isn't one.
+fn fence_of(line: &str) -> Option<(char, usize, bool)> {
+    let indent = line.len() - line.trim_start_matches(' ').len();
+    let rest = line.trim_start_matches(' ');
+    let mark = rest.chars().next().filter(|c| *c == '`' || *c == '~')?;
+    let run = rest.chars().take_while(|c| *c == mark).count();
+    let after = &rest[run..];
+    if indent > 3 || run < 3 || (mark == '`' && after.contains('`')) {
+        return None;
+    }
+    Some((mark, run, after.trim().is_empty()))
 }
 
 /// Each line of a text with whether it sits in front matter or fenced code,
-/// and the level-one or level-two heading it opens where it opens one.
+/// and the level-two heading it opens where it opens one. A fence closes on a
+/// bare run of its own mark at least as long as the one that opened it.
 fn outline(text: &str) -> Vec<(&str, bool, bool, Option<&str>)> {
     let mut out = Vec::new();
-    let (mut rules, mut fence) = (0, None);
+    let (mut rules, mut fence): (u8, Option<(char, usize)>) = (0, None);
     let front = text.starts_with("---\n") || text.starts_with("---\r\n");
     for line in text.lines() {
         let bare = line.trim_end();
@@ -578,25 +591,25 @@ fn outline(text: &str) -> Vec<(&str, bool, bool, Option<&str>)> {
             continue;
         }
         match (fence, fence_of(bare)) {
-            (None, Some(mark)) => {
-                fence = Some(mark);
+            (None, Some((mark, run, _))) => {
+                fence = Some((mark, run));
                 out.push((line, false, true, None));
             }
-            (Some(open), Some(mark)) if open == mark => {
+            (Some((open, length)), Some((mark, run, true))) if open == mark && run >= length => {
                 fence = None;
                 out.push((line, false, true, None));
             }
             (Some(_), _) => out.push((line, false, true, None)),
-            (None, None) => {
-                let heading = bare
-                    .strip_prefix("## ")
-                    .or_else(|| bare.strip_prefix("# "))
-                    .map(str::trim);
-                out.push((line, false, false, heading));
-            }
+            (None, None) => out.push((line, false, false, bare.strip_prefix("## ").map(str::trim))),
         }
     }
     out
+}
+
+/// Whether a front matter line continues the field above it: indented, or an
+/// item of a block list.
+fn continues(line: &str) -> bool {
+    line.starts_with(' ') || line.starts_with('\t') || line == "-" || line.starts_with("- ")
 }
 
 /// The retired section a heading names: the name itself, or the name
@@ -621,8 +634,7 @@ fn frozen_text(text: &str, sections: &[&str], fields: &[&str]) -> String {
     let (mut open, mut skipping) = (false, false);
     for (line, front, _, heading) in outline(text) {
         if front {
-            let continued = line.starts_with(' ') || line.starts_with('\t');
-            if !continued {
+            if !continues(line) {
                 let key = line.split(':').next().unwrap_or("");
                 skipping = fields.contains(&key);
             }
@@ -661,36 +673,39 @@ fn defect_frozen_part(text: &str) -> String {
     frozen_text(text, &["Tasks", "Closed by"], &["issue", "revised"])
 }
 
-/// Whether a record carries a field or a section the layout retired.
-fn carries_retired(layout: &Layout, text: &str) -> bool {
-    outline(text).into_iter().any(|(line, front, _, heading)| {
-        (front
-            && layout
-                .retired_fields
-                .contains_key(line.split(':').next().unwrap_or("")))
-            || heading.is_some_and(|h| retired_section(layout, h).is_some())
-    })
+/// The fields and sections the layout retired that a record carries.
+fn retired_in(layout: &Layout, text: &str) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    for (line, front, _, heading) in outline(text) {
+        let key = line.split(':').next().unwrap_or("");
+        if front && !continues(line) && layout.retired_fields.contains_key(key) {
+            out.insert(key.to_string());
+        }
+        if let Some((name, _)) = heading.and_then(|h| retired_section(layout, h)) {
+            out.insert(name.to_string());
+        }
+    }
+    out
 }
 
-/// A record's text without the fields and sections the layout retired, and
-/// without its revision date, which a migration moves. A removed section
-/// takes the blank lines round it, and nothing else in the text moves.
-fn without_retired(layout: &Layout, text: &str) -> String {
+/// A record's text without the named retired fields and sections, and without
+/// its revision date, which a migration moves. A removed section takes the
+/// blank lines round it, and nothing else in the text moves.
+fn without_retired(layout: &Layout, text: &str, gone: &BTreeSet<String>) -> String {
     let mut out: Vec<&str> = Vec::new();
     let (mut retired, mut skipping) = (false, false);
     for (line, front, _, heading) in outline(text) {
         if front {
-            let continued = line.starts_with(' ') || line.starts_with('\t');
-            if !continued {
+            if !continues(line) {
                 let key = line.split(':').next().unwrap_or("");
-                skipping = layout.retired_fields.contains_key(key) || key == "revised";
+                skipping = gone.contains(key) || key == "revised";
             }
             if skipping {
                 continue;
             }
         } else if let Some(heading) = heading {
             let was = retired;
-            retired = retired_section(layout, heading).is_some();
+            retired = retired_section(layout, heading).is_some_and(|(name, _)| gone.contains(name));
             if retired || was {
                 while out.last().is_some_and(|l| l.trim().is_empty()) {
                     out.pop();

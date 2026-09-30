@@ -2569,6 +2569,48 @@ class MigratedShape(unittest.TestCase):
         repository.edit("adrs/ADR-0001-a-choice.md", "a\n\n\n\nb", "a\n\nb")
         self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
 
+    def test_a_record_that_never_carried_one_is_compared_as_it_is(self):
+        """The allowances belong to a removal: with nothing retired removed, a changed `revised` or an added blank
+        line in an approved record is a change."""
+        repository = self.repo()
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "revised: 2026-01-01", "revised: 2026-02-02")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_one_retired_section_removed_while_another_stays(self):
+        """A migration in two steps passes: removing `## Cover` while `## Verified` stays as it was, and removing a
+        `checked-at` written as a block list."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Consequences", "## Cover\n\nOld.\n\n## Verified\n\nKept.\n\n## Consequences")
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at:\n- "#1"\n- "#2"')
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Cover\n\nOld.\n\n", "")
+        repository.edit("adrs/ADR-0001-a-choice.md", '\nchecked-at:\n- "#1"\n- "#2"', "")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Verified\n\nKept.", "## Verified\n\nChanged.")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_a_first_level_heading_in_evidence_ends_nothing(self):
+        """Only a `## ` heading bounds a section, so a `# ` line in a task's Evidence is part of it."""
+        repository = self.repo()
+        self.commit(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\n# ran\n\noutput")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
+
+    def test_a_fence_closes_on_its_own_mark_at_its_own_length(self):
+        """A four-mark fence holds a three-mark one, a line with an info string closes nothing, a tilde fence takes
+        any info string, and a fence indented four spaces is code, not a fence."""
+        for body, reported in (("````markdown\n```text\n## Cover\n```\n## Verified\n````", False),
+                               ("```text\n```rust\n## Cover\n```", False),
+                               ("~~~ a~b\n## Cover\n~~~", False),
+                               ("    ```\n\n## Cover\n\nText.", True)):
+            with self.subTest(body=body):
+                repository = self.repo()
+                path = repository.root / "adrs/ADR-0001-a-choice.md"
+                path.write_text(path.read_text(encoding="utf-8") + f"\n{body}\n", encoding="utf-8")
+                self.assertEqual("which is retired" in repository.run("check", "shape").stdout, reported)
+
     def test_a_second_tasks_section_or_a_changed_relation_freezes_an_epic(self):
         """An epic's free text is its first Tasks section: a second one added to hold new text, and a changed
         `realises`, are reported, and a fenced heading inside Tasks doesn't end it."""

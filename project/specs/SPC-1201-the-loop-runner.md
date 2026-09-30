@@ -101,10 +101,10 @@ meow-loop start --step <step> [--inputs <id>[,<id>...]]
 `--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` and
 `--permission-mode` are each required, so the step, the condition and both
 bounds are stated before a run starts (REQ-0872, REQ-0888), and no call
-inherits the platform's default mode. `--step` names one of the eight steps in
+inherits the platform's default mode. `--step` names one of the six steps in
 the table under "The step's test". `--inputs` names the identifiers that step
 reads, and every step but `research` requires it, while `research` refuses it.
-`document` and `review` aren't steps a run takes.
+`review` isn't a step a run takes.
 `--iterations` is an integer of 1 or more, and `--budget-usd` a number above
 0, in US dollars. `--permission-mode` accepts `dontAsk` alone, because it's
 the one mode RES-0300 saw run a call. `bypassPermissions` is refused, because
@@ -456,7 +456,7 @@ Each usage error exits 2, creates no run directory and removes none:
 | State                                                                                         | Reported as                                       |
 | --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | `--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` or `--permission-mode` absent | `usage: <flag> is required`, once for each        |
-| `--step` names no step in the table, `document` and `review` among them                       | `usage: --step <value> is not a step a run takes` |
+| `--step` names no step in the table, `review` among them                                      | `usage: --step <value> is not a step a run takes` |
 | `--inputs` given with `--step research`                                                       | `usage: research takes no --inputs`               |
 | `--inputs` absent with any other step                                                         | `usage: --step <step> needs --inputs`             |
 | The prompt file is missing or can't be read                                                   | `usage: --prompt <file> can't be read`            |
