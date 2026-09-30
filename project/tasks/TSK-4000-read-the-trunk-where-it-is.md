@@ -58,8 +58,27 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Five checks in `OffTheTrunk` in `plugins/meow-flow/tests/test_record.py`
+close criteria 1 to 4: a trunk record with CRLF endings, a trunk on a remote
+of another name, the remotes that aren't read, a task behind a link leaving
+the repository, and one tree listing for each trunk commit. Four failed at
+the pull request's first commit, and the fifth came with the code review's
+fixes: two rounds of review found a fork's branch read as the trunk in four
+cases, and a check that passed against a wrong implementation.
+All pass at the last commit, with the checks that were there before. `meow-checks run format lint check test` passed all four
+verbs. On this repository `paw status` started 22 git processes before the
+change and 15 after it, with `ls-tree` down from 8 to 1.
 
 ## Left alone
 
-Not yet.
+`paw status` takes about 0.8 s on this repository before and after the
+change. The git reads were never most of that: `paw count` and
+`paw check relations` take 0.07 s, so the time is in what `status` computes
+from the record, which no requirement bounds and ADR-2310's reversal line,
+written about git reads, doesn't cover. A ref kept under `refs/remotes/`
+for a remote other than `origin` that the repository doesn't configure isn't
+read, so BUG-1370's
+second case is closed for a configured remote alone, because such a ref may
+be a fetched fork. CRLF endings are read only where the
+trunk is asked about a task, so a record with CRLF endings in the working
+tree still reads as it did.

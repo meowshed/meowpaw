@@ -2901,8 +2901,8 @@ class OffTheTrunk(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
 
     def test_a_trunk_on_a_remote_of_another_name_is_read(self):
-        """TSK-4000 criterion 2, BUG-1370: the only remote holds the trunk whatever its name, the remote the trunk's
-        branch tracks is read beside `origin`, and a remote that is neither isn't."""
+        """TSK-4000 criterion 2, BUG-1370: the only remote holds the trunk whatever its name, and a second branch
+        of it whose name ends in the trunk's changes nothing."""
         repository = self.repo()
         base = self.git(repository, "rev-parse", "main").stdout.strip()
         work = self.git(repository, "rev-parse", "work").stdout.strip()
@@ -2913,13 +2913,40 @@ class OffTheTrunk(unittest.TestCase):
         self.assertEqual(done.returncode, 1, done.stdout)
         self.assertIn("TSK-0001 is not approved on main yet", done.stdout)
         self.assertNotIn("names no branch", repository.run("status").stdout)
-        self.git(repository, "remote", "add", "origin", "https://example.invalid/origin.git")
+        self.git(repository, "update-ref", "refs/remotes/upstream/release/main", work)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "a branch whose name ends in the trunk's was read\n" + done.stdout)
+        self.assertIn("TSK-0001 is not approved on main yet", done.stdout)
+        self.assertNotIn("names no branch", repository.run("status").stdout)
         self.git(repository, "update-ref", "refs/remotes/upstream/main", work)
-        self.git(repository, "branch", "-q", "main", base)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_only_the_tracked_remote_origin_and_a_sole_remote_are_read(self):
+        """TSK-4000 criterion 2, BUG-1370: a remote that is neither tracked, `origin` nor alone may be a fork, so
+        it isn't read, a kept ref under no remote isn't either, and on the tracked remote only the branch of the
+        trunk's name is the trunk."""
+        repository = self.repo()
+        base = self.git(repository, "rev-parse", "main").stdout.strip()
+        work = self.git(repository, "rev-parse", "work").stdout.strip()
+        self.git(repository, "update-ref", "refs/remotes/fork/main", work)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "a kept ref under no remote was read\n" + done.stdout)
+        self.git(repository, "config", "branch.main.remote", "fork")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "a tracked remote the repository doesn't configure was read\n" + done.stdout)
+        self.git(repository, "config", "--unset", "branch.main.remote")
+        self.git(repository, "remote", "add", "origin", "https://example.invalid/origin.git")
+        self.git(repository, "remote", "add", "fork", "https://example.invalid/fork.git")
         done = repository.run("ready", "implement", "TSK-0001")
         self.assertEqual(done.returncode, 1, "a remote that is neither tracked, origin nor alone was read\n" + done.stdout)
-        self.git(repository, "config", "branch.main.remote", "upstream")
-        self.git(repository, "config", "branch.main.merge", "refs/heads/main")
+        self.git(repository, "update-ref", "refs/remotes/fork/main", base)
+        self.git(repository, "update-ref", "refs/remotes/fork/feature", work)
+        self.git(repository, "config", "branch.main.remote", "fork")
+        self.git(repository, "config", "branch.main.merge", "refs/heads/feature")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "the tracked remote's branch of another name was read\n" + done.stdout)
+        self.git(repository, "update-ref", "refs/remotes/fork/main", work)
         done = repository.run("ready", "implement", "TSK-0001")
         self.assertEqual(done.returncode, 0, done.stdout)
 
