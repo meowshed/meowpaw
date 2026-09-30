@@ -40,7 +40,9 @@ the task until they are filled.
 All three failed at the pull request's first commit and pass after it, and
 `meow-verbs run format lint check test` passed all four verbs. The pull request
 removes `plugins/meow-method/`, its marketplace entry, its line in the `test`
-verb and its row in `docs/README.md`.
+verb and its row in `docs/README.md`. Criteria 2 and 3 name `test -e` and
+`tools/test_verb_bindings.py` as what closes them; one test file holds all
+three instead, so the checks for one task sit together and run in the gate.
 
 ## Left alone
 

@@ -93,6 +93,7 @@ states:
     REQ-3102,
     REQ-3168,
     REQ-3190,
+    REQ-3654,
   ]
 ---
 
@@ -266,8 +267,8 @@ checks over the harness's own units stay.
 The program is `meow record`, the `record` subcommand of the native tool, built
 with the unit's own feature as SPC-1080 states. A person runs it as `paw`, the
 name of the unit's launcher, and every usage line and message it prints names
-it `paw` (REQ-3168). The unit is `meow-flow` (REQ-3190). The `meow-method` stub
-that told an install to move stayed one release (REQ-3004) and has left the
+it `paw` (REQ-3168). The unit is `meow-flow` (REQ-3190). The `meow-method` stub that
+told an install to move stayed one release (REQ-3004) and has left the
 marketplace (REQ-3654). The launcher runs the binary for the machine, and the binary
 reads `lib/layout.toml` from the unit it ships in. Where there is no binary for
 the machine, or the layout can't be read, the record is reported as not checked
