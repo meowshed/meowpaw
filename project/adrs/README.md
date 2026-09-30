@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-73 decisions in all: 68 approved, 5 superseded.
+74 decisions in all: 69 approved, 5 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -91,6 +91,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2100](ADR-2100-a-read-only-agent-routes-each-request-before-work-starts.md)                                                                          | A read-only agent routes each request on the repository before work starts, and the route is reported before any edit                      | approved   |
 | [ADR-2200](ADR-2200-a-skeptic-refutes-each-requirement-an-epic-claims.md)                                                                                 | A skeptic tries to refute each requirement an epic claims before it is verified, and a confirmed refutation becomes a draft defect         | superseded |
 | [ADR-2300](ADR-2300-a-requirement-closes-with-its-tasks-and-the-chain-keeps-no-verification.md)                                                           | A requirement closes with the tasks that name it, and the chain keeps no verification, no evidence and no record review                    | approved   |
+| [ADR-2310](ADR-2310-a-decision-asked-for-in-one-pull-request-is-approved-by-its-merge.md)                                                                 | A decision a person asks for in one pull request is approved by its merge, and a task off the trunk isn't ready                            | approved   |
 
-Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-2010 by ADR-2020.
+Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-2010 by ADR-2020; ADR-2300 by ADR-2310.
 <!-- /meow-flow index -->
