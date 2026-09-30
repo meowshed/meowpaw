@@ -2637,5 +2637,118 @@ class MigratedShape(unittest.TestCase):
         self.assertIn("project/epics/EPC-0001-a-plan.md: approved at HEAD", done.stdout)
 
 
+class OffTheTrunk(unittest.TestCase):
+    """TSK-3880, ADR-2310: a task whose record isn't on the declared trunk waits on its merge."""
+
+    TASK = "tasks/TSK-0001-a-task.md"
+
+    def git(self, repository, *args):
+        return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", *args],
+                              cwd=repository.path, check=True, capture_output=True, text=True,
+                              env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"})
+
+    def repo(self, profile='[git]\ntrunk = "main"\n', on_trunk=False):
+        """A record whose one open task is committed on `work`, and on `main` too where `on_trunk`."""
+        repository = Repository(profile=profile)
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        repository.edit(self.TASK, "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
+        self.git(repository, "checkout", "-q", "-b", "main")
+        task = (repository.root / self.TASK).read_text(encoding="utf-8")
+        if not on_trunk:
+            (repository.root / self.TASK).unlink()
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "-m", "base")
+        self.git(repository, "checkout", "-q", "-b", "work")
+        (repository.root / self.TASK).write_text(task, encoding="utf-8")
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "--allow-empty", "-m", "the task")
+        return repository
+
+    def test_a_task_off_the_trunk_is_not_ready(self):
+        """Criterion 1, REQ-3660: `ready implement` exits 1 naming the task and the trunk, and 0 once it is there."""
+        done = self.repo().run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("TSK-0001 is not on main yet", done.stdout)
+        done = self.repo(on_trunk=True).run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
+    def test_status_names_the_task_as_waiting_on_its_merge(self):
+        """Criterion 2, REQ-3662: `status` prints waiting and no next for a task off the trunk."""
+        status = self.repo().run("status").stdout
+        self.assertIn("waiting: TSK-0001 is not on main yet", status)
+        self.assertNotIn("next: implement TSK-0001", status)
+        status = self.repo(on_trunk=True).run("status").stdout
+        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", status)
+        self.assertNotIn("waiting: TSK-0001", status)
+        self.assertNotIn("can't be told", status)
+
+    def test_no_declared_trunk_is_said_and_refuses_nothing(self):
+        """Criterion 3, REQ-3664: with no `[git] trunk`, ready passes and status says the guard is absent, once."""
+        repository = self.repo(profile='[record]\nroot = "project"\n')
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+        status = repository.run("status").stdout
+        self.assertEqual(status.count("can't be told from one waiting on a merge"), 1, status)
+        self.assertIn("declares no trunk", status)
+        self.assertIn("next: implement TSK-0001", status)
+
+    def test_outside_git_is_said_and_refuses_nothing(self):
+        """Criterion 3, REQ-3664: where the directory is no git work tree, the same holds, naming that cause."""
+        repository = self.repo()
+        shutil.rmtree(repository.path / ".git")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+        status = repository.run("status").stdout
+        self.assertEqual(status.count("can't be told from one waiting on a merge"), 1, status)
+        self.assertIn("isn't a git work tree", status)
+
+    def test_a_trunk_naming_no_branch_is_said(self):
+        """Criterion 3, REQ-3664: a declared trunk that names no branch refuses nothing and says so."""
+        repository = self.repo(profile='[git]\ntrunk = "trunk"\n')
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+        self.assertIn("trunk names no branch", repository.run("status").stdout)
+
+    def test_the_remote_tracking_trunk_is_read(self):
+        """Criterion 4, REQ-3660: where the trunk exists only as a remote-tracking branch, that branch is read, and
+        it wins over a local branch of the same name."""
+        repository = self.repo()
+        sha = self.git(repository, "rev-parse", "main").stdout.strip()
+        self.git(repository, "update-ref", "refs/remotes/origin/main", sha)
+        self.git(repository, "branch", "-q", "-D", "main")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("TSK-0001 is not on main yet", done.stdout)
+        self.git(repository, "update-ref", "refs/remotes/origin/main", self.git(repository, "rev-parse", "work").stdout.strip())
+        self.git(repository, "branch", "-q", "main", sha)
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+
+    def test_a_finished_task_is_never_held(self):
+        """REQ-3660: only an open task is asked about, so a done one off the trunk changes nothing in status."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
+        repository.edit(self.TASK, "## Evidence\n\nNot yet.", "## Evidence\n\nIn #1.")
+        self.assertIn("closed: EPC-0001", repository.run("status").stdout)
+
+    def rules(self):
+        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
+        found = re.findall(r"^- (M\d+)\.\s(.*?)(?=^- M\d+\.\s|^</rules>)", text, re.MULTILINE | re.DOTALL)
+        return [(name, re.sub(r"\s+", " ", body).strip()) for name, body in found]
+
+    def test_the_skill_says_where_each_path_stops(self):
+        """Criterion 5, REQ-3656, REQ-3658: M5 and M20 name each other, a rule under M20 holds the draft, check,
+        approve order and the stop at the epic step, and the identifiers run in order with none repeated."""
+        rules = self.rules()
+        self.assertEqual([name for name, _ in rules], [f"M{n}" for n in range(1, len(rules) + 1)])
+        by = dict(rules)
+        self.assertRegex(by["M5"], r"^Unless M20 applies, stop after writing an artifact that needs approval")
+        self.assertRegex(by["M20"], r"^Where a person asks for a decision to land in one pull request")
+        self.assertRegex(by["M20"], r"stop once, at that pull request")
+        self.assertRegex(by["M20"], r"Without that request, \bM5\b holds")
+        under = [body for _, body in rules if body.startswith("Under M20")]
+        self.assertEqual(len(under), 1, under)
+        self.assertRegex(under[0], r"write each record as a draft, run `paw check`, and set it to `approved` only where the check reports nothing")
+        self.assertRegex(under[0], r"go no further than the epic step")
+        self.assertNotRegex(" ".join(body for _, body in rules), r"request (itself )?approves")
+
+
 if __name__ == "__main__":
     unittest.main()
