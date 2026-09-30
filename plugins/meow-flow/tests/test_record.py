@@ -2566,5 +2566,72 @@ class SevenSteps(unittest.TestCase):
         self.assertIn("State\n  closed\n  TSK-0001 done in ADR-0001\n", repository.run("show", "REQ-0001").stdout)
 
 
+class ShortChainPrompts(unittest.TestCase):
+    """TSK-3820, ADR-2300: the prompts and templates ask for the seven-step chain."""
+
+    SEVEN = ["research", "requirements", "design", "spec", "epic", "implement", "review"]
+
+    def flat(self, path):
+        return re.sub(r"\s+", " ", path.read_text(encoding="utf-8"))
+
+    def test_the_skill_names_seven_steps_in_order(self):
+        """Criterion 1, REQ-3638: SKILL.md's description and body name the seven steps in order."""
+        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
+        front, body = text.split("\n---\n", 1)
+        pattern = r",\s+".join(self.SEVEN[:-1]) + r",?\s+and\s+" + self.SEVEN[-1]
+        description = next(line for line in front.splitlines() if line.startswith("description:"))
+        self.assertRegex(description, pattern)
+        self.assertRegex(re.sub(r"\s+", " ", body), pattern)
+
+    def test_each_of_the_seven_steps_has_one_file(self):
+        """Criterion 1, REQ-3638: `steps/` holds one file for each of the seven steps and no other."""
+        self.assertEqual(sorted(p.stem for p in (METHOD / "steps").glob("*.md")), sorted(self.SEVEN))
+
+    def test_nothing_the_unit_ships_dispatches_a_record_reviewer_or_a_skeptic(self):
+        """Criterion 2, REQ-3624: no shipped file names the record reviewer or the skeptic, and the agent is gone."""
+        self.assertFalse((UNIT / "agents" / "record-reviewer.md").exists())
+        found = [str(path.relative_to(UNIT)) for path in sorted(UNIT.rglob("*"))
+                 if path.is_file() and "tests" not in path.parts and "bin" not in path.parts
+                 and re.search(r"record-reviewer|skeptic", path.read_text(encoding="utf-8", errors="replace"))]
+        self.assertEqual(found, [])
+
+    def test_implement_writes_the_tests_first(self):
+        """Criterion 3, REQ-3616, REQ-3640, REQ-3642, REQ-3644, REQ-3618: tests in a first commit that fails, not
+        weakened outside a commit saying why, and the documentation and the record marks in the same pull request."""
+        text = self.flat(METHOD / "steps" / "implement.md")
+        self.assertRegex(text, r"test for each acceptance criterion a program can check")
+        self.assertRegex(text, r"commit of their own.{0,80}before any (commit|code) that implements")
+        self.assertRegex(text, r"see each (one|test) fail")
+        self.assertRegex(text, r"(modify|weaken).{0,120}commit of its own.{0,60}why")
+        self.assertRegex(text, r"documentation.{0,120}same pull request|same pull request.{0,120}documentation")
+        self.assertRegex(text, r"[Mm]ark the task")
+
+    def test_review_is_a_code_review_in_the_pull_request(self):
+        """Criterion 4, REQ-3626, REQ-3612: a review of the change in its pull request, fixed there, written into no
+        record, reporting a test that would pass against a wrong implementation."""
+        text = self.flat(METHOD / "steps" / "review.md")
+        self.assertRegex(text, r"task's pull request")
+        self.assertRegex(text, r"fix.{0,80}in (that|the same) pull request")
+        self.assertRegex(text, r"nothing into the (record|repository)")
+        self.assertRegex(text, r"would (still )?pass against a wrong implementation")
+
+    def test_the_templates_carry_no_cover_and_no_checked_at(self):
+        """Criterion 5, REQ-3616, REQ-3602: the task template has no Cover section and the epic no checked-at."""
+        templates = UNIT / "templates"
+        self.assertNotIn("## Cover", (templates / "task.md").read_text(encoding="utf-8"))
+        self.assertNotIn("checked-at", (templates / "epic.md").read_text(encoding="utf-8"))
+        self.assertIn("realises:", (templates / "task.md").read_text(encoding="utf-8"))
+
+    def test_the_living_documents_name_seven_steps(self):
+        """Criterion 6, REQ-3638: the constitution and the root README give the chain with seven steps."""
+        root = UNIT.parent.parent
+        chain = r"research -> requirements -> design -> spec -> epic\s+-> implement -> review"
+        for name in ("CLAUDE.md", "README.md"):
+            text = (root / name).read_text(encoding="utf-8")
+            self.assertRegex(text, chain, name)
+            self.assertNotRegex(text, r"\bten steps\b", name)
+            self.assertRegex(text, r"\bseven steps\b", name)
+
+
 if __name__ == "__main__":
     unittest.main()
