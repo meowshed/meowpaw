@@ -1,6 +1,6 @@
 {
   "name": "meow-github",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Reads a GitHub repository's issues, pull requests and comments through gh as one JSON document, every page of each, and writes nothing to GitHub. Onboarding reads a repository's history through it. It keeps nothing in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
