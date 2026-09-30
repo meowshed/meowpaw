@@ -132,8 +132,8 @@ class FormatAndLintBindings(unittest.TestCase):
     """TSK-2510 criterion 1: `format` ends with crate-fmt and `lint` with crate-lint.
 
     Running the five verbs from here would run this file again through
-    `test`, so the pass half of the criterion is the kept evidence of that
-    run, and this holds the half that a program reads from the bindings.
+    `test`, so the pass half of the criterion was seen in that task's pull
+    request, and this holds the half that a program reads from the bindings.
     `VerbBindings` already holds that check, test and build resolve."""
 
     def test_format_ends_with_crate_fmt(self):

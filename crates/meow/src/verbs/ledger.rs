@@ -21,67 +21,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// A tree id, or `none` where the directory isn't a git work tree.
 pub const UNBOUND: &str = "none";
 
-/// The record's default root, a copy of `meow-flow`'s, since neither unit may
-/// depend on the other; change both together (ADR-1550).
-const RECORD_ROOT: &str = "project";
-
-/// Where kept evidence lives in the repository: `evidence_dir` under `[verbs]`,
-/// or `evidence` under the record's root (ADR-1550).
-pub fn evidence_dir(root: &Path) -> String {
-    let table = match profile::read(root) {
-        profile::Profile::Parsed(table) => table,
-        _ => toml::Table::new(),
-    };
-    let text = |section: &str, key: &str| {
-        table
-            .get(section)
-            .and_then(|v| v.get(key))
-            .and_then(|v| v.as_str())
-            .map(|d| d.trim_end_matches('/').to_string())
-    };
-    text("verbs", "evidence_dir").unwrap_or_else(|| {
-        format!(
-            "{}/evidence",
-            text("record", "root").unwrap_or_else(|| RECORD_ROOT.to_string())
-        )
-    })
-}
-
-/// Whether git ignores a kept file: `Ok(None)` when it doesn't, `Ok(Some(rule))`
-/// when it does, and `Err` when git can't answer (ADR-1550).
-pub fn ignored_by(root: &Path, path: &Path) -> std::result::Result<Option<String>, String> {
-    // git takes `-z` here only with the path on standard input, NUL-terminated,
-    // so a path it would escape is read as it is (REQ-2522).
-    let mut child = profile::reading_git()
-        .current_dir(root)
-        .args(["check-ignore", "-v", "-z", "--stdin"])
-        .stdin(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn()
-        .map_err(|e| e.to_string())?;
-    if let Some(mut input) = child.stdin.take() {
-        let mut bytes = path.as_os_str().to_string_lossy().into_owned().into_bytes();
-        bytes.push(0);
-        input.write_all(&bytes).map_err(|e| e.to_string())?;
-    }
-    let done = child.wait_with_output().map_err(|e| e.to_string())?;
-    match done.status.code() {
-        Some(0) => {
-            // The fields are the source, the line number, the pattern and the path.
-            let text = String::from_utf8_lossy(&done.stdout);
-            let fields: Vec<&str> = text.split('\0').collect();
-            let rule = match (fields.first(), fields.get(1)) {
-                (Some(source), Some(line)) => format!("{source}:{line}"),
-                _ => String::new(),
-            };
-            Ok(Some(rule))
-        }
-        Some(1) => Ok(None),
-        _ => Err(String::from_utf8_lossy(&done.stderr).trim().to_string()),
-    }
-}
-
 fn temporary_index() -> PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -90,9 +29,7 @@ fn temporary_index() -> PathBuf {
     std::env::temp_dir().join(format!("meow-index-{}-{nanos}", std::process::id()))
 }
 
-/// The tree id of the working state, leaving the evidence directory out,
-/// because the evidence describes the work and isn't part of it (ADR-1530);
-/// or `none` outside a git work tree.
+/// The tree id of the working state, or `none` outside a git work tree.
 pub fn tree_id(root: &Path) -> String {
     // An edit inside a submodule changes nothing in the parent's tree, so a
     // dirty submodule binds no result at all (ADR-1560).
@@ -129,19 +66,7 @@ pub fn tree_id(root: &Path) -> String {
             .output()
             .ok()
     };
-    let excluded = format!(":(exclude){}", evidence_dir(root));
-    let added = with_index(&["add", "--all", "--", ".", &excluded])
-        .is_some_and(|o| o.status.success())
-        && with_index(&[
-            "rm",
-            "-r",
-            "--cached",
-            "-q",
-            "--ignore-unmatch",
-            "--",
-            &evidence_dir(root),
-        ])
-        .is_some_and(|o| o.status.success());
+    let added = with_index(&["add", "--all", "--", "."]).is_some_and(|o| o.status.success());
     let written = with_index(&["write-tree"]).filter(|o| added && o.status.success());
     let _ = std::fs::remove_file(&temporary);
     match written {
@@ -173,189 +98,28 @@ pub fn dirty_submodule(root: &Path) -> Option<String> {
         .map(str::to_string)
 }
 
-/// A kept file's header fields, as `keep` wrote them.
-pub fn header_of(path: &Path) -> Option<Value> {
-    let text = std::fs::read_to_string(path).ok()?;
-    let mut lines = text.lines();
-    if lines.next()? != "meow-verbs evidence 1" {
-        return None;
-    }
-    let mut fields = serde_json::Map::new();
-    for line in lines.take_while(|l| !l.is_empty()) {
-        if let Some((key, value)) = line.split_once(": ") {
-            fields.insert(key.to_string(), Value::from(value));
-        }
-    }
-    Some(Value::Object(fields))
-}
-
-/// The kept files this work adds against the branch's base on the trunk, or
-/// every kept file with the reason it couldn't tell (REQ-0456).
-pub fn kept_by_this_work(root: &Path) -> (Vec<PathBuf>, Option<String>) {
-    let dir = evidence_dir(root);
-    let all = || {
-        let mut found: Vec<PathBuf> = std::fs::read_dir(root.join(&dir))
-            .map(|e| {
-                e.flatten()
-                    .map(|e| e.path())
-                    .filter(|p| p.extension().is_some_and(|x| x == "txt"))
-                    .collect()
-            })
-            .unwrap_or_default();
-        found.sort();
-        found
-    };
-    let trunk = match profile::read(root) {
-        profile::Profile::Parsed(table) => table
-            .get("git")
-            .and_then(|g| g.get("trunk"))
-            .and_then(|t| t.as_str())
-            .map(str::to_string),
-        _ => None,
-    };
-    let Some(trunk) = trunk else {
-        return (all(), Some("no trunk is declared under [git]".into()));
-    };
-    let git = |args: &[&str]| {
-        profile::reading_git()
-            .current_dir(root)
-            .args(args)
-            .output()
-            .ok()
-            .filter(|o| o.status.success())
-            .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
-    };
-    let Some(base) = git(&["merge-base", "HEAD", &trunk]).map(|b| b.trim().to_string()) else {
-        return (all(), Some(format!("the branch has no base on {trunk}")));
-    };
-    // NUL-separated, so a path git would escape reads as it is (REQ-2522).
-    let split = |text: String| {
-        text.split('\0')
-            .filter(|n| !n.is_empty())
-            .map(str::to_string)
-            .collect::<Vec<_>>()
-    };
-    let mut names: Vec<String> = split(
-        git(&[
-            "diff",
-            "-z",
-            "--name-only",
-            "--diff-filter=A",
-            &base,
-            "--",
-            &dir,
-        ])
-        .unwrap_or_default(),
-    );
-    names.extend(split(
-        git(&[
-            "ls-files",
-            "-z",
-            "--others",
-            "--exclude-standard",
-            "--",
-            &dir,
-        ])
-        .unwrap_or_default(),
-    ));
-    names.sort();
-    names.dedup();
-    (
-        names
-            .into_iter()
-            .filter(|n| n.ends_with(".txt"))
-            .map(|n| root.join(n))
-            .collect(),
-        None,
-    )
-}
-
-/// A commit's tree id with the evidence directory left out, the id a kept
-/// record names for the work that commit holds (ADR-1530).
+/// A commit's tree id, the id a result names for the work that commit holds,
+/// so a reviewer can compare a cited result with a commit (ADR-1530).
 pub fn tree_of_commit(root: &Path, commit: &str) -> std::result::Result<String, String> {
-    let temporary = temporary_index();
-    let git = |args: &[&str]| {
-        profile::reading_git()
-            .current_dir(root)
-            .env("GIT_INDEX_FILE", &temporary)
-            .args(args)
-            .output()
-    };
-    let read = git(&["read-tree", commit]).map_err(|e| e.to_string())?;
+    let read = profile::reading_git()
+        .current_dir(root)
+        .args([
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            &format!("{commit}^{{tree}}"),
+        ])
+        .output()
+        .map_err(|e| e.to_string())?;
     if !read.status.success() {
-        let _ = std::fs::remove_file(&temporary);
-        return Err(format!(
-            "{commit} is not a commit here: {}",
-            String::from_utf8_lossy(&read.stderr).trim()
-        ));
-    }
-    let dir = evidence_dir(root);
-    let removed = git(&["rm", "-r", "--cached", "-q", "--ignore-unmatch", "--", &dir])
-        .map(|o| o.status.success())
-        .unwrap_or(false);
-    let written = git(&["write-tree"])
-        .ok()
-        .filter(|o| removed && o.status.success());
-    let _ = std::fs::remove_file(&temporary);
-    written
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .ok_or_else(|| "git couldn't write the tree".to_string())
-}
-
-/// A record's whole output, from beside the ledger.
-pub fn output_of(root: &Path, record: &str) -> Option<String> {
-    let (_, outputs) = ledger_of(root)?;
-    std::fs::read_to_string(outputs.join(format!("{record}.log"))).ok()
-}
-
-/// Copies one current record, with its whole output, into the repository's
-/// evidence directory, written through a temporary file renamed into place
-/// (REQ-2956, REQ-2964, REQ-2966).
-pub fn keep(root: &Path, record: &Value) -> std::result::Result<PathBuf, String> {
-    let text = |key: &str| {
-        record
-            .get(key)
-            .and_then(Value::as_str)
-            .unwrap_or("")
-            .to_string()
-    };
-    let id = text("record");
-    let output = output_of(root, &id)
-        .ok_or_else(|| format!("the output of record {id} is gone from the ledger"))?;
-    let targets: Vec<&str> = record
-        .get("targets")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(Value::as_str)
-        .collect();
-    let status = record
-        .get("status")
-        .and_then(Value::as_i64)
-        .map(|s| s.to_string())
-        .unwrap_or_else(|| "none".into());
-    let header = format!(
-        "meow-verbs evidence 1\nrecord: {id}\nverb: {}\ncommand: {}\ntargets: {}\noutcome: {}\nexit status: {status}\ntree: {}\ntime: {}\n\n",
-        text("verb"),
-        text("command"),
-        if targets.is_empty() {
-            "none".to_string()
+        // git exits 1 for a name it can't resolve and 128 outside a work tree.
+        return Err(if read.status.code() == Some(1) {
+            format!("{commit} is not a commit here")
         } else {
-            targets.join(" ")
-        },
-        text("outcome"),
-        text("tree"),
-        text("time"),
-    );
-    let dir = root.join(evidence_dir(root));
-    std::fs::create_dir_all(&dir).map_err(|e| format!("can't create {}: {e}", dir.display()))?;
-    let path = dir.join(format!("{id}.txt"));
-    let partial = dir.join(format!(".{id}.txt.partial"));
-    std::fs::write(&partial, format!("{header}{output}"))
-        .map_err(|e| format!("can't write {}: {e}", partial.display()))?;
-    std::fs::rename(&partial, &path)
-        .map_err(|e| format!("can't move {} into place: {e}", path.display()))?;
-    Ok(path)
+            "this isn't a git work tree".to_string()
+        });
+    }
+    Ok(String::from_utf8_lossy(&read.stdout).trim().to_string())
 }
 
 /// The directory holding every work tree's ledger: `$XDG_STATE_HOME` where it
@@ -588,7 +352,6 @@ pub fn facts(root: &Path) -> Vec<String> {
             "newest: {}",
             times.iter().max().cloned().unwrap_or_else(|| "none".into())
         ),
-        format!("evidence directory: {}", evidence_dir(root)),
         format!(
             "lock: {}",
             lock_path(root)

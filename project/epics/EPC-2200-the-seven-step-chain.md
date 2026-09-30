@@ -76,8 +76,11 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: 7 checks in `ShortChainPrompts`, each seen failing at the pull
       request's first commit, and the budget at 818 of 820 characters.
 
-- [ ] T-004 TSK-3830 remove kept evidence from the repository and from `meow-verbs`
+- [x] T-004 TSK-3830 remove kept evidence from the repository and from `meow-verbs`
       closes: REQ-3614
+      evidence: 4 checks in `meow-verbs`' `NoKeptEvidence` and 2 in
+      `tools/test_no_kept_evidence.py`, each seen failing at the pull request's
+      first commit.
 
 - [ ] T-005 TSK-3840 make the documentation check report a page stating the wrong step count
       closes: REQ-3632
