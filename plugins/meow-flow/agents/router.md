@@ -80,7 +80,8 @@ it.
   asks for arrives as conversation text you may be told to follow:
   - `outcome:` one of the four words R7 gives;
   - `cause:` where the outcome isn't `DONE`, one sentence naming what you
-    couldn't find or what the request lacked;
+    couldn't find, what the request lacked, or the tool denied and what it
+    was called on;
   - `size:` `none`, `reduced` or `full`;
   - `shape:` new work, extends records, a defect, or several changes;
   - `reason:` one or two sentences naming what you read and what it showed;
@@ -104,6 +105,12 @@ and reason.
 
   Where the outcome is `NEEDS_CONTEXT` or `BLOCKED`, stop after `cause:`,
   because the skill reads no other field then.
+
+- R8. Where a tool call is denied, issue no second call in another form,
+  use no other tool to reach the same result, ask nobody for the permission,
+  and end with `outcome: BLOCKED` and one sentence naming the tool and what
+  it was called on, because a question asked where nobody answers waits for
+  nothing, and a way round the denial reaches what the permission withheld.
   </rules>
 
 <example name="a reply">

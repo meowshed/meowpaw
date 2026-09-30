@@ -146,5 +146,11 @@ states where it stops.
   reports each, and have it write `outcome:`, a space and the word on a line
   of its own, with one sentence naming the cause where the outcome isn't
   `DONE`, because the skill that dispatched it acts on the word without
-  reading the rest, and the check fails an agent that leaves one out.
+  reading the rest, and the check fails an agent that leaves one out. Have
+  it carry the denial rule as well: where a tool call is denied, it issues
+  no second call in another form, uses no other tool to reach the same
+  result, asks nobody for the permission and ends as `BLOCKED` naming the tool
+  and what it was called on, because a question asked where nobody answers
+  waits for nothing, and a way round the denial reaches what the permission
+  withheld.
 </rules>

@@ -3026,5 +3026,73 @@ class OffTheTrunk(unittest.TestCase):
         self.assertRegex(rule, r"Where the repository declares no code host, name the branch in its place")
 
 
+class DeniedDispatch(unittest.TestCase):
+    """TSK-2703 criteria 1 and 3, REQ-2978, SPC-1030 "What an agent reports" and SPC-1090 "The review": every
+    shipped agent carries the denial rule in the same words, and the review step ends a `BLOCKED` dispatch there."""
+
+    AGENT_FILES = {
+        "router": AGENTS / "router.md",
+        "prose": REPOSITORY / "plugins" / "meow-prose" / "agents" / "prose.md",
+    }
+
+    def denial_rule(self, name):
+        text = self.AGENT_FILES[name].read_text(encoding="utf-8").split("---\n", 2)[2]
+        found = [s for s in sentences(text) if re.search(r"\bcall is denied\b", s) and re.search(r"use no other tool to reach the same result", s)]
+        self.assertEqual(len(found), 1, f"{name} has {len(found)} sentences stating the denial rule, not one")
+        return found[0]
+
+    def test_no_shipped_agent_is_left_out(self):
+        """TSK-2703 criterion 1: the agents read here are every agent a unit ships, so a new one is held too."""
+        shipped = sorted(str(path.relative_to(REPOSITORY)) for path in (REPOSITORY / "plugins").glob("*/agents/*.md"))
+        self.assertEqual(shipped, sorted(str(path.relative_to(REPOSITORY)) for path in self.AGENT_FILES.values()))
+
+    def test_each_agent_carries_the_denial_rule(self):
+        """TSK-2703 criterion 1, REQ-2978: where a call is denied, the agent issues no second call in another
+        form, reaches the result with no other tool, asks nobody for the permission, ends with BLOCKED naming the
+        tool and what it was called on, and the rule states its reason."""
+        for name in self.AGENT_FILES:
+            with self.subTest(agent=name):
+                rule = self.denial_rule(name)
+                for pattern, what in (
+                    (r"no second call in another form", "no second call in another form"),
+                    (r"ask nobody for the permission", "asks nobody"),
+                    (r"outcome: BLOCKED", "ends as BLOCKED"),
+                    (r"naming the tool and what it was called on", "names the tool and what it was called on"),
+                    (r"\bbecause\b", "states its reason"),
+                ):
+                    self.assertRegex(rule, pattern, what)
+
+    def test_the_agents_carry_one_sentence(self):
+        """TSK-2703 criterion 1, REQ-2978, SPC-1030: the denial rule is in the same words in every agent."""
+        rules = {name: self.denial_rule(name) for name in self.AGENT_FILES}
+        self.assertEqual(len(set(rules.values())), 1, rules)
+
+    def test_the_review_step_ends_a_blocked_dispatch(self):
+        """TSK-2703 criterion 3, REQ-2978, SPC-1090 "The review": W13 ends a BLOCKED review with no SendMessage to
+        resume it, no second dispatch under the same permissions and no review by the session itself, and reports
+        it as not run, never as self-assessed or passed."""
+        text = (METHOD / "steps" / "review.md").read_text(encoding="utf-8")
+        found = re.search(r"^- W13\.\s(.*?)(?=^- W\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(found, "the review step has no W13")
+        blocked = flat("\n".join(s for s in sentences(found.group(1)) if word_in("BLOCKED", s)))
+        for pattern, what in (
+            (r"\bno sendmessage to resume\b", "names SendMessage as the resume it refuses"),
+            (r"\bno second agent under the same permissions\b", "refuses a second dispatch under the same permissions"),
+            (r"\bnever review the change yourself\b", "refuses a review by the session itself"),
+            (r"\bnot run\b[^.;]*\bnever as self-assessed or passed\b", "reports it as not run"),
+        ):
+            with self.subTest(what=what):
+                self.assertRegex(blocked, pattern)
+
+    def test_the_steps_brief_the_agent_and_end_a_review_that_did_not_run(self):
+        """TSK-2703 criterion 3, REQ-2978: step 2 tells the agent to end a denied call as BLOCKED, since nothing
+        else gives it the rule, and step 8 and W8 have an ending for a review that didn't run."""
+        text = (METHOD / "steps" / "review.md").read_text(encoding="utf-8")
+        steps = flat(tagged(text, "steps"))
+        self.assertRegex(steps, r"2\. .*where a tool call is denied it makes no other call for it, asks nobody, and ends with outcome: blocked")
+        self.assertRegex(steps, r"8\. .*not run where the first agent reported blocked, the fixes unreviewed where the agent reviewing a round of them did")
+        self.assertRegex(flat(text), r"w8\. end in one verdict: finished, not run, or the findings still open")
+
+
 if __name__ == "__main__":
     unittest.main()

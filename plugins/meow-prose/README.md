@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose
 answers: what meow-prose does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose@0.5.0]
+describes: [meow-prose@0.5.1]
 ---
 
 # meow-prose
@@ -61,6 +61,10 @@ line by line against the same standard. It reports each finding with its line,
 the rule it breaks and the smallest fix, and it edits nothing and blocks
 nothing, so you decide what to change. It reads a quotation without judging
 it, and on a change to code it reads only the files the change touched.
+Where a tool call is denied, such as a read of a path your settings refuse,
+it makes no second attempt, asks nobody, and ends the review as `BLOCKED`,
+naming the tool and the path, so a review that didn't happen never reads as
+one that found nothing.
 It runs on `sonnet` at `high` effort for at most 20 turns, preloads the
 writing standard and leaves out your repository's `CLAUDE.md`, because it
 judges against the standard and not against your repository's rules.

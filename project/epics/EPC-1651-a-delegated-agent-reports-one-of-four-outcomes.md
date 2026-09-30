@@ -82,7 +82,7 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-0816
       depends: nothing
 
-- [ ] T-002 TSK-2703 give the shipped agents and `meow-author:write` the
+- [x] T-002 TSK-2703 give the shipped agents and `meow-author:write` the
       denial rule, make W13 end a `BLOCKED` dispatch without resuming,
       re-sending or reviewing it itself, report `prose`'s unreadable standard
       as `BLOCKED`, and add the hand-run case for criterion 5

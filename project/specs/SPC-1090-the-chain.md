@@ -717,7 +717,12 @@ on (REQ-0311). Where the session produced the change, it dispatches the
 review to an agent with read-only tools, naming what the task asks and not who
 wrote it, and reads the return as a verdict, named as an agent's (REQ-0149,
 REQ-0157, REQ-0818, REQ-0819). Where no agent can be dispatched, it reports
-the verdict as self-assessed (REQ-2202). It judges whether the work meets its
+the verdict as self-assessed (REQ-2202). The step tells the agent to end a denied tool call as `BLOCKED`. Where the agent reports `BLOCKED`, the
+dispatch ends there: the step doesn't resume the agent, sends no second one
+under the same permissions in that session, never reviews the change itself,
+and reports the review as not run, never as self-assessed or passed
+(REQ-2978). A `BLOCKED` review of a round of fixes is reported as the fixes
+unreviewed, naming the round. It judges whether the work meets its
 requirements and improves the codebase, and never whether the decision was
 right, which the decision's reversal condition answers (REQ-0329). The review reports each test that
 would still pass against a wrong implementation (REQ-3612). Each finding that
