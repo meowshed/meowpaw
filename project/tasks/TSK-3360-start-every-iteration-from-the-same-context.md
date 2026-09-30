@@ -79,8 +79,42 @@ TSK-3350, because this task changes the call that task makes.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`call` in `crates/meow/src/runloop.rs` gives every call the prompt's bytes as
+`start` read them once, the run's `progress` directory through `--add-dir`,
+one rule each allowing Edit and Write of `progress/progress.md`, and one
+preamble through `--append-system-prompt`. `preamble` builds that text once
+at start from the progress file's absolute path and the condition, and it
+holds no iteration number and no spend.
+
+Criteria 1 to 3 are closed by the checks they name, in
+`plugins/meow-loop/tests/test_loop.py`:
+
+1. `Context.test_every_call_starts_the_same`
+2. `Context.test_progress_file_is_named_and_reachable`
+3. `Context.test_progress_survives_iterations`
+
+No criterion rests on judgement. The three checks failed first, in the commit
+that holds them alone, where the `test` verb exited 1. That commit also
+changes `Call.test_flags_and_prompt`, which compares a call's whole argv and
+so has to state the new arguments, and it failed there too. Criterion 4 is
+closed by the pull request, where `format`, `lint`, `check`, `test` and
+`build` each pass on the change's tree.
+
+I made three choices the task leaves open. The allow rule is two arguments,
+`Edit(/<file>)` and `Write(/<file>)`, because the platform documents a rule's
+absolute path as written after one more slash and names no rule that covers
+both tools. The condition's text in the preamble is `verbs=` and the verbs
+the run resolved, each once, in the order typed. The preamble says nothing of
+the step, of what ends a run early or of recording a defect, because SPC-1201
+states those under REQ-0888, which this task doesn't close.
+
+No real call ran, so whether a call under `dontAsk` can write the progress
+file through these arguments stays unobserved, as Left alone says, and the
+README says so. I ran no example on the page, because its one command starts
+real calls that spend money.
+
+`meow-loop` goes to 0.2.0, and its README states the preamble, the frozen
+prompt and the progress file.
 
 ## Left alone
 

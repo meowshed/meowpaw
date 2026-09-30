@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.1.0]
+describes: [meow-loop@0.2.0]
 ---
 
 # meow-loop
@@ -62,13 +62,32 @@ runs the verbs once before any call. If every one passes, the run ends
 claude -p --output-format json --no-session-persistence
        --setting-sources project --plugin-dir <dir>...
        --permission-mode dontAsk --allowedTools <rule>...
-       --permission-prompts none --max-budget-usd <budget>
+       --allowedTools "Edit(/<run>/progress/progress.md)"
+       --allowedTools "Write(/<run>/progress/progress.md)"
+       --permission-prompts none --add-dir <run>/progress
+       --max-budget-usd <budget> --append-system-prompt <preamble>
 ```
+
+`<run>` is the run's directory, an absolute path with every link resolved, and
+a permission rule writes an absolute path after one more slash.
 
 Each call is a new session: the runner passes no `--resume` and no
 `--continue`. `--setting-sources project` keeps the plugins you installed for
 yourself out of the call, so a call loads only the directories you name with
 `--plugin-dir` and what the repository's own settings add.
+
+The runner reads the prompt file once, at start, and every call gets those
+bytes on its standard input, so an edit to the file during a run reaches no
+call. Every call also gets the same preamble, appended to the system prompt.
+The preamble names the run's `progress/progress.md` by its absolute path and
+the condition, and says the runner decides whether the run is finished and
+holds its bounds. It holds no iteration number and no spend, so each iteration
+begins from the same stated context.
+
+What one iteration leaves for the next goes in `progress/progress.md`, which
+the preamble tells the model to read first and to write before it stops.
+`--add-dir` and the two rules are there to let a call write that file. No real
+call has been observed writing it under `dontAsk` yet.
 
 After a call, the runner compares the work tree's tree id with the one before
 the call. The tree id covers every tracked file and every untracked file git
@@ -101,7 +120,7 @@ when the run begins.
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `run.toml`             | The prompt's sha256, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending  |
 | `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                             |
-| `progress/progress.md` | An empty file, which a later version gives the model to carry notes between iterations                                                                                                   |
+| `progress/progress.md` | What each iteration wrote for the next one. It starts empty                                                                                                                              |
 | `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, the count of `permission_denials`, its exit status, and the condition's result where it ran |
 
 A `run.toml` with no `ending` belongs to a run that was interrupted, and the
@@ -161,6 +180,7 @@ creates no run directory:
 | `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                      |
 | `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file |
 | `unresolved: can't create a run in <directory>: <error>`                        | The runner can't create the run's directory               |
+| `unresolved: can't resolve <directory>: <error>`                                | The runner can't resolve the run's progress directory     |
 
 During a run, a file the runner can't write, a `claude` or a verb's command it
 can't start, or a verb that no longer resolves stops the run with the same
