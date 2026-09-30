@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-09-29
+revised: 2026-09-30
 states:
   [
     REQ-0010,
@@ -31,7 +31,6 @@ states:
     REQ-1355,
     REQ-1356,
     REQ-1360,
-    REQ-3320,
     REQ-1368,
     REQ-1372,
     REQ-1376,
@@ -83,6 +82,10 @@ states:
     REQ-2906,
     REQ-3178,
     REQ-3192,
+    REQ-3320,
+    REQ-3322,
+    REQ-3324,
+    REQ-3326,
   ]
 ---
 
@@ -378,7 +381,14 @@ way with `, or it is hidden from this credential` added. The permission comes
 from `X-Accepted-GitHub-Permissions`, and otherwise from
 `X-Accepted-OAuth-Scopes` beside the credential's own `X-OAuth-Scopes`. Where
 both are empty, the report says `GitHub named no permission` and quotes
-GitHub's message. Each exits 3.
+GitHub's message. Every other line ends with `; GitHub said "<message>"`
+where GitHub's answer carries a message, so each report carries GitHub's own
+reason (REQ-3324). Each exits 3.
+
+After a 401 the layer sends no further request in the run, because GitHub
+rejects an account's valid credentials too after several rejected requests
+(REQ-3326). `project` then stops as it does at a throttle, and `history`
+reports the listing unread (ADR-2330).
 
 The layer sends a write only to an endpoint on its allow list,
 `POST repos/{r}/issues` and `PATCH repos/{r}/issues/{n}`, and refuses any other
@@ -421,11 +431,13 @@ the task (REQ-1350, REQ-1352, REQ-1354, REQ-1356, REQ-1360, REQ-1382,
 REQ-1384, REQ-1386, REQ-1396). After its last create it reads the issues it
 created back in one uncached, paged listing,
 `repos/{r}/issues?state=all&since=<start>&per_page=100`, where `<start>` is
-the `Date` of the run's first response, and matches each by number. It reads
+the earliest `updated_at` among the create answers of the run, or the `Date`
+of the run's first response where no create answer carries one, and matches
+each by number (REQ-3322) (ADR-2320). It reads
 an issue already mapped to a task on its own, and each link is read back from
 the tracker, in this run's listing or through its mapping in the next run
 (REQ-1368). The listing runs after a failed write or a refusal, and not after
-a throttle or a ceiling (ADR-1810).
+a throttle, a ceiling or a 401 (ADR-1810, ADR-2330).
 
 A replay changes nothing, a changed task updates its issue, an edited issue is
 reported and left, a closed issue on an unmarked task is reported, the issue's
@@ -435,7 +447,8 @@ REQ-1394, REQ-1400). The docs give the `gh` commands that project a task by
 hand, the headers to read and the one-second spacing between writes
 (REQ-1402) (ADR-1310, ADR-1810).
 
-Whenever `project` stops before it has visited every task, it prints
+Whenever `project` stops before it has projected every task, or holds a
+created issue it didn't read back, it prints
 `partial: projected TSK-a; created, not read back TSK-b; not projected TSK-c`
 after the read-back listing, where the listing runs, and exits 3 (REQ-2572).
 A task is projected when its issue was updated or found unchanged in this run,
