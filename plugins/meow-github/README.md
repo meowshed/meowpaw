@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.9.0]
+describes: [meow-github@0.10.0]
 ---
 
 # meow-github
@@ -94,15 +94,17 @@ a marker naming the task and a fingerprint. The task gains `issue:` with the
 issue's number and `projected:` with the fingerprint, so the mapping lives in
 the repository. After its last create, the run reads the issues it created
 back in one listing of the issues written since it began, and matches each by
-number. Run it again and nothing changes. It refuses an epic that isn't
+number. The listing can lag a create by seconds, so the run reads each
+issue it left out on its own, by number, before it reports that issue as not
+read back. Run it again and nothing changes. It refuses an epic that isn't
 approved.
 
-Where a run stops before it has projected every task, or the listing doesn't
-show a created issue as it was written, the report says which tasks are in which state and
+Where a run stops before it has projected every task, or neither the listing
+nor a read by number shows a created issue as it was written, the report says which tasks are in which state and
 the run exits 3:
 
 ```text
-partial: projected TSK-1930; created, not read back TSK-1940 (issue #512, not in the listing); not projected TSK-1950, TSK-1960
+partial: projected TSK-1930; created, not read back TSK-1940 (issue #512, reads differently from what was written); not projected TSK-1950, TSK-1960
 ```
 
 | Group                    | Holds each task whose issue                                               |
@@ -111,9 +113,10 @@ partial: projected TSK-1930; created, not read back TSK-1940 (issue #512, not in
 | `created, not read back` | Was created and not confirmed, with the issue's number and the reason     |
 | `not projected`          | Is any other task of the epic, visited or not                             |
 
-A group with no task reads `none`. The reason is `not in the listing`,
+A group with no task reads `none`. The reason is `couldn't be read`,
 `reads differently from what was written`, `the listing couldn't be read`,
-`the listing was throttled`, `no listing ran` or `the task doesn't name it`.
+`the listing was throttled`, `no listing ran`, `no read ran` or
+`the task doesn't name it`.
 The run sends the listing after a write GitHub refused, and sends none after a
 throttle or a budget ceiling, where it sends nothing more at all. A task under
 `created, not read back` keeps its `issue:`, so the next run reads that issue
