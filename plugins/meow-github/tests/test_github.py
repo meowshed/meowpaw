@@ -447,7 +447,8 @@ class Project(unittest.TestCase):
 # headers on every response, and `cached` gives the age, `remaining` and reset of the headers a call sent with
 # `--cache` replays. A `null` among the `responses` lets that call through to the default answer. Each issue holds
 # the time on GitHub's clock it was written at, and the read-back listing answers with the issues written at or after
-# its `since`, less the numbers `omit` names, with the body of each number `alter` names changed, and `page_size`
+# its `since`, less the numbers `omit` names, with the body of each number `alter` names changed and the title of each number
+# `retitle` names changed, and `page_size`
 # at a time where the script sets it, each page but the last naming the next in a `Link` header.
 LAYERED = """#!/usr/bin/env python3
 import calendar, email.utils, json, os, sys, time
@@ -503,7 +504,8 @@ elif method == "PATCH":
     status, body = 200, state["issues"][path.split("/")[-1]]
 elif path.startswith("repos/o/r/issues?state=all&since="):
     since = calendar.timegm(time.strptime(path.split("since=")[1].split("&")[0], "%Y-%m-%dT%H:%M:%SZ"))
-    listed = [dict(issue, body="Rewritten.") if issue["number"] in script.get("alter", []) else issue
+    listed = [dict(issue, body="Rewritten.") if issue["number"] in script.get("alter", []) else
+              dict(issue, title="Retitled.") if issue["number"] in script.get("retitle", []) else issue
               for issue in state["issues"].values()
               if issue["written"] >= since and issue["number"] not in script.get("omit", [])]
     size = script.get("page_size", len(listed) or 1)
@@ -856,9 +858,11 @@ class Partial(Layered, unittest.TestCase):
         self.assertEqual(left, "TSK-0003, TSK-0004, TSK-0005")
 
     def test_an_issue_the_listing_omits_is_not_read_back(self):
-        """TSK-2960 criterion 4, REQ-2572: where the listing omits a created issue, or shows it with another body,
-        its task goes under `created, not read back` with what the listing showed, and the task keeps `issue:`."""
-        shown = (("omit", "not in the listing"), ("alter", "reads differently from what was written"))
+        """TSK-2960 criterion 4, REQ-2572: where the listing omits a created issue, or shows it with another body or
+        another title, its task goes under `created, not read back` with what the listing showed, and the task
+        keeps `issue:`."""
+        shown = (("omit", "not in the listing"), ("alter", "reads differently from what was written"),
+                 ("retitle", "reads differently from what was written"))
         for fault, reason in shown:
             with self.subTest(fault=fault):
                 root = Project.repository(self)
@@ -870,6 +874,27 @@ class Partial(Layered, unittest.TestCase):
                 self.assertEqual((projected, left), ("TSK-0001", "none"))
                 self.assertEqual(unread, f"TSK-0002 (issue #2, {reason})")
                 self.assertIn("\nissue: 2\n", Project.task(self, root, "TSK-0002-second.md"))
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root writes a read-only file")
+    def test_an_updated_issue_is_projected_though_its_task_file_is_not_written(self):
+        """TSK-2960, REQ-2572: a mapped task whose issue was updated counts as projected where its file then can't
+        be written, because its issue was updated. The run stops at a refused create after it, so the line is
+        printed."""
+        root = Project.repository(self)
+        self.stand_in(root, {})
+        first = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        task = root / "project" / "tasks" / "TSK-0001-first.md"
+        task.write_text(task.read_text(encoding="utf-8").replace("# Refuse an empty title", "# Refuse a blank title"),
+                        encoding="utf-8")
+        task.chmod(0o444)
+        (root / "project" / "tasks" / "TSK-0003-third.md").write_text(TASK.format(
+            id="TSK-0003", closes="    REQ-0004,", title="A third", depends="Nothing."), encoding="utf-8")
+        self.stand_in(root, {"responses": {"POST repos/o/r/issues": [self.REFUSED]}})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("TSK-0001: issue #1 updated, and the mapping couldn't be written", done.stdout)
+        self.assertEqual(groups(self, done), ("TSK-0001, TSK-0002", "none", "TSK-0003"))
 
     def test_created_issues_are_read_back_in_one_listing(self):
         """TSK-2960 criterion 5, REQ-2572: with five tasks and every create answered, the stand-in records one
