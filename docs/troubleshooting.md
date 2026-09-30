@@ -126,9 +126,10 @@ task another one depends on that isn't done. Approve the input or finish the
 task it names, then run the step again. If you run `/meow-flow:run` with
 nothing newly approved, it says what it is waiting on.
 
-`TSK-... is not on main yet` means the task's record exists on your branch
-and not on the trunk your profile declares, so its approval still waits on a
-merge. Merge the change that adds the task, then run the step again.
+`TSK-... is not approved on main yet` means the task is approved on your
+branch and not on the trunk your profile declares, so its approval still
+waits on a merge. Merge the change that approves the task, fetch if the merge
+happened on the code host, then run the step again.
 
 ## meow-verbs is now meow-checks
 

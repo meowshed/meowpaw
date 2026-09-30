@@ -138,8 +138,8 @@ paw ready implement: not ready
 
 `paw ready implement` asks that of a task: the task and its epic, defect or
 decision approved, and each task under its `## Depends on` done. It also
-refuses a task whose record isn't on the trunk you declare under `[git] trunk`
-yet, because an approval on an unmerged branch still waits on its merge, and
+refuses a task that isn't approved on the trunk you declare under `[git] trunk`
+yet, on its remote-tracking branch or its local one, because an approval on an unmerged branch still waits on its merge, and
 `paw status` shows that task as waiting. Where you declare no trunk, or the
 directory is no git work tree, it refuses nothing for that and `paw status`
 says an approval can't be told from one waiting on a merge. A decision

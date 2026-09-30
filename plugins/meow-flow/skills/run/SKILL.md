@@ -20,7 +20,9 @@ waiting.
    first item waiting and stop, saying the chain is waiting on it.
 4. Load the `method` skill and run the step the chosen line names, with its
    input.
-5. Stop where that step ends at an approval gate.
+5. Stop where that step ends at an approval gate. Where the person asked for
+   a whole decision in one pull request, the method skill's M20 carries the
+   steps through, and you stop at that pull request.
 6. Where that step ends without an approval gate, run
    `${CLAUDE_SKILL_DIR}/../../bin/paw status` again and continue from step 2,
    because the next step's input is already approved.

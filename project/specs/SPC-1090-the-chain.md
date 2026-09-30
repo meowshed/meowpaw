@@ -603,7 +603,7 @@ own line (REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
 | design       | each named requirement is approved (REQ-0228)                                                                                                            |
 | spec         | the named decision is approved (REQ-0240)                                                                                                                |
 | epic         | the named decision or defect is approved, and a decision's requirements are all stated by a specification                                                |
-| implement    | the named task and its epic, defect or decision are approved, each task it depends on is done, and the task's record is on the declared trunk (REQ-3660) |
+| implement    | the named task and its epic, defect or decision are approved, each task it depends on is done, and the task is approved on the declared trunk (REQ-3660) |
 | review       | nothing: the review reads the task's pull request                                                                                                        |
 
 A task is done when its epic or defect marks it `[x]`, and dropped when it is
@@ -680,13 +680,19 @@ skill writes its research, requirements, decision record, specification
 changes, epic and tasks in turn and stops once, at that pull request, whose
 merge is the approval (REQ-3650, REQ-3656, ADR-2310). It writes each record
 as a draft, runs `paw check`, and sets it to `approved` only where the check
-reports nothing (REQ-3658), and it implements nothing on that path. A task
-whose record is absent from the trunk the profile declares isn't ready:
+reports nothing (REQ-3658), and it implements nothing on that path. On that path the statuses land in the pull request's commits, and
+not each in a commit of its own. A task that isn't approved on the trunk the
+profile declares, because its record is absent there or is still a draft
+there, isn't ready:
 `ready implement` refuses it and `status` prints it as waiting on its merge
 (REQ-3660, REQ-3662), and where no trunk is declared or it can't be read,
 `status` says an approval can't be told from one waiting on a merge
-(REQ-3664). It reads the remote-tracking branch of the trunk's name where
-one exists and the local branch otherwise, and asks only about an open task.
+(REQ-3664). It reads the remote-tracking branch of the trunk's name and the
+local branch, and a task approved on either is on the trunk, so a repository
+that commits straight to its trunk is never refused. It finds the task there
+by its identifier, asks only about an open task, and `status` names as next
+the first task that can start and is approved on the trunk. A record kept
+outside the repository is on no branch, and `status` says so.
 
 `paw status --waiting` prints only what waits for approval, each line
 naming the artifact, its kind and the gate it waits at, and prints nothing when

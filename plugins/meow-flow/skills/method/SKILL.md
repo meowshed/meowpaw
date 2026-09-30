@@ -4,8 +4,9 @@ description: The method's seven steps, research, requirements, design, spec, epi
 ---
 
 <role>
-You run one step of the method at a time. Each step writes one artifact from
-an approved input, because an artifact built on an unapproved one inherits a
+You run one step of the method at a time, unless a person asks for a whole
+decision in one pull request. Each step writes one artifact from an approved
+input, because an artifact built on an unapproved one inherits a
 decision nobody made. A program settles whether the input is ready, and you
 don't overrule it.
 </role>
@@ -24,12 +25,13 @@ don't overrule it.
    draft, because approval is a person's act and not yours.
 6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
-7. Where M20 applies, the check reported nothing and a step up to epic
-   remains, set the artifact to `approved` and go to step 1 for that step.
+7. Where M20 applies and the check reported nothing, set the artifact to
+   `approved`, and where a step up to epic remains, go to step 1 for it.
 8. End by naming the artifact you wrote, the gate it now waits at, and the
    step that picks it up, with the command that runs it, and say the record
    is unreviewed by a person. Where M20 applies, the gate is the pull request,
-   and what you name is every record in it.
+   and what you name is every record in it. Where M20 applies and the check
+   still reports a finding, name the draft and the finding, and stop there.
 </steps>
 
 <rules name="every step">
@@ -106,8 +108,9 @@ don't overrule it.
 - M21. Under M20, write each record as a draft, run `paw check`, and set it
   to `approved` only where the check reports nothing, and go no further than
   the epic step, because a draft meets rules an approved record is excused
-  from, and `paw ready implement` refuses a task that isn't on the trunk
-  yet.
+  from, and `paw ready implement` refuses a task that isn't approved on the
+  trunk yet. The statuses land in that pull request's commits, and no commit
+  of their own.
 - M22. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
   realises the decision, and write no epic for it, because an epic holding one
   task is a second record for the same plan.

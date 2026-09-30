@@ -64,7 +64,8 @@ Nothing.
 
 ## Evidence
 
-`OffTheTrunk` in `plugins/meow-flow/tests/test_record.py` holds eight checks:
+`OffTheTrunk` in `plugins/meow-flow/tests/test_record.py` holds fifteen checks, seven
+of them added with the code review's fixes:
 criteria 1 to 4 on fixture repositories with a declared trunk, none, no git
 work tree, a trunk naming no branch and a remote-tracking trunk, and
 criterion 5 on the method skill's rules read as a list. Seven failed at the
@@ -76,7 +77,9 @@ all four verbs, and `meow-author check` reports 0 authoring failures.
 
 ## Left alone
 
-`steps/epic.md` needed no change: it names implement as the step after it, and
+The guard reads more than the requirement's word "absent": a task that is a
+draft on the trunk and approved on the branch waits too, which is the case
+ADR-2310's reasoning describes. `steps/epic.md` needed no change: it names implement as the step after it, and
 the method skill's M21 stops the one-pull-request path there. The `ready`
 gate of the epic step on an unmerged decision has no program check, as
 ADR-2310 says it doesn't settle.
