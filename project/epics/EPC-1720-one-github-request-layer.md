@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-29
 realises: ADR-1810
-checked-at:
 ---
 
 # Every GitHub request goes through one layer that reads its limits, stops at a stated wait, and writes only issues

@@ -156,15 +156,3 @@ more than one extra commit each, counted in the history.
 - Which judge counts as stronger than a candidate, which REQ-3028 asks for.
 - Evaluating the other units' cases in both arms, which the next run of each
   does by itself.
-
-## Open review findings
-
-- A condition that would reverse the default of 5 runs and the delete label,
-  such as the printed error at 5 runs exceeding a stated size on most cases.
-  Left open: the error printed with every result is where that evidence will
-  show, and choosing its size before any case has run both arms would be a
-  guess.
-- Replacing "Leave the loop as it is" with a real contender, such as a run
-  count that grows until the error falls under a stated margin. Left open:
-  the row records that doing nothing was considered, and the adaptive count
-  is a later decision the undetermined label makes room for.

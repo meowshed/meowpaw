@@ -2,8 +2,7 @@
 id: SPC-1070
 artifact: spec
 status: live
-revised: 2026-09-29
-checked-at: "#625"
+revised: 2026-09-30
 states:
   [
     REQ-0137,
@@ -205,7 +204,7 @@ kind also forbids `epic`, because only an epic would place one epic under
 another. A grouping written under a field name outside that list isn't
 reported (ADR-1800).
 
-The layout records every retired front matter field and status value with what
+The layout records every retired front matter field, status value and section with what
 replaced it, and the check refuses a record or a kind carrying one, so a
 retired name is never reused (REQ-3010, REQ-3011). `paw count` prints
 each kind's count by status and the number of identifiers, which a migration's
@@ -225,7 +224,7 @@ REQ-3012, REQ-3014, REQ-3016, REQ-3018, REQ-3019) (ADR-1240).
 | relations    | An identifier in a relation field that doesn't resolve, and a link inside the record whose target doesn't exist (REQ-0656)                                                                                                    | new                            |
 | index        | A file its kind's index doesn't list, and an index entry with no file (REQ-0524)                                                                                                                                              | new                            |
 | coverage     | A requirement a decision addresses in no task or in two, and one in force that no specification states (REQ-0246)                                                                                                             | `check_coverage`               |
-| shape        | An artifact missing a section its kind requires, or not opening with the one it must (REQ-0145)                                                                                                                               | `check_research`               |
+| shape        | An artifact missing a section its kind requires, not opening with the one it must (REQ-0145), or carrying a section the layout retired (REQ-3652)                                                                             | `check_research`               |
 | rules        | A named rule a section or field can't express: an undated source, research citing a requirement, a judged requirement with no verifier, an epic realising other than one record, an alternatives table with no reason it lost | new                            |
 
 The front matter check also reports a field its kind must not carry, and a
@@ -245,12 +244,14 @@ was `approved` at `<rev>`, through git, and compares it with the current file
 its approval (REQ-0396, REQ-0398, REQ-0626, REQ-0630, REQ-0635), unless it is
 one its kind allows:
 
-| Kind            | May change after approval                                                                                                                                  |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| task            | its `## Evidence` and `## Cover` sections and its `issue`, because the implement and cover steps write them after the epic's approval                      |
-| epic            | anything, until its `checked-at` is set (REQ-0634)                                                                                                         |
-| every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic |
-| living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                             |
+| Kind            | May change after approval                                                                                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| task            | its `## Evidence` section and its `issue` and `projected` fields, because the implement step and the tracker projection write them after approval                          |
+| epic            | its first `## Tasks` section, where the marks and their evidence are written (REQ-0634)                                                                                    |
+| defect          | its first `## Tasks` and `## Closed by` sections and its `issue` (ADR-1440)                                                                                                |
+| every record    | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652); a record still carrying one is compared whole |
+| every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic                 |
+| living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                                             |
 
 Without `--base`, the check compares with `HEAD`. It isn't among the checks
 `paw check` runs with no name, because it needs a base and git.

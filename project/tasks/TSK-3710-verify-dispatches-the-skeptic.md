@@ -74,13 +74,6 @@ the one TSK-3700 landed with, and make its README's `describes:` match.
 TSK-3700, because the verify step dispatches `meow-flow:skeptic`, and a
 dispatch of an agent the unit doesn't ship fails in every session.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet.

@@ -266,10 +266,3 @@ falls back or runs on another model is unread, as the effort-level pairing is.
   a missing list or `*`, an empty list resolving to no tool, the refusal of a
   zero-tool spawn only when the list named an unmatched entry, and the plugin
   loader copying `maxTurns` and `effort` only when each key is present.
-
-## Open review findings
-
-- The reviewer asked, as a preference, that conclusions 2 and 4 to 7 be
-  phrased as findings and not as obligations. I kept the obligation form,
-  because RES-0263 writes its conclusions that way and this note elaborates
-  it; changing one note alone would leave the two reading differently.

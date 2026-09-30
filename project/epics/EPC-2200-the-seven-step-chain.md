@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-29
 realises: ADR-2300
-checked-at:
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
@@ -94,8 +93,11 @@ A task is marked in the commit that advances it, never in a later pass.
       failing at the pull request's first commit.
       depends: TSK-3830 (not blocking)
 
-- [ ] T-007 TSK-3860 migrate every record to the seven-step chain's shape
+- [x] T-007 TSK-3860 migrate every record to the seven-step chain's shape
       closes: REQ-3652
+      evidence: 15 checks in `MigratedShape` and 2 in
+      `tools/test_record_shape.py`, 7 seen failing at the pull request's
+      first commit, and `paw count` equal before and after.
       depends: TSK-3800 (blocking), TSK-3830 (blocking)
 
 - [x] T-008 [P] TSK-3870 remove the `meow-method` stub from the marketplace

@@ -88,31 +88,13 @@ in `plugin.json`, and its README's `describes` to match.
 
 Nothing: the agent stands alone, and the route skill is the one that needs it.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_route.py
-- Failing run: project/evidence/c43d863413e3.txt
-- Landed in: #669
-- Judgement: 3: it dispatches the router on a model, and model calls run by hand and never in the gate; 4: the cases dispatch the router on a model, run by hand; 5: the case dispatches the router on a model, run by hand; 6: the case dispatches the router on a model, run by hand; 7: the existing budget check closes it, and it passes before the agent exists, so no failing run can be kept for it
-
-The checks are the class `RouterAgent`, each naming its criterion and
-requirement in its docstring: criterion 1 by
-`RouterAgent.test_tools_are_read_grep_glob` and
-`RouterAgent.test_a_writing_copy_fails`, and criterion 2 by
-`RouterAgent.test_the_prompt_names_sizes_shapes_and_fields`. Criterion 3's
-two dispatches are kept runs by hand, and whether the reply reads as a
-refusal stays a judgement. Criteria 4, 5 and 6 are closed by the cases
-`route-plain-words`, `route-a-tiny-fix`, `route-both-ways` and
-`route-three-changes`, which the implementation adds with their thresholds
-before their first run.
-
 ## Evidence
 
 Closes REQ-0334, REQ-0338, REQ-0342, REQ-0344 and REQ-0346 as far as the
 router states them; the route skill that reports the route is TSK-3510's.
 
 Criteria 1 and 2. The cover commit added the three checks, and
-`project/evidence/c43d863413e3.txt` keeps their failing run: the `test` verb
+the run under #669, whose output is no longer kept, was their failing run: the `test` verb
 exited 1 with `FAILED (failures=3)`, all three in `RouterAgent`, because
 `agents/router.md` didn't exist. With the agent in place,
 `python3 -m unittest plugins/meow-flow/tests/test_route.py -v` exits 0:

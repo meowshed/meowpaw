@@ -38,13 +38,6 @@ one open.
 
 Nothing. BUG-1250 is approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py, the class `TasklessEpic`
-- Failing run: project/evidence/caa66d8d0c05.txt
-- Landed in: #622
-- Judgement: none
-
 ## Evidence
 
 `crates/meow/src/record.rs` gains `taskless_gaps`, which both the `document`
@@ -55,8 +48,8 @@ whose record addresses nothing, such as one realising a defect, is refused as
 before, with `lists no tasks`.
 
 The three checks in the class `TasklessEpic` failed first: `meow-verbs run
-test` exited 1 with `FAILED (failures=3)`, kept as
-`project/evidence/caa66d8d0c05.txt`, in the commit that held the checks
+test` exited 1 with `FAILED (failures=3)`, seen in
+the run under #622, whose output is no longer kept, in the commit that held the checks
 alone. They pass now:
 
 ```text

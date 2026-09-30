@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-29
 realises: ADR-1710
-checked-at:
 ---
 
 # Every shipped agent reports one of four outcomes, its dispatcher acts on the word, and a denied tool ends it as BLOCKED

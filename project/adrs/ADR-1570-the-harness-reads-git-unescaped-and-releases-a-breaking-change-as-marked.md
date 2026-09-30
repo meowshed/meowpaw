@@ -143,10 +143,3 @@ verdicts beside evidence.
 - A breaking change nobody marked.
 - REQ-2544, until the harness rewrites history, and REQ-2532, until it keeps
   its own verdicts.
-
-## Open review findings
-
-- Citing research for REQ-2540's reason in Why, where the reason now rests on
-  the requirement itself. Left: RES-0131 records the variables that keep git
-  from reading a user's configuration, not what writing one does, so no
-  research finding states it yet.

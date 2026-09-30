@@ -49,18 +49,11 @@ admonitions and diagram blocks for the seven known render targets. Raise
 
 TSK-3100, because the unit and its skill file come from it.
 
-## Cover
-
-- Checks: `plugins/meow-markdown/tests/test_markdown.py`
-- Failing run: `project/evidence/cfe2a8d9882c.txt`
-- Landed in: #677
-- Judgement: 3: the gate's `prompts` and `budget` tasks hold it, and they pass before the work, so no check of it could be seen failing; 4: the pull request's reviewer reads the skill's order against RES-0111's, because the order of a prompt's sections is read, not matched
-
 ## Evidence
 
 The cover commit 4142a15 added seven checks to
 `plugins/meow-markdown/tests/test_markdown.py`, and they failed there before
-the work, as `project/evidence/cfe2a8d9882c.txt` records. With the skill and
+the work, as the run under #677 recorded; its output is no longer kept. With the skill and
 `reviewing.md` written, the same checks pass unchanged:
 
 ```text

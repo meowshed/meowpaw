@@ -149,7 +149,6 @@ artifact: epic
 status: {status}
 revised: 2026-01-01
 realises: ADR-0001
-checked-at:
 ---
 
 # A plan

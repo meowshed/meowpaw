@@ -66,21 +66,6 @@ TSK-3100, because the program and its detection come from it. It runs in
 parallel with TSK-3110, and whichever merges second rebases onto the first,
 since both add to `check`.
 
-## Cover
-
-- Checks: `plugins/meow-markdown/tests/test_markdown.py`
-- Failing run: `project/evidence/9ef867a56681.txt`
-- Landed in: #671
-- Judgement: 5: CI has no lychee, so the check reports itself as skipped there, and only a kept run with lychee 0.24.2 on `PATH` shows it passing
-
-The checks are `Links.test_criterion_1_*` to `test_criterion_5_*` for criteria
-1 to 5, and `LinkSettings.test_criterion_6_*` and `test_criterion_7_*` for
-criteria 6 and 7. Each stand-in lychee prints the JSON shape RES-0294 records,
-with its texts. A check whose passing case already passes folds that case into
-the same test as its failing case, so each test fails until `links` and the
-settings findings exist. The failing run had lychee 0.24.2 on `PATH`, so the
-criterion 5 check ran and failed rather than skipping.
-
 ## Evidence
 
 `crates/meow/src/markdown.rs` gains `links`: it runs
@@ -95,8 +80,8 @@ that doesn't parse, and a cache that `git check-ignore --verbose` finds no
 repository ignore file covering. `meow-markdown` is 0.3.0, and its README,
 the launcher's usage line and SPC-1195 say how `links` classifies and prints.
 
-The 13 checks failed first, in the cover commit 97915b4, kept as
-`project/evidence/9ef867a56681.txt`. They pass now, unchanged, since
+The 13 checks failed first, in the cover commit 97915b4, seen in
+the run under #671, whose output is no longer kept. They pass now, unchanged, since
 `git diff 97915b4 -- plugins/meow-markdown/tests/test_markdown.py` prints
 nothing:
 

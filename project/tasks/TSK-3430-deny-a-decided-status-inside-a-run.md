@@ -62,13 +62,6 @@ TSK-3410's tree.
 - TSK-3400 (blocking): the last change to the hook this rule joins, so the
   two don't edit the handler at once.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

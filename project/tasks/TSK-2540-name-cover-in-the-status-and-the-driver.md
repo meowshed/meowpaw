@@ -71,30 +71,6 @@ fail.
 TSK-2530, because `status` decides between cover and implement with the
 Cover reading that task adds, and names a step `ready` must already know.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/0c16e63f1816.txt
-- Landed in: #658
-- Judgement: 5: no fixture runs a model session, so whether one invocation reaches implement after cover is observed on the next epic, as criterion 9 of EPC-1580 says
-
-The checks are `Chain.test_status_names_cover_for_an_uncovered_task` for
-criterion 1, `Chain.test_status_names_implement_once_covered` for criterion 2,
-`Chain.test_status_prints_the_same_state_twice` for criterion 3 and
-`RunSkill.test_the_driver_continues_past_a_step_with_no_gate` for criterion
-4, all for REQ-3202. `Chain.test_status_leads_with_drafts_and_places_each_decision`
-now expects `next: cover TSK-0001`, as What to do asks. Criterion 6 is the
-kept run of the verbs at the revision that merges.
-
-### Cover returned
-
-Two checks were wrong, and I corrected them after the failing run. The two
-status checks compared the expected line with whole output lines, and `paw
-status` indents each decision's position by four spaces, so they now compare
-stripped lines. The covered fixture gave the task no numbered criterion, which
-`ready implement` refuses since BUG-1261, so it now carries the criteria the
-Cover fixtures use.
-
 ## Evidence
 
 `position` in `crates/meow/src/record.rs` reads the first doable task's Cover
@@ -106,7 +82,7 @@ sections "The state" and "The driver" no longer mark the behaviour as not yet,
 and `meow-flow` goes to 0.36.0.
 
 The five checks failed first: `meow-verbs run test` exited 1 with
-`FAILED (failures=5)`, kept as `project/evidence/0c16e63f1816.txt`, in the
+`FAILED (failures=5)`, seen in the run under #658, whose output is no longer kept, in the
 commit that held the checks alone. They pass now:
 
 ```text

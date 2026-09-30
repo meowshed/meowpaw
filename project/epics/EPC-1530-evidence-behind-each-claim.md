@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1560
-checked-at: "#565"
 ---
 
 # Evidence stays bound to its tree, and the evidence behind each claim is listed
@@ -49,34 +48,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence a change adds with `evidence --kept`
       closes: REQ-0452, REQ-0454, REQ-0456
       evidence: eight fixtures seen failing first, in #563.
-
-## Verified
-
-I checked this under #565 on `main` after #564, gathering the evidence there
-rather than carrying it over from the task. `meow-verbs evidence --keep
-format lint test` exits 0 on this change's own tree, each result kept in
-`project/evidence/`, and `meow-verbs evidence --kept` lists those three files
-as matching `HEAD`, as the pull request cites. The `Claims` and `Ledger`
-fixtures pass. Every criterion is met:
-
-| Criterion                                                                                                                                                      | Evidence on `main` after #564                                                             |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 1. A record's tree id and staleness hold, a dirty submodule binds no result, and an edit in a submodule leaves no earlier result current                       | The two `Ledger` fixtures traced in TSK-2380 and the two submodule `Claims` fixtures pass |
-| 2. `--kept` lists what the branch adds with each record and its match, handles superseded, failed, empty, no-trunk and non-git cases, and joins a cited record | The six listing `Claims` fixtures pass, and this change's own listing names each record   |
-| 3. Every requirement lands in exactly one closed task                                                                                                          | `paw show` derives REQ-0452, REQ-0454 and REQ-0456 as closed by TSK-2380                  |
-
-Two results kept within one second can still tie on a fresh clone, as
-TSK-2380 records.
-
-### Documentation
-
-TSK-2380 stated the listing and the submodule rule on `meow-verbs`' page, at
-0.7.0. The `test` verb checked it, running `tools/check_docs.py`.
-
-### Postponements
-
-ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
-untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 

@@ -87,13 +87,6 @@ TSK-3410's tree.
 - TSK-3410 (blocking): the step, the record code and the copy held at start
   that this task compares against.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

@@ -259,9 +259,7 @@ the harness says is measured,
 prompt the harness ships is written, what an agent declares, which EPC-1650
 realises, and what an agent reports, which EPC-1651 realises, and
 [SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
-which follows both. The work realising them has landed. SPC-1010 was checked
-at #597, when EPC-1590 was verified, and the other two leave `checked-at` empty
-until their epics are verified.
+which follows both. The work realising them has landed.
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release, the marketplace address and the checks the crate
@@ -295,7 +293,7 @@ issue 626.
 terms a person starts a run with, the step it's bound to and that step's
 test, the files a run keeps, each call, the order of its checks, its eight
 endings and the guards that stop the model starting a run or deciding a
-status. `checked-at` is empty until EPC-1910 and EPC-1920 are verified.
+status.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -568,7 +566,7 @@ ADR-2200 in two tasks, TSK-3700 and TSK-3710, both dropped when ADR-2300
 superseded ADR-2200.
 
 [EPC-2200](epics/EPC-2200-the-seven-step-chain.md) realises ADR-2300 in eight
-tasks, TSK-3800 to TSK-3870, of which TSK-3800 to TSK-3850 and TSK-3870 are done, and each of the 28
+tasks, TSK-3800 to TSK-3870, all of them done, and each of the 28
 requirements ADR-2300 addresses lands in one of them.
 [EPC-1650](epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
 ADR-1700 in two tasks, TSK-2700 and TSK-2701, neither of them started, and

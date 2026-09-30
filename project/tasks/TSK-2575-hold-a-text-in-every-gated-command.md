@@ -45,18 +45,6 @@ repository, so `meow-prose-gate` keeps its version.
 
 Nothing. BUG-1265 is approved.
 
-## Cover
-
-- Checks: plugins/meow-prose-gate/tests/test_gate.py
-- Failing run: project/evidence/ec5fc5600a5d.txt
-- Landed in: #713
-- Judgement: none
-
-The failing run is criterion 3's fixture alone, before the seven commands had
-one: it named each of their seven `if` patterns as routed with no fixture.
-Criteria 1 and 2 pass against the current binary, as the task expects,
-because the program already held each form.
-
 ## Evidence
 
 The class `EveryGatedCommand` in
@@ -72,8 +60,8 @@ no fixture fails, and so does a fixture whose pattern was deleted.
 
 That check failed first, in the commit that held it alone:
 `meow-verbs run test` exited 1 with `FAILED (failures=1)`, naming the seven
-patterns from `gh pr edit` to `gh release edit`, kept as
-`project/evidence/ec5fc5600a5d.txt`. It passes now:
+patterns from `gh pr edit` to `gh release edit`, seen in
+the run under #713, whose output is no longer kept. It passes now:
 
 ```text
 $ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests

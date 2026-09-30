@@ -50,18 +50,6 @@ README, and raise `meow-prose-gate`'s patch version, with each page's
 
 Nothing. BUG-1269 is approved.
 
-## Cover
-
-- Checks: plugins/meow-prose-gate/tests/test_gate.py
-- Failing run: project/evidence/858bedc10330.txt
-- Landed in: #743
-- Judgement: none
-
-Criteria 2 and 4 passed in the failing run, because the program already
-skipped `git`'s global options and never read `gh -R o/r pr list` as a
-publish. Criterion 3 failed for all four commands, so the `git` forms are
-held by the routing check.
-
 ## Evidence
 
 `publishing` in `crates/meow/src/prose.rs` now skips `-R` and `--repo` with
@@ -75,8 +63,8 @@ that publishes nothing, and `meow-prose-gate` goes to 0.2.2, with the
 
 Three checks failed first, in the commit that held the fixtures alone:
 `meow-verbs run test` exited 1 with `FAILED (failures=3)`, naming the two
-`gh` fixtures and the routing check, kept as
-`project/evidence/858bedc10330.txt`. They pass now:
+`gh` fixtures and the routing check, seen in
+the run under #743, whose output is no longer kept. They pass now:
 
 ```text
 $ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests

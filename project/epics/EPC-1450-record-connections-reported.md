@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1470
-checked-at: "#506"
 ---
 
 # The record reports deep coverage, suspect citations and unconnected artifacts
@@ -58,37 +57,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-0143, REQ-0161
       evidence: three fixtures seen failing first, and `paw status` on the
       project record matching ADR-1470's counts, in #503.
-
-## Verified
-
-I checked this under #506 on `main` after #505, gathering the evidence there
-rather than carrying it over from the tasks. `meow-verbs run format lint test`
-exits 0 with `summary: format passed, lint passed, test passed`, and the nine
-fixtures in `Connections` and `Reported` pass. Every criterion is met:
-
-| Criterion                                                                                                                | Evidence on `main` after #505                                                                                                                                                |
-| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. `check coverage` fails over a draft two steps up and a draft over a withdrawn provider; `status` lists a rejected one | `Connections` covers the draft chain and the withdrawn provider, and `Reported` the rejected provider in `status`                                                            |
-| 2. `check relations` fails on a draft citing a later revision, and passes on an approved one, which `show` marks         | The two `Connections` fixtures on a later revision pass                                                                                                                      |
-| 3. An epic revised later passes, and a withdrawn epic is suspect                                                         | `Connections.test_an_epic_is_suspect_by_its_status_and_not_its_date` passes                                                                                                  |
-| 4. `status` lists the five unconnected artifacts, the three suspect citations and the share by verifier                  | `paw status` lists BUG-1130, BUG-1150, TSK-1000, TSK-1100 and TSK-1220, the citations from ADR-1020, ADR-1350 and TSK-2020, and 61 of 1091, with judgement split by verifier |
-| 5. `paw check` passes on the project record                                                                              | The `test` verb runs `paw check`, which reports 0 findings in every check                                                                                                    |
-| 6. Every requirement lands in exactly one closed task                                                                    | `paw show` derives REQ-0139, REQ-0141, REQ-0143 and REQ-0161 as closed, by TSK-2240 and TSK-2250                                                                             |
-
-Each fixture was seen failing before its code, except the one for a living
-artifact over a rejected provider, which TSK-2250 wrote after its code. It
-would fail if that provider went unreported, because it asserts the finding's
-exact text.
-
-### Documentation
-
-TSK-2240 and TSK-2250 described the new findings and reports on `meow-flow`'s
-page, at 0.32.0. The `test` verb checked it, running `tools/check_docs.py`.
-
-### Postponements
-
-ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
-untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 

@@ -52,16 +52,6 @@ The shipped program doesn't change, so no unit version is raised.
 
 Nothing. BUG-1342 is approved, and TSK-3330 has landed.
 
-## Cover
-
-- Checks: plugins/meow-unattended/tests/test_unattended.py
-- Failing run: project/evidence/c763123d81b8.txt
-- Landed in: #694
-- Judgement: 1: a mutant is a program nobody ships, so the failing runs
-  come from binaries built outside the tree, and review reads each mutation
-  in BUG-1342's table and the result for each in Evidence; 3: the kept run of the five verbs at the
-  revision that merges closes it, and no check written before the work can
-
 ## Evidence
 
 The checks now run the posture test for each of the five modes and compare
@@ -88,7 +78,7 @@ exit 0 and `OK`. Against the new suite each exits 1:
 | H      | 1    | `FAILED (failures=2)` | `Refusals.test_refused_values`              |
 | I      | 1    | `FAILED (failures=2)` | `Plan.test_output_states_the_limits`        |
 
-The kept failing run, `project/evidence/c763123d81b8.txt`, is
+The failing run, under #694, whose output is no longer kept, is
 `meow-verbs run test` with `MEOW_UNATTENDED_BIN` naming one binary that
 holds every mutant but D, which edits the same line as H. It exited 1 with
 `FAILED (failures=12)` across the posture, limits, push-rule, record and

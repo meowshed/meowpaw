@@ -53,16 +53,6 @@ and see them fail.
 
 Nothing. BUG-1263 is approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/e65403061cf8.txt
-- Landed in: #678
-- Judgement: none
-
-Criterion 3 passed in the failing run as well, because it is the Cover the
-fix must keep accepting, so it guards against a rule that refuses too much.
-
 ## Evidence
 
 `cover_gaps` in `crates/meow/src/record.rs` asks a new function,
@@ -75,8 +65,8 @@ lines the template asks for. SPC-1090's section "The gate", rule C2 in
 goes to 0.39.4.
 
 The two checks that describe the defect in the class `CoverClosedBy` failed
-first: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
-`project/evidence/e65403061cf8.txt`, in the commit that held the checks
+first: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, seen in
+the run under #678, whose output is no longer kept, in the commit that held the checks
 alone. They pass now:
 
 ```text

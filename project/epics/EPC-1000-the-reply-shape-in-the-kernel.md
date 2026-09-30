@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-21
 realises: ADR-1000
-checked-at: "#27"
 ---
 
 # The reply shape, carried by the kernel

@@ -2,8 +2,7 @@
 id: SPC-1201
 artifact: spec
 status: live
-revised: 2026-09-29
-checked-at:
+revised: 2026-09-30
 states:
   [
     REQ-0870,
@@ -102,10 +101,10 @@ meow-loop start --step <step> [--inputs <id>[,<id>...]]
 `--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` and
 `--permission-mode` are each required, so the step, the condition and both
 bounds are stated before a run starts (REQ-0872, REQ-0888), and no call
-inherits the platform's default mode. `--step` names one of the eight steps in
+inherits the platform's default mode. `--step` names one of the six steps in
 the table under "The step's test". `--inputs` names the identifiers that step
 reads, and every step but `research` requires it, while `research` refuses it.
-`document` and `review` aren't steps a run takes.
+`review` isn't a step a run takes.
 `--iterations` is an integer of 1 or more, and `--budget-usd` a number above
 0, in US dollars. `--permission-mode` accepts `dontAsk` alone, because it's
 the one mode RES-0300 saw run a call. `bypassPermissions` is refused, because
@@ -151,14 +150,11 @@ record counts whatever its status, so a draft counts.
 | `design`       | Each input requirement is in the `addresses` or `postpones` of some decision new since start                      | decisions                                                                 |
 | `spec`         | Each requirement the input decision addresses is in the `states` of some specification new or changed since start | specifications                                                            |
 | `epic`         | An epic new since start names the input in `realises`                                                             | epics and tasks                                                           |
-| `cover`        | Each input task passes the Cover test `paw ready implement` applies                                               | tasks, and any path outside the record root                               |
 | `implement`    | Each input task is marked `x` by the record that authorises it, and its `## Evidence` holds text                  | tasks, the task marks of epics and defects, and any path outside the root |
-| `verify`       | Each input epic's `checked-at` is set                                                                             | epics' `## Verified` and `checked-at`                                     |
 
 "New since start" means absent from the copy held at start, and "changed"
 means present there with other text. The `implement` test reads the `x` mark
-alone, so a task marked `~`, dropped, doesn't pass it. The `verify` test is
-the one `paw ready review` applies. A `cover`, `implement` or `verify` run
+alone, so a task marked `~`, dropped, doesn't pass it. An `implement` run
 whose work is already done ends `finished` with no call, and a run of any of
 the five record steps always makes at least one call, because its test counts
 only a record new or changed since start.
@@ -312,12 +308,11 @@ kind the record declares living, such as a specification. The run ends
 
 A run may change an approved task outside its frozen part, as the record's
 frozen comparison allows. It may change an approved epic or an approved
-defect only in its task marks, and only in an `implement` run, and an approved
-epic only in its `## Verified` section and `checked-at`, and only in a
-`verify` run. Any other change to an approved epic or defect crosses. The
-runner takes none of the frozen comparison's other allowances: an epic whose
-`checked-at` is empty isn't free to change, a status now `withdrawn` or
-`superseded` crosses, and so does an added line naming an authority.
+defect only in its task marks, and only in an `implement` run. Any other
+change to an approved epic or defect crosses. The runner takes none of the
+frozen comparison's other allowances: a status now `withdrawn` or `superseded`
+crosses, and so does an added line naming an authority. ADR-2300 removed the
+cover and verify steps, so no run is bound to either.
 
 The run ends `off-step`, naming each record or path, when the call:
 
@@ -328,8 +323,7 @@ The run ends `off-step`, naming each record or path, when the call:
   it. Where either tree id is unidentified the runner can't list the paths,
   and it ends a run of a step that writes only records `off-step` for that
   reason;
-- left an input failing the test `start` applied, or, in an `implement` run,
-  set an epic's `checked-at`.
+- left an input failing the test `start` applied.
 
 The runner checks `crossed` before `off-step`, so a call that does both ends
 `crossed`.
@@ -462,7 +456,7 @@ Each usage error exits 2, creates no run directory and removes none:
 | State                                                                                         | Reported as                                       |
 | --------------------------------------------------------------------------------------------- | ------------------------------------------------- |
 | `--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` or `--permission-mode` absent | `usage: <flag> is required`, once for each        |
-| `--step` names no step in the table, `document` and `review` among them                       | `usage: --step <value> is not a step a run takes` |
+| `--step` names no step in the table, `review` among them                                      | `usage: --step <value> is not a step a run takes` |
 | `--inputs` given with `--step research`                                                       | `usage: research takes no --inputs`               |
 | `--inputs` absent with any other step                                                         | `usage: --step <step> needs --inputs`             |
 | The prompt file is missing or can't be read                                                   | `usage: --prompt <file> can't be read`            |
@@ -505,11 +499,3 @@ signal and without an ending in `run.toml`, and the next `start` in that work
 tree takes the lock. It needs none, because the operating system frees the
 lock when the process ends, and stopping a run and recording who stopped it
 belong to a later decision (ADR-2010).
-
-## Open review findings
-
-- The reviewer suggested keeping the changed `run.toml` beside the run before
-  the runner writes the `tampered` ending into it, since the changed content
-  is the only evidence of what a call tried. Left open: it adds a file to the
-  run's layout that ADR-2010 doesn't name and no task builds, so it belongs
-  in the next change to the runner.

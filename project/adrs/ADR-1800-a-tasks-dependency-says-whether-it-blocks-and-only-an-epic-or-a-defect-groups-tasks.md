@@ -227,11 +227,3 @@ The epic step's review was the only check on the choice, and a reviewer
 approving an epic of twenty tasks didn't read each reason. The strongest
 objection is this one: the decision moves a judgement into a token a program
 reads, and the program can't tell a convenience from an order.
-
-## Open review findings
-
-- The agent reviewer, round 1, finding 6 (preference): the pattern accepts
-  only the exact strings `(blocking)` and `(not blocking)`, and variants such
-  as `(non-blocking)` are left to whoever writes the fixtures. I left it,
-  because `dependency-declared` reports a draft line carrying a variant as
-  undeclared, so a variant is caught at `paw check` and never misread.

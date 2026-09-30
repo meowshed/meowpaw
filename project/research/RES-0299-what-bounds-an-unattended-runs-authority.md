@@ -259,27 +259,3 @@ must name for a run to keep its shell is unknown.
 - RES-0074, read 2026-09-28 - the gate table, the platform's unattended
   surface, the reason `--bare` matters and the finding on inherited
   environments.
-
-## Open review findings
-
-- RES-0001, round 1, findings 1 to 8 and 10: each is about content RES-0001
-  held before this change, which adds only its index row. RES-0001 is
-  approved, so each fix has to arrive as a new research record or through the
-  amendment path, and the `<maintenance>` clause of `CLAUDE.md` that tells
-  authors to index research in RES-0001 is outside this change. I left them for
-  a change of their own.
-- RES-0001, round 1, finding 11, allocation: RES-0299 is the first identifier
-  in the block of five this work was allocated, and an identifier near
-  RES-0059 or RES-0074 would collide with another block. I kept the identifier
-  and changed "fixes" to "bounds" in the title and the index row.
-- RES-0001, round 2, findings 2 to 9, and preference 10: the same content as
-  round 1, reported again. RES-0001 is approved, so an edit to it would reword
-  a frozen record, and each fix still needs a new record or the amendment
-  path. Finding 1 is fixed: the index row now names the Edit rule's limit, the
-  version read and that no run was observed. It leaves `--setting-sources`
-  and `--restricted` to "no run observed", because naming them would widen
-  the column and re-pad every row of an approved record. Preference 11 is
-  met because RES-0299 is approved in the change that adds its row.
-- RES-0299, round 2, preference 8: the RES-0001 entries stay here, because
-  RES-0001 is approved and can't carry them, and the pull request that adds
-  this record repeats them for whoever amends RES-0001.

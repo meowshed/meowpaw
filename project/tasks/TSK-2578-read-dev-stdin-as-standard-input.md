@@ -43,13 +43,6 @@ raise `meow-prose-gate`'s patch version, with each page's `describes:`.
 
 Nothing. BUG-1268 is approved.
 
-## Cover
-
-- Checks: plugins/meow-prose-gate/tests/test_gate.py
-- Failing run: project/evidence/43a4c9f3a54e.txt
-- Landed in: #733
-- Judgement: none
-
 ## Evidence
 
 `take` in `publishing` in `crates/meow/src/prose.rs` now reads `-`,
@@ -60,8 +53,8 @@ spellings, and `meow-prose-gate` goes to 0.2.1, with the `describes:` of its
 README, `docs/README.md` and `docs/troubleshooting.md`.
 
 The three fixtures failed first, in the commit that held them alone:
-`meow-verbs run test` exited 1 with `FAILED (failures=3)`, kept as
-`project/evidence/43a4c9f3a54e.txt`. Criterion 3 failed as well, because the
+`meow-verbs run test` exited 1 with `FAILED (failures=3)`, seen in
+the run under #733, whose output is no longer kept. Criterion 3 failed as well, because the
 old reader reported the path and never read the heredoc. They pass now:
 
 ```text

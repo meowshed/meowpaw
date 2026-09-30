@@ -249,10 +249,3 @@ check` runs over them.
   resolves only where `MISE_ENV` selects it, so a verb bound to it differs
   between machines.
 - Templates that run code without `exec`.
-
-## Open review findings
-
-- Moving the list of what `status` reports into SPC-1140 and keeping only the
-  choices here. Left: each item is where a requirement this decision
-  addresses is met, and the list is what lets a reviewer tell each one is
-  addressed; SPC-1140 states the same behaviour as the present.

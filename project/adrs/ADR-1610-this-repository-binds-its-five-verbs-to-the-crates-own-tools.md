@@ -208,13 +208,3 @@ change declares them for the pinned toolchain in `mise.toml`.
 - How a repository other than this one binds its verbs for Rust, which a Rust
   pack decides for REQ-2332.
 - Lint policy beyond clippy's default set.
-
-## Open review findings
-
-- The reviewer asked whether REQ-1673 belongs in `addresses`. It doesn't:
-  REQ-1673 is already verified through TSK-1340, and this decision cites it
-  only as the reason a compiled program outside the verbs matters.
-- The reviewer asked for clippy's time on a clean crate. None exists until the
-  third change lands, because RES-0278's copy after `cargo clippy --fix` still
-  carried two findings, so the fourth change measures it and records it in
-  its evidence, and this record keeps RES-0278's lower bound.

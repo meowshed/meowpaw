@@ -40,17 +40,6 @@ so `meow-prose-gate` keeps its version.
 
 Nothing. BUG-1266 is approved.
 
-## Cover
-
-- Checks: plugins/meow-prose-gate/tests/test_gate.py
-- Failing run: project/evidence/18050f05356d.txt
-- Landed in: #717
-- Judgement: none
-
-Criterion 3 passed in the failing run as well, because the shipped
-`hooks.json` holds command hooks only, so it guards against a reading that
-refuses too much.
-
 ## Evidence
 
 `TheHook.hook_types` in `plugins/meow-prose-gate/tests/test_gate.py` now
@@ -60,8 +49,8 @@ hook under `Stop`, and `test_an_agent_hook_under_any_event_is_refused` an
 `agent` hook under `PostToolUse`, and each finds the type it added.
 
 Both failed first, in the commit that held them alone against the old
-reading: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
-`project/evidence/18050f05356d.txt`. They pass now:
+reading: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, seen in
+the run under #717, whose output is no longer kept. They pass now:
 
 ```text
 $ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests

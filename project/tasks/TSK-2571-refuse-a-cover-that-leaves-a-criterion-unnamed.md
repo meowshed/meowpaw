@@ -55,13 +55,6 @@ them fail.
 
 Nothing. BUG-1261 is approved, and TSK-2570 has landed.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/f6f0644bf46f.txt
-- Landed in: #653
-- Judgement: none
-
 ## Evidence
 
 `cover_gaps` in `crates/meow/src/record.rs` now refuses an empty Cover line, a
@@ -73,8 +66,8 @@ criteria, because the gate reads them on every Cover. SPC-1090's section "The
 gate" states the rule.
 
 The five checks in the class `CoverCriteria` failed first: `meow-verbs run
-test` exited 1 with `FAILED (failures=5)`, kept as
-`project/evidence/f6f0644bf46f.txt`, in the commit that held the checks alone.
+test` exited 1 with `FAILED (failures=5)`, seen in
+the run under #653, whose output is no longer kept, in the commit that held the checks alone.
 They pass now:
 
 ```text

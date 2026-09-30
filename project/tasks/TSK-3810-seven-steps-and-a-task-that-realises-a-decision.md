@@ -29,12 +29,6 @@ Change `crates/meow/src/record.rs` and `lib/layout.toml` in `meow-flow`, and the
 
 - TSK-3800 (not blocking): both change `record.rs`, so the second to land rebases.
 
-## Cover
-
-Not yet. The cover step replaces this line with four, `Checks`,
-`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
-the task until they are filled.
-
 ## Evidence
 
 In #753. The class `SevenSteps` in `plugins/meow-flow/tests/test_record.py`

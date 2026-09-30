@@ -43,13 +43,6 @@ own, and see them fail.
 
 - TSK-3150 (not blocking): both edit `findings`, and TSK-3150 is merged.
 
-## Cover
-
-- Checks: plugins/meow-markdown/tests/test_markdown.py
-- Failing run: project/evidence/f6c9747bdb02.txt
-- Landed in: #703
-- Judgement: none
-
 ## Evidence
 
 `findings` in `crates/meow/src/markdown.rs` reports
@@ -63,8 +56,8 @@ to 0.4.3.
 
 The two checks in the class `MarkdownlintCliDefaults` failed first, three
 cases between them: `meow-verbs run test` exited 1 with
-`FAILED (failures=3, skipped=1)` in the Markdown suite, kept as
-`project/evidence/f6c9747bdb02.txt`, in the commit that held the checks alone.
+`FAILED (failures=3, skipped=1)` in the Markdown suite, seen in
+the run under #703, whose output is no longer kept, in the commit that held the checks alone.
 The five configured cases in criterion 1 passed before the fix as well,
 because they guard against a finding the tool doesn't have. They pass now:
 
