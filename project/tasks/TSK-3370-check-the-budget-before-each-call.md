@@ -2,7 +2,7 @@
 id: TSK-3370
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1910
 closes: [REQ-0870, REQ-0876, REQ-0878]
 issue: 727
@@ -19,6 +19,8 @@ the call that could pass it starts. This task also closes REQ-0870 and
 REQ-0876, because each names a budget beside the condition or the ceiling
 that TSK-3350 built, and this task is where the runner first holds it. One
 task, one branch, one pull request, one review.
+
+**Amended by ADR-2300.** Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -53,8 +55,8 @@ criterion 13).
    0.000001, because a sum in binary floating point needn't equal the decimal
    figure exactly. Closed by:
    `Budget.test_sum_so_far_is_logged`.
-6. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+6. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -68,8 +70,7 @@ Raise `meow-loop`'s minor version in `plugin.json`, and its README's
 `describes:` with it, because a run gains two endings.
 
 Write the checks for criteria 1 to 5 first, in a commit of their own, and
-see them fail, because the cover step keeps that failing run as the evidence
-that the checks can fail (EPC-1910, Coverage). A check that already passes on
+see them fail, because that commit is the evidence that the checks can fail (EPC-1910, Coverage). A check that already passes on
 TSK-3350's tree shows nothing this task added, so rewrite it until it
 fails there.
 

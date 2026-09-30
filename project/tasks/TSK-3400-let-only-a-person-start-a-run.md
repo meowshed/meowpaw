@@ -2,7 +2,7 @@
 id: TSK-3400
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1910
 closes: [REQ-0894]
 issue: 730
@@ -15,6 +15,8 @@ Four guards stop the model starting a run: the skill `meow-loop:loop` can't
 be invoked by the model, `start` refuses when `CLAUDECODE` is set, the hook
 denies a Bash command that runs `meow-loop start` or the native program's
 `meow loop start`, and every call passes a deny rule on each name. One task, one branch, one pull request, one review.
+
+**Amended by ADR-2300.** Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -53,15 +55,15 @@ criterion 13).
 6. Given the unit's `budget.toml`, when the `budget` check in the `lint` verb
    runs, then it passes with the skill's description counted. Given the
    README, when `tools/check_docs.py` in the `test` verb runs, then its
-   `describes:` matches the version in `plugin.json`. Closed by: the kept
-   evidence of criterion 8's run.
+   `describes:` matches the version in `plugin.json`. Closed by: criterion 8's
+   `lint` and `test` outcomes in the task's pull request.
 7. Given the diff against TSK-3390's tree, when a reviewer reads it, then
    `plugin.json` carries a minor version above TSK-3390's, and the README says
    a run starts from a terminal outside Claude Code, such as a tmux window.
    Judgement, because no check compares a version with the one before it or
    reads what a sentence says.
-8. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+8. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -77,8 +79,7 @@ Raise `meow-loop`'s minor version in `plugin.json`, and its README's
 says a run starts from a terminal outside Claude Code, such as a tmux window.
 
 Write the checks for criteria 1 to 4 first, in a commit of their own, and
-see them fail, because the cover step keeps that failing run as the evidence
-that the checks can fail (EPC-1910, Coverage).
+see them fail, because that commit is the evidence that the checks can fail (EPC-1910, Coverage).
 
 ## Depends on
 
