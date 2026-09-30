@@ -61,14 +61,14 @@ request removes the cover, document and verify step files, the record
 reviewer agent and its eight evaluation cases, and the `## Cover` and
 `checked-at` of the task and epic templates.
 
-## Left alone
-
-SPC-1070 still says an approved task may change its `## Cover` and an epic is
+Left alone: SPC-1070 still says an approved task may change its `## Cover` and an epic is
 frozen once `checked-at` is set, SPC-1201 still names the verify gate and
 `evidence --keep`, and `project/README.md` still speaks of `checked-at` on two
 specifications, because the program behaves that way until TSK-3830 and
 TSK-3860 land. Most rules in `steps/epic.md` carry no reason, as they did
 before this task; the rules this task added or rewrote carry theirs.
+
+## Left alone
 
 The in-flight worktrees for TSK-2703, TSK-2950, TSK-3350 and TSK-3700 are
 postponed by the owner and left as they are.
