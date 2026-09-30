@@ -741,6 +741,20 @@ mod tests {
         typed(args).err().unwrap_or_default()
     }
 
+    /// TSK-3370: an amount prints without the error of a binary sum, and the
+    /// cap a call gets is never rounded down to nothing.
+    #[test]
+    fn an_amount_reads_as_its_decimal_figure() {
+        assert_eq!(dollars(0.3 + 0.3 + 0.3), "0.9");
+        assert_eq!(dollars(1.0), "1");
+        assert_eq!(dollars(10.0), "10");
+        assert_eq!(dollars(0.0), "0");
+        assert_eq!(cap(1.0 - 0.3), "0.7");
+        assert_eq!(cap(10.0), "10");
+        assert_eq!(cap(0.0000004), "0.0000004");
+        assert_eq!(cap(-0.0000000001), "0");
+    }
+
     #[test]
     fn every_missing_term_is_named_in_one_attempt() {
         // REQ-0872: no run starts without a condition, a ceiling and a budget.
