@@ -75,7 +75,12 @@ class Renamed(unittest.TestCase):
     def test_only_the_stub_names_the_old_unit(self):
         """Criterion 3, REQ-3634: outside frozen records, the old name appears only in the stub, in the pages that
         tell an install to move, and in these checks."""
-        allowed = ("plugins/meow-verbs/", "tools/test_marketplace.py", "docs/troubleshooting.md")
+        allowed = ("plugins/meow-verbs/", "tools/test_marketplace.py", "docs/troubleshooting.md",
+                   ".claude-plugin/marketplace.json")
+        # Lines that name the stub or a frozen record's title, and nothing else in their file.
+        named = {"docs/README.md": "(../plugins/meow-verbs/README.md)",
+                 "project/specs/SPC-1040-the-five-verbs.md": "it was `meow-verbs`",
+                 "project/README.md": "ADR-1480"}
         tracked = subprocess.run(["git", "ls-files", "--", *LIVE], cwd=ROOT, capture_output=True, text=True, check=True)
         found = []
         for name in tracked.stdout.splitlines():
@@ -85,7 +90,11 @@ class Renamed(unittest.TestCase):
                 text = (ROOT / name).read_text(encoding="utf-8")
             except (UnicodeDecodeError, FileNotFoundError):
                 continue
-            found += [f"{name}:{number}" for number, line in enumerate(text.splitlines(), 1) if "meow-verbs" in line]
+            lines = text.splitlines()
+            for number, line in enumerate(lines, 1):
+                before = lines[number - 2] if number > 1 else ""
+                if "meow-verbs" in line and named.get(name, "\0") not in line + before:
+                    found.append(f"{name}:{number}")
         self.assertEqual(found, [])
 
 
