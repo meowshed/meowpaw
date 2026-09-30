@@ -198,13 +198,16 @@ first of these the response carries:
   GitHub's message quoted.
 
 A line that doesn't already quote GitHub's message ends with
-`; GitHub said "<message>"`, with any control character in the message
-printed as a space and any double quote escaped, because a permission header says what an
+`; GitHub said "<message>"`, because a permission header says what an
 endpoint accepts and not why this credential was refused. After a 401 the
 run sends nothing more, the read-back listing included, because GitHub
 rejects an account's valid credentials too after several rejected requests.
 `project` then prints `stopped at the rejected credential above` and the
 `partial:` line.
+
+Wherever a line quotes GitHub's message, a control character or a line
+separator in it prints as a space, and a backslash or a double quote is
+escaped, so the message can't split the line or end its quotation.
 
 `project` prints the line on a line of its own, above the line saying what the
 refusal stopped: a task, the naming of the repository or the read-back.

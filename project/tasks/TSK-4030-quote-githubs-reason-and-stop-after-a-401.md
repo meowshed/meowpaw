@@ -94,6 +94,15 @@ layer doesn't send, reads
 `unauthenticated: <method> <endpoint> not sent, because GitHub rejected this run's credential`,
 so a caller that asks is told why nothing went out.
 
+Review added one more choice. A quoted message has any control character or
+line separator printed as a space and any backslash or double quote escaped,
+and the `HTTP <status>:` line gets the same flattening, so GitHub's text
+can't split a report's line or end its quotation; `a_quoted_message_stays_on_its_line`
+in `request.rs` checks it. Two records now say less than the code, and this
+step may not edit them: SPC-1080 doesn't state the escaping, and this task's
+opening says every line ends with GitHub's message, where a line with no
+permission header quotes it earlier in the line.
+
 `meow-github` goes to 0.11.0, and its README shows the lines with GitHub's
 reason and says a run sends nothing after a 401.
 

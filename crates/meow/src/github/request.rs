@@ -504,7 +504,7 @@ impl Layer {
                         reason(quoted)
                     ))
                 }
-                status => Failure::Failed(format!("HTTP {status}: {why}")),
+                status => Failure::Failed(format!("HTTP {status}: {}", one_line(&why))),
             });
         }
     }
@@ -568,15 +568,24 @@ fn permission(response: &Response, message: &str) -> (String, bool) {
     }
 }
 
-/// GitHub's message as one line to quote: a control character becomes a space
-/// and a double quote is escaped, so a message can't split a report's line or
-/// end its quotation.
+/// GitHub's message as one line to quote, with a backslash and a double quote
+/// escaped, so a message can't split a report's line or end its quotation.
 fn printable(message: &str) -> String {
-    message
-        .chars()
-        .map(|c| if c.is_control() { ' ' } else { c })
-        .collect::<String>()
-        .replace('"', "\\\"")
+    one_line(message).replace('\\', "\\\\").replace('"', "\\\"")
+}
+
+/// GitHub's text on one line: a control character or a line or paragraph
+/// separator becomes a space, so it can't split a report's line.
+fn one_line(text: &str) -> String {
+    text.chars()
+        .map(|c| {
+            if c.is_control() || c == '\u{2028}' || c == '\u{2029}' {
+                ' '
+            } else {
+                c
+            }
+        })
+        .collect()
 }
 
 /// The form of the credential `gh` authenticates with, from whether each
