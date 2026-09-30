@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.45.0]
+describes: [meow-flow@0.46.0]
 ---
 
 # meow-flow
@@ -71,6 +71,12 @@ the record stands, runs the next step, and stops where that step waits for
 your approval, saying what the next run will do. Run it again after you approve, and it carries on; run it with nothing approved, and it says what it
 is waiting on.
 
+To approve a whole decision at once, ask for it in one pull request. Claude
+then writes the research, requirements, decision, specification changes, epic
+and tasks in turn, checks each as a draft before marking it approved, and
+stops once at the pull request. Merging it is your approval, and nothing is
+implemented before you do.
+
 To run one step yourself, ask for it by name, such as "run the design step for
 `REQ-0190`", and Claude loads the `method` skill. The steps, in order:
 
@@ -131,7 +137,13 @@ paw ready implement: not ready
 ```
 
 `paw ready implement` asks that of a task: the task and its epic, defect or
-decision approved, and each task under its `## Depends on` done. A decision
+decision approved, and each task under its `## Depends on` done. It also
+refuses a task that isn't approved on the trunk you declare under `[git] trunk`
+yet, on its remote-tracking branch or its local one, because an approval on an unmerged branch still waits on its merge, and
+`paw status` shows that task as waiting. Where you declare no trunk, the
+directory is no git work tree, the trunk names no branch or the record sits
+outside the repository, it refuses nothing for that and `paw status`
+says an approval can't be told from one waiting on a merge. A decision
 one task realises needs no epic: the task names `realises: ADR-NNNN` in place
 of `epic:`, and it is done once its Evidence is written.
 

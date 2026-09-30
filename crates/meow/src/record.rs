@@ -653,10 +653,15 @@ fn frozen_text(text: &str, sections: &[&str], fields: &[&str]) -> String {
     out.join("\n")
 }
 
-/// A task's text without what may change after approval: its evidence, its
-/// issue, its projection and its revision date.
+/// A task's text without what may change after approval: its evidence, what
+/// it left alone, which the implementer writes, its issue, its projection and
+/// its revision date.
 fn frozen_part(text: &str) -> String {
-    frozen_text(text, &["Evidence"], &["issue", "projected", "revised"])
+    frozen_text(
+        text,
+        &["Evidence", "Left alone"],
+        &["issue", "projected", "revised"],
+    )
 }
 
 /// An epic's text without what may change after approval: the marks and
@@ -2550,10 +2555,11 @@ fn ready(rest: &[String]) -> u8 {
         eprintln!("paw ready {step}: name the identifiers of the step's input");
         return USAGE;
     }
-    let (record, _, _) = match open_record("ready") {
+    let (record, repository, root) = match open_record("ready") {
         Ok(opened) => opened,
         Err(code) => return code,
     };
+    let trunk = (step == "implement").then(|| trunk_of(&repository, &root));
     let known = known(&record);
     let mut missing: Vec<String> = Vec::new();
     for id in ids {
@@ -2615,6 +2621,15 @@ fn ready(rest: &[String]) -> u8 {
                     if !task_finished(&known, &dependency) {
                         missing.push(format!("{dependency}, which {id} depends on, isn't done"));
                     }
+                }
+                if !task_finished(&known, id)
+                    && let Some(name) = trunk
+                        .as_ref()
+                        .and_then(|trunk| off_trunk(&repository, trunk, doc))
+                {
+                    missing.push(format!(
+                        "{id} is not approved on {name} yet, so it waits on the merge of the change that approves it"
+                    ));
                 }
             }
             _ => {}
@@ -2685,8 +2700,148 @@ fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) ->
         .collect()
 }
 
+/// The trunk a repository declares, as the branches the record program reads,
+/// or why it can't be read (ADR-2310).
+enum Trunk {
+    /// The declared name and each ref that holds it: the remote-tracking
+    /// branch, which a merge on the code host moves, and the local branch,
+    /// which a person committing straight to the trunk moves. A task approved
+    /// on either is on the trunk.
+    Read {
+        name: String,
+        references: Vec<String>,
+    },
+    Unread(String),
+}
+
+fn trunk_of(repository: &Path, root: &Path) -> Trunk {
+    let table = match profile::read(repository) {
+        Profile::Parsed(table) => table,
+        _ => toml::Table::new(),
+    };
+    let Some(name) = table
+        .get("git")
+        .and_then(|g| g.get("trunk"))
+        .and_then(|t| t.as_str())
+        .filter(|t| !t.is_empty())
+    else {
+        return Trunk::Unread(format!(
+            "{} declares no trunk under [git]",
+            profile::PROFILE
+        ));
+    };
+    let git = |args: &[&str]| {
+        profile::reading_git()
+            .current_dir(repository)
+            .args(args)
+            .output()
+            .is_ok_and(|o| o.status.success())
+    };
+    if !git(&["rev-parse", "--is-inside-work-tree"]) {
+        return Trunk::Unread("this isn't a git work tree".to_string());
+    }
+    // A record kept outside the repository is on no branch of it.
+    let inside = match (root.canonicalize(), repository.canonicalize()) {
+        (Ok(root), Ok(repository)) => root.starts_with(repository),
+        _ => false,
+    };
+    if !inside {
+        return Trunk::Unread("the record sits outside the repository".to_string());
+    }
+    let references: Vec<String> = [
+        format!("refs/remotes/origin/{name}"),
+        format!("refs/heads/{name}"),
+    ]
+    .into_iter()
+    .filter(|reference| {
+        git(&[
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            &format!("{reference}^{{commit}}"),
+        ])
+    })
+    .collect();
+    if references.is_empty() {
+        return Trunk::Unread(format!("the declared trunk {name} names no branch"));
+    }
+    Trunk::Read {
+        name: name.to_string(),
+        references,
+    }
+}
+
+/// The trunk's name where an open task isn't approved on it, so its approval
+/// still waits on a merge (REQ-3660). The task is found on the trunk by its
+/// identifier, so a record renamed on the branch is still the same task, and
+/// its status there has to be approved, so one approved only on the branch
+/// waits too. `None` where it is approved there or the trunk can't be read.
+fn off_trunk<'a>(repository: &Path, trunk: &'a Trunk, task: &Doc) -> Option<&'a str> {
+    let Trunk::Read { name, references } = trunk else {
+        return None;
+    };
+    let git = |args: &[&str]| {
+        profile::reading_git()
+            .current_dir(repository)
+            .args(args)
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+    };
+    // A task reached through a link that leaves the repository is on no
+    // branch of it, so nothing is asked about it.
+    let outside = match (task.path.canonicalize(), repository.canonicalize()) {
+        (Ok(task), Ok(repository)) => !task.starts_with(repository),
+        _ => true,
+    };
+    if outside {
+        return None;
+    }
+    let dir = Path::new(&task.shown)
+        .parent()
+        .map(|d| d.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let id = bare(task.id());
+    let approved_on = |reference: &str| {
+        let listed = git(&["ls-tree", "-r", "--name-only", "-z", reference, "--", &dir])?;
+        // Every record file of that identifier is read, so a stray copy
+        // beside the approved one doesn't hide it.
+        listed
+            .split('\0')
+            .filter(|path| {
+                Path::new(path)
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .is_some_and(|n| {
+                        n.ends_with(".md")
+                            && n.strip_prefix(id)
+                                .is_some_and(|rest| rest.starts_with('-') || rest.starts_with('.'))
+                    })
+            })
+            .any(|path| {
+                git(&["show", &format!("{reference}:{path}")])
+                    .and_then(|text| parse_front_matter(&text))
+                    .is_some_and(|fields| {
+                        fields
+                            .iter()
+                            .any(|f| f.key == "status" && bare(&f.value) == "approved")
+                    })
+            })
+            .then_some(())
+    };
+    let there = references.iter().any(|r| approved_on(r).is_some());
+    (!there).then_some(name.as_str())
+}
+
 /// Where one authorising record stands in the chain, and what comes next.
-fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> String {
+fn position(
+    record: &Record,
+    known: &BTreeMap<String, &Doc>,
+    repository: &Path,
+    trunk: &Trunk,
+    decision: &Doc,
+) -> String {
     let id = bare(decision.id());
     let epics: Vec<&Doc> = of_kind(record, "epic")
         .into_iter()
@@ -2750,12 +2905,32 @@ fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> 
         .map(|(task, _)| task)
         .collect();
     if !open.is_empty() {
-        let doable = open.iter().find(|task| {
+        let free = |task: &&&String| {
             known
                 .get(task.as_str())
                 .map(|doc| depends_on(doc).iter().all(|d| task_finished(known, d)))
                 .unwrap_or(true)
-        });
+        };
+        let waits = |task: &&&String| {
+            known
+                .get(task.as_str())
+                .and_then(|doc| off_trunk(repository, trunk, doc))
+        };
+        // The first task that can start and is approved on the trunk is next,
+        // so one task waiting on its merge doesn't hold the ones that aren't.
+        let doable = open
+            .iter()
+            .find(|task| free(task) && waits(task).is_none())
+            .or_else(|| open.iter().find(free));
+        // An approved status on an unmerged branch isn't an approval yet, so
+        // the task waits on its merge and is never next (REQ-3662).
+        if let Some(task) = doable
+            && let Some(name) = waits(&task)
+        {
+            return format!(
+                "waiting: {task} is not approved on {name} yet, so it waits on the merge of the change that approves it"
+            );
+        }
         return match doable {
             Some(task) => format!(
                 "next: implement {task} ({group}, {} of {} done)",
@@ -2869,7 +3044,7 @@ fn status(rest: &[String]) -> u8 {
         }
         return CLEAN;
     }
-    let (record, _, root) = match open_record("status") {
+    let (record, repository, root) = match open_record("status") {
         Ok(opened) => opened,
         Err(code) => return code,
     };
@@ -2880,6 +3055,7 @@ fn status(rest: &[String]) -> u8 {
         );
         say!();
     }
+    let trunk = trunk_of(&repository, &root);
     let known = known(&record);
     let drafts: Vec<&&Doc> = known
         .values()
@@ -2898,6 +3074,10 @@ fn status(rest: &[String]) -> u8 {
             title(doc)
         );
     }
+    // Said after the drafts, which a status report leads with (REQ-0321).
+    if let Trunk::Unread(why) = &trunk {
+        say!("  An approval can't be told from one waiting on a merge: {why}.");
+    }
     say!();
     say!("Decisions");
     let mut decisions: Vec<&Doc> = of_kind(&record, "decision")
@@ -2911,7 +3091,10 @@ fn status(rest: &[String]) -> u8 {
     for decision in decisions {
         let id = bare(decision.id());
         say!("  {id} {}", title(decision));
-        say!("    {}", position(&record, &known, decision));
+        say!(
+            "    {}",
+            position(&record, &known, &repository, &trunk, decision)
+        );
     }
     say!();
     say!("Tasks");
