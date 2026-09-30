@@ -934,19 +934,23 @@ class Refusal(Layered, unittest.TestCase):
 
     def test_a_403_names_the_github_permission(self):
         """TSK-2970 criterion 1, REQ-2574: a create answered 403 with `X-Accepted-GitHub-Permissions: issues=write`
-        prints `refused: POST repos/o/r/issues needs issues=write` and exits 3."""
-        lines = self.refused_create(403, {"X-Accepted-GitHub-Permissions": "issues=write"},
+        prints `refused: POST repos/o/r/issues needs issues=write` and exits 3. The answer also carries the scope
+        headers, so a layer that tries the scopes first fails."""
+        lines = self.refused_create(403, {"X-Accepted-GitHub-Permissions": "issues=write",
+                                          "X-Accepted-OAuth-Scopes": "repo", "X-OAuth-Scopes": "gist"},
                                     "Resource not accessible by personal access token")
         self.assertEqual(lines.count("refused: POST repos/o/r/issues needs issues=write"), 1, lines)
 
     def test_a_403_names_the_oauth_scopes(self):
         """TSK-2970 criterion 2, REQ-2574: a 403 carrying only `X-Accepted-OAuth-Scopes` and `X-OAuth-Scopes` names
-        the accepted scopes and the credential's own."""
-        lines = self.refused_create(403, {"X-Accepted-OAuth-Scopes": "repo", "X-OAuth-Scopes": "read:org, gist"},
-                                    "Must have admin rights to Repository.")
-        self.assertEqual(lines.count(
-            "refused: POST repos/o/r/issues needs one of the scopes repo; the credential holds read:org, gist"),
-            1, lines)
+        the accepted scopes and the credential's own, and `none` where the credential states no scope."""
+        for own, holds in (("read:org, gist", "read:org, gist"), (None, "none")):
+            with self.subTest(own=own):
+                headers = {"X-Accepted-OAuth-Scopes": "repo", **({"X-OAuth-Scopes": own} if own else {})}
+                lines = self.refused_create(403, headers, "Must have admin rights to Repository.")
+                self.assertEqual(lines.count(
+                    f"refused: POST repos/o/r/issues needs one of the scopes repo; the credential holds {holds}"),
+                    1, lines)
 
     def test_a_403_naming_nothing_quotes_github(self):
         """TSK-2970 criterion 3, REQ-2574: a 403 carrying neither header says `GitHub named no permission` and
@@ -958,19 +962,32 @@ class Refusal(Layered, unittest.TestCase):
 
     def test_a_404_on_a_mapped_issue_may_be_hidden(self):
         """TSK-2970 criterion 4, REQ-2574: a 404 on a task's mapped issue is reported as a refusal, with
-        `, or it is hidden from this credential` added, and the run exits 3."""
-        root = Project.repository(self)
-        self.stand_in(root, {})
-        first = self.meow_github(root, "project", "EPC-0001", "o/r")
-        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
-        missing = {"status": 404, "body": {"message": "Not Found"}}
-        self.stand_in(root, {"responses": {"GET repos/o/r/issues/1": [missing]}})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
-        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
-        found = [line for line in done.stdout.splitlines() if line.startswith("refused: GET repos/o/r/issues/1 needs ")]
-        self.assertEqual(len(found), 1, done.stdout)
-        self.assertIn('GitHub named no permission and said "Not Found"', found[0])
-        self.assertTrue(found[0].endswith(", or it is hidden from this credential"), found[0])
+        `, or it is hidden from this credential` added, and the run exits 3, whether the read of the issue or
+        the update of a changed task's issue gets it."""
+        for call in ("GET", "PATCH"):
+            with self.subTest(call=call):
+                root = Project.repository(self)
+                self.stand_in(root, {})
+                first = self.meow_github(root, "project", "EPC-0001", "o/r")
+                self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+                if call == "PATCH":
+                    task = root / "project" / "tasks" / "TSK-0001-first.md"
+                    task.write_text(task.read_text(encoding="utf-8").replace(
+                        "# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+                missing = {"status": 404, "body": {"message": "Not Found"}}
+                self.stand_in(root, {"responses": {f"{call} repos/o/r/issues/1": [missing]}})
+                done = self.meow_github(root, "project", "EPC-0001", "o/r")
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertEqual(done.stdout.splitlines().count(
+                    f'refused: {call} repos/o/r/issues/1 needs a permission: GitHub named no permission and said '
+                    '"Not Found", or it is hidden from this credential'), 1, done.stdout)
+
+    def test_a_404_on_an_unmapped_object_is_no_refusal(self):
+        """TSK-2970, REQ-2574: a 404 on a create, which names no object the record maps, stays as GitHub's answer
+        and is reported as no refusal."""
+        lines = self.refused_create(404, {}, "Not Found")
+        self.assertEqual([line for line in lines if line.startswith("refused:")], [], lines)
+        self.assertEqual(len([line for line in lines if line.endswith("HTTP 404: Not Found")]), 1, lines)
 
     def test_a_401_is_unauthenticated(self):
         """TSK-2970 criterion 5, REQ-2574: a 401 prints `unauthenticated: <method> <endpoint>` and exits 3."""
@@ -989,10 +1006,9 @@ class Refusal(Layered, unittest.TestCase):
                              "responses": {"GET repos/o/r/pulls?state=all&per_page=100": [refused]}})
         done = self.meow_github(root, "history", "o/r")
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
-        unread = [line for line in done.stdout.splitlines() if line.startswith("meow-github history: unread: ")]
-        self.assertEqual(len(unread), 1, done.stdout)
-        self.assertIn("pull requests", unread[0])
-        self.assertIn("refused: GET repos/o/r/pulls?state=all&per_page=100 needs pull_requests=read", unread[0])
+        self.assertEqual(done.stdout.splitlines().count(
+            "meow-github history: unread: pull requests: refused: GET repos/o/r/pulls?state=all&per_page=100 "
+            "needs pull_requests=read"), 1, done.stdout)
         self.assertNotIn('"issues"', done.stdout)
 
 
