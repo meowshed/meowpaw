@@ -2,7 +2,7 @@
 id: TSK-3380
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1910
 closes: [REQ-0886]
 issue: 728
@@ -15,6 +15,8 @@ Two iterations in a row that change nothing end the run `idle`, where
 "changes nothing" is as SPC-1201's section "The loop" defines it. Every
 fixture below uses a verb that never passes, so no run ends `finished`. One task, one branch, one pull
 request, one review.
+
+**Amended by ADR-2300.** Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -43,8 +45,8 @@ criterion 13).
    two, and each `log.jsonl` line is marked `unidentified`. Closed by:
    `Idle.test_unidentified_tree_is_a_change` (evidence for SPC-1201's section
    "The loop"; closes no requirement).
-5. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+5. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -58,8 +60,7 @@ Raise `meow-loop`'s minor version in `plugin.json`, and its README's
 `describes:` with it, because a run gains an ending.
 
 Write the checks for criteria 1 to 4 first, in a commit of their own, and
-see them fail, because the cover step keeps that failing run as the evidence
-that the checks can fail (EPC-1910, Coverage).
+see them fail, because that commit is the evidence that the checks can fail (EPC-1910, Coverage).
 
 ## Depends on
 

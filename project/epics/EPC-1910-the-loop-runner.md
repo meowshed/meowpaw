@@ -2,7 +2,7 @@
 id: EPC-1910
 artifact: epic
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 realises: ADR-2010
 ---
 
@@ -14,6 +14,8 @@ on the verbs, a ceiling and a budget, and the run repeats the prompt in fresh
 `claude -p` sessions until it ends in one of the six endings SPC-1201 states,
 with every bound held in the runner's own process and the model unable to
 start a run.
+
+**Amended by ADR-2300.** ADR-2300 removed the cover step and the kept evidence: each task's tests land first in its own pull request, and that commit shows them failing.
 
 ## Acceptance criteria
 

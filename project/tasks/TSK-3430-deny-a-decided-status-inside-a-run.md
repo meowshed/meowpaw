@@ -2,7 +2,7 @@
 id: TSK-3430
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1920
 closes: []
 issue: 739
@@ -18,6 +18,8 @@ status. The rule is the first line, so the model hears the refusal before it
 spends the iteration; the comparison TSK-3420 adds decides whether a gate was
 crossed. This task closes no requirement, because REQ-0888 closes in TSK-3440
 (EPC-1920, Coverage). One task, one branch, one pull request, one review.
+
+**Amended by ADR-2300.** Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -37,8 +39,8 @@ criterion 17).
 3. Given a run of at least two calls, when the stand-in records its
    environment, then each call's `MEOW_LOOP_RUN` equals the run's id. Closed
    by: `Step.test_run_id_in_every_call`.
-4. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+4. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
