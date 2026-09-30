@@ -49,9 +49,12 @@ pub(crate) enum Failure {
     /// The run is throttled: the `throttled:` line to print, after which it
     /// sends nothing more.
     Throttled(String),
-    /// GitHub refused the call: the `refused:` or `unauthenticated:` line to
-    /// print, naming the method, the endpoint and the permission (REQ-2574).
+    /// GitHub refused the call: the `refused:` line to print, naming the
+    /// method, the endpoint and the permission (REQ-2574).
     Refused(String),
+    /// GitHub rejected the credential: the `unauthenticated:` line to print,
+    /// after which the run sends nothing more (REQ-3326).
+    Rejected(String),
     /// Anything else, as `gh` or GitHub said it.
     Failed(String),
 }
@@ -59,9 +62,10 @@ pub(crate) enum Failure {
 impl std::fmt::Display for Failure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Failure::Throttled(line) | Failure::Refused(line) | Failure::Failed(line) => {
-                f.write_str(line)
-            }
+            Failure::Throttled(line)
+            | Failure::Refused(line)
+            | Failure::Rejected(line)
+            | Failure::Failed(line) => f.write_str(line),
         }
     }
 }
@@ -95,6 +99,10 @@ pub(crate) struct Layer {
     held: BTreeMap<String, Stop>,
     /// The requests the run sent, a replay not among them.
     requests: u64,
+    /// Whether GitHub has answered 401 in this run, after which the layer
+    /// sends nothing, because rejected requests count towards a lockout of
+    /// the account's valid credentials too.
+    rejected: bool,
     /// For each `x-ratelimit-resource`, the limit, remaining and reset the
     /// last fresh response stated.
     primary: BTreeMap<String, [String; 3]>,
@@ -135,6 +143,7 @@ impl Layer {
             secondary: 0,
             held: BTreeMap::new(),
             requests: 0,
+            rejected: false,
             primary: BTreeMap::new(),
             points: Vec::new(),
             creates: Vec::new(),
@@ -296,6 +305,11 @@ impl Layer {
         cache: bool,
         mapped: bool,
     ) -> Result<Response, Failure> {
+        if self.rejected {
+            return Err(Failure::Rejected(format!(
+                "unauthenticated: {method} {endpoint} not sent, because GitHub rejected this run's credential"
+            )));
+        }
         loop {
             if let Some(stop) = self.held.get(resource_of(endpoint)).cloned() {
                 self.stop(method, endpoint, &stop)?;
@@ -459,16 +473,37 @@ impl Layer {
             } else {
                 message.to_string()
             };
+            // GitHub's own reason, where the line doesn't already quote it
+            // (REQ-3324).
+            let reason = |quoted: bool| {
+                if quoted || message.is_empty() {
+                    String::new()
+                } else {
+                    format!("; GitHub said \"{message}\"")
+                }
+            };
             return Err(match response.status {
-                401 => Failure::Refused(format!("unauthenticated: {method} {endpoint}")),
-                403 => Failure::Refused(format!(
-                    "refused: {method} {endpoint} needs {}",
-                    permission(&response, &why)
-                )),
-                404 if mapped => Failure::Refused(format!(
-                    "refused: {method} {endpoint} needs {}, or it is hidden from this credential",
-                    permission(&response, &why)
-                )),
+                401 => {
+                    self.rejected = true;
+                    Failure::Rejected(format!(
+                        "unauthenticated: {method} {endpoint}{}",
+                        reason(false)
+                    ))
+                }
+                403 => {
+                    let (needs, quoted) = permission(&response, &why);
+                    Failure::Refused(format!(
+                        "refused: {method} {endpoint} needs {needs}{}",
+                        reason(quoted)
+                    ))
+                }
+                404 if mapped => {
+                    let (needs, quoted) = permission(&response, &why);
+                    Failure::Refused(format!(
+                        "refused: {method} {endpoint} needs {needs}, or it is hidden from this credential{}",
+                        reason(quoted)
+                    ))
+                }
                 status => Failure::Failed(format!("HTTP {status}: {why}")),
             });
         }
@@ -505,8 +540,9 @@ impl Layer {
 
 /// The permission a refused call needed, as GitHub named it: its fine-grained
 /// permissions, or else the scopes it accepts beside the credential's own, or
-/// else GitHub's message, quoted, where it named neither.
-fn permission(response: &Response, message: &str) -> String {
+/// else GitHub's message, quoted, where it named neither; and whether the text
+/// already quotes GitHub's message.
+fn permission(response: &Response, message: &str) -> (String, bool) {
     let stated = |name: &str| {
         response
             .header(name)
@@ -514,14 +550,18 @@ fn permission(response: &Response, message: &str) -> String {
             .filter(|value| !value.is_empty())
     };
     if let Some(permissions) = stated("x-accepted-github-permissions") {
-        permissions.to_string()
+        (permissions.to_string(), false)
     } else if let Some(scopes) = stated("x-accepted-oauth-scopes") {
-        format!(
-            "one of the scopes {scopes}; the credential holds {}",
-            stated("x-oauth-scopes").unwrap_or("none")
+        let own = stated("x-oauth-scopes").unwrap_or("none");
+        (
+            format!("one of the scopes {scopes}; the credential holds {own}"),
+            false,
         )
     } else {
-        format!("a permission: GitHub named no permission and said \"{message}\"")
+        (
+            format!("a permission: GitHub named no permission and said \"{message}\""),
+            true,
+        )
     }
 }
 

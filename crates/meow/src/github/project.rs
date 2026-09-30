@@ -231,7 +231,7 @@ fn done_in(epic: &Record) -> Vec<String> {
 /// line of its own so that it reads as GitHub's answer and not as the task's.
 fn report(context: &str, failure: &Failure) {
     match failure {
-        Failure::Refused(line) => {
+        Failure::Refused(line) | Failure::Rejected(line) => {
             println!("{line}");
             println!("{context}");
         }
@@ -239,10 +239,15 @@ fn report(context: &str, failure: &Failure) {
     }
 }
 
-/// Prints the `throttled:` line and says the run sends nothing after it.
-fn throttled(line: &str) {
-    println!("{line}");
-    println!("meow-github project: stopped at the throttle above, sending nothing more");
+/// Prints the line of a throttle, a ceiling or a rejected credential, and says
+/// the run sends nothing after it.
+fn halt(failure: &Failure) {
+    println!("{failure}");
+    let what = match failure {
+        Failure::Rejected(_) => "the rejected credential",
+        _ => "the throttle",
+    };
+    println!("meow-github project: stopped at {what} above, sending nothing more");
 }
 
 /// An issue this run created, until the listing or a read by number reads it
@@ -265,8 +270,8 @@ struct Outcome {
     unread: Vec<String>,
     /// Whether the run stopped before it visited every task.
     stopped: bool,
-    /// Whether it stopped at a throttle or a ceiling, after which it sends
-    /// nothing more, the listing included.
+    /// Whether it stopped at a throttle, a ceiling or a rejected credential,
+    /// after which it sends nothing more, the listing included.
     throttled: bool,
 }
 
@@ -350,11 +355,15 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
     }
     let listed = match read_back(layer, repository) {
         Ok(listed) => listed,
-        Err(Failure::Throttled(line)) => {
-            throttled(&line);
+        Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
+            halt(&stop);
             outcome.throttled = true;
             outcome.stopped = true;
-            return outcome.leave(&created, "the listing was throttled");
+            let why = match stop {
+                Failure::Rejected(_) => "the listing's credential was rejected",
+                _ => "the listing was throttled",
+            };
+            return outcome.leave(&created, why);
         }
         Err(e) => {
             report(
@@ -395,14 +404,8 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
             Ok(_) => outcome.leave(&[c], "reads differently from what was written"),
             // A 401 stops the reads as a throttle does, because a rejected
             // credential sent again counts towards GitHub's lockout.
-            Err(Failure::Throttled(line)) | Err(Failure::Refused(line))
-                if !line.starts_with("refused:") =>
-            {
-                if line.starts_with("unauthenticated:") {
-                    println!("{line}");
-                } else {
-                    throttled(&line);
-                }
+            Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
+                halt(&stop);
                 outcome.throttled = true;
                 outcome.stopped = true;
                 let left: Vec<Created> = std::iter::once(c).chain(missing).collect();
@@ -507,7 +510,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         Ok(name) => name,
         Err(e) => {
             match e {
-                Failure::Throttled(line) => throttled(&line),
+                stop @ (Failure::Throttled(_) | Failure::Rejected(_)) => halt(&stop),
                 e => report("meow-github project: nothing projected", &e),
             }
             if !tasks.is_empty() {
@@ -534,8 +537,8 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
             // Computed from the two fingerprints each run, never stored (REQ-1388).
             let (on_tracker, closed) = match tracked(layer, &repository, &issue) {
                 Ok(state) => state,
-                Err(Failure::Throttled(line)) => {
-                    throttled(&line);
+                Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
+                    halt(&stop);
                     (outcome.stopped, outcome.throttled) = (true, true);
                     break;
                 }
@@ -594,8 +597,8 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                             worst = worst.max(FOUND);
                         }
                     },
-                    Err(Failure::Throttled(line)) => {
-                        throttled(&line);
+                    Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
+                        halt(&stop);
                         (outcome.stopped, outcome.throttled) = (true, true);
                         break;
                     }
@@ -615,8 +618,8 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         let endpoint = format!("repos/{repository}/issues");
         let answer = match layer.write("POST", &endpoint, &[("title", &title), ("body", &full)]) {
             Ok(answer) => answer,
-            Err(Failure::Throttled(line)) => {
-                throttled(&line);
+            Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
+                halt(&stop);
                 (outcome.stopped, outcome.throttled) = (true, true);
                 break;
             }
