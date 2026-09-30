@@ -988,7 +988,9 @@ class Refusal(Layered, unittest.TestCase):
         lines = self.refused_create(403, {"X-Accepted-GitHub-Permissions": "issues=write",
                                           "X-Accepted-OAuth-Scopes": "repo", "X-OAuth-Scopes": "gist"},
                                     "Resource not accessible by personal access token")
-        self.assertEqual(lines.count("refused: POST repos/o/r/issues needs issues=write"), 1, lines)
+        # TSK-4030 criterion 1, REQ-3324: the line ends with GitHub's own reason.
+        self.assertEqual(lines.count('refused: POST repos/o/r/issues needs issues=write; GitHub said '
+                                     '"Resource not accessible by personal access token"'), 1, lines)
 
     def test_a_403_names_the_oauth_scopes(self):
         """TSK-2970 criterion 2, REQ-2574: a 403 carrying only `X-Accepted-OAuth-Scopes` and `X-OAuth-Scopes` names
@@ -998,12 +1000,12 @@ class Refusal(Layered, unittest.TestCase):
                 headers = {"X-Accepted-OAuth-Scopes": "repo", **({"X-OAuth-Scopes": own} if own else {})}
                 lines = self.refused_create(403, headers, "Must have admin rights to Repository.")
                 self.assertEqual(lines.count(
-                    f"refused: POST repos/o/r/issues needs one of the scopes repo; the credential holds {holds}"),
-                    1, lines)
+                    f"refused: POST repos/o/r/issues needs one of the scopes repo; the credential holds {holds}; "
+                    'GitHub said "Must have admin rights to Repository."'), 1, lines)
 
     def test_a_403_naming_nothing_quotes_github(self):
-        """TSK-2970 criterion 3, REQ-2574: a 403 carrying neither header says `GitHub named no permission` and
-        quotes GitHub's message."""
+        """TSK-2970 criterion 3 and TSK-4030 criterion 4, REQ-2574, REQ-3324: a 403 carrying neither header says
+        `GitHub named no permission` and quotes GitHub's message once, with no second quotation after it."""
         lines = self.refused_create(403, {}, "Must have admin rights to Repository.")
         self.assertEqual(lines.count(
             'refused: POST repos/o/r/issues needs a permission: GitHub named no permission and said '
@@ -1041,7 +1043,26 @@ class Refusal(Layered, unittest.TestCase):
     def test_a_401_is_unauthenticated(self):
         """TSK-2970 criterion 5, REQ-2574: a 401 prints `unauthenticated: <method> <endpoint>` and exits 3."""
         lines = self.refused_create(401, {}, "Bad credentials")
-        self.assertEqual(lines.count("unauthenticated: POST repos/o/r/issues"), 1, lines)
+        # TSK-4030 criterion 2, REQ-3324.
+        self.assertEqual(lines.count('unauthenticated: POST repos/o/r/issues; GitHub said "Bad credentials"'), 1, lines)
+
+    def test_a_401_ends_the_run(self):
+        """TSK-4030 criterion 3, REQ-3326: a 401 answering the read of the first of two mapped tasks is the last
+        request the run sends, and the run prints the `partial:` line and exits 3."""
+        root = Project.repository(self)
+        self.stand_in(root, {})
+        first = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        before = len(self.calls(root))
+        rejected = {"status": 401, "body": {"message": "Bad credentials"}}
+        self.stand_in(root, {"responses": {"GET repos/o/r/issues/1": [rejected]}})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        sent = [call["args"][1] for call in self.calls(root)[before:]]
+        self.assertEqual(sent, ["repos/o/r/issues/1"])
+        self.assertEqual(done.stdout.splitlines().count(
+            'unauthenticated: GET repos/o/r/issues/1; GitHub said "Bad credentials"'), 1, done.stdout)
+        self.assertEqual(groups(self, done), ("none", "none", "TSK-0001, TSK-0002"))
 
     def test_history_reports_a_refusal_as_unread(self):
         """TSK-2970, REQ-2574: `history` reports a refused listing as unread, naming the listing, with the same
@@ -1057,7 +1078,7 @@ class Refusal(Layered, unittest.TestCase):
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         self.assertEqual(done.stdout.splitlines().count(
             "meow-github history: unread: pull requests: refused: GET repos/o/r/pulls?state=all&per_page=100 "
-            "needs pull_requests=read"), 1, done.stdout)
+            'needs pull_requests=read; GitHub said "Resource not accessible by personal access token"'), 1, done.stdout)
         self.assertNotIn('"issues"', done.stdout)
 
 
