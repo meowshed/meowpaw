@@ -91,9 +91,11 @@ as the task expects, because no issue was left out. `format`, `lint`,
 request cites.
 
 I made one choice the task leaves open. A read by number that fails other
-than by a throttle puts the issue under `created, not read back` with
-`couldn't be read`, prints the failure, and the reads go on to the next
-issue, as a failed read of a mapped issue does.
+than by a throttle, a ceiling or a 401 puts the issue under
+`created, not read back` with `couldn't be read`, prints the failure, and the
+reads go on to the next issue, as a failed read of a mapped issue does. A 401
+stops the reads as a throttle does, as SPC-1080 states; review found the
+first version didn't, and criterion 4's check now sends one.
 
 `meow-github` goes to 0.10.0, and its README says an issue the listing leaves
 out is read by its number.
