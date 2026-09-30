@@ -70,9 +70,11 @@ A task is marked in the commit that advances it, never in a later pass.
       evidence: 15 checks in `SevenSteps` and 3 in `meow-github`'s `Project`,
       7 seen failing at the pull request's first commit, in #753.
 
-- [ ] T-003 TSK-3820 rewrite the method's prompts and templates for the seven-step chain
+- [x] T-003 TSK-3820 rewrite the method's prompts and templates for the seven-step chain
       closes: REQ-3606, REQ-3612, REQ-3616, REQ-3618, REQ-3624, REQ-3626, REQ-3628, REQ-3640, REQ-3642, REQ-3644, REQ-3650
       depends: TSK-3810 (not blocking)
+      evidence: 7 checks in `ShortChainPrompts`, each seen failing at the pull
+      request's first commit, and the budget at 818 of 820 characters.
 
 - [ ] T-004 TSK-3830 remove kept evidence from the repository and from `meow-verbs`
       closes: REQ-3614
