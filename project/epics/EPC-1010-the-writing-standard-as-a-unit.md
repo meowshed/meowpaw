@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-22
 realises: ADR-1010
-checked-at: "#118"
 ---
 
 # The writing standard, shipped as a unit that reviews itself

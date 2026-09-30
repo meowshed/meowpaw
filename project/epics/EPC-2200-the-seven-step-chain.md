@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-29
 realises: ADR-2300
-checked-at:
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

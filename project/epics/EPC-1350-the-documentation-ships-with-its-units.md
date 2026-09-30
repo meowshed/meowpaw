@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1370
-checked-at: "#425"
 ---
 
 # Each unit ships its own page, and a program holds the documentation to the tree
@@ -72,39 +71,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       evidence: three fixtures and `llms.txt` at the root, in #417.
       depends: TSK-2030 - the route file links the pages at the paths T-001
       gives them
-
-## Verified
-
-I checked this under #425 on `main` after #424, gathering the evidence there
-rather than carrying it over from the tasks. Every criterion is met:
-
-| Criterion                                                                                                     | Evidence on `main` after #424                                                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. `tools/check_docs.py` passes on the tree and fails on a probe for each condition                           | It reports 11 pages and 0 failures. Its 18 fixtures pass, among them the six probes the criterion names: a unit with no page, a page missing `reader`, a stale `describes` version, a page citing a record identifier, a `plugin.json` missing `license` and an `llms.txt` link to a missing file. Each fixture failed against the check before the task that added it |
-| 2. Every unit's page is `plugins/<unit>/README.md`, and no `docs/<unit>.md` remains                           | 8 units, 8 pages under `plugins/*/README.md`, and `docs/` holds `README.md`, `tutorial.md` and `troubleshooting.md`                                                                                                                                                                                                                                                    |
-| 3. The release produces entries carrying all five fields                                                      | The release workflow's `jq` step, run locally over the committed catalogue, leaves 8 entries with 0 missing fields                                                                                                                                                                                                                                                     |
-| 4. The index lists every page with its reader and answer, names what is planned, and records each absent kind | `docs/README.md` carries the generated table of 10 pages, a Planned section, and a Not written section recording `how-to` and `explanation` with their reasons, which the check holds                                                                                                                                                                                  |
-| 5. Every requirement lands in exactly one closed task                                                         | `paw check` reports 0 findings, and `paw show` derives all 17 requirements ADR-1370 addresses as closed and not yet verified, each in one of the four closed tasks                                                                                                                                                                                                     |
-
-REQ-3132 and REQ-3150 are judgements. The prose reviewer judged the
-introduction, the tutorial and the troubleshooting page under TSK-2050, and
-it found `meow-core`'s page claiming behaviour that doesn't ship, which was
-corrected. No reviewer has read the other seven unit pages for REQ-3132 since
-they moved, so those rest on the pages as they stood before this epic.
-
-### Postponements
-
-ADR-1360's condition for resuming REQ-1138 and ADR-1340's for its 8
-requirements are untouched by this epic, which measured no prompt and added
-no version control tool. The owner decides whether either condition holds.
-
-### Documentation
-
-The epic's own tasks wrote the documentation it changed: the unit pages, the
-introduction, the tutorial, the troubleshooting page and `llms.txt`.
-`CLAUDE.md` names the unit pages and the fourth check in `tools/`. Nothing
-else describes where the pages live, so the document step changed nothing
-further.
 
 ## Coverage
 

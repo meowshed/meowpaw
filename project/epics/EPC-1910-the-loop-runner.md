@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-29
 realises: ADR-2010
-checked-at:
 ---
 
 # A runner outside the model repeats one frozen prompt in fresh sessions

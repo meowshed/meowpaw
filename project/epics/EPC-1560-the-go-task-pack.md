@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1590
-checked-at: "#587"
 ---
 
 # A go-task pack reads a Taskfile without writing to it, and binds a verb only to a task that can run unattended
@@ -63,37 +62,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 - [x] T-002 TSK-2460 bind the verbs and check the profile and the includes
       closes: REQ-2487
       evidence: 7 fixtures, 6 seen failing first, in #590.
-
-## Verified
-
-I checked this under #587 on `main` after #594, gathering the evidence there
-rather than carrying it over from the tasks. `meow-verbs evidence --keep
-format lint test` exits 0 on this change's own tree, each result kept in
-`project/evidence/`, as the pull request cites. The 29 fixtures in
-`plugins/meow-gotask/tests/test_gotask.py` run 29, OK, against Task 3.53.1,
-and `meow-mise`'s 38 run 38, OK, against the shared module. Every criterion is
-met:
-
-| Criterion                                                                                                                                | Evidence on `main` after #594                                                                                                                         |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. `status` reports each block, a dependency's block through it, a namespaced task and what decides a skip                               | The 13 fixtures in the `Status` class pass                                                                                                            |
-| 2. Listing leaves the tree alone, and a task with `sources` runs afterwards                                                              | `Status.test_listing_leaves_the_tree_and_freshness_alone` passes, and fails against a program that lists without moving `TASK_TEMP_DIR`               |
-| 3. A remote include is named and nothing listed, `check` finds it, and 104 or 106 is reported as a remote Taskfile the listing can't see | The two `Remote` fixtures, `Check.test_a_remote_include_is_a_finding`, and `Unresolved.test_104_is_never_untrusted` and `test_106_is_unresolved` pass |
-| 4. A secret variable is named as masked and never shown                                                                                  | `Status.test_a_secret_is_named_as_masked_and_never_shown` passes                                                                                      |
-| 5. `bind` binds with `--force`, and `check` finds a skippable task run without it                                                        | The two `Bind` fixtures and `Check.test_a_skippable_task_without_force_is_a_finding` pass                                                             |
-| 6. `check` reports hand-written bindings with their blocks, and `status` blocks `if` and `platforms`                                     | `Check.test_hand_written_bindings_report_their_blocks_never_missing` and `Status.test_if_and_platforms_are_blocks` pass                               |
-| 7. Every requirement lands in one closed task, and REQ-2488 reads as postponed                                                           | `paw show` derives REQ-2480, REQ-2486, REQ-2487, REQ-2508 and REQ-2510 as closed by TSK-2450 or TSK-2460, and REQ-2488 as postponed                   |
-
-### Documentation
-
-`plugins/meow-gotask/README.md` describes the three commands and every
-unresolved line, and the documentation index lists the unit. The `test` verb
-checked the pages.
-
-### Postponements
-
-REQ-2488 stays postponed until a program running Task can see a changed
-checksum; the condition doesn't hold on Task 3.53.1.
 
 ## Coverage
 
