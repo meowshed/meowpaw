@@ -52,7 +52,13 @@ the task until they are filled.
 
 ## Evidence
 
-Not yet.
+The class `ShortChainPrompts` in `plugins/meow-flow/tests/test_record.py`
+holds seven checks, one or more for each criterion, and each failed at the
+pull request's first commit. `meow-author check` reports 0 authoring failures
+and the budget check reports `meow-flow` at 818 of 820 characters. The pull
+request removes the cover, document and verify step files, the record
+reviewer agent and its eight evaluation cases, and the `## Cover` and
+`checked-at` of the task and epic templates.
 
 ## Left alone
 

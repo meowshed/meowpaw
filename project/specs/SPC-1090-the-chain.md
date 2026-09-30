@@ -340,10 +340,10 @@ blocking dependency, and `dependency-declared` asks a draft for the marker.
 ADR-2300 shortens the chain to seven steps and supersedes ADR-1490, ADR-1530,
 ADR-1550, ADR-1560 and ADR-2200: a requirement closes with the tasks that name
 it, verify goes, cover and document fold into implement, no agent reviews a
-record, and the repository keeps no run output. EPC-2200 realises it. Until
-its tasks land, the method's prompts still name the cover, document and verify
-steps, which `paw ready` now refuses, and the method skill still dispatches
-the record reviewer; each passage this changes says "not yet".
+record, and the repository keeps no run output. EPC-2200 realises it. `paw`
+and the method's prompts name the seven steps, and nothing dispatches a record
+reviewer. Kept evidence still exists until TSK-3830 lands, and each passage
+that waits on it says "not yet".
 The skeptic ADR-2200 decided is dropped, and nothing dispatches it. The
 records written under the old chain migrate to the new shape (REQ-3652), and
 `meow-method` has left the marketplace (REQ-3654).
@@ -365,18 +365,16 @@ bound ends the run, with the loop runner SPC-1201 states.
 
 ## Boundary
 
-| Surface                                       | What it is                                                              |
-| --------------------------------------------- | ----------------------------------------------------------------------- |
-| `plugins/meow-flow/skills/method/SKILL.md`    | What every step shares, and how to invoke one                           |
-| `plugins/meow-flow/skills/method/steps/`      | One file per step, read only for the step being run                     |
-| `plugins/meow-flow/skills/run/SKILL.md`       | `/meow-flow:run`, the command that drives the chain                     |
-| `plugins/meow-flow/agents/record-reviewer.md` | The agent that reviews a record before its gate                         |
-| `plugins/meow-flow/agents/skeptic.md`         | The agent that tries to refute what an epic claims (not yet; see Scope) |
-| `plugins/meow-flow/skills/route/SKILL.md`     | The skill that routes a request before work starts                      |
-| `plugins/meow-flow/agents/router.md`          | The read-only agent the route skill dispatches                          |
-| `plugins/meow-flow/templates/<kind>.md`       | The unit's template for each kind                                       |
-| `.meowpaw/templates/<kind>.md`                | A repository's own template, which overrides the unit's                 |
-| `paw status`, `ready`, `template`             | The chain's state, a step's gate, the template in force                 |
+| Surface                                    | What it is                                              |
+| ------------------------------------------ | ------------------------------------------------------- |
+| `plugins/meow-flow/skills/method/SKILL.md` | What every step shares, and how to invoke one           |
+| `plugins/meow-flow/skills/method/steps/`   | One file per step, read only for the step being run     |
+| `plugins/meow-flow/skills/run/SKILL.md`    | `/meow-flow:run`, the command that drives the chain     |
+| `plugins/meow-flow/skills/route/SKILL.md`  | The skill that routes a request before work starts      |
+| `plugins/meow-flow/agents/router.md`       | The read-only agent the route skill dispatches          |
+| `plugins/meow-flow/templates/<kind>.md`    | The unit's template for each kind                       |
+| `.meowpaw/templates/<kind>.md`             | A repository's own template, which overrides the unit's |
+| `paw status`, `ready`, `template`          | The chain's state, a step's gate, the template in force |
 
 ## Behaviour
 
@@ -543,7 +541,7 @@ The rules name no requirement, because the files ship to other repositories.
 | templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                                                                                       |
 
 The implement step holds what the document and verify steps held, since
-their work lands in the task's pull request (not yet; see Scope). It reads `[docs] style` from `.meowpaw/profile.toml`: a path
+their work lands in the task's pull request. It reads `[docs] style` from `.meowpaw/profile.toml`: a path
 to the repository's own style guide, or the name of an installed unit that
 ships one. Where the profile declares none, the step says so and writes to the
 writing standard in force. It reports which verb checked the documentation it
@@ -583,8 +581,7 @@ defects did (REQ-0374).
 The implement step begins a defect's task by running its reproduction and
 seeing it fail, and a defect a gate caught and the same change closed needs no
 record of its own (REQ-3174). A requirement an open defect names in `violates` is
-open until the defect closes, whatever its tasks say (REQ-3610) (not yet; see
-Scope).
+open until the defect closes, whatever its tasks say (REQ-3610).
 
 The implement step cites each verb's result under a task's Evidence as
 `meow-verbs evidence` prints it, with the record and the tree id, and records
@@ -684,89 +681,31 @@ nothing waits or the repository has no record (REQ-0392). A `SessionStart` hook
 runs it, so a session opens with the pending approval before anything else
 (REQ-0394).
 
-### The review before a gate
+### The review
 
-Under ADR-2300 no agent reviews a record (REQ-3624): an agent reviews the
-task's change inside its pull request, the pull request fixes what it finds,
-and nothing is written into the record (REQ-3626) (not yet; see Scope). Until
-EPC-2200 lands, the following holds.
+No agent reviews a record (REQ-3624): the person approving its pull request
+reads it, and the method skill reports a record it wrote as unreviewed by a
+person.
 
-Before it reports the gate a record waits at, the method skill dispatches
-`meow-flow:record-reviewer`, naming the record's path and nothing else, so the
-agent, which starts with no context of its own, isn't told who wrote it
-(REQ-0149, REQ-0151). The agent has `Read`, `Grep` and `Glob` alone (REQ-0819).
-It works through a fixed set of questions for the record's kind, plus two for
-every kind: does the record mix two kinds, and does each rule state its reason
-(REQ-2830) (ADR-1490). It asks nothing `paw check` settles and reports each
-finding as its judgement (REQ-0132, REQ-0147). Its report opens with
-`Agent review, not a person's approval; the reviewer may share the author's model family.`
-(REQ-0157).
-
-The skill fixes what the agent finds and dispatches a fresh one, at most
-twice (REQ-0822). A finding still open after the second round, or one the
-author rejects, goes into the record under `## Open review findings` with the
-author's reason, and the gate report names that section (REQ-0823). The gate
-report says the record was reviewed by an agent and is unreviewed by a person.
-Where no agent can be dispatched, the skill reviews nothing itself and reports
-the record as unreviewed by an agent or a person; a review of its own work a
-person asks for is reported as self-assessed (REQ-2202) (ADR-1490).
-
-A review whose output comes back marked as stopped at the agent's turn
-ceiling is a review that didn't finish, so the skill reports the record as
-unreviewed by an agent, as it does for a review that couldn't run (REQ-2202)
-(ADR-1700).
-
-The skill acts on the reviewer's outcome line before it reads the findings
-(REQ-0816). It reads the line allowing leading space, because the platform's
-hand-back indents each line of the report, and it acts on the word itself and
-never asks a model to relay the report first:
-
-| Outcome              | The reviewer reports it when                                                                                       | The method skill                                                                   |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| `DONE`               | It worked through every question its rules set, whatever it found                                                  | Acts on the findings, as above                                                     |
-| `DONE_WITH_CONCERNS` | It finished, and part of the review couldn't run: a cited record it couldn't reach, or a kind with no question set | Acts on the findings, and names the part that didn't run in the gate report        |
-| `NEEDS_CONTEXT`      | The brief names nothing it can review: the path doesn't exist, or holds no record                                  | Corrects the brief and dispatches once more, which doesn't count as a repair round |
-| `BLOCKED`            | A tool call was denied                                                                                             | Reports the record as unreviewed by an agent, naming the tool and the input        |
-
-A second `NEEDS_CONTEXT` after the corrected brief leaves the record
-unreviewed by an agent, and the gate report names the brief the skill sent.
-Any other outcome from the second dispatch takes its own row.
-
-A `BLOCKED` review ends that dispatch (REQ-2978). The skill doesn't resume the
-agent, although the platform's hand-back offers `SendMessage` to continue it,
-doesn't dispatch the agent again under the same permissions in that session,
-and doesn't review the record itself. A report with no outcome line from the
-set leaves the record unreviewed by an agent too, which covers a reviewer
-replaced by a repository's own agent (REQ-2986) that writes no outcome line.
-
-The review step dispatches the review of work the session produced, and its
-verdict names itself as an agent's (REQ-0149, REQ-0157). It dispatches
-`meow-flow:record-reviewer` for each record the change writes, and
-`meow-prose:prose` for each other prose text in it, such as a documentation
-page, a commit message or a pull request body. It names each text by its path
-alone, and a text that exists in no file, such as a commit message, goes in
-the brief as text. It reads each of those two agents' outcome by the table
-above, with the text in place of the record, and reports a `BLOCKED` review,
-or one with no outcome line from the set, as not run, never as self-assessed
-and never as passed. The review of the code in the change goes to an agent
-with read-only tools that the session picks. That agent follows no outcome
-rule, so the step reads its return as a verdict, and where no agent can be
-dispatched, it reports the verdict as self-assessed.
-
-For `prose`, `DONE` covers a review narrowed to the scope the request asked
-for and one written for the default reader. `DONE_WITH_CONCERNS` is a review
-of a change to code in which a file the change touched couldn't be read.
-`BLOCKED` is a denied tool call or a file of its standard that couldn't be
-read.
+The review step reads a task's pull request against the base it was opened
+on (REQ-0311). Where the session produced the change, it dispatches the
+review to an agent with read-only tools, naming what the task asks and not who
+wrote it, and reads the return as a verdict, named as an agent's (REQ-0149,
+REQ-0157, REQ-0818, REQ-0819). Where no agent can be dispatched, it reports
+the verdict as self-assessed (REQ-2202). The review reports each test that
+would still pass against a wrong implementation (REQ-3612). Each finding that
+stands is fixed in that pull request, and the review writes nothing into the
+record but one sentence in the task's Evidence (REQ-3626, REQ-0544). The
+fixes are reviewed once more, twice at most, and a finding still open then
+goes to the person in the pull request (REQ-0822, REQ-0823).
 
 ### The driver
 
 `/meow-flow:run` runs `status`, and takes the first item that isn't waiting,
 or the record a person names (REQ-3202). It runs that item's next step through
 the `method` skill, and stops where the step ends at an approval gate, as the
-step would (REQ-0204). Where the step ends without one, as cover does, it
-runs `status` again and continues, so one invocation takes an approved task
-through cover and implement to the next gate. At every stop it reports which step it reached, why it
+step would (REQ-0204). Where the step ends without one, it runs `status`
+again and continues. At every stop it reports which step it reached, why it
 stopped and what the next invocation will do (REQ-0208). It keeps no state of
 its own, so run again after an approval it continues from the step after the
 approved one, and run again with nothing approved it says it is waiting

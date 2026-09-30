@@ -5,6 +5,6 @@
 # skill's description, which routes it, the route skill's, which routes each
 # request before work starts, and the router agent's, which the route skill
 # dispatches. The driver is a command only a person invokes, so the platform
-# doesn't list it. Measured at 958 by the budget check on 2026-09-29, once the
-# route skill's description joined the other two.
-permanent_characters = 960
+# doesn't list it. Measured at 818 by the budget check on 2026-09-30, once the
+# method skill named seven steps and the record reviewer left.
+permanent_characters = 820

@@ -1,6 +1,6 @@
 ---
 name: method
-description: The method's ten steps, research, requirements, design, spec, epic, cover, implement, document, verify and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before an epic is documented, verified or reviewed. It MUST NOT be skipped, however small the record looks.
+description: The method's seven steps, research, requirements, design, spec, epic, implement and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before its pull request is reviewed. It MUST NOT be skipped, however small the record looks.
 ---
 
 <role>
@@ -12,8 +12,7 @@ don't overrule it.
 
 <steps name="run a step">
 1. Name the step and the identifiers of its input. The steps, in order, are
-   research, requirements, design, spec, epic, cover, implement, document,
-   verify and review. The route skill, `meow-flow:route`, runs before the
+   research, requirements, design, spec, epic, implement and review. The route skill, `meow-flow:route`, runs before the
    first of them and names the step a request enters at.
 2. Read the repository's principles before producing anything: `CLAUDE.md`,
    and each file `.meowpaw/profile.toml` names under `[method] principles`.
@@ -25,11 +24,9 @@ don't overrule it.
    draft, because approval is a person's act and not yours.
 6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
-7. Dispatch the `meow-flow:record-reviewer` agent on each record you wrote,
-   naming its path and nothing else, as M19 to M23 say.
-8. End by naming the artifact you wrote, the gate it now waits at, and the
+7. End by naming the artifact you wrote, the gate it now waits at, and the
    step that picks it up, with the command that runs it, and say the record
-   was reviewed by an agent and is unreviewed by a person.
+   is unreviewed by a person.
 </steps>
 
 <rules name="every step">
@@ -93,38 +90,14 @@ don't overrule it.
 - M18. Run `paw count` before and after a migration and put both
   outputs in its evidence, because a record the migration lost fails no other
   check.
-- M19. Give the reviewer the record's path alone, never who wrote it or why,
-  because a judge told which side it produced judges that side differently.
-- M20. Fix what the reviewer finds and dispatch a fresh reviewer on the
-  result, at most twice, because the second round catches what the first fix
-  broke and a bound is what makes repair end.
-- M21. Write each finding still open after the second round, and each finding
-  you reject, into the record under `## Open review findings` with your reason,
-  and name that section in the gate report, because the record is what
-  outlasts the turn and what the person approving reads.
-- M22. Where no agent can be dispatched, review nothing yourself: report the
-  record as unreviewed by an agent or a person and stop at the gate, because a
-  session judging its own record is the bias the review exists to avoid. Where
-  a person asks you to review your own work anyway, report the result as
-  self-assessed and unreviewed by a person.
-- M23. Where the reviewer's output comes back marked as stopped at its turn
-  ceiling, report the record as unreviewed by an agent, as M22 does for a
-  review that couldn't run, because a partial list of findings reads as a
-  complete one.
-- M24. Read the reviewer's `outcome:` line before its findings, allowing
-  leading space, because the platform's hand-back indents each line of the
-  report, and act on the word yourself, never asking a model to relay the
-  report first:
-  - `DONE`: act on the findings as M20 and M21 say;
-  - `DONE_WITH_CONCERNS`: act on the findings, and name the part that didn't
-    run in the gate report;
-  - `NEEDS_CONTEXT`: correct the brief and dispatch once more, which counts
-    as no repair round under M20, and act on that outcome by these rows;
-  - a second `NEEDS_CONTEXT` after the corrected brief: report the record as
-    unreviewed by an agent, naming the brief you sent;
-  - `BLOCKED`: report the record as unreviewed by an agent, naming the tool
-    and the input;
-  - a report with no outcome line from the set: report the record as
-    unreviewed by an agent, as for a repository's own reviewer that writes
-    none.
+- M19. Dispatch no agent to review a record you wrote, because the person
+  approving its pull request is its reader, and an agent's review of a record
+  was a step nobody could act on.
+- M20. Land a decision's research, requirements, decision record,
+  specification changes, epic and tasks in one pull request where they are
+  written together, with the approved records they replace withdrawn in it,
+  because splitting them buys no review nobody could give in one.
+- M21. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
+  realises the decision, and write no epic for it, because an epic holding one
+  task is a second record for the same plan.
 </rules>

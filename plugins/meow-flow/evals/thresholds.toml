@@ -7,16 +7,10 @@
 # in kind, and a bar of three of three would fail on that variance alone.
 
 [cases]
-decision-missing-its-reasons = 0.66
-clean-requirement = 0.66
-review-before-the-gate = 0.66
-open-findings-kept = 0.66
 route-plain-words = 0.66
 route-a-tiny-fix = 0.66
 route-both-ways = 0.66
 route-three-changes = 0.66
-review-without-delegating = 0.66
-stopped-at-the-ceiling = 0.66
 route-a-typo = 0.66
 route-reported-ambiguous = 0.66
 route-given = 0.66
@@ -26,5 +20,3 @@ route-reduced-unauthorised = 0.66
 route-list-overridden = 0.66
 route-list-one = 0.66
 route-a-question = 0.66
-review-a-missing-path = 0.66
-reviewer-with-no-outcome = 0.66

@@ -3,7 +3,7 @@ The epic step. It reads an approved decision or defect, named by its
 identifier, and writes from `paw template epic`. Its artifact lands in
 `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task,
 under the record root, `[record] root` in `.meowpaw/profile.toml` or
-`project/` where it declares none. The step that picks it up is cover.
+`project/` where it declares none. The step that picks it up is implement.
 </role>
 
 <steps name="epic">

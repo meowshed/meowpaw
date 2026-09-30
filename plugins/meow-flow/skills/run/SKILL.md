@@ -21,7 +21,7 @@ waiting.
 4. Load the `method` skill and run the step the chosen line names, with its
    input.
 5. Stop where that step ends at an approval gate.
-6. Where that step ends without an approval gate, as cover does, run
+6. Where that step ends without an approval gate, run
    `${CLAUDE_SKILL_DIR}/../../bin/paw status` again and continue from step 2,
    because the next step's input is already approved.
 7. Report which step you reached, why you stopped, and what the next

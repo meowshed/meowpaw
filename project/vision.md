@@ -70,15 +70,15 @@ adopt in part is a method nobody adopts.
 
 ## How it works
 
-Ten steps run in a chain, each writing one artifact, and each refusing to run
+Seven steps run in a chain, each writing one artifact, and each refusing to run
 when its input is missing or unapproved:
 
 ```text
 research -> requirements -> design -> spec -> epic
-         -> cover -> implement -> document -> verify -> review
+         -> implement -> review
 ```
 
-`/meow:run` drives all ten and stops at every gate. It changes how many times
+`/meow:run` drives all seven and stops at every gate. It changes how many times
 you type a command, and it never changes how many times you decide.
 
 Three documents live and everything else is a record. The vision, the
