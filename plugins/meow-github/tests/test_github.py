@@ -449,7 +449,7 @@ class Project(unittest.TestCase):
 # `--cache` replays. A `null` among the `responses` lets that call through to the default answer. Each issue holds
 # the time on GitHub's clock it was written at, and the read-back listing answers with the issues written at or after
 # its `since`, less the numbers `omit` names, with the body of each number `alter` names changed and the title of each number
-# `retitle` names changed, and `page_size`
+# `retitle` names changed, and a read of one issue by number shows the body of each number `read_alter` names changed, and `page_size`
 # at a time where the script sets it, each page but the last naming the next in a `Link` header.
 LAYERED = """#!/usr/bin/env python3
 import calendar, email.utils, json, os, sys, time
@@ -519,6 +519,8 @@ elif path in script.get("listings", {}):
     status, body = 200, script["listings"][path]
 elif path.split("/")[-1] in state["issues"]:
     status, body = 200, state["issues"][path.split("/")[-1]]
+    if body["number"] in script.get("read_alter", []):
+        body = dict(body, body="Rewritten.")
 else:
     status, body = 404, {"message": "Not Found"}
 json.dump(state, open(state_path, "w"))
@@ -859,15 +861,16 @@ class Partial(Layered, unittest.TestCase):
         self.assertEqual(left, "TSK-0003, TSK-0004, TSK-0005")
 
     def test_an_issue_the_listing_omits_is_not_read_back(self):
-        """TSK-2960 criterion 4, REQ-2572: where the listing omits a created issue, or shows it with another body or
-        another title, its task goes under `created, not read back` with what the listing showed, and the task
-        keeps `issue:`."""
-        shown = (("omit", "not in the listing"), ("alter", "reads differently from what was written"),
-                 ("retitle", "reads differently from what was written"))
-        for fault, reason in shown:
-            with self.subTest(fault=fault):
+        """TSK-2960 criterion 4 and TSK-4040 criterion 2, REQ-2572, REQ-3322: where the listing shows a created issue
+        with another body or another title, or omits it and its read by number shows another body, its task goes
+        under `created, not read back` with the reason, and the task keeps `issue:`."""
+        shown = (({"omit": [2], "read_alter": [2]}, "reads differently from what was written"),
+                 ({"alter": [2]}, "reads differently from what was written"),
+                 ({"retitle": [2]}, "reads differently from what was written"))
+        for script, reason in shown:
+            with self.subTest(script=script):
                 root = Project.repository(self)
-                self.stand_in(root, {fault: [2]})
+                self.stand_in(root, script)
                 done = self.meow_github(root, "project", "EPC-0001", "o/r")
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
                 self.assertEqual(len(listings(self.calls(root))), 1)
@@ -915,6 +918,40 @@ class Partial(Layered, unittest.TestCase):
         self.assertEqual([line for line in done.stdout.splitlines() if line.startswith("partial:")], [])
         read = [line for line in done.stdout.splitlines() if line.endswith(", read back")]
         self.assertEqual(len(read), 5, done.stdout)
+
+
+class ReadBack(Layered, unittest.TestCase):
+    """ADR-2340: a created issue the read-back listing leaves out is read by its number before it is reported."""
+
+    def test_an_issue_the_listing_leaves_out_is_read_by_number(self):
+        """TSK-4040 criterion 1, REQ-3322: with the second of two created issues left out of the listing and answered
+        by number, both tasks read back, one read by number is sent, no `partial:` line is printed, and the run
+        exits 0."""
+        root = Project.repository(self)
+        self.stand_in(root, {"omit": [2]})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.splitlines()
+        for number in (1, 2):
+            self.assertEqual(len([line for line in lines if line.startswith(f"TSK-000{number}: projected to issue "
+                                                                             f"#{number} at ")
+                                  and line.endswith(", read back")]), 1, done.stdout)
+        reads = [c for c in self.calls(root) if c["args"][1] == "repos/o/r/issues/2"]
+        self.assertEqual(len(reads), 1, self.calls(root))
+        self.assertEqual([line for line in lines if line.startswith("partial:")], [])
+
+    def test_a_throttled_read_by_number_stops_the_reads(self):
+        """TSK-4040 criterion 4, REQ-3322: a secondary throttle answering the read by number leaves the issue under
+        `created, not read back` with `no read ran`, sends no request after it, and exits 3."""
+        root = Project.repository(self)
+        throttle = {"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY}
+        self.stand_in(root, {"omit": [1, 2], "responses": {"GET repos/o/r/issues/1": [throttle]}})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        calls = self.calls(root)
+        self.assertEqual(calls[-1]["args"][1], "repos/o/r/issues/1", calls)
+        self.assertEqual(groups(self, done), (
+            "none", "TSK-0001 (issue #1, no read ran), TSK-0002 (issue #2, no read ran)", "none"))
 
 
 class Refusal(Layered, unittest.TestCase):
