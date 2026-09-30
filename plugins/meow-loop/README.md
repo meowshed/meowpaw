@@ -2,16 +2,17 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.2.0]
+describes: [meow-loop@0.3.0]
 ---
 
 # meow-loop
 
 `meow-loop start` repeats one prompt in fresh `claude -p` calls until the
 verification verbs you name pass, or until the number of iterations you state
-has run. The runner is a program outside the model, so nothing a call prints or
-writes extends the run, and the runner alone decides whether the work is done,
-from each verb's exit status.
+has run or the next call could pass the budget you state. The runner is a
+program outside the model, so nothing a call prints or writes extends the run,
+and the runner alone decides whether the work is done, from each verb's exit
+status.
 
 ## Install it
 
@@ -65,7 +66,7 @@ claude -p --output-format json --no-session-persistence
        --allowedTools "Edit(/<run>/progress/progress.md)"
        --allowedTools "Write(/<run>/progress/progress.md)"
        --permission-prompts none --add-dir <run>/progress
-       --max-budget-usd <budget> --append-system-prompt <preamble>
+       --max-budget-usd <budget left> --append-system-prompt <preamble>
 ```
 
 `<run>` is the run's directory, an absolute path with every link resolved, and
@@ -89,7 +90,22 @@ the preamble tells the model to read first and to write before it stops.
 `--add-dir` and the two rules are there to let a call write that file. No real
 call has been observed writing it under `dontAsk` yet.
 
-After a call, the runner compares the work tree's tree id with the one before
+Before each call the runner adds the largest single call's cost so far to the
+spend so far, and ends the run `budget` if the sum is above the budget, so the
+run stops before the call that could pass it. Before the first call both are
+0, so the first call always starts. `<budget left>` is the budget less the
+spend so far. It caps that one call on the platform's side, and the runner's
+own check is what bounds the run.
+
+After a call the runner reads `total_cost_usd` from the call's result and adds
+it to the spend. A call that prints no result, or a result whose cost is
+absent, negative or no number, ends the run `unmetered`, because a spend the
+runner can't sum bounds nothing. That call's line in the log holds `null` for
+`sum_usd`. A call whose result has the subtype `error_max_budget_usd` ends the
+run `budget`. Both come before the condition, so a call that reports no cost
+and also makes the verbs pass ends `unmetered`.
+
+Then the runner compares the work tree's tree id with the one before
 the call. The tree id covers every tracked file and every untracked file git
 doesn't ignore. If the tree id changed or couldn't be identified, the runner
 runs the verbs again, and
@@ -99,10 +115,12 @@ skips the verbs and makes the next call. Where a verb changes the tree, such
 as a formatter that rewrites files, the runner runs the verbs a second time at
 once, and that second result stands.
 
-| Ending     | When                                | Exit status |
-| ---------- | ----------------------------------- | ----------- |
-| `finished` | Every named verb passed at one tree | 0           |
-| `ceiling`  | The stated number of iterations ran | 1           |
+| Ending      | When                                                               | Exit status |
+| ----------- | ------------------------------------------------------------------ | ----------- |
+| `finished`  | Every named verb passed at one tree                                | 0           |
+| `budget`    | The next call could pass the budget, or a call reached its own cap | 1           |
+| `ceiling`   | The stated number of iterations ran                                | 1           |
+| `unmetered` | A call reported no cost, so the spend can't be summed              | 1           |
 
 `meow-loop` runs the verbs itself and needs no other unit. It records each
 verb's result in the ledger `meow-checks` reads, so where that unit is
@@ -116,12 +134,12 @@ A run writes nothing into your work tree. Its files go to
 `MEOWPAW_STATE_DIR` replaces `<state>/meowpaw`. `start` prints the directory
 when the run begins.
 
-| File                   | Holds                                                                                                                                                                                    |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `run.toml`             | The prompt's sha256, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending  |
-| `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                             |
-| `progress/progress.md` | What each iteration wrote for the next one. It starts empty                                                                                                                              |
-| `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, the count of `permission_denials`, its exit status, and the condition's result where it ran |
+| File                   | Holds                                                                                                                                                                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `run.toml`             | The prompt's sha256, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                                                   |
+| `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                                                                              |
+| `progress/progress.md` | What each iteration wrote for the next one. It starts empty                                                                                                                                                                               |
+| `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, `sum_usd` with the spend up to and including it, the count of `permission_denials`, its exit status, and the condition's result where it ran |
 
 A `run.toml` with no `ending` belongs to a run that was interrupted, and the
 last line of its log says how far it got. One run holds a work tree at a time,
@@ -132,19 +150,17 @@ of each run it removes.
 
 ## What this version doesn't bound yet
 
-The ceiling is the only bound this version holds across calls. It passes the
-whole budget to every call as `--max-budget-usd`, so the platform caps one
-call at the budget, and a run of five iterations can spend up to five times
-the budget. The runner logs each call's cost and doesn't sum it yet.
+The budget bounds the run before a call and not during one. A call that costs
+more than every call before it can take the spend past the budget by the
+difference, and the first call is held only by the platform's cap.
 
-This version also keeps running when a call changes nothing, until the ceiling
-ends the run. It doesn't check whether a call changed the prompt copy or
-`run.toml`, and it resolves each verb from the profile again at every
+This version keeps running when a call changes nothing, until the ceiling or
+the budget ends the run. It doesn't check whether a call changed the prompt
+copy or `run.toml`, and it resolves each verb from the profile again at every
 evaluation, so a call that rewrites `.meowpaw/profile.toml` changes what the
 condition runs. It doesn't stop a session inside Claude Code from starting a
-run. Until later versions add those checks, start a run yourself, read the
-profile's diff before you trust a `finished`, and choose the ceiling as if
-every call spends the whole budget.
+run. Until later versions add those checks, start a run yourself, and read the
+profile's diff before you trust a `finished`.
 
 ## What it reports instead of a run
 
@@ -184,7 +200,8 @@ creates no run directory:
 
 During a run, a file the runner can't write, a `claude` or a verb's command it
 can't start, or a verb that no longer resolves stops the run with the same
-`unresolved:` line and exit status 3. The run then has no ending, and reads as interrupted.
+`unresolved:` line and exit status 3. The run then has no ending, and reads as
+interrupted.
 
 ## What it costs you
 
