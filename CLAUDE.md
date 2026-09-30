@@ -46,16 +46,15 @@ named by one word wherever it's recorded:
 | `superseded`        | Replaced by a named later record                                    |
 | `live`              | A living document. The value never changes, and that's what it says |
 
-| Observed, and derived | Means                                           |
-| --------------------- | ----------------------------------------------- |
-| `implemented`         | Every task realising it is closed with evidence |
-| `verified`            | Its checks pass at the current revision         |
-| `in-progress`         | Some of its work has landed and some hasn't     |
-| `done`                | Implemented and verified                        |
+| Observed, and derived | Means                                          |
+| --------------------- | ---------------------------------------------- |
+| `in-progress`         | Some of its work has landed and some hasn't    |
+| `closed`              | Every task naming it is done, and none is open |
+| `open`                | No task closes it yet, or a defect reopened it |
 
 The harness computes an observed status from the tree and never writes one into
 a file. A decision record is `approved` when someone accepted it and
-`implemented` when its epic closes, and only the first of those is stored.
+`closed` when its tasks are done, and only the first of those is stored.
 
 | Path                                      | Holds                                                                                                              |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -107,8 +106,15 @@ order isn't negotiable:
 
 ```text
 research -> requirements -> design -> spec -> epic
-         -> cover -> implement -> document -> verify -> review
+         -> implement -> review
 ```
+
+A task is one pull request: its tests first, in a commit of their own where
+they fail, then the change, its documentation and its record marks. An agent
+reviews the change inside that pull request, and the pull request fixes what
+it finds. A requirement is closed when the tasks that name it are done, and an
+open defect naming it reopens it. Nothing else verifies it, and no run output
+is kept in the repository.
 
 A step whose input is missing or unapproved doesn't run. If you're about to
 write a plugin and no approved specification covers it, stop and go back. The
@@ -118,7 +124,7 @@ exempts itself from its own method has disproved it before shipping.
 Classify work before the chain starts: the route skill, `meow-flow:route`,
 routes each request and reports the route before any edit. Trivial work - a
 typo, a formatting fix, a link - skips the chain. That exemption is narrow on
-purpose: a method costing ten steps for a one-line fix is one people route
+purpose: a method costing seven steps for a one-line fix is one people route
 around, and then it reports a process it never performed. Anything that
 changes behaviour isn't trivial.
 </principle>

@@ -12,18 +12,18 @@ the whole value.
 
 Universal means two things here. The method knows nothing about your stack, so
 a Rust workspace, a Godot game, a Compose deployment and a Markdown knowledge
-base all move through the same ten steps. The parts that _must_ know your
+base all move through the same seven steps. The parts that _must_ know your
 stack - how to format, how to lint, how to run one test - arrive as small packs
 answering a fixed contract.
 
 ## The method
 
-Every unit of work, in any repository, moves through the same ten steps, and
+Every unit of work, in any repository, moves through the same seven steps, and
 each one writes a single artifact:
 
 ```text
 research -> requirements -> design -> spec -> epic
-         -> cover -> implement -> document -> verify -> review
+         -> implement -> review
 ```
 
 The vision, the constitution and the specification are living documents. They
@@ -37,13 +37,14 @@ Design produces decision records. An epic realises exactly one authorising
 record, a decision or a defect, which is what makes it finite and what it
 projects onto when you use a tracker.
 
-Documentation comes before review, so review covers it. Review runs last, and
-its verdict names the step the work returns to.
+A task is one pull request: its tests first, then the change, its
+documentation and its record marks. Review runs last, inside that pull
+request, which fixes what the review finds.
 
 A step refuses to run when its input is missing or unapproved, and that refusal
 is the only thing enforcing the order. Trivial work skips the chain: the
 harness classifies the request first and tells you which class it picked,
-because a harness that demands ten steps for a typo is one you'd work around.
+because a harness that demands seven steps for a typo is one you'd work around.
 
 ## Status
 

@@ -2,12 +2,12 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.43.0]
+describes: [meow-flow@0.44.0]
 ---
 
 # meow-flow
 
-`meow-flow` runs the method: ten steps from research to review, each
+`meow-flow` runs the method: seven steps from research to review, each
 writing one artifact from an approved input. It keeps the record those steps
 write, the research, requirements, decisions, specifications, epics, tasks and
 defects, and checks it, reporting each finding with its file and line. It
@@ -82,7 +82,7 @@ To run one step yourself, ask for it by name, such as "run the design step for
 | `spec`         | an approved decision           | the specification, updated  |
 | `epic`         | an approved decision or defect | an epic and its tasks       |
 | `implement`    | an approved task               | the change and its evidence |
-| `review`       | the task's pull request        | findings, never a file      |
+| `review`       | the task's pull request        | findings, fixed in it       |
 
 A task's pull request carries the whole task: its tests first, in a commit of
 their own where they fail, then the implementation, the documentation it
@@ -152,7 +152,7 @@ record is local to this machine. When a session starts, a hook runs `paw status
 --waiting`, so Claude opens with any draft waiting for you and says nothing
 when none is. `paw show <id>` prints what an identifier names and every
 artifact that cites it, grouped by the field that cites it, and for a
-requirement each task closing it with its mark and its epic's verification.
+requirement each task closing it with its mark and its epic.
 It marks a citation as suspect where its target was revised after the citing
 artifact, which is how an approved artifact's suspect citations are reported.
 `paw count` prints each kind's number of artifacts by status and the number of
@@ -167,31 +167,14 @@ the unit's rename isn't read, and `--write` names the markers it needs.
 `paw template <kind>` prints the template a step writes from: yours at
 `.meowpaw/templates/<kind>.md` where you have one, and the unit's otherwise.
 
-## Have a record reviewed
+## Have a change reviewed
 
-`meow-flow:record-reviewer` is an agent that reviews one record against fixed
-questions for its kind, such as whether each alternative in a decision says why
-it lost, and whether each rule in any record states its reason. It reads the
-record and what the record cites, with `Read`, `Grep` and `Glob` alone, and
-edits nothing. It runs on `opus` at `high` effort for at most 30 turns, and
-loads your repository's `CLAUDE.md`, because it judges the record against your
-repository's rules. It asks nothing `paw check` already settles. Its report opens
-with this line, because it is a model's judgement, which covers more than a
-person's and can't say whether the work should exist:
-
-```text
-Agent review, not a person's approval; the reviewer may share the author's model family.
-```
-
-Ask Claude to use it on a path:
-
-```text
-Use the meow-flow:record-reviewer agent on project/adrs/ADR-0100-cache-in-redis.md
-```
-
-Where the reviewer's output comes back marked as stopped at its turn ceiling,
-the method skill reports the record as unreviewed by an agent, because a
-partial list of findings reads as a complete one.
+The review step reads a task's pull request. Where the session wrote the
+change, it sends the difference to an agent with read-only tools, fixes what
+the agent finds in that pull request, and writes one sentence on it in the
+task's Evidence. It reports each test that would still pass against a wrong
+implementation. No agent reviews a record: you read it when you approve its
+pull request.
 
 ## Postpone requirements
 
@@ -248,8 +231,8 @@ exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
 ## What it costs you
 
-The `method` skill's description and the `record-reviewer` agent's, 487
-characters together, on every turn, so Claude knows when to load either. The driver costs nothing until you type it. The
+The `method` and `route` skills' descriptions and the `router` agent's, on
+every turn, so Claude knows when to load each. The driver costs nothing until you type it. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, it
 reports the record as not checked and exits 3.

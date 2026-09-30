@@ -105,13 +105,13 @@ def named_outcomes(path):
 
 
 class ShippedOutcomes(unittest.TestCase):
-    """TSK-2702 criterion 2, REQ-0816, SPC-1030 "What an agent reports": the three shipped agents name the four
+    """TSK-2702 criterion 2, REQ-0816, SPC-1030 "What an agent reports": the shipped agents name the four
     outcomes, and `meow-author check` passes over the repository's units with its outcome rule in force."""
 
-    def test_the_three_shipped_agents_name_the_four_outcomes(self):
+    def test_the_shipped_agents_name_the_four_outcomes(self):
         paths = sorted(ROOT.glob("plugins/*/agents/*.md"))
         self.assertEqual(sorted(f"{p.parent.parent.name}:{p.stem}" for p in paths),
-                         ["meow-flow:record-reviewer", "meow-flow:router", "meow-prose:prose"])
+                         ["meow-flow:router", "meow-prose:prose"])
         for path in paths:
             with self.subTest(agent=str(path.relative_to(ROOT))):
                 self.assertEqual(named_outcomes(path), set(OUTCOMES))
