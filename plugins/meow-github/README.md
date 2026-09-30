@@ -119,7 +119,7 @@ A group with no task reads `none`. The reason is `couldn't be read`,
 `no listing ran`, `no read ran` or
 `the task doesn't name it`.
 The run sends the listing after a write GitHub refused, and sends none after a
-throttle or a budget ceiling, where it sends nothing more at all. A task under
+throttle, a budget ceiling or a 401, where it sends nothing more at all. A task under
 `created, not read back` keeps its `issue:`, so the next run reads that issue
 through the mapping and creates no second one. The one exception is
 `the task doesn't name it`: the issue exists and the task file couldn't be
@@ -173,8 +173,8 @@ is missing for your machine, it names the machine and says to reinstall the
 unit.
 
 Where GitHub refuses a call, `history` and `project` name the method, the
-endpoint and the permission the call needed, end the line with GitHub's own
-reason, and exit 3:
+endpoint and the permission the call needed, carry GitHub's own reason, and
+exit 3:
 
 ```text
 unauthenticated: POST repos/OWNER/REPO/issues; GitHub said "Bad credentials"
@@ -198,7 +198,8 @@ first of these the response carries:
   GitHub's message quoted.
 
 A line that doesn't already quote GitHub's message ends with
-`; GitHub said "<message>"`, because a permission header says what an
+`; GitHub said "<message>"`, with any control character in the message
+printed as a space and any double quote escaped, because a permission header says what an
 endpoint accepts and not why this credential was refused. After a 401 the
 run sends nothing more, the read-back listing included, because GitHub
 rejects an account's valid credentials too after several rejected requests.

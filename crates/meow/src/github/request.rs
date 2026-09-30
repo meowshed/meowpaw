@@ -479,7 +479,7 @@ impl Layer {
                 if quoted || message.is_empty() {
                     String::new()
                 } else {
-                    format!("; GitHub said \"{message}\"")
+                    format!("; GitHub said \"{}\"", printable(message))
                 }
             };
             return Err(match response.status {
@@ -559,10 +559,24 @@ fn permission(response: &Response, message: &str) -> (String, bool) {
         )
     } else {
         (
-            format!("a permission: GitHub named no permission and said \"{message}\""),
+            format!(
+                "a permission: GitHub named no permission and said \"{}\"",
+                printable(message)
+            ),
             true,
         )
     }
+}
+
+/// GitHub's message as one line to quote: a control character becomes a space
+/// and a double quote is escaped, so a message can't split a report's line or
+/// end its quotation.
+fn printable(message: &str) -> String {
+    message
+        .chars()
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .collect::<String>()
+        .replace('"', "\\\"")
 }
 
 /// The form of the credential `gh` authenticates with, from whether each
@@ -754,7 +768,16 @@ fn sleep(seconds: f64) {
 
 #[cfg(test)]
 mod tests {
-    use super::wait;
+    use super::{printable, wait};
+
+    /// TSK-4030, REQ-3324: a message quoted in a report stays on one line and
+    /// inside its quotation marks.
+    #[test]
+    fn a_quoted_message_stays_on_its_line() {
+        assert_eq!(printable("Bad credentials"), "Bad credentials");
+        assert_eq!(printable("two\nlines"), "two lines");
+        assert_eq!(printable("say \"no\""), "say \\\"no\\\"");
+    }
     use std::path::Path;
 
     /// TSK-2940 criterion 4, REQ-2578: `x-ratelimit-reset` counts UTC epoch

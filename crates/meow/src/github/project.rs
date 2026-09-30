@@ -344,8 +344,10 @@ fn read_back(layer: &mut Layer, repository: &str) -> Result<Vec<Value>, Failure>
 
 /// Reads the created issues back, in one listing and then by number for each
 /// the listing left out, and sorts each task into `outcome`. The listing runs
-/// after a failed write or a refusal, and not after a throttle or a ceiling,
-/// because a request sent while throttled risks the integration.
+/// after a failed write or a refusal, and not after a throttle, a ceiling or a
+/// rejected credential, because a request sent while throttled risks the
+/// integration and one sent with a rejected credential counts towards
+/// GitHub's lockout.
 fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &mut Outcome) {
     if created.is_empty() {
         return;
