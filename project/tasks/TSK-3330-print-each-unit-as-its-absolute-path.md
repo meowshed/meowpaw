@@ -57,7 +57,7 @@ snapshot" and the unit's README state the absolute path. `meow-unattended` is
 The check failed first: `meow-verbs run test` exited 1 with
 `FAILED (failures=1)` on `Units.test_unit_paths_hold_from_a_subdirectory`,
 which read `['units/alpha', 'units/beta']` where it expected the absolute
-paths, kept as `project/evidence/0765f11da365.txt` in the commit that held the
+paths, kept as the run in #683, no longer kept in the commit that held the
 check alone. It passes now, unchanged:
 
 ```text

@@ -133,12 +133,12 @@ Criterion 9 ran twice on the working tree, each plant reverted after its run.
 A badly indented block and `planted= value` appended to
 `plugins/meow-mise/bin/meow-mise` made `meow-verbs run format` exit 1 in
 `shell-fmt` with shfmt's diff of that file, kept as
-`project/evidence/f33fa10988bd.txt`, and `meow-verbs run lint` exit 1 in
-`shell-lint` naming SC1007, kept as `project/evidence/8e0b25258dcc.txt`. An
+the run in #613, no longer kept, and `meow-verbs run lint` exit 1 in
+`shell-lint` naming SC1007, kept as the run in #613, no longer kept. An
 unformatted function and a nested `if` appended to `crates/meow/src/main.rs`
 made `format` exit 1 in `crate-fmt`, kept as
-`project/evidence/82260bcc3ad7.txt`, and `lint` exit 1 in `crate-lint` on
-`clippy::collapsible_if`, kept as `project/evidence/20e1fd5f40cb.txt`. The
+the run in #613, no longer kept, and `lint` exit 1 in `crate-lint` on
+`clippy::collapsible_if`, kept as the run in #613, no longer kept. The
 last two are the failing runs ADR-1610's fourth criterion names, which
 TSK-2510 recorded only as transcripts.
 

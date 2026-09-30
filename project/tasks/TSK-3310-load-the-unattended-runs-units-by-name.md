@@ -79,7 +79,7 @@ and the new refusals.
 
 The four checks failed first: `meow-verbs run test` exited 1 with
 `FAILED (failures=11)` for the unit's file, counting the subtests, kept as
-`project/evidence/4acbe0e3935f.txt` in the cover commit fa22b5f, which became
+the run in #668, no longer kept in the cover commit fa22b5f, which became
 eac3884 when the branch was rebased onto `origin/main`. They pass now,
 unchanged, since
 `git diff fa22b5f42020bca44a9e09ac48e2b0bee18bce63 -- plugins/meow-unattended/tests/test_unattended.py`

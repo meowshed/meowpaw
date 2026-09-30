@@ -49,7 +49,7 @@ before, with `lists no tasks`.
 
 The three checks in the class `TasklessEpic` failed first: `meow-verbs run
 test` exited 1 with `FAILED (failures=3)`, kept as
-`project/evidence/caa66d8d0c05.txt`, in the commit that held the checks
+the run in #622, no longer kept, in the commit that held the checks
 alone. They pass now:
 
 ```text

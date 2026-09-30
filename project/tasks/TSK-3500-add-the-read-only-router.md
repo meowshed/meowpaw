@@ -94,7 +94,7 @@ Closes REQ-0334, REQ-0338, REQ-0342, REQ-0344 and REQ-0346 as far as the
 router states them; the route skill that reports the route is TSK-3510's.
 
 Criteria 1 and 2. The cover commit added the three checks, and
-`project/evidence/c43d863413e3.txt` keeps their failing run: the `test` verb
+the run in #669, no longer kept keeps their failing run: the `test` verb
 exited 1 with `FAILED (failures=3)`, all three in `RouterAgent`, because
 `agents/router.md` didn't exist. With the agent in place,
 `python3 -m unittest plugins/meow-flow/tests/test_route.py -v` exits 0:

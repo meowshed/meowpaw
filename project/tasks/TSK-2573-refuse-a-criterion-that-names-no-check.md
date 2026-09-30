@@ -66,7 +66,7 @@ goes to 0.39.4.
 
 The two checks that describe the defect in the class `CoverClosedBy` failed
 first: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
-`project/evidence/e65403061cf8.txt`, in the commit that held the checks
+the run in #678, no longer kept, in the commit that held the checks
 alone. They pass now:
 
 ```text

@@ -52,7 +52,7 @@ finding. The program is unchanged.
 Against P1 with its word boundaries removed, the `test` verb exited 1 with
 `an_idiom_inside_longer_words_is_no_finding --- FAILED` and
 `test result: FAILED. 38 passed; 1 failed`, kept as
-`project/evidence/861cbef48d99.txt`. The Python fixture failed against the
+the run in #720, no longer kept. The Python fixture failed against the
 same build:
 
 ```text

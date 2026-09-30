@@ -67,7 +67,7 @@ gate" states the rule.
 
 The five checks in the class `CoverCriteria` failed first: `meow-verbs run
 test` exited 1 with `FAILED (failures=5)`, kept as
-`project/evidence/f6f0644bf46f.txt`, in the commit that held the checks alone.
+the run in #653, no longer kept, in the commit that held the checks alone.
 They pass now:
 
 ```text

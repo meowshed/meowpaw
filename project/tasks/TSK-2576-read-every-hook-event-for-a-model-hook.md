@@ -50,7 +50,7 @@ hook under `Stop`, and `test_an_agent_hook_under_any_event_is_refused` an
 
 Both failed first, in the commit that held them alone against the old
 reading: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
-`project/evidence/18050f05356d.txt`. They pass now:
+the run in #717, no longer kept. They pass now:
 
 ```text
 $ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests

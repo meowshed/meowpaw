@@ -82,7 +82,7 @@ sections "The state" and "The driver" no longer mark the behaviour as not yet,
 and `meow-flow` goes to 0.36.0.
 
 The five checks failed first: `meow-verbs run test` exited 1 with
-`FAILED (failures=5)`, kept as `project/evidence/0c16e63f1816.txt`, in the
+`FAILED (failures=5)`, kept as the run in #658, no longer kept, in the
 commit that held the checks alone. They pass now:
 
 ```text

@@ -120,7 +120,7 @@ directory.
 
 The 13 checks failed first: `meow-verbs run test` exited 1 with
 `FAILED (failures=21)` for the unit's file, counting the subtests, kept as
-`project/evidence/5a1520eda28c.txt`, in the cover commit f9e8b4e, which held
+the run in #663, no longer kept, in the cover commit f9e8b4e, which held
 the checks alone and became 34f2f7a when the branch was rebased onto
 `origin/main`. They pass now, unchanged, since
 `git diff f9e8b4ed30a9650f2bc2b914e8a21582acf3bb45 -- plugins/meow-unattended/tests/test_unattended.py`

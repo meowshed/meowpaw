@@ -73,7 +73,7 @@ lint as the verb's last command.
 command and a `config` key.
 
 The 14 checks failed first: `meow-verbs run test` exited 1, kept as
-`project/evidence/d8c083022377.txt`, in the cover commit b9acb6f, which held
+the run in #665, no longer kept, in the cover commit b9acb6f, which held
 the checks alone. They pass now, unchanged, since
 `git diff b9acb6f -- plugins/meow-markdown/tests/test_markdown.py` prints
 nothing:

@@ -61,7 +61,7 @@ states the rule.
 
 The four checks in the class `CoverPaths` failed first: `meow-verbs run test`
 exited 1 with `FAILED (failures=4)`, kept as
-`project/evidence/856069076836.txt`, in the commit that held the checks alone.
+the run in #647, no longer kept, in the commit that held the checks alone.
 They pass now:
 
 ```text

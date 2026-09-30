@@ -61,7 +61,7 @@ no fixture fails, and so does a fixture whose pattern was deleted.
 That check failed first, in the commit that held it alone:
 `meow-verbs run test` exited 1 with `FAILED (failures=1)`, naming the seven
 patterns from `gh pr edit` to `gh release edit`, kept as
-`project/evidence/ec5fc5600a5d.txt`. It passes now:
+the run in #713, no longer kept. It passes now:
 
 ```text
 $ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests

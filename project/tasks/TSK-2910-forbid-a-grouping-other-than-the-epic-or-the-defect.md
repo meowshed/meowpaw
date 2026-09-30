@@ -76,7 +76,7 @@ Done. Closes REQ-3320.
 
 The checks failed first: the cover commit 063957639db4, rebased as 513dd310
 onto main, kept
-`project/evidence/27c4d319f7ce.txt`, where the `meow-flow` suite exits 1 with
+the run in #670, no longer kept, where the `meow-flow` suite exits 1 with
 seven failures, one for each `Grouping` test and two for the subtests of
 `test_a_task_under_its_epic_or_defect_passes`.
 

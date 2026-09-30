@@ -103,7 +103,7 @@ Criteria 5 and 6 pass on Sonnet 5 and not on Opus 5.5, and criterion 7 passes
 on neither, so BUG-1360 records what they still lack.
 
 Criteria 1 and 2. The cover commit added the checks, and
-`project/evidence/ed1d8795487d.txt` keeps their failing run: the `test` verb
+the run in #722, no longer kept keeps their failing run: the `test` verb
 exited 1 with `FAILED (failures=34)`, every failure in `RouteSkill` and
 `RouteCases`. With the skill, the cases and the two names in place,
 `python3 -m unittest plugins/meow-flow/tests/test_route.py -v` exits 0:

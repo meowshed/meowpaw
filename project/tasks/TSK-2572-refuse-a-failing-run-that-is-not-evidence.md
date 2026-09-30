@@ -68,7 +68,7 @@ SPC-1090's section "The gate" states the rule. `meow-flow` goes to 0.39.1.
 
 The three checks in the class `CoverRun` failed first: `meow-verbs run test`
 exited 1 with `FAILED (failures=3)`, kept as
-`project/evidence/ec12b7c3f9b6.txt`, in the commit that held the checks alone.
+the run in #666, no longer kept, in the commit that held the checks alone.
 They pass now:
 
 ```text

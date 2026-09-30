@@ -60,7 +60,7 @@ state the file, and `meow-markdown` goes to 0.4.1.
 
 The two checks in the class `Markdownlintrc` failed first: `meow-verbs run
 test` exited 1 with `FAILED (failures=2, skipped=1)` in the Markdown suite,
-kept as `project/evidence/b92cd9bb18ec.txt`, in the commit that held the
+kept as the run in #693, no longer kept, in the commit that held the
 checks alone. They pass now:
 
 ```text

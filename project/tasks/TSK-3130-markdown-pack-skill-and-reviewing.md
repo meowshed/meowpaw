@@ -53,7 +53,7 @@ TSK-3100, because the unit and its skill file come from it.
 
 The cover commit 4142a15 added seven checks to
 `plugins/meow-markdown/tests/test_markdown.py`, and they failed there before
-the work, as `project/evidence/cfe2a8d9882c.txt` records. With the skill and
+the work, as the run in #677, no longer kept records. With the skill and
 `reviewing.md` written, the same checks pass unchanged:
 
 ```text

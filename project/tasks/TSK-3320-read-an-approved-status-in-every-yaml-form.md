@@ -52,7 +52,7 @@ is 0.2.1.
 
 The check failed first: `meow-verbs run test` exited 1 with
 `FAILED (failures=1)` on `Snapshot.test_approved_in_every_front_matter_form`,
-kept as `project/evidence/7221defb820c.txt` in the commit that held the check
+kept as the run in #675, no longer kept in the commit that held the check
 alone. It passes now, unchanged:
 
 ```text

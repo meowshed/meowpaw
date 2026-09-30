@@ -65,7 +65,7 @@ in the documentation index. `check` and `links` print the usage line and exit
 2 until TSK-3110 and TSK-3120 land.
 
 The 13 checks failed first: `meow-verbs run test` exited 1 with 19 failures
-counting the subtests, kept as `project/evidence/389ccd22365c.txt`, in the
+counting the subtests, kept as the run in #651, no longer kept, in the
 cover commit 593222a, which held the checks alone. They pass now, unchanged,
 since `git diff 593222a -- plugins/meow-markdown/tests/test_markdown.py`
 prints nothing:

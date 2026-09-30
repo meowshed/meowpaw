@@ -64,7 +64,7 @@ that publishes nothing, and `meow-prose-gate` goes to 0.2.2, with the
 Three checks failed first, in the commit that held the fixtures alone:
 `meow-verbs run test` exited 1 with `FAILED (failures=3)`, naming the two
 `gh` fixtures and the routing check, kept as
-`project/evidence/858bedc10330.txt`. They pass now:
+the run in #743, no longer kept. They pass now:
 
 ```text
 $ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests

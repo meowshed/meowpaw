@@ -67,7 +67,7 @@ table, and `meow-flow` goes to 0.39.5.
 
 `MethodSkill.test_each_role_names_where_its_artifact_lands` failed first:
 `meow-verbs run test` exited 1 with `FAILED (failures=38)`, one failure for
-each phrase a role lacked, kept as `project/evidence/7db4da4bafbe.txt`, in the
+each phrase a role lacked, kept as the run in #696, no longer kept, in the
 commit that held the check alone. It passes now:
 
 ```text
