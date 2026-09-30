@@ -48,7 +48,7 @@ status)
 run)
   shift
   if [ $# -eq 0 ]; then
-    echo "meow-verbs run: name the verbs to run, from: $verbs" >&2
+    echo "meow-checks run: name the verbs to run, from: $verbs" >&2
     exit 2
   fi
   summary=""
@@ -60,7 +60,7 @@ run)
   exit 3
   ;;
 *)
-  echo "usage: meow-verbs status [--json] | meow-verbs run <verb>..." >&2
+  echo "usage: meow-checks status [--json] | meow-checks run <verb>..." >&2
   exit 2
   ;;
 esac

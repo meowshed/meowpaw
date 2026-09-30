@@ -33,7 +33,7 @@ def mise_tasks():
 
 def verbs():
     run = subprocess.run(
-        [str(ROOT / "plugins/meow-verbs/bin/meow-verbs"), "status", "--json"],
+        [str(ROOT / "plugins/meow-checks/bin/meow-checks"), "status", "--json"],
         cwd=ROOT, capture_output=True, text=True, check=True,
     )
     return json.loads(run.stdout)["verbs"]

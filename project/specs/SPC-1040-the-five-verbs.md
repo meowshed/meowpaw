@@ -47,10 +47,10 @@ states:
 ## Scope
 
 This covers the five verification verbs a repository declares and the unit
-that resolves, reports and runs them, `meow-verbs`. ADR-2300 renames the
-unit `meow-checks`, named for what it does for the reader, and keeps
-`meow-verbs` one release as a stub that says so (REQ-3634, REQ-3636) (not
-yet; EPC-2200 realises it). It states where a verb
+that resolves, reports and runs them, `meow-checks`. ADR-2300 named the unit
+for what it does for the reader: it was `meow-verbs`, which stays in the
+marketplace one release as a stub whose `SessionStart` hook says the unit is
+now `meow-checks` and how to move an install (REQ-3634, REQ-3636). It states where a verb
 resolves from, what an unresolved verb reports, and what a run records.
 
 It leaves binding a verb to a runner's tasks and language packs to later
@@ -60,17 +60,17 @@ unit's skill is written is SPC-1030's.
 ADR-1070, ADR-1480, ADR-1520, ADR-1530, ADR-1550 and ADR-1560 decide it,
 EPC-1040, EPC-1460, EPC-1500, EPC-1510, EPC-1520 and EPC-1530 realise them,
 and
-`meow-verbs` implements it, checked at #115.
+`meow-checks` implements it, checked at #115.
 
 ## Boundary
 
-| Surface                             | What it is                                                      |
-| ----------------------------------- | --------------------------------------------------------------- |
-| `.meowpaw/profile.toml`, `[verbs]`  | The repository's declaration: one command per verb it declares  |
-| `plugins/meow-verbs/bin/meow-verbs` | The program: `status`, `run <verb>...` and `evidence [verb...]` |
-| `<state>/meowpaw/evidence/`         | The ledger of recorded results, outside the repository          |
-| `plugins/meow-verbs/skills/verify/` | The skill that tells the model to use the program, not a guess  |
-| `plugins/meow-verbs/README.md`      | The unit's documentation page                                   |
+| Surface                               | What it is                                                      |
+| ------------------------------------- | --------------------------------------------------------------- |
+| `.meowpaw/profile.toml`, `[verbs]`    | The repository's declaration: one command per verb it declares  |
+| `plugins/meow-checks/bin/meow-checks` | The program: `status`, `run <verb>...` and `evidence [verb...]` |
+| `<state>/meowpaw/evidence/`           | The ledger of recorded results, outside the repository          |
+| `plugins/meow-checks/skills/verify/`  | The skill that tells the model to use the program, not a guess  |
+| `plugins/meow-checks/README.md`       | The unit's documentation page                                   |
 
 ## Behaviour
 
@@ -82,7 +82,7 @@ compiler checking the code without building it, `test` for tests and `build`
 for the build (REQ-0130, REQ-2908). A unit adds no sixth (REQ-0131), because a
 sixth verb is a command with no agreed meaning across repositories.
 
-From `meow-verbs` 0.4.0 the program no longer reads the names the verbs had
+From 0.4.0, under its earlier name, the program no longer reads the names the verbs had
 before ADR-1410, `fmt` for `format` and `typecheck` for `check`: a profile key
 under an old name is listed as ignored, and an old name on the command line
 isn't a verb.
@@ -126,7 +126,7 @@ answer to what a verb means.
 
 ### What `status` reports
 
-`meow-verbs status` reports all five verbs and runs none of them (REQ-0150).
+`meow-checks status` reports all five verbs and runs none of them (REQ-0150).
 For a resolved verb it gives the command and the file it came from. For an
 unresolved verb it gives the kind, one of five, and a run over part of the
 work adds a sixth (REQ-0154, REQ-0142):
@@ -149,7 +149,7 @@ read.
 
 ### What `run` reports
 
-`meow-verbs run <verb>...` runs each named verb in the order given and reports
+`meow-checks run <verb>...` runs each named verb in the order given and reports
 each one (REQ-0144):
 
 - a verb that ran: the exact command, its exit status, how long it took, and
@@ -176,7 +176,7 @@ record. Under its summary it prints one line per verb:
 (REQ-0146) (ADR-1480). The ledger is `<state>/meowpaw/evidence/<key>.jsonl`,
 where `<state>` is `$XDG_STATE_HOME` where it is set, and otherwise
 `%LOCALAPPDATA%` on Windows and `~/.local/state` elsewhere, and `<key>` is a
-hash of the work tree's absolute path. `meow-verbs` only appends to it.
+hash of the work tree's absolute path. `meow-checks` only appends to it.
 
 The tree id is git's hash of the working state as a tree object, untracked
 files included and ignored ones left out, built through a temporary index so
@@ -187,7 +187,7 @@ a git work tree the tree id is `none`.
 
 ### What `evidence` reports
 
-`meow-verbs evidence [verb...]` prints the latest record for each named verb,
+`meow-checks evidence [verb...]` prints the latest record for each named verb,
 or every verb with a record when none is named: its outcome, its identifier,
 and `current` or `stale` with the tree it ran on and the tree now. The latest
 record decides. It exits 0 when every named verb's latest record passed on the
@@ -205,7 +205,7 @@ The repository keeps no run output (REQ-3614). A record or a pull request
 cites a result as `evidence` prints it: the verb, the outcome, the record and
 the tree id. `evidence --keep` and `evidence --kept` exit 2, naming ADR-2300,
 and write nothing, for one release. The tree id leaves no directory out,
-and `meow-verbs tree <commit>` prints a commit's tree id, for comparing a
+and `meow-checks tree <commit>` prints a commit's tree id, for comparing a
 cited result with a commit (ADR-1530).
 
 Every record carries the tree id it was collected at, and any change to the
@@ -221,7 +221,7 @@ it is (REQ-0456).
 The ledger is run state, kept outside the repository (REQ-3072). Each record
 names the repository's identity, the hash of its first commit (REQ-0752). A
 missing ledger or an unparseable line reads as absent (REQ-0754).
-`meow-verbs state` prints where the ledger is, its record count, the oldest
+`meow-checks state` prints where the ledger is, its record count, the oldest
 and newest (REQ-0756). Every write takes a lock in
 `$XDG_RUNTIME_DIR`, or the user's temporary directory where that is unset, and
 a lock older than a minute is replaced (REQ-0758, REQ-2958, REQ-2967).
@@ -242,7 +242,7 @@ records name the same repository (REQ-2970).
 
 ### The skill
 
-`meow-verbs:verify` carries the obligation to use the program whenever the
+`meow-checks:verify` carries the obligation to use the program whenever the
 model would format, lint, type-check, test or build, in the description form
 SPC-1030 states. It runs `status` before the first `run` in a session, so the
 commands the profile names are on screen before anything executes, and it

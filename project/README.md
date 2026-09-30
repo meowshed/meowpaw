@@ -272,7 +272,7 @@ verified with EPC-1710 under issue 625. The GitHub request layer, which
 ADR-1810 adds and EPC-1720 realises, isn't built yet.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
-from the repository's profile. `meow-verbs` implements it, verified under
+from the repository's profile. `meow-checks` implements it, checked under
 issue 115.
 
 [SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
@@ -568,7 +568,7 @@ ADR-2200 in two tasks, TSK-3700 and TSK-3710, both dropped when ADR-2300
 superseded ADR-2200.
 
 [EPC-2200](epics/EPC-2200-the-seven-step-chain.md) realises ADR-2300 in eight
-tasks, TSK-3800 to TSK-3870, of which TSK-3800 to TSK-3840 and TSK-3870 are done, and each of the 28
+tasks, TSK-3800 to TSK-3870, of which TSK-3800 to TSK-3850 and TSK-3870 are done, and each of the 28
 requirements ADR-2300 addresses lands in one of them.
 [EPC-1650](epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
 ADR-1700 in two tasks, TSK-2700 and TSK-2701, neither of them started, and

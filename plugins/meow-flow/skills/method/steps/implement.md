@@ -15,7 +15,7 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
    implementation yet. Below the `Not yet.` that opens the task's
    `## Evidence`, name each criterion no program can check, and each with no
    `Closed by:` line, as resting on judgement with the reason.
-3. Run the tests through `meow-verbs`, or by the repository's own command
+3. Run the tests through `meow-checks`, or by the repository's own command
    where it isn't installed, and see each one fail, then commit them in a
    commit of their own, before any commit that implements the task.
 4. Make the change the task describes and nothing no requirement describes,
@@ -24,7 +24,7 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 5. Bring the user-facing documentation the change invalidates into agreement
    with it, in the same pull request: its pages, the index they are listed in,
    and any install or usage instruction. Run every example you changed.
-6. Run the repository's verbs through `meow-verbs`. Where `meow-verbs` isn't
+6. Run the repository's verbs through `meow-checks`. Where `meow-checks` isn't
    installed, run each verb's command and note its exit status instead.
 7. Where every verb passed, replace the `Not yet.` that opens the task's
    `## Evidence` with the tests that close each criterion, each verb's outcome

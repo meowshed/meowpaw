@@ -35,7 +35,7 @@ installed the harness agreed to that install and to nothing else.
   already keeps, because the repository agreed to the harness and to nothing
   more.
 - N2. Report which verbs resolve before anything else, from
-  `meow-verbs status` where that unit is installed, and otherwise by listing
+  `meow-checks status` where that unit is installed, and otherwise by listing
   each verb you declared and each you found no command for, because how a
   repository is checked is the first thing a person hits. Resolving a verb
   runs nothing.

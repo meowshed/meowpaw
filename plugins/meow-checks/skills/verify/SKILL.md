@@ -12,11 +12,11 @@ report at all.
 
 <steps name="run the verbs">
 1. Before the first run in a session, run
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs status` and show its output, so
+   `${CLAUDE_SKILL_DIR}/../../bin/meow-checks status` and show its output, so
    the person sees each command before anything runs.
 2. Run the verbs the work needs, naming each one, with `format` first where
    it is among them:
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs run test`, or several at once,
+   `${CLAUDE_SKILL_DIR}/../../bin/meow-checks run test`, or several at once,
    such as `run format lint test`. To run over part of the work, such as one
    test or one file, add the targets after `--`: `run test -- <target>...`.
    Never run a verb's command yourself, and never run a command you chose in
@@ -28,7 +28,7 @@ report at all.
    it, and stop there. Stop, because only the repository knows what the verb
    means for it.
 5. Before you call the work done, run
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-verbs evidence` with the verbs the work
+   `${CLAUDE_SKILL_DIR}/../../bin/meow-checks evidence` with the verbs the work
    needs. On exit 0, cite each result as it printed. On anything else, report
    what it printed and stop until the person accepts it or the verbs pass.
 6. Where a record or a pull request will cite the results, cite each line as
@@ -36,7 +36,7 @@ report at all.
 </steps>
 
 <rules name="reporting">
-- V1. Call the work done only when `meow-verbs evidence` on every verb it
+- V1. Call the work done only when `meow-checks evidence` on every verb it
   needs exits 0, or when the person has said they accept what it reported,
   because a claim of done over a failing, unresolved or stale check is the
   substitution this unit exists to stop.

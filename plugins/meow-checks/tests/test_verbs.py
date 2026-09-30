@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 
 UNIT = Path(__file__).resolve().parent.parent
-BIN = Path(os.environ.get("MEOW_VERBS_BIN", UNIT / "bin" / "meow-verbs"))
+BIN = Path(os.environ.get("MEOW_VERBS_BIN", UNIT / "bin" / "meow-checks"))
 VERBS = ["format", "lint", "check", "test", "build"]
 
 
@@ -665,9 +665,9 @@ class Launcher(unittest.TestCase):
 
     def test_a_missing_binary_names_the_machine_and_the_reinstall(self):
         with tempfile.TemporaryDirectory() as tmp:
-            launcher = Path(tmp) / "bin" / "meow-verbs"
+            launcher = Path(tmp) / "bin" / "meow-checks"
             launcher.parent.mkdir()
-            launcher.write_text((UNIT / "bin" / "meow-verbs").read_text(encoding="utf-8"), encoding="utf-8")
+            launcher.write_text((UNIT / "bin" / "meow-checks").read_text(encoding="utf-8"), encoding="utf-8")
             launcher.chmod(0o755)
             done = subprocess.run(["sh", str(launcher), "status"], cwd=tmp, capture_output=True, text=True, input="")
             machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()

@@ -11,7 +11,7 @@ does as though somebody had decided it must.
 </role>
 
 <steps name="onboard">
-1. Run `meow-verbs status` where that unit is installed, and note which verbs
+1. Run `meow-checks status` where that unit is installed, and note which verbs
    resolve; where `.meowpaw/profile.toml` is missing, stop and say to run
    `/meow-flow:init` first.
 2. Read the repository's documentation, any harness it already has, and its

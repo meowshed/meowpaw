@@ -579,7 +579,7 @@ open until the defect closes, whatever its tasks say (REQ-3610).
 
 The implement step writes under a task's Evidence the tests that close each
 criterion, each verb's outcome and the pull request, and records each command
-and its exit status where `meow-verbs` isn't installed, because `meow-flow`
+and its exit status where `meow-checks` isn't installed, because `meow-flow`
 works without it (REQ-0146) (ADR-1480). It keeps no run output, in a file or
 in the task (REQ-3614), and marks the task done only in a change whose verbs
 all passed (REQ-3606). Before the implementation it names there each

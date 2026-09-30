@@ -10,7 +10,8 @@ describes:
     meow-flow@0.44.0,
     meow-prose-gate@0.2.2,
     meow-scm@0.4.2,
-    meow-verbs@0.8.0,
+    meow-checks@0.9.0,
+    meow-verbs@0.9.0,
   ]
 ---
 
@@ -22,7 +23,7 @@ says why it happened and what fixes it.
 ## No meow binary was found for this machine
 
 `no meow binary was found for this machine` means a unit's program couldn't
-find its binary for your operating system and processor. `meow-verbs` then
+find its binary for your operating system and processor. `meow-checks` then
 reports every verb unresolved, `meow-git` checks nothing, `meow-scm` reports
 the message unchecked and exits 3, `meow-github` names the machine and exits
 3, and `paw` reports the record as not checked.
@@ -42,7 +43,7 @@ it keeps reporting them as unchecked, never as passed.
 
 ## A verb is unresolved
 
-`unresolved` means `meow-verbs` ran nothing for that verb and reports nothing
+`unresolved` means `meow-checks` ran nothing for that verb and reports nothing
 as passed. The words after it say why:
 
 - `undeclared: the profile doesn't name it`: `.meowpaw/profile.toml` has no
@@ -124,6 +125,20 @@ approved input, and `paw` lists what is missing below the message, such as a
 task another one depends on that isn't done. Approve the input or finish the
 task it names, then run the step again. If you run `/meow-flow:run` with
 nothing newly approved, it says what it is waiting on.
+
+## meow-verbs is now meow-checks
+
+`meow-verbs is now meow-checks` means the unit you installed as `meow-verbs`
+was renamed, and the copy under the old name is a stub with no skill and no
+program. Move the install:
+
+```bash
+claude plugin install meow-checks@meowpaw
+claude plugin uninstall meow-verbs@meowpaw
+```
+
+Your `.meowpaw/profile.toml` stays as it is: the `[verbs]` table and the five
+verb names didn't change.
 
 ## meow-method is now meow-flow
 
