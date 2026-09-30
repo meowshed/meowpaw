@@ -52,9 +52,11 @@ request asks for one.
 
 ## Closed by
 
-Not closed.
+TSK-4010. `test_the_skill_says_who_opens_the_pull_request` in
+`plugins/meow-flow/tests/test_record.py` reads M20 for the session opening
+the pull request and naming the branch where no code host is declared.
 
 ## Tasks
 
-- [ ] T-001 TSK-4010 say who opens the pull request, in
+- [x] T-001 TSK-4010 say who opens the pull request, in
       `plugins/meow-flow/skills/method/SKILL.md`

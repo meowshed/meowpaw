@@ -46,8 +46,16 @@ patch version.
 
 ## Evidence
 
-Not yet.
+`test_the_skill_says_who_opens_the_pull_request` in
+`plugins/meow-flow/tests/test_record.py` closes criterion 1. It failed at the
+pull request's first commit and passes at its last. The code review found
+step 8 naming a pull request where none can exist, M20's new sentence
+without its reason and a sentence in the page that misread, and all three
+are fixed here. The `budget` check
+reports `meow-flow` within its limit, and `meow-checks run format lint check
+test` passed all four verbs.
 
 ## Left alone
 
-Not yet.
+No case measures whether a session opens the pull request, because the
+rule is one clause and a run of it needs a code host.
