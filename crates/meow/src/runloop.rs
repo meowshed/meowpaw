@@ -11,7 +11,10 @@
 //! the condition from each verb's exit status and reads nothing the model
 //! printed. Every call gets the prompt's bytes as they were at start and one
 //! fixed preamble, in a new session (REQ-0880), and what an iteration leaves
-//! for the next goes in the run's progress file (REQ-0882).
+//! for the next goes in the run's progress file (REQ-0882). Before each call
+//! the runner checks that the spend so far and one more call as large as the
+//! largest so far fit the budget (REQ-0878), and a call whose cost it can't
+//! read ends the run, because a spend that can't be summed bounds nothing.
 
 use crate::profile;
 use crate::verbs::{self, ledger};
@@ -30,6 +33,10 @@ const UNRESOLVED: u8 = 3;
 
 /// The one permission mode RES-0300 saw run a call.
 const MODE: &str = "dontAsk";
+/// What a sum of costs may pass the budget by and still count as within it:
+/// a billionth of a dollar, which covers the error of adding decimal costs in
+/// binary floating point and is far below any cost a call reports.
+const SLACK: f64 = 1e-9;
 /// How many of a work tree's runs are kept, the new one among them (ADR-2010).
 const KEPT: usize = 20;
 const VALUED: [&str; 7] = [
@@ -47,8 +54,6 @@ struct Terms {
     prompt: Vec<u8>,
     verbs: Vec<String>,
     iterations: i64,
-    /// The budget as typed, which is what each call's cap is passed as.
-    budget: String,
     budget_usd: f64,
     allowed: Vec<String>,
     plugin_dirs: Vec<String>,
@@ -129,8 +134,8 @@ fn terms(args: &[String]) -> Result<Terms, Vec<String>> {
         }
     });
     let budget_usd = budget.and_then(|value| {
-        // Every call gets the budget as typed, so only the one form every
-        // reader of it agrees on is accepted: digits, with one optional point.
+        // Only the one form every reader of a budget agrees on is accepted:
+        // digits, with one optional point.
         let (whole, fraction) = value.split_once('.').unwrap_or((value, "0"));
         let decimal = [whole, fraction]
             .iter()
@@ -154,18 +159,15 @@ fn terms(args: &[String]) -> Result<Terms, Vec<String>> {
         errors.push(format!("--permission-mode {value} is refused"));
     }
 
-    match (prompt, ceiling, budget, budget_usd) {
-        (Some(prompt), Some(iterations), Some(budget), Some(budget_usd)) if errors.is_empty() => {
-            Ok(Terms {
-                prompt,
-                verbs: named,
-                iterations,
-                budget: budget.to_string(),
-                budget_usd,
-                allowed,
-                plugin_dirs,
-            })
-        }
+    match (prompt, ceiling, budget_usd) {
+        (Some(prompt), Some(iterations), Some(budget_usd)) if errors.is_empty() => Ok(Terms {
+            prompt,
+            verbs: named,
+            iterations,
+            budget_usd,
+            allowed,
+            plugin_dirs,
+        }),
         _ => Err(errors),
     }
 }
@@ -412,7 +414,34 @@ iteration said is in this conversation.
     )
 }
 
-fn call(claude: &Path, root: &Path, terms: &Terms, context: &Context) -> Result<Called, String> {
+/// An amount to six decimal places, without the zeros that end it, so a sum
+/// such as 0.8999999999999999 reads as 0.9.
+fn dollars(amount: f64) -> String {
+    let text = format!("{amount:.6}");
+    text.trim_end_matches('0').trim_end_matches('.').to_string()
+}
+
+/// The cap one call gets for `left`, the budget less the spend so far: six
+/// decimal places, or every digit where six would round it to nothing, and
+/// never below 0.
+fn cap(left: f64) -> String {
+    if left >= 0.000001 {
+        dollars(left)
+    } else {
+        left.max(0.0).to_string()
+    }
+}
+
+/// Makes one call, capped at `left`, the budget less the spend so far. The cap
+/// is the platform's limit on this one call, and the check before the call is
+/// what bounds the run.
+fn call(
+    claude: &Path,
+    root: &Path,
+    terms: &Terms,
+    context: &Context,
+    left: f64,
+) -> Result<Called, String> {
     let mut command = Command::new(claude);
     command.current_dir(root).args([
         "-p",
@@ -438,11 +467,9 @@ fn call(claude: &Path, root: &Path, terms: &Terms, context: &Context) -> Result<
     }
     command.args(["--permission-prompts", "none", "--add-dir"]);
     command.arg(&context.progress);
-    // The whole budget, because the runner keeps no spend yet: until it does,
-    // this is only the platform's cap on one call.
     command.args([
         "--max-budget-usd",
-        &terms.budget,
+        &cap(left),
         "--append-system-prompt",
         &context.preamble,
     ]);
@@ -526,13 +553,30 @@ fn run(
     if evaluate(root, &terms.verbs)? {
         return Ok("finished");
     }
+    let (mut spend, mut largest) = (0.0_f64, 0.0_f64);
     for iteration in 1..=terms.iterations {
+        // The next call may cost as much as the largest so far, so the run
+        // ends before a call that could pass the budget, not after it.
+        if spend + largest > terms.budget_usd + SLACK {
+            println!(
+                "the next call could pass the budget: {} spent, {} the largest call, {} the budget",
+                dollars(spend),
+                dollars(largest),
+                dollars(terms.budget_usd)
+            );
+            return Ok("budget");
+        }
         // Read after the last evaluation, so a verb that writes to the tree
         // never counts as a change this call made.
         let before = ledger::tree_id(root);
-        let called = call(claude, root, terms, context)?;
+        let called = call(claude, root, terms, context, terms.budget_usd - spend)?;
         let after = ledger::tree_id(root);
         let result = called.result.as_ref();
+        // A cost that isn't a number of dollars at or above 0 can't be summed.
+        let cost = result
+            .and_then(|r| r.get("total_cost_usd"))
+            .and_then(Value::as_f64)
+            .filter(|cost| cost.is_finite() && *cost >= 0.0);
         let mut line = json!({
             "iteration": iteration,
             "tree_before": before,
@@ -540,6 +584,7 @@ fn run(
             "total_cost_usd": result
                 .and_then(|r| r.get("total_cost_usd"))
                 .filter(|cost| cost.is_number()),
+            "sum_usd": cost.map(|cost| spend + cost),
             "permission_denials": result
                 .and_then(|r| r.get("permission_denials"))
                 .and_then(Value::as_array)
@@ -548,6 +593,27 @@ fn run(
             "condition": null,
         });
         let logged = log_line(log, None, &line)?;
+        let shown = match called.status {
+            Some(status) => format!("exit status {status}"),
+            None => "ended by a signal".to_string(),
+        };
+        // A broken bound is reported before a success, so both endings come
+        // before the condition is evaluated.
+        let Some(cost) = cost else {
+            println!(
+                "iteration {iteration}: {shown}, the call reported no cost the runner can sum"
+            );
+            return Ok("unmetered");
+        };
+        spend += cost;
+        largest = largest.max(cost);
+        let subtype = result
+            .and_then(|r| r.get("subtype"))
+            .and_then(Value::as_str);
+        if subtype == Some("error_max_budget_usd") {
+            println!("iteration {iteration}: {shown}, the call reached its own cap");
+            return Ok("budget");
+        }
         // An unchanged tree would repeat the last result.
         let held = if after != before || after == ledger::UNBOUND {
             let held = evaluate(root, &terms.verbs)?;
@@ -556,10 +622,6 @@ fn run(
             Some(held)
         } else {
             None
-        };
-        let shown = match called.status {
-            Some(status) => format!("exit status {status}"),
-            None => "ended by a signal".to_string(),
         };
         match held {
             Some(true) => {
@@ -688,6 +750,20 @@ mod tests {
 
     fn errors(args: &[&str]) -> Vec<String> {
         typed(args).err().unwrap_or_default()
+    }
+
+    /// TSK-3370: an amount prints without the error of a binary sum, and the
+    /// cap a call gets is never rounded down to nothing.
+    #[test]
+    fn an_amount_reads_as_its_decimal_figure() {
+        assert_eq!(dollars(0.3 + 0.3 + 0.3), "0.9");
+        assert_eq!(dollars(1.0), "1");
+        assert_eq!(dollars(10.0), "10");
+        assert_eq!(dollars(0.0), "0");
+        assert_eq!(cap(1.0 - 0.3), "0.7");
+        assert_eq!(cap(10.0), "10");
+        assert_eq!(cap(0.0000004), "0.0000004");
+        assert_eq!(cap(-0.0000000001), "0");
     }
 
     #[test]

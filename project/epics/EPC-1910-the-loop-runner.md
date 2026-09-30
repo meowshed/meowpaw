@@ -108,9 +108,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       the five verbs pass. TSK-3360 carries the rest.
       depends: TSK-3350, because it changes the call that task makes
 
-- [ ] T-003 [P] TSK-3370 check the budget before each call from the spend so
+- [x] T-003 [P] TSK-3370 check the budget before each call from the spend so
       far and the largest call, and end the run `budget` or `unmetered`
       closes: REQ-0870, REQ-0876, REQ-0878
+      evidence: the five checks in `Budget` pass after failing first, and the
+      five verbs pass. TSK-3370 carries the rest.
       depends: TSK-3350, because it adds a check to the loop that task writes
 
 - [ ] T-004 [P] TSK-3380 end the run `idle` after two iterations in a row
