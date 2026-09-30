@@ -88,9 +88,7 @@ change to a prompt is measured to SPC-1020.
 ADR-1020, ADR-1030 and ADR-1050 decide the form, ADR-1040 how the reply shape
 reaches a subordinate agent, ADR-1450 how the capability ships and is checked,
 ADR-1700 what an agent declares, and ADR-1710 what an agent reports and what it
-does when a tool is denied. EPC-1651 realises ADR-1710, and until its tasks
-land the shipped agents write no outcome line and `meow-author check` asks for
-none. What a dispatcher does with each outcome belongs to the specification of
+does when a tool is denied. What a dispatcher does with each outcome belongs to the specification of
 the chain.
 
 ## Boundary
@@ -349,8 +347,8 @@ finding names its line, so a longer span, such as a table row, is found
 there.
 
 Every shipped agent carries the denial rule, in the same words: where a tool
-call is denied, the agent issues no second call in another form, reaches the
-same result with no other tool, asks nobody for the permission, and ends with
+call is denied, the agent issues no second call in another form, uses no other
+tool to reach the same result, asks nobody for the permission, and ends with
 `outcome: BLOCKED` and one sentence naming the tool and what it was called on
 (REQ-2978). A denied call is `BLOCKED` whatever it was called on, a cited
 record included. A cited record or file that doesn't exist or doesn't resolve
