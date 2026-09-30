@@ -204,6 +204,132 @@ class CheckDocs(unittest.TestCase):
         tree.write("llms.txt", ROUTE + "\nThe demo runs checks and reports them.\n")
         self.assertFails(tree, "llms.txt:9: neither a heading, the summary nor a link")
 
+    SKILL = ("---\nname: method\ndescription: The method's steps.\n---\n\n<steps name=\"run a step\">\n"
+             "1. Name the step. The steps, in order, are\n   research, requirements, design, spec, epic, implement and"
+             " review. The route\n   skill runs first.\n</steps>\n")
+
+    def with_method(self, tree):
+        tree.write("plugins/meow-demo/skills/method/SKILL.md", self.SKILL)
+
+    def test_a_page_stating_the_wrong_step_count_fails(self):
+        """TSK-3840 criterion 1, REQ-3632: a page saying ten steps while the method names seven fails, by page and line."""
+        tree = self.tree()
+        self.with_method(tree)
+        tree.write("README.md", "# Demo\n\nEvery change moves through\nthe same ten steps, in order.\n")
+        self.assertFails(tree, "README.md:4: states ten steps, and the method names seven")
+
+    def test_a_page_stating_the_methods_step_count_passes(self):
+        """REQ-3632: the right count passes, in words or digits, and so does a count of something else."""
+        tree = self.tree()
+        self.with_method(tree)
+        tree.write("README.md", "# Demo\n\nAll move through the same seven steps. The method's 7 steps. Install it in"
+                   " three steps.\nEach tutorial follows the same three steps. Adding a pack costs two steps.\n"
+                   "When someone steps from research to design. The written steps run in a chain. A two-step chain of"
+                   " commands.\nThis install method has three steps. The HTTP method: two steps remain.\n"
+                   "The old text said `the method's ten steps`. <!-- the method's ten steps -->\n")
+        done = tree.check()
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_wrong_count_is_reported_once_at_the_line_of_the_number(self):
+        """REQ-3632: one statement matching two forms is one failure, named at the line the number is on."""
+        tree = self.tree()
+        self.with_method(tree)
+        tree.write("README.md", "It runs the method: ten steps from research to review.\n\nThe method's\nten\nsteps.\n")
+        done = tree.check()
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertEqual(done.stdout.count("states ten steps"), 2, done.stdout)
+        self.assertIn("README.md:1: states ten steps, and the method names seven", done.stdout)
+        self.assertIn("README.md:4: states ten steps, and the method names seven", done.stdout)
+
+    def test_each_written_form_of_a_wrong_count_is_caught(self):
+        """REQ-3632: digits, emphasis, a quoted block, a curly apostrophe and a count above twelve are all read."""
+        for text in ("through the same 10 steps", "the method's **ten** steps", "> the method\n> has ten steps",
+                     "the method\u2019s ten steps", "through the same thirteen steps", "the ten-step chain",
+                     "a harness that demands ten steps", "a harness that costs ten steps", "the method's _ten_ steps",
+                     "the **method's** ten steps", "through the same twenty steps", "Ten steps from research to review"):
+            with self.subTest(text=text):
+                tree = self.tree()
+                self.with_method(tree)
+                tree.write("README.md", f"# Demo\n\n{text}\n")
+                done = tree.check()
+                self.assertEqual(done.returncode, 1, done.stdout)
+                self.assertIn("and the method names seven", done.stdout)
+
+    def test_a_skill_with_no_readable_step_list_fails(self):
+        """REQ-3632: a method skill whose list can't be read is a failure, never a count that agreed."""
+        for change, said in ((("The steps, in order, are", "The chain is"), "names no step list"),
+                             (("design, spec", "design and spec"), 'names the step "design and spec"'),
+                             (("design, spec", "design, , spec"), 'names the step ""')):
+            with self.subTest(said=said):
+                tree = self.tree()
+                tree.write("plugins/meow-demo/skills/method/SKILL.md", self.SKILL.replace(*change))
+                self.assertFails(tree, f"plugins/meow-demo/skills/method/SKILL.md: {said}")
+
+    def test_a_rewrapped_step_list_is_still_read(self):
+        """REQ-3632: the list is read however the sentence wraps, and with a colon after it."""
+        tree = self.tree()
+        tree.write("plugins/meow-demo/skills/method/SKILL.md",
+                   self.SKILL.replace("The steps, in order, are\n   research", "The steps, in\n   order, are: research"))
+        tree.write("README.md", "through the same ten steps\n")
+        self.assertFails(tree, "README.md:1: states ten steps, and the method names seven")
+
+    def test_a_page_that_is_not_utf8_is_a_failure_and_no_crash(self):
+        """REQ-3632: a root page that can't be read is named, and the check goes on to the next page."""
+        tree = self.tree()
+        self.with_method(tree)
+        (tree.root / "CLAUDE.md").write_bytes(b"caf\xe9 the method's ten steps")
+        tree.write("project/vision.md", "Ten steps run in a chain.\n")
+        self.assertFails(tree, "CLAUDE.md: isn't UTF-8")
+        self.assertIn("project/vision.md:1: states ten steps", tree.check().stdout)
+
+    def test_a_skill_that_is_not_utf8_is_a_failure(self):
+        """REQ-3632: a method skill that can't be read holds no count, and says so."""
+        tree = self.tree()
+        (tree.root / "plugins/meow-demo/skills/method").mkdir(parents=True)
+        (tree.root / "plugins/meow-demo/skills/method/SKILL.md").write_bytes(b"caf\xe9")
+        self.assertFails(tree, "SKILL.md: isn't UTF-8, so the method's step count can't be read")
+
+    def test_a_list_with_a_comma_before_and_is_counted(self):
+        """REQ-3632: `a, b, and c` names three steps."""
+        tree = self.tree()
+        tree.write("plugins/meow-demo/skills/method/SKILL.md", self.SKILL.replace("implement and", "implement, and"))
+        tree.write("README.md", "through the same seven steps\n")
+        done = tree.check()
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_the_step_count_is_read_from_the_skill(self):
+        """REQ-3632: the count comes from the method skill, so a skill naming six makes seven the wrong count."""
+        tree = self.tree()
+        tree.write("plugins/meow-demo/skills/method/SKILL.md", self.SKILL.replace("epic, implement and", "implement and"))
+        tree.write("CLAUDE.md", "A method costing seven steps for a typo.\n")
+        tree.write("README.md", "through the same six steps\n")
+        self.assertFails(tree, "CLAUDE.md:1: states seven steps, and the method names six")
+
+    def test_a_unit_page_and_the_route_are_checked_for_the_count(self):
+        """REQ-3632: unit pages, pages under docs and the route file are read, and fenced text is not."""
+        tree = self.tree()
+        self.with_method(tree)
+        tree.write("llms.txt", ROUTE + "- [Demo](plugins/meow-demo/README.md): runs the method's nine steps\n")
+        tree.write("project/vision.md", "# Vision\n\n```text\nNine steps run in a chain\n```\n\nTen steps run in a chain.\n")
+        page = (tree.root / "plugins/meow-demo/README.md").read_text(encoding="utf-8")
+        tree.write("plugins/meow-demo/README.md", page + "\nIt runs the method's eight steps.\n")
+        tree.write("docs/guide.md", PAGE.format(unit="meow-demo", version="1.0.0", body="The method has six steps."))
+        tree.index()
+        done = tree.check()
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertRegex(done.stdout, r"llms\.txt:\d+: states nine steps, and the method names seven")
+        self.assertRegex(done.stdout, r"plugins/meow-demo/README\.md:\d+: states eight steps, and the method names seven")
+        self.assertRegex(done.stdout, r"docs/guide\.md:\d+: states six steps, and the method names seven")
+        self.assertIn("project/vision.md:7: states ten steps, and the method names seven", done.stdout)
+        self.assertNotIn("project/vision.md:4", done.stdout)
+
+    def test_no_method_skill_means_no_count_to_hold(self):
+        """REQ-3632: a repository shipping no method skill has no count, so nothing is reported."""
+        tree = self.tree()
+        tree.write("README.md", "through the same ten steps.\n")
+        done = tree.check()
+        self.assertEqual(done.returncode, 0, done.stdout)
+
     def test_an_identifier_in_code_is_an_example(self):
         """REQ-3130: a unit that reads the record shows its syntax in code, which isn't a citation."""
         tree = self.tree()
