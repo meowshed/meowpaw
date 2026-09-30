@@ -42,12 +42,6 @@ Change `crates/meow/src/record.rs`: the state derivation, `show`, `status` and t
 
 Nothing.
 
-## Cover
-
-Not yet. The cover step replaces this line with four, `Checks`,
-`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
-the task until they are filled.
-
 ## Evidence
 
 In #752. The class `RequirementState` in `plugins/meow-flow/tests/test_record.py`

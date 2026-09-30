@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1520
-checked-at: "#543"
 ---
 
 # A verb runs over part of the work only through a form the repository declares
@@ -50,30 +49,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-0140, REQ-0142
       evidence: eight fixtures seen failing first, and the skill traced, in
       #541.
-
-## Verified
-
-I checked this under #543 on `main` after #542, gathering the evidence there
-rather than carrying it over from the task. `meow-verbs evidence format lint
-test` exits 0 on this change's own tree, as the pull request cites, and the
-eight `Subset` fixtures pass. Every criterion is met:
-
-| Criterion                                                                                                                                                                                                                                   | Evidence on `main` after #542                                                                |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| 1. The subset form runs quoted targets; a verb with none is `no subset form`, runs nothing and exits 3; a string still resolves; an empty `--`, a form without `{targets}` and a mixed run each behave as decided; `status` shows each form | The seven `Subset` fixtures on `run` and `status` pass                                       |
-| 2. `evidence test` ignores a later subset record and prints it as `subset only`                                                                                                                                                             | `Subset.test_a_subset_record_never_stands_for_the_whole_verb` passes                         |
-| 3. The `verify` skill carries the subset rule, and `meow-author check` passes                                                                                                                                                               | Step 2 and V6 carry it, traced in TSK-2330; `meow-author check` reports 0 authoring failures |
-| 4. Every requirement lands in exactly one closed task                                                                                                                                                                                       | `paw show` derives REQ-0140 and REQ-0142 as closed by TSK-2330                               |
-
-### Documentation
-
-TSK-2330 described the subset form on `meow-verbs`' page, at 0.5.0. The
-`test` verb checked it, running `tools/check_docs.py`.
-
-### Postponements
-
-ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
-untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 

@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1550
-checked-at: "#555"
 ---
 
 # Evidence is kept beside the record by default, and a kept file git ignores is reported
@@ -44,31 +43,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-2956
       evidence: four fixtures seen failing first, and this task's results kept
       in `project/evidence/`, in #553.
-
-## Verified
-
-I checked this under #555 on `main` after #554, gathering the evidence there
-rather than carrying it over from the task. `meow-verbs evidence --keep format
-lint test` exits 0 on this change's own tree, and keeps each result in
-`project/evidence/`, as the pull request cites. The eight `Kept` fixtures
-pass. Every criterion is met:
-
-| Criterion                                                                                                                | Evidence on `main` after #554                                                                                      |
-| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| 1. `--keep` writes `project/evidence/<record>.txt` by default, follows a moved `[record] root`, and obeys `evidence_dir` | The three `Kept` fixtures on the directory pass, and this verification's own files land in `project/evidence/`     |
-| 2. `--keep` exits 1 naming the rule for an ignored file, and 3 where git can't answer                                    | `Kept.test_a_kept_file_git_ignores_is_reported_and_left` and `Kept.test_outside_git_a_kept_file_is_unchecked` pass |
-| 3. `paw check` passes with a kept file under `project/evidence`                                                          | The `test` verb runs `paw check` with six kept files present, 0 findings                                           |
-| 4. REQ-2956 lands in a closed task of this epic                                                                          | `paw show` derives it as closed by TSK-2370                                                                        |
-
-### Documentation
-
-TSK-2370 stated the default on `meow-verbs`' page, at 0.6.0. The `test` verb
-checked it, running `tools/check_docs.py`.
-
-### Postponements
-
-ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
-untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 

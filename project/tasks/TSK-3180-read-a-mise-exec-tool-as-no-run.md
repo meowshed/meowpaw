@@ -44,19 +44,6 @@ fix, with its README's `describes:`.
 
 Nothing. BUG-1324 is approved.
 
-## Cover
-
-- Checks: plugins/meow-markdown/tests/test_markdown.py
-- Failing run: project/evidence/6463c84bcbcf.txt
-- Landed in: #724
-- Judgement: none
-
-The failing run is the two fixtures alone: `meow-verbs run test` exited 1
-with `FAILED (failures=2, skipped=1)`, each failure the case where
-`mise exec` loads a tool and runs another program. The case that runs the tool
-after `--` passed before the fix, as it should, since `check` already read
-that word as a run.
-
 ## Evidence
 
 `words` in `crates/meow/src/markdown.rs` leaves out the words `mise exec` or

@@ -42,7 +42,7 @@ CLEAN = {
     "vision.md": "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n",
     "README.md": index("index", ["SPC-0001", "EPC-0001", "BUG-0001"]),
     "specs/SPC-0001-a-part.md": record(
-        "spec", "SPC-0001", {"status": "live", "states": "[REQ-0001]", "checked-at": ""},
+        "spec", "SPC-0001", {"status": "live", "states": "[REQ-0001]"},
         ["Scope", "Boundary", "Behaviour", "Failure paths"]),
     "research/RES-0001-synthesis.md": record(
         "research", "RES-0001", {}, ["Summary", "Conclusions", "Sources"], "\nIt indexes RES-0002.\n"),
@@ -57,7 +57,7 @@ CLEAN = {
         "adr", "ADR-0001", {"addresses": "[REQ-0001]"},
         ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]),
     "epics/EPC-0001-a-plan.md": record(
-        "epic", "EPC-0001", {"realises": "ADR-0001", "checked-at": ""},
+        "epic", "EPC-0001", {"realises": "ADR-0001"},
         ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]),
     "tasks/TSK-0001-a-task.md": record(
         "task", "TSK-0001", {"epic": "EPC-0001", "closes": "\n  [\n    REQ-0001,\n  ]"},
@@ -317,14 +317,14 @@ class Checks(unittest.TestCase):
                         "## Tasks\n\n- [x] T-001 [P] TSK-0001 the task\n      closes: REQ-0001")
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
         self.found(repository.run("check", "rules"), "rules",
-                   'project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
+                   'project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
 
     def test_a_task_marked_done_carries_evidence(self):
         repository = self.repo()
         self.mark(repository, "x")
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
         self.found(repository.run("check", "rules"), "rules",
-                   'project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
+                   'project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nNot yet.", "## Evidence\n\nNot yet.\n\nThe fixture passed.")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
@@ -332,7 +332,7 @@ class Checks(unittest.TestCase):
         repository = self.repo()
         self.mark(repository, " ")
         self.found(repository.run("check", "coverage"), "coverage",
-                   "project/epics/EPC-0001-a-plan.md:18: leaves TSK-0001 unmarked, and its Evidence section is written")
+                   "project/epics/EPC-0001-a-plan.md:17: leaves TSK-0001 unmarked, and its Evidence section is written")
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet. Postponed by the owner.")
         self.assertEqual(repository.run("check", "coverage").returncode, 0)
 
@@ -445,7 +445,7 @@ class Checks(unittest.TestCase):
         repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
         repository.edit("specs/SPC-0001-a-part.md", "## Behaviour\n\nText.", "## Behaviour\n\nIt holds REQ-0001.")
         self.found(repository.run("check", "shape"), "shape",
-                   "project/specs/SPC-0001-a-part.md:22: cites REQ-0001, which is withdrawn, outside a Withdrawn section")
+                   "project/specs/SPC-0001-a-part.md:21: cites REQ-0001, which is withdrawn, outside a Withdrawn section")
         repository.edit("specs/SPC-0001-a-part.md", "## Behaviour\n\nIt holds REQ-0001.", "## Behaviour\n\nText.")
         repository.edit("specs/SPC-0001-a-part.md", "## Failure paths\n\nText.", "## Failure paths\n\nText.\n\n## Withdrawn\n\nREQ-0001, by ADR-0001.")
         done = repository.run("check", "shape")
@@ -642,7 +642,7 @@ class Checks(unittest.TestCase):
         repository = self.repo()
         self.mark(repository, "+")
         self.found(repository.run("check", "rules"), "rules",
-                   "project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 added after approval with no added: line saying why")
+                   "project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 added after approval with no added: line saying why")
         repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      added: nobody foresaw the case")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
@@ -650,7 +650,7 @@ class Checks(unittest.TestCase):
         repository = self.repo()
         self.mark(repository, "~")
         self.found(repository.run("check", "rules"), "rules",
-                   "project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 dropped with no dropped: line saying why")
+                   "project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 dropped with no dropped: line saying why")
         repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      dropped: the decision was reversed")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
@@ -988,28 +988,6 @@ class Frozen(unittest.TestCase):
             subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
         return repository
 
-    def test_a_filled_cover_leaves_an_approved_task_unchanged(self):
-        """TSK-2530 criterion 9, REQ-3207: `check frozen` lets `## Cover` change after approval, as `## Evidence` does,
-        and still reports a change to the task's acceptance criteria."""
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
-                        "## Acceptance criteria\n\n1. Given a record, then it passes.\n\n## Cover\n\nNot yet.\n\n## Evidence")
-        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
-                                     "commit", "-q", "-m", "base"]):
-            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\nNot yet.",
-                        "## Cover\n\n- Checks: tests/test_a_task.py\n- Failing run: project/evidence/a-failing-run.txt\n"
-                        "- Landed in: #12\n- Judgement: none")
-        done = self.frozen(repository)
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("frozen: 0 findings", done.stdout)
-        repository.edit("tasks/TSK-0001-a-task.md", "1. Given a record, then it passes.",
-                        "1. Given a record, then it passes quickly.")
-        done = self.frozen(repository)
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("project/tasks/TSK-0001-a-task.md: approved at HEAD, and changed since", done.stdout)
-
     def test_an_added_line_citing_a_hash_as_a_revision_is_reported(self):
         repository = self.committed()
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixtures passed at `9f3c2e1`.")
@@ -1023,18 +1001,6 @@ class Frozen(unittest.TestCase):
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
-
-    def test_a_verified_epic_is_frozen(self):
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#9"')
-        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
-                                     "commit", "-q", "-m", "base"]):
-            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\nTidied.")
-        done = self.frozen(repository)
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("project/epics/EPC-0001-a-plan.md: approved at HEAD", done.stdout)
 
     def test_a_living_document_is_never_frozen(self):
         repository = self.repo()
@@ -2492,6 +2458,183 @@ class ShortChainPrompts(unittest.TestCase):
         text = self.flat(METHOD / "steps" / "epic.md")
         self.assertRegex(text, r"Where one task realises the decision, write that task alone, naming `realises: ADR-NNNN`")
         self.assertRegex(text, r"Write no epic for a decision one task realises, because")
+
+
+class MigratedShape(unittest.TestCase):
+    """TSK-3860, ADR-2300, REQ-3652: no record carries the old chain's sections or `checked-at`."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def commit(self, repository):
+        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                                     "commit", "-q", "-m", "base"]):
+            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
+
+    def test_the_clean_record_carries_no_checked_at(self):
+        """A specification and an epic need no `checked-at` to pass every check."""
+        repository = self.repo()
+        for name in ("specs/SPC-0001-a-part.md", "epics/EPC-0001-a-plan.md"):
+            self.assertNotIn("checked-at", (repository.root / name).read_text(encoding="utf-8"), name)
+        self.assertEqual(repository.run("check").returncode, 0)
+
+    def test_checked_at_is_a_retired_field(self):
+        """A record still carrying `checked-at` is reported, by file and line."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", 'realises: ADR-0001\nchecked-at: "#1"')
+        done = repository.run("check", "front-matter")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/epics/EPC-0001-a-plan.md:7: carries checked-at, a retired field", done.stdout)
+
+    def test_a_retired_section_is_reported(self):
+        """A record still carrying `## Cover`, `## Verified` or `## Open review findings` is reported by `shape`."""
+        for name, section in (("tasks/TSK-0001-a-task.md", "Cover"), ("epics/EPC-0001-a-plan.md", "Verified"),
+                              ("adrs/ADR-0001-a-choice.md", "Open review findings")):
+            with self.subTest(section=section):
+                repository = self.repo()
+                path = repository.root / name
+                path.write_text(path.read_text(encoding="utf-8") + f"\n## {section}\n\nText.\n", encoding="utf-8")
+                done = repository.run("check", "shape")
+                self.assertEqual(done.returncode, 1, done.stdout)
+                self.assertRegex(done.stdout, rf"project/{re.escape(name)}:\d+: carries the section {section}, which is retired")
+
+    def test_a_retired_heading_inside_fenced_code_is_an_example(self):
+        """A fenced example showing an old section is text, not a section, whichever fence holds it."""
+        repository = self.repo()
+        path = repository.root / "adrs/ADR-0001-a-choice.md"
+        path.write_text(path.read_text(encoding="utf-8") + "\n```text\n## Cover\n~~~\n## Verified\n```\n\n~~~\n## Cover\n~~~\n",
+                        encoding="utf-8")
+        self.assertEqual(repository.run("check", "shape").returncode, 0)
+
+    def test_removing_a_retired_section_or_field_leaves_an_approved_record_frozen_and_clean(self):
+        """The migration's own edits aren't a change: an approved record loses `## Cover`, `## Open review findings`
+        or `checked-at` with no finding, and still can't change anything else."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "## Cover\n\n- Checks: none\n\n## Evidence")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001\n", "# REQ-0001\n\n## Open review findings\n\nOne.\n")
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at: "#1"')
+        self.commit(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\n- Checks: none\n\n## Evidence", "## Evidence")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "\n## Open review findings\n\nOne.\n", "")
+        repository.edit("adrs/ADR-0001-a-choice.md", '\nchecked-at: "#1"', "")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001", "# REQ-0001\n\nIt MUST do more.")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_text_under_a_retired_heading_is_still_a_change(self):
+        """A record gaining a retired section, or changing the text of one it carries, is a change like any other."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Consequences", "## Cover\n\nOld.\n\n## Consequences")
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Cover\n\nOld.", "## Cover\n\nA new obligation.")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Cover\n\nA new obligation.", "## Cover\n\nOld.")
+        path = repository.root / "requirements/REQ-0001-an-obligation.md"
+        path.write_text(path.read_text(encoding="utf-8") + "\n## Verified\n\nIt MUST now do more.\n", encoding="utf-8")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/requirements/REQ-0001-an-obligation.md: approved at HEAD", done.stdout)
+
+    def test_a_retired_heading_with_more_words_is_the_same_section(self):
+        """`## Verified, and closed with a criterion unmet` is the Verified section; `## Covered` is not Cover."""
+        repository = self.repo()
+        path = repository.root / "epics/EPC-0001-a-plan.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text + "\n## Verified, and closed with a criterion unmet\n\nText.\n", encoding="utf-8")
+        self.assertIn("carries the section Verified, which is retired", repository.run("check", "shape").stdout)
+        path.write_text(text + "\n## Covered\n\nText.\n", encoding="utf-8")
+        self.assertNotIn("which is retired", repository.run("check", "shape").stdout)
+
+    def test_a_wrapped_retired_field_and_a_line_opening_with_a_span_are_read(self):
+        """A retired field written over several lines is removed whole, and a prose line opening with an inline
+        span of backticks isn't a fence, so the section after it is still a section."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at:\n  [\n    "#1",\n  ]')
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "```paw check``` prints nothing.\n\n## Cover\n\nNot yet.\n\n## Evidence")
+        self.assertIn("carries the section Cover", repository.run("check", "shape").stdout)
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", '\nchecked-at:\n  [\n    "#1",\n  ]', "")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\nNot yet.\n\n## Evidence", "## Evidence")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_blank_line_changed_elsewhere_is_a_change(self):
+        """Only the blank lines round a removed section move: one removed inside fenced code is a change."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Consequences", "```text\na\n\n\n\nb\n```\n\n## Consequences")
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "a\n\n\n\nb", "a\n\nb")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_a_record_that_never_carried_one_is_compared_as_it_is(self):
+        """The allowances belong to a removal: with nothing retired removed, a changed `revised` or an added blank
+        line in an approved record is a change."""
+        repository = self.repo()
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "revised: 2026-01-01", "revised: 2026-02-02")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_one_retired_section_removed_while_another_stays(self):
+        """A migration in two steps passes: removing `## Cover` while `## Verified` stays as it was, and removing a
+        `checked-at` written as a block list."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Consequences", "## Cover\n\nOld.\n\n## Verified\n\nKept.\n\n## Consequences")
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at:\n- "#1"\n- "#2"')
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Cover\n\nOld.\n\n", "")
+        repository.edit("adrs/ADR-0001-a-choice.md", '\nchecked-at:\n- "#1"\n- "#2"', "")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Verified\n\nKept.", "## Verified\n\nChanged.")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_a_first_level_heading_in_evidence_ends_nothing(self):
+        """Only a `## ` heading bounds a section, so a `# ` line in a task's Evidence is part of it."""
+        repository = self.repo()
+        self.commit(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\n# ran\n\noutput")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
+
+    def test_a_fence_closes_on_its_own_mark_at_its_own_length(self):
+        """A four-mark fence holds a three-mark one, a line with an info string closes nothing, a tilde fence takes
+        any info string, and a fence indented four spaces is code, not a fence."""
+        for body, reported in (("````markdown\n```text\n## Cover\n```\n## Verified\n````", False),
+                               ("```text\n```rust\n## Cover\n```", False),
+                               ("~~~ a~b\n## Cover\n~~~", False),
+                               ("    ```\n\n## Cover\n\nText.", True)):
+            with self.subTest(body=body):
+                repository = self.repo()
+                path = repository.root / "adrs/ADR-0001-a-choice.md"
+                path.write_text(path.read_text(encoding="utf-8") + f"\n{body}\n", encoding="utf-8")
+                self.assertEqual("which is retired" in repository.run("check", "shape").stdout, reported)
+
+    def test_a_second_tasks_section_or_a_changed_relation_freezes_an_epic(self):
+        """An epic's free text is its first Tasks section: a second one added to hold new text, and a changed
+        `realises`, are reported, and a fenced heading inside Tasks doesn't end it."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n```text\n## Example\n```\n\n- [ ] T-001 TSK-0001 the task")
+        self.commit(repository)
+        repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Coverage", "## Tasks\n\nNew criterion: easier.\n\n## Coverage")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nNew criterion: easier.\n\n## Coverage", "## Coverage")
+        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: BUG-0001")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_an_approved_epic_may_change_its_tasks_and_nothing_else(self):
+        """With no `checked-at` to freeze it, an approved epic changes only under `## Tasks`."""
+        repository = self.repo()
+        self.commit(repository)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Acceptance criteria\n\nText.", "## Acceptance criteria\n\nEasier.")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/epics/EPC-0001-a-plan.md: approved at HEAD", done.stdout)
 
 
 if __name__ == "__main__":

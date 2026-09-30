@@ -92,13 +92,6 @@ README's section "What it needs".
 
 - TSK-2940 (blocking): the allow list is checked in the layer it adds.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

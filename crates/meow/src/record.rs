@@ -75,6 +75,7 @@ struct Layout {
     kinds: Vec<Kind>,
     retired_fields: BTreeMap<String, String>,
     retired_statuses: BTreeMap<String, String>,
+    retired_sections: BTreeMap<String, String>,
 }
 
 struct Field {
@@ -462,10 +463,32 @@ fn check_frozen(rest: &[String]) -> u8 {
         {
             continue;
         }
+        // Removing a field or a section the record retired is a change of
+        // format and not of what was approved (ADR-2300). Only what the new
+        // text no longer carries is set aside, so text added or changed under
+        // a retired heading is a change like any other, and a record that
+        // never carried one is compared as it is.
+        let carried = retired_in(&record.layout, &before);
+        let gone: BTreeSet<String> = carried
+            .difference(&retired_in(&record.layout, &doc.text))
+            .cloned()
+            .collect();
+        let (before, after) = if gone.is_empty() {
+            (before.clone(), doc.text.clone())
+        } else {
+            let pair = (
+                without_retired(&record.layout, &before, &gone),
+                without_retired(&record.layout, &doc.text, &gone),
+            );
+            if pair.0 == pair.1 {
+                continue;
+            }
+            pair
+        };
         let allowed = match kind.name.as_str() {
-            "epic" => bare(old.value("checked-at")).is_empty(),
-            "task" => frozen_part(&before) == frozen_part(&doc.text),
-            "defect" => defect_frozen_part(&before) == defect_frozen_part(&doc.text),
+            "epic" => epic_frozen_part(&before) == epic_frozen_part(&after),
+            "task" => frozen_part(&before) == frozen_part(&after),
+            "defect" => defect_frozen_part(&before) == defect_frozen_part(&after),
             _ => false,
         };
         if !allowed {
@@ -532,41 +555,172 @@ fn hash_citations(record: &Record, repository: &Path, base: &str) -> Vec<String>
     out
 }
 
-/// A task's text without what may change after approval: its evidence, its
-/// Cover, its issue and its revision date.
-fn frozen_part(text: &str) -> String {
+/// The fence a line opens or closes: its mark and the length of its run. An
+/// opening line is a run of three or more backticks or tildes, indented at
+/// most three spaces, followed at most by an info string, which for backticks
+/// holds no backtick. A prose line that starts with an inline span, such as
+/// three backticks round a word, isn't one.
+fn fence_of(line: &str) -> Option<(char, usize, bool)> {
+    let indent = line.len() - line.trim_start_matches(' ').len();
+    let rest = line.trim_start_matches(' ');
+    let mark = rest.chars().next().filter(|c| *c == '`' || *c == '~')?;
+    let run = rest.chars().take_while(|c| *c == mark).count();
+    let after = &rest[run..];
+    if indent > 3 || run < 3 || (mark == '`' && after.contains('`')) {
+        return None;
+    }
+    Some((mark, run, after.trim().is_empty()))
+}
+
+/// Each line of a text with whether it sits in front matter or fenced code,
+/// and the level-two heading it opens where it opens one. A fence closes on a
+/// bare run of its own mark at least as long as the one that opened it.
+fn outline(text: &str) -> Vec<(&str, bool, bool, Option<&str>)> {
     let mut out = Vec::new();
-    let mut in_evidence = false;
+    let (mut rules, mut fence): (u8, Option<(char, usize)>) = (0, None);
+    let front = text.starts_with("---\n") || text.starts_with("---\r\n");
     for line in text.lines() {
-        if let Some(heading) = line.strip_prefix("## ") {
-            in_evidence = matches!(heading.trim(), "Evidence" | "Cover");
-        }
-        if in_evidence
-            || line.starts_with("issue:")
-            || line.starts_with("projected:")
-            || line.starts_with("revised:")
-        {
+        let bare = line.trim_end();
+        if front && rules < 2 && bare == "---" {
+            rules += 1;
+            out.push((line, true, false, None));
             continue;
         }
-        out.push(line);
+        if front && rules == 1 {
+            out.push((line, true, false, None));
+            continue;
+        }
+        match (fence, fence_of(bare)) {
+            (None, Some((mark, run, _))) => {
+                fence = Some((mark, run));
+                out.push((line, false, true, None));
+            }
+            (Some((open, length)), Some((mark, run, true))) if open == mark && run >= length => {
+                fence = None;
+                out.push((line, false, true, None));
+            }
+            (Some(_), _) => out.push((line, false, true, None)),
+            (None, None) => out.push((line, false, false, bare.strip_prefix("## ").map(str::trim))),
+        }
+    }
+    out
+}
+
+/// Whether a front matter line continues the field above it: indented, or an
+/// item of a block list.
+fn continues(line: &str) -> bool {
+    line.starts_with(' ') || line.starts_with('\t') || line == "-" || line.starts_with("- ")
+}
+
+/// The retired section a heading names: the name itself, or the name
+/// followed by more words, as in "Verified, and closed with a criterion
+/// unmet".
+fn retired_section<'a>(layout: &'a Layout, heading: &str) -> Option<(&'a str, &'a str)> {
+    layout.retired_sections.iter().find_map(|(name, why)| {
+        let rest = heading.strip_prefix(name.as_str())?;
+        let next = rest.chars().next();
+        (next.is_none() || next.is_some_and(|c| !c.is_alphanumeric()))
+            .then_some((name.as_str(), why.as_str()))
+    })
+}
+
+/// A record's text without what may change after approval: the named
+/// sections, each read from its first heading to the next, and the named
+/// front matter fields with their continuation lines. Fenced code is text,
+/// never a heading.
+fn frozen_text(text: &str, sections: &[&str], fields: &[&str]) -> String {
+    let mut out = Vec::new();
+    let mut seen = BTreeSet::new();
+    let (mut open, mut skipping) = (false, false);
+    for (line, front, _, heading) in outline(text) {
+        if front {
+            if !continues(line) {
+                let key = line.split(':').next().unwrap_or("");
+                skipping = fields.contains(&key);
+            }
+            if skipping {
+                continue;
+            }
+        } else if let Some(heading) = heading {
+            // Only the first section of a name is free, so a second one
+            // added to hold new text is part of what is frozen.
+            open = sections.contains(&heading) && seen.insert(heading.to_string());
+        }
+        if !open {
+            out.push(line);
+        }
     }
     out.join("\n")
+}
+
+/// A task's text without what may change after approval: its evidence, its
+/// issue, its projection and its revision date.
+fn frozen_part(text: &str) -> String {
+    frozen_text(text, &["Evidence"], &["issue", "projected", "revised"])
+}
+
+/// An epic's text without what may change after approval: the marks and
+/// evidence under its Tasks, and its revision date. Nothing else freezes it
+/// later, since no verification is recorded (ADR-2300).
+fn epic_frozen_part(text: &str) -> String {
+    frozen_text(text, &["Tasks"], &["revised"])
 }
 
 /// A defect's text without what may change after approval: the marks of the
 /// tasks it carries, what closed it, its issue and its revision date
 /// (ADR-1440).
 fn defect_frozen_part(text: &str) -> String {
-    let mut out = Vec::new();
-    let mut open = false;
-    for line in text.lines() {
-        if let Some(heading) = line.strip_prefix("## ") {
-            open = matches!(heading.trim(), "Tasks" | "Closed by");
+    frozen_text(text, &["Tasks", "Closed by"], &["issue", "revised"])
+}
+
+/// The fields and sections the layout retired that a record carries.
+fn retired_in(layout: &Layout, text: &str) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    for (line, front, _, heading) in outline(text) {
+        let key = line.split(':').next().unwrap_or("");
+        if front && !continues(line) && layout.retired_fields.contains_key(key) {
+            out.insert(key.to_string());
         }
-        if open || line.starts_with("issue:") || line.starts_with("revised:") {
-            continue;
+        if let Some((name, _)) = heading.and_then(|h| retired_section(layout, h)) {
+            out.insert(name.to_string());
         }
-        out.push(line);
+    }
+    out
+}
+
+/// A record's text without the named retired fields and sections, and without
+/// its revision date, which a migration moves. A removed section takes the
+/// blank lines round it, and nothing else in the text moves.
+fn without_retired(layout: &Layout, text: &str, gone: &BTreeSet<String>) -> String {
+    let mut out: Vec<&str> = Vec::new();
+    let (mut retired, mut skipping) = (false, false);
+    for (line, front, _, heading) in outline(text) {
+        if front {
+            if !continues(line) {
+                let key = line.split(':').next().unwrap_or("");
+                skipping = gone.contains(key) || key == "revised";
+            }
+            if skipping {
+                continue;
+            }
+        } else if let Some(heading) = heading {
+            let was = retired;
+            retired = retired_section(layout, heading).is_some_and(|(name, _)| gone.contains(name));
+            if retired || was {
+                while out.last().is_some_and(|l| l.trim().is_empty()) {
+                    out.pop();
+                }
+                if !retired {
+                    out.push("");
+                }
+            }
+        }
+        if !retired {
+            out.push(line.trim_end_matches('\r'));
+        }
+    }
+    while out.last().is_some_and(|l| l.trim().is_empty()) {
+        out.pop();
     }
     out.join("\n")
 }
@@ -638,6 +792,7 @@ fn load_layout() -> Result<Layout, String> {
         kinds,
         retired_fields: retired("fields"),
         retired_statuses: retired("statuses"),
+        retired_sections: retired("sections"),
     })
 }
 
@@ -1672,6 +1827,20 @@ fn shape(record: &Record) -> Vec<Finding> {
         .collect();
     let mut archives = BTreeSet::new();
     for doc in &record.docs {
+        // A section the record retired is reported wherever it is still
+        // carried, outside fenced code, where it is an example (REQ-3652).
+        if doc.kind.is_some() && !doc.is_index {
+            for (i, (_, _, _, heading)) in outline(&doc.text).into_iter().enumerate() {
+                if let Some((name, why)) = heading.and_then(|h| retired_section(&record.layout, h))
+                {
+                    out.push(Finding::at(
+                        doc,
+                        Some(i + 1),
+                        format!("carries the section {name}, which is retired: {why}"),
+                    ));
+                }
+            }
+        }
         // A directory named for age holds material nobody reads, which neither
         // freezes nor discards it (REQ-0555).
         if let Some((dir, _)) = doc.relative.rsplit_once('/')

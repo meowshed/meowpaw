@@ -28,12 +28,6 @@ Delete `plugins/meow-method/`, its marketplace entry, its line in the profile's 
 
 Nothing.
 
-## Cover
-
-Not yet. The cover step replaces this line with four, `Checks`,
-`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
-the task until they are filled.
-
 ## Evidence
 
 `tools/test_marketplace.py` holds the three checks, one for each criterion.

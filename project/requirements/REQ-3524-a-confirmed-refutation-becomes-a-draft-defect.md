@@ -27,12 +27,3 @@ second record for a finding already open would split one defect across two
 records that each have to be closed, and the citation lands in `## Verified`
 because a citation left in a report is lost with the conversation. REQ-3520
 permits the write, and this requirement obliges it.
-
-## Open review findings
-
-- Round 1 suggested splitting the obligation into three: record the defect,
-  name the requirement, leave triage unwritten. I kept one requirement,
-  because all three are properties of the one record an evaluation checks
-  together, and the triage clause has no reason to change on its own.
-
-ADR-2300 removes the verification step and the skeptic, so no step is left for this rule to bind.

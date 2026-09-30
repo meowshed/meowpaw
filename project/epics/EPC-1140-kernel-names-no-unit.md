@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1060
-checked-at: "#209"
 ---
 
 # A kernel that names no unit outside it
@@ -37,16 +36,6 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-001 TSK-1490 confirm that the kernel check that joined the gate as `mise run kernel` realise ADR-1060
       closes: REQ-0077
       evidence: the decision's probes, run on the tree, in #209.
-
-## Verified
-
-Checked under issue 209, with evidence gathered at the revision it merged:
-
-| Criterion                                         | Evidence                                                                |
-| ------------------------------------------------- | ----------------------------------------------------------------------- |
-| 1. The gate runs the kernel check and passes      | `mise run kernel` reports 3 kernel files and 0 names outside the kernel |
-| 2. The check fails on a probe naming `meow-prose` | It reported `meow.md:75: names meow-prose, outside the kernel`          |
-| 3. Every requirement in one closed task           | `meow-method check coverage` reports 0 findings                         |
 
 ## Coverage
 

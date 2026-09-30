@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-29
 realises: ADR-1700
-checked-at:
 ---
 
 # Every shipped agent declares its turns, tools, model, effort, instructions and skills, and meow-author check fails one that doesn't

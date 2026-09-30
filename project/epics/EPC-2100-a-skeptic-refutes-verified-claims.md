@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-28
 realises: ADR-2200
-checked-at:
 ---
 
 # A skeptic tries to refute each requirement an epic claims, and verification records each refutation it confirms as a draft defect

@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1440
-checked-at: "#482"
 ---
 
 # A defect authorises work directly, and enters the chain where its triage says
@@ -57,32 +56,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       verify steps
       closes: REQ-0348, REQ-0350, REQ-3170, REQ-3174
       evidence: rules I13 to I15 and V14, traced, in #477.
-
-## Verified
-
-I checked this under #482 on `main` after #481, gathering the evidence there
-rather than carrying it over from the tasks. Every criterion is met:
-
-| Criterion                                                                                                                        | Evidence on `main` after #481                                                                                                       |
-| -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 1. A task under `bug:` derives done from its defect, readies once the defect is approved, and `status` counts tasks by authority | The 6 fixtures in `DefectTasks` pass, and `paw status` here prints "116 in all: 116 authorised by decisions, 0 by defects"          |
-| 2. Each rule fails on a draft that breaks it, and the defects approved before this decision pass                                 | The 8 fixtures in `Triage` pass, and `paw check` reports 0 findings on this record, whose defects were all approved before ADR-1440 |
-| 3. The implement and verify steps carry the rules on a defect, traced                                                            | `steps/implement.md` carries I13 to I15 and `steps/verify.md` carries V14, traced in TSK-2190                                       |
-| 4. Every requirement lands in exactly one closed task                                                                            | `paw show` derives all 15 requirements ADR-1440 addresses as closed and not yet verified                                            |
-
-No defect in this record carries its own task yet, so the one-task path is
-shown by fixtures and not by use.
-
-### Documentation
-
-TSK-2170 and TSK-2180 described the defect's path and its rules on
-`meow-flow`'s page, at 0.31.1, and the task and defect templates carry the new
-fields. The `test` verb checked the page, running `tools/check_docs.py`.
-
-### Postponements
-
-ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
-untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 

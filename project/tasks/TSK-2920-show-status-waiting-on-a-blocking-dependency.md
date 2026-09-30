@@ -42,13 +42,6 @@ reverted, because the checks pass against `main`.
 
 Nothing.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/ff9850dbcc81.txt
-- Landed in: #680
-- Judgement: none
-
 ## Evidence
 
 `Dependencies.test_status_waits_on_a_blocking_dependency` in
@@ -61,8 +54,8 @@ line.
 The checks pass against `main`, whose code meets REQ-1358, so the failing run
 is against BUG-1300's build: `.map(|_doc| true)` in place of the dependency
 test in `paw status`. `meow-verbs run test` exited 1 with
-`FAILED (failures=2)`, one failure for each line of the new fixture, kept as
-`project/evidence/ff9850dbcc81.txt`, whose tree is that build's. The change
+`FAILED (failures=2)`, one failure for each line of the new fixture, seen in
+the run under #680 against that build's tree, whose output is no longer kept. The change
 was then reverted and the units rebuilt, and the suite passes:
 
 ```text

@@ -59,20 +59,6 @@ BUG-1324, added while this task ran and fixed first in #724: until then
 `Adopted.test_criterion_7_check_passes_on_this_repository` failed. BUG-1323
 is approved.
 
-## Cover
-
-- Checks: plugins/meow-markdown/tests/test_markdown.py
-- Failing run: project/evidence/f0f6fa7e6af6.txt
-- Landed in: #718
-- Judgement: 4: CI runs `mise run all`, which runs no Python suite, so only a local run of the `test` verb holds the real-lychee fixture
-
-The failing run is the checks alone, before the `test` verb ran the suite
-under lychee: `meow-verbs run test` exited 1 with `FAILED (failures=1)`,
-naming `test_criterion_5_the_real_lychee_reports_a_missing_file`. Criteria 1
-to 3 pass against the current binary, as the task expects, because `links`
-already classified each case right. So I showed they can fail another way,
-described under Evidence.
-
 ## Evidence
 
 The stand-in lychee in `Links.links` writes each argument it gets to

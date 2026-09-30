@@ -59,13 +59,6 @@ can't read" shows the three refusal lines.
 
 - TSK-2940 (blocking): the layer is what reads a refused call's headers.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

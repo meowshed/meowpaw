@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-28
 realises: ADR-2100
-checked-at:
 ---
 
 # A read-only router routes each request before work starts, and the route skill reports it before any edit

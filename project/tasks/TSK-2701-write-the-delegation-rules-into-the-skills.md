@@ -78,35 +78,6 @@ TSK-2700 lands first, take the next version above the one it set.
 Nothing. ADR-1700 and EPC-1650 are approved, and the rules state reasons
 that hold whether or not TSK-2700's check has landed.
 
-## Cover
-
-- Checks: plugins/meow-author/tests/test_author.py plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/7e8fcf9d28fb.txt project/evidence/0470c7ed88ab.txt project/evidence/27b2d5b8f16b.txt
-- Landed in: #686
-- Judgement: 3: the platform writes the partial marking, and only a hand-run transcript shows it; 4: a person reads the model's output in the kept transcript; 5: REQ-2976 names an agent as its verifier, and a person reads both reports; 6: the kept run of `format lint test` at implement closes it
-
-Criterion 1 is covered by the class `WriteSkill` in `test_author.py`:
-`test_knowledge_ships_as_a_skill_and_never_as_an_agent`,
-`test_a_delegated_agent_is_no_isolation_boundary`,
-`test_each_of_the_six_fields_has_its_rule` and
-`test_a_partial_output_is_unfinished`. The `prompts` check in the gate holds
-the tags. Criterion 2 is covered by
-`MethodSkill.test_a_partial_review_is_unreviewed` in `test_record.py`.
-
-The two runs are kept because the `test` verb stops at the first unit that
-fails. In `7e8fcf9d28fb.txt`, criterion 2's check fails and the verb stops
-before `meow-author`'s tests. `0470c7ed88ab.txt` comes from a tree holding
-criterion 1's checks alone, where its four checks report nine failures.
-
-A skeptic found that the fixtures for REQ-2972 and REQ-2976 matched words, so
-a rule saying the opposite passed them. `WriteSkill` now requires "as a
-skill" before "never as an agent", and a negation before "boundary", and
-`test_the_knowledge_rule_refuses_its_inversion` and
-`test_the_boundary_rule_refuses_its_inversion` feed each pattern two inverted
-rules and require a refusal. `27b2d5b8f16b.txt` is the `test` verb exiting 1
-with four failures, one for each inverted rule, against the patterns that
-matched words, in commit f429d11, which holds the two fixtures alone.
-
 ## Evidence
 
 `meow-author:write` gains the rules D1 to D9 under `<rules name="agents and

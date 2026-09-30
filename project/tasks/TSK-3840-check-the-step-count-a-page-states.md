@@ -27,12 +27,6 @@ Change `tools/check_docs.py` and its test. Read the count from `method/SKILL.md`
 
 - TSK-3820 (blocking): the pages say ten until it lands, so the check would fail the gate.
 
-## Cover
-
-Not yet. The cover step replaces this line with four, `Checks`,
-`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
-the task until they are filled.
-
 ## Evidence
 
 `tools/test_check_docs.py` holds twelve checks for the step count. Three of the

@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-29
 realises: ADR-2000
-checked-at: "#626"
 ---
 
 # An unattended run is planned from an authority the repository declares
@@ -89,59 +88,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 
 Neither task can run in parallel with the other, because TSK-3310 changes the
 code TSK-3300 writes.
-
-## Verified
-
-I checked this under #626 on `main` after #668, gathering the evidence there
-rather than carrying it over from the tasks. `crates/meow/build-units` rebuilt
-the units and exited 0. The 17 fixtures in
-`plugins/meow-unattended/tests/test_unattended.py` run 17, OK, exit 0, against
-that build, and `meow-verbs evidence --keep format lint check test build`
-keeps each verb's result in `project/evidence/`, as the pull request cites.
-Every criterion is met:
-
-| Criterion                                                                                                                                             | Evidence on `main` after #668                                                                                                                                                                                                        |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1. No table, each missing key, `bypassPermissions`, an unknown gate, a folder, a URL and an unguarded `merge_protected` are each `unresolved`, exit 3 | `Refusals.test_no_table`, `test_no_profile`, `test_each_required_key_missing` (4 subtests) and `test_refused_values` (4), and `Units.test_url_and_folder_refused` (2) pass, each asserting exit 3, one matching line and no snapshot |
-| 2. `dontAsk` and the posture flags are printed, with exactly one `--plugin-dir` for each of three units                                               | `Plan.test_command_line_states_the_posture` passes, and `Units.test_one_plugin_dir_for_each_unit` asserts one `--bare` and the three `--plugin-dir` values equal to the declared units in order                                      |
-| 3. Neither a `.mcp.json` server nor a hook is named, and an `env` block is refused naming file and keys                                               | `Units.test_repository_hooks_and_servers_not_named` and `Refusals.test_env_block_refused` (2 subtests, one line naming both keys) pass                                                                                               |
-| 4. The snapshot denies its own authority, and a later profile change leaves it unchanged                                                              | `Snapshot.test_denies_its_own_authority` and `Snapshot.test_unchanged_after_the_profile_changes` pass                                                                                                                                |
-| 5. Three push rules with `merge_protected` absent, none with it `true`                                                                                | `Snapshot.test_push_rules` passes                                                                                                                                                                                                    |
-| 6. Exactly three deny rules on approved records, none with `amend_approved`, and no record to protect                                                 | `Snapshot.test_approved_records_are_denied` passes, comparing the rules on record files to the three approved files for equality                                                                                                     |
-| 7. `MEOWPAW_STATE=off` writes nothing and says so, and `--purge` removes every snapshot                                                               | `State.test_state_off` and `State.test_purge` pass                                                                                                                                                                                   |
-| 8. The output states the four limits, `ANTHROPIC_API_KEY` and that a later approval needs a new plan                                                  | `Plan.test_output_states_the_limits` passes, and each of its six patterns matches one sentence in `crates/meow/src/unattended.rs` and nothing else there                                                                             |
-| 9. Each check counts what it matched, and zero where one was expected fails it                                                                        | Every check above asserts a count or an exact list; each check expecting zero also asserts a non-zero count on the same output, such as three `--plugin-dir` values or at least three `Edit` rules, so an empty run fails            |
-| 10. REQ-2388 and REQ-2392 each land in exactly one closed task                                                                                        | `paw show` derives REQ-2388 as closed by TSK-3300 and REQ-2392 as closed by TSK-3310, each in EPC-1900                                                                                                                               |
-
-Each check would fail if its requirement were violated, which I judged by
-reading it: every assertion names the exact line, rule or flag value, and
-none passes on empty output. One check is weaker than the others, and TSK-3310
-says so: `Units.test_repository_hooks_and_servers_not_named` passed before
-that task, because nothing names a repository server or hook, so it guards
-against a regression and never saw one fail.
-
-I also read `claude --help` from the installed Claude Code, which is 2.1.280
-and not the 2.1.283 that `requires.toml` names. It exits 0 and lists every flag
-`plan` prints, with `dontAsk` among the modes and `none` among the prompt
-targets. That is a judgement on a third party's program, as in TSK-3300, and a
-flag changed between the two versions wouldn't show. Run in this repository,
-which declares no `[unattended]` table, `meow-unattended plan` prints
-`unresolved: no [unattended] table in .meowpaw/profile.toml` and exits 3.
-
-### Documentation
-
-`plugins/meow-unattended/README.md` states what `plan` accepts, what it writes
-and the four limits, and its `describes:` names `meow-unattended@0.2.0`, which
-`plugin.json` holds. The documentation index lists the page, and the `test`
-verb checked the pages. `docs/README.md` still lists unattended runs under
-Planned, which stays true, because nothing starts a run yet.
-
-### Postponements
-
-ADR-2000 postpones REQ-2372, REQ-2376, REQ-2390 and REQ-2406 until the
-decision that starts a run shows their behaviour, and REQ-2376 also until the
-sandbox and the credential removal exist. No such decision is recorded, so the
-condition doesn't hold, and `paw show` derives each as postponed by ADR-2000.
 
 ## Coverage
 

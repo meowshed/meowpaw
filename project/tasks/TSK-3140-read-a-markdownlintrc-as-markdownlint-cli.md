@@ -49,13 +49,6 @@ the checks first, in a commit of their own, and see them fail.
 
 Nothing. BUG-1320 is approved.
 
-## Cover
-
-- Checks: plugins/meow-markdown/tests/test_markdown.py
-- Failing run: project/evidence/b92cd9bb18ec.txt
-- Landed in: #693
-- Judgement: none
-
 ## Evidence
 
 `Corpus::markdownlintrc` in `crates/meow/src/markdown.rs` lists each tracked
@@ -67,7 +60,7 @@ state the file, and `meow-markdown` goes to 0.4.1.
 
 The two checks in the class `Markdownlintrc` failed first: `meow-verbs run
 test` exited 1 with `FAILED (failures=2, skipped=1)` in the Markdown suite,
-kept as `project/evidence/b92cd9bb18ec.txt`, in the commit that held the
+seen in the run under #693, whose output is no longer kept, in the commit that held the
 checks alone. They pass now:
 
 ```text

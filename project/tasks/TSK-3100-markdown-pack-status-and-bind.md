@@ -54,23 +54,6 @@ TSK-3120 land. Add the unit to the documentation index.
 
 Nothing. ADR-1900 is approved.
 
-## Cover
-
-- Checks: plugins/meow-markdown/tests/test_markdown.py
-- Failing run: project/evidence/389ccd22365c.txt
-- Landed in: #651
-- Judgement: none
-
-The checks are `Detection.test_criterion_1_*` for criterion 1,
-`Bind.test_criterion_2_*` for criterion 2,
-`Runner.test_criterion_3_a_mise_toml_is_named_with_the_mise_pack` for
-criterion 3, `Status.test_criterion_4_a_markdownlint_cli2_file_is_read_by_cli2_alone`
-for criterion 4 and `Tree.test_criterion_5_status_and_bind_leave_the_tree_as_it_was`
-for criterion 5, all for REQ-2352. The test verb in `.meowpaw/profile.toml`
-now runs the unit's tests. SPC-1195 doesn't say whether the
-`# check: unresolved` line makes `bind` exit 0 or 3, so the checks accept
-either.
-
 ## Evidence
 
 `crates/meow/src/markdown.rs` is the `markdown` feature: `status` and `bind`,
@@ -82,7 +65,7 @@ in the documentation index. `check` and `links` print the usage line and exit
 2 until TSK-3110 and TSK-3120 land.
 
 The 13 checks failed first: `meow-verbs run test` exited 1 with 19 failures
-counting the subtests, kept as `project/evidence/389ccd22365c.txt`, in the
+counting the subtests, seen in the run under #651, whose output is no longer kept, in the
 cover commit 593222a, which held the checks alone. They pass now, unchanged,
 since `git diff 593222a -- plugins/meow-markdown/tests/test_markdown.py`
 prints nothing:

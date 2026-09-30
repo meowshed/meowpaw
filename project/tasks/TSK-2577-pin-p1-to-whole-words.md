@@ -41,19 +41,6 @@ names: remove the two `\b` in `rule_p1` in the working tree, rebuild, run the
 
 Nothing. BUG-1267 is approved.
 
-## Cover
-
-- Checks: plugins/meow-prose-gate/tests/test_gate.py,
-  crates/meow/src/prose.rs
-- Failing run: project/evidence/861cbef48d99.txt
-- Landed in: #720
-- Judgement: none
-
-The failing run is the `test` verb against P1 with its two `\b` removed in
-the working tree, never committed. The verb stops at the crate's tests, so the
-kept run shows the Rust check failing and not the Python one. I ran the Python
-fixture against the same build by hand, as the Evidence section records.
-
 ## Evidence
 
 `ReadableTexts.test_an_idiom_inside_longer_words_passes` in
@@ -64,8 +51,8 @@ finding. The program is unchanged.
 
 Against P1 with its word boundaries removed, the `test` verb exited 1 with
 `an_idiom_inside_longer_words_is_no_finding --- FAILED` and
-`test result: FAILED. 38 passed; 1 failed`, kept as
-`project/evidence/861cbef48d99.txt`. The Python fixture failed against the
+`test result: FAILED. 38 passed; 1 failed`, seen in
+the run under #720, whose output is no longer kept. The Python fixture failed against the
 same build:
 
 ```text

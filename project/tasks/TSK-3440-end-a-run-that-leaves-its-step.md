@@ -82,13 +82,6 @@ tree TSK-3420 and TSK-3430 leave.
 - TSK-3430 (blocking): REQ-0888 closes here, so every guard it names must
   have landed first.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

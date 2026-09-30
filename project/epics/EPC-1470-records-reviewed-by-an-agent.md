@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-27
 realises: ADR-1490
-checked-at: "#525"
 ---
 
 # A record is reviewed by an agent that didn't write it, and its verdict is labelled as an agent's
@@ -58,36 +57,6 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-0149, REQ-0151, REQ-0157, REQ-0822, REQ-0823, REQ-2202
       evidence: the trace, and both dispatch cases at 1.00 on Sonnet 5 and
       Opus 5.5, in #522.
-
-## Verified
-
-I checked this under #525 on `main` after #524, gathering the evidence there
-rather than carrying it over from the tasks. `meow-verbs evidence format lint
-test` exits 0, each current at tree `4df70bd68dc5`. The four evaluation cases,
-rerun there on Sonnet 5 by hand with `--allow-tool Write --allow-tool Edit`
-and judged by Opus 5.5, which makes them a smoke check, each pass 5 of 5.
-Every criterion is met:
-
-| Criterion                                                                                                                       | Evidence on `main` after #524                                                                                                                                                         |
-| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. The agent passes `meow-author check`, has `Read`, `Grep` and `Glob` alone, and carries each question set                     | `lint` passes with 0 authoring failures, and TSK-2290 traces the front matter, R3 and R4                                                                                              |
-| 2. Cases show the agent reporting the decision's missing reasons, opening with its label, and reporting a clean record as clean | `decision-missing-its-reasons` and `clean-requirement` pass 5 of 5                                                                                                                    |
-| 3. Cases show the skill dispatching with the path alone and keeping open findings in the record                                 | `review-before-the-gate` and `open-findings-kept` pass 5 of 5; the case with no agent to dispatch is traced in M22 and not measured, because the runner can't remove the `Agent` tool |
-| 4. The review step carries the dispatch and the label                                                                           | Traced in TSK-2300: W13 and W14                                                                                                                                                       |
-| 5. Every requirement lands in exactly one closed task                                                                           | `paw show` derives all 11 requirements ADR-1490 addresses as closed, by TSK-2290 and TSK-2300                                                                                         |
-
-The unmeasured case in criterion 3 is met by instruction alone, as ADR-1490
-says of the dispatch as a whole.
-
-### Documentation
-
-TSK-2290 described the agent on `meow-flow`'s page, at 0.33.0. The `test`
-verb checked it, running `tools/check_docs.py`.
-
-### Postponements
-
-ADR-1360's condition for REQ-1138 and ADR-1340's for its 8 requirements are
-untouched by this epic. The owner decides whether either condition holds.
 
 ## Coverage
 

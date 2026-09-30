@@ -98,19 +98,12 @@ checks first, in a commit of their own, and see them fail.
 
 Nothing. ADR-1800 and EPC-1710 are approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/9c59e364c42a.txt
-- Landed in: #662
-- Judgement: 6: `meow-prose` ships no test directory, and a check in `meow-flow` reading its files would cross the boundary the `standalone` check holds, so the reviewer reads the two record types
-
 ## Evidence
 
 - Before this change, the test verb's run of
   `plugins/meow-flow/tests/test_record.py` exited 1 with 200 tests and
-  `FAILED (failures=10)`, the ten `Dependencies` checks, kept in
-  `project/evidence/9c59e364c42a.txt`.
+  `FAILED (failures=10)`, the ten `Dependencies` checks, seen in
+  the run under #662, whose output is no longer kept.
 - After it, `python3 -m unittest plugins/meow-flow/tests/test_record.py -k Dependencies`
   exits 0 with `Ran 10 tests` and `OK`, and the whole file exits 0 with
   `Ran 200 tests` and `OK`.
