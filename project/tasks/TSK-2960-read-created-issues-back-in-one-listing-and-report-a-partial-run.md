@@ -73,13 +73,6 @@ issues are read back in one listing and shows the `partial:` line.
 - TSK-2940 (blocking): the listing goes through the layer, and the run stops
   at a throttle only once the layer does.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

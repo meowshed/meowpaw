@@ -28,12 +28,6 @@ Rename `plugins/meow-verbs/` and its binary, the crate feature, the marketplace 
 
 - TSK-3830 (not blocking): both change the unit, and the second rebases.
 
-## Cover
-
-Not yet. The cover step replaces this line with four, `Checks`,
-`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
-the task until they are filled.
-
 ## Evidence
 
 `Renamed` in `tools/test_marketplace.py` holds three checks, one for each

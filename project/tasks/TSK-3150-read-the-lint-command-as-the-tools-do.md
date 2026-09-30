@@ -52,13 +52,6 @@ Write the checks first, in a commit of their own, and see them fail.
 - TSK-3140 (not blocking): both edit `crates/meow/src/markdown.rs`, and
   TSK-3140 is merged.
 
-## Cover
-
-- Checks: plugins/meow-markdown/tests/test_markdown.py
-- Failing run: project/evidence/6c535d226ae5.txt
-- Landed in: #697
-- Judgement: none
-
 ## Evidence
 
 `program` in `crates/meow/src/markdown.rs` names a word's program by its last

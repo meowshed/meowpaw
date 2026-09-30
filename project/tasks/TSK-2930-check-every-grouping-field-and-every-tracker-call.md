@@ -43,15 +43,6 @@ the checks pass against `main`.
 
 Nothing.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py,
-  plugins/meow-github/tests/test_github.py
-- Failing run: project/evidence/b7f2e915005c.txt,
-  project/evidence/1a1954963195.txt
-- Landed in: #691
-- Judgement: none
-
 ## Evidence
 
 `Grouping.test_every_grouping_field_is_reported_on_every_kind` in

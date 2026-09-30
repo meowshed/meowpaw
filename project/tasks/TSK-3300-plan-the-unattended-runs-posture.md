@@ -105,17 +105,6 @@ Write the checks first, in a commit of their own, and see them fail.
 Nothing: the profile reader, the state directory and the record reader
 already exist.
 
-## Cover
-
-- Checks: plugins/meow-unattended/tests/test_unattended.py
-- Failing run: project/evidence/5a1520eda28c.txt
-- Landed in: #663
-- Judgement: 11: the check reads `claude --help` from a third party's
-  installed program, which no fixture pins and CI doesn't have, so the
-  implementer keeps the help text and names the version read; 12: the kept
-  run of the five verbs at the revision that merges closes it, and no check
-  written before the work can
-
 ## Evidence
 
 `crates/meow/src/unattended.rs` is the `unattended` feature: `plan` and

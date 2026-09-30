@@ -100,28 +100,6 @@ README's `describes:` matches its version.
 
 Nothing. ADR-1700 and EPC-1650 are approved.
 
-## Cover
-
-- Checks: plugins/meow-author/tests/test_author.py tools/test_shipped_agents.py
-- Failing run: project/evidence/27a4dd34eda3.txt project/evidence/e309e93a6301.txt
-- Landed in: #667
-- Judgement: 6: closed by the gate's run at the merging revision, because only that revision holds both the new check and the agents' declarations, and `ShippedAgents` pins each agent's values to SPC-1030's table; 7: a hand-run evaluation read by a person, because a model's run never runs in CI
-
-The checks are class `AgentFields`, one for each fixture the acceptance
-criteria name. The failing run is the `test` verb exiting 1 with 26 failures,
-every one in `AgentFields`, each because the check exited 0 where it should
-exit 1. The cover step first wrote this section as prose that `paw ready`
-couldn't read, so the implement step rewrote it into the four lines with the
-same checks, run and judgements.
-
-A skeptic found that the check reads whether `omitClaudeMd` and `skills` are
-written and not whether each holds the value decided for that agent. So
-`tools/test_shipped_agents.py`, class `ShippedAgents`, compares every agent
-under `plugins/*/agents/` with its row in SPC-1030's table, and fails a
-flipped value. Its failing run, `e309e93a6301.txt`, is the `test` verb exiting
-1, because `meow-flow:router`, which #669 shipped after this task was
-written, had no row and declared none of the fields.
-
 ## Evidence
 
 `agent_fields` in `crates/meow/src/author.rs` reads an agent's front matter

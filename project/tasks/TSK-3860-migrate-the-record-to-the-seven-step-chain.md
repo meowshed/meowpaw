@@ -29,12 +29,6 @@ Edit front matter as structured data and sections by heading, never by text subs
 - TSK-3800 (blocking): until the program derives state from tasks, removing `checked-at` would turn every realised decision back to `next: verify`.
 - TSK-3830 (blocking): the kept files the citations name are removed there.
 
-## Cover
-
-Not yet. The cover step replaces this line with four, `Checks`,
-`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
-the task until they are filled.
-
 ## Evidence
 
 Not yet.

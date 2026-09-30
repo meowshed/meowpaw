@@ -42,15 +42,6 @@ Write the check first, in a commit of its own, and see it fail.
 
 Nothing. BUG-1340 is approved.
 
-## Cover
-
-- Checks: plugins/meow-unattended/tests/test_unattended.py,
-  `Snapshot.test_approved_in_every_front_matter_form`
-- Failing run: project/evidence/7221defb820c.txt
-- Landed in: #675
-- Judgement: 2: the kept run of the five verbs at the revision that merges
-  closes it, and no check written before the work can
-
 ## Evidence
 
 `approved` in `crates/meow/src/unattended.rs` now compares `artifact` and

@@ -38,13 +38,6 @@ one open.
 
 Nothing. BUG-1250 is approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py, the class `TasklessEpic`
-- Failing run: project/evidence/caa66d8d0c05.txt
-- Landed in: #622
-- Judgement: none
-
 ## Evidence
 
 `crates/meow/src/record.rs` gains `taskless_gaps`, which both the `document`

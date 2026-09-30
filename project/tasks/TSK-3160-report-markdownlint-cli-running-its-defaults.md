@@ -43,13 +43,6 @@ own, and see them fail.
 
 - TSK-3150 (not blocking): both edit `findings`, and TSK-3150 is merged.
 
-## Cover
-
-- Checks: plugins/meow-markdown/tests/test_markdown.py
-- Failing run: project/evidence/f6c9747bdb02.txt
-- Landed in: #703
-- Judgement: none
-
 ## Evidence
 
 `findings` in `crates/meow/src/markdown.rs` reports

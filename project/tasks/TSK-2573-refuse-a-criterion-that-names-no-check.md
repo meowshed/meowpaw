@@ -53,16 +53,6 @@ and see them fail.
 
 Nothing. BUG-1263 is approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/e65403061cf8.txt
-- Landed in: #678
-- Judgement: none
-
-Criterion 3 passed in the failing run as well, because it is the Cover the
-fix must keep accepting, so it guards against a rule that refuses too much.
-
 ## Evidence
 
 `cover_gaps` in `crates/meow/src/record.rs` asks a new function,

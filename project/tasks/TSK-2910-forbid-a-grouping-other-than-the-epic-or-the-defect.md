@@ -70,13 +70,6 @@ Write the checks first, in a commit of their own, and see them fail.
 
 Nothing. ADR-1800 and EPC-1710 are approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py plugins/meow-github/tests/test_github.py
-- Failing run: project/evidence/27c4d319f7ce.txt
-- Landed in: #670
-- Judgement: 4: `Project.test_project_groups_an_issue_nowhere` passes before the work, because `project` already sends only a title and a body and copies the dependency line as written, so the check guards against a regression and the reviewer reads it, and it doesn't run in the failing run, which stops at the `meow-flow` suite; 5: the whole run of the five verbs is the implementation's kept evidence, and no check is written for it here
-
 ## Evidence
 
 Done. Closes REQ-3320.

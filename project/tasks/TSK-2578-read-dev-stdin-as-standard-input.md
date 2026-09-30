@@ -43,13 +43,6 @@ raise `meow-prose-gate`'s patch version, with each page's `describes:`.
 
 Nothing. BUG-1268 is approved.
 
-## Cover
-
-- Checks: plugins/meow-prose-gate/tests/test_gate.py
-- Failing run: project/evidence/43a4c9f3a54e.txt
-- Landed in: #733
-- Judgement: none
-
 ## Evidence
 
 `take` in `publishing` in `crates/meow/src/prose.rs` now reads `-`,

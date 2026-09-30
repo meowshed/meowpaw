@@ -42,13 +42,6 @@ reverted, because the checks pass against `main`.
 
 Nothing.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/ff9850dbcc81.txt
-- Landed in: #680
-- Judgement: none
-
 ## Evidence
 
 `Dependencies.test_status_waits_on_a_blocking_dependency` in

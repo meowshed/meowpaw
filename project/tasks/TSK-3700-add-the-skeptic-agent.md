@@ -71,13 +71,6 @@ minor version in `plugin.json`, and make its README's `describes:` match.
 
 Nothing. The agent is new, and nothing dispatches it until TSK-3710 lands.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet.

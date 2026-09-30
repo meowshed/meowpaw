@@ -52,13 +52,6 @@ the check first, in a commit of its own, and see it fail.
 
 Nothing. BUG-1264 is approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/7db4da4bafbe.txt
-- Landed in: #696
-- Judgement: none
-
 ## Evidence
 
 Each role under `plugins/meow-flow/skills/method/steps/`, except review's,

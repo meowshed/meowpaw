@@ -98,13 +98,6 @@ because each gains rules and no capability, and match each README's
   a line only TSK-2702 makes the agents write and the dispatchers read, and
   both tasks change the same three agents and two skill files.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

@@ -123,13 +123,6 @@ fail (EPC-1910, Coverage).
 Nothing: the verbs, the ledger's tree id and the state directory already
 exist.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

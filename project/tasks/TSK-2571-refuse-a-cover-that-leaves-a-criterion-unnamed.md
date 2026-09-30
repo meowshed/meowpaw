@@ -55,13 +55,6 @@ them fail.
 
 Nothing. BUG-1261 is approved, and TSK-2570 has landed.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/f6f0644bf46f.txt
-- Landed in: #653
-- Judgement: none
-
 ## Evidence
 
 `cover_gaps` in `crates/meow/src/record.rs` now refuses an empty Cover line, a

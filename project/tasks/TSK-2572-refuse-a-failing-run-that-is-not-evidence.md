@@ -55,13 +55,6 @@ checks first, in a commit of their own, and see them fail.
 
 Nothing. BUG-1262 is approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/ec12b7c3f9b6.txt
-- Landed in: #666
-- Judgement: none
-
 ## Evidence
 
 `cover_gaps` in `crates/meow/src/record.rs` asks a new function,

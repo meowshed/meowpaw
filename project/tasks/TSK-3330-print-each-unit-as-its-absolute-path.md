@@ -44,15 +44,6 @@ Write the check first, in a commit of its own, and see it fail.
 
 Nothing. BUG-1341 is approved, and TSK-3320 has landed.
 
-## Cover
-
-- Checks: plugins/meow-unattended/tests/test_unattended.py,
-  `Units.test_unit_paths_hold_from_a_subdirectory`
-- Failing run: project/evidence/0765f11da365.txt
-- Landed in: #683
-- Judgement: 2: the kept run of the five verbs at the revision that merges
-  closes it, and no check written before the work can
-
 ## Evidence
 
 `unit()` in `crates/meow/src/unattended.rs` now keeps the unit directory it

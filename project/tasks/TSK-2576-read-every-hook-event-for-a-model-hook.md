@@ -40,17 +40,6 @@ so `meow-prose-gate` keeps its version.
 
 Nothing. BUG-1266 is approved.
 
-## Cover
-
-- Checks: plugins/meow-prose-gate/tests/test_gate.py
-- Failing run: project/evidence/18050f05356d.txt
-- Landed in: #717
-- Judgement: none
-
-Criterion 3 passed in the failing run as well, because the shipped
-`hooks.json` holds command hooks only, so it guards against a reading that
-refuses too much.
-
 ## Evidence
 
 `TheHook.hook_types` in `plugins/meow-prose-gate/tests/test_gate.py` now

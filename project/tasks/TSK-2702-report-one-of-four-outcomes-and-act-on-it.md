@@ -126,52 +126,6 @@ the rules this task writes.
 - TSK-3510 (not blocking): both write the `route` skill; whichever lands
   second writes the router's outcome rows into it.
 
-## Cover
-
-- Checks: crates/meow/src/author.rs plugins/meow-author/tests/test_author.py tools/test_shipped_agents.py plugins/meow-flow/tests/test_record.py plugins/meow-prose/tests/test_prose_agent.py
-- Failing run: project/evidence/b7fd3db95397.txt project/evidence/d3979c5f92d6.txt project/evidence/042104530e84.txt project/evidence/d481010ed6f9.txt project/evidence/0fb448bbe505.txt
-- Landed in: #734
-- Judgement: 6: the graders run a model by hand and never in CI, so a person reads the kept transcripts; 7: a person runs the hand-run case and reads the kept stream; 8: a person runs the hand-run case and reads the kept stream; 9: the kept run of `format lint check test build` at implement closes it
-
-Criterion 1 is covered twice. The crate tests in `author.rs`,
-`a_unit_agent_naming_no_outcome_fails`,
-`a_unit_agent_missing_only_blocked_fails`,
-`a_unit_agent_naming_all_four_passes` and
-`a_repository_agent_naming_no_outcome_passes`, hold the exit status. They
-can't read what the check prints, so the class `AgentOutcomes` in
-`test_author.py` runs the built launcher and requires the failure lines to
-name the file and exactly the missing words, including a fixture missing only
-`DONE`, because `DONE_WITH_CONCERNS` mustn't count as naming it. The
-`agent()` fixture there now names the four outcomes by default, so the field
-fixtures in `AgentFields` keep failing on their field alone once the rule
-lands.
-
-Criterion 2 is covered by `ShippedOutcomes` in `tools/test_shipped_agents.py`,
-which requires the three shipped agents to name the four outcomes and
-`meow-author check` to exit 0 over the units. The `prompts` task in the `lint`
-verb runs the same check at implement.
-
-Criterion 3 is covered by `AgentReports` in `test_record.py` for
-`record-reviewer` and `router`, and by `ProseReport` in the new
-`plugins/meow-prose/tests/test_prose_agent.py` for `prose`. The profile's
-`test` verb now runs that directory. `ProseReport`'s quoting check passes
-already, because V1 holds the rule, and it guards the rule through the
-rewrite. Criterion 4 is covered by
-`MethodSkill.test_the_skill_acts_on_the_reviewers_outcome` and criterion 5 by
-`MethodSkill.test_the_review_step_dispatches_the_two_reviewers`, both in
-`test_record.py`.
-
-The `test` verb stops at the first suite that fails, so five runs are kept,
-each from a tree that sets aside the checks of the suites before it:
-`b7fd3db95397.txt` holds every check, and the two crate tests that expect a
-failure fail; `d3979c5f92d6.txt` sets aside the crate tests, and
-`meow-flow` reports 20 failures; `042104530e84.txt` also sets aside
-`test_record.py`, and `meow-author` reports 4; `d481010ed6f9.txt` also sets
-aside `test_author.py`, and `meow-prose` reports 6; `0fb448bbe505.txt` also
-sets aside `test_prose_agent.py` and its line in the profile, and
-`test_shipped_agents.py` reports 3. Every check that passed in those runs is a
-fixture expected to pass, beside a failing one in the same class.
-
 ## Evidence
 
 Done. Closes REQ-0816.

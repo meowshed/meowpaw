@@ -49,13 +49,6 @@ the checks first, in a commit of their own, and see them fail.
 
 Nothing. BUG-1320 is approved.
 
-## Cover
-
-- Checks: plugins/meow-markdown/tests/test_markdown.py
-- Failing run: project/evidence/b92cd9bb18ec.txt
-- Landed in: #693
-- Judgement: none
-
 ## Evidence
 
 `Corpus::markdownlintrc` in `crates/meow/src/markdown.rs` lists each tracked

@@ -104,13 +104,6 @@ commit of their own, and see them fail.
 
 Nothing. ADR-1620 and EPC-1580 are approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/ac043fee00a9.txt
-- Landed in: #620
-- Judgement: none
-
 ## Evidence
 
 `crates/meow/src/record.rs` knows ten steps. `ready cover` checks what

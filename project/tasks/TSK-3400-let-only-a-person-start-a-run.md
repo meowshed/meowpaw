@@ -84,13 +84,6 @@ that the checks can fail (EPC-1910, Coverage).
 
 TSK-3390, because this task extends the hook that task adds.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at
