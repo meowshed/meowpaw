@@ -100,10 +100,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       `plugins/meow-loop/` and a feature `loop` in `crates/meow`
       closes: REQ-0872
 
-- [ ] T-002 [P] TSK-3360 start every call from the same frozen prompt and
+- [x] T-002 [P] TSK-3360 start every call from the same frozen prompt and
       preamble in a new session, and carry progress in the run's
       `progress/progress.md`
       closes: REQ-0880, REQ-0882
+      evidence: the three checks in `Context` pass after failing first, and
+      the five verbs pass. TSK-3360 carries the rest.
       depends: TSK-3350, because it changes the call that task makes
 
 - [ ] T-003 [P] TSK-3370 check the budget before each call from the spend so
