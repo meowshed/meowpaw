@@ -637,18 +637,20 @@ fn start(args: &[String]) -> u8 {
                 .map_err(|error| format!("can't create {}/progress: {error}", dir.display()))
         })
         .and_then(|()| write(&dir.join("progress").join("progress.md"), b""))
-        .and_then(|()| write(&log, b""));
-    if let Err(reason) = written {
-        let _ = std::fs::remove_dir_all(&dir);
-        return refuse(&reason);
-    }
+        .and_then(|()| write(&log, b""))
+        .and_then(|()| Context::new(&dir, &terms));
+    let context = match written {
+        Ok(context) => context,
+        Err(reason) => {
+            let _ = std::fs::remove_dir_all(&dir);
+            return refuse(&reason);
+        }
+    };
     // Old runs go only once the new one is whole, so a refused start removes none.
     remove_old_runs(&runs, &dir);
     println!("run {}", dir.display());
 
-    let ending = match Context::new(&dir, &terms)
-        .and_then(|context| run(&root, &terms, &context, &claude, &log))
-    {
+    let ending = match run(&root, &terms, &context, &claude, &log) {
         Ok(ending) => ending,
         Err(reason) => return refuse(&reason),
     };

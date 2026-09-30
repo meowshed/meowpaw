@@ -180,6 +180,7 @@ creates no run directory:
 | `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                      |
 | `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file |
 | `unresolved: can't create a run in <directory>: <error>`                        | The runner can't create the run's directory               |
+| `unresolved: can't resolve <directory>: <error>`                                | The runner can't resolve the run's progress directory     |
 
 During a run, a file the runner can't write, a `claude` or a verb's command it
 can't start, or a verb that no longer resolves stops the run with the same
