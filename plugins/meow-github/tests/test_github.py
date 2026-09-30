@@ -736,9 +736,7 @@ class Budgets(Layered, unittest.TestCase):
         done, calls = self.five_hundred_and_one()
         self.assertEqual(done.returncode, 3, done.stdout[-2000:] + done.stderr)
         self.assertEqual(len([c for c in calls if create(c)]), 500, done.stdout[-2000:])
-        stops = [line for line in done.stdout.splitlines() if "content creation" in line and "500 of 500" in line]
-        self.assertTrue(stops, done.stdout[-2000:])
-        self.assertIn("hour", stops[0])
+        self.assertIn("(content creation: 500 of 500 this hour)", self.throttled_line(done))
 
     def test_writes_are_a_second_apart(self):
         """TSK-2950 criterion 2, REQ-2568: in the same run, every write the stand-in records is at least one second
@@ -753,16 +751,25 @@ class Budgets(Layered, unittest.TestCase):
         """TSK-2950 criterion 3, REQ-2568: with `x-ratelimit-limit: 1000` and `GITHUB_ACTIONS=true`, the last lines
         of `project`'s report name primary requests with 1,000 as the limit, read from the header and never assumed
         from the credential's form, then secondary points, content creation and spacing."""
-        root = Project.repository(self)
-        self.stand_in(root, {"headers": {"X-Ratelimit-Limit": "1000"}})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r", credential={"GITHUB_ACTIONS": "true"})
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        tail = done.stdout.splitlines()[-len(COUNTS):]
-        for count in COUNTS:
-            self.assertEqual(len([line for line in tail if count in line]), 1, (count, tail))
-        primary = next(line for line in tail if "primary requests" in line)
-        self.assertIn("1,000", primary)
-        self.assertNotIn("5,000", primary)
+        # 1234 is a limit no credential's form implies, so a limit assumed from the form can't pass for one read.
+        for limit, shown in (("1000", "1,000"), ("1234", "1,234")):
+            with self.subTest(limit=limit):
+                root = Project.repository(self)
+                self.stand_in(root, {"headers": {"X-Ratelimit-Limit": limit}})
+                done = self.meow_github(root, "project", "EPC-0001", "o/r", credential={"GITHUB_ACTIONS": "true"})
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                tail = done.stdout.splitlines()[-len(COUNTS):]
+                self.assertEqual([line.split(":")[0] for line in tail], list(COUNTS), tail)
+                creates = len([c for c in self.calls(root) if create(c)])
+                reads = len(self.calls(root)) - creates
+                self.assertGreater(creates, 0)
+                self.assertGreater(reads, 0)
+                self.assertTrue(tail[0].startswith(
+                    f"primary requests: {creates + reads} sent; core limit {shown}, 4,990 remaining, resets "), tail)
+                self.assertEqual(tail[1:], [
+                    f"secondary points: {reads + 5 * creates} of 900 this minute",
+                    f"content creation: {creates} of 80 this minute, {creates} of 500 this hour",
+                    f"spacing: {creates} writes, each at least one second after the previous one"])
 
 
 class Credential(Layered, unittest.TestCase):
