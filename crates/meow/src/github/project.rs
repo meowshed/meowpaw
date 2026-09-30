@@ -199,7 +199,7 @@ fn same(a: &str, b: &str) -> bool {
 /// What the tracker holds now, as the fingerprint its title and body carry
 /// without the marker, and whether the issue is closed.
 fn tracked(layer: &mut Layer, repository: &str, issue: &str) -> Result<(String, bool), Failure> {
-    let read = layer.get(&format!("repos/{repository}/issues/{issue}"), false)?;
+    let read = layer.get_mapped(&format!("repos/{repository}/issues/{issue}"))?;
     let lacks = || Failure::Failed("the issue lacks the field `title`".to_string());
     let title = read
         .get("title")
@@ -225,6 +225,18 @@ fn done_in(epic: &Record) -> Vec<String> {
         .filter_map(|l| l.strip_prefix("- [x] "))
         .filter_map(|l| l.split_whitespace().nth(1).map(str::to_string))
         .collect()
+}
+
+/// Prints why a call gave nothing, after `context`, with a refusal's line on a
+/// line of its own so that it reads as GitHub's answer and not as the task's.
+fn report(context: &str, failure: &Failure) {
+    match failure {
+        Failure::Refused(line) => {
+            println!("{line}");
+            println!("{context}");
+        }
+        other => println!("{context}: {other}"),
+    }
 }
 
 /// Prints the `throttled:` line and says the run sends nothing after it.
@@ -334,7 +346,10 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
             return outcome.leave(&created, "the listing was throttled");
         }
         Err(e) => {
-            println!("meow-github project: the created issues couldn't be read back: {e}");
+            report(
+                "meow-github project: the created issues couldn't be read back",
+                &e,
+            );
             return outcome.leave(&created, "the listing couldn't be read");
         }
     };
@@ -454,7 +469,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         Err(e) => {
             match e {
                 Failure::Throttled(line) => throttled(&line),
-                e => println!("meow-github project: nothing projected: {e}"),
+                e => report("meow-github project: nothing projected", &e),
             }
             if !tasks.is_empty() {
                 println!("{}", outcome.partial(&tasks));
@@ -486,7 +501,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                     break;
                 }
                 Err(e) => {
-                    println!("{id}: issue #{issue} couldn't be read: {e}");
+                    report(&format!("{id}: issue #{issue} couldn't be read"), &e);
                     worst = worst.max(UNREAD);
                     continue;
                 }
@@ -546,7 +561,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                         break;
                     }
                     Err(e) => {
-                        println!("{id}: issue #{issue} not updated: {endpoint}: {e}");
+                        report(&format!("{id}: issue #{issue} not updated: {endpoint}"), &e);
                         worst = worst.max(UNREAD);
                     }
                 }
@@ -567,7 +582,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                 break;
             }
             Err(e) => {
-                println!("{id}: not projected: {endpoint}: {e}");
+                report(&format!("{id}: not projected: {endpoint}"), &e);
                 outcome.stopped = true;
                 break;
             }

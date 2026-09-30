@@ -119,9 +119,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-2940 (blocking) - the listing goes through the layer, and
       the run stops at a throttle only once the layer does
 
-- [ ] T-004 [P] TSK-2970 report a 401, a refused 403 and a 404 on a mapped
+- [x] T-004 [P] TSK-2970 report a 401, a refused 403 and a 404 on a mapped
       object with the method, the endpoint and the permission GitHub named
       closes: REQ-2574
+      evidence: the six checks in `Refusal` pass after failing first, and the
+      five verbs pass. TSK-2970 carries the rest.
       depends: TSK-2940 (blocking) - the layer is what reads a refused call's
       headers
 
