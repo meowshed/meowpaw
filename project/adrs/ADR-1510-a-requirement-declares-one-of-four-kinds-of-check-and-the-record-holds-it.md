@@ -102,10 +102,3 @@ REQ-1664, which fixes the set at four, before the rule could change.
 - REQ-1662 declares `verification: static`, though what can settle it is a
   judgement, the reviewer's question; the requirement that fixes that
   supersedes it.
-
-## Open review findings
-
-- An alternative between the two in the table: fail on drafts and only warn
-  on approved records. Left open: no approved record holds a value outside the
-  four, so a warning would never fire, and the choice matters only when a
-  kind is renamed or removed, which the reversal above already covers.

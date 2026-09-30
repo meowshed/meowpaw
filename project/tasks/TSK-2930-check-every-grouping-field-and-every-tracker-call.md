@@ -43,15 +43,6 @@ the checks pass against `main`.
 
 Nothing.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py,
-  plugins/meow-github/tests/test_github.py
-- Failing run: project/evidence/b7f2e915005c.txt,
-  project/evidence/1a1954963195.txt
-- Landed in: #691
-- Judgement: none
-
 ## Evidence
 
 `Grouping.test_every_grouping_field_is_reported_on_every_kind` in
@@ -65,10 +56,10 @@ call: a read of `repos/o/r/issues/N`, or a `POST` or `PATCH` carrying exactly
 The checks pass against `main`, whose layout and `project` meet REQ-3320, so
 each failing run is against one of BUG-1301's changes. With BUG-1301's layout,
 `meow-verbs run test` exited 1 with `FAILED (failures=14)`, one for each pair
-the layout dropped, kept as `project/evidence/b7f2e915005c.txt`. With
+the layout dropped, seen in the run under #691, whose output is no longer kept. With
 `--input grouping.json` added to the call that creates an issue, it exited 1
-with `FAILED (failures=1)` in `test_github`, `10 != 8` on that call, kept as
-`project/evidence/1a1954963195.txt`. Each change was then reverted and the
+with `FAILED (failures=1)` in `test_github`, `10 != 8` on that call, seen in
+the run under #691, whose output is no longer kept. Each change was then reverted and the
 units rebuilt, and both suites pass:
 
 ```text

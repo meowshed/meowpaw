@@ -227,15 +227,3 @@ measure, and a person accepts that part when they start a run.
   the run, and a loop the model can't invoke.
 - [RES-0074-unattended-mode.md](RES-0074-unattended-mode.md), read 2026-09-28 - `total_cost_usd`
   as a client-side estimate, and `--bare` loading no plugins.
-
-## Open review findings
-
-- The reviewer asked that conclusions 1 and 5 state implications and leave the
-  obligation to a requirement. Left open: the research template this
-  repository ships says a conclusion states what must now be true, as an
-  obligation, and the template wins. Conclusion 5 no longer names the design
-  that meets it.
-- The second reviewer preferred moving this section to the pull request,
-  since it isn't in the research template and freezes on approval. Left open:
-  the method asks that a finding left open after the second round be written
-  into the record, so the person approving it reads the disagreement.

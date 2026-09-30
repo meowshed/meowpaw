@@ -3,7 +3,6 @@ id: SPC-1120
 artifact: spec
 status: live
 revised: 2026-09-27
-checked-at: "#458"
 states:
   [
     REQ-1008,

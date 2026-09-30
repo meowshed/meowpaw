@@ -495,11 +495,3 @@ repos/o/r/branches/main/protection`, `gh api repos/o/r/rulesets -f name=x`,
   (RES-0290).
 - The skill RES-0133 describes for the model. Its first rule, the
   three-valued status, belongs to the decision that addresses REQ-2570.
-
-## Open review findings
-
-- An agent reviewer asked whether check 10, that every addressed requirement
-  lands in exactly one closed task, belongs in the epic rather than here, and
-  raised it as a preference. Left, because ADR-1310 states its realisation
-  the same way, and moving the check is a change to how every decision states
-  it, which is outside this record.

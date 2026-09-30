@@ -28,12 +28,6 @@ Change `crates/meow/src/verbs.rs` or wherever `--keep` lives, `plugins/meow-verb
 
 Nothing.
 
-## Cover
-
-Not yet. The cover step replaces this line with four, `Checks`,
-`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
-the task until they are filled.
-
 ## Evidence
 
 `NoKeptEvidence` in `plugins/meow-verbs/tests/test_verbs.py` holds seven

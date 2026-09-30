@@ -105,17 +105,6 @@ Write the checks first, in a commit of their own, and see them fail.
 Nothing: the profile reader, the state directory and the record reader
 already exist.
 
-## Cover
-
-- Checks: plugins/meow-unattended/tests/test_unattended.py
-- Failing run: project/evidence/5a1520eda28c.txt
-- Landed in: #663
-- Judgement: 11: the check reads `claude --help` from a third party's
-  installed program, which no fixture pins and CI doesn't have, so the
-  implementer keeps the help text and names the version read; 12: the kept
-  run of the five verbs at the revision that merges closes it, and no check
-  written before the work can
-
 ## Evidence
 
 `crates/meow/src/unattended.rs` is the `unattended` feature: `plan` and
@@ -130,8 +119,8 @@ documentation index. The profile's `test` verb already ran the unit's test
 directory.
 
 The 13 checks failed first: `meow-verbs run test` exited 1 with
-`FAILED (failures=21)` for the unit's file, counting the subtests, kept as
-`project/evidence/5a1520eda28c.txt`, in the cover commit f9e8b4e, which held
+`FAILED (failures=21)` for the unit's file, counting the subtests, seen in
+the run under #663, whose output is no longer kept, in the cover commit f9e8b4e, which held
 the checks alone and became 34f2f7a when the branch was rebased onto
 `origin/main`. They pass now, unchanged, since
 `git diff f9e8b4ed30a9650f2bc2b914e8a21582acf3bb45 -- plugins/meow-unattended/tests/test_unattended.py`

@@ -52,13 +52,6 @@ the check first, in a commit of its own, and see it fail.
 
 Nothing. BUG-1264 is approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/7db4da4bafbe.txt
-- Landed in: #696
-- Judgement: none
-
 ## Evidence
 
 Each role under `plugins/meow-flow/skills/method/steps/`, except review's,
@@ -74,7 +67,7 @@ table, and `meow-flow` goes to 0.39.5.
 
 `MethodSkill.test_each_role_names_where_its_artifact_lands` failed first:
 `meow-verbs run test` exited 1 with `FAILED (failures=38)`, one failure for
-each phrase a role lacked, kept as `project/evidence/7db4da4bafbe.txt`, in the
+each phrase a role lacked, seen in the run under #696, whose output is no longer kept, in the
 commit that held the check alone. It passes now:
 
 ```text

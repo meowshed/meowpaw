@@ -341,16 +341,3 @@ so the person who starts one pays for it by the token and keeps that key.
   run.
 - A new record whose front matter supersedes or withdraws an approved one,
   which no deny rule and no check catches yet.
-
-## Open review findings
-
-- Round 1, finding 12, specification-level detail in the Decision: I kept the
-  output contents, the state path and the exit statuses here because the
-  realisation criteria test them, and a reader approving the decision should
-  see what the criteria hold it to. The specification that the Consequences
-  plan takes this detail over, and this record freezes on approval, so the
-  specification then rules.
-- The decisions index, round 2, preference 2: its Amended line lists
-  "ADR-1100 by EPC-1070", an epic amending a decision. `paw index` generates
-  that line from EPC-1070's front matter, so the fix, if one is due, belongs
-  there or in `paw index`, and this change touches neither.

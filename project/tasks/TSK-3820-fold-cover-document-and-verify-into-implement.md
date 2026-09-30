@@ -44,12 +44,6 @@ Change `plugins/meow-flow/skills/method/`, `plugins/meow-flow/templates/`, `plug
 
 - TSK-3810 (not blocking): the prompts name the steps `paw ready` knows, and either can land first.
 
-## Cover
-
-Not yet. The cover step replaces this line with four, `Checks`,
-`Failing run`, `Landed in` and `Judgement`, and `paw ready implement` refuses
-the task until they are filled.
-
 ## Evidence
 
 The class `ShortChainPrompts` in `plugins/meow-flow/tests/test_record.py`

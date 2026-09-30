@@ -77,13 +77,6 @@ fails there.
 
 TSK-3350, because this task adds a check to the loop that task writes.
 
-## Cover
-
-- Checks: not yet
-- Failing run: not yet
-- Landed in: not yet
-- Judgement: not yet
-
 ## Evidence
 
 Not yet. Once done: the command, its exit status and its output, collected at

@@ -3,7 +3,6 @@ id: SPC-NNNN
 artifact: spec
 status: live # a living document; it describes the present and carries no history
 revised: YYYY-MM-DD
-checked-at: # the verification that last read it, such as "#123"
 states: [REQ-NNNN] # every requirement this document states
 ---
 

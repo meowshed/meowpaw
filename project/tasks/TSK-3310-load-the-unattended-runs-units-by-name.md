@@ -64,22 +64,6 @@ Write the checks first, in a commit of their own, and see them fail.
 TSK-3300, because this task extends the program, the table reader and the
 snapshot that task adds.
 
-## Cover
-
-- Checks: plugins/meow-unattended/tests/test_unattended.py,
-  `Units.test_url_and_folder_refused`,
-  `Units.test_one_plugin_dir_for_each_unit`,
-  `Units.test_repository_hooks_and_servers_not_named` and
-  `Refusals.test_env_block_refused`
-- Failing run: project/evidence/4acbe0e3935f.txt
-- Landed in: #668
-- Judgement: 3: TSK-3300 already names no repository hook or server, so the
-  check's assertions that neither is named pass before this work, and it
-  fails only on its control, that the snapshot names each declared unit with
-  its version; review confirms that a regression naming either would fail
-  it. 5: the kept run of the five verbs at the revision that merges closes
-  it, and no check written before the work can
-
 ## Evidence
 
 `crates/meow/src/unattended.rs` now reads each `units` entry against the work
@@ -94,8 +78,8 @@ exits. `meow-unattended` is 0.2.0, and its README states what `units` accepts
 and the new refusals.
 
 The four checks failed first: `meow-verbs run test` exited 1 with
-`FAILED (failures=11)` for the unit's file, counting the subtests, kept as
-`project/evidence/4acbe0e3935f.txt` in the cover commit fa22b5f, which became
+`FAILED (failures=11)` for the unit's file, counting the subtests, seen in
+the run under #668, whose output is no longer kept, in the cover commit fa22b5f, which became
 eac3884 when the branch was rebased onto `origin/main`. They pass now,
 unchanged, since
 `git diff fa22b5f42020bca44a9e09ac48e2b0bee18bce63 -- plugins/meow-unattended/tests/test_unattended.py`

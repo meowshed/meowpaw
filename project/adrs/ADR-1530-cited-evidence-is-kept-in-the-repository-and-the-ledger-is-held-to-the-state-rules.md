@@ -221,9 +221,3 @@ from requirements, and change only with them.
 - Keeping evidence outside the main history, which its reversal names.
 - The method's own run state, such as the current step, which REQ-3072 covers
   once the method keeps any.
-
-## Open review findings
-
-- Leaving the kept file's field list and the environment variables to
-  SPC-1040. Left: the field list is the contract a person reads, which this
-  decision chooses, and SPC-1040 restates it for the program.

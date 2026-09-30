@@ -22,13 +22,3 @@ keys, so a harness shipped as plugins can't meet the obligation as written.
 REQ-3270 withholds the delegation tool from every agent the harness ships, so
 none can delegate further, and REQ-3271 asks for the session's depth of one,
 postponed until a plugin can set it.
-
-## Open review findings
-
-- The reviewer asked, as a preference, for the reason a setting beats an
-  instruction in the quoted rule. I left it, because the rule is withdrawn and
-  the quotation keeps its original wording.
-- The reviewer noted that ADR-2200 still cites REQ-0820 as the reason a
-  subagent can't dispatch another. I left ADR-2200 as it is, because it is
-  approved and frozen; REQ-3270 now carries that obligation for the agents the
-  harness ships.

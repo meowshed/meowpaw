@@ -104,13 +104,6 @@ commit of their own, and see them fail.
 
 Nothing. ADR-1620 and EPC-1580 are approved.
 
-## Cover
-
-- Checks: plugins/meow-flow/tests/test_record.py
-- Failing run: project/evidence/ac043fee00a9.txt
-- Landed in: #620
-- Judgement: none
-
 ## Evidence
 
 `crates/meow/src/record.rs` knows ten steps. `ready cover` checks what
@@ -127,7 +120,7 @@ gate and the Cover's four lines.
 The 16 checks failed at the cover commit,
 `0c9cec6b5c1bff9c5ea4c13d584b272c9cccb0b3`, which held the checks alone:
 `meow-verbs run test` exited 1 with `FAILED (failures=16)` in the
-`meow-flow` fixtures, kept as `project/evidence/ac043fee00a9.txt`. They pass
+`meow-flow` fixtures, seen in the run under #620, whose output is no longer kept. They pass
 after this change:
 
 ```text
@@ -159,7 +152,7 @@ in this change's `project/evidence/`.
 Each criterion from 1 to 10 has a check in
 `plugins/meow-flow/tests/test_record.py`, and each check failed on `main`
 after #619. `meow-verbs run test` exited 1 with `FAILED (failures=16)` in the
-`meow-flow` fixtures, kept as `project/evidence/ac043fee00a9.txt`:
+`meow-flow` fixtures, seen in the run under #620, whose output is no longer kept:
 
 - Criterion 1: `Chain.test_an_unknown_step_names_the_ten`, which replaces
   `test_an_unknown_step_names_the_nine`.

@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-29
 realises: ADR-2020
-checked-at:
 ---
 
 # A run is bound to one step, finishes on that step's work at the current tree, and ends when it crosses a gate

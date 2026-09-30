@@ -4,7 +4,6 @@ artifact: epic
 status: approved
 revised: 2026-09-26
 realises: ADR-1280
-checked-at: "#356"
 ---
 
 # Onboarding finishes by removing what it placed
@@ -43,17 +42,6 @@ A task is marked in the commit that advances it, never in a later pass.
 - [x] T-002 TSK-1900 the onboard command migrates an existing record and writes drafts
       closes: REQ-3114, REQ-3116
       evidence: 2 requirements traced to two rules, in #352.
-
-## Verified
-
-Checked under issue 356 at revision `fe9877d`, with evidence gathered there
-and not carried over from the tasks. Every criterion is met:
-
-| Criterion                                                                                                                                                                                 | Evidence at `fe9877d`                                                                          |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1. `onboarding remove` refuses on a draft report, refuses a migrated document whose destination doesn't exist, keeps a cited document, and removes the rest with a count before and after | The three removal fixtures pass, `Ran 3 tests`, `OK`                                           |
-| 2. Each rule in the onboard command maps to its requirement in the task that closes it                                                                                                    | B11 and B12 are found in `skills/onboard/SKILL.md`, traced in TSK-1900                         |
-| 3. Every requirement lands in exactly one closed task                                                                                                                                     | `meow-method check coverage` reports 0 findings, and both tasks are marked `[x]` with evidence |
 
 ## Coverage
 

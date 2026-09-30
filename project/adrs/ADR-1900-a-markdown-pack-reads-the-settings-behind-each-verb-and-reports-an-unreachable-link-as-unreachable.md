@@ -364,11 +364,3 @@ pages returning 403 more often than pages behind a login.
   marker work may bring.
 - Whether a `test` verb whose command couldn't run is reported by
   `meow-verbs` as anything but failed.
-
-## Open review findings
-
-- The reviewer found that this decision rests on RES-0294 while that record is
-  a draft. I left the status as it is for the second review round, because
-  approving a record still under review would freeze text the next round may
-  change. RES-0294 is approved in the same change as this decision, and the
-  pull request says so. `paw check` reported nothing on the draft citation.

@@ -93,31 +93,6 @@ line and `--wait`.
 
 Nothing.
 
-## Cover
-
-- Checks: plugins/meow-github/tests/test_github.py, crates/meow/src/github/request.rs
-- Failing run: project/evidence/5c33f71ed1dc.txt project/evidence/97bd1ebb8bc1.txt
-- Landed in: #723
-- Judgement: 7: whether a replay is counted as a request is printed only once TSK-2950 adds the budget lines, so until then the checks read the replay test through whether a `remaining` of 0 holds the next call
-
-The checks, each naming its criterion and requirement in its docstring or
-doc comment: `Throttle.test_a_stated_wait_stops_the_run` for criterion 1,
-`Throttle.test_wait_resends_no_earlier_than_the_stated_time` for criterion 2,
-`Throttle.test_wait_stops_once_the_waits_would_pass_an_hour` for criterion 3,
-`Throttle.test_an_unparsed_wait_is_unknown_and_stops_the_run` for criterion
-5, `Limits.test_a_response_with_no_limit_header_lets_the_run_go_on` for
-criterion 6, and `Limits.test_a_stale_replay_is_not_read_as_current` and
-`Limits.test_a_skewed_clock_leaves_a_fresh_response_current` for criterion 7,
-in `plugins/meow-github/tests/test_github.py`; `reset_is_read_in_epoch_seconds`
-for criterion 4 and `only_the_layer_starts_gh` for criterion 8, in
-`crates/meow/src/github/request.rs`.
-
-The test verb stops at the crate's first failure, so two kept runs cover the
-checks. `5c33f71ed1dc` fails both crate tests at this tree. `97bd1ebb8bc1`
-fails all seven fixtures, eight failures counting both of criterion 5's
-subtests, on a tree that differs from this one only by the line in
-`crates/meow/src/github.rs` declaring the `request` module.
-
 ## Evidence
 
 The checks failed first: `5c33f71ed1dc` fails both crate tests and

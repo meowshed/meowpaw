@@ -3,7 +3,6 @@ id: SPC-1040
 artifact: spec
 status: live
 revised: 2026-09-29
-checked-at: "#115"
 states:
   [
     REQ-3634,
