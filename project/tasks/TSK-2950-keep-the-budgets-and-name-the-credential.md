@@ -79,8 +79,43 @@ line and the budget lines.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+The layer in `crates/meow/src/github/request.rs` keeps the four counts and
+checks them before each request. A request that would pass a ceiling isn't
+sent: the run prints the `throttled:` line naming the count and when it
+frees, and `--wait` sleeps until then, as at a throttle. `credential` in the
+same file names the form from whether `GH_TOKEN` and `GITHUB_TOKEN` are set
+and whether `GITHUB_ACTIONS` is `true`. `project` prints it as its first line
+and the budget as its last four, and `history` carries both in its document.
+
+Each criterion is closed by the check it names, in
+`plugins/meow-github/tests/test_github.py`:
+
+1. `Budgets.test_content_creation_stops_the_run_at_500_an_hour`
+2. `Budgets.test_writes_are_a_second_apart`
+3. `Budgets.test_the_budget_lines_name_the_four_counts`
+4. `Credential.test_the_first_line_names_the_form`
+5. `Credential.test_the_token_value_is_never_printed`
+6. `History.test_the_document_names_the_credential_and_the_budget`
+
+No criterion rests on judgement. The six checks failed first, in the commit
+that holds them alone, where the `test` verb exited 1, and they pass with the
+change. `format`, `lint`, `check`, `test` and `build` each pass on the
+change's tree, as the pull request cites.
+
+I made two choices the task leaves open. `history` prints the credential line
+and the budget lines as text when it prints no document, because the task
+asks every run to name the form and print its budgets. A token variable set
+to the empty string counts as not set, because an empty value authenticates
+nothing.
+
+I ran `history meowshed/meowpaw` and `project EPC-1720 --check` against
+GitHub with the built tool. Both exited 0 and printed the credential and the
+four budget lines in the form the README shows. No run against GitHub wrote
+an issue, so the spacing and the content-creation ceiling are shown by the
+stand-in alone.
+
+`meow-github` goes to 0.7.0, one minor version above the 0.6.0 `main`
+carried, and its README gains the section "Credential and budgets".
 
 ## Left alone
 

@@ -102,10 +102,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       throttle and add `--wait`
       closes: REQ-2566, REQ-2578
 
-- [ ] T-002 [P] TSK-2950 keep the four budgets, space the writes a second
+- [x] T-002 [P] TSK-2950 keep the four budgets, space the writes a second
       apart, stop at a ceiling, and name the credential's form in `project`'s
       report and `history`'s document
       closes: REQ-2568, REQ-2582
+      evidence: the six checks in `Budgets`, `Credential` and `History` pass
+      after failing first, and the five verbs pass. TSK-2950 carries the rest.
       depends: TSK-2940 (blocking) - the counts sit in the layer
 
 - [ ] T-003 [P] TSK-2960 read the created issues back in one listing after the

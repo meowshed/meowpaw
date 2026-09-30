@@ -8,6 +8,9 @@
 //! each response, a refused one included. It tells a replay from `--cache`
 //! apart from a fresh response, turns a header into a wait through [`wait`]
 //! alone, and stops the run at a throttle unless `--wait` asks it to sleep.
+//! It keeps four counts for the run, primary requests, secondary points,
+//! content creation and the spacing of writes, checks them before each
+//! request and stops at a ceiling as at a throttle.
 //!
 //! The clock is the system's. Where `MEOW_GITHUB_CLOCK` names a file, the
 //! layer reads the time from it and sleeps by adding the seconds to it, so the
@@ -26,6 +29,17 @@ const REPLAY: f64 = 60.0;
 /// The first wait at a secondary throttle that states none, doubled for each
 /// further one in the run.
 const SECONDARY: u64 = 60;
+/// The window GitHub counts secondary points and the minute's content
+/// creation over.
+const MINUTE: f64 = 60.0;
+/// The secondary points a run may spend in a minute: 1 for a `GET`, 5 for
+/// any other method.
+const POINTS: u32 = 900;
+/// The `POST` requests a run may send in a minute, and in an hour.
+const CREATES_A_MINUTE: usize = 80;
+const CREATES_AN_HOUR: usize = 500;
+/// The least time between one write and the next.
+const SPACING: f64 = 1.0;
 const MONTHS: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
@@ -72,6 +86,18 @@ pub(crate) struct Layer {
     secondary: u32,
     /// Each resource a fresh response left at `remaining: 0`, with its reset.
     held: BTreeMap<String, Stop>,
+    /// The requests the run sent, a replay not among them.
+    requests: u64,
+    /// For each `x-ratelimit-resource`, the limit, remaining and reset the
+    /// last fresh response stated.
+    primary: BTreeMap<String, [String; 3]>,
+    /// When each request was sent, with the secondary points it cost.
+    points: Vec<(f64, u32)>,
+    /// When each `POST` was sent.
+    creates: Vec<f64>,
+    /// The writes sent, and when the last one's answer arrived.
+    writes: u64,
+    last_write: Option<f64>,
 }
 
 struct Response {
@@ -100,7 +126,111 @@ impl Layer {
             slept: 0,
             secondary: 0,
             held: BTreeMap::new(),
+            requests: 0,
+            primary: BTreeMap::new(),
+            points: Vec::new(),
+            creates: Vec::new(),
+            writes: 0,
+            last_write: None,
         }
+    }
+
+    /// The four counts, one line each, as the last lines of a run's report
+    /// (REQ-2568).
+    pub(crate) fn budget(&self) -> Vec<String> {
+        let at = now();
+        let resources = if self.primary.is_empty() {
+            "no response stated a limit".to_string()
+        } else {
+            self.primary
+                .iter()
+                .map(|(resource, [limit, remaining, reset])| {
+                    format!(
+                        "{resource} limit {}, {} remaining, resets {}",
+                        grouped(limit),
+                        grouped(remaining),
+                        reset
+                            .trim()
+                            .parse::<i64>()
+                            .map_or_else(|_| reset.clone(), utc)
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("; ")
+        };
+        vec![
+            format!(
+                "primary requests: {} sent; {resources}",
+                grouped(&self.requests.to_string())
+            ),
+            format!(
+                "secondary points: {} of {POINTS} this minute",
+                self.points_within(at)
+            ),
+            format!(
+                "content creation: {} of {CREATES_A_MINUTE} this minute, {} of {CREATES_AN_HOUR} this hour",
+                within(&self.creates, at, MINUTE),
+                within(&self.creates, at, HOUR as f64)
+            ),
+            format!(
+                "spacing: {} {}, each at least one second after the previous one",
+                self.writes,
+                if self.writes == 1 { "write" } else { "writes" }
+            ),
+        ]
+    }
+
+    fn points_within(&self, at: f64) -> u32 {
+        self.points
+            .iter()
+            .filter(|(sent, _)| *sent > at - MINUTE)
+            .map(|(_, cost)| cost)
+            .sum()
+    }
+
+    /// The ceiling `method` would pass if it were sent now, as the wait until
+    /// the count frees enough and the count's name, or `None` where it passes
+    /// none.
+    fn ceiling(&self, method: &str, at: f64) -> Option<(f64, String)> {
+        let cost = if method == "GET" { 1 } else { 5 };
+        let spent = self.points_within(at);
+        if spent + cost > POINTS {
+            let mut left = spent + cost - POINTS;
+            let mut frees = at;
+            for (sent, points) in self.points.iter().filter(|(s, _)| *s > at - MINUTE) {
+                frees = sent + MINUTE;
+                left = left.saturating_sub(*points);
+                if left == 0 {
+                    break;
+                }
+            }
+            return Some((
+                frees - at,
+                format!("secondary points: {spent} of {POINTS} this minute"),
+            ));
+        }
+        if method != "POST" {
+            return None;
+        }
+        for (window, most, name) in [
+            (MINUTE, CREATES_A_MINUTE, "this minute"),
+            (HOUR as f64, CREATES_AN_HOUR, "this hour"),
+        ] {
+            let inside: Vec<f64> = self
+                .creates
+                .iter()
+                .copied()
+                .filter(|s| *s > at - window)
+                .collect();
+            if inside.len() >= most {
+                let frees = inside[inside.len() - most] + window;
+                return Some((
+                    frees - at,
+                    format!("content creation: {} of {most} {name}", inside.len()),
+                ));
+            }
+        }
+        None
     }
 
     /// Reads `endpoint`, through `gh`'s cache for an hour where `cache` is set,
@@ -151,6 +281,29 @@ impl Layer {
                 self.stop(method, endpoint, &stop)?;
                 self.held.remove(resource_of(endpoint));
             }
+            if let Some((wait, count)) = self.ceiling(method, now()) {
+                let arrived = now();
+                self.stop(
+                    method,
+                    endpoint,
+                    &Stop {
+                        wait: Some(wait.max(0.0).ceil() as u64),
+                        arrived,
+                        date: None,
+                        header: count,
+                        value: String::new(),
+                    },
+                )?;
+                continue;
+            }
+            if method != "GET"
+                && let Some(last) = self.last_write
+            {
+                let left = last + SPACING - now();
+                if left > 0.0 {
+                    sleep(left);
+                }
+            }
             let cached = cache && self.sent;
             self.sent = true;
             let mut args = vec!["api".to_string(), endpoint.to_string()];
@@ -176,6 +329,10 @@ impl Layer {
                     ))
                 })?;
             let arrived = now();
+            if method != "GET" {
+                self.writes += 1;
+                self.last_write = Some(arrived);
+            }
             let said = String::from_utf8_lossy(&out.stderr).trim().to_string();
             let response = match parse(&String::from_utf8_lossy(&out.stdout)) {
                 Ok(response) => response,
@@ -199,6 +356,25 @@ impl Layer {
                 }
                 true
             };
+            if fresh {
+                self.requests += 1;
+                self.points
+                    .push((started, if method == "GET" { 1 } else { 5 }));
+                if method == "POST" {
+                    self.creates.push(started);
+                }
+                let stated = [
+                    "x-ratelimit-limit",
+                    "x-ratelimit-remaining",
+                    "x-ratelimit-reset",
+                ]
+                .map(|name| response.header(name).unwrap_or("").trim().to_string());
+                if let Some(resource) = response.header("x-ratelimit-resource")
+                    && !stated[0].is_empty()
+                {
+                    self.primary.insert(resource.trim().to_string(), stated);
+                }
+            }
             let stop = |header: &str, value: &str| Stop {
                 wait: wait(
                     "github",
@@ -293,6 +469,47 @@ impl Layer {
         }
         Ok(())
     }
+}
+
+/// The form of the credential `gh` authenticates with, from whether each
+/// variable is set in the order of precedence `gh` documents, and whether the
+/// run is inside a GitHub Actions workflow (REQ-2582). A token variable's
+/// value is secret material, so it is never read beyond whether it is empty.
+pub(crate) fn credential() -> String {
+    let set = |name: &str| std::env::var_os(name).is_some_and(|v| !v.is_empty());
+    let form = if set("GH_TOKEN") {
+        "GH_TOKEN from the environment"
+    } else if set("GITHUB_TOKEN") {
+        "GITHUB_TOKEN from the environment"
+    } else {
+        "gh's stored credential"
+    };
+    if std::env::var("GITHUB_ACTIONS").as_deref() == Ok("true") {
+        format!("{form}, inside a GitHub Actions workflow")
+    } else {
+        form.to_string()
+    }
+}
+
+/// A count as GitHub's pages write it, with a comma between each group of
+/// three digits; anything else as it is.
+fn grouped(number: &str) -> String {
+    if number.is_empty() || !number.bytes().all(|b| b.is_ascii_digit()) {
+        return number.to_string();
+    }
+    let mut out = String::new();
+    for (i, digit) in number.chars().enumerate() {
+        if i > 0 && (number.len() - i).is_multiple_of(3) {
+            out.push(',');
+        }
+        out.push(digit);
+    }
+    out
+}
+
+/// How many of `times` fall within `window` seconds before `at`.
+fn within(times: &[f64], at: f64, window: f64) -> usize {
+    times.iter().filter(|t| **t > at - window).count()
 }
 
 /// The resource GitHub counts a request against, before its answer names it.
