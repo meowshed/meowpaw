@@ -1,6 +1,7 @@
 # The repository's own gate. `meow-mise` reads these tasks to resolve the verbs.
 
 [tools]
+claude = "latest"
 markdownlint-cli2 = "latest"
 "npm:prettier" = "latest"
 python = "3.14"
