@@ -2887,6 +2887,108 @@ class OffTheTrunk(unittest.TestCase):
                 self.assertEqual(done.returncode, 1, done.stdout)
                 self.assertIn("TSK-0001 is not approved on main yet", done.stdout)
 
+    def test_a_trunk_record_with_crlf_endings_is_read(self):
+        """TSK-4000 criterion 1, BUG-1370: a task approved on the trunk in a file with CRLF endings is on the trunk."""
+        repository = self.repo(on_trunk=True)
+        self.git(repository, "checkout", "-q", "main")
+        path = repository.root / self.TASK
+        path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+        self.git(repository, "commit", "-q", "-am", "crlf endings")
+        self.assertIn(b"status: approved\r\n", path.read_bytes())
+        self.git(repository, "checkout", "-q", "work")
+        self.assertNotIn(b"\r\n", path.read_bytes())
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_trunk_on_a_remote_of_another_name_is_read(self):
+        """TSK-4000 criterion 2, BUG-1370: the only remote holds the trunk whatever its name, and a second branch
+        of it whose name ends in the trunk's changes nothing."""
+        repository = self.repo()
+        base = self.git(repository, "rev-parse", "main").stdout.strip()
+        work = self.git(repository, "rev-parse", "work").stdout.strip()
+        self.git(repository, "remote", "add", "upstream", "https://example.invalid/upstream.git")
+        self.git(repository, "update-ref", "refs/remotes/upstream/main", base)
+        self.git(repository, "branch", "-q", "-D", "main")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("TSK-0001 is not approved on main yet", done.stdout)
+        self.assertNotIn("names no branch", repository.run("status").stdout)
+        self.git(repository, "update-ref", "refs/remotes/upstream/release/main", work)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "a branch whose name ends in the trunk's was read\n" + done.stdout)
+        self.assertIn("TSK-0001 is not approved on main yet", done.stdout)
+        self.assertNotIn("names no branch", repository.run("status").stdout)
+        self.git(repository, "update-ref", "refs/remotes/upstream/main", work)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_only_the_tracked_remote_origin_and_a_sole_remote_are_read(self):
+        """TSK-4000 criterion 2, BUG-1370: a remote that is neither tracked, `origin` nor alone may be a fork, so
+        it isn't read, a kept ref under no remote isn't either, and on the tracked remote only the branch of the
+        trunk's name is the trunk."""
+        repository = self.repo()
+        base = self.git(repository, "rev-parse", "main").stdout.strip()
+        work = self.git(repository, "rev-parse", "work").stdout.strip()
+        self.git(repository, "update-ref", "refs/remotes/fork/main", work)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "a kept ref under no remote was read\n" + done.stdout)
+        self.git(repository, "config", "branch.main.remote", "fork")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "a tracked remote the repository doesn't configure was read\n" + done.stdout)
+        self.git(repository, "config", "--unset", "branch.main.remote")
+        self.git(repository, "remote", "add", "origin", "https://example.invalid/origin.git")
+        self.git(repository, "remote", "add", "fork", "https://example.invalid/fork.git")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "a remote that is neither tracked, origin nor alone was read\n" + done.stdout)
+        self.git(repository, "update-ref", "refs/remotes/fork/main", base)
+        self.git(repository, "update-ref", "refs/remotes/fork/feature", work)
+        self.git(repository, "config", "branch.main.remote", "fork")
+        self.git(repository, "config", "branch.main.merge", "refs/heads/feature")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, "the tracked remote's branch of another name was read\n" + done.stdout)
+        self.git(repository, "update-ref", "refs/remotes/fork/main", work)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_task_behind_a_link_leaving_the_repository_is_said(self):
+        """TSK-4000 criterion 3, BUG-1370, REQ-3664: the trunk says nothing about a task reached through a link that
+        leaves the repository, so nothing is refused and status names the task, once."""
+        repository = self.repo(on_trunk=True)
+        outside = tempfile.TemporaryDirectory()
+        self.addCleanup(outside.cleanup)
+        moved = Path(outside.name).resolve() / "tasks"
+        shutil.move(repository.root / "tasks", moved)
+        os.symlink(moved, repository.root / "tasks")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+        status = repository.run("status").stdout
+        self.assertEqual(status.count("can't be told from one waiting on a merge"), 1, status)
+        line = next(line for line in status.splitlines() if "can't be told" in line)
+        self.assertIn("TSK-0001", line)
+        self.assertIn("a link that leaves the repository", line)
+        self.assertIn("next: implement TSK-0001", status)
+
+    def test_status_lists_each_trunk_ref_once(self):
+        """TSK-4000 criterion 4, BUG-1370: with two open tasks and a trunk held by one commit, status starts
+        `git ls-tree` once, whether one ref holds that commit or two."""
+        repository = self.repo()
+        self.second_task(repository)
+        shim = tempfile.TemporaryDirectory()
+        self.addCleanup(shim.cleanup)
+        log = Path(shim.name) / "calls"
+        git = Path(shim.name) / "git"
+        git.write_text(f'#!/bin/sh\necho "$1" >> "{log}"\nexec "{shutil.which("git")}" "$@"\n', encoding="utf-8")
+        git.chmod(0o755)
+        env = {**os.environ, "PATH": f"{shim.name}{os.pathsep}{os.environ['PATH']}"}
+        for refs in ("one ref", "two refs at one commit"):
+            with self.subTest(refs=refs):
+                if refs != "one ref":
+                    self.git(repository, "update-ref", "refs/remotes/origin/main", self.git(repository, "rev-parse", "main").stdout.strip())
+                log.write_text("", encoding="utf-8")
+                status = subprocess.run([str(BIN), "status"], cwd=repository.path, capture_output=True, text=True, env=env)
+                self.assertIn("waiting: TSK-0001 is not approved on main yet", status.stdout)
+                calls = log.read_text(encoding="utf-8").split()
+                self.assertEqual(calls.count("ls-tree"), 1, calls)
+
     def rules(self):
         text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
         found = re.findall(r"^- (M\d+)\.\s(.*?)(?=^- M\d+\.\s|^</rules>)", text, re.MULTILINE | re.DOTALL)

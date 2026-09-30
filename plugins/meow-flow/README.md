@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.46.0]
+describes: [meow-flow@0.46.1]
 ---
 
 # meow-flow
@@ -139,11 +139,15 @@ paw ready implement: not ready
 `paw ready implement` asks that of a task: the task and its epic, defect or
 decision approved, and each task under its `## Depends on` done. It also
 refuses a task that isn't approved on the trunk you declare under `[git] trunk`
-yet, on its remote-tracking branch or its local one, because an approval on an unmerged branch still waits on its merge, and
+yet, on its local branch or its branch on a remote, because an approval on an unmerged branch still waits on its merge, and
 `paw status` shows that task as waiting. Where you declare no trunk, the
 directory is no git work tree, the trunk names no branch or the record sits
 outside the repository, it refuses nothing for that and `paw status`
-says an approval can't be told from one waiting on a merge. A decision
+says an approval can't be told from one waiting on a merge. It says the
+same, naming the task, for one reached through a link that leaves the
+repository. The remotes it reads are the one the trunk's branch tracks,
+`origin`, and the only remote where you have one, and on each it reads the
+branch of the trunk's name. A decision
 one task realises needs no epic: the task names `realises: ADR-NNNN` in place
 of `epic:`, and it is done once its Evidence is written.
 
