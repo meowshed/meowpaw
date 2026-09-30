@@ -405,8 +405,11 @@ class Context(Case):
         """TSK-3360 criterion 2, REQ-0882: the preamble holds the absolute path of the run's `progress/progress.md`
         and the condition's text, and each argv holds `--add-dir` followed by that file's directory and the rules
         allowing Edit and Write of that file."""
-        f = self.fixture()
-        done = f.start(replaced("--iterations", "2"))
+        # Two verbs, so a preamble naming only the first, or the two in another order, doesn't pass.
+        f = self.fixture({".meowpaw/profile.toml": PROFILE + 'lint = "true"\n'})
+        terms = replaced("--iterations", "2")
+        terms[terms.index("--until") + 1] = "verbs=test,lint"
+        done = f.start(terms)
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         calls = f.calls()
         self.assertEqual(len(calls), 2)
@@ -418,7 +421,7 @@ class Context(Case):
             preamble = values(argv, "--append-system-prompt")
             self.assertEqual(len(preamble), 1, argv)
             self.assertIn(str(file), preamble[0])
-            self.assertIn("verbs=test", preamble[0])
+            self.assertIn("`verbs=test,lint`", preamble[0])
             self.assertEqual(values(argv, "--add-dir"), [str(file.parent)])
             allowed = values(argv, "--allowedTools")
             for rule in values(allow_rules(file), "--allowedTools"):
