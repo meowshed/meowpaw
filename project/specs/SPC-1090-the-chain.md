@@ -31,6 +31,11 @@ states:
     REQ-3650,
     REQ-3652,
     REQ-3654,
+    REQ-3656,
+    REQ-3658,
+    REQ-3660,
+    REQ-3662,
+    REQ-3664,
     REQ-0132,
     REQ-0816,
     REQ-0818,
@@ -666,9 +671,21 @@ Run twice with nothing changed, it prints the same text (REQ-0210).
 
 An approval is a record's stored status moving from `draft` to `approved`, in a
 commit of its own, so it is durable and survives every session (REQ-0402). A
-step that produces an artifact needing approval stops there, and never reads
-silence, a change of subject or an unrelated instruction as approval
+step that produces an artifact needing approval stops there, and no step ever
+reads silence, a change of subject or an unrelated instruction as approval
 (REQ-0390, REQ-0400).
+
+Where a person asks for a decision to land in one pull request, the method
+skill writes its research, requirements, decision record, specification
+changes, epic and tasks in turn and stops once, at that pull request, whose
+merge is the approval (REQ-3650, REQ-3656, ADR-2310). It writes each record
+as a draft, runs `paw check`, and sets it to `approved` only where the check
+reports nothing (REQ-3658), and it implements nothing on that path. A task
+whose record is absent from the trunk the profile declares isn't ready:
+`ready implement` refuses it and `status` prints it as waiting on its merge
+(REQ-3660, REQ-3662), and where no trunk is declared or it can't be read,
+`status` says an approval can't be told from one waiting on a merge
+(REQ-3664). The program doesn't do this yet; TSK-3880 realises it.
 
 `paw status --waiting` prints only what waits for approval, each line
 naming the artifact, its kind and the gate it waits at, and prints nothing when
