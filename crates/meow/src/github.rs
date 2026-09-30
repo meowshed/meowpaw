@@ -126,7 +126,7 @@ fn listing(
     let mut items = Vec::new();
     let mut next = Some(endpoint.clone());
     while let Some(page) = next {
-        let (body, following) = layer.page(&page).map_err(|e| match e {
+        let (body, following) = layer.page(&page, true).map_err(|e| match e {
             Failure::Throttled(line) => line,
             Failure::Failed(e) => format!("{name}, {endpoint}: {e}"),
         })?;

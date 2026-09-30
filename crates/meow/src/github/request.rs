@@ -82,6 +82,8 @@ pub(crate) struct Layer {
     sent: bool,
     /// The local clock less GitHub's, from the last uncached response.
     offset: Option<f64>,
+    /// The `Date` of the run's first response, in UTC epoch seconds.
+    first: Option<i64>,
     slept: u64,
     secondary: u32,
     /// Each resource a fresh response left at `remaining: 0`, with its reset.
@@ -123,6 +125,7 @@ impl Layer {
             wait,
             sent: false,
             offset: None,
+            first: None,
             slept: 0,
             secondary: 0,
             held: BTreeMap::new(),
@@ -249,10 +252,22 @@ impl Layer {
         self.send(method, endpoint, fields, false)
     }
 
-    /// Reads one page of a listing, returning its body and the address of the
-    /// next page that its `Link` header names.
-    pub(crate) fn page(&mut self, endpoint: &str) -> Result<(Value, Option<String>), Failure> {
-        self.exchange("GET", endpoint, &[], true).map(|r| {
+    /// When the run began on GitHub's clock, as the `Date` of its first
+    /// response, written as `2026-09-29T14:30:37Z`; `None` until a response
+    /// states one.
+    pub(crate) fn began(&self) -> Option<String> {
+        self.first.map(utc)
+    }
+
+    /// Reads one page of a listing, through `gh`'s cache where `cache` is set,
+    /// returning its body and the address of the next page that its `Link`
+    /// header names.
+    pub(crate) fn page(
+        &mut self,
+        endpoint: &str,
+        cache: bool,
+    ) -> Result<(Value, Option<String>), Failure> {
+        self.exchange("GET", endpoint, &[], cache).map(|r| {
             let next = r.header("link").and_then(next_page);
             (r.body, next)
         })
@@ -345,6 +360,7 @@ impl Layer {
                 Err(_) => return Err(Failure::Failed(said)),
             };
             let date = response.header("date").and_then(http_date);
+            self.first = self.first.or(date);
             let fresh = if cached {
                 match (self.offset, date) {
                     (Some(offset), Some(date)) => date as f64 > started - offset - REPLAY,

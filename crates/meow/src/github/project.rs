@@ -10,6 +10,10 @@
 //! first twelve hex digits of the SHA-256 of the title, a newline and the body,
 //! which `shasum -a 256` reproduces by hand. Every call goes through the
 //! request layer, and a throttle stops the run where it is met (ADR-1810).
+//! The issues a run created are read back in one listing after its last
+//! create, and a run that stops before it has projected every task says
+//! which tasks it projected, which it created and couldn't read back, and which it left
+//! (REQ-2572).
 
 use super::name_repository;
 use super::request::{Failure, Layer};
@@ -223,13 +227,142 @@ fn done_in(epic: &Record) -> Vec<String> {
         .collect()
 }
 
-/// Prints the `throttled:` line and says what the run did before it.
-fn throttled(line: &str) -> u8 {
+/// Prints the `throttled:` line and says the run sends nothing after it.
+fn throttled(line: &str) {
     println!("{line}");
-    println!(
-        "meow-github project: stopped at the throttle above, sending nothing more; the tasks above it were projected"
-    );
-    UNREAD
+    println!("meow-github project: stopped at the throttle above, sending nothing more");
+}
+
+/// An issue this run created, until the listing reads it back.
+struct Created {
+    id: String,
+    number: u64,
+    title: String,
+    body: String,
+    print: String,
+}
+
+/// What the run did with each task it can name, for the `partial:` line.
+#[derive(Default)]
+struct Outcome {
+    /// The tasks whose issue was updated, found unchanged, or created and read
+    /// back matching the record.
+    projected: Vec<String>,
+    /// The tasks whose issue was created and not read back, each with why.
+    unread: Vec<String>,
+    /// Whether the run stopped before it visited every task.
+    stopped: bool,
+    /// Whether it stopped at a throttle or a ceiling, after which it sends
+    /// nothing more, the listing included.
+    throttled: bool,
+}
+
+impl Outcome {
+    /// Puts each created issue's task under `created, not read back`, with why.
+    fn leave(&mut self, created: &[Created], why: &str) {
+        for c in created {
+            self.unread
+                .push(format!("{} (issue #{}, {why})", c.id, c.number));
+        }
+    }
+
+    /// The `partial:` line: every task of `tasks` under one of three groups.
+    fn partial(&self, tasks: &[Record]) -> String {
+        let left: Vec<String> = tasks
+            .iter()
+            .map(|t| t.field("id"))
+            .filter(|id| {
+                !self.projected.contains(id)
+                    && !self.unread.iter().any(|u| u.split(' ').next() == Some(id))
+            })
+            .collect();
+        let group = |items: &[String]| {
+            if items.is_empty() {
+                "none".to_string()
+            } else {
+                items.join(", ")
+            }
+        };
+        format!(
+            "partial: projected {}; created, not read back {}; not projected {}",
+            group(&self.projected),
+            group(&self.unread),
+            group(&left)
+        )
+    }
+}
+
+/// Every issue GitHub lists as written since the run began, by number, read
+/// in one uncached listing, every page of it.
+fn read_back(layer: &mut Layer, repository: &str) -> Result<Vec<Value>, Failure> {
+    let Some(began) = layer.began() else {
+        return Err(Failure::Failed(
+            "no response stated a `Date` to list from".to_string(),
+        ));
+    };
+    let mut next = Some(format!(
+        "repos/{repository}/issues?state=all&since={began}&per_page=100"
+    ));
+    let mut issues = Vec::new();
+    while let Some(page) = next {
+        let (body, following) = layer.page(&page, false)?;
+        match body {
+            Value::Array(page) => issues.extend(page),
+            _ => return Err(Failure::Failed("a page isn't a list".to_string())),
+        }
+        next = following;
+    }
+    Ok(issues)
+}
+
+/// Reads the created issues back and sorts each task into `outcome`. The
+/// listing runs after a failed write or a refusal, and not after a throttle
+/// or a ceiling, because a request sent while throttled risks the integration.
+fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &mut Outcome) {
+    if created.is_empty() {
+        return;
+    }
+    if outcome.throttled {
+        return outcome.leave(&created, "no listing ran");
+    }
+    let listed = match read_back(layer, repository) {
+        Ok(listed) => listed,
+        Err(Failure::Throttled(line)) => {
+            throttled(&line);
+            outcome.throttled = true;
+            outcome.stopped = true;
+            return outcome.leave(&created, "the listing was throttled");
+        }
+        Err(e) => {
+            println!("meow-github project: the created issues couldn't be read back: {e}");
+            return outcome.leave(&created, "the listing couldn't be read");
+        }
+    };
+    for c in created {
+        let found = listed
+            .iter()
+            .find(|i| i.get("number").and_then(Value::as_u64) == Some(c.number));
+        let text = |issue: &Value, name: &str| {
+            issue
+                .get(name)
+                .and_then(Value::as_str)
+                .unwrap_or("")
+                .to_string()
+        };
+        match found {
+            Some(issue)
+                if same(&text(issue, "title"), &c.title) && same(&text(issue, "body"), &c.body) =>
+            {
+                println!(
+                    "{}: projected to issue #{} at {}, read back",
+                    c.id, c.number, c.print
+                );
+                outcome.projected.push(c.id);
+            }
+            Some(_) => outcome.leave(&[c], "reads differently from what was written"),
+            None => outcome.leave(&[c], "not in the listing"),
+        }
+    }
 }
 
 pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
@@ -285,14 +418,6 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         );
         return FOUND;
     }
-    let repository = match name_repository(layer, repository) {
-        Ok(name) => name,
-        Err(Failure::Throttled(line)) => return throttled(&line),
-        Err(e) => {
-            println!("meow-github project: nothing projected: {e}");
-            return UNREAD;
-        }
-    };
     let tasks: Vec<Record> = records(&base.join("tasks"), "TSK-")
         .into_iter()
         .filter(|t| {
@@ -322,7 +447,23 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
     } else {
         done_in(&epic)
     };
+    let mut outcome = Outcome::default();
+    // A run that can't name its repository visits no task, so it is partial too.
+    let repository = match name_repository(layer, repository) {
+        Ok(name) => name,
+        Err(e) => {
+            match e {
+                Failure::Throttled(line) => throttled(&line),
+                e => println!("meow-github project: nothing projected: {e}"),
+            }
+            if !tasks.is_empty() {
+                println!("{}", outcome.partial(&tasks));
+            }
+            return UNREAD;
+        }
+    };
     let mut worst = CLEAN;
+    let mut created: Vec<Created> = Vec::new();
     for task in &tasks {
         let id = task.field("id");
         let (title, body) = projection(task, &epic);
@@ -339,7 +480,11 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
             // Computed from the two fingerprints each run, never stored (REQ-1388).
             let (on_tracker, closed) = match tracked(layer, &repository, &issue) {
                 Ok(state) => state,
-                Err(Failure::Throttled(line)) => return throttled(&line),
+                Err(Failure::Throttled(line)) => {
+                    throttled(&line);
+                    (outcome.stopped, outcome.throttled) = (true, true);
+                    break;
+                }
                 Err(e) => {
                     println!("{id}: issue #{issue} couldn't be read: {e}");
                     worst = worst.max(UNREAD);
@@ -365,6 +510,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                 worst = worst.max(FOUND);
             } else if projected == print {
                 println!("{id}: unchanged, issue #{issue} at {print}");
+                outcome.projected.push(id);
             } else if check {
                 println!(
                     "{id}: changed since it was projected at {projected}; issue #{issue} would be updated to {print}"
@@ -378,18 +524,27 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                         .ok()
                         .map(|n| record_mapping(task, n, &print))
                     {
-                        Some(Ok(())) => println!(
-                            "{id}: changed since {projected}, issue #{issue} updated to {print}"
-                        ),
+                        Some(Ok(())) => {
+                            println!(
+                                "{id}: changed since {projected}, issue #{issue} updated to {print}"
+                            );
+                            outcome.projected.push(id);
+                        }
                         _ => {
                             println!(
                                 "{id}: issue #{issue} updated, and the mapping couldn't be written to {}",
                                 task.path.display()
                             );
+                            // The issue was updated, which is what projected means.
+                            outcome.projected.push(id);
                             worst = worst.max(FOUND);
                         }
                     },
-                    Err(Failure::Throttled(line)) => return throttled(&line),
+                    Err(Failure::Throttled(line)) => {
+                        throttled(&line);
+                        (outcome.stopped, outcome.throttled) = (true, true);
+                        break;
+                    }
                     Err(e) => {
                         println!("{id}: issue #{issue} not updated: {endpoint}: {e}");
                         worst = worst.max(UNREAD);
@@ -404,55 +559,51 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         }
         let full = format!("{body}\n\n{}", marker(&id, &print));
         let endpoint = format!("repos/{repository}/issues");
-        let created = match layer.write("POST", &endpoint, &[("title", &title), ("body", &full)]) {
-            Ok(created) => created,
-            Err(Failure::Throttled(line)) => return throttled(&line),
+        let answer = match layer.write("POST", &endpoint, &[("title", &title), ("body", &full)]) {
+            Ok(answer) => answer,
+            Err(Failure::Throttled(line)) => {
+                throttled(&line);
+                (outcome.stopped, outcome.throttled) = (true, true);
+                break;
+            }
             Err(e) => {
                 println!("{id}: not projected: {endpoint}: {e}");
-                println!(
-                    "meow-github project: stopped part way; the tasks above it were projected"
-                );
-                return UNREAD;
+                outcome.stopped = true;
+                break;
             }
         };
-        let Some(number) = created.get("number").and_then(Value::as_u64) else {
+        let Some(number) = answer.get("number").and_then(Value::as_u64) else {
             println!("{id}: GitHub's reply to {endpoint} lacks the field `number`");
-            return UNREAD;
+            outcome.stopped = true;
+            break;
         };
         if let Err(e) = record_mapping(task, number, &print) {
             println!(
                 "{id}: issue #{number} created, and the mapping couldn't be written to {}: {e}",
                 task.path.display()
             );
-            return FOUND;
+            outcome
+                .unread
+                .push(format!("{id} (issue #{number}, the task doesn't name it)"));
+            outcome.stopped = true;
+            break;
         }
-        match layer.get(&format!("{endpoint}/{number}"), false) {
-            Ok(read)
-                if same(
-                    read.get("title").and_then(Value::as_str).unwrap_or(""),
-                    &title,
-                ) && same(
-                    read.get("body").and_then(Value::as_str).unwrap_or(""),
-                    &full,
-                ) =>
-            {
-                println!("{id}: projected to issue #{number} at {print}, read back");
-            }
-            Ok(_) => {
-                println!(
-                    "{id}: projected to issue #{number}, and it reads back differently from what was written"
-                );
-                worst = worst.max(FOUND);
-            }
-            Err(Failure::Throttled(line)) => return throttled(&line),
-            Err(e) => {
-                println!("{id}: projected to issue #{number}, and it couldn't be read back: {e}");
-                worst = worst.max(UNREAD);
-            }
-        }
+        println!("{id}: created issue #{number}");
+        created.push(Created {
+            id,
+            number,
+            title,
+            body: full,
+            print,
+        });
     }
+    settle(layer, &repository, created, &mut outcome);
     if tasks.is_empty() {
         println!("meow-github project: {epic_id} has no tasks");
+    }
+    if outcome.stopped || !outcome.unread.is_empty() {
+        println!("{}", outcome.partial(&tasks));
+        return UNREAD;
     }
     worst
 }
