@@ -428,6 +428,15 @@ class WriteSkill(unittest.TestCase):
         an agent."""
         self.rule(*self.KNOWLEDGE)
 
+    def test_an_agent_a_unit_ships_carries_the_denial_rule(self):
+        """TSK-2703 criterion 1, REQ-2978: the rule beside D9 has an agent a unit ships name the four outcomes and
+        carry the denial rule, and states its reason."""
+        found = self.rule(r"\bdone_with_concerns\b", r"\bneeds_context\b", r"\bblocked\b", r"\bdenial rule\b")
+        text = (UNIT / "skills" / "write" / "SKILL.md").read_text(encoding="utf-8")
+        idents = [ident for ident, _ in rules(text)]
+        self.assertIn("D9", idents)
+        self.assertIn(idents[idents.index("D9") + 1], found)
+
     def test_the_knowledge_rule_refuses_its_inversion(self):
         """REQ-2972: the words alone don't pass, so a rule saying the opposite fails the fixture above."""
         for inverted in (

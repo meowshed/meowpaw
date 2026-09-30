@@ -72,5 +72,30 @@ class ProseReport(unittest.TestCase):
                             for s in sentences(body())), "no rule limits a quotation to the finding's span, 25 words at most")
 
 
+class ProseDenial(unittest.TestCase):
+    """TSK-2703 criteria 1 and 2, REQ-2978, SPC-1030 "What an agent reports": `prose` carries the denial rule, and
+    a file of its standard that its set-up step can't read ends the review as BLOCKED."""
+
+    def test_it_carries_the_denial_rule(self):
+        """TSK-2703 criterion 1, REQ-2978: one sentence says where a call is denied it issues no second call in
+        another form, uses no other tool, asks nobody for the permission and ends as BLOCKED naming the tool and
+        what it was called on, with its reason."""
+        found = [s for s in sentences(body()) if re.search(r"\bcall is denied\b", s)]
+        self.assertTrue(found, "no sentence states the denial rule")
+        rule = found[0]
+        for pattern in (r"no second call in another form", r"\bno other tool\b", r"ask nobody for the permission",
+                        r"outcome: BLOCKED", r"naming the tool and what it was called on", r"\bbecause\b"):
+            with self.subTest(pattern=pattern):
+                self.assertRegex(rule, pattern)
+
+    def test_an_unreadable_standard_ends_the_review_as_blocked(self):
+        """TSK-2703 criterion 2, REQ-2978: the set-up step reports BLOCKED, naming the file, where a file of its
+        standard can't be read, in place of a review that silently skipped part of it."""
+        setup = re.search(r'<steps name="set up">(.*?)</steps>', body(), re.DOTALL)
+        self.assertIsNotNone(setup, "prose has no set-up step")
+        self.assertTrue(any(re.search(r"can.t read", s) and word_in("BLOCKED", s) and re.search(r"\bfile\b", s)
+                            for s in sentences(setup.group(1))), "the set-up step doesn't end an unreadable file as BLOCKED")
+
+
 if __name__ == "__main__":
     unittest.main()
