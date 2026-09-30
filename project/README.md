@@ -639,7 +639,7 @@ addresses lands in one of them.
 | [BUG-1370](bugs/BUG-1370-the-trunk-guard-misreads-a-trunk-outside-the-plain-case.md)         | `paw` misjudged a task's approval on the trunk with CRLF endings, a remote not named `origin`, or a link leaving the repository |
 | [BUG-1380](bugs/BUG-1380-the-method-skill-names-nobody-to-open-the-one-pull-request.md)      | The method skill named nobody to open the pull request on the one-pull-request path                                             |
 
-Thirty-nine are closed. BUG-1040, BUG-1100, BUG-1360 and BUG-1380 are open. BUG-1040 routes to design, because the mechanism
+Forty are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
 after its fix, and says so.

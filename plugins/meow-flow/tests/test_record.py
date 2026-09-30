@@ -3023,7 +3023,7 @@ class OffTheTrunk(unittest.TestCase):
         report, and name the branch where the repository declares no code host."""
         rule = dict(self.rules())["M20"]
         self.assertRegex(rule, r"stop once, at that pull request, which you open and name in your report")
-        self.assertRegex(rule, r"where the repository declares no code host, name the branch in its place")
+        self.assertRegex(rule, r"Where the repository declares no code host, name the branch in its place")
 
 
 if __name__ == "__main__":
