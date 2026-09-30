@@ -64,7 +64,7 @@ goes to 0.4.2.
 
 The three checks in the class `LintCommand` failed first: `meow-verbs run
 test` exited 1 with `FAILED (failures=3, skipped=1)` in the Markdown suite,
-kept as the run in #697, no longer kept, in the commit that held the
+seen in the run under #697, whose output is no longer kept, in the commit that held the
 checks alone. The `--config=<path>` case in criterion 1 passed before the fix
 as well, because it guards the reading the fix must keep. They pass now:
 

@@ -2,7 +2,7 @@
 id: SPC-1010
 artifact: spec
 status: live
-revised: 2026-09-29
+revised: 2026-09-30
 states:
   [
     REQ-0990,
@@ -47,8 +47,7 @@ whether a header of a declared form is present, and it leaves the shape of a
 reply to SPC-1000.
 
 The harness does not implement this yet. ADR-1010 authorises it, ADR-1020,
-ADR-1030, ADR-1050 and ADR-1600 amend it, EPC-1010 and EPC-1020 realise them, and `checked-at` stays
-empty until both epics close.
+ADR-1030, ADR-1050 and ADR-1600 amend it, EPC-1010 and EPC-1020 realise them.
 
 ## Boundary
 

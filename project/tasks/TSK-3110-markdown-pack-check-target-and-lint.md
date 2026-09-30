@@ -72,8 +72,8 @@ lint as the verb's last command.
 `meow-markdown` is 0.2.0, and its README and SPC-1195 say how `check` reads a
 command and a `config` key.
 
-The 14 checks failed first: `meow-verbs run test` exited 1, kept as
-the run in #665, no longer kept, in the cover commit b9acb6f, which held
+The 14 checks failed first: `meow-verbs run test` exited 1, seen in
+the run under #665, whose output is no longer kept, in the cover commit b9acb6f, which held
 the checks alone. They pass now, unchanged, since
 `git diff b9acb6f -- plugins/meow-markdown/tests/test_markdown.py` prints
 nothing:

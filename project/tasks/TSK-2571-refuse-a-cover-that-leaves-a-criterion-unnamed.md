@@ -66,8 +66,8 @@ criteria, because the gate reads them on every Cover. SPC-1090's section "The
 gate" states the rule.
 
 The five checks in the class `CoverCriteria` failed first: `meow-verbs run
-test` exited 1 with `FAILED (failures=5)`, kept as
-the run in #653, no longer kept, in the commit that held the checks alone.
+test` exited 1 with `FAILED (failures=5)`, seen in
+the run under #653, whose output is no longer kept, in the commit that held the checks alone.
 They pass now:
 
 ```text

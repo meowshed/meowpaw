@@ -49,8 +49,8 @@ hook under `Stop`, and `test_an_agent_hook_under_any_event_is_refused` an
 `agent` hook under `PostToolUse`, and each finds the type it added.
 
 Both failed first, in the commit that held them alone against the old
-reading: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
-the run in #717, no longer kept. They pass now:
+reading: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, seen in
+the run under #717, whose output is no longer kept. They pass now:
 
 ```text
 $ python3 -m unittest test_gate    # in plugins/meow-prose-gate/tests

@@ -119,8 +119,8 @@ table, and
 criterion 7, with its threshold in `thresholds.toml`. Nobody has run it yet,
 so criterion 7 is open until a person runs it and keeps the transcript.
 
-The 26 checks in `AgentFields` failed first: the `test` verb exited 1, kept
-as the run in #667, no longer kept, in the commit that held the checks
+The 26 checks in `AgentFields` failed first: the `test` verb exited 1, seen
+in the run under #667, whose output is no longer kept, in the commit that held the checks
 alone. They pass now, and `git diff 4aad79e -- plugins/meow-author/tests/test_author.py`
 prints nothing:
 

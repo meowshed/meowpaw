@@ -2501,10 +2501,11 @@ class MigratedShape(unittest.TestCase):
                 self.assertRegex(done.stdout, rf"project/{re.escape(name)}:\d+: carries the section {section}, which is retired")
 
     def test_a_retired_heading_inside_fenced_code_is_an_example(self):
-        """A fenced example showing an old section is text, not a section."""
+        """A fenced example showing an old section is text, not a section, whichever fence holds it."""
         repository = self.repo()
         path = repository.root / "adrs/ADR-0001-a-choice.md"
-        path.write_text(path.read_text(encoding="utf-8") + "\n```text\n## Cover\n```\n", encoding="utf-8")
+        path.write_text(path.read_text(encoding="utf-8") + "\n```text\n## Cover\n~~~\n## Verified\n```\n\n~~~\n## Cover\n~~~\n",
+                        encoding="utf-8")
         self.assertEqual(repository.run("check", "shape").returncode, 0)
 
     def test_removing_a_retired_section_or_field_leaves_an_approved_record_frozen_and_clean(self):
@@ -2521,6 +2522,65 @@ class MigratedShape(unittest.TestCase):
         done = repository.run("check", "frozen", "--base", "HEAD")
         self.assertEqual(done.returncode, 0, done.stdout)
         repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001", "# REQ-0001\n\nIt MUST do more.")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_text_under_a_retired_heading_is_still_a_change(self):
+        """A record gaining a retired section, or changing the text of one it carries, is a change like any other."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Consequences", "## Cover\n\nOld.\n\n## Consequences")
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Cover\n\nOld.", "## Cover\n\nA new obligation.")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Cover\n\nA new obligation.", "## Cover\n\nOld.")
+        path = repository.root / "requirements/REQ-0001-an-obligation.md"
+        path.write_text(path.read_text(encoding="utf-8") + "\n## Verified\n\nIt MUST now do more.\n", encoding="utf-8")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/requirements/REQ-0001-an-obligation.md: approved at HEAD", done.stdout)
+
+    def test_a_retired_heading_with_more_words_is_the_same_section(self):
+        """`## Verified, and closed with a criterion unmet` is the Verified section; `## Covered` is not Cover."""
+        repository = self.repo()
+        path = repository.root / "epics/EPC-0001-a-plan.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text + "\n## Verified, and closed with a criterion unmet\n\nText.\n", encoding="utf-8")
+        self.assertIn("carries the section Verified, which is retired", repository.run("check", "shape").stdout)
+        path.write_text(text + "\n## Covered\n\nText.\n", encoding="utf-8")
+        self.assertNotIn("which is retired", repository.run("check", "shape").stdout)
+
+    def test_a_wrapped_retired_field_and_a_line_opening_with_a_span_are_read(self):
+        """A retired field written over several lines is removed whole, and a prose line opening with an inline
+        span of backticks isn't a fence, so the section after it is still a section."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at:\n  [\n    "#1",\n  ]')
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "```paw check``` prints nothing.\n\n## Cover\n\nNot yet.\n\n## Evidence")
+        self.assertIn("carries the section Cover", repository.run("check", "shape").stdout)
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", '\nchecked-at:\n  [\n    "#1",\n  ]', "")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\nNot yet.\n\n## Evidence", "## Evidence")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_blank_line_changed_elsewhere_is_a_change(self):
+        """Only the blank lines round a removed section move: one removed inside fenced code is a change."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Consequences", "```text\na\n\n\n\nb\n```\n\n## Consequences")
+        self.commit(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "a\n\n\n\nb", "a\n\nb")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_a_second_tasks_section_or_a_changed_relation_freezes_an_epic(self):
+        """An epic's free text is its first Tasks section: a second one added to hold new text, and a changed
+        `realises`, are reported, and a fenced heading inside Tasks doesn't end it."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n```text\n## Example\n```\n\n- [ ] T-001 TSK-0001 the task")
+        self.commit(repository)
+        repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Coverage", "## Tasks\n\nNew criterion: easier.\n\n## Coverage")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nNew criterion: easier.\n\n## Coverage", "## Coverage")
+        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: BUG-0001")
         self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
 
     def test_an_approved_epic_may_change_its_tasks_and_nothing_else(self):

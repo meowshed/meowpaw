@@ -2,7 +2,7 @@
 id: SPC-1070
 artifact: spec
 status: live
-revised: 2026-09-29
+revised: 2026-09-30
 states:
   [
     REQ-0137,
@@ -244,13 +244,14 @@ was `approved` at `<rev>`, through git, and compares it with the current file
 its approval (REQ-0396, REQ-0398, REQ-0626, REQ-0630, REQ-0635), unless it is
 one its kind allows:
 
-| Kind            | May change after approval                                                                                                                                  |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| task            | its `## Evidence` section and its `issue`, because the implement step writes them after the epic's approval                                                |
-| epic            | its `## Tasks` section, where the marks and their evidence are written (REQ-0634)                                                                          |
-| every record    | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652)                                |
-| every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic |
-| living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                             |
+| Kind            | May change after approval                                                                                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| task            | its `## Evidence` section and its `issue` and `projected` fields, because the implement step and the tracker projection write them after approval                          |
+| epic            | its first `## Tasks` section, where the marks and their evidence are written (REQ-0634)                                                                                    |
+| defect          | its first `## Tasks` and `## Closed by` sections and its `issue` (ADR-1440)                                                                                                |
+| every record    | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652); a record still carrying one is compared whole |
+| every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic                 |
+| living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                                             |
 
 Without `--base`, the check compares with `HEAD`. It isn't among the checks
 `paw check` runs with no name, because it needs a base and git.

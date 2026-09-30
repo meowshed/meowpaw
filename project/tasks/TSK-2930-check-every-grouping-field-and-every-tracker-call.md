@@ -56,10 +56,10 @@ call: a read of `repos/o/r/issues/N`, or a `POST` or `PATCH` carrying exactly
 The checks pass against `main`, whose layout and `project` meet REQ-3320, so
 each failing run is against one of BUG-1301's changes. With BUG-1301's layout,
 `meow-verbs run test` exited 1 with `FAILED (failures=14)`, one for each pair
-the layout dropped, kept as the run in #691, no longer kept. With
+the layout dropped, seen in the run under #691, whose output is no longer kept. With
 `--input grouping.json` added to the call that creates an issue, it exited 1
-with `FAILED (failures=1)` in `test_github`, `10 != 8` on that call, kept as
-the run in #691, no longer kept. Each change was then reverted and the
+with `FAILED (failures=1)` in `test_github`, `10 != 8` on that call, seen in
+the run under #691, whose output is no longer kept. Each change was then reverted and the
 units rebuilt, and both suites pass:
 
 ```text

@@ -78,7 +78,7 @@ exit 0 and `OK`. Against the new suite each exits 1:
 | H      | 1    | `FAILED (failures=2)` | `Refusals.test_refused_values`              |
 | I      | 1    | `FAILED (failures=2)` | `Plan.test_output_states_the_limits`        |
 
-The kept failing run, the run in #694, no longer kept, is
+The failing run, under #694, whose output is no longer kept, is
 `meow-verbs run test` with `MEOW_UNATTENDED_BIN` naming one binary that
 holds every mutant but D, which edits the same line as H. It exited 1 with
 `FAILED (failures=12)` across the posture, limits, push-rule, record and

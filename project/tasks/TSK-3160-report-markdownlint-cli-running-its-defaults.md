@@ -56,8 +56,8 @@ to 0.4.3.
 
 The two checks in the class `MarkdownlintCliDefaults` failed first, three
 cases between them: `meow-verbs run test` exited 1 with
-`FAILED (failures=3, skipped=1)` in the Markdown suite, kept as
-the run in #703, no longer kept, in the commit that held the checks alone.
+`FAILED (failures=3, skipped=1)` in the Markdown suite, seen in
+the run under #703, whose output is no longer kept, in the commit that held the checks alone.
 The five configured cases in criterion 1 passed before the fix as well,
 because they guard against a finding the tool doesn't have. They pass now:
 

@@ -48,8 +48,8 @@ whose record addresses nothing, such as one realising a defect, is refused as
 before, with `lists no tasks`.
 
 The three checks in the class `TasklessEpic` failed first: `meow-verbs run
-test` exited 1 with `FAILED (failures=3)`, kept as
-the run in #622, no longer kept, in the commit that held the checks
+test` exited 1 with `FAILED (failures=3)`, seen in
+the run under #622, whose output is no longer kept, in the commit that held the checks
 alone. They pass now:
 
 ```text

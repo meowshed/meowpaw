@@ -65,8 +65,8 @@ lines the template asks for. SPC-1090's section "The gate", rule C2 in
 goes to 0.39.4.
 
 The two checks that describe the defect in the class `CoverClosedBy` failed
-first: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, kept as
-the run in #678, no longer kept, in the commit that held the checks
+first: `meow-verbs run test` exited 1 with `FAILED (failures=2)`, seen in
+the run under #678, whose output is no longer kept, in the commit that held the checks
 alone. They pass now:
 
 ```text

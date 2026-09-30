@@ -53,8 +53,8 @@ spellings, and `meow-prose-gate` goes to 0.2.1, with the `describes:` of its
 README, `docs/README.md` and `docs/troubleshooting.md`.
 
 The three fixtures failed first, in the commit that held them alone:
-`meow-verbs run test` exited 1 with `FAILED (failures=3)`, kept as
-the run in #733, no longer kept. Criterion 3 failed as well, because the
+`meow-verbs run test` exited 1 with `FAILED (failures=3)`, seen in
+the run under #733, whose output is no longer kept. Criterion 3 failed as well, because the
 old reader reported the path and never read the heredoc. They pass now:
 
 ```text

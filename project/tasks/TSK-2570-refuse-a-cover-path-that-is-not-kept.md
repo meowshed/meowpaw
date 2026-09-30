@@ -60,8 +60,8 @@ that `Checks` also names is refused as a check. SPC-1090's section "The gate"
 states the rule.
 
 The four checks in the class `CoverPaths` failed first: `meow-verbs run test`
-exited 1 with `FAILED (failures=4)`, kept as
-the run in #647, no longer kept, in the commit that held the checks alone.
+exited 1 with `FAILED (failures=4)`, seen in
+the run under #647, whose output is no longer kept, in the commit that held the checks alone.
 They pass now:
 
 ```text

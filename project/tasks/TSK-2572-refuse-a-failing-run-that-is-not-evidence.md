@@ -67,8 +67,8 @@ including the `Dependencies` fixture #662 added, and
 SPC-1090's section "The gate" states the rule. `meow-flow` goes to 0.39.1.
 
 The three checks in the class `CoverRun` failed first: `meow-verbs run test`
-exited 1 with `FAILED (failures=3)`, kept as
-the run in #666, no longer kept, in the commit that held the checks alone.
+exited 1 with `FAILED (failures=3)`, seen in
+the run under #666, whose output is no longer kept, in the commit that held the checks alone.
 They pass now:
 
 ```text

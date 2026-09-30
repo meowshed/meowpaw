@@ -99,8 +99,8 @@ and implement's step 3 runs the cover step's checks. The task template carries
 `## Cover`, the bug template's `enters` names cover, and `CLAUDE.md`, the
 vision and SPC-1090 read ten steps.
 
-The checks failed first: at the cover commit c83457d, the kept run
-the run in #629, no longer kept records `verb: test`, `outcome: failed`,
+The checks failed first: at the cover commit c83457d,
+the run under #629, whose output is no longer kept, recorded `verb: test`, `outcome: failed`,
 `exit status: 1`, and `FAILED (failures=17)` on `meow-flow`'s 182 tests, the
 17 being this task's checks and their subtests.
 

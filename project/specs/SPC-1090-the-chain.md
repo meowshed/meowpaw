@@ -2,7 +2,7 @@
 id: SPC-1090
 artifact: spec
 status: live
-revised: 2026-09-29
+revised: 2026-09-30
 states:
   [
     REQ-3600,

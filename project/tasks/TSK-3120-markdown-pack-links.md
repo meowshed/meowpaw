@@ -80,8 +80,8 @@ that doesn't parse, and a cache that `git check-ignore --verbose` finds no
 repository ignore file covering. `meow-markdown` is 0.3.0, and its README,
 the launcher's usage line and SPC-1195 say how `links` classifies and prints.
 
-The 13 checks failed first, in the cover commit 97915b4, kept as
-the run in #671, no longer kept. They pass now, unchanged, since
+The 13 checks failed first, in the cover commit 97915b4, seen in
+the run under #671, whose output is no longer kept. They pass now, unchanged, since
 `git diff 97915b4 -- plugins/meow-markdown/tests/test_markdown.py` prints
 nothing:
 

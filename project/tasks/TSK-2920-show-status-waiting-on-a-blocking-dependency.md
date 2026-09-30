@@ -54,8 +54,8 @@ line.
 The checks pass against `main`, whose code meets REQ-1358, so the failing run
 is against BUG-1300's build: `.map(|_doc| true)` in place of the dependency
 test in `paw status`. `meow-verbs run test` exited 1 with
-`FAILED (failures=2)`, one failure for each line of the new fixture, kept as
-the run in #680, no longer kept, whose tree is that build's. The change
+`FAILED (failures=2)`, one failure for each line of the new fixture, seen in
+the run under #680, whose output is no longer kept, whose tree is that build's. The change
 was then reverted and the units rebuilt, and the suite passes:
 
 ```text

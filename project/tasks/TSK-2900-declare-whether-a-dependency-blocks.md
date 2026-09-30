@@ -103,7 +103,7 @@ Nothing. ADR-1800 and EPC-1710 are approved.
 - Before this change, the test verb's run of
   `plugins/meow-flow/tests/test_record.py` exited 1 with 200 tests and
   `FAILED (failures=10)`, the ten `Dependencies` checks, kept in
-  the run in #662, no longer kept.
+  the run under #662, whose output is no longer kept.
 - After it, `python3 -m unittest plugins/meow-flow/tests/test_record.py -k Dependencies`
   exits 0 with `Ran 10 tests` and `OK`, and the whole file exits 0 with
   `Ran 200 tests` and `OK`.
