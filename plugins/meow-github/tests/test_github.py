@@ -987,7 +987,7 @@ class Refusal(Layered, unittest.TestCase):
         and is reported as no refusal."""
         lines = self.refused_create(404, {}, "Not Found")
         self.assertEqual([line for line in lines if line.startswith("refused:")], [], lines)
-        self.assertEqual(len([line for line in lines if line.endswith("HTTP 404: Not Found")]), 1, lines)
+        self.assertEqual(lines.count("TSK-0001: not projected: repos/o/r/issues: HTTP 404: Not Found"), 1, lines)
 
     def test_a_401_is_unauthenticated(self):
         """TSK-2970 criterion 5, REQ-2574: a 401 prints `unauthenticated: <method> <endpoint>` and exits 3."""
