@@ -192,8 +192,8 @@ first of these the response carries:
 - neither, as `a permission: GitHub named no permission and said "..."`, with
   GitHub's message quoted.
 
-`project` prints the line on a line of its own, above the line naming the
-task it concerns. `history` prints it after `unread:`, and after the
+`project` prints the line on a line of its own, above the line saying what the
+refusal stopped: a task, the naming of the repository or the read-back. `history` prints it after `unread:`, and after the
 listing's name where a listing was refused.
 
 Every call goes through one request layer that reads GitHub's rate-limit
