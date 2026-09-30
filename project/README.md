@@ -578,8 +578,7 @@ them.
 
 TSK-3880 realises ADR-2310 directly, with no epic: it holds a task off the
 trunk as waiting on its merge and states where the one-pull-request path
-stops. It isn't started, and it closes the five requirements ADR-2310
-addresses.
+stops. It is done, and it closes the five requirements ADR-2310 addresses.
 
 [EPC-2000](epics/EPC-2000-the-route-before-work.md) realises ADR-2100 in two
 tasks, TSK-3500 and TSK-3510, none of them started. Every requirement ADR-2100
