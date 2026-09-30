@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.8.0]
+describes: [meow-github@0.9.0]
 ---
 
 # meow-github
@@ -167,6 +167,33 @@ first and the four budget lines last, as text, as
 [Credential and budgets](#credential-and-budgets) describes. Where its binary
 is missing for your machine, it names the machine and says to reinstall the
 unit.
+
+Where GitHub refuses a call, `history` and `project` name the method, the
+endpoint and the permission the call needed, and exit 3:
+
+```text
+unauthenticated: POST repos/OWNER/REPO/issues
+refused: POST repos/OWNER/REPO/issues needs issues=write
+refused: GET repos/OWNER/REPO/issues/512 needs issues=read, or it is hidden from this credential
+```
+
+| Line                                     | GitHub answered                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `unauthenticated: <method> <endpoint>`   | 401: the credential is missing, expired or revoked                                         |
+| `refused: <method> <endpoint> needs ...` | 403 that isn't a throttle                                                                  |
+| The same, ending `, or it is hidden ...` | 404 on an issue a task maps, which GitHub also gives for an issue the credential can't see |
+
+After `needs`, the line gives the permission as GitHub named it, from the
+first of these the response carries:
+
+- `X-Accepted-GitHub-Permissions`, as it stands, such as `issues=write`;
+- `X-Accepted-OAuth-Scopes` beside the credential's own `X-OAuth-Scopes`, as
+  `one of the scopes repo; the credential holds read:org, gist`;
+- neither, as `a permission: GitHub named no permission and said "..."`, with
+  GitHub's message quoted.
+
+`project` prints the line on a line of its own, above the task it stopped at.
+`history` prints it after `unread:` and the listing's name.
 
 Every call goes through one request layer that reads GitHub's rate-limit
 headers on each response. Where GitHub throttles a call, or a fresh response
