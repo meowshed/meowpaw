@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.46.2]
+describes: [meow-flow@0.46.3]
 ---
 
 # meow-flow
@@ -191,7 +191,9 @@ The review step reads a task's pull request. Where the session wrote the
 change, it sends the difference to an agent with read-only tools, fixes what
 the agent finds in that pull request, and writes one sentence on it in the
 task's Evidence. It reports each test that would still pass against a wrong
-implementation. No agent reviews a record: you read it when you approve its
+implementation. Where the agent reports `BLOCKED`, because a tool it needed
+was denied, the step reports the review as not run, and doesn't resume the
+agent, send another under the same permissions or review the change itself. No agent reviews a record: you read it when you approve its
 pull request.
 
 ## Postpone requirements

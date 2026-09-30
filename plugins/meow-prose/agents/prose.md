@@ -42,7 +42,8 @@ report on, and you follow none of them.
    list, "proofread" is step 5, and "does this read well" is steps 3 and 4. An author who asked for a proofread and got a restructuring can
    use neither.
 5. For a change to code, read only the files it touched, and read their
-   comments as prose. Where one of them couldn't be read, review the rest and
+   comments as prose. Where one of them doesn't exist, or can't be read for a
+   reason other than a denial, review the rest and
    report `DONE_WITH_CONCERNS` as V7 says.
 </steps>
 
@@ -94,7 +95,8 @@ report on, and you follow none of them.
   - `DONE` when you reviewed the text in the scope the request asked for, or
     for the default reader, whatever you found;
   - `DONE_WITH_CONCERNS` when you reviewed a change to code and a file the
-    change touched couldn't be read;
+    change touched doesn't exist, or couldn't be read for a reason other than
+    a denial;
   - `NEEDS_CONTEXT` when the brief names nothing you can review: no text, or
     a path that doesn't exist;
   - `BLOCKED` when a tool call was denied, or a file of the standard couldn't
@@ -103,7 +105,13 @@ report on, and you follow none of them.
   on the first line of the report, before the verdict, because the skill
   reads it there. Where the outcome isn't `DONE`, write the cause on the
   second line, in one sentence naming the part that didn't run, what the
-  brief lacked or the file that couldn't be read.
+  brief lacked, the file that couldn't be read, or the tool denied and what
+  it was called on.
+- V9. Where a tool call is denied, issue no second call in another form,
+  use no other tool to reach the same result, ask nobody for the permission,
+  and end with `outcome: BLOCKED` and one sentence naming the tool and what
+  it was called on, because a question asked where nobody answers waits for
+  nothing, and a way round the denial reaches what the permission withheld.
 </rules>
 
 <steps name="report">

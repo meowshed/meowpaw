@@ -91,8 +91,32 @@ because each gains rules and no capability, and match each README's
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`DeniedDispatch` in `plugins/meow-flow/tests/test_record.py` closes criteria
+1 and 3 with four checks: no shipped agent is left out, each carries the
+denial rule, both carry one sentence, and W13 ends a `BLOCKED` review.
+`ProseDenial` in `plugins/meow-prose/tests/test_prose_agent.py` closes
+criteria 1 and 2, and `test_an_agent_a_unit_ships_carries_the_denial_rule` in
+`plugins/meow-author/tests/test_author.py` closes the write skill's half of
+criterion 1. All but one failed at the pull request's first commit: the
+check for an unreadable standard passed there, because TSK-2702 had already
+written that rule. `meow-checks run format lint check test build` passed each
+verb.
+
+Criterion 5 rests on judgement, on one run by hand of the case at
+`plugins/meow-prose/hand-run/denied-read/`, under Claude Code 2.1.284 on
+Opus 5.5: the session dispatched `meow-prose:prose` with the path, the agent's
+one `Read` of the page was denied and it made no other call for the page, its
+report opened with `outcome: BLOCKED` naming `Read` and the path, the result
+listed one `Read` under `permission_denials`, and the session said the review
+did not run. One run is a smoke check and not a rate.
+
+Two rounds of code review found seventeen defects, all fixed here, among
+them: the agent the review step dispatches was never told the denial rule,
+the rule's clause on
+other tools read as an instruction to reach the result, the cause lines named
+no denied tool, `prose` had two outcomes for a denied file, the review step
+had no ending for a review that didn't run, three checks passed against a
+wrong prompt, and the hand-run case sat where the loop would have run it.
 
 ## Left alone
 
@@ -103,3 +127,16 @@ agent leaves waiting in an interactive session, which ADR-1710 reads as
 outside REQ-2978. Reading `permission_denials` in a program, which waits for
 an unattended runner. The user-facing pages beyond each README's `describes`,
 which the implement step updates in the same pull request.
+
+The hand-run case sits at `plugins/meow-prose/hand-run/denied-read/` and asks
+the session for a `prose` review of a page by its path. It isn't under
+`plugins/meow-flow/evals/` starting the review step, because the review step
+dispatches an agent with read-only tools and names no unit's agent, so no run
+of it reaches `prose`. It has no graders and no line in `thresholds.toml`,
+and sits outside `evals/`, because the loop runs every case there with no
+deny rule, and a person reads this one against its `expected.md`.
+`meow-author`'s rule went into
+D10, the rule beside D9 that already names the four outcomes, so the skill
+gains no rule number. SPC-1030 loses the sentence saying the agents write no
+outcome line until EPC-1651 lands, and SPC-1090's review section gains the
+end of a `BLOCKED` review.
