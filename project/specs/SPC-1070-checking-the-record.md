@@ -246,7 +246,7 @@ one its kind allows:
 
 | Kind            | May change after approval                                                                                                                                                  |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| task            | its `## Evidence` section and its `issue` and `projected` fields, because the implement step and the tracker projection write them after approval                          |
+| task            | its `## Evidence` and `## Left alone` sections and its `issue` and `projected` fields, because the implement step and the tracker projection write them after approval     |
 | epic            | its first `## Tasks` section, where the marks and their evidence are written (REQ-0634)                                                                                    |
 | defect          | its first `## Tasks` and `## Closed by` sections and its `issue` (ADR-1440)                                                                                                |
 | every record    | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652); a record still carrying one is compared whole |

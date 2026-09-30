@@ -64,8 +64,24 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+`OffTheTrunk` in `plugins/meow-flow/tests/test_record.py` holds nineteen checks, eleven
+of them added with the two code reviews' fixes:
+criteria 1 to 4 on fixture repositories with a declared trunk, none, no git
+work tree, a trunk naming no branch and a remote-tracking trunk, and
+criterion 5 on the method skill's rules read as a list. Seven failed at the
+pull request's first commit; the eighth asserts that a finished task is never
+held, which was true before. The gate's frozen check refused this task's own
+`## Left alone`, which the template asks the implementer to fill, so the pull
+request frees that section for a task, with a check in `Frozen`. `meow-checks run format lint check test` passed
+all four verbs, and `meow-author check` reports 0 authoring failures.
 
 ## Left alone
 
-Not yet.
+The guard reads more than the requirement's word "absent": a task that is a
+draft on the trunk and approved on the branch waits too, which is the case
+ADR-2310's reasoning describes. `paw` reads the trunk on the remote named `origin` and no other, and a record
+file with CRLF line endings on the trunk reads as not approved, as it did
+before for any check. `steps/epic.md` needed no change: it names implement as the step after it, and
+the method skill's M21 stops the one-pull-request path there. The `ready`
+gate of the epic step on an unmerged decision has no program check, as
+ADR-2310 says it doesn't settle.
