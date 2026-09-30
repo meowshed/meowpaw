@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.11.0]
+describes: [meow-github@0.12.0]
 ---
 
 # meow-github
@@ -93,8 +93,10 @@ the epic, the requirements the task closes and its dependencies, and ends with
 a marker naming the task and a fingerprint. The task gains `issue:` with the
 issue's number and `projected:` with the fingerprint, so the mapping lives in
 the repository. After its last create, the run reads the issues it created
-back in one listing of the issues written since it began, and matches each by
-number. The listing can lag a create by seconds, so the run reads each
+back in one listing of the issues written since the `updated_at` GitHub gave
+the earliest of them, and matches each by number. Where no create's answer
+states that time, the listing starts at the `Date` of the run's first
+response. The listing can lag a create by seconds, so the run reads each
 issue it left out on its own, by number, before it reports that issue as not
 read back. Run it again and nothing changes. It refuses an epic that isn't
 approved.

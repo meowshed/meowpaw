@@ -255,6 +255,8 @@ fn halt(failure: &Failure) {
 struct Created {
     id: String,
     number: u64,
+    /// The issue's `updated_at` as the create's answer stated it.
+    updated: Option<String>,
     title: String,
     body: String,
     print: String,
@@ -319,10 +321,33 @@ impl Outcome {
     }
 }
 
-/// Every issue GitHub lists as written since the run began, by number, read
-/// in one uncached listing, every page of it.
-fn read_back(layer: &mut Layer, repository: &str) -> Result<Vec<Value>, Failure> {
-    let Some(began) = layer.began() else {
+/// Whether `at` is a UTC time as GitHub writes one, `2026-09-30T17:47:50Z`, so
+/// it can go into a listing's address as it stands and compares as a string.
+fn is_utc(at: &str) -> bool {
+    let shape = "0000-00-00T00:00:00Z";
+    at.len() == shape.len()
+        && at.bytes().zip(shape.bytes()).all(|(a, s)| {
+            if s == b'0' {
+                a.is_ascii_digit()
+            } else {
+                a == s
+            }
+        })
+}
+
+/// Every issue GitHub lists as written since the earliest issue the run
+/// created, or since the run began where no create stated a time, read in one
+/// uncached listing, every page of it.
+fn read_back(
+    layer: &mut Layer,
+    repository: &str,
+    created: &[Created],
+) -> Result<Vec<Value>, Failure> {
+    // The issues' own time, so an issue GitHub wrote a second before it
+    // answered still falls inside the listing; the first response's `Date`
+    // only where no create's answer states one (ADR-2320).
+    let earliest = created.iter().filter_map(|c| c.updated.clone()).min();
+    let Some(began) = earliest.or_else(|| layer.began()) else {
         return Err(Failure::Failed(
             "no response stated a `Date` to list from".to_string(),
         ));
@@ -355,7 +380,7 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
     if outcome.throttled {
         return outcome.leave(&created, "no listing ran");
     }
-    let listed = match read_back(layer, repository) {
+    let listed = match read_back(layer, repository, &created) {
         Ok(listed) => listed,
         Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
             halt(&stop);
@@ -648,9 +673,15 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
             break;
         }
         println!("{id}: created issue #{number}");
+        let updated = answer
+            .get("updated_at")
+            .and_then(Value::as_str)
+            .filter(|at| is_utc(at))
+            .map(str::to_string);
         created.push(Created {
             id,
             number,
+            updated,
             title,
             body: full,
             print,
