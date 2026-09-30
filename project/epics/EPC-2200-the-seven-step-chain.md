@@ -84,7 +84,7 @@ A task is marked in the commit that advances it, never in a later pass.
 
 - [x] T-005 TSK-3840 make the documentation check report a page stating the wrong step count
       closes: REQ-3632
-      evidence: 5 checks in `tools/test_check_docs.py`, 3 seen failing at the
+      evidence: 10 checks in `tools/test_check_docs.py`, 3 seen failing at the
       pull request's first commit.
       depends: TSK-3820 (blocking)
 

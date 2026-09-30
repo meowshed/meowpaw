@@ -35,15 +35,24 @@ FENCE = re.compile(r"^\s*(```|~~~)")
 START = "<!-- check_docs index -->"
 END = "<!-- /check_docs index -->"
 NOT_WRITTEN = re.compile(r"^- `([a-z-]+)`:", re.M)
-WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve")
-NUMBER = r"(" + "|".join(WORDS) + r"|\d+)"
-# The ways a page states how many steps the method has. A count of anything
-# else, such as "install it in three steps", matches none of them.
-STEP_COUNTS = (
-    re.compile(rf"\b(?:the same|method's|method:|costs|costing|demands)\s+{NUMBER}\s+steps\b", re.I),
-    re.compile(rf"\b{NUMBER}\s+steps\s+(?:run in a chain|from research)\b", re.I),
+WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
+         "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")
+NUMBER = r"[*_]*(" + "|".join(WORDS) + r"|\d+)[*_]*"
+# The ways a page states how many steps the method has, each naming the method,
+# the harness or the chain. A count of anything else, such as "install it in
+# three steps" or "each tutorial follows the same three steps", matches none.
+STEP_COUNT = re.compile(
+    rf"\bthrough\s+the\s+same\s+{NUMBER}\s+steps\b"
+    rf"|\bmethod(?:['\u2019]s|:|\s+has)\s+{NUMBER}\s+steps\b"
+    rf"|\b(?:method|harness)\s+(?:that\s+)?(?:costs|costing|demands)\s+{NUMBER}\s+steps\b"
+    rf"|{NUMBER}\s+steps\s+(?:run\s+in\s+a\s+chain|from\s+research)\b"
+    rf"|{NUMBER}-step\s+chain\b",
+    re.I,
 )
-STEP_LIST = re.compile(r"The steps, in order, are\s+(.*?)\.", re.S)
+STEP_LIST = re.compile(r"The\s+steps,\s+in\s+order,\s+are:?\s+(.*?)\.(?=\s|$)", re.S)
+STEP_NAME = re.compile(r"^[a-z]+$")
+QUOTE = re.compile(r"^\s*(?:>\s*)+")
+COMMENT = re.compile(r"<!--.*?-->")
 # Pages outside `docs/` and the units that state the chain to a reader.
 LIVING = ("README.md", "CLAUDE.md", "llms.txt", "project/vision.md")
 
@@ -228,38 +237,77 @@ def write_index(root):
 
 
 def method_steps(root):
-    """How many steps the method skill names, or None where no unit ships one."""
-    for skill in sorted((root / "plugins").glob("*/skills/method/SKILL.md")):
-        listed = STEP_LIST.search(skill.read_text(encoding="utf-8"))
-        if listed:
-            return len([name for name in re.split(r",|\band\b", listed.group(1)) if name.strip()])
-    return None
+    """How many steps the method skill names, with why it couldn't be read.
+
+    `(None, [])` where no unit ships a method skill, so there is no count to
+    hold; a failure where one does and its list can't be read, because a count
+    nobody could read must never pass as a count that agreed.
+    """
+    skills = sorted((root / "plugins").glob("*/skills/method/SKILL.md"))
+    if not skills:
+        return None, []
+    skill = skills[0]
+    rel = skill.relative_to(root)
+    try:
+        text = skill.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return None, [f"{rel}: isn't UTF-8, so the method's step count can't be read"]
+    listed = STEP_LIST.search(text)
+    if not listed:
+        return None, [f"{rel}: names no step list, \"The steps, in order, are ...\", so the step count can't be held"]
+    # `a, b, ... and z`: commas separate, and only the last item holds `and`.
+    items = [item.strip() for item in " ".join(listed.group(1).split()).split(",")]
+    items[-1:] = [name.strip() for name in items[-1].rsplit(" and ", 1)] if " and " in items[-1] else items[-1:]
+    names = [re.sub(r"^and\s+", "", item) for item in items if item]
+    odd = [name for name in names if not STEP_NAME.match(name)]
+    if odd:
+        return None, [f"{rel}: names the step \"{odd[0]}\", where a step is one word, so the step count can't be held"]
+    return len(names), []
+
+
+def paragraphs(text):
+    """Each run of non-blank lines outside fenced code, as its lines with their numbers."""
+    run = []
+    for number, line in body_lines(text):
+        if line.strip():
+            run.append((number, line))
+        elif run:
+            yield run
+            run = []
+    if run:
+        yield run
 
 
 def check_steps(root):
     """A living page states the number of steps the method skill names, and no other."""
-    count = method_steps(root)
+    count, failures = method_steps(root)
     if count is None:
-        return []
+        return failures
+    named = WORDS[count] if count < len(WORDS) else str(count)
     out = []
     for path in [root / name for name in LIVING] + pages(root):
         if not path.is_file():
             continue
-        lines = list(body_lines(path.read_text(encoding="utf-8")))
-        for index, (number, line) in enumerate(lines):
-            # A statement wraps, so read each line with the one before it, and
-            # report a match once, at the line it ends on.
-            before = lines[index - 1][1] if index else ""
-            joined = f"{before} {line}"
-            for pattern in STEP_COUNTS:
-                for match in pattern.finditer(joined):
-                    if match.end() <= len(before) + 1:
-                        continue
-                    said = match.group(1).lower()
-                    value = int(said) if said.isdigit() else WORDS.index(said)
-                    if value != count:
-                        named = WORDS[count] if count < len(WORDS) else str(count)
-                        out.append(f"{path.relative_to(root)}:{number}: states {said} steps, and the method names {named}")
+        rel = path.relative_to(root)
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            out.append(f"{rel}: isn't UTF-8")
+            continue
+        for run in paragraphs(text):
+            # A statement wraps, so a paragraph is read as one line, with each
+            # offset mapped back to the line it came from.
+            joined, starts = "", []
+            for number, line in run:
+                starts.append((len(joined), number))
+                joined += COMMENT.sub("", CODE_SPAN.sub("", QUOTE.sub("", line))).strip() + " "
+            for match in STEP_COUNT.finditer(joined):
+                said = next(group for group in match.groups() if group)
+                at = match.start(match.lastindex)
+                value = int(said) if said.isdigit() else WORDS.index(said.lower())
+                if value != count:
+                    line = max(number for offset, number in starts if offset <= at)
+                    out.append(f"{rel}:{line}: states {said.lower()} steps, and the method names {named}")
     return out
 
 
