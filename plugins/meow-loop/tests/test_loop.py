@@ -5,9 +5,10 @@
 
 Each fixture is a scratch git repository with its home and its state directory
 isolated, and a stand-in `claude` first on the path. The stand-in appends its
-argv and standard input to a call log, can create a file, edits `work.txt` on
-each call so the tree changes, and prints the JSON result its configuration
-names. `CLAUDECODE` is removed from every run's environment, because the gate
+argv and standard input to a call log, can create a file, overwrite one, and
+append a line to the progress file in the directory `--add-dir` names, edits
+`work.txt` on each call so the tree changes, and prints the JSON result its
+configuration names. `CLAUDECODE` is removed from every run's environment, because the gate
 often runs inside a Claude Code session. `MEOW_LOOP_BIN` names the launcher to
 test. Each check counts what it matched and fails on a count of zero where one
 was expected (EPC-1910 criterion 13).
@@ -40,6 +41,12 @@ if config.get("edit", True):
 name = config.get("create", {}).get(str(n))
 if name:
     open(name, "w").write("x")
+name = config.get("overwrite", {}).get(str(n))
+if name:
+    open(name, "w").write("overwritten by call %d\\n" % n)
+if config.get("progress") and "--add-dir" in sys.argv:
+    with open(os.path.join(sys.argv[sys.argv.index("--add-dir") + 1], "progress.md"), "a") as f:
+        f.write("call %d\\n" % n)
 time.sleep(config.get("sleep", {}).get(str(n), 0))
 if config.get("silent"):
     sys.exit(0)
@@ -331,10 +338,13 @@ class Call(Case):
         self.assertEqual(len(calls), 1)
         argv, stdin = calls[0]["argv"], calls[0]["stdin"]
         self.assertEqual(stdin, "Make the flag exist.\n")
-        self.assertEqual(argv, ["-p", "--output-format", "json", "--no-session-persistence",
-                                "--setting-sources", "project", "--plugin-dir", "/somewhere/else",
-                                "--permission-mode", "dontAsk", "--allowedTools", "Read",
-                                "--permission-prompts", "none", "--max-budget-usd", "10"])
+        progress = f.run_dirs()[0] / "progress"
+        self.assertEqual(argv[:-1], ["-p", "--output-format", "json", "--no-session-persistence",
+                                     "--setting-sources", "project", "--plugin-dir", "/somewhere/else",
+                                     "--permission-mode", "dontAsk", "--allowedTools", "Read",
+                                     *allow_rules(progress / "progress.md"),
+                                     "--permission-prompts", "none", "--add-dir", str(progress),
+                                     "--max-budget-usd", "10", "--append-system-prompt"])
         carrying = [argument for argument in argv if "Make the flag exist" in argument]
         self.assertEqual(carrying, [])
 
@@ -350,6 +360,82 @@ class Call(Case):
         self.assertEqual(len(runs), 1)
         self.assertNotIn("ending", tomllib.loads((runs[0] / "run.toml").read_text()))
         self.assertEqual((runs[0] / "log.jsonl").read_text(), "")
+
+
+def allow_rules(file):
+    """The arguments that allow Edit and Write of `file`, an absolute path, which a rule writes after one more
+    slash."""
+    return ["--allowedTools", f"Edit(/{file})", "--allowedTools", f"Write(/{file})"]
+
+
+def values(argv, flag):
+    """Every value `flag` is given in `argv`."""
+    return [argv[at + 1] for at, argument in enumerate(argv[:-1]) if argument == flag]
+
+
+class Context(Case):
+    """ADR-2010: every call starts from the same prompt and preamble, and progress is carried in a file."""
+
+    def test_every_call_starts_the_same(self):
+        """TSK-3360 criterion 1, REQ-0880 and the "rather than in the conversation" half of REQ-0882: over three
+        calls that each report a cost, with the prompt file overwritten in the work tree after the first, every
+        call's standard input is the prompt as it was at start, every call's preamble is the same bytes, the run's
+        `prompt.md` is those of the standard input, and no call resumes a session."""
+        f = self.fixture()
+        f.configure(cost=0.25, overwrite={"1": "prompt.md"})
+        done = f.start(replaced("--iterations", "3"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        calls = f.calls()
+        self.assertEqual(len(calls), 3)
+        self.assertNotEqual((f.root / "prompt.md").read_text(), "Make the flag exist.\n")
+        preambles = []
+        for call in calls:
+            self.assertEqual(call["stdin"], "Make the flag exist.\n")
+            given = values(call["argv"], "--append-system-prompt")
+            self.assertEqual(len(given), 1, call["argv"])
+            preambles.extend(given)
+            resuming = [a for a in call["argv"] if a in ("--resume", "--continue", "-r", "-c")]
+            self.assertEqual(resuming, [])
+        self.assertEqual(len(preambles), 3)
+        self.assertNotEqual(preambles[0].strip(), "")
+        self.assertEqual(len(set(preambles)), 1)
+        self.assertEqual((f.run_dirs()[0] / "prompt.md").read_bytes(), calls[0]["stdin"].encode())
+
+    def test_progress_file_is_named_and_reachable(self):
+        """TSK-3360 criterion 2, REQ-0882: the preamble holds the absolute path of the run's `progress/progress.md`
+        and the condition's text, and each argv holds `--add-dir` followed by that file's directory and the rules
+        allowing Edit and Write of that file."""
+        f = self.fixture()
+        done = f.start(replaced("--iterations", "2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        calls = f.calls()
+        self.assertEqual(len(calls), 2)
+        file = f.run_dirs()[0] / "progress" / "progress.md"
+        self.assertTrue(file.is_absolute())
+        matched = 0
+        for call in calls:
+            argv = call["argv"]
+            preamble = values(argv, "--append-system-prompt")
+            self.assertEqual(len(preamble), 1, argv)
+            self.assertIn(str(file), preamble[0])
+            self.assertIn("verbs=test", preamble[0])
+            self.assertEqual(values(argv, "--add-dir"), [str(file.parent)])
+            allowed = values(argv, "--allowedTools")
+            for rule in values(allow_rules(file), "--allowedTools"):
+                self.assertEqual(allowed.count(rule), 1, (rule, allowed))
+            matched += 1
+        self.assertEqual(matched, 2)
+
+    def test_progress_survives_iterations(self):
+        """TSK-3360 criterion 3, REQ-0882: a line each call appends to the progress file is still there after the
+        next call, so three calls leave three lines."""
+        f = self.fixture()
+        f.configure(progress=True)
+        done = f.start(replaced("--iterations", "3"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(len(f.calls()), 3)
+        lines = (f.run_dirs()[0] / "progress" / "progress.md").read_text().splitlines()
+        self.assertEqual(lines, ["call 1", "call 2", "call 3"])
 
 
 class Unchanged(Case):
