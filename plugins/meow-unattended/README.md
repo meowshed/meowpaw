@@ -32,7 +32,7 @@ would default to:
 permission_mode = "dontAsk"
 budget_usd = 2.5
 gates = ["verify", "review"]
-units = ["vendor/meow-verbs", "vendor/meow-flow"]
+units = ["vendor/meow-checks", "vendor/meow-flow"]
 ```
 
 | Key               | Holds                                                                                                                | Where it's absent  |

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-# What this unit may load on every turn, in characters (REQ-1056): the verify
-# skill's description, which routes it. Measured at 332 by
-# the budget check on 2026-09-25; the budget adds about one sentence.
-permanent_characters = 450
+# The stub loads nothing on a turn: its only content is a notice printed when
+# a session starts (ADR-2300).
+permanent_characters = 0

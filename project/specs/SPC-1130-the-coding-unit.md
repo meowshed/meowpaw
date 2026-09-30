@@ -39,7 +39,7 @@ states:
 
 This covers `meow-code`, the practice-layer unit that carries how the harness
 changes code, writes a check and debugs a defect. It leaves which tool serves
-which language to packs, and running the checks to `meow-verbs`.
+which language to packs, and running the checks to `meow-checks`.
 
 ADR-1420 and ADR-1430 decide this part.
 

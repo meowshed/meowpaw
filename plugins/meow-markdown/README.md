@@ -162,7 +162,7 @@ unresolved, and 0 where every checked link resolved. A skipped address counts
 towards no exit status. A site that is down therefore never makes a finding,
 and never makes a pass either.
 
-`meow-verbs` reads a `test` verb's exit status alone, so it reports a `links`
+`meow-checks` reads a `test` verb's exit status alone, so it reports a `links`
 run that exits 3 as failed, and the lines it quotes say `unreachable`.
 
 ## What it reports instead of a table

@@ -23,7 +23,7 @@ class Repository:
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         self.git("init", "-q", "-b", "main")
-        for name, binary in (("meow-a", True), ("meow-b", False), ("meow-verbs", False)):
+        for name, binary in (("meow-a", True), ("meow-b", False), ("meow-vet", False)):
             self.write(f"plugins/{name}/.claude-plugin/plugin.json", json.dumps({"name": name, "version": "0.3.0"}))
             if binary:
                 self.write(f"plugins/{name}/bin/{name}", "#!/bin/sh\n")
@@ -31,7 +31,7 @@ class Repository:
         self.save("chore: start")
         self.git("tag", "meow-a-v0.3.0")
         self.git("tag", "meow-b-v0.3.0")
-        self.git("tag", "meow-verbs-v0.3.0")
+        self.git("tag", "meow-vet-v0.3.0")
 
     def git(self, *args):
         subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True, env=ENV)
@@ -102,13 +102,13 @@ class Release(unittest.TestCase):
         self.assertEqual([p.split(":")[0] for p in problems], ["meow-a"])
 
     def test_a_unit_whose_name_holds_dash_v_reads_its_tags(self):
-        """REQ-3192: `meow-verbs` holds `-v` in its own name."""
+        """REQ-3192: a name such as `meow-vet` holds `-v` itself."""
         repo = self.repo()
-        repo.write("plugins/meow-verbs/skill.md", "changed\n")
-        repo.save("feat!: rename the verbs")
-        repo.bump("meow-verbs", "0.3.1")
+        repo.write("plugins/meow-vet/skill.md", "changed\n")
+        repo.save("feat!: change the vet")
+        repo.bump("meow-vet", "0.3.1")
         repo.save("chore: release")
-        self.assertEqual([p.split(":")[0] for p in check_release.check(repo.root)], ["meow-verbs"])
+        self.assertEqual([p.split(":")[0] for p in check_release.check(repo.root)], ["meow-vet"])
 
     def test_a_unit_not_being_released_is_not_held(self):
         """REQ-3192: the check reads a unit only when its version is released."""

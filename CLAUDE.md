@@ -416,7 +416,7 @@ plugins/meow-flow/bin/paw check
 Four checks stay in `tools/` as Python scripts, because they read this
 repository and not the record: the documentation, the documentation index,
 links, and the shape a subordinate agent carries. The `test` verb runs all
-five, and so does `meow-verbs run test`.
+five, and so does `meow-checks run test`.
 
 A check that reports a false positive is a defect in the check, and never a
 reason to reword the text around it. A check that trips on what it shouldn't

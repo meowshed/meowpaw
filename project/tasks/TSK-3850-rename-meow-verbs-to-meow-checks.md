@@ -36,7 +36,22 @@ the task until they are filled.
 
 ## Evidence
 
-Not yet.
+`Renamed` in `tools/test_marketplace.py` holds three checks, one for each
+criterion, and each failed at the pull request's first commit. The third was
+widened in a commit of its own, which says why: the marketplace lists the
+stub, the documentation index rows it, SPC-1040 says what the unit was
+called, and the project index quotes one frozen title. The unit's 52 fixtures
+pass under the new name, and `meow-verbs run format lint check test`, run as
+`meow-checks`, passed all four verbs.
+
+Left alone: frozen records keep the old name, and the ledger stays under
+`meowpaw/evidence` in the state directory, so no result is lost by the move.
+The crate's feature and module stay `verbs`, though What to do names the
+feature, because they name the code that runs the verbs and no user types
+them. The repository keeps no release notes file, so the old name lives only
+in the stub, the troubleshooting page and the check. The agent's review found
+a stub check that failed on a checkout built before the rename, and a release
+fixture that no longer held `-v` in a unit's name; both are fixed here.
 
 ## Left alone
 
