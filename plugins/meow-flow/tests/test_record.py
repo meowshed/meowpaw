@@ -2446,6 +2446,17 @@ class ShortChainPrompts(unittest.TestCase):
             self.assertNotRegex(text, r"(?i)\b(nine|ten) steps\b", name)
             self.assertRegex(text, r"(?i)\bseven steps\b", name)
 
+    def test_a_decision_in_one_pull_request_stops_once(self):
+        """REQ-3650: where a person asks for a decision in one pull request, the skill writes its records through
+        with no stop between them and stops once at the pull request, and M5 names that exception."""
+        text = self.flat(METHOD / "SKILL.md")
+        self.assertRegex(text, r"M5\. Stop after writing an artifact that needs approval.{0,120}unless M20 applies")
+        self.assertRegex(text, r"M20\. Where a person asks for a decision to land in one pull request")
+        self.assertRegex(text, r"without stopping at each gate")
+        self.assertRegex(text, r"stop once, at the pull request")
+        self.assertRegex(text, r"Without that request, M5 holds")
+        self.assertRegex(text, r"as a draft, or as `approved` where M20 applies")
+
     def test_a_criterion_is_decidable_from_its_own_work(self):
         """REQ-3628: the task and epic templates and the epic step ask for a criterion its own work decides."""
         templates = UNIT / "templates"
