@@ -106,6 +106,30 @@ class History(unittest.TestCase):
         self.assertIn("read before it stopped: issues and pull requests, pull requests;", done.stdout)
         self.assertNotIn('"issues"', done.stdout)
 
+    def test_the_document_names_the_credential_and_the_budget(self):
+        """TSK-2950 criterion 6, REQ-2568, REQ-2582: the document carries `credential`, the form, and `budget`, the
+        budget lines naming the four counts, and every field onboarding reads is as it was."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        # The layered stand-in and its runner, defined below with the request layer's checks.
+        Layered.stand_in(self, root, {"listings": SINGLE_PAGES})
+        done = Layered.meow_github(self, root, "history", "o/r", credential={})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        document = json.loads(done.stdout)
+        self.assertEqual(document.get("credential"), FORMS[None], document.keys())
+        budget = document.get("budget")
+        self.assertIsInstance(budget, list, budget)
+        self.assertTrue(all(isinstance(line, str) for line in budget), budget)
+        for count in COUNTS:
+            self.assertEqual(len([line for line in budget if count in line]), 1, (count, budget))
+        read = {k: v for k, v in document.items() if k not in ("credential", "budget")}
+        issue = {"number": 1, "kind": "issue", "title": ISSUE["title"], "body": ISSUE["body"], "state": "open",
+                 "merged": None, "author": "ada", "url": ISSUE["html_url"], "labels": ["bug"]}
+        pull = {"number": 2, "kind": "pull request", "title": MERGED["title"], "body": MERGED["body"],
+                "state": "closed", "merged": True, "author": "ada", "url": MERGED["html_url"], "labels": []}
+        self.assertEqual(read, {"repository": "o/r", "issues": [issue, pull], "comments": [], "review_comments": []})
+
 
 TRACKER = """#!/usr/bin/env python3
 import json, os, sys
@@ -414,8 +438,9 @@ class Project(unittest.TestCase):
 # is the injected local clock, the file MEOW_GITHUB_CLOCK names, less GH_SKEW seconds. The run under test reads the
 # same file as its clock and sleeps by adding the seconds to it, so no check waits in real time. GH_SCRIPT names a
 # JSON file: `responses` holds, for each "<METHOD> <path>", the answers to give in turn before the default one,
-# `listings` holds each listing's body, `bare` leaves every rate-limit header out, and `cached` gives the age,
-# `remaining` and reset of the headers a call sent with `--cache` replays.
+# `listings` holds each listing's body, `bare` leaves every rate-limit header out, `headers` replaces rate-limit
+# headers on every response, and `cached` gives the age, `remaining` and reset of the headers a call sent with
+# `--cache` replays.
 LAYERED = """#!/usr/bin/env python3
 import email.utils, json, os, sys
 state_path = os.environ["GH_STATE"]
@@ -445,6 +470,7 @@ headers = {"Date": email.utils.formatdate(github_now, usegmt=True)}
 if not script.get("bare"):
     headers.update({"X-Ratelimit-Limit": "5000", "X-Ratelimit-Remaining": "4990", "X-Ratelimit-Used": "10",
                     "X-Ratelimit-Resource": "core", "X-Ratelimit-Reset": str(int(github_now) + 3600)})
+    headers.update(script.get("headers", {}))
 cached = script.get("cached")
 if cached and "--cache" in args:
     stored = github_now - cached["age"]
@@ -499,9 +525,14 @@ class Layered:
         (root / "script.json").write_text(json.dumps(script), encoding="utf-8")
         (root / "clock").write_text(str(START), encoding="utf-8")
 
-    def meow_github(self, root, *args, skew=0):
+    def meow_github(self, root, *args, skew=0, credential=None):
         env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json"),
                "GH_SCRIPT": str(root / "script.json"), "MEOW_GITHUB_CLOCK": str(root / "clock"), "GH_SKEW": str(skew)}
+        if credential is not None:
+            # The variables that name the credential's form are set only as the check states, whatever the shell
+            # running the checks, CI's included, carries.
+            env = {k: v for k, v in env.items() if k not in ("GH_TOKEN", "GITHUB_TOKEN", "GITHUB_ACTIONS")}
+            env.update(credential)
         return subprocess.run([str(BIN), *args], cwd=root, capture_output=True, text=True, env=env)
 
     def calls(self, root):
@@ -655,6 +686,126 @@ class Limits(Layered, unittest.TestCase):
         self.assertEqual(len(calls), 2, calls)
         self.assertNotIn("--cache", calls[0]["args"], calls[0])
         self.assertIn("--cache", calls[1]["args"], calls[1])
+
+
+# ADR-1810, SPC-1080 "The GitHub request layer": the four counts the layer keeps, named on a report's last lines.
+COUNTS = ("primary requests", "secondary points", "content creation", "spacing")
+FORMS = {"GH_TOKEN": "GH_TOKEN from the environment", "GITHUB_TOKEN": "GITHUB_TOKEN from the environment",
+         None: "gh's stored credential"}
+ACTIONS = ", inside a GitHub Actions workflow"
+# A token value no check's output may carry. It is shaped like no real token, so a kept run carrying it by mistake
+# trips no secret scan.
+SENTINEL = "meow-sentinel-6d1f0b7e"
+
+
+def many_tasks(test, count):
+    """A repository whose approved epic lists `count` unmapped tasks."""
+    root = Project.repository(test)
+    tasks = root / "project" / "tasks"
+    for old in tasks.iterdir():
+        old.unlink()
+    lines = []
+    for n in range(1, count + 1):
+        task = f"TSK-{n:04d}"
+        lines.append(f"- [ ] T-{n:03d} {task} task {n}\n      closes: REQ-0001\n")
+        (tasks / f"{task}-task-{n}.md").write_text(TASK.format(
+            id=task, closes="    REQ-0001,", title=f"Task {n}", depends="Nothing."), encoding="utf-8")
+    epic = EPIC.format(status="approved").split("## Tasks")[0] + "## Tasks\n\n" + "\n".join(lines)
+    (root / "project" / "epics" / "EPC-0001-a-plan.md").write_text(epic, encoding="utf-8")
+    return root
+
+
+class Budgets(Layered, unittest.TestCase):
+    """ADR-1810: the layer keeps the four counts, spaces the writes, and stops before a request past a ceiling."""
+
+    run_of_501 = None
+
+    def five_hundred_and_one(self):
+        """One `project` run over 501 unmapped tasks, shared by the checks that read it: its result and the calls
+        the stand-in recorded, read before the first check's repository is removed."""
+        if Budgets.run_of_501 is None:
+            root = many_tasks(self, 501)
+            self.stand_in(root, {})
+            done = self.meow_github(root, "project", "EPC-0001", "o/r", credential={})
+            Budgets.run_of_501 = (done, self.calls(root))
+        return Budgets.run_of_501
+
+    def test_content_creation_stops_the_run_at_500_an_hour(self):
+        """TSK-2950 criterion 1, REQ-2568: with 501 unmapped tasks the stand-in records 500 creates, and the run
+        stops before the 501st, naming content creation at 500 of 500 this hour, and exits 3."""
+        done, calls = self.five_hundred_and_one()
+        self.assertEqual(done.returncode, 3, done.stdout[-2000:] + done.stderr)
+        self.assertEqual(len([c for c in calls if create(c)]), 500, done.stdout[-2000:])
+        stops = [line for line in done.stdout.splitlines() if "content creation" in line and "500 of 500" in line]
+        self.assertTrue(stops, done.stdout[-2000:])
+        self.assertIn("hour", stops[0])
+
+    def test_writes_are_a_second_apart(self):
+        """TSK-2950 criterion 2, REQ-2568: in the same run, every write the stand-in records is at least one second
+        after the previous one, on the injected clock."""
+        done, calls = self.five_hundred_and_one()
+        writes = [c for c in calls if "-X" in c["args"] or any(a.startswith("--method") for a in c["args"])]
+        self.assertGreater(len(writes), 1, done.stdout[-2000:])
+        close = [(a["at"], b["at"]) for a, b in zip(writes, writes[1:]) if b["at"] - a["at"] < 1]
+        self.assertEqual(len(close), 0, f"writes less than a second after the previous one, the first {close[:1]}")
+
+    def test_the_budget_lines_name_the_four_counts(self):
+        """TSK-2950 criterion 3, REQ-2568: with `x-ratelimit-limit: 1000` and `GITHUB_ACTIONS=true`, the last lines
+        of `project`'s report name primary requests with 1,000 as the limit, read from the header and never assumed
+        from the credential's form, then secondary points, content creation and spacing."""
+        root = Project.repository(self)
+        self.stand_in(root, {"headers": {"X-Ratelimit-Limit": "1000"}})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r", credential={"GITHUB_ACTIONS": "true"})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        tail = done.stdout.splitlines()[-len(COUNTS):]
+        for count in COUNTS:
+            self.assertEqual(len([line for line in tail if count in line]), 1, (count, tail))
+        primary = next(line for line in tail if "primary requests" in line)
+        self.assertIn("1,000", primary)
+        self.assertNotIn("5,000", primary)
+
+
+class Credential(Layered, unittest.TestCase):
+    """ADR-1810: every run names the credential's form, read from whether a variable is set, never its value."""
+
+    def test_the_first_line_names_the_form(self):
+        """TSK-2950 criterion 4, REQ-2582: `GH_TOKEN` set, then only `GITHUB_TOKEN` set, then neither, name
+        `GH_TOKEN from the environment`, `GITHUB_TOKEN from the environment` and `gh's stored credential` on the
+        first line of `project`'s report, `GH_TOKEN` winning where both are set, and `GITHUB_ACTIONS=true` adds
+        `, inside a GitHub Actions workflow`."""
+        cases = (({"GH_TOKEN": "x"}, FORMS["GH_TOKEN"]), ({"GH_TOKEN": "x", "GITHUB_TOKEN": "y"}, FORMS["GH_TOKEN"]),
+                 ({"GITHUB_TOKEN": "y"}, FORMS["GITHUB_TOKEN"]), ({}, FORMS[None]))
+        for variables, form in cases:
+            for actions in (False, True):
+                with self.subTest(variables=sorted(variables), actions=actions):
+                    root = Project.repository(self)
+                    self.stand_in(root, {})
+                    credential = dict(variables, **({"GITHUB_ACTIONS": "true"} if actions else {}))
+                    done = self.meow_github(root, "project", "EPC-0001", "o/r", credential=credential)
+                    first = (done.stdout.splitlines() or [""])[0]
+                    self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
+                    if not actions:
+                        self.assertNotIn("GitHub Actions", first)
+
+    def test_the_token_value_is_never_printed(self):
+        """TSK-2950 criterion 5, REQ-2582: a sentinel value in `GH_TOKEN` or `GITHUB_TOKEN` appears nowhere in the
+        standard output or standard error of `project` or `history`. Each run is also read for the form it names,
+        on `project`'s first line and in `history`'s `credential`, so the output that could carry the value is
+        there to be read and a run naming no credential doesn't pass for one that keeps it out."""
+        for variable in ("GH_TOKEN", "GITHUB_TOKEN"):
+            for command in ("project", "history"):
+                with self.subTest(variable=variable, command=command):
+                    root = Project.repository(self)
+                    self.stand_in(root, {"listings": SINGLE_PAGES})
+                    args = ("project", "EPC-0001", "o/r") if command == "project" else ("history", "o/r")
+                    done = self.meow_github(root, *args, credential={variable: SENTINEL})
+                    self.assertNotIn(SENTINEL, done.stdout, "the token's value is on standard output")
+                    self.assertNotIn(SENTINEL, done.stderr, "the token's value is on standard error")
+                    if command == "project":
+                        self.assertIn(FORMS[variable], (done.stdout.splitlines() or [""])[0], done.stdout)
+                    else:
+                        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                        self.assertEqual(json.loads(done.stdout).get("credential"), FORMS[variable], done.stdout)
 
 
 class Launcher(unittest.TestCase):
