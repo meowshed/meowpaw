@@ -582,8 +582,8 @@ TSK-3880 realises ADR-2310 directly, with no epic: it holds a task off the
 trunk as waiting on its merge and states where the one-pull-request path
 stops. It is done, and it closes the five requirements ADR-2310 addresses.
 
-TSK-4020 realises ADR-2320 directly: the read-back listing starts at the
-earliest created issue's own `updated_at`. TSK-4030 realises ADR-2330
+TSK-4020 realises ADR-2320 directly, and is done: the read-back listing
+starts at the earliest created issue's own `updated_at`. TSK-4030 realises ADR-2330
 directly: a refusal line quotes GitHub's reason, and a run sends nothing
 after a 401, and is done. TSK-4040 realises ADR-2340 directly: a created issue the
 listing leaves out is read by its number, and is done. All three amend
