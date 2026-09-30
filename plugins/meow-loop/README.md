@@ -2,14 +2,15 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.3.0]
+describes: [meow-loop@0.4.0]
 ---
 
 # meow-loop
 
 `meow-loop start` repeats one prompt in fresh `claude -p` calls until the
 verification verbs you name pass, or until the number of iterations you state
-has run or the next call could pass the budget you state. The runner is a
+has run, the next call could pass the budget you state, or two iterations in a
+row change nothing. The runner is a
 program outside the model, so nothing a call prints or writes extends the run,
 and the runner alone decides whether the work is done, from each verb's exit
 status.
@@ -115,12 +116,13 @@ skips the verbs and makes the next call. Where a verb changes the tree, such
 as a formatter that rewrites files, the runner runs the verbs a second time at
 once, and that second result stands.
 
-| Ending      | When                                                               | Exit status |
-| ----------- | ------------------------------------------------------------------ | ----------- |
-| `finished`  | Every named verb passed at one tree                                | 0           |
-| `budget`    | The next call could pass the budget, or a call reached its own cap | 1           |
-| `ceiling`   | The stated number of iterations ran                                | 1           |
-| `unmetered` | A call reported no cost, so the spend can't be summed              | 1           |
+| Ending      | When                                                                   | Exit status |
+| ----------- | ---------------------------------------------------------------------- | ----------- |
+| `finished`  | Every named verb passed at one tree                                    | 0           |
+| `budget`    | The next call could pass the budget, or a call reached its own cap     | 1           |
+| `ceiling`   | The stated number of iterations ran                                    | 1           |
+| `unmetered` | A call reported no cost, so the spend can't be summed                  | 1           |
+| `idle`      | Two iterations in a row changed neither the tree nor the progress file | 1           |
 
 `meow-loop` runs the verbs itself and needs no other unit. It records each
 verb's result in the ledger `meow-checks` reads, so where that unit is
@@ -134,12 +136,12 @@ A run writes nothing into your work tree. Its files go to
 `MEOWPAW_STATE_DIR` replaces `<state>/meowpaw`. `start` prints the directory
 when the run begins.
 
-| File                   | Holds                                                                                                                                                                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `run.toml`             | The prompt's sha256, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                                                   |
-| `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                                                                              |
-| `progress/progress.md` | What each iteration wrote for the next one. It starts empty                                                                                                                                                                               |
-| `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, `sum_usd` with the spend up to and including it, the count of `permission_denials`, its exit status, and the condition's result where it ran |
+| File                   | Holds                                                                                                                                                                                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `run.toml`             | The prompt's sha256, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                                                                                                                      |
+| `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                                                                                                                                                 |
+| `progress/progress.md` | What each iteration wrote for the next one. It starts empty                                                                                                                                                                                                                                                  |
+| `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, `sum_usd` with the spend up to and including it, the count of `permission_denials`, its exit status, `progress_changed`, `unidentified` where either tree id is `none`, and the condition's result where it ran |
 
 A `run.toml` with no `ending` belongs to a run that was interrupted, and the
 last line of its log says how far it got. One run holds a work tree at a time,
@@ -154,8 +156,15 @@ The budget bounds the run before a call and not during one. A call that costs
 more than every call before it can take the spend past the budget by the
 difference, and the first call is held only by the platform's cap.
 
-This version keeps running when a call changes nothing, until the ceiling or
-the budget ends the run. It doesn't check whether a call changed the prompt
+An iteration changes nothing when the tree id and the sha256 of
+`progress/progress.md` are the same after the call as before it. Two such
+iterations in a row end the run `idle`. A call that removes the progress file
+changes it, and an absent file is the same before and after a later call. A
+file the runner can't read counts as changed. An iteration whose tree id is `none`,
+as with a dirty submodule, counts as a change, so a run in such a work tree
+never ends `idle`.
+
+This version doesn't check whether a call changed the prompt
 copy or `run.toml`, and it resolves each verb from the profile again at every
 evaluation, so a call that rewrites `.meowpaw/profile.toml` changes what the
 condition runs. It doesn't stop a session inside Claude Code from starting a
