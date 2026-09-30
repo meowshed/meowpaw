@@ -71,6 +71,12 @@ the record stands, runs the next step, and stops where that step waits for
 your approval, saying what the next run will do. Run it again after you approve, and it carries on; run it with nothing approved, and it says what it
 is waiting on.
 
+To approve a whole decision at once, ask for it in one pull request. Claude
+then writes the research, requirements, decision, specification changes, epic
+and tasks in turn, checks each as a draft before marking it approved, and
+stops once at the pull request. Merging it is your approval, and nothing is
+implemented before you do.
+
 To run one step yourself, ask for it by name, such as "run the design step for
 `REQ-0190`", and Claude loads the `method` skill. The steps, in order:
 

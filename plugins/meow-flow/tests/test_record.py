@@ -2447,15 +2447,28 @@ class ShortChainPrompts(unittest.TestCase):
             self.assertRegex(text, r"(?i)\bseven steps\b", name)
 
     def test_a_decision_in_one_pull_request_stops_once(self):
-        """REQ-3650: where a person asks for a decision in one pull request, the skill writes its records through
-        with no stop between them and stops once at the pull request, and M5 names that exception."""
-        text = self.flat(METHOD / "SKILL.md")
-        self.assertRegex(text, r"M5\. Stop after writing an artifact that needs approval.{0,120}unless M20 applies")
-        self.assertRegex(text, r"M20\. Where a person asks for a decision to land in one pull request")
-        self.assertRegex(text, r"without stopping at each gate")
-        self.assertRegex(text, r"stop once, at the pull request")
-        self.assertRegex(text, r"Without that request, M5 holds")
-        self.assertRegex(text, r"as a draft, or as `approved` where M20 applies")
+        """REQ-3656: every rule or step that commands a stop or a draft either names M20 or is named by it, and the
+        one-pull-request path keeps the draft, the check and the stop at the pull request."""
+        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
+        rules = dict(re.findall(r"^- (M\d+)\.\s(.*?)(?=^- M\d+\.\s|^</rules>)", text, re.MULTILINE | re.DOTALL))
+        flat = {name: re.sub(r"\s+", " ", body) for name, body in rules.items()}
+        for name in ("M1", "M5"):
+            self.assertTrue(flat[name].startswith("Unless M20 applies"), name)
+            self.assertIn(name, flat["M20"], f"M20 doesn't say {name} holds without the request")
+        self.assertIn("pending merge", flat["M6"])
+        self.assertRegex(flat["M20"], r"^Where a person asks for a decision to land in one pull request")
+        self.assertRegex(flat["M20"], r"stop once, at the pull request")
+        under = [body for body in flat.values() if body.startswith("Under M20")]
+        joined = " ".join(under)
+        self.assertRegex(joined, r"as a draft and run `paw check` on it before you set it to `approved`")
+        self.assertRegex(joined, r"implement nothing until the pull request is merged")
+        self.assertRegex(joined, r"keep every stop a step file sets for asking a person")
+        steps = re.sub(r"\s+", " ", tagged(text, "steps"))
+        self.assertRegex(steps, r"5\. Write each artifact.{0,160}as a draft, because approval is a person's act")
+        self.assertRegex(steps, r"7\. Where M20 applies and a later step of the decision remains, set the artifact to `approved` and go to step 1")
+        self.assertRegex(steps, r"8\. End by naming.{0,260}Where M20 applies, the gate is the pull request")
+        idents = [int(name[1:]) for name in rules]
+        self.assertEqual(idents, list(range(1, len(idents) + 1)))
 
     def test_a_criterion_is_decidable_from_its_own_work(self):
         """REQ-3628: the task and epic templates and the epic step ask for a criterion its own work decides."""

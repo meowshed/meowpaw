@@ -232,6 +232,10 @@ people go on citing it.
 Where a step ends in human approval, produce the artifact, report, and end the
 turn. Don't ask a question and then continue on your own answer. Don't treat
 silence or a change of subject as approval.
+
+One exception moves the stop and doesn't remove it. Where a person asks for a
+decision to land in one pull request, its records are written through to the
+tasks and the turn ends at that pull request, whose merge is the approval.
 </principle>
 
 <principle name="report_the_next_action_first">

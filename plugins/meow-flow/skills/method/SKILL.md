@@ -21,18 +21,20 @@ don't overrule it.
    report the record as not checked and stop.
 4. Read `${CLAUDE_SKILL_DIR}/steps/<step>.md` and follow it.
 5. Write each artifact from the template `${CLAUDE_SKILL_DIR}/../../bin/paw template <kind>` prints, as a
-   draft, or as `approved` where M20 applies, because approval is a person's
-   act and not yours.
+   draft, because approval is a person's act and not yours.
 6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
-7. End by naming the artifact you wrote, the gate it now waits at, and the
+7. Where M20 applies and a later step of the decision remains, set the
+   artifact to `approved` and go to step 1 for that step.
+8. End by naming the artifact you wrote, the gate it now waits at, and the
    step that picks it up, with the command that runs it, and say the record
-   is unreviewed by a person.
+   is unreviewed by a person. Where M20 applies, the gate is the pull
+   request.
 </steps>
 
 <rules name="every step">
-- M1. Do this step's work and no later step's, because a later step run early
-  builds on an input nobody approved.
+- M1. Unless M20 applies, do this step's work and no later step's, because a
+  later step run early builds on an input nobody approved.
 - M2. Ask at most three clarifying questions. For anything else unknown,
   choose a default, and record it in the artifact as a choice you made,
   because an unrecorded default can't be told from a gap nobody noticed.
@@ -41,12 +43,13 @@ don't overrule it.
   computed.
 - M4. Where the record and the work disagree, report it and fix the artifact,
   because an artifact that has drifted from the tree gets cited as true.
-- M5. Stop after writing an artifact that needs approval, and report the gate
-  it waits at, unless M20 applies, because the next step built on an unapproved input inherits a
+- M5. Unless M20 applies, stop after writing an artifact that needs approval,
+  and report the gate it waits at, because the next step built on an unapproved input inherits a
   decision nobody made.
 - M6. Never take silence, a change of subject or an unrelated instruction as
   approval: only a person saying so approves, because an inferred approval is
-  one nobody gave.
+  one nobody gave. A status M20 writes records a pending merge, and the
+  person's merge is what approves it.
 - M7. Before you write, search the record with `paw find` and a few
   specific words, several independent searches at once, and read a whole
   artifact with `paw show` only when its heading is relevant, because a
@@ -96,12 +99,19 @@ don't overrule it.
   was a step nobody could act on.
 - M20. Where a person asks for a decision to land in one pull request, write
   its research, requirements, decision record, specification changes, epic
-  and tasks in turn without stopping at each gate, set each to `approved` in
-  that pull request so `paw ready` passes for the step after it, withdraw in
-  it the approved records they replace, and stop once, at the pull request,
-  because the person's merge of it is the one approval, and a pull request
-  for each record adds a merge and no review. Without that request, M5 holds.
-- M21. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
+  and tasks in turn without stopping at each gate, and stop once, at the pull
+  request, because the person's merge of it is the one approval, and a pull
+  request for each record adds a merge and no review. Without that request,
+  M1 and M5 hold.
+- M21. Under M20, write each record as a draft and run `paw check` on it
+  before you set it to `approved`, withdraw in the same pull request the
+  approved records it replaces, and implement nothing until the pull request
+  is merged, because a draft meets rules an approved record is excused from,
+  and a status on an unmerged branch is nobody's approval yet.
+- M22. Under M20, keep every stop a step file sets for asking a person, such
+  as eliciting requirements in sections, because one pull request changes
+  where approval happens and not what the person is asked.
+- M23. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
   realises the decision, and write no epic for it, because an epic holding one
   task is a second record for the same plan.
 </rules>

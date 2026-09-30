@@ -31,6 +31,7 @@ states:
     REQ-3650,
     REQ-3652,
     REQ-3654,
+    REQ-3656,
     REQ-0132,
     REQ-0816,
     REQ-0818,
@@ -664,13 +665,16 @@ Run twice with nothing changed, it prints the same text (REQ-0210).
 
 ### Approvals
 
-An approval is a record's stored status moving from `draft` to `approved`, in a
-commit of its own, so it is durable and survives every session (REQ-0402). Where a
-person asks for a decision to land in one pull request, the method skill
-writes its research, requirements, decision record, specification changes,
-epic and tasks in turn, each as `approved`, with no stop between them, and
-stops once at that pull request, whose merge is the approval (REQ-3650). A
-step that produces an artifact needing approval stops there, and never reads
+By default, an approval is a record's stored status moving from `draft` to
+`approved`, in a commit of its own, so it is durable and survives every
+session (REQ-0402), and a step that produces an artifact needing approval
+stops there. Where a person asks for a decision to land in one pull request
+(REQ-3650), the method skill writes its research, requirements, decision
+record, specification changes, epic and tasks in turn. It writes each as a
+draft, checks it, sets it to `approved` for the step after it, and stops
+once, at that pull request (REQ-3656). The status written there records a
+pending merge: the person's merge is the approval (ADR-2300), and nothing is
+implemented before it. Otherwise a step stops at its gate, and never reads
 silence, a change of subject or an unrelated instruction as approval
 (REQ-0390, REQ-0400).
 
