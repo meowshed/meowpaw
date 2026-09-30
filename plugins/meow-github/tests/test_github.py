@@ -156,6 +156,8 @@ if method == "POST":
 elif method == "PATCH":
     state["issues"][parts[-1]].update(fields)
     out = state["issues"][parts[-1]]
+elif parts[-1].startswith("issues?"):
+    out = list(state["issues"].values())
 else:
     out = state["issues"][parts[-1]]
 json.dump(state, open(state_path, "w"))
@@ -166,6 +168,9 @@ if "--include" in args:
     print()
 print(json.dumps(out))
 """
+
+# The read-back listing `project` sends after its last create (SPC-1080), with `since` as a UTC time.
+LISTING = r"^repos/o/r/issues\?state=all&since=(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ)&per_page=100$"
 
 EPIC = """---
 id: EPC-0001
@@ -257,10 +262,10 @@ class Project(unittest.TestCase):
         text = self.task(root, "TSK-0002-second.md")
         self.assertIn("\nissue: 2\n", text)
         self.assertRegex(text, r"\nprojected: [0-9a-f]{12}\n---\n")
-        self.assertIn("TSK-0001: projected to issue #1 at", done.stdout)
-        self.assertIn("read back", done.stdout)
+        self.assertRegex(done.stdout, r"(?m)^TSK-0001: projected to issue #1 at [0-9a-f]{12}, read back$")
         gets = [c for c in self.state(root)["calls"] if "-X" not in c]
-        self.assertEqual([c[1] for c in gets], ["repos/o/r/issues/1", "repos/o/r/issues/2"])
+        self.assertEqual(len(gets), 1, gets)
+        self.assertRegex(gets[0][1], LISTING)
 
     def test_the_fingerprint_is_reproducible_by_hand(self):
         root = self.repository()
@@ -369,7 +374,7 @@ class Project(unittest.TestCase):
             # BUG-1301: each call has exactly one of the three shapes `project` sends, so a grouping sent through
             # `--input`, an `--add-` flag or an extra argument of any other kind fails here.
             self.assertEqual(call[0], "api", call)
-            self.assertRegex(call[1], r"^repos/o/r/issues(/\d+)?$", call)
+            self.assertRegex(call[1], r"^repos/o/r/issues(/\d+|\?state=all&since=[^&]+&per_page=100)?$", call)
             if len(call) > 2:
                 self.assertEqual(len(call), 8, call)
                 self.assertIn(call[2:4], (["-X", "POST"], ["-X", "PATCH"]), call)
@@ -440,9 +445,13 @@ class Project(unittest.TestCase):
 # JSON file: `responses` holds, for each "<METHOD> <path>", the answers to give in turn before the default one,
 # `listings` holds each listing's body, `bare` leaves every rate-limit header out, `headers` replaces rate-limit
 # headers on every response, and `cached` gives the age, `remaining` and reset of the headers a call sent with
-# `--cache` replays.
+# `--cache` replays. A `null` among the `responses` lets that call through to the default answer. Each issue holds
+# the time on GitHub's clock it was written at, and the read-back listing answers with the issues written at or after
+# its `since`, less the numbers `omit` names, with the body of each number `alter` names changed and the title of each number
+# `retitle` names changed, and `page_size`
+# at a time where the script sets it, each page but the last naming the next in a `Link` header.
 LAYERED = """#!/usr/bin/env python3
-import email.utils, json, os, sys
+import calendar, email.utils, json, os, sys, time
 state_path = os.environ["GH_STATE"]
 state = json.load(open(state_path)) if os.path.exists(state_path) else {"issues": {}, "calls": [], "used": {}}
 script = json.load(open(os.environ["GH_SCRIPT"]))
@@ -479,18 +488,32 @@ if cached and "--cache" in args:
                     "X-Ratelimit-Reset": str(int(github_now) + cached["reset_in"])})
 queue = script.get("responses", {}).get(key, [])
 used = state["used"].get(key, 0)
+answer = None
 if used < len(queue):
     state["used"][key] = used + 1
     answer = queue[used]
+if answer is not None:
     status, body = answer["status"], answer.get("body", {"message": "scripted"})
     headers.update(answer.get("headers", {}))
 elif method == "POST":
     number = len(state["issues"]) + 1
-    state["issues"][str(number)] = {"number": number, "state": "open", **fields}
+    state["issues"][str(number)] = {"number": number, "state": "open", "written": github_now, **fields}
     status, body = 201, state["issues"][str(number)]
 elif method == "PATCH":
-    state["issues"][path.split("/")[-1]].update(fields)
+    state["issues"][path.split("/")[-1]].update(fields, written=github_now)
     status, body = 200, state["issues"][path.split("/")[-1]]
+elif path.startswith("repos/o/r/issues?state=all&since="):
+    since = calendar.timegm(time.strptime(path.split("since=")[1].split("&")[0], "%Y-%m-%dT%H:%M:%SZ"))
+    listed = [dict(issue, body="Rewritten.") if issue["number"] in script.get("alter", []) else
+              dict(issue, title="Retitled.") if issue["number"] in script.get("retitle", []) else issue
+              for issue in state["issues"].values()
+              if issue["written"] >= since and issue["number"] not in script.get("omit", [])]
+    size = script.get("page_size", len(listed) or 1)
+    page = int(path.split("&page=")[1]) if "&page=" in path else 1
+    if page * size < len(listed):
+        following = "https://api.github.com/" + path.split("&page=")[0] + f"&page={page + 1}"
+        headers["Link"] = f'<{following}>; rel="next"'
+    status, body = 200, listed[(page - 1) * size:page * size]
 elif path in script.get("listings", {}):
     status, body = 200, script["listings"][path]
 elif path.split("/")[-1] in state["issues"]:
@@ -770,6 +793,127 @@ class Budgets(Layered, unittest.TestCase):
                     f"secondary points: {reads + 5 * creates} of 900 this minute",
                     f"content creation: {creates} of 80 this minute, {creates} of 500 this hour",
                     f"spacing: {creates} writes, each at least one second after the previous one"])
+
+
+def groups(test, done):
+    """The three groups of the one `partial:` line a report holds, each as the text after its name."""
+    lines = [line for line in done.stdout.splitlines() if line.startswith("partial: ")]
+    test.assertEqual(len(lines), 1, done.stdout + done.stderr)
+    found = re.fullmatch(r"partial: projected (.+); created, not read back (.+); not projected (.+)", lines[0])
+    test.assertTrue(found, lines[0])
+    return found.groups()
+
+
+def listings(calls):
+    """The read-back listings among the recorded calls, each as the `since` it carries."""
+    sent = [re.match(LISTING, call["args"][1]) for call in calls if call["args"][0] == "api"]
+    return [found.group(1) for found in sent if found]
+
+
+class Partial(Layered, unittest.TestCase):
+    """ADR-1810: created issues are read back in one listing, and a run that stops part way says what it did."""
+
+    REFUSED = {"status": 422, "body": {"message": "Validation Failed"}}
+
+    def five(self, script, skew=0):
+        root = many_tasks(self, 5)
+        self.stand_in(root, script)
+        return root, self.meow_github(root, "project", "EPC-0001", "o/r", skew=skew)
+
+    def test_a_failed_write_reads_back_and_reports_partial(self):
+        """TSK-2960 criterion 1, REQ-2572: with the third of five creates failing, `project` sends the read-back
+        listing, names the first two tasks as projected and the other three as not projected, and exits 3."""
+        root, done = self.five({"responses": {"POST repos/o/r/issues": [None, None, self.REFUSED]}})
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        calls = self.calls(root)
+        self.assertEqual(len([c for c in calls if create(c)]), 3, calls)
+        self.assertEqual(len(listings(calls)), 1, calls)
+        self.assertEqual(groups(self, done), ("TSK-0001, TSK-0002", "none", "TSK-0003, TSK-0004, TSK-0005"))
+
+    def test_the_listing_starts_at_githubs_date(self):
+        """TSK-2960 criterion 2, REQ-2572: with the local clock two minutes ahead of the stand-in's `Date`, the
+        listing's `since` is the `Date` of the run's first response, and both created issues are read back. The
+        stand-in lists only the issues written at or after `since`, so a `since` taken from the local clock reads
+        neither back."""
+        root, done = self.five({"responses": {"POST repos/o/r/issues": [None, None, self.REFUSED]}}, skew=120)
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        first = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 120))
+        self.assertEqual(listings(self.calls(root)), [first])
+        self.assertEqual(groups(self, done)[:2], ("TSK-0001, TSK-0002", "none"))
+
+    def test_a_throttle_sends_no_listing(self):
+        """TSK-2960 criterion 3, REQ-2572: with the third create answered by a secondary throttle, `project` sends
+        no listing, names the first two tasks as created and not read back and the rest as not projected, and
+        exits 3."""
+        throttle = {"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY}
+        root, done = self.five({"responses": {"POST repos/o/r/issues": [None, None, throttle]}})
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        calls = self.calls(root)
+        self.assertEqual(listings(calls), [])
+        self.assertTrue(create(calls[-1]), calls)
+        projected, unread, left = groups(self, done)
+        self.assertEqual(projected, "none")
+        self.assertEqual(re.findall(r"TSK-\d{4}", unread), ["TSK-0001", "TSK-0002"])
+        self.assertEqual(re.findall(r"#\d+", unread), ["#1", "#2"])
+        self.assertEqual(left, "TSK-0003, TSK-0004, TSK-0005")
+
+    def test_an_issue_the_listing_omits_is_not_read_back(self):
+        """TSK-2960 criterion 4, REQ-2572: where the listing omits a created issue, or shows it with another body or
+        another title, its task goes under `created, not read back` with what the listing showed, and the task
+        keeps `issue:`."""
+        shown = (("omit", "not in the listing"), ("alter", "reads differently from what was written"),
+                 ("retitle", "reads differently from what was written"))
+        for fault, reason in shown:
+            with self.subTest(fault=fault):
+                root = Project.repository(self)
+                self.stand_in(root, {fault: [2]})
+                done = self.meow_github(root, "project", "EPC-0001", "o/r")
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertEqual(len(listings(self.calls(root))), 1)
+                projected, unread, left = groups(self, done)
+                self.assertEqual((projected, left), ("TSK-0001", "none"))
+                self.assertEqual(unread, f"TSK-0002 (issue #2, {reason})")
+                self.assertIn("\nissue: 2\n", Project.task(self, root, "TSK-0002-second.md"))
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root writes a read-only file")
+    def test_an_updated_issue_is_projected_though_its_task_file_is_not_written(self):
+        """TSK-2960, REQ-2572: a mapped task whose issue was updated counts as projected where its file then can't
+        be written, because its issue was updated. The run stops at a refused create after it, so the line is
+        printed."""
+        root = Project.repository(self)
+        self.stand_in(root, {})
+        first = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        task = root / "project" / "tasks" / "TSK-0001-first.md"
+        task.write_text(task.read_text(encoding="utf-8").replace("# Refuse an empty title", "# Refuse a blank title"),
+                        encoding="utf-8")
+        task.chmod(0o444)
+        (root / "project" / "tasks" / "TSK-0003-third.md").write_text(TASK.format(
+            id="TSK-0003", closes="    REQ-0004,", title="A third", depends="Nothing."), encoding="utf-8")
+        self.stand_in(root, {"responses": {"POST repos/o/r/issues": [self.REFUSED]}})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("TSK-0001: issue #1 updated, and the mapping couldn't be written", done.stdout)
+        self.assertEqual(groups(self, done), ("TSK-0001, TSK-0002", "none", "TSK-0003"))
+
+    def test_created_issues_are_read_back_in_one_listing(self):
+        """TSK-2960 criterion 5, REQ-2572: with five tasks and every create answered, the stand-in records one
+        read-back listing and no read of a single created issue, and the report holds no `partial:` line. The
+        stand-in answers the listing three issues a page, so a run reading only the first page reads two back
+        short."""
+        root, done = self.five({"page_size": 3})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        calls = self.calls(root)
+        self.assertEqual(len([c for c in calls if create(c)]), 5, calls)
+        self.assertEqual(len(listings(calls)), 1, calls)
+        pages = [c["args"][1] for c in calls if "issues?state=all&since=" in c["args"][1]]
+        self.assertEqual(len(pages), 2, calls)
+        self.assertTrue(pages[1].endswith("&per_page=100&page=2"), pages)
+        single = [c for c in calls if re.fullmatch(r"repos/o/r/issues/\d+", c["args"][1])]
+        self.assertEqual(single, [], calls)
+        self.assertEqual([line for line in done.stdout.splitlines() if line.startswith("partial:")], [])
+        read = [line for line in done.stdout.splitlines() if line.endswith(", read back")]
+        self.assertEqual(len(read), 5, done.stdout)
 
 
 class Credential(Layered, unittest.TestCase):
