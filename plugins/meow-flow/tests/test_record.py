@@ -42,7 +42,7 @@ CLEAN = {
     "vision.md": "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n",
     "README.md": index("index", ["SPC-0001", "EPC-0001", "BUG-0001"]),
     "specs/SPC-0001-a-part.md": record(
-        "spec", "SPC-0001", {"status": "live", "states": "[REQ-0001]", "checked-at": ""},
+        "spec", "SPC-0001", {"status": "live", "states": "[REQ-0001]"},
         ["Scope", "Boundary", "Behaviour", "Failure paths"]),
     "research/RES-0001-synthesis.md": record(
         "research", "RES-0001", {}, ["Summary", "Conclusions", "Sources"], "\nIt indexes RES-0002.\n"),
@@ -57,7 +57,7 @@ CLEAN = {
         "adr", "ADR-0001", {"addresses": "[REQ-0001]"},
         ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]),
     "epics/EPC-0001-a-plan.md": record(
-        "epic", "EPC-0001", {"realises": "ADR-0001", "checked-at": ""},
+        "epic", "EPC-0001", {"realises": "ADR-0001"},
         ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]),
     "tasks/TSK-0001-a-task.md": record(
         "task", "TSK-0001", {"epic": "EPC-0001", "closes": "\n  [\n    REQ-0001,\n  ]"},
@@ -317,14 +317,14 @@ class Checks(unittest.TestCase):
                         "## Tasks\n\n- [x] T-001 [P] TSK-0001 the task\n      closes: REQ-0001")
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
         self.found(repository.run("check", "rules"), "rules",
-                   'project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
+                   'project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
 
     def test_a_task_marked_done_carries_evidence(self):
         repository = self.repo()
         self.mark(repository, "x")
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
         self.found(repository.run("check", "rules"), "rules",
-                   'project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
+                   'project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nNot yet.", "## Evidence\n\nNot yet.\n\nThe fixture passed.")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
@@ -332,7 +332,7 @@ class Checks(unittest.TestCase):
         repository = self.repo()
         self.mark(repository, " ")
         self.found(repository.run("check", "coverage"), "coverage",
-                   "project/epics/EPC-0001-a-plan.md:18: leaves TSK-0001 unmarked, and its Evidence section is written")
+                   "project/epics/EPC-0001-a-plan.md:17: leaves TSK-0001 unmarked, and its Evidence section is written")
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet. Postponed by the owner.")
         self.assertEqual(repository.run("check", "coverage").returncode, 0)
 
@@ -445,7 +445,7 @@ class Checks(unittest.TestCase):
         repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
         repository.edit("specs/SPC-0001-a-part.md", "## Behaviour\n\nText.", "## Behaviour\n\nIt holds REQ-0001.")
         self.found(repository.run("check", "shape"), "shape",
-                   "project/specs/SPC-0001-a-part.md:22: cites REQ-0001, which is withdrawn, outside a Withdrawn section")
+                   "project/specs/SPC-0001-a-part.md:21: cites REQ-0001, which is withdrawn, outside a Withdrawn section")
         repository.edit("specs/SPC-0001-a-part.md", "## Behaviour\n\nIt holds REQ-0001.", "## Behaviour\n\nText.")
         repository.edit("specs/SPC-0001-a-part.md", "## Failure paths\n\nText.", "## Failure paths\n\nText.\n\n## Withdrawn\n\nREQ-0001, by ADR-0001.")
         done = repository.run("check", "shape")
@@ -642,7 +642,7 @@ class Checks(unittest.TestCase):
         repository = self.repo()
         self.mark(repository, "+")
         self.found(repository.run("check", "rules"), "rules",
-                   "project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 added after approval with no added: line saying why")
+                   "project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 added after approval with no added: line saying why")
         repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      added: nobody foresaw the case")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
@@ -650,7 +650,7 @@ class Checks(unittest.TestCase):
         repository = self.repo()
         self.mark(repository, "~")
         self.found(repository.run("check", "rules"), "rules",
-                   "project/epics/EPC-0001-a-plan.md:18: marks TSK-0001 dropped with no dropped: line saying why")
+                   "project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 dropped with no dropped: line saying why")
         repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      dropped: the decision was reversed")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
@@ -988,28 +988,6 @@ class Frozen(unittest.TestCase):
             subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
         return repository
 
-    def test_a_filled_cover_leaves_an_approved_task_unchanged(self):
-        """TSK-2530 criterion 9, REQ-3207: `check frozen` lets `## Cover` change after approval, as `## Evidence` does,
-        and still reports a change to the task's acceptance criteria."""
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
-                        "## Acceptance criteria\n\n1. Given a record, then it passes.\n\n## Cover\n\nNot yet.\n\n## Evidence")
-        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
-                                     "commit", "-q", "-m", "base"]):
-            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\nNot yet.",
-                        "## Cover\n\n- Checks: tests/test_a_task.py\n- Failing run: project/evidence/a-failing-run.txt\n"
-                        "- Landed in: #12\n- Judgement: none")
-        done = self.frozen(repository)
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("frozen: 0 findings", done.stdout)
-        repository.edit("tasks/TSK-0001-a-task.md", "1. Given a record, then it passes.",
-                        "1. Given a record, then it passes quickly.")
-        done = self.frozen(repository)
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("project/tasks/TSK-0001-a-task.md: approved at HEAD, and changed since", done.stdout)
-
     def test_an_added_line_citing_a_hash_as_a_revision_is_reported(self):
         repository = self.committed()
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixtures passed at `9f3c2e1`.")
@@ -1023,18 +1001,6 @@ class Frozen(unittest.TestCase):
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
-
-    def test_a_verified_epic_is_frozen(self):
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        repository.edit("epics/EPC-0001-a-plan.md", "checked-at: ", 'checked-at: "#9"')
-        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
-                                     "commit", "-q", "-m", "base"]):
-            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\nTidied.")
-        done = self.frozen(repository)
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("project/epics/EPC-0001-a-plan.md: approved at HEAD", done.stdout)
 
     def test_a_living_document_is_never_frozen(self):
         repository = self.repo()

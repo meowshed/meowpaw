@@ -28,6 +28,13 @@ index_name = "README.md"
 # a kind below.
 [retired.fields]
 unit = "the unit of work is named by the relations the record carries"
+checked-at = "no verification is recorded; a requirement closes with the tasks that name it (ADR-2300)"
+
+# Sections the record has retired, reported wherever one is still carried.
+[retired.sections]
+Cover = "a task's tests land first in its own pull request, and nothing in the task records them (ADR-2300)"
+Verified = "no verification is recorded; an epic closes with its tasks (ADR-2300)"
+"Open review findings" = "no agent reviews a record, so none leaves findings in it (ADR-2300)"
 
 [retired.statuses]
 proposed = "replaced by draft"
@@ -53,7 +60,7 @@ name = "specification"
 artifact = "spec"
 prefix = "SPC"
 dir = "specs"
-fields = ["states", "checked-at"]
+fields = ["states"]
 statuses = ["live"]
 index = "README.md"
 sections = ["Scope", "Boundary", "Behaviour", "Failure paths"]
