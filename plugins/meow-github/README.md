@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.6.0]
+describes: [meow-github@0.7.0]
 ---
 
 # meow-github
@@ -56,12 +56,21 @@ hour so a second read costs no quota:
   "comments": [{ "on": 3, "author": "...", "body": "...", "url": "..." }],
   "review_comments": [
     { "on": 2, "path": "...", "author": "...", "body": "...", "url": "..." }
+  ],
+  "credential": "gh's stored credential",
+  "budget": [
+    "primary requests: 5 sent; core limit 5,000, 4,995 remaining, resets 2026-09-29T15:30:37Z",
+    "secondary points: 5 of 900 this minute",
+    "content creation: 0 of 80 this minute, 0 of 500 this hour",
+    "spacing: 0 writes, each at least one second after the previous one"
   ]
 }
 ```
 
 `merged` is `false` for a pull request closed without merging, which records a
-rejected approach, and `null` for an issue.
+rejected approach, and `null` for an issue. `credential` and `budget` are the
+credential line and the budget lines that
+[Credential and budgets](#credential-and-budgets) describes.
 
 ## Project an epic's tasks onto issues
 
@@ -127,8 +136,11 @@ Set the task's `issue:` to the number GitHub returns and add
 Where `gh` is missing, isn't signed in, or GitHub refuses a listing, it prints
 `unread`, names the listing that failed and what GitHub said, lists what it
 read before it stopped, and exits 3. It prints no document then, because a part
-of the history would read as the whole of it. Where its binary is missing for
-your machine, it names the machine and says to reinstall the unit.
+of the history would read as the whole of it. It prints the credential line
+first and the four budget lines last, as text, as
+[Credential and budgets](#credential-and-budgets) describes. Where its binary
+is missing for your machine, it names the machine and says to reinstall the
+unit.
 
 Every call goes through one request layer that reads GitHub's rate-limit
 headers on each response. Where GitHub throttles a call, or a fresh response
@@ -145,6 +157,42 @@ meow-github project EPC-1310 --wait
 A run sleeps an hour at most in all, because a primary limit resets within an
 hour and a run still throttled after that has another cause. It stops as
 throttled at the wait that would pass the hour.
+
+## Credential and budgets
+
+GitHub's limits differ by how a run signs in, so every run names the form of
+its credential. The first line of `project`'s report is `credential: <form>`,
+and `credential` in `history`'s document is the form alone. The form is one of
+these, in the order `gh` prefers them:
+
+- `GH_TOKEN from the environment`
+- `GITHUB_TOKEN from the environment`
+- `gh's stored credential`
+
+Inside a GitHub Actions workflow, where `GITHUB_ACTIONS` is `true`, the line
+adds `, inside a GitHub Actions workflow`. The pack reads only whether each
+variable is set and never prints a token.
+
+The request layer keeps four counts for the run and prints them as the last
+lines of `project`'s report, and as `budget` in `history`'s document:
+
+```text
+primary requests: 12 sent; core limit 5,000, 4,988 remaining, resets 2026-09-29T15:30:37Z
+secondary points: 32 of 900 this minute
+content creation: 5 of 80 this minute, 5 of 500 this hour
+spacing: 5 writes, each at least one second after the previous one
+```
+
+Primary requests takes the limit from GitHub's `x-ratelimit-limit` header,
+because the limit depends on the credential and the pack doesn't guess it.
+Secondary points cost 1 for a read and 5 for a write. Content creation counts
+each issue created. The layer sends one write at a time, at least a second
+after the previous one. Where the next request would pass a ceiling, the run
+doesn't send it: it stops as at a throttle, and the `throttled:` line names
+the count and when it frees, as in
+`(content creation: 500 of 500 this hour)`. `--wait` sleeps until then, as it
+does at a throttle. The counts cover this run alone, so another run or a
+person using the same account can still meet GitHub's own throttle.
 
 ## What it needs
 
