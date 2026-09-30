@@ -136,8 +136,11 @@ Set the task's `issue:` to the number GitHub returns and add
 Where `gh` is missing, isn't signed in, or GitHub refuses a listing, it prints
 `unread`, names the listing that failed and what GitHub said, lists what it
 read before it stopped, and exits 3. It prints no document then, because a part
-of the history would read as the whole of it. Where its binary is missing for
-your machine, it names the machine and says to reinstall the unit.
+of the history would read as the whole of it. It prints the credential line
+first and the four budget lines last, as text, as
+[Credential and budgets](#credential-and-budgets) describes. Where its binary
+is missing for your machine, it names the machine and says to reinstall the
+unit.
 
 Every call goes through one request layer that reads GitHub's rate-limit
 headers on each response. Where GitHub throttles a call, or a fresh response
@@ -158,8 +161,9 @@ throttled at the wait that would pass the hour.
 ## Credential and budgets
 
 GitHub's limits differ by how a run signs in, so every run names the form of
-its credential. The first line of `project`'s report, and `credential` in
-`history`'s document, is one of these, in the order `gh` prefers them:
+its credential. The first line of `project`'s report is `credential: <form>`,
+and `credential` in `history`'s document is the form alone. The form is one of
+these, in the order `gh` prefers them:
 
 - `GH_TOKEN from the environment`
 - `GITHUB_TOKEN from the environment`
