@@ -433,7 +433,10 @@ created back in one uncached, paged listing,
 `repos/{r}/issues?state=all&since=<start>&per_page=100`, where `<start>` is
 the earliest `updated_at` among the create answers of the run, or the `Date`
 of the run's first response where no create answer carries one, and matches
-each by number (REQ-3322) (ADR-2320). It reads
+each by number (REQ-3322) (ADR-2320). It then reads by number,
+`repos/{r}/issues/{n}`, uncached, each created issue the listing left out,
+because the listing can lag a create by seconds, and stops these reads at a
+throttle, a ceiling or a 401 (REQ-3322) (ADR-2340). It reads
 an issue already mapped to a task on its own, and each link is read back from
 the tracker, in this run's listing or through its mapping in the next run
 (REQ-1368). The listing runs after a failed write or a refusal, and not after
@@ -452,9 +455,9 @@ created issue it didn't read back, it prints
 `partial: projected TSK-a; created, not read back TSK-b; not projected TSK-c`
 after the read-back listing, where the listing runs, and exits 3 (REQ-2572).
 A task is projected when its issue was updated or found unchanged in this run,
-or was created and read back matching the record. A created issue the listing
-lacks, reads differently or didn't read goes under `created, not read back`,
-with what the listing showed where it ran. Its task holds the mapping, so the
+or was created and read back matching the record. A created issue that neither
+the listing nor its read by number shows as written goes under
+`created, not read back`, with the reason. Its task holds the mapping, so the
 next run reads that issue through it and creates no second one.
 
 `project` groups an issue nowhere: it passes no `--milestone`, `--parent`,
