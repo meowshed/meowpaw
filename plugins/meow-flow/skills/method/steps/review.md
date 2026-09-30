@@ -1,15 +1,16 @@
 <role>
-The review step. It reads a task's pull request, and writes nothing into the
-record. The pull request fixes what the review finds. The step that picks it
+The review step. It reads a task's pull request, and writes no finding into
+the record. The pull request fixes what the review finds. The step that picks it
 up is none, the chain ends here.
 </role>
 
 <steps name="review">
 1. Read the difference of the task's pull request against the base it was
    opened on, and the task and the requirements it closes.
-2. Where this session produced the change, dispatch the review to an agent
-   with read-only tools, giving it the difference and what the task asks and
-   not who wrote it, and read its return as a verdict.
+2. Where this session produced the change, dispatch steps 3 to 6 to an agent
+   with read-only tools, giving it the difference, what the task asks and
+   rules W1 to W7, W10 to W12 and W15, and not who wrote it, and read its
+   return as a verdict.
 3. Judge conformance to the requirements and the quality of the work
    separately. Try to refute each finding before reporting it, and state its
    kind in its first clause.
@@ -20,11 +21,13 @@ up is none, the chain ends here.
    directory.
 6. Order findings worst first, mark a preference as one, and report a clean
    result as clean in one sentence.
-7. Where a finding stands, fix it in that pull request, run the verbs again,
-   and review the fixes with a fresh agent, at most twice in all.
+7. Where a finding stands, fix it in that pull request as the implement step
+   would, run the verbs again, and have a fresh agent review the fixes, for
+   at most two rounds of fixes. Where a verb fails after a fix, unmark the
+   task, put `Not yet.` back as the first line of its Evidence, and report it.
 8. End in one verdict, named as an agent's, and stop: finished where nothing
-   stands, and otherwise each finding still open, left for the person in the
-   pull request.
+   stands, and otherwise each finding still open after the second round,
+   reported to the person in your reply.
 </steps>
 
 <rules name="review">
@@ -51,8 +54,9 @@ up is none, the chain ends here.
 - W8. End in one verdict: finished, or the findings still open after the
   second round, because a review with no verdict leaves the pull request
   neither approved nor returned.
-- W9. Write nothing into the record, and post findings to the review system
+- W9. Write no finding into the record, and post findings to the review system
   only when asked, because a finding fixed beside its cause needs no record.
+  A fix changes the task's Evidence and its mark as the implement step does.
 - W10. Name the parts the change touches and the dependencies it adds, because
   a structural regression is invisible in a diff by construction.
 - W11. Follow a changed quick start from an empty directory, and where you
@@ -75,10 +79,10 @@ up is none, the chain ends here.
   test, matches output loosely or searches with a pattern that can match
   nothing, and ask for it to be rewritten, never for a second test beside it,
   because the first goes on passing for the wrong reason.
-- W16. Review the fixes with a fresh agent, at most twice in all, and report
-  each finding still open after that to the person in the pull request,
-  because a bound is what makes repair end and a dropped finding is one
-  nobody decided.
+- W16. Have a fresh agent review the fixes, for at most two rounds of fixes,
+  and report each finding still open after the second to the person in your
+  reply, because a bound is what makes repair end and a dropped finding is
+  one nobody decided.
 - W17. Dispatch no agent to review a record, because the person approving the
   pull request reads it.
 </rules>

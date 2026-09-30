@@ -2043,7 +2043,7 @@ class MethodSkill(unittest.TestCase):
             for phrase in RECORD_ROOT + tuple(patterns):
                 with self.subTest(step=name, phrase=phrase):
                     self.assertIn(phrase, role)
-        self.assertIn("writes nothing into the record", flat(tagged(self.step("review"), "role")))
+        self.assertIn("writes no finding into the record", flat(tagged(self.step("review"), "role")))
 
     def chain(self, text):
         block = next(b for b in re.findall(r"```text\n(.*?)```", text, re.DOTALL) if "research ->" in b)
@@ -2442,9 +2442,11 @@ class ShortChainPrompts(unittest.TestCase):
         self.assertRegex(text, r"(modify|weaken).{0,120}commit of its own.{0,60}why")
         self.assertRegex(text, r"documentation.{0,120}same pull request|same pull request.{0,120}documentation")
         self.assertRegex(text, r"mark the task.{0,80}same pull request")
-        self.assertRegex(text, r"Where every verb passed, mark the task")
+        self.assertRegex(text, r"Where every verb passed,.{0,260}mark the task")
         self.assertRegex(text, r"Mark the task done only in a change whose verbs all passed, because")
         self.assertNotRegex(text, r"its output")
+        self.assertRegex(text, r"Keep `Not yet\.` as the first line of the task's Evidence until every verb has passed, because")
+        self.assertRegex(text, r"Where a verb didn't pass, leave `Not yet\.` as the first line")
 
     def test_review_is_a_code_review_in_the_pull_request(self):
         """Criterion 4, REQ-3626, REQ-3612: a review of the change in its pull request, fixed there, written into no
@@ -2452,10 +2454,10 @@ class ShortChainPrompts(unittest.TestCase):
         text = self.flat(METHOD / "steps" / "review.md")
         self.assertRegex(text, r"task's pull request")
         self.assertRegex(text, r"fix.{0,80}in (that|the same) pull request")
-        self.assertRegex(text, r"Write nothing into the record")
-        self.assertNotRegex(text, r"Evidence")
+        self.assertRegex(text, r"Write no finding into the record")
+        self.assertRegex(text, r"writes no finding into the record")
         self.assertRegex(text, r"agent with read-only tools")
-        self.assertRegex(text, r"fresh agent, at most twice")
+        self.assertRegex(text, r"fresh agent review the fixes, for at most two rounds")
         self.assertRegex(text, r"End in one verdict")
         self.assertRegex(text, r"would (still )?pass against a wrong implementation")
 

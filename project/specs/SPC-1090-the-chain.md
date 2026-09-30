@@ -34,6 +34,7 @@ states:
     REQ-3654,
     REQ-0132,
     REQ-0816,
+    REQ-0818,
     REQ-0147,
     REQ-0149,
     REQ-0151,
@@ -71,7 +72,6 @@ states:
     REQ-0236,
     REQ-0239,
     REQ-0240,
-    REQ-0241,
     REQ-0242,
     REQ-0243,
     REQ-0244,
@@ -100,13 +100,11 @@ states:
     REQ-0272,
     REQ-0273,
     REQ-0274,
-    REQ-0275,
     REQ-0276,
     REQ-0277,
     REQ-0285,
     REQ-0287,
     REQ-0289,
-    REQ-0291,
     REQ-0298,
     REQ-0300,
     REQ-0301,
@@ -128,7 +126,6 @@ states:
     REQ-0323,
     REQ-0324,
     REQ-0326,
-    REQ-0327,
     REQ-0329,
     REQ-0330,
     REQ-0331,
@@ -331,8 +328,8 @@ comes before the chain's first step and says where a request enters the chain.
 ADR-1130 decides it, and EPC-1100 realised it, verified under issue 202.
 ADR-1160 adds each step's obligations, and EPC-1160 realised them, verified
 under issue 237 with their measurement by evaluation still to come. ADR-1170's
-approvals and waiting report are verified under issue 249. ADR-1490 adds the
-review a record gets before its gate, and EPC-1470 realises it. ADR-1620 adds
+approvals and waiting report are verified under issue 249. ADR-1490 added the
+review a record got before its gate, which ADR-2300 supersedes. ADR-1620 adds
 the cover step, and EPC-1580 realised it; ADR-2300 folds that step into
 implement. ADR-1800 lets a task's dependency say whether it blocks, and
 EPC-1710 realised it, verified under issue 625: `paw` waits only on a
@@ -353,9 +350,8 @@ skill and this repository's `CLAUDE.md` name it. Its cases run by hand, so
 whether the skill loads before work on each model is measured there and not by
 the gate.
 ADR-1710 adds the outcome each dispatched agent reports and what its
-dispatcher does with it, and EPC-1651 realises it. Until its tasks land, the
-agents write no outcome line, and the method skill and the review step read a
-report as they did before.
+dispatcher does with it, and EPC-1651 realises it for the router and the
+prose reviewer.
 
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
@@ -527,19 +523,20 @@ Each step's file carries the obligations of its step as labelled rules, and
 the `task` and `bug` templates carry the obligations of their kinds (ADR-1160).
 The rules name no requirement, because the files ship to other repositories.
 
-| Step or template | Holds                                                                                                                                                                                                                                                                                                                                    |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                                                                     |
-| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                                                                       |
-| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                                                                                                         |
-| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                                                                 |
-| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                                                                                                     |
-| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-0277, REQ-3616, REQ-3618, REQ-3640, REQ-3642, REQ-3644 |
-| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108, REQ-3612, REQ-3626                                                                                                                                             |
-| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                                     |
+| Step or template | Holds                                                                                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                                                           |
+| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                                                             |
+| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                                                                                               |
+| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                                                       |
+| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                                                                                           |
+| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-3616, REQ-3618, REQ-3640, REQ-3642, REQ-3644 |
+| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108, REQ-3612, REQ-3626                                                                                                                                   |
+| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                           |
 
-The implement step holds what the document and verify steps held, since
-their work lands in the task's pull request. It reads `[docs] style` from `.meowpaw/profile.toml`: a path
+The implement step holds what the cover and document steps held, since their
+work lands in the task's pull request. The method skill runs `paw check` on
+every step, so the record is checked by the verbs on every change (REQ-0277). It reads `[docs] style` from `.meowpaw/profile.toml`: a path
 to the repository's own style guide, or the name of an installed unit that
 ships one. Where the profile declares none, the step says so and writes to the
 writing standard in force. It reports which verb checked the documentation it
@@ -691,7 +688,9 @@ on (REQ-0311). Where the session produced the change, it dispatches the
 review to an agent with read-only tools, naming what the task asks and not who
 wrote it, and reads the return as a verdict, named as an agent's (REQ-0149,
 REQ-0157, REQ-0818, REQ-0819). Where no agent can be dispatched, it reports
-the verdict as self-assessed (REQ-2202). The review reports each test that
+the verdict as self-assessed (REQ-2202). It judges whether the work meets its
+requirements and improves the codebase, and never whether the decision was
+right, which the decision's reversal condition answers (REQ-0329). The review reports each test that
 would still pass against a wrong implementation (REQ-3612). Each finding that
 stands is fixed in that pull request, and the review writes nothing into the
 record (REQ-3626, REQ-0544). The
@@ -778,7 +777,6 @@ REQ-3112). Without the pack it reports the history as unread and names
 | A person overrode the router's route                   | The route as overridden, and the route the router gave                                                                  |
 | `route reduced` for work no approved record authorises | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
 | A route came with the request or the brief             | The route as given, and that no router ran                                                                              |
-| The reviewer's report carries no outcome line          | The record is reported as unreviewed by an agent                                                                        |
 | The router reports `BLOCKED`                           | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
 | The router's reply carries no outcome line             | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
 | No binary for the machine                              | The launcher reports the record as not checked and exits 3                                                              |

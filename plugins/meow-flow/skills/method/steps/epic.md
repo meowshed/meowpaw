@@ -1,6 +1,7 @@
 <role>
 The epic step. It reads an approved decision or defect, named by its
-identifier, and writes from `paw template epic`. Its artifact lands in
+identifier, and writes from `paw template epic`, or from `paw template task`
+alone where one task does the work. Its artifact lands in
 `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task,
 under the record root, `[record] root` in `.meowpaw/profile.toml` or
 `project/` where it declares none. The step that picks it up is implement.
@@ -9,7 +10,9 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 <steps name="epic">
 1. Where one task realises the decision, write that task alone, naming
    `realises: ADR-NNNN` in place of `epic:`, with the decision's criteria as
-   its own, and stop. Otherwise write one epic realising exactly that record,
+   its own, closing every requirement the decision addresses, and stop. Where
+   one task fixes the defect, write that task alone, naming `bug: BUG-NNNN`,
+   list it under the defect's `## Tasks`, and stop. Otherwise write one epic realising exactly that record,
    with acceptance criteria taken from the decision's list of how it will be
    known realised.
 2. Decompose it into tasks, each a vertical slice someone can observe, each a
@@ -23,8 +26,8 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 </steps>
 
 <rules name="epic">
-- E1. Write one epic for one authorising record: a decision addressing
-  requirements gets its own epic and tasks.
+- E1. Write one epic for one authorising record that needs more than one
+  task: such a decision gets its own epic and tasks.
 - E2. Decompose the work into tasks, each a vertical slice with behaviour
   someone can observe.
 - E3. Write no task that no record authorises; where work is needed that

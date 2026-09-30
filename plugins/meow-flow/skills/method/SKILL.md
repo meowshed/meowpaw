@@ -96,7 +96,8 @@ don't overrule it.
 - M20. Land a decision's research, requirements, decision record,
   specification changes, epic and tasks in one pull request where they are
   written together, with the approved records they replace withdrawn in it,
-  because splitting them buys no review nobody could give in one.
+  because one reader approves them together, and a pull request for each adds
+  a merge and no review.
 - M21. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
   realises the decision, and write no epic for it, because an epic holding one
   task is a second record for the same plan.

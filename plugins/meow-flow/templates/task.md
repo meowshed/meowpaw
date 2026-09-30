@@ -47,9 +47,11 @@ is declared as not blocking, never left out.
 
 ## Evidence
 
-Not yet. Before the implementation: each criterion no program can check,
-named as resting on judgement with the reason. Once done: the tests that
-close each criterion, each verb's outcome and the pull request.
+Not yet. This line stays first until every verb has passed. Below it, before
+the implementation: each criterion no program can check, or with no
+`Closed by:`, named as resting on judgement with the reason. Once every verb
+has passed, in its place: the tests that close each criterion, each verb's
+outcome and the pull request.
 
 ## Left alone
 

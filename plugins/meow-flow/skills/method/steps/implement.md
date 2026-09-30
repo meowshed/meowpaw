@@ -12,23 +12,27 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 1. Read the task and every requirement it cites in full, not a summary.
 2. Write at least one test for each acceptance criterion a program can check,
    naming in each the criterion and the requirement it proves, and write no
-   implementation yet. Open the task's `## Evidence` with each criterion no
-   program can check, named as resting on judgement with the reason.
-3. Run the tests through `meow-verbs` and see each one fail, then commit them
-   in a commit of their own, before any commit that implements the task.
+   implementation yet. Below the `Not yet.` that opens the task's
+   `## Evidence`, name each criterion no program can check, and each with no
+   `Closed by:` line, as resting on judgement with the reason.
+3. Run the tests through `meow-verbs`, or by the repository's own command
+   where it isn't installed, and see each one fail, then commit them in a
+   commit of their own, before any commit that implements the task.
 4. Make the change the task describes and nothing no requirement describes,
    and see the tests pass. Where the work contradicts an approved requirement,
    stop and report it: the fix is an amendment reviewed on its own.
 5. Bring the user-facing documentation the change invalidates into agreement
    with it, in the same pull request: its pages, the index they are listed in,
    and any install or usage instruction. Run every example you changed.
-6. Run the repository's verbs through `meow-verbs`, and write under the task's
-   `## Evidence` the tests that close each criterion, each verb's outcome and
-   the pull request. Where `meow-verbs` isn't installed, record each command
-   and its exit status instead.
-7. Where every verb passed, mark the task `[x]` in its epic or defect in the
-   same pull request, with one line of evidence, and stop there. Where one
-   didn't, leave the task unmarked, report what failed, and stop.
+6. Run the repository's verbs through `meow-verbs`. Where `meow-verbs` isn't
+   installed, run each verb's command and note its exit status instead.
+7. Where every verb passed, replace the `Not yet.` that opens the task's
+   `## Evidence` with the tests that close each criterion, each verb's outcome
+   and the pull request, mark the task `[x]` in its epic or defect in the same
+   pull request, with one line of evidence, and stop there. A task naming
+   `realises:` has no mark, and its Evidence closes it.
+8. Where a verb didn't pass, leave `Not yet.` as the first line and the task
+   unmarked, report what failed, and stop.
 </steps>
 
 <rules name="implement">
@@ -64,9 +68,10 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I11. Work from the parts the task touches and the dependencies it may use,
   as the specification states them, not from structure inferred from the file
   tree, because the tree shows what exists and not what is allowed.
-- I12. Where the task predicts a measurable outcome, write the predicted number
-  under Acceptance criteria before the work starts, because a prediction
-  written after the result fits it, and an approved task holds it frozen.
+- I12. Where the task's criteria predict a measurable outcome, check the result
+  against the number they state and never restate the prediction, because a
+  prediction written after the result fits it, and an approved task holds it
+  frozen.
 - I13. Begin a task a defect authorises by running the defect's reproduction
   and seeing it fail, because a fix proven against a reproduction never seen
   failing proves the defect was never there.
@@ -83,24 +88,28 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I17. Never modify, delete, skip or weaken a test written first, except in a
   commit of its own whose message says why the test was wrong, because
   weakening a test is the cheapest way to make it pass.
-- I18. Name under the task's `## Evidence`, before the implementation starts,
-  each criterion no program can check and each with no `Closed by:` line, as
-  resting on judgement with the reason, because an unchecked criterion left
-  unnamed reads as covered, and Evidence is the section an approved task may
-  still change.
+- I18. Name under the task's `## Evidence`, below its `Not yet.` and before
+  the implementation starts, each criterion no program can check and each
+  with no `Closed by:` line, as resting on judgement with the reason, because
+  an unchecked criterion left unnamed reads as covered, and Evidence is the
+  section an approved task may still change.
 - I19. Keep no run output in the repository, in a file or in the task,
   because the first commit shows the tests failing and the gate shows them
   passing.
 - I20. Mark the task done only in a change whose verbs all passed, because a
   done mark without the gate closes its requirements on nothing.
-- I21. Give a task that realises a decision directly no mark, because no epic
-  lists it, and it is done once its Evidence is written.
+- I21. Keep `Not yet.` as the first line of the task's Evidence until every
+  verb has passed, because the program reads an Evidence that opens with
+  anything else as a finished task, and a task naming `realises:` has no
+  other mark.
 - I22. Don't report the task finished while documentation it invalidated is
-  still published, and record the reason wherever a page is left un-updated,
-  because an unreported silence reads as an omission.
+  still published, and record under the task's Evidence the reason wherever
+  a page is left un-updated, because an unreported silence reads as an
+  omission.
 - I23. Edit only pages written for the project's users, and change the record
-  only by the task's Evidence and its mark, because every other record
-  changes through its own step.
+  only by the task's Evidence and its mark, because every other section of an
+  approved task is frozen and every other record changes through its own
+  step.
 - I24. Write to the documentation style `[docs] style` declares in
   `.meowpaw/profile.toml`, never a default of your own, and where it declares
   none, say so and write to the writing standard in force, because the style
