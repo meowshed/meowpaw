@@ -333,20 +333,17 @@ ADR-1160 adds each step's obligations, and EPC-1160 realised them, verified
 under issue 237 with their measurement by evaluation still to come. ADR-1170's
 approvals and waiting report are verified under issue 249. ADR-1490 adds the
 review a record gets before its gate, and EPC-1470 realises it. ADR-1620 adds
-the cover step, its gate and the task's Cover section, and EPC-1580 realises
-them. `paw ready` knows the ten steps and gates the implementation on the
-Cover, `status` names cover before implement, the driver continues past
-cover, and the method's prompts name the ten steps and where each step's
-artifact lands. ADR-1800 lets a task's dependency say whether it blocks, and
+the cover step, and EPC-1580 realised it; ADR-2300 folds that step into
+implement. ADR-1800 lets a task's dependency say whether it blocks, and
 EPC-1710 realised it, verified under issue 625: `paw` waits only on a
 blocking dependency, and `dependency-declared` asks a draft for the marker.
 ADR-2300 shortens the chain to seven steps and supersedes ADR-1490, ADR-1530,
 ADR-1550, ADR-1560 and ADR-2200: a requirement closes with the tasks that name
 it, verify goes, cover and document fold into implement, no agent reviews a
 record, and the repository keeps no run output. EPC-2200 realises it. Until
-its tasks land, `paw` still knows the ten steps below marked as going, the
-Cover section still gates the implementation, and the method skill still
-dispatches the record reviewer; each passage this changes says "not yet".
+its tasks land, the method's prompts still name the cover, document and verify
+steps, which `paw ready` now refuses, and the method skill still dispatches
+the record reviewer; each passage this changes says "not yet".
 The skeptic ADR-2200 decided is dropped, and nothing dispatches it. The
 records written under the old chain migrate to the new shape (REQ-3652), and
 `meow-method` leaves the marketplace (REQ-3654).
@@ -484,20 +481,18 @@ open one, and each requirement nothing open still names (REQ-3604). `paw
 ready` refuses `cover`, `document` and `verify` with exit 2, naming the step
 that took their work, for one release. A task may realise a decision with no
 epic, naming `realises: ADR-NNNN` in place of `epic:`, and is done once its
-Evidence is written (REQ-3630). The table shows the ten steps as the prompts
-still name them until TSK-3820 lands.
+Evidence is written, or dropped once it is withdrawn, rejected or superseded
+(REQ-3630).
 
-| Step         | Reads                                                                                                                                                                                                                                                                                                                                                                               | Writes                                                |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| research     | a question, REQ-2137, REQ-2139                                                                                                                                                                                                                                                                                                                                                      | a research record                                     |
-| requirements | approved research, REQ-2131, REQ-2132, REQ-2133, REQ-2134                                                                                                                                                                                                                                                                                                                           | requirement records                                   |
-| design       | approved requirements, REQ-1230, REQ-1231, REQ-1232, REQ-1233, REQ-1234, REQ-1235, REQ-1236, REQ-1237, REQ-1238, REQ-1239, REQ-1240, REQ-1242, REQ-1244, REQ-1246, REQ-1248, REQ-1250, REQ-1252, REQ-1254, REQ-1256, REQ-1258, REQ-2138, REQ-2140, REQ-2760, REQ-2762, REQ-2764, REQ-2766, REQ-2768, REQ-2770, REQ-2772, REQ-2776, REQ-2778, REQ-2780, REQ-2782, REQ-2794, REQ-2796 | a decision record                                     |
-| spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated                            |
-| epic         | an approved decision or defect                                                                                                                                                                                                                                                                                                                                                      | an epic and its task records                          |
-| cover        | an approved task, REQ-3216                                                                                                                                                                                                                                                                                                                                                          | the task's checks, its kept failing run and its Cover |
-| implement    | a covered task, REQ-2266                                                                                                                                                                                                                                                                                                                                                            | the change, and the task's evidence                   |
-| document     | an epic whose tasks are all done                                                                                                                                                                                                                                                                                                                                                    | the user-facing documentation, updated                |
-| review       | a verified epic, REQ-2268                                                                                                                                                                                                                                                                                                                                                           | findings in place, never a file                       |
+| Step         | Reads                                                                                                                                                                                                                                                                                                                                                                               | Writes                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| research     | a question, REQ-2137, REQ-2139                                                                                                                                                                                                                                                                                                                                                      | a research record                                                      |
+| requirements | approved research, REQ-2131, REQ-2132, REQ-2133, REQ-2134                                                                                                                                                                                                                                                                                                                           | requirement records                                                    |
+| design       | approved requirements, REQ-1230, REQ-1231, REQ-1232, REQ-1233, REQ-1234, REQ-1235, REQ-1236, REQ-1237, REQ-1238, REQ-1239, REQ-1240, REQ-1242, REQ-1244, REQ-1246, REQ-1248, REQ-1250, REQ-1252, REQ-1254, REQ-1256, REQ-1258, REQ-2138, REQ-2140, REQ-2760, REQ-2762, REQ-2764, REQ-2766, REQ-2768, REQ-2770, REQ-2772, REQ-2776, REQ-2778, REQ-2780, REQ-2782, REQ-2794, REQ-2796 | a decision record                                                      |
+| spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated                                             |
+| epic         | an approved decision or defect                                                                                                                                                                                                                                                                                                                                                      | an epic and its task records                                           |
+| implement    | an approved task, REQ-2266, REQ-3216                                                                                                                                                                                                                                                                                                                                                | the tests first, the change, its documentation and the task's evidence |
+| review       | the task's pull request, REQ-2268                                                                                                                                                                                                                                                                                                                                                   | findings in place, never a file                                        |
 
 A person or the model invokes one step by naming it to the `method` skill, and
 the step does its own work and no later step's (REQ-0192, REQ-0194). Each step
@@ -515,17 +510,15 @@ names each page at its own path in the repository's documentation. Review is
 the exception: its role says it writes nothing into the repository
 (REQ-0544).
 
-| Step         | Its artifact lands in                                                                                                |
-| ------------ | -------------------------------------------------------------------------------------------------------------------- |
-| research     | `research/RES-NNNN-<topic>.md`                                                                                       |
-| requirements | one `requirements/REQ-NNNN-<slug>.md` for each obligation                                                            |
-| design       | `adrs/ADR-NNNN-<slug>.md`                                                                                            |
-| spec         | `specs/SPC-NNNN-<topic>.md`                                                                                          |
-| epic         | `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task                                          |
-| cover        | the check files, the kept failing run under the evidence directory, and the `## Cover` of `tasks/TSK-NNNN-<slug>.md` |
-| implement    | the changed files, the kept runs under the evidence directory, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md`   |
-| document     | each user-facing page it changed, at its own path outside the record root                                            |
-| review       | nothing in the repository (REQ-0544)                                                                                 |
+| Step         | Its artifact lands in                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| research     | `research/RES-NNNN-<topic>.md`                                                                                           |
+| requirements | one `requirements/REQ-NNNN-<slug>.md` for each obligation                                                                |
+| design       | `adrs/ADR-NNNN-<slug>.md`                                                                                                |
+| spec         | `specs/SPC-NNNN-<topic>.md`                                                                                              |
+| epic         | `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task                                              |
+| implement    | the test files, the changed files, each user-facing page it changed, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md` |
+| review       | nothing in the repository (REQ-0544)                                                                                     |
 
 No step requires a practice command to be installed (REQ-2130). A step asks
 at most three clarifying questions, and chooses and records a default for the
@@ -573,10 +566,11 @@ count toward it.
 A defect carries a reproduction before it is triaged (REQ-0364). Its triage
 answers first whether a requirement in force covers the behaviour, in
 `violates` or in its Triage section (REQ-0358), and names in `enters` the step
-the defect enters at: `implement` where the code fails a requirement in force,
-`cover` where a task's checks miss what a requirement in force asks, `design` where the design fails it, `requirements` where the requirement is
+the defect enters at: `implement` where the code or a task's tests fail a
+requirement in force, `design` where the design fails it, `requirements` where the requirement is
 wrong or none covers the behaviour, and `research` where the cause is unknown
-(REQ-0360). A defect entering at `cover`, `implement` or `design` names in
+(REQ-0360). A draft naming `cover`, `document` or `verify` is refused, and a
+defect approved while cover was a step keeps it. A defect entering at `implement` or `design` names in
 `violates` the requirement it breaks, because a check or a fix is written only
 against a requirement in force. The defect records its severity from the
 start, a draft included, because severity is a property of the observation
@@ -616,8 +610,9 @@ own line (REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
 | implement    | the named task and its epic, defect or decision are approved, and each task it depends on is done         |
 | review       | nothing: the review reads the task's pull request                                                         |
 
-A task is done when its epic marks it `[x]`, and dropped when it is marked
-`[~]`. A task entry may carry `[P]` between its number and its identifier,
+A task is done when its epic or defect marks it `[x]`, and dropped when it is
+marked `[~]`. A task realising a decision directly is done once its Evidence
+is written, and dropped once its status is withdrawn, rejected or superseded. A task entry may carry `[P]` between its number and its identifier,
 marking it as able to run in parallel (REQ-0265), and it is read with its mark
 like any other.
 
@@ -633,7 +628,7 @@ never left out (REQ-1358):
 A line saying `(blocking)` is blocking, a line saying `(not blocking)` isn't,
 and a line naming a `TSK-` identifier with neither marker is blocking, which
 is how every task approved before ADR-1800 reads. The tasks a task depends on,
-for `ready cover`, `ready implement` and `status`, are its blocking ones only,
+for `ready implement` and `status`, are its blocking ones only,
 so a task whose only open dependency doesn't block is ready. An epic entry's
 `depends:` takes the same marker, as `depends: TSK-NNNN (not blocking) - why`,
 and reads the same way. Readiness reads only the task's own line, and nothing
@@ -655,8 +650,11 @@ has reached and the next one:
 - no epic realises it: next is `spec`, then `epic`
 - its epic is a draft: waiting for the epic's approval
 - its epic has tasks not done: for the first task whose blocking
-  dependencies are done, next is `cover` while its Cover isn't filled, and `implement` once it
-  is, and the line keeps the form `(<epic>, <n> of <m> tasks done)`
+  dependencies are done, next is `implement`, and the line keeps the form
+  `(<epic>, <n> of <m> tasks done)`
+- no epic realises it and tasks name it in `realises`: the same, counted
+  under the decision, and waiting while an open one of them isn't approved;
+  such tasks count beside an epic's where both exist
 - every task is done or dropped: closed, and no step whose work has landed is
   named (REQ-3604, REQ-3620)
 
@@ -831,8 +829,8 @@ REQ-3112). Without the pack it reports the history as unread and names
 | Condition                                              | What happens                                                                                                            |
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | `ready` names an input that doesn't exist              | Exit 1, the input named as missing                                                                                      |
-| `ready` for a step it doesn't know                     | Exit 2, naming the ten steps in order                                                                                   |
-| `ready implement` on a task not covered                | Exit 1, naming the missing Cover, or each missing line or path, on its own line                                         |
+| `ready` for a step it doesn't know                     | Exit 2, naming the seven steps in order                                                                                 |
+| `ready` for `cover`, `document` or `verify`            | Exit 2, naming the step that took its work (ADR-2300)                                                                   |
 | `template` for a kind it doesn't know                  | Exit 2, naming the kinds                                                                                                |
 | The record's root doesn't exist                        | `status` and `ready` say so and exit 1, as `check` does                                                                 |
 | The router can't be dispatched                         | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |

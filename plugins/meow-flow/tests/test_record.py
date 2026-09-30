@@ -827,11 +827,11 @@ class Chain(unittest.TestCase):
         for line in ("Checks", "Failing run", "Landed in", "Judgement"):
             self.assertIn(line, cover, line)
 
-    def test_the_bug_template_names_cover(self):
-        """TSK-2550 criterion 6, REQ-3200: the bug template's `enters` comment names cover among the steps."""
+    def test_the_bug_template_names_no_retired_step(self):
+        """REQ-3638: the bug template's `enters` comment names no step a draft is refused for."""
         enters = [line for line in self.template("bug").splitlines() if line.startswith("enters:")]
         self.assertEqual(len(enters), 1, enters)
-        self.assertRegex(enters[0].split("#", 1)[1], r"\bcover\b")
+        self.assertNotRegex(enters[0].split("#", 1)[1], r"\b(cover|document|verify)\b")
 
 
 FILLED = """- Checks: tests/test_a_task.py
@@ -2483,6 +2483,80 @@ class SevenSteps(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
         done = repository.run("check", "rules")
         self.assertEqual(done.returncode, 0, done.stdout)
+
+    def second_direct(self, repository, status="approved", evidence="Not yet.", extra=""):
+        text = (repository.root / "tasks/TSK-0001-a-task.md").read_text(encoding="utf-8")
+        text = text.replace("TSK-0001", "TSK-0002").replace("epic: EPC-0001", f"realises: ADR-0001{extra}")
+        text = text.replace("status: approved", f"status: {status}").replace("## Evidence\n\nText.", f"## Evidence\n\n{evidence}")
+        repository.write("tasks/TSK-0002-direct.md", text.replace("\nSee [the plan](../epics/EPC-0001-a-plan.md).\n", "\n"))
+
+    def test_a_decision_with_an_epic_and_an_open_direct_task_is_not_closed(self):
+        """REQ-3604, REQ-3630: a direct task open beside a finished epic keeps the decision open in status."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.second_direct(repository)
+        status = repository.run("status").stdout
+        self.assertIn("next: implement TSK-0002 (EPC-0001, 1 of 2 tasks done)", status)
+        self.assertNotIn("closed: EPC-0001", status)
+
+    def test_a_withdrawn_direct_task_is_dropped(self):
+        """REQ-3630: a direct task withdrawn has nothing to mark it, so its status drops it."""
+        repository = self.repo()
+        self.direct(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: withdrawn")
+        self.assertIn("closed: ADR-0001 (1 task done)", repository.run("status").stdout)
+        self.assertIn("TSK-0001 dropped in ADR-0001", repository.run("show", "REQ-0001").stdout)
+
+    def test_status_waits_on_a_draft_direct_task_as_ready_does(self):
+        """REQ-3630: status and `ready implement` agree that a draft direct task waits for approval."""
+        repository = self.repo()
+        self.direct(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        self.assertIn("waiting: TSK-0001 is draft and not approved", repository.run("status").stdout)
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 1)
+
+    def test_a_task_realises_only_a_decision(self):
+        """REQ-3630: `realises` naming a defect is refused by the draft rule and by `ready`."""
+        repository = self.repo()
+        self.direct(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "realises: ADR-0001", "realises: BUG-0001")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("TSK-0001 realises BUG-0001, which is not a decision", done.stdout)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        self.assertIn("realises BUG-0001, where a task realises only a decision", repository.run("check", "rules").stdout)
+
+    def test_a_task_naming_no_authority_closes_nothing_from_its_evidence(self):
+        """REQ-3630: only a task naming `realises` is done by its Evidence; one naming nothing stays open."""
+        repository = self.repo()
+        self.second_direct(repository, evidence="In #1.")
+        repository.edit("tasks/TSK-0002-direct.md", "realises: ADR-0001\n", "")
+        self.assertIn("TSK-0002 open in \n", repository.run("show", "REQ-0001").stdout)
+
+    def test_a_direct_task_waits_on_its_dependency(self):
+        """REQ-1358, REQ-3630: a direct task's blocking dependency is done once that task's Evidence is written."""
+        repository = self.repo()
+        self.direct(repository)
+        self.second_direct(repository, extra="")
+        repository.edit("tasks/TSK-0002-direct.md", "## Depends on\n\nText.", "## Depends on\n\n- TSK-0001 (blocking): it lands first")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0002").returncode, 1)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nNot yet.", "## Evidence\n\nIn #1.")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0002").returncode, 0)
+
+    def test_a_retired_step_is_refused_in_a_draft_defect_only(self):
+        """REQ-3638: a draft defect may not enter at a retired step; one approved, superseded or withdrawn keeps it."""
+        repository = self.repo()
+        for step in ("cover", "document", "verify"):
+            repository.edit("bugs/BUG-0001-a-defect.md", "found:", f"enters: {step}\nfound:")
+            for status, code in (("approved", 0), ("superseded", 0), ("withdrawn", 0), ("draft", 1)):
+                text = (repository.root / "bugs/BUG-0001-a-defect.md").read_text(encoding="utf-8")
+                text = re.sub(r"\nstatus: \w+", f"\nstatus: {status}", text, count=1)
+                repository.write("bugs/BUG-0001-a-defect.md", text)
+                done = repository.run("check", "rules")
+                self.assertEqual(done.returncode, code, f"{step} {status}: {done.stdout}")
+                if code:
+                    self.assertIn(f"enters {step}, which is not a step", done.stdout)
+            repository.edit("bugs/BUG-0001-a-defect.md", f"enters: {step}\n", "")
 
     def test_a_direct_task_closes_with_its_evidence(self):
         """REQ-3630, REQ-3604: with no epic to mark it, a task is done once its Evidence is written."""

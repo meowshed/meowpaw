@@ -297,7 +297,13 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         .into_iter()
         .filter(|t| {
             if direct {
-                t.field("realises") == epic_id && t.field("epic").is_empty()
+                t.field("realises") == epic_id
+                    && t.field("epic").is_empty()
+                    && t.field("bug").is_empty()
+                    && !matches!(
+                        t.field("status").as_str(),
+                        "withdrawn" | "rejected" | "superseded"
+                    )
             } else {
                 t.field("epic") == epic_id
             }
@@ -341,9 +347,15 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                 }
             };
             if closed && !done.contains(&id) {
-                println!(
-                    "{id}: issue #{issue} is closed on GitHub while {epic_id} leaves the task unmarked; the epic decides what the tasks are, so this is reported, not reconciled"
-                );
+                if direct {
+                    println!(
+                        "{id}: issue #{issue} is closed on GitHub while the task's Evidence isn't written; the record decides when a task is done, so this is reported, not reconciled"
+                    );
+                } else {
+                    println!(
+                        "{id}: issue #{issue} is closed on GitHub while {epic_id} leaves the task unmarked; the epic decides what the tasks are, so this is reported, not reconciled"
+                    );
+                }
                 worst = worst.max(FOUND);
             }
             if on_tracker != projected {

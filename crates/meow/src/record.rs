@@ -302,8 +302,8 @@ fn under_version_control(root: &Path) -> bool {
     inside && !ignored
 }
 
-/// Each task closing a requirement, with its mark and the epic or defect that
-/// authorises it.
+/// Each task closing a requirement, with its mark and the epic, defect or
+/// decision that authorises it.
 fn closing_tasks(
     record: &Record,
     known: &BTreeMap<String, &Doc>,
@@ -2033,7 +2033,9 @@ fn rules(record: &Record) -> Vec<Finding> {
                     // A defect approved while cover was a step keeps the step it
                     // was triaged to (ADR-2300); a draft names a step in force.
                     let retired = RETIRED_STEPS.iter().any(|(name, _)| *name == enters);
-                    if !enters.is_empty() && !STEPS.contains(&enters) && !(retired && approved(doc))
+                    if !enters.is_empty()
+                        && !STEPS.contains(&enters)
+                        && !(retired && !is_draft(doc))
                     {
                         out.push(Finding::at(
                             doc,
@@ -2130,6 +2132,14 @@ fn rules(record: &Record) -> Vec<Finding> {
                             .or_else(|| doc.field("bug"))
                             .or_else(|| doc.field("realises"));
                         out.push(Finding::at(doc, field.map(|f| f.line), format!("names {named} authorising records, where a task names exactly one epic, one defect or one decision it realises")));
+                    }
+                    let realises = bare(doc.value("realises"));
+                    if !realises.is_empty() && !realises.starts_with("ADR-") {
+                        out.push(Finding::at(
+                            doc,
+                            doc.field("realises").map(|f| f.line),
+                            format!("realises {realises}, where a task realises only a decision"),
+                        ));
                     }
                 }
                 "dependency-declared" => {
@@ -2285,13 +2295,32 @@ fn authority_of(task: &Doc) -> &str {
 /// is written (REQ-3630).
 fn mark_of(known: &BTreeMap<String, &Doc>, task: &Doc) -> char {
     let id = bare(task.id());
-    if bare(task.value("epic")).is_empty() && bare(task.value("bug")).is_empty() {
-        return if claims_done(task) { 'x' } else { ' ' };
+    if is_direct(task) {
+        // A withdrawn, rejected or superseded task is dropped, since there is
+        // no epic to mark it `[~]`.
+        return if matches!(
+            bare(task.value("status")),
+            "withdrawn" | "rejected" | "superseded"
+        ) {
+            '~'
+        } else if claims_done(task) {
+            'x'
+        } else {
+            ' '
+        };
     }
     known
         .get(authority_of(task))
         .and_then(|e| marks(e).into_iter().find(|(t, _)| t == id).map(|(_, m)| m))
         .unwrap_or(' ')
+}
+
+/// Whether a task realises a decision directly, naming no epic and no defect
+/// (REQ-3630).
+fn is_direct(task: &Doc) -> bool {
+    !bare(task.value("realises")).is_empty()
+        && bare(task.value("epic")).is_empty()
+        && bare(task.value("bug")).is_empty()
 }
 
 fn finished(mark: char) -> bool {
@@ -2316,7 +2345,8 @@ fn depends_on(task: &Doc) -> Vec<String> {
         .collect()
 }
 
-/// Whether a task is marked done or dropped by the epic it names.
+/// Whether a task is done or dropped: marked so by its epic or defect, or, for
+/// a task realising a decision directly, by its Evidence or its status.
 fn task_finished(known: &BTreeMap<String, &Doc>, task: &str) -> bool {
     known
         .get(task)
@@ -2397,6 +2427,11 @@ fn ready(rest: &[String]) -> u8 {
                     "the decision"
                 };
                 match known.get(epic_id) {
+                    Some(epic)
+                        if what == "the decision" && kind_of(&record, epic) != "decision" =>
+                    {
+                        missing.push(format!("{id} realises {epic_id}, which is not a decision"))
+                    }
                     Some(epic) if approved(epic) => {}
                     Some(epic) => missing.push(format!(
                         "{epic_id}, {what} of {id}, is {} and not approved",
@@ -2451,10 +2486,9 @@ fn title(doc: &Doc) -> String {
         .to_string()
 }
 
-/// Why an epic that lists no tasks can't be documented or verified: each
-/// requirement its record addresses that it leaves unnamed under Not covered.
-/// Empty where it lists tasks, or names every one, because its work was done
-/// elsewhere; `ready` and `status` both ask this, so they agree (BUG-1250).
+/// Why an epic that lists no tasks can't close: each requirement its record
+/// addresses that it leaves unnamed under Not covered. Empty where it lists
+/// tasks, or names every one, because its work was done elsewhere (BUG-1250).
 fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) -> Vec<String> {
     if !marks(epic).is_empty() {
         return Vec::new();
@@ -2490,11 +2524,26 @@ fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> 
         .filter(|e| bare(e.value("realises")) == id)
         .collect();
     // A decision one task realises has that task and no epic (REQ-3630).
-    let direct: Vec<(String, char)> = of_kind(record, "task")
+    let direct_tasks: Vec<&Doc> = of_kind(record, "task")
         .into_iter()
-        .filter(|t| bare(t.value("realises")) == id && bare(t.value("epic")).is_empty())
+        .filter(|t| is_direct(t) && bare(t.value("realises")) == id)
+        .collect();
+    let direct: Vec<(String, char)> = direct_tasks
+        .iter()
         .map(|t| (bare(t.id()).to_string(), mark_of(known, t)))
         .collect();
+    // A direct task has no epic whose approval covers it, so status waits on
+    // its own approval, as `ready implement` does.
+    if let Some(draft) = direct_tasks
+        .iter()
+        .find(|t| !finished(mark_of(known, t)) && !approved(t))
+    {
+        return format!(
+            "waiting: {} is {} and not approved",
+            bare(draft.id()),
+            bare(draft.value("status"))
+        );
+    }
     let postponed = requirements_in(record, decision.value("postpones"));
     if epics.is_empty()
         && direct.is_empty()
@@ -2518,7 +2567,10 @@ fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> 
             if let Some(gap) = taskless_gaps(record, known, epic).first() {
                 return format!("waiting: {gap}");
             }
-            (epic_id, marks(epic))
+            // Tasks realising the decision directly count beside the epic's.
+            let mut tasks = marks(epic);
+            tasks.extend(direct);
+            (epic_id, tasks)
         }
         None if !direct.is_empty() => (id, direct),
         None => return "next: spec, then epic".to_string(),
@@ -2544,7 +2596,7 @@ fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> 
             None => format!("waiting: every open task of {group} depends on one that isn't done"),
         };
     }
-    // Every task done or dropped closes the epic, and no step whose work has
+    // Every task done or dropped closes the epic or the decision, and no step whose work has
     // landed is named next (REQ-3604, REQ-3620).
     format!("closed: {group} ({} done)", count(tasks.len(), "task"))
 }
