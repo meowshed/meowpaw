@@ -81,7 +81,8 @@ pull request is its reader.
 A decision's research, requirements, decision record, specification
 changes, epic and tasks land together in one pull request, with the approved
 records they replace withdrawn in it (REQ-3650). Merging that pull request is
-the approval.
+the approval. **Amended by ADR-2310.** This holds where a person asks
+for it, and a task off the trunk isn't ready to implement.
 
 A decision one task realises gets that task and no epic: the task names
 `realises: ADR-NNNN` in place of `epic:` (REQ-3630). An acceptance criterion
