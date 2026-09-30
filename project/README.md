@@ -557,7 +557,8 @@ realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
 evidence, and was verified against every acceptance criterion under issue 625.
 
 [EPC-1720](epics/EPC-1720-one-github-request-layer.md) realises ADR-1810 in
-five tasks, TSK-2940 to TSK-2980, none of them started, and each of the seven
+five tasks, TSK-2940 to TSK-2980, the first two of them done, and each of the
+seven
 requirements ADR-1810 addresses lands in one of them. REQ-2580 stays
 postponed.
 

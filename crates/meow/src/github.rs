@@ -9,7 +9,7 @@
 //! name, so a field the code host stops sending fails by that name, and a listing
 //! it can't read leaves the history unread rather than printed in part.
 
-use request::{Failure, Layer};
+use request::{Failure, Layer, credential};
 use serde_json::{Value, json};
 
 mod project;
@@ -42,15 +42,24 @@ pub fn main(args: &[String]) -> u8 {
     match (command.as_str(), words.as_slice(), check) {
         ("history", [], false) => history(&mut layer, None),
         ("history", [repository], false) => history(&mut layer, Some(repository)),
-        ("project", [epic], _) => project::run(&mut layer, epic, None, check),
-        ("project", [epic, repository], _) => {
-            project::run(&mut layer, epic, Some(repository), check)
-        }
+        ("project", [epic], _) => project(&mut layer, epic, None, check),
+        ("project", [epic, repository], _) => project(&mut layer, epic, Some(repository), check),
         _ => {
             eprintln!("{USAGE_LINE}");
             USAGE
         }
     }
+}
+
+/// Projects `epic`, with the credential's form as the report's first line and
+/// the budget as its last lines (REQ-2568, REQ-2582).
+fn project(layer: &mut Layer, epic: &str, repository: Option<&str>, check: bool) -> u8 {
+    println!("credential: {}", credential());
+    let code = project::run(layer, epic, repository, check);
+    for line in layer.budget() {
+        println!("{line}");
+    }
+    code
 }
 
 /// The repository named, or else the one this directory's clone belongs to,
@@ -131,15 +140,24 @@ fn listing(
 }
 
 fn history(layer: &mut Layer, repository: Option<&str>) -> u8 {
+    let unread = |layer: &Layer, lines: &[String]| {
+        println!("credential: {}", credential());
+        for line in lines {
+            println!("{line}");
+        }
+        for line in layer.budget() {
+            println!("{line}");
+        }
+        UNREAD
+    };
     let repository = match name_repository(layer, repository) {
         Ok(name) => name,
-        Err(e) => {
-            println!("meow-github history: unread: {e}");
-            return UNREAD;
-        }
+        Err(e) => return unread(layer, &[format!("meow-github history: unread: {e}")]),
     };
     match read(layer, &repository) {
-        Ok(document) => {
+        Ok(mut document) => {
+            document["credential"] = json!(credential());
+            document["budget"] = json!(layer.budget());
             println!(
                 "{}",
                 serde_json::to_string_pretty(&document).unwrap_or_default()
@@ -147,16 +165,20 @@ fn history(layer: &mut Layer, repository: Option<&str>) -> u8 {
             0
         }
         Err((read, e)) => {
-            println!("meow-github history: unread: {e}");
             let read = if read.is_empty() {
                 "nothing".to_string()
             } else {
                 read.join(", ")
             };
-            println!(
-                "read before it stopped: {read}; no document is printed, because a part of the history reads as the whole of it"
-            );
-            UNREAD
+            unread(
+                layer,
+                &[
+                    format!("meow-github history: unread: {e}"),
+                    format!(
+                        "read before it stopped: {read}; no document is printed, because a part of the history reads as the whole of it"
+                    ),
+                ],
+            )
         }
     }
 }
