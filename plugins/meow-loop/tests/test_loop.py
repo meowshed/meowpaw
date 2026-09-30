@@ -531,17 +531,83 @@ class Budget(Case):
             self.assertAlmostEqual(line["sum_usd"], expected, delta=0.000001)
 
 
+class Idle(Case):
+    """ADR-2010: two iterations in a row that change neither the tree nor the progress file end the run `idle`."""
+
+    def run_of(self, f, iterations, **config):
+        """A run whose verb never passes and whose stand-in edits no file unless `config` says so, as its result
+        and its log's lines."""
+        f.configure(edit=False, **config)
+        done = f.start(replaced("--iterations", iterations))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        log = f.run_dirs()[0] / "log.jsonl"
+        return done, [json.loads(line) for line in log.read_text().splitlines()]
+
+    def test_two_idle_iterations_end_the_run(self):
+        """TSK-3380 criterion 1, REQ-0886: a stand-in that changes nothing ends the run `idle` after two of five
+        calls, and each line of the log records that the progress file didn't change."""
+        f = self.fixture()
+        done, lines = self.run_of(f, "5")
+        self.assertEqual(len(f.calls()), 2)
+        self.assertEqual(f.ending(), "idle")
+        self.assertEqual(done.stdout.strip().splitlines()[-1], "idle")
+        self.assertEqual([line["progress_changed"] for line in lines], [False, False])
+        self.assertEqual([line["unidentified"] for line in lines], [False, False])
+
+    def test_progress_alone_is_a_change(self):
+        """TSK-3380 criterion 2, REQ-0886: a stand-in that writes only the progress file is never idle, so four
+        calls run to the ceiling, and each line records that the progress file changed."""
+        f = self.fixture()
+        done, lines = self.run_of(f, "4", progress=True)
+        self.assertEqual(len(f.calls()), 4)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual([line["progress_changed"] for line in lines], [True] * 4)
+        for line in lines:
+            self.assertEqual(line["tree_before"], line["tree_after"])
+
+    def test_idle_iterations_must_be_consecutive(self):
+        """TSK-3380 criterion 3, REQ-0886: nothing on the first call, a tracked file on the second and nothing on
+        the third and fourth ends the run `idle` after the fourth of six calls."""
+        f = self.fixture()
+        done, lines = self.run_of(f, "6", overwrite={"2": "prompt.md"})
+        self.assertEqual(len(f.calls()), 4)
+        self.assertEqual(f.ending(), "idle")
+        changed = [line["tree_before"] != line["tree_after"] for line in lines]
+        self.assertEqual(changed, [False, True, False, False])
+
+    def test_unidentified_tree_is_a_change(self):
+        """TSK-3380 criterion 4, SPC-1201 "The loop": with a dirty submodule the tree id is `none` on every call,
+        which counts as a change, so three calls run to the ceiling and each line is marked `unidentified`."""
+        f = self.fixture()
+        origin = f.base / "sub-origin"
+        origin.mkdir()
+        (origin / "a.txt").write_text("a\n")
+        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
+        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
+            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
+        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
+        f.git(*identity, "commit", "-q", "-m", "add the submodule")
+        (f.root / "sub" / "a.txt").write_text("changed\n")
+        done, lines = self.run_of(f, "3")
+        self.assertEqual(len(f.calls()), 3)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual([line["unidentified"] for line in lines], [True] * 3)
+        self.assertEqual([line["tree_after"] for line in lines], ["none"] * 3)
+        self.assertEqual([line["progress_changed"] for line in lines], [False] * 3)
+
+
 class Unchanged(Case):
     def test_an_unchanged_tree_skips_the_verbs(self):
         f = self.fixture()
         f.configure(edit=False)
         done = f.start(replaced("--iterations", "3"))
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertEqual(len(f.calls()), 3)
-        self.assertEqual(f.ending(), "ceiling")
+        # TSK-3380: the second call that changes nothing ends the run, so the third is never made.
+        self.assertEqual(len(f.calls()), 2)
+        self.assertEqual(f.ending(), "idle")
         log = f.run_dirs()[0] / "log.jsonl"
         lines = [json.loads(line) for line in log.read_text().splitlines()]
-        self.assertEqual(len(lines), 3)
+        self.assertEqual(len(lines), 2)
         for line in lines:
             self.assertIsNone(line["condition"])
             self.assertEqual(line["tree_before"], line["tree_after"])
