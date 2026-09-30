@@ -11,7 +11,7 @@
 //! leads a failed verb with its last lines (REQ-0135). Each result goes into a
 //! ledger bound to the tree it ran on, which `evidence` reads back (ADR-1480).
 
-mod ledger;
+pub(crate) mod ledger;
 
 use crate::profile::{self, PROFILE, Profile};
 use serde_json::{Map, Value, json};
@@ -20,7 +20,7 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::Instant;
 
-const VERBS: [&str; 5] = ["format", "lint", "check", "test", "build"];
+pub(crate) const VERBS: [&str; 5] = ["format", "lint", "check", "test", "build"];
 const TAIL: usize = 20;
 const PASSED: u8 = 0;
 const FAILED: u8 = 1;
@@ -149,6 +149,21 @@ fn resolve(root: &Path) -> Report {
     }
 }
 
+/// The command a verb resolves to, or why it resolves to none, for a runner
+/// that holds the command itself (SPC-1201).
+#[cfg(feature = "loop")]
+pub(crate) fn command_of(root: &Path, verb: &str) -> std::result::Result<String, String> {
+    match resolve(root)
+        .verbs
+        .into_iter()
+        .find(|(name, _)| *name == verb)
+    {
+        Some((_, Entry::Resolved { command, .. })) => Ok(command),
+        Some((_, Entry::Unresolved { kind, detail })) => Err(format!("{kind}: {detail}")),
+        None => Err(format!("{verb} is not a verb")),
+    }
+}
+
 /// A verb declared as a table: `command` for the whole work, and an optional
 /// `subset` with `{targets}` where the part goes (ADR-1520).
 fn from_table(table: &toml::Table) -> Entry {
@@ -258,10 +273,14 @@ fn status(root: &Path, as_json: bool) -> u8 {
 /// Runs a declared command through the shell, with standard output and
 /// standard error interleaved in the order they arrive.
 fn execute(root: &Path, command: &str) -> (i32, String) {
-    let (mut reader, writer) = match std::io::pipe() {
-        Ok(pair) => pair,
-        Err(error) => return (127, format!("meow: can't open a pipe: {error}\n")),
-    };
+    try_execute(root, command).unwrap_or_else(|reason| (127, format!("meow: {reason}\n")))
+}
+
+/// Runs a declared command as `execute` does, or says why it never started,
+/// which is neither a pass nor a fail.
+fn try_execute(root: &Path, command: &str) -> std::result::Result<(i32, String), String> {
+    let (mut reader, writer) =
+        std::io::pipe().map_err(|error| format!("can't open a pipe: {error}"))?;
     let mut shell = if cfg!(windows) {
         let mut shell = Command::new("cmd");
         shell.args(["/C", command]);
@@ -278,12 +297,12 @@ fn execute(root: &Path, command: &str) -> (i32, String) {
             .stdout(copy)
             .stderr(writer)
             .spawn(),
-        Err(error) => return (127, format!("meow: can't share the pipe: {error}\n")),
+        Err(error) => return Err(format!("can't share the pipe: {error}")),
     };
     drop(shell);
     let mut child = match spawned {
         Ok(child) => child,
-        Err(error) => return (127, format!("meow: can't start the shell: {error}\n")),
+        Err(error) => return Err(format!("can't start the shell: {error}")),
     };
     let mut bytes = Vec::new();
     let _ = reader.read_to_end(&mut bytes);
@@ -291,7 +310,7 @@ fn execute(root: &Path, command: &str) -> (i32, String) {
         Ok(status) => status.code().unwrap_or_else(|| signal_code(status)),
         Err(_) => 127,
     };
-    (code, String::from_utf8_lossy(&bytes).into_owned())
+    Ok((code, String::from_utf8_lossy(&bytes).into_owned()))
 }
 
 #[cfg(unix)]
@@ -303,6 +322,61 @@ fn signal_code(status: std::process::ExitStatus) -> i32 {
 #[cfg(not(unix))]
 fn signal_code(_: std::process::ExitStatus) -> i32 {
     -1
+}
+
+/// What one recorded run of a verb's command left behind.
+#[cfg(feature = "loop")]
+pub(crate) struct Ran {
+    pub status: i32,
+    pub before: String,
+    pub after: String,
+    /// The ledger record's identifier, or why nothing was recorded.
+    pub recorded: std::result::Result<String, String>,
+}
+
+/// Runs a verb's whole command and records the result in the ledger with the
+/// tree before and after it, as `run` does, for a runner that decides from the
+/// exit status itself (SPC-1201). A command that never started is an error and
+/// is recorded as unresolved, because an unresolved verb is never a pass.
+#[cfg(feature = "loop")]
+pub(crate) fn run_recorded(
+    root: &Path,
+    verb: &str,
+    command: &str,
+) -> std::result::Result<Ran, String> {
+    let before = ledger::tree_id(root);
+    let started = ledger::start(root, verb, command, None, &before);
+    let ran = try_execute(root, command);
+    let after = ledger::tree_id(root);
+    let (outcome, status, output) = match &ran {
+        Ok((0, output)) => ("passed", Some(0), output.as_str()),
+        Ok((c, output)) if *c == -SIGINT || *c == -SIGTERM => {
+            ("interrupted", Some(*c), output.as_str())
+        }
+        Ok((c, output)) => ("failed", Some(*c), output.as_str()),
+        Err(reason) => ("unresolved", None, reason.as_str()),
+    };
+    let recorded = ledger::record(
+        root,
+        &ledger::Result {
+            verb,
+            command: Some(command),
+            outcome,
+            status,
+            before: &before,
+            after: &after,
+            output,
+            targets: None,
+        },
+        started.as_deref(),
+    );
+    let (status, _) = ran?;
+    Ok(Ran {
+        status,
+        before,
+        after,
+        recorded,
+    })
 }
 
 fn run(root: &Path, args: &[String]) -> u8 {
@@ -720,5 +794,31 @@ pub fn main(args: &[String]) -> u8 {
             );
             USAGE
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_command_that_never_started_is_not_an_exit_status() {
+        // SPC-1201: an unspawned verb counts neither as a pass nor as a fail.
+        let nowhere = std::env::temp_dir().join(format!("meow-no-such-{}", std::process::id()));
+        let reason = try_execute(&nowhere, "true").expect_err("a shell started in no directory");
+        assert!(reason.starts_with("can't start the shell"), "{reason}");
+        assert_eq!(execute(&nowhere, "true").0, 127);
+        assert!(
+            execute(&nowhere, "true")
+                .1
+                .starts_with("meow: can't start the shell")
+        );
+    }
+
+    #[test]
+    fn a_command_that_started_keeps_its_exit_status() {
+        let here = std::env::temp_dir();
+        let failing = if cfg!(windows) { "exit /b 3" } else { "exit 3" };
+        assert_eq!(try_execute(&here, failing).map(|(code, _)| code), Ok(3));
     }
 }

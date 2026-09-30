@@ -1,0 +1,13 @@
+{
+  "name": "meow-loop",
+  "version": "0.1.0",
+  "description": "Repeats one prompt in fresh claude -p calls until the verification verbs a person names pass or the stated number of iterations has run, with the ceiling held outside the model. It keeps nothing in context on every turn.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-loop/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["loop", "runner", "verbs", "ceiling", "meowpaw"]
+}

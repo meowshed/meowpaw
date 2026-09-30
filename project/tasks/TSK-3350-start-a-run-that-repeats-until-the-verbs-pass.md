@@ -125,8 +125,21 @@ exist.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+Twelve checks in `plugins/meow-loop/tests/test_loop.py` close criteria 1 to
+7, under the names the criteria give, with three more the code review asked
+for: a `claude` that can't be run is passed over, one with no program in it
+stops the run, and an unchanged tree skips the verbs. The nine written first failed at the pull request's first commit.
+`Refusals.test_five_unreadable_states` gained two lines that write the prompt
+file outside the work tree, because SPC-1201 checks the command line first
+and an unreadable prompt is a usage error. `meow-checks run format lint check
+test build` passed each verb.
+
+Two rounds of code review found thirteen defects, all fixed here, among
+them: an unspawned verb
+counted as a fail, a run killed during the verbs lost its last log line, a
+file named `claude` that can't be run was chosen, a ceiling above the largest
+signed integer was recorded as negative, the budget reached `claude` in a
+form only the runner read, and two checks passed against a wrong call.
 
 ## Left alone
 
@@ -139,3 +152,13 @@ settings file's hash, the unit's own `--plugin-dir`, the hook and holding each v
 at start, which TSK-3390 adds. The skill, the
 `CLAUDECODE` refusal and the deny rule, which TSK-3400 adds.
 `docs/README.md` and the root `README.md`, which the implement step updates in the same pull request.
+
+`--step` and `--inputs`, which SPC-1201 requires and EPC-1920 adds, so
+`start` refuses them until then. The root `README.md` needed no change: its
+diagram already names the unit. SPC-1201 gained what the review's fixes
+settled: the two forms `start` refuses for a ceiling and a budget, the log
+line written before the verbs run and again after, and a `claude` that can't
+be started being found only at the first call. No check runs a whole loop
+with a verb that can't be spawned or kills one during its verbs: two checks
+in the crate hold the first at the function, and the second rests on the
+order of the writes.

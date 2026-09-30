@@ -27,13 +27,16 @@ mod profile;
 mod prose;
 #[cfg(feature = "record")]
 mod record;
+#[cfg(feature = "loop")]
+mod runloop;
 #[cfg(any(feature = "mise", feature = "gotask"))]
 mod runner;
 #[cfg(feature = "scm")]
 mod scm;
 #[cfg(feature = "unattended")]
 mod unattended;
-#[cfg(feature = "verbs")]
+#[cfg(any(feature = "verbs", feature = "loop"))]
+#[cfg_attr(not(feature = "verbs"), allow(dead_code))]
 mod verbs;
 
 use std::process::ExitCode;
@@ -69,6 +72,8 @@ fn main() -> ExitCode {
         "markdown" => markdown::main(rest),
         #[cfg(feature = "unattended")]
         "unattended" => unattended::main(rest),
+        #[cfg(feature = "loop")]
+        "loop" => runloop::main(rest),
         _ => {
             eprintln!(
                 "usage: meow <subcommand> ..., where this build carries: {}",
@@ -118,6 +123,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "unattended") {
         names.push("unattended");
+    }
+    if cfg!(feature = "loop") {
+        names.push("loop");
     }
     names
 }
