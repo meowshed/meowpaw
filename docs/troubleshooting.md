@@ -7,7 +7,7 @@ describes:
     meow-core@0.6.1,
     meow-git@0.2.3,
     meow-github@0.6.0,
-    meow-flow@0.46.0,
+    meow-flow@0.46.1,
     meow-prose-gate@0.3.0,
     meow-scm@0.4.2,
     meow-checks@0.9.0,
@@ -130,7 +130,9 @@ nothing newly approved, it says what it is waiting on.
 branch and not on the trunk your profile declares, so its approval still
 waits on a merge. Merge the change that approves the task, fetch if the merge
 happened on the code host, then run the step again. `paw` reads the trunk's
-local branch and its branch on the remote named `origin`.
+local branch and its branch on the remote that branch tracks, on `origin`,
+and on the only remote where you have one. A remote that is none of those
+isn't read, because it may be a fork.
 
 ## meow-verbs is now meow-checks
 

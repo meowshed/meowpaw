@@ -687,13 +687,16 @@ there, isn't ready:
 `ready implement` refuses it and `status` prints it as waiting on its merge
 (REQ-3660, REQ-3662), and where no trunk is declared or it can't be read,
 `status` says an approval can't be told from one waiting on a merge
-(REQ-3664). It reads the remote-tracking branch of the trunk's name and the
-local branch, and a task approved on either is on the trunk, so a repository
+(REQ-3664). It reads the local branch of the trunk's name and its branch on the remote
+that branch tracks, on `origin`, and on the only remote where there is one,
+whatever line endings the file has there, and a task approved on any of them
+is on the trunk, so a repository
 that commits straight to its trunk is never refused. It finds the task there
 by its identifier, among the Markdown files of that identifier, asks only
 about an open task, and `status` names as next
 the first task that can start and is approved on the trunk. A record kept
-outside the repository is on no branch, and `status` says so.
+outside the repository is on no branch, and `status` says so, as it does,
+naming the task, for one reached through a link that leaves the repository.
 
 `paw status --waiting` prints only what waits for approval, each line
 naming the artifact, its kind and the gate it waits at, and prints nothing when
@@ -787,25 +790,25 @@ REQ-3112). Without the pack it reports the history as unread and names
 
 ## Failure paths
 
-| Condition                                                                                         | What happens                                                                                                            |
-| ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `ready` names an input that doesn't exist                                                         | Exit 1, the input named as missing                                                                                      |
-| `ready` for a step it doesn't know                                                                | Exit 2, naming the seven steps in order                                                                                 |
-| `ready` for `cover`, `document` or `verify`                                                       | Exit 2, naming the step that took its work (ADR-2300)                                                                   |
-| `ready implement` on a task absent from the trunk, or a draft there                               | Exit 1, naming the task and the trunk                                                                                   |
-| No trunk declared, no git work tree, a trunk naming no branch, or a record outside the repository | `ready` refuses nothing for it, and `status` says an approval can't be told from one waiting on a merge                 |
-| `template` for a kind it doesn't know                                                             | Exit 2, naming the kinds                                                                                                |
-| The record's root doesn't exist                                                                   | `status` and `ready` say so and exit 1, as `check` does                                                                 |
-| The router can't be dispatched                                                                    | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
-| The router's reply names no size                                                                  | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
-| The router's reason names no path or identifier                                                   | `full`, `ambiguous`, "the router's reason named nothing it read", and the override words                                |
-| The repository declares no record                                                                 | The route as the router gave it, and that no record is declared; the skill proceeds to the work and runs no step's gate |
-| A person overrode the router's route                                                              | The route as overridden, and the route the router gave                                                                  |
-| `route reduced` for work no approved record authorises                                            | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
-| A route came with the request or the brief                                                        | The route as given, and that no router ran                                                                              |
-| The router reports `BLOCKED`                                                                      | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
-| The router's reply carries no outcome line                                                        | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
-| No binary for the machine                                                                         | The launcher reports the record as not checked and exits 3                                                              |
+| Condition                                                                                                                                   | What happens                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ready` names an input that doesn't exist                                                                                                   | Exit 1, the input named as missing                                                                                      |
+| `ready` for a step it doesn't know                                                                                                          | Exit 2, naming the seven steps in order                                                                                 |
+| `ready` for `cover`, `document` or `verify`                                                                                                 | Exit 2, naming the step that took its work (ADR-2300)                                                                   |
+| `ready implement` on a task absent from the trunk, or a draft there                                                                         | Exit 1, naming the task and the trunk                                                                                   |
+| No trunk declared, no git work tree, a trunk naming no branch, a record outside the repository, or a task reached through a link leaving it | `ready` refuses nothing for it, and `status` says an approval can't be told from one waiting on a merge                 |
+| `template` for a kind it doesn't know                                                                                                       | Exit 2, naming the kinds                                                                                                |
+| The record's root doesn't exist                                                                                                             | `status` and `ready` say so and exit 1, as `check` does                                                                 |
+| The router can't be dispatched                                                                                                              | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
+| The router's reply names no size                                                                                                            | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
+| The router's reason names no path or identifier                                                                                             | `full`, `ambiguous`, "the router's reason named nothing it read", and the override words                                |
+| The repository declares no record                                                                                                           | The route as the router gave it, and that no record is declared; the skill proceeds to the work and runs no step's gate |
+| A person overrode the router's route                                                                                                        | The route as overridden, and the route the router gave                                                                  |
+| `route reduced` for work no approved record authorises                                                                                      | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
+| A route came with the request or the brief                                                                                                  | The route as given, and that no router ran                                                                              |
+| The router reports `BLOCKED`                                                                                                                | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
+| The router's reply carries no outcome line                                                                                                  | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
+| No binary for the machine                                                                                                                   | The launcher reports the record as not checked and exits 3                                                              |
 
 Where two of the route's rows apply, the report carries both, and the
 `route reduced` row decides the route over the row for a route given with the
