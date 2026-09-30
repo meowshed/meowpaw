@@ -5,7 +5,8 @@ status: approved
 revised: 2026-09-30
 realises: ADR-2330
 closes: [REQ-3324, REQ-3326]
-issue:
+issue: 784
+projected: 924721f27769
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
