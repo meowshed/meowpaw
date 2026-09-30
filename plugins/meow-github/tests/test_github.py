@@ -102,7 +102,8 @@ class History(unittest.TestCase):
     def test_a_refused_listing_leaves_the_history_unread(self):
         done, _ = self.run_history(refuse="repos/o/r/issues/comments?per_page=100")
         self.assertEqual(done.returncode, 3, done.stdout)
-        self.assertIn("meow-github history: unread: conversation comments, repos/o/r/issues/comments?per_page=100: HTTP 403", done.stdout)
+        self.assertIn("meow-github history: unread: conversation comments: refused: GET "
+                      "repos/o/r/issues/comments?per_page=100 needs ", done.stdout)
         self.assertIn("read before it stopped: issues and pull requests, pull requests;", done.stdout)
         self.assertNotIn('"issues"', done.stdout)
 
