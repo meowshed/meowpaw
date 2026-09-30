@@ -916,6 +916,85 @@ class Partial(Layered, unittest.TestCase):
         self.assertEqual(len(read), 5, done.stdout)
 
 
+class Refusal(Layered, unittest.TestCase):
+    """ADR-1810: a refused call is reported with its method, its endpoint and the permission GitHub named."""
+
+    def refused_create(self, status, headers, message):
+        """A `project` run whose first create is answered with `status`, `headers` and `message`, as its result
+        and the lines it printed."""
+        root = Project.repository(self)
+        answer = {"status": status, "headers": headers, "body": {"message": message}}
+        self.stand_in(root, {"responses": {"POST repos/o/r/issues": [answer]}})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertNotIn("throttled", done.stdout)
+        self.assertEqual(len([c for c in self.calls(root) if create(c)]), 1)
+        return done.stdout.splitlines()
+
+    def test_a_403_names_the_github_permission(self):
+        """TSK-2970 criterion 1, REQ-2574: a create answered 403 with `X-Accepted-GitHub-Permissions: issues=write`
+        prints `refused: POST repos/o/r/issues needs issues=write` and exits 3."""
+        lines = self.refused_create(403, {"X-Accepted-GitHub-Permissions": "issues=write"},
+                                    "Resource not accessible by personal access token")
+        self.assertEqual(lines.count("refused: POST repos/o/r/issues needs issues=write"), 1, lines)
+
+    def test_a_403_names_the_oauth_scopes(self):
+        """TSK-2970 criterion 2, REQ-2574: a 403 carrying only `X-Accepted-OAuth-Scopes` and `X-OAuth-Scopes` names
+        the accepted scopes and the credential's own."""
+        lines = self.refused_create(403, {"X-Accepted-OAuth-Scopes": "repo", "X-OAuth-Scopes": "read:org, gist"},
+                                    "Must have admin rights to Repository.")
+        self.assertEqual(lines.count(
+            "refused: POST repos/o/r/issues needs one of the scopes repo; the credential holds read:org, gist"),
+            1, lines)
+
+    def test_a_403_naming_nothing_quotes_github(self):
+        """TSK-2970 criterion 3, REQ-2574: a 403 carrying neither header says `GitHub named no permission` and
+        quotes GitHub's message."""
+        lines = self.refused_create(403, {}, "Must have admin rights to Repository.")
+        self.assertEqual(lines.count(
+            'refused: POST repos/o/r/issues needs a permission: GitHub named no permission and said '
+            '"Must have admin rights to Repository."'), 1, lines)
+
+    def test_a_404_on_a_mapped_issue_may_be_hidden(self):
+        """TSK-2970 criterion 4, REQ-2574: a 404 on a task's mapped issue is reported as a refusal, with
+        `, or it is hidden from this credential` added, and the run exits 3."""
+        root = Project.repository(self)
+        self.stand_in(root, {})
+        first = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        missing = {"status": 404, "body": {"message": "Not Found"}}
+        self.stand_in(root, {"responses": {"GET repos/o/r/issues/1": [missing]}})
+        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        found = [line for line in done.stdout.splitlines() if line.startswith("refused: GET repos/o/r/issues/1 needs ")]
+        self.assertEqual(len(found), 1, done.stdout)
+        self.assertIn('GitHub named no permission and said "Not Found"', found[0])
+        self.assertTrue(found[0].endswith(", or it is hidden from this credential"), found[0])
+
+    def test_a_401_is_unauthenticated(self):
+        """TSK-2970 criterion 5, REQ-2574: a 401 prints `unauthenticated: <method> <endpoint>` and exits 3."""
+        lines = self.refused_create(401, {}, "Bad credentials")
+        self.assertEqual(lines.count("unauthenticated: POST repos/o/r/issues"), 1, lines)
+
+    def test_history_reports_a_refusal_as_unread(self):
+        """TSK-2970, REQ-2574: `history` reports a refused listing as unread, naming the listing, with the same
+        permission text, and prints no document."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        refused = {"status": 403, "headers": {"X-Accepted-GitHub-Permissions": "pull_requests=read"},
+                   "body": {"message": "Resource not accessible by personal access token"}}
+        self.stand_in(root, {"listings": SINGLE_PAGES,
+                             "responses": {"GET repos/o/r/pulls?state=all&per_page=100": [refused]}})
+        done = self.meow_github(root, "history", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        unread = [line for line in done.stdout.splitlines() if line.startswith("meow-github history: unread: ")]
+        self.assertEqual(len(unread), 1, done.stdout)
+        self.assertIn("pull requests", unread[0])
+        self.assertIn("refused: GET repos/o/r/pulls?state=all&per_page=100 needs pull_requests=read", unread[0])
+        self.assertNotIn('"issues"', done.stdout)
+
+
 class Credential(Layered, unittest.TestCase):
     """ADR-1810: every run names the credential's form, read from whether a variable is set, never its value."""
 
