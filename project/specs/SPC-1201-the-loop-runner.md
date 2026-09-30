@@ -107,8 +107,9 @@ reads, and every step but `research` requires it, while `research` refuses it.
 `review` isn't a step a run takes.
 `--iterations` is an integer of 1 or more, written in digits alone, and
 `--budget-usd` a number above 0, in US dollars, written as digits with at
-most one point between them, because the amount reaches `claude` as typed
-and a form only the runner reads would fail every call. `--permission-mode` accepts `dontAsk` alone, because it's
+most one point between them, because every reader of `run.toml`, the runner
+and a person, then takes the same amount from it. A call gets the budget left
+as a number, not as typed. `--permission-mode` accepts `dontAsk` alone, because it's
 the one mode RES-0300 saw run a call. `bypassPermissions` is refused, because
 a run would then cross every permission the person hasn't declared
 (ADR-2010).
