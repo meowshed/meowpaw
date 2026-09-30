@@ -8,7 +8,6 @@ describes:
     meow-git@0.2.3,
     meow-github@0.6.0,
     meow-flow@0.43.0,
-    meow-method@0.30.0,
     meow-prose-gate@0.2.2,
     meow-scm@0.4.2,
     meow-verbs@0.7.1,
@@ -128,9 +127,9 @@ nothing newly approved, it says what it is waiting on.
 
 ## meow-method is now meow-flow
 
-`meow-method is now meow-flow` means the unit you installed as `meow-method`
-was renamed, and the copy under the old name is a stub with no skill and no
-`paw`. Move the install:
+`meow-method is now meow-flow` means you still have the stub installed under
+the unit's old name. The marketplace no longer ships it, so it gets no update.
+Move the install:
 
 ```bash
 claude plugin install meow-flow@meowpaw

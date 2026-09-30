@@ -1,6 +1,0 @@
-# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
-# SPDX-License-Identifier: Apache-2.0
-
-# The stub loads nothing on a turn: its only content is a notice printed when
-# a session starts (ADR-1390).
-permanent_characters = 0
