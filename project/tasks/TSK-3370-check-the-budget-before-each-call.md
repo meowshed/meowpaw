@@ -80,8 +80,41 @@ TSK-3350, because this task adds a check to the loop that task writes.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`run` in `crates/meow/src/runloop.rs` keeps the spend so far and the largest
+single call's cost. Before each call it ends the run `budget` where their sum
+is above the budget. After each call it writes the log's line with `sum_usd`,
+ends the run `unmetered` where the result holds no cost, adds the cost, and
+ends the run `budget` where the result's subtype is `error_max_budget_usd`,
+all before it evaluates the condition. `call` passes `--max-budget-usd` as
+the budget less the spend so far.
+
+Criteria 1 to 5 are closed by the checks they name, in
+`plugins/meow-loop/tests/test_loop.py`:
+
+1. `Budget.test_forecast_before_the_call`
+2. `Budget.test_unmetered`
+3. `Budget.test_platform_cap_ends_the_run`
+4. `Budget.test_cap_is_the_budget_left`
+5. `Budget.test_sum_so_far_is_logged`
+
+No criterion rests on judgement. The five checks failed first, in the commit
+that holds them alone, where the `test` verb exited 1. That commit also
+changes `Files.test_run_directory`, which asserted the log held no sum and now
+reads the two sums, and it failed there too. Criterion 6 is closed by the
+pull request, where `format`, `lint`, `check`, `test` and `build` each pass on
+the change's tree.
+
+I made three choices the task leaves open. The log's field is `sum_usd`, the
+name TSK-3350's check already used for its absence, and it is `null` on the
+line of a call that reported no cost. A cost that is negative or not finite
+counts as no cost, because adding it would lower the spend or make it
+unreadable. The run prints one line saying why it ended before its last line,
+such as the spend, the largest call and the budget.
+
+No real call ran, so the subtype `error_max_budget_usd` and the field
+`total_cost_usd` are as RES-0300 recorded them and the stand-in prints them.
+`meow-loop` goes to 0.3.0, and its README states the two endings, the check
+before a call and the sum in the log.
 
 ## Left alone
 
