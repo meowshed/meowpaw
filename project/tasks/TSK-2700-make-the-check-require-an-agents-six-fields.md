@@ -107,35 +107,31 @@ once it writes a list. Front matter that doesn't parse fails with the parser's
 reason and runs no field rule. The `author` feature now builds with
 `yaml-rust2`, which the `gotask` feature already uses.
 
-`record-reviewer`, `router` and `prose` declare the values in SPC-1030's
-table, and
-`plugins/meow-flow/evals/review-without-delegating/` is the hand-run case for
-criterion 7, with its threshold in `thresholds.toml`. Nobody has run it yet,
-so criterion 7 is open until a person runs it and keeps the transcript.
+`router` and `prose`, the two agents the harness ships, declare the values in
+SPC-1030's table. `router` joined the harness in #669 after this task was
+written, so #667 gave it the six fields and a row in that table, because the
+check fails it without them. `ShippedAgents` in `tools/test_shipped_agents.py`
+holds both agents to the table.
 
-The 26 checks in `AgentFields` failed first: the `test` verb exited 1, seen
-in the run under #667, whose output is no longer kept, in the commit that held the checks
-alone. They pass now, and `git diff 4aad79e -- plugins/meow-author/tests/test_author.py`
-prints nothing:
+Criteria 1 to 5 are closed by the checks in `AgentFields`, in
+`plugins/meow-author/tests/test_author.py`, under the names each criterion
+gives. They failed first: commit 4aad79e held them alone, and the `test` verb
+exited 1 on it in #667. The class reads today as it did in that commit, so no
+check was weakened to pass.
 
-```text
-$ python3 -m unittest plugins/meow-author/tests/test_author.py
-Ran 40 tests in 1.740s
-OK                                   # exit 0
-$ plugins/meow-author/bin/meow-author check
-51 files, 0 authoring failures       # exit 0
-```
+Criterion 6 is closed by the gate in #667, and again by the pull request that
+marks this task done, where `format`, `lint`, `check`, `test` and `build` each
+pass. `lint` runs `mise run prompts`, and `test` runs `AgentFields` and
+`ShippedAgents`.
 
-`router` joined the harness in #669 after this task was written, so it gains
-the six fields and a row in SPC-1030's table in this change; without them the
-check fails it and the gate goes red. `ShippedAgents` passes once it has
-both.
+No criterion rests on judgement. Criterion 7 is dropped: ADR-2300 removed
+`record-reviewer` and the hand-run case `review-without-delegating`, so
+nothing here waits on a person.
 
-`meow-author` goes to 0.4.0, because the check fails agents it passed before,
-and `meow-flow` to 0.39.2 and `meow-prose` to 0.4.1 for their agents'
-declarations. `meow-verbs evidence --keep format lint check test build` exits
-0 on this change's own tree, each result kept in `project/evidence/`, as the
-pull request cites.
+`meow-author` went to 0.4.0 in #667, because the check fails agents it
+passed before, and `meow-flow` to 0.39.2 and `meow-prose` to 0.4.1 for their agents'
+declarations. No page changes with this mark, because #667 updated each
+unit's README with the check.
 
 ## Left alone
 
