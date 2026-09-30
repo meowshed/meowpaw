@@ -358,6 +358,49 @@ class Subset(unittest.TestCase):
         self.assertEqual([r["targets"] for r in records], [None, ["a"]])
 
 
+class NoKeptEvidence(unittest.TestCase):
+    """TSK-3830, ADR-2300, REQ-3614: the repository keeps no run output, so `evidence` keeps and lists none."""
+
+    PROFILE = '[verbs]\ntest = "echo tested"\n'
+
+    def repo(self):
+        repository = Repository(self.PROFILE)
+        self.addCleanup(repository.close)
+        repository.git("init", "-q", "-b", "work")
+        return repository
+
+    def test_keep_is_refused_and_writes_nothing(self):
+        """Criterion 2: `evidence --keep` exits 2 naming ADR-2300, and no evidence directory appears."""
+        repo = self.repo()
+        self.assertEqual(repo.run("run", "test").returncode, 0)
+        done = repo.run("evidence", "--keep", "test")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("kept evidence was removed by ADR-2300", done.stderr)
+        self.assertFalse((repo.root / "project").exists())
+
+    def test_kept_is_refused(self):
+        """Criterion 2: `evidence --kept` has nothing to list, and says why."""
+        done = self.repo().run("evidence", "--kept")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("kept evidence was removed by ADR-2300", done.stderr)
+
+    def test_an_evidence_directory_is_part_of_the_tree(self):
+        """REQ-3614: nothing is left out of the tree id, so a file under `project/evidence` stales a result."""
+        repo = self.repo()
+        self.assertEqual(repo.run("run", "test").returncode, 0)
+        (repo.root / "project" / "evidence").mkdir(parents=True)
+        (repo.root / "project" / "evidence" / "a.txt").write_text("x", encoding="utf-8")
+        done = repo.run("evidence", "test")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("stale", done.stdout)
+
+    def test_state_names_no_evidence_directory(self):
+        """REQ-3614: `state` reports the ledger and no evidence directory."""
+        repo = self.repo()
+        repo.run("run", "test")
+        self.assertNotIn("evidence directory", repo.run("state").stdout)
+
+
 class Kept(unittest.TestCase):
     """ADR-1530: a cited record is kept in the repository, outside the tree id."""
 
