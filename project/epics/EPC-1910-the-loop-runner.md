@@ -115,9 +115,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       five verbs pass. TSK-3370 carries the rest.
       depends: TSK-3350, because it adds a check to the loop that task writes
 
-- [ ] T-004 [P] TSK-3380 end the run `idle` after two iterations in a row
+- [x] T-004 [P] TSK-3380 end the run `idle` after two iterations in a row
       that change neither the tree nor the progress file
       closes: REQ-0886
+      evidence: the four checks in `Idle` pass after failing first, and the
+      five verbs pass. TSK-3380 carries the rest.
       depends: TSK-3350, because it reads the tree id and the progress file
       that task and the loop it writes record
 

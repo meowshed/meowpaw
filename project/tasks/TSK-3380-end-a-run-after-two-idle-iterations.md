@@ -69,8 +69,36 @@ task records.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`run` in `crates/meow/src/runloop.rs` hashes `progress/progress.md` before
+and after each call and reads the tree id on both sides. An iteration changes
+nothing when both tree ids are identified and equal and the hash is the same.
+After the condition, two such iterations in a row end the run `idle`. Each
+`log.jsonl` line gains `progress_changed` and `unidentified`.
+
+Criteria 1 to 4 are closed by the checks they name, in
+`plugins/meow-loop/tests/test_loop.py`:
+
+1. `Idle.test_two_idle_iterations_end_the_run`
+2. `Idle.test_progress_alone_is_a_change`
+3. `Idle.test_idle_iterations_must_be_consecutive`
+4. `Idle.test_unidentified_tree_is_a_change`
+
+No criterion rests on judgement. The four checks failed first, in the commit
+that holds them alone, where the `test` verb exited 1. That commit also
+changes `Unchanged.test_an_unchanged_tree_skips_the_verbs`, whose stand-in
+changes nothing and so now ends `idle` after two of three calls, and it failed
+there too. Criterion 5 is closed by the pull request, where `format`, `lint`,
+`check`, `test` and `build` each pass on the change's tree.
+
+I made three choices the task leaves open. A progress file the runner can't
+read counts as changed, as an unidentified tree does, so neither ends a run
+`idle`. An absent progress file is a state of its own, so a call that removes
+the file changes it and later calls that leave it absent can end the run
+`idle`; `Idle.test_a_removed_progress_file_can_go_idle` checks it. `unidentified` is true where either tree id, before or after the
+call, is `none`.
+
+`meow-loop` goes to 0.4.0, and its README states the ending and the two
+fields.
 
 ## Left alone
 
