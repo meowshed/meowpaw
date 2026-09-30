@@ -816,17 +816,6 @@ class Chain(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stderr)
         return Path(done.stdout.strip()).read_text(encoding="utf-8")
 
-    def test_the_task_template_carries_a_cover(self):
-        """TSK-2550 criterion 6, REQ-3200: the task template has `## Cover`, reading `Not yet.`, naming the four lines."""
-        text = self.template("task")
-        self.assertIn("\n## Cover\n", text)
-        headings = re.findall(r"^## (.+)$", text, re.MULTILINE)
-        self.assertEqual(headings[headings.index("Depends on") + 1], "Cover", headings)
-        cover = text.split("\n## Cover\n", 1)[1].split("\n## ", 1)[0]
-        self.assertIn("Not yet.", cover)
-        for line in ("Checks", "Failing run", "Landed in", "Judgement"):
-            self.assertIn(line, cover, line)
-
     def test_the_bug_template_names_no_retired_step(self):
         """REQ-3638: the bug template's `enters` comment names no step a draft is refused for."""
         enters = [line for line in self.template("bug").splitlines() if line.startswith("enters:")]
@@ -1892,7 +1881,7 @@ class Dependencies(unittest.TestCase):
                             for body in beside), beside)
 
 
-STEPS = ("research", "requirements", "design", "spec", "epic", "cover", "implement", "document", "verify", "review")
+STEPS = ("research", "requirements", "design", "spec", "epic", "implement", "review")
 METHOD = UNIT / "skills" / "method"
 REPOSITORY = UNIT.parent.parent
 
@@ -1904,9 +1893,7 @@ LANDS = {
     "design": ["adrs/adr-nnnn-<slug>.md"],
     "spec": ["specs/spc-nnnn-<topic>.md"],
     "epic": ["epics/epc-nnnn-<slug>.md", "tasks/tsk-nnnn-<slug>.md"],
-    "cover": ["tasks/tsk-nnnn-<slug>.md", "cover", "kept", "evidence_dir"],
-    "implement": ["tasks/tsk-nnnn-<slug>.md", "evidence", "kept runs", "evidence_dir"],
-    "verify": ["epics/epc-nnnn-<slug>.md", "kept evidence", "evidence_dir"],
+    "implement": ["tasks/tsk-nnnn-<slug>.md", "evidence", "test files", "user-facing page"],
 }
 RECORD_ROOT = ("[record] root", ".meowpaw/profile.toml", "project/")
 
@@ -2036,7 +2023,7 @@ class Grouping(unittest.TestCase):
 
 
 class MethodSkill(unittest.TestCase):
-    """ADR-1620: the method's prompts name ten steps (REQ-3200) and where each step's artifact lands (REQ-3203)."""
+    """ADR-2300: the method's prompts name seven steps (REQ-3638) and where each step's artifact lands (REQ-3203)."""
 
     def step(self, name):
         path = METHOD / "steps" / f"{name}.md"
@@ -2048,141 +2035,23 @@ class MethodSkill(unittest.TestCase):
         pattern = r",\s+".join(STEPS[:-1]) + r",?\s+and\s+" + STEPS[-1]
         self.assertRegex(re.sub(r"\s+", " ", text), pattern, where)
 
-    def test_the_skill_names_ten_steps_in_order(self):
-        """TSK-2550 criterion 1, REQ-3200: SKILL.md's body and description name the ten steps in order."""
-        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
-        front, body = text.split("\n---\n", 1)
-        description = next(line for line in front.splitlines() if line.startswith("description:"))
-        self.assertInOrder(description, "description")
-        self.assertInOrder(body, "body")
-
-    def test_each_step_has_one_file(self):
-        """TSK-2550 criterion 1, REQ-3200: `steps/` holds one file for each of the ten steps and no other."""
-        self.assertEqual(sorted(p.stem for p in (METHOD / "steps").glob("*.md")), sorted(STEPS))
-
     def test_each_role_names_where_its_artifact_lands(self):
-        """TSK-2574 criteria 1 to 3, REQ-3203: each role names its path pattern under the record root, cover,
-        implement and verify the evidence directory, document a page outside the record root, and review nothing."""
+        """REQ-3203: each role names its path pattern under the record root, implement its tests, pages and
+        Evidence, and review nothing."""
         for name, patterns in LANDS.items():
             role = flat(tagged(self.step(name), "role"))
             for phrase in RECORD_ROOT + tuple(patterns):
                 with self.subTest(step=name, phrase=phrase):
                     self.assertIn(phrase, role)
-        document = flat(tagged(self.step("document"), "role"))
-        self.assertIn("outside the record root", document)
-        self.assertIn("documentation", document)
-        self.assertIn("writes nothing into the repository", flat(tagged(self.step("review"), "role")))
-
-    def test_cover_writes_checks_only(self):
-        """TSK-2550 criterion 4, REQ-3200: cover writes checks and no implementation code, sees them fail, keeps
-        the run, lands the checks, fills the four lines of `## Cover`, and hands over to implement."""
-        text = self.step("cover")
-        whole = flat(text)
-        self.assertRegex(flat(tagged(text, "role")), r"the step that picks it up is implement\b")
-        self.assertIn("paw ready cover", whole)
-        self.assertRegex(whole, r"\b(no|never|not)\b[^.]*\bimplementation code\b")
-        self.assertRegex(whole, r"\brun\b[^.]*\bfail")
-        self.assertIn("meow-verbs evidence --keep", whole)
-        self.assertRegex(whole, r"\bland\b[^.]*\bchecks\b|\bchecks\b[^.]*\blanded?\b")
-        self.assertIn("## Cover", text)
-        for line in ("checks:", "failing run:", "landed in:", "judgement:"):
-            self.assertIn(line, whole, line)
-
-    def test_epic_hands_over_to_cover(self):
-        """TSK-2550 criterion 5, REQ-3200: the epic step's role names cover as the step that picks it up."""
-        self.assertRegex(flat(tagged(self.step("epic"), "role")), r"the step that picks it up is cover\b")
-
-    def test_implement_runs_the_cover_checks(self):
-        """TSK-2550 criterion 5, REQ-3200: implement's step 3 runs the cover step's checks and sees them pass,
-        and no longer writes the task's checks."""
-        steps = tagged(self.step("implement"), "steps")
-        third = re.search(r"^3\.(.*?)(?=^\d+\.|\Z)", steps, re.MULTILINE | re.DOTALL)
-        self.assertIsNotNone(third, steps)
-        third = flat(third.group(1))
-        self.assertIn("cover", third)
-        self.assertRegex(third, r"\brun")
-        self.assertRegex(third, r"\bpass")
-        self.assertNotRegex(third, r"\bwrite a check\b")
-
-    def test_a_partial_review_is_unreviewed(self):
-        """TSK-2701 criterion 2, REQ-2974, SPC-1090 "The review before a gate": a rule beside M22 reports a record
-        whose review came back marked as stopped at the agent's ceiling as unreviewed by an agent, with its
-        reason."""
-        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
-        items = re.findall(r"^- (M\d+)\.\s(.*?)(?=^- M\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
-        idents = [ident for ident, _ in items]
-        self.assertIn("M22", idents)
-        matching = [ident for ident, body in items
-                    if re.search(r"\bceiling\b", flat(body)) and "unreviewed by an agent" in flat(body) and "because" in flat(body)]
-        self.assertTrue(matching, "no rule in the method skill reports a review stopped at its ceiling as unreviewed by an agent")
-        beside = {idents[i] for i in (idents.index("M22") - 1, idents.index("M22") + 1) if 0 <= i < len(idents)}
-        self.assertTrue(beside & set(matching), f"the rule {matching} isn't beside M22")
-
-    def test_the_skill_acts_on_the_reviewers_outcome(self):
-        """TSK-2702 criterion 4, REQ-0816, SPC-1090 "The review before a gate": a rule beside M22 and M23 acts on
-        each of the four outcomes by the table's row, dispatches once more after NEEDS_CONTEXT and no more, reads
-        the line allowing leading space, and reports a return with no outcome line as unreviewed by an agent."""
-        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
-        items = re.findall(r"^- (M\d+)\.\s(.*?)(?=^- M\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
-        idents = [ident for ident, _ in items]
-        self.assertIn("M22", idents)
-        self.assertIn("M23", idents)
-        acting = [(ident, body) for ident, body in items if "outcome" in body and "NEEDS_CONTEXT" in body]
-        self.assertTrue(acting, "no rule in the method skill acts on the reviewer's outcome")
-        near = {idents[i] for anchor in ("M22", "M23") for i in (idents.index(anchor) - 1, idents.index(anchor) + 1)
-                if 0 <= i < len(idents)} - {"M22", "M23"}
-        self.assertTrue(near & {ident for ident, _ in acting}, f"the rules {[i for i, _ in acting]} aren't beside M22 and M23")
-        rule = "\n".join(body for _, body in acting)
-        self.assertEqual(outcomes_named(rule), set(OUTCOMES))
-        for word, pattern, what in (
-            ("DONE", r"finding", "DONE acts on the findings"),
-            ("DONE_WITH_CONCERNS", r"gate report", "DONE_WITH_CONCERNS names the part that didn't run in the gate report"),
-            ("NEEDS_CONTEXT", r"\bbrief\b", "NEEDS_CONTEXT corrects the brief"),
-            ("NEEDS_CONTEXT", r"once more|one more|again|second dispatch|dispatch(es)? (a|one) second", "NEEDS_CONTEXT dispatches once more"),
-            ("NEEDS_CONTEXT", r"\bround\b", "the second dispatch doesn't count as a repair round"),
-            ("BLOCKED", r"unreviewed by an agent", "BLOCKED leaves the record unreviewed by an agent"),
-            ("BLOCKED", r"\btool\b", "BLOCKED names the tool"),
-        ):
-            with self.subTest(what=what):
-                self.assertTrue(together(rule, word, pattern), what)
-        with self.subTest(what="a second NEEDS_CONTEXT ends it, unreviewed, naming the brief sent"):
-            self.assertTrue(any(re.search(r"\b(second|another|again)\b", s, re.I) and "unreviewed by an agent" in s.lower()
-                                and "brief" in s.lower() for s in sentences(rule) if word_in("NEEDS_CONTEXT", s)), rule)
-        with self.subTest(what="leading space"):
-            self.assertRegex(flat(rule), r"leading (white ?)?space")
-        with self.subTest(what="no outcome line is unreviewed by an agent"):
-            self.assertTrue(any("no outcome line" in s.lower() and "unreviewed by an agent" in s.lower()
-                                for s in sentences(rule)), rule)
-
-    def test_the_review_step_dispatches_the_two_reviewers(self):
-        """TSK-2702 criterion 5, REQ-0816, SPC-1090 "The review before a gate": W13 dispatches record-reviewer for
-        each record and prose for each other prose text, names each by its path or as text, keeps a read-only
-        agent for the code, and reports a review with no outcome line as not run."""
-        text = self.step("review")
-        found = re.search(r"^- W13\.\s(.*?)(?=^- W\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
-        self.assertIsNotNone(found, "the review step has no W13")
-        rule = found.group(1)
-        whole = flat(rule)
-        for pattern, what in (
-            (r"record-reviewer[^.;]*\beach record|\beach record[^.;]*record-reviewer", "record-reviewer for each record"),
-            (r"\bprose\b[^.;]*\bother prose text|\bother prose text[^.;]*\bprose\b", "prose for each other prose text"),
-            (r"\bby its path\b|\bits path\b", "each named by its path"),
-            (r"\bas text\b", "a text with no file goes in the brief as text"),
-            (r"\bread-only\b[^.;]*\bcode\b|\bcode\b[^.;]*\bread-only\b", "a read-only agent for the code"),
-        ):
-            with self.subTest(what=what):
-                self.assertRegex(whole, pattern)
-        with self.subTest(what="no outcome line is not run"):
-            self.assertTrue(any("no outcome line" in s.lower() and re.search(r"\bnot run\b", s.lower())
-                                for s in sentences(rule)), rule)
+        self.assertIn("writes no finding into the record", flat(tagged(self.step("review"), "role")))
 
     def chain(self, text):
         block = next(b for b in re.findall(r"```text\n(.*?)```", text, re.DOTALL) if "research ->" in b)
         return tuple(name.strip() for name in block.split("->")), text.split(block, 1)[0]
 
-    def test_the_living_documents_name_ten_steps(self):
-        """TSK-2550 criterion 7, REQ-3200: the chain in CLAUDE.md's own_method_first and in the vision is ten
-        steps with cover between epic and implement, and the vision's sentence before it no longer says nine."""
+    def test_the_living_documents_name_the_chain(self):
+        """REQ-3638: the chain in CLAUDE.md's own_method_first and in the vision is the seven steps, and the
+        vision's sentence before it says seven."""
         constitution = (REPOSITORY / "CLAUDE.md").read_text(encoding="utf-8")
         principle = tagged(constitution, "principle")
         self.assertIn("own_method_first", constitution.split(principle, 1)[0][-80:])
@@ -2190,8 +2059,8 @@ class MethodSkill(unittest.TestCase):
         steps, before = self.chain((REPOSITORY / "project" / "vision.md").read_text(encoding="utf-8"))
         self.assertEqual(steps, STEPS)
         introduction = before.rstrip().removesuffix("```text").rstrip().rsplit("\n\n", 1)[-1].lower()
-        self.assertNotRegex(introduction, r"\bnine\b")
-        self.assertRegex(introduction, r"\bten\b")
+        self.assertNotRegex(introduction, r"\b(nine|ten)\b")
+        self.assertRegex(introduction, r"\bseven\b")
 
 
 AGENTS = UNIT / "agents"
@@ -2209,38 +2078,6 @@ class AgentReports(unittest.TestCase):
         for word, pattern in rows:
             with self.subTest(outcome=word):
                 self.assertTrue(together(text, word, pattern), f"no sentence says when {word} is reported ({pattern})")
-
-    def test_the_reviewer_names_the_four_outcomes(self):
-        """TSK-2702 criterion 3, REQ-0816: record-reviewer names DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT and BLOCKED."""
-        self.assertEqual(outcomes_named(self.agent("record-reviewer")), set(OUTCOMES))
-
-    def test_the_reviewer_says_when_it_reports_each_outcome(self):
-        """TSK-2702 criterion 3, REQ-0816, SPC-1090 "The review before a gate": DONE after every question, whatever
-        it found; DONE_WITH_CONCERNS where a cited record couldn't be reached or the kind has no question set;
-        NEEDS_CONTEXT where the path doesn't exist or holds no record; BLOCKED where a tool call was denied."""
-        self.when(self.agent("record-reviewer"), (
-            ("DONE", r"every question"),
-            ("DONE_WITH_CONCERNS", r"reach|no (question )?set|could ?n.t run|did ?n.t run"),
-            ("NEEDS_CONTEXT", r"exist|no record|names nothing"),
-            ("BLOCKED", r"denied"),
-        ))
-
-    def test_the_reviewers_outcome_is_its_second_line_and_the_cause_its_third(self):
-        """TSK-2702 criterion 3, REQ-0816, SPC-1030 "What an agent reports": the outcome line goes second, below the
-        fixed label, and the cause third."""
-        text = self.agent("record-reviewer")
-        self.assertTrue(any("outcome:" in s and re.search(r"second line", s, re.I) for s in sentences(text)),
-                        "no sentence puts outcome: on the second line")
-        self.assertTrue(any(re.search(r"\bcause\b", s, re.I) and re.search(r"third line", s, re.I) for s in sentences(text)),
-                        "no sentence puts the cause on the third line")
-        self.assertIn("Agent review, not a person's approval; the reviewer may share the author's model family.", text)
-
-    def test_the_reviewer_quotes_no_more_than_the_span(self):
-        """TSK-2702 criterion 3, REQ-0816, SPC-1030 "What an agent reports": record-reviewer quotes nothing beyond
-        the span a finding names, 25 words at most."""
-        text = self.agent("record-reviewer")
-        self.assertTrue(any(re.search(r"\bquot", s, re.I) and re.search(r"\bspan\b", s, re.I) and re.search(r"\b25 words\b", s)
-                            for s in sentences(text)), "no rule limits a quotation to the finding's span, 25 words at most")
 
     def test_the_router_names_the_four_outcomes(self):
         """TSK-2702 criterion 3, REQ-0816: router names DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT and BLOCKED."""
@@ -2564,6 +2401,97 @@ class SevenSteps(unittest.TestCase):
         self.direct(repository, evidence="In #1: the checks pass.")
         self.assertIn("closed: ADR-0001 (1 task done)", repository.run("status").stdout)
         self.assertIn("State\n  closed\n  TSK-0001 done in ADR-0001\n", repository.run("show", "REQ-0001").stdout)
+
+
+class ShortChainPrompts(unittest.TestCase):
+    """TSK-3820, ADR-2300: the prompts and templates ask for the seven-step chain."""
+
+    SEVEN = ["research", "requirements", "design", "spec", "epic", "implement", "review"]
+
+    def flat(self, path):
+        return re.sub(r"\s+", " ", path.read_text(encoding="utf-8"))
+
+    def test_the_skill_names_seven_steps_in_order(self):
+        """Criterion 1, REQ-3638: SKILL.md's description and body name the seven steps in order."""
+        text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
+        front, body = text.split("\n---\n", 1)
+        pattern = r",\s+".join(self.SEVEN[:-1]) + r",?\s+and\s+" + self.SEVEN[-1]
+        description = next(line for line in front.splitlines() if line.startswith("description:"))
+        self.assertRegex(description, pattern)
+        self.assertRegex(re.sub(r"\s+", " ", body), pattern)
+
+    def test_each_of_the_seven_steps_has_one_file(self):
+        """Criterion 1, REQ-3638: `steps/` holds one file for each of the seven steps and no other."""
+        self.assertEqual(sorted(p.stem for p in (METHOD / "steps").glob("*.md")), sorted(self.SEVEN))
+
+    def test_nothing_the_unit_ships_dispatches_a_record_reviewer_or_a_skeptic(self):
+        """Criterion 2, REQ-3624: no shipped file names the record reviewer or the skeptic, and the agent is gone."""
+        self.assertFalse((UNIT / "agents" / "record-reviewer.md").exists())
+        found = [str(path.relative_to(UNIT)) for path in sorted(UNIT.rglob("*"))
+                 if path.is_file() and "tests" not in path.parts and "bin" not in path.parts
+                 and re.search(r"record-reviewer|skeptic", path.read_text(encoding="utf-8", errors="replace"))]
+        self.assertEqual(found, [])
+
+    def test_implement_writes_the_tests_first(self):
+        """Criterion 3, REQ-3616, REQ-3640, REQ-3642, REQ-3644, REQ-3618: tests in a first commit that fails, not
+        weakened outside a commit saying why, and the documentation and the record marks in the same pull request."""
+        text = self.flat(METHOD / "steps" / "implement.md")
+        self.assertRegex(text, r"test for each acceptance criterion a program can check")
+        self.assertRegex(text, r"commit of their own.{0,80}before any (commit|code) that implements")
+        self.assertRegex(text, r"see each (one|test) fail")
+        self.assertRegex(text, r"(modify|weaken).{0,120}commit of its own.{0,60}why")
+        self.assertRegex(text, r"documentation.{0,120}same pull request|same pull request.{0,120}documentation")
+        self.assertRegex(text, r"mark the task.{0,80}same pull request")
+        self.assertRegex(text, r"Where every verb passed,.{0,260}mark the task")
+        self.assertRegex(text, r"Mark the task done only in a change whose verbs all passed, because")
+        self.assertNotRegex(text, r"its output")
+        self.assertRegex(text, r"Keep `Not yet\.` as the first line of the task's Evidence until every verb has passed, because")
+        self.assertRegex(text, r"Where a verb didn't pass, leave `Not yet\.` as the first line")
+
+    def test_review_is_a_code_review_in_the_pull_request(self):
+        """Criterion 4, REQ-3626, REQ-3612: a review of the change in its pull request, fixed there, written into no
+        record, reporting a test that would pass against a wrong implementation."""
+        text = self.flat(METHOD / "steps" / "review.md")
+        self.assertRegex(text, r"task's pull request")
+        self.assertRegex(text, r"fix.{0,80}in (that|the same) pull request")
+        self.assertRegex(text, r"Write no finding into the record")
+        self.assertRegex(text, r"writes no finding into the record")
+        self.assertRegex(text, r"agent with read-only tools")
+        self.assertRegex(text, r"fresh agent review the fixes, for at most two rounds")
+        self.assertRegex(text, r"End in one verdict")
+        self.assertRegex(text, r"would (still )?pass against a wrong implementation")
+
+    def test_the_templates_carry_no_cover_and_no_checked_at(self):
+        """Criterion 5, REQ-3616, REQ-3602: the task template has no Cover section and the epic no checked-at."""
+        templates = UNIT / "templates"
+        self.assertNotIn("## Cover", (templates / "task.md").read_text(encoding="utf-8"))
+        self.assertNotIn("checked-at", (templates / "epic.md").read_text(encoding="utf-8"))
+        self.assertIn("realises:", (templates / "task.md").read_text(encoding="utf-8"))
+
+    def test_the_living_documents_name_seven_steps(self):
+        """Criterion 6, REQ-3638: the constitution and the root README give the chain with seven steps."""
+        root = UNIT.parent.parent
+        chain = r"research -> requirements -> design -> spec -> epic\s+-> implement -> review"
+        for name in ("CLAUDE.md", "README.md", "project/vision.md"):
+            text = (root / name).read_text(encoding="utf-8")
+            self.assertRegex(text, chain, name)
+        for name in ("CLAUDE.md", "README.md", "project/vision.md", "llms.txt", "plugins/meow-flow/README.md"):
+            text = re.sub(r"\s+", " ", (root / name).read_text(encoding="utf-8"))
+            self.assertNotRegex(text, r"(?i)\b(nine|ten) steps\b", name)
+            self.assertRegex(text, r"(?i)\bseven steps\b", name)
+
+    def test_a_criterion_is_decidable_from_its_own_work(self):
+        """REQ-3628: the task and epic templates and the epic step ask for a criterion its own work decides."""
+        templates = UNIT / "templates"
+        self.assertIn("decidable from this task's own work", self.flat(templates / "task.md"))
+        self.assertIn("decidable from this epic's own work", self.flat(templates / "epic.md"))
+        self.assertRegex(self.flat(METHOD / "steps" / "epic.md"), r"own work decides, never a later epic's")
+
+    def test_the_epic_step_writes_a_lone_task_with_no_epic(self):
+        """REQ-3630: the epic step writes one task naming `realises:` where one task realises the decision."""
+        text = self.flat(METHOD / "steps" / "epic.md")
+        self.assertRegex(text, r"Where one task realises the decision, write that task alone, naming `realises: ADR-NNNN`")
+        self.assertRegex(text, r"Write no epic for a decision one task realises, because")
 
 
 if __name__ == "__main__":

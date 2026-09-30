@@ -34,6 +34,7 @@ states:
     REQ-3654,
     REQ-0132,
     REQ-0816,
+    REQ-0818,
     REQ-0147,
     REQ-0149,
     REQ-0151,
@@ -71,7 +72,6 @@ states:
     REQ-0236,
     REQ-0239,
     REQ-0240,
-    REQ-0241,
     REQ-0242,
     REQ-0243,
     REQ-0244,
@@ -100,13 +100,11 @@ states:
     REQ-0272,
     REQ-0273,
     REQ-0274,
-    REQ-0275,
     REQ-0276,
     REQ-0277,
     REQ-0285,
     REQ-0287,
     REQ-0289,
-    REQ-0291,
     REQ-0298,
     REQ-0300,
     REQ-0301,
@@ -128,7 +126,6 @@ states:
     REQ-0323,
     REQ-0324,
     REQ-0326,
-    REQ-0327,
     REQ-0329,
     REQ-0330,
     REQ-0331,
@@ -331,8 +328,8 @@ comes before the chain's first step and says where a request enters the chain.
 ADR-1130 decides it, and EPC-1100 realised it, verified under issue 202.
 ADR-1160 adds each step's obligations, and EPC-1160 realised them, verified
 under issue 237 with their measurement by evaluation still to come. ADR-1170's
-approvals and waiting report are verified under issue 249. ADR-1490 adds the
-review a record gets before its gate, and EPC-1470 realises it. ADR-1620 adds
+approvals and waiting report are verified under issue 249. ADR-1490 added the
+review a record got before its gate, which ADR-2300 supersedes. ADR-1620 adds
 the cover step, and EPC-1580 realised it; ADR-2300 folds that step into
 implement. ADR-1800 lets a task's dependency say whether it blocks, and
 EPC-1710 realised it, verified under issue 625: `paw` waits only on a
@@ -340,10 +337,10 @@ blocking dependency, and `dependency-declared` asks a draft for the marker.
 ADR-2300 shortens the chain to seven steps and supersedes ADR-1490, ADR-1530,
 ADR-1550, ADR-1560 and ADR-2200: a requirement closes with the tasks that name
 it, verify goes, cover and document fold into implement, no agent reviews a
-record, and the repository keeps no run output. EPC-2200 realises it. Until
-its tasks land, the method's prompts still name the cover, document and verify
-steps, which `paw ready` now refuses, and the method skill still dispatches
-the record reviewer; each passage this changes says "not yet".
+record, and the repository keeps no run output. EPC-2200 realises it. `paw`
+and the method's prompts name the seven steps, and nothing dispatches a record
+reviewer. Kept evidence still exists until TSK-3830 lands, and each passage
+that waits on it says "not yet".
 The skeptic ADR-2200 decided is dropped, and nothing dispatches it. The
 records written under the old chain migrate to the new shape (REQ-3652), and
 `meow-method` has left the marketplace (REQ-3654).
@@ -353,9 +350,8 @@ skill and this repository's `CLAUDE.md` name it. Its cases run by hand, so
 whether the skill loads before work on each model is measured there and not by
 the gate.
 ADR-1710 adds the outcome each dispatched agent reports and what its
-dispatcher does with it, and EPC-1651 realises it. Until its tasks land, the
-agents write no outcome line, and the method skill and the review step read a
-report as they did before.
+dispatcher does with it, and EPC-1651 realises it for the router and the
+prose reviewer.
 
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
@@ -365,18 +361,16 @@ bound ends the run, with the loop runner SPC-1201 states.
 
 ## Boundary
 
-| Surface                                       | What it is                                                              |
-| --------------------------------------------- | ----------------------------------------------------------------------- |
-| `plugins/meow-flow/skills/method/SKILL.md`    | What every step shares, and how to invoke one                           |
-| `plugins/meow-flow/skills/method/steps/`      | One file per step, read only for the step being run                     |
-| `plugins/meow-flow/skills/run/SKILL.md`       | `/meow-flow:run`, the command that drives the chain                     |
-| `plugins/meow-flow/agents/record-reviewer.md` | The agent that reviews a record before its gate                         |
-| `plugins/meow-flow/agents/skeptic.md`         | The agent that tries to refute what an epic claims (not yet; see Scope) |
-| `plugins/meow-flow/skills/route/SKILL.md`     | The skill that routes a request before work starts                      |
-| `plugins/meow-flow/agents/router.md`          | The read-only agent the route skill dispatches                          |
-| `plugins/meow-flow/templates/<kind>.md`       | The unit's template for each kind                                       |
-| `.meowpaw/templates/<kind>.md`                | A repository's own template, which overrides the unit's                 |
-| `paw status`, `ready`, `template`             | The chain's state, a step's gate, the template in force                 |
+| Surface                                    | What it is                                              |
+| ------------------------------------------ | ------------------------------------------------------- |
+| `plugins/meow-flow/skills/method/SKILL.md` | What every step shares, and how to invoke one           |
+| `plugins/meow-flow/skills/method/steps/`   | One file per step, read only for the step being run     |
+| `plugins/meow-flow/skills/run/SKILL.md`    | `/meow-flow:run`, the command that drives the chain     |
+| `plugins/meow-flow/skills/route/SKILL.md`  | The skill that routes a request before work starts      |
+| `plugins/meow-flow/agents/router.md`       | The read-only agent the route skill dispatches          |
+| `plugins/meow-flow/templates/<kind>.md`    | The unit's template for each kind                       |
+| `.meowpaw/templates/<kind>.md`             | A repository's own template, which overrides the unit's |
+| `paw status`, `ready`, `template`          | The chain's state, a step's gate, the template in force |
 
 ## Behaviour
 
@@ -492,7 +486,7 @@ Evidence is written, or dropped once it is withdrawn, rejected or superseded
 | spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated                                             |
 | epic         | an approved decision or defect                                                                                                                                                                                                                                                                                                                                                      | an epic and its task records                                           |
 | implement    | an approved task, REQ-2266, REQ-3216                                                                                                                                                                                                                                                                                                                                                | the tests first, the change, its documentation and the task's evidence |
-| review       | the task's pull request, REQ-2268                                                                                                                                                                                                                                                                                                                                                   | findings in place, never a file                                        |
+| review       | the task's pull request, REQ-2268                                                                                                                                                                                                                                                                                                                                                   | findings, fixed in the pull request                                    |
 
 A person or the model invokes one step by naming it to the `method` skill, and
 the step does its own work and no later step's (REQ-0192, REQ-0194). Each step
@@ -503,12 +497,10 @@ wrote and the step that picks it up (REQ-0196).
 Each step's file names, in its role, where its artifact lands as a path
 pattern under the record root, `[record] root` in `.meowpaw/profile.toml` or
 `project/` where it declares none, so a step's output is found by path and not
-only by kind (REQ-3203, BUG-1264). Until ADR-2300's epic lands, a kept run lands under the evidence
-directory, `evidence_dir` under `[verbs]` or `evidence` under the record root.
-Document is the one step whose artifact isn't under the record root: its role
-names each page at its own path in the repository's documentation. Review is
-the exception: its role says it writes nothing into the repository
-(REQ-0544).
+only by kind (REQ-3203, BUG-1264). Implement also names what lands outside
+the record root: the test files, the changed files and each user-facing page
+at its own path. Review is the exception: its role says it writes nothing
+into the record (REQ-0544, REQ-3626).
 
 | Step         | Its artifact lands in                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------ |
@@ -518,7 +510,7 @@ the exception: its role says it writes nothing into the repository
 | spec         | `specs/SPC-NNNN-<topic>.md`                                                                                              |
 | epic         | `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task                                              |
 | implement    | the test files, the changed files, each user-facing page it changed, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md` |
-| review       | nothing in the repository (REQ-0544)                                                                                     |
+| review       | nothing in the record; its fixes land in the task's pull request (REQ-0544, REQ-3626)                                    |
 
 No step requires a practice command to be installed (REQ-2130). A step asks
 at most three clarifying questions, and chooses and records a default for the
@@ -531,19 +523,20 @@ Each step's file carries the obligations of its step as labelled rules, and
 the `task` and `bug` templates carry the obligations of their kinds (ADR-1160).
 The rules name no requirement, because the files ship to other repositories.
 
-| Step or template | Holds                                                                                                                                                                                                                                                                                                                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                                                                                                                       |
-| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                                                                                                                         |
-| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                                                                                                                                                           |
-| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                                                                                                                   |
-| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                                                                                                                                                       |
-| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-0241, REQ-0275, REQ-0277, REQ-0291, REQ-0327, REQ-0329, REQ-3616, REQ-3618, REQ-3640, REQ-3642, REQ-3644 |
-| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108                                                                                                                                                                                                                   |
-| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                                                                                       |
+| Step or template | Holds                                                                                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                                                           |
+| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                                                             |
+| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                                                                                               |
+| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                                                       |
+| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                                                                                           |
+| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-3616, REQ-3618, REQ-3640, REQ-3642, REQ-3644 |
+| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108, REQ-3612, REQ-3626                                                                                                                                   |
+| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                           |
 
-The implement step holds what the document and verify steps held, since
-their work lands in the task's pull request (not yet; see Scope). It reads `[docs] style` from `.meowpaw/profile.toml`: a path
+The implement step holds what the cover and document steps held, since their
+work lands in the task's pull request. The method skill runs `paw check` on
+every step, so the record is checked by the verbs on every change (REQ-0277). It reads `[docs] style` from `.meowpaw/profile.toml`: a path
 to the repository's own style guide, or the name of an installed unit that
 ships one. Where the profile declares none, the step says so and writes to the
 writing standard in force. It reports which verb checked the documentation it
@@ -583,15 +576,15 @@ defects did (REQ-0374).
 The implement step begins a defect's task by running its reproduction and
 seeing it fail, and a defect a gate caught and the same change closed needs no
 record of its own (REQ-3174). A requirement an open defect names in `violates` is
-open until the defect closes, whatever its tasks say (REQ-3610) (not yet; see
-Scope).
+open until the defect closes, whatever its tasks say (REQ-3610).
 
-The implement step cites each verb's result under a task's Evidence as
-`meow-verbs evidence` prints it, with the record and the tree id, and records
-the command, its exit status and its output where `meow-verbs` isn't
-installed, because `meow-flow` works without it (REQ-0146) (ADR-1480). The
-repository keeps no run output, so the Evidence names the checks and the pull
-request (REQ-3614) (not yet; see Scope).
+The implement step writes under a task's Evidence the tests that close each
+criterion, each verb's outcome and the pull request, and records each command
+and its exit status where `meow-verbs` isn't installed, because `meow-flow`
+works without it (REQ-0146) (ADR-1480). It keeps no run output, in a file or
+in the task (REQ-3614), and marks the task done only in a change whose verbs
+all passed (REQ-3606). Before the implementation it names there each
+criterion no program can check as resting on judgement (REQ-3216).
 
 ### The gate
 
@@ -684,89 +677,33 @@ nothing waits or the repository has no record (REQ-0392). A `SessionStart` hook
 runs it, so a session opens with the pending approval before anything else
 (REQ-0394).
 
-### The review before a gate
+### The review
 
-Under ADR-2300 no agent reviews a record (REQ-3624): an agent reviews the
-task's change inside its pull request, the pull request fixes what it finds,
-and nothing is written into the record (REQ-3626) (not yet; see Scope). Until
-EPC-2200 lands, the following holds.
+No agent reviews a record (REQ-3624): the person approving its pull request
+reads it, and the method skill reports a record it wrote as unreviewed by a
+person.
 
-Before it reports the gate a record waits at, the method skill dispatches
-`meow-flow:record-reviewer`, naming the record's path and nothing else, so the
-agent, which starts with no context of its own, isn't told who wrote it
-(REQ-0149, REQ-0151). The agent has `Read`, `Grep` and `Glob` alone (REQ-0819).
-It works through a fixed set of questions for the record's kind, plus two for
-every kind: does the record mix two kinds, and does each rule state its reason
-(REQ-2830) (ADR-1490). It asks nothing `paw check` settles and reports each
-finding as its judgement (REQ-0132, REQ-0147). Its report opens with
-`Agent review, not a person's approval; the reviewer may share the author's model family.`
-(REQ-0157).
-
-The skill fixes what the agent finds and dispatches a fresh one, at most
-twice (REQ-0822). A finding still open after the second round, or one the
-author rejects, goes into the record under `## Open review findings` with the
-author's reason, and the gate report names that section (REQ-0823). The gate
-report says the record was reviewed by an agent and is unreviewed by a person.
-Where no agent can be dispatched, the skill reviews nothing itself and reports
-the record as unreviewed by an agent or a person; a review of its own work a
-person asks for is reported as self-assessed (REQ-2202) (ADR-1490).
-
-A review whose output comes back marked as stopped at the agent's turn
-ceiling is a review that didn't finish, so the skill reports the record as
-unreviewed by an agent, as it does for a review that couldn't run (REQ-2202)
-(ADR-1700).
-
-The skill acts on the reviewer's outcome line before it reads the findings
-(REQ-0816). It reads the line allowing leading space, because the platform's
-hand-back indents each line of the report, and it acts on the word itself and
-never asks a model to relay the report first:
-
-| Outcome              | The reviewer reports it when                                                                                       | The method skill                                                                   |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| `DONE`               | It worked through every question its rules set, whatever it found                                                  | Acts on the findings, as above                                                     |
-| `DONE_WITH_CONCERNS` | It finished, and part of the review couldn't run: a cited record it couldn't reach, or a kind with no question set | Acts on the findings, and names the part that didn't run in the gate report        |
-| `NEEDS_CONTEXT`      | The brief names nothing it can review: the path doesn't exist, or holds no record                                  | Corrects the brief and dispatches once more, which doesn't count as a repair round |
-| `BLOCKED`            | A tool call was denied                                                                                             | Reports the record as unreviewed by an agent, naming the tool and the input        |
-
-A second `NEEDS_CONTEXT` after the corrected brief leaves the record
-unreviewed by an agent, and the gate report names the brief the skill sent.
-Any other outcome from the second dispatch takes its own row.
-
-A `BLOCKED` review ends that dispatch (REQ-2978). The skill doesn't resume the
-agent, although the platform's hand-back offers `SendMessage` to continue it,
-doesn't dispatch the agent again under the same permissions in that session,
-and doesn't review the record itself. A report with no outcome line from the
-set leaves the record unreviewed by an agent too, which covers a reviewer
-replaced by a repository's own agent (REQ-2986) that writes no outcome line.
-
-The review step dispatches the review of work the session produced, and its
-verdict names itself as an agent's (REQ-0149, REQ-0157). It dispatches
-`meow-flow:record-reviewer` for each record the change writes, and
-`meow-prose:prose` for each other prose text in it, such as a documentation
-page, a commit message or a pull request body. It names each text by its path
-alone, and a text that exists in no file, such as a commit message, goes in
-the brief as text. It reads each of those two agents' outcome by the table
-above, with the text in place of the record, and reports a `BLOCKED` review,
-or one with no outcome line from the set, as not run, never as self-assessed
-and never as passed. The review of the code in the change goes to an agent
-with read-only tools that the session picks. That agent follows no outcome
-rule, so the step reads its return as a verdict, and where no agent can be
-dispatched, it reports the verdict as self-assessed.
-
-For `prose`, `DONE` covers a review narrowed to the scope the request asked
-for and one written for the default reader. `DONE_WITH_CONCERNS` is a review
-of a change to code in which a file the change touched couldn't be read.
-`BLOCKED` is a denied tool call or a file of its standard that couldn't be
-read.
+The review step reads a task's pull request against the base it was opened
+on (REQ-0311). Where the session produced the change, it dispatches the
+review to an agent with read-only tools, naming what the task asks and not who
+wrote it, and reads the return as a verdict, named as an agent's (REQ-0149,
+REQ-0157, REQ-0818, REQ-0819). Where no agent can be dispatched, it reports
+the verdict as self-assessed (REQ-2202). It judges whether the work meets its
+requirements and improves the codebase, and never whether the decision was
+right, which the decision's reversal condition answers (REQ-0329). The review reports each test that
+would still pass against a wrong implementation (REQ-3612). Each finding that
+stands is fixed in that pull request, and the review writes nothing into the
+record (REQ-3626, REQ-0544). The
+fixes are reviewed once more, twice at most, and a finding still open then
+goes to the person in the pull request (REQ-0822, REQ-0823).
 
 ### The driver
 
 `/meow-flow:run` runs `status`, and takes the first item that isn't waiting,
 or the record a person names (REQ-3202). It runs that item's next step through
 the `method` skill, and stops where the step ends at an approval gate, as the
-step would (REQ-0204). Where the step ends without one, as cover does, it
-runs `status` again and continues, so one invocation takes an approved task
-through cover and implement to the next gate. At every stop it reports which step it reached, why it
+step would (REQ-0204). Where the step ends without one, it runs `status`
+again and continues. At every stop it reports which step it reached, why it
 stopped and what the next invocation will do (REQ-0208). It keeps no state of
 its own, so run again after an approval it continues from the step after the
 approved one, and run again with nothing approved it says it is waiting
@@ -840,13 +777,8 @@ REQ-3112). Without the pack it reports the history as unread and names
 | A person overrode the router's route                   | The route as overridden, and the route the router gave                                                                  |
 | `route reduced` for work no approved record authorises | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
 | A route came with the request or the brief             | The route as given, and that no router ran                                                                              |
-| The reviewer stops at its turn ceiling                 | The record is reported as unreviewed by an agent                                                                        |
-| The reviewer reports `BLOCKED`                         | The record is reported as unreviewed by an agent, naming the tool and the input, and the agent isn't resumed or re-sent |
-| The reviewer reports `NEEDS_CONTEXT` twice             | The record is reported as unreviewed by an agent, naming the brief sent                                                 |
-| The reviewer's report carries no outcome line          | The record is reported as unreviewed by an agent                                                                        |
 | The router reports `BLOCKED`                           | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
 | The router's reply carries no outcome line             | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
-| `prose` reports `BLOCKED` in the review step           | That text's review is reported as not run, naming the tool and the input                                                |
 | No binary for the machine                              | The launcher reports the record as not checked and exits 3                                                              |
 
 Where two of the route's rows apply, the report carries both, and the

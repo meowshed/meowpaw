@@ -299,11 +299,10 @@ preloads the skills it needs through `skills`, so the conversation that
 dispatches it doesn't carry them (REQ-2984). The agents the harness ships
 declare:
 
-| Agent                       | `maxTurns` | `model`  | `effort` | `omitClaudeMd` | `skills`               | `tools`          |
-| --------------------------- | ---------- | -------- | -------- | -------------- | ---------------------- | ---------------- |
-| `meow-flow:record-reviewer` | 30         | `opus`   | `high`   | `false`        | `[]`                   | Read, Grep, Glob |
-| `meow-flow:router`          | 30         | `sonnet` | `high`   | `false`        | `[]`                   | Read, Grep, Glob |
-| `meow-prose:prose`          | 20         | `sonnet` | `high`   | `true`         | `[meow-prose:writing]` | Read, Grep, Glob |
+| Agent              | `maxTurns` | `model`  | `effort` | `omitClaudeMd` | `skills`               | `tools`          |
+| ------------------ | ---------- | -------- | -------- | -------------- | ---------------------- | ---------------- |
+| `meow-flow:router` | 30         | `sonnet` | `high`   | `false`        | `[]`                   | Read, Grep, Glob |
+| `meow-prose:prose` | 20         | `sonnet` | `high`   | `true`         | `[meow-prose:writing]` | Read, Grep, Glob |
 
 An agent that reaches its `maxTurns` returns its output marked as stopped at
 its ceiling, and whatever dispatched it reads that output as unfinished work
@@ -337,16 +336,15 @@ as `Read was denied on project/adrs/ADR-0001.md`: the part that didn't run,
 what the brief lacked, or the tool denied and what it was called on. Each
 shipped agent places the two lines as follows:
 
-| Agent                       | The outcome line                                            | The cause                          |
-| --------------------------- | ----------------------------------------------------------- | ---------------------------------- |
-| `meow-flow:record-reviewer` | The second line, below its fixed label, before the findings | The third line                     |
-| `meow-prose:prose`          | The first line, before the verdict                          | The second line                    |
-| `meow-flow:router`          | The first field, `outcome:`, before `size:`                 | A `cause:` field, after `outcome:` |
+| Agent              | The outcome line                            | The cause                          |
+| ------------------ | ------------------------------------------- | ---------------------------------- |
+| `meow-prose:prose` | The first line, before the verdict          | The second line                    |
+| `meow-flow:router` | The first field, `outcome:`, before `size:` | A `cause:` field, after `outcome:` |
 
 An agent that opens its report with a fixed line keeps that line first and
 puts the outcome line second. Any other agent puts the outcome line first.
 
-`record-reviewer` and `prose` quote nothing they read beyond the span a
+`prose` quotes nothing it reads beyond the span a
 finding names, 25 words at most, and cap no number of findings (REQ-0816). A
 finding names its line, so a longer span, such as a table row, is found
 there.
