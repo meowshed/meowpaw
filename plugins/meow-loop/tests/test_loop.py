@@ -409,12 +409,17 @@ class Context(Case):
         f = self.fixture({".meowpaw/profile.toml": PROFILE + 'lint = "true"\n'})
         terms = replaced("--iterations", "2")
         terms[terms.index("--until") + 1] = "verbs=test,lint"
-        done = f.start(terms)
+        # The state directory is named through a link, so a path taken as typed differs from the resolved one the
+        # run's directory is read by below.
+        link = f.base / "link"
+        link.symlink_to(f.state)
+        done = f.start(terms, env={**f.env(), "MEOWPAW_STATE_DIR": str(link)})
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         calls = f.calls()
         self.assertEqual(len(calls), 2)
         file = f.run_dirs()[0] / "progress" / "progress.md"
         self.assertTrue(file.is_absolute())
+        self.assertNotIn("link", file.parts)
         matched = 0
         for call in calls:
             argv = call["argv"]
