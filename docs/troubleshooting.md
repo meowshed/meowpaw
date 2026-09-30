@@ -7,7 +7,7 @@ describes:
     meow-core@0.6.1,
     meow-git@0.2.3,
     meow-github@0.6.0,
-    meow-flow@0.45.0,
+    meow-flow@0.46.0,
     meow-prose-gate@0.3.0,
     meow-scm@0.4.2,
     meow-checks@0.9.0,
@@ -125,6 +125,10 @@ approved input, and `paw` lists what is missing below the message, such as a
 task another one depends on that isn't done. Approve the input or finish the
 task it names, then run the step again. If you run `/meow-flow:run` with
 nothing newly approved, it says what it is waiting on.
+
+`TSK-... is not on main yet` means the task's record exists on your branch
+and not on the trunk your profile declares, so its approval still waits on a
+merge. Merge the change that adds the task, then run the step again.
 
 ## meow-verbs is now meow-checks
 

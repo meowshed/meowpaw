@@ -653,10 +653,15 @@ fn frozen_text(text: &str, sections: &[&str], fields: &[&str]) -> String {
     out.join("\n")
 }
 
-/// A task's text without what may change after approval: its evidence, its
-/// issue, its projection and its revision date.
+/// A task's text without what may change after approval: its evidence, what
+/// it left alone, which the implementer writes, its issue, its projection and
+/// its revision date.
 fn frozen_part(text: &str) -> String {
-    frozen_text(text, &["Evidence"], &["issue", "projected", "revised"])
+    frozen_text(
+        text,
+        &["Evidence", "Left alone"],
+        &["issue", "projected", "revised"],
+    )
 }
 
 /// An epic's text without what may change after approval: the marks and
@@ -2550,7 +2555,7 @@ fn ready(rest: &[String]) -> u8 {
         eprintln!("paw ready {step}: name the identifiers of the step's input");
         return USAGE;
     }
-    let (record, _, _) = match open_record("ready") {
+    let (record, repository, _) = match open_record("ready") {
         Ok(opened) => opened,
         Err(code) => return code,
     };
@@ -2615,6 +2620,13 @@ fn ready(rest: &[String]) -> u8 {
                     if !task_finished(&known, &dependency) {
                         missing.push(format!("{dependency}, which {id} depends on, isn't done"));
                     }
+                }
+                if !task_finished(&known, id)
+                    && let Some(name) = off_trunk(&repository, &trunk_of(&repository), doc)
+                {
+                    missing.push(format!(
+                        "{id} is not on {name} yet, so its approval waits on the merge of the change that adds it"
+                    ));
                 }
             }
             _ => {}
@@ -2685,8 +2697,90 @@ fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) ->
         .collect()
 }
 
+/// The trunk a repository declares, as the branch the record program reads,
+/// or why it can't be read (ADR-2310).
+enum Trunk {
+    /// The declared name and the ref that holds it: the remote-tracking
+    /// branch where one exists, since it is what a merge moves, and the local
+    /// branch otherwise.
+    Read {
+        name: String,
+        reference: String,
+    },
+    Unread(String),
+}
+
+fn trunk_of(repository: &Path) -> Trunk {
+    let table = match profile::read(repository) {
+        Profile::Parsed(table) => table,
+        _ => toml::Table::new(),
+    };
+    let Some(name) = table
+        .get("git")
+        .and_then(|g| g.get("trunk"))
+        .and_then(|t| t.as_str())
+        .filter(|t| !t.is_empty())
+    else {
+        return Trunk::Unread(format!(
+            "{} declares no trunk under [git]",
+            profile::PROFILE
+        ));
+    };
+    let git = |args: &[&str]| {
+        profile::reading_git()
+            .current_dir(repository)
+            .args(args)
+            .output()
+            .is_ok_and(|o| o.status.success())
+    };
+    if !git(&["rev-parse", "--is-inside-work-tree"]) {
+        return Trunk::Unread("this isn't a git work tree".to_string());
+    }
+    for reference in [
+        format!("refs/remotes/origin/{name}"),
+        format!("refs/heads/{name}"),
+    ] {
+        if git(&[
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            &format!("{reference}^{{commit}}"),
+        ]) {
+            return Trunk::Read {
+                name: name.to_string(),
+                reference,
+            };
+        }
+    }
+    Trunk::Unread(format!("the declared trunk {name} names no branch"))
+}
+
+/// The trunk's name where an open task's record is absent from it, so its
+/// approval still waits on a merge (REQ-3660). `None` where it is there, where
+/// the trunk can't be read, or where the record sits outside the repository.
+fn off_trunk<'a>(repository: &Path, trunk: &'a Trunk, task: &Doc) -> Option<&'a str> {
+    let Trunk::Read { name, reference } = trunk else {
+        return None;
+    };
+    if Path::new(&task.shown).is_absolute() {
+        return None;
+    }
+    let there = profile::reading_git()
+        .current_dir(repository)
+        .args(["cat-file", "-e", &format!("{reference}:{}", task.shown)])
+        .output()
+        .is_ok_and(|o| o.status.success());
+    (!there).then_some(name.as_str())
+}
+
 /// Where one authorising record stands in the chain, and what comes next.
-fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> String {
+fn position(
+    record: &Record,
+    known: &BTreeMap<String, &Doc>,
+    repository: &Path,
+    trunk: &Trunk,
+    decision: &Doc,
+) -> String {
     let id = bare(decision.id());
     let epics: Vec<&Doc> = of_kind(record, "epic")
         .into_iter()
@@ -2756,6 +2850,17 @@ fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> 
                 .map(|doc| depends_on(doc).iter().all(|d| task_finished(known, d)))
                 .unwrap_or(true)
         });
+        // An approved status on an unmerged branch isn't an approval yet, so
+        // the task waits on its merge and is never next (REQ-3662).
+        if let Some(name) = doable
+            .and_then(|task| known.get(task.as_str()))
+            .and_then(|doc| off_trunk(repository, trunk, doc))
+        {
+            let task = doable.map(|t| t.as_str()).unwrap_or_default();
+            return format!(
+                "waiting: {task} is not on {name} yet, so its approval waits on that merge"
+            );
+        }
         return match doable {
             Some(task) => format!(
                 "next: implement {task} ({group}, {} of {} done)",
@@ -2869,7 +2974,7 @@ fn status(rest: &[String]) -> u8 {
         }
         return CLEAN;
     }
-    let (record, _, root) = match open_record("status") {
+    let (record, repository, root) = match open_record("status") {
         Ok(opened) => opened,
         Err(code) => return code,
     };
@@ -2880,6 +2985,7 @@ fn status(rest: &[String]) -> u8 {
         );
         say!();
     }
+    let trunk = trunk_of(&repository);
     let known = known(&record);
     let drafts: Vec<&&Doc> = known
         .values()
@@ -2898,6 +3004,10 @@ fn status(rest: &[String]) -> u8 {
             title(doc)
         );
     }
+    // Said after the drafts, which a status report leads with (REQ-0321).
+    if let Trunk::Unread(why) = &trunk {
+        say!("  An approval can't be told from one waiting on a merge: {why}.");
+    }
     say!();
     say!("Decisions");
     let mut decisions: Vec<&Doc> = of_kind(&record, "decision")
@@ -2911,7 +3021,10 @@ fn status(rest: &[String]) -> u8 {
     for decision in decisions {
         let id = bare(decision.id());
         say!("  {id} {}", title(decision));
-        say!("    {}", position(&record, &known, decision));
+        say!(
+            "    {}",
+            position(&record, &known, &repository, &trunk, decision)
+        );
     }
     say!();
     say!("Tasks");

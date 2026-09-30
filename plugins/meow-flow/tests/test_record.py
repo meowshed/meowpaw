@@ -975,6 +975,13 @@ class Frozen(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
 
+    def test_a_task_may_say_what_it_left_alone(self):
+        """The implementer fills `## Left alone` after approval, as the template asks, so it is free like Evidence."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "## Left alone\n\nText.", "## Left alone\n\nThe index, because nothing moved.")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+
     def test_a_task_rewritten_outside_its_evidence_is_reported(self):
         repository = self.repo()
         repository.edit("tasks/TSK-0001-a-task.md", "## What to do\n\nText.", "## What to do\n\nSomething else.")
