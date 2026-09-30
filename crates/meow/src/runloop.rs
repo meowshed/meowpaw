@@ -9,7 +9,9 @@
 //! state directory and never in the work tree, and holds the ceiling in this
 //! process, so nothing a call prints or writes extends it. The runner decides
 //! the condition from each verb's exit status and reads nothing the model
-//! printed.
+//! printed. Every call gets the prompt's bytes as they were at start and one
+//! fixed preamble, in a new session (REQ-0880), and what an iteration leaves
+//! for the next goes in the run's progress file (REQ-0882).
 
 use crate::profile;
 use crate::verbs::{self, ledger};
@@ -362,7 +364,49 @@ struct Called {
     result: Option<Value>,
 }
 
-fn call(claude: &Path, root: &Path, terms: &Terms) -> Result<Called, String> {
+/// What every call of a run is given beside the terms, fixed at start.
+struct Context {
+    /// The run's `progress` directory, as an absolute path.
+    progress: PathBuf,
+    preamble: String,
+}
+
+impl Context {
+    fn new(dir: &Path, terms: &Terms) -> Self {
+        let progress = std::path::absolute(dir.join("progress")).unwrap_or(dir.join("progress"));
+        let preamble = preamble(&progress.join("progress.md"), &terms.verbs);
+        Context { progress, preamble }
+    }
+}
+
+/// The preamble every call of a run carries. It holds no iteration number and
+/// no spend, so its bytes are the same on every call (REQ-0880).
+fn preamble(progress: &Path, verbs: &[String]) -> String {
+    format!(
+        "<role>
+This session is one iteration of a run that `meow-loop` repeats. Each
+iteration is a new session given this same prompt, so nothing an earlier
+iteration said is in this conversation.
+</role>
+
+<rules name=\"the run\">
+- L1. Read `{file}` before you start, because it is the only place an earlier
+  iteration could leave what it did, what is left and what failed.
+- L2. Before you stop, write in that file what the next iteration needs,
+  because this conversation ends with the session and the file carries over.
+- L3. Work until the condition `verbs={verbs}` holds, and never report it as
+  held, because the runner runs those verification verbs itself after this
+  session and decides from their exit status whether the run is finished.
+- L4. Work within the run's bounds, because the runner holds them in its own
+  process and nothing this session writes or prints extends them.
+</rules>
+",
+        file = progress.display(),
+        verbs = verbs.join(","),
+    )
+}
+
+fn call(claude: &Path, root: &Path, terms: &Terms, context: &Context) -> Result<Called, String> {
     let mut command = Command::new(claude);
     command.current_dir(root).args([
         "-p",
@@ -379,13 +423,22 @@ fn call(claude: &Path, root: &Path, terms: &Terms) -> Result<Called, String> {
     for rule in &terms.allowed {
         command.args(["--allowedTools", rule]);
     }
+    // The run's id is fixed only at start, so no rule the person types can
+    // name the progress file. A rule writes an absolute path after one more
+    // slash.
+    let file = context.progress.join("progress.md");
+    for tool in ["Edit", "Write"] {
+        command.args(["--allowedTools", &format!("{tool}(/{})", file.display())]);
+    }
+    command.args(["--permission-prompts", "none", "--add-dir"]);
+    command.arg(&context.progress);
     // The whole budget, because the runner keeps no spend yet: until it does,
     // this is only the platform's cap on one call.
     command.args([
-        "--permission-prompts",
-        "none",
         "--max-budget-usd",
         &terms.budget,
+        "--append-system-prompt",
+        &context.preamble,
     ]);
     let mut child = command
         .stdin(Stdio::piped())
@@ -457,7 +510,13 @@ fn log_line(log: &Path, over: Option<&Logged>, line: &Value) -> Result<Logged, S
 }
 
 /// Runs the loop to its ending, or to the state it can't read past.
-fn run(root: &Path, terms: &Terms, claude: &Path, log: &Path) -> Result<&'static str, String> {
+fn run(
+    root: &Path,
+    terms: &Terms,
+    context: &Context,
+    claude: &Path,
+    log: &Path,
+) -> Result<&'static str, String> {
     if evaluate(root, &terms.verbs)? {
         return Ok("finished");
     }
@@ -465,7 +524,7 @@ fn run(root: &Path, terms: &Terms, claude: &Path, log: &Path) -> Result<&'static
         // Read after the last evaluation, so a verb that writes to the tree
         // never counts as a change this call made.
         let before = ledger::tree_id(root);
-        let called = call(claude, root, terms)?;
+        let called = call(claude, root, terms, context)?;
         let after = ledger::tree_id(root);
         let result = called.result.as_ref();
         let mut line = json!({
@@ -581,7 +640,8 @@ fn start(args: &[String]) -> u8 {
     remove_old_runs(&runs, &dir);
     println!("run {}", dir.display());
 
-    let ending = match run(&root, &terms, &claude, &log) {
+    let context = Context::new(&dir, &terms);
+    let ending = match run(&root, &terms, &context, &claude, &log) {
         Ok(ending) => ending,
         Err(reason) => return refuse(&reason),
     };
