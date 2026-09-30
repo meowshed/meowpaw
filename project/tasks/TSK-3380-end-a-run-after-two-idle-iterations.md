@@ -90,9 +90,11 @@ changes nothing and so now ends `idle` after two of three calls, and it failed
 there too. Criterion 5 is closed by the pull request, where `format`, `lint`,
 `check`, `test` and `build` each pass on the change's tree.
 
-I made two choices the task leaves open. A progress file the runner can't
+I made three choices the task leaves open. A progress file the runner can't
 read counts as changed, as an unidentified tree does, so neither ends a run
-`idle`. `unidentified` is true where either tree id, before or after the
+`idle`. An absent progress file is a state of its own, so a call that removes
+the file changes it and later calls that leave it absent can end the run
+`idle`; `Idle.test_a_removed_progress_file_can_go_idle` checks it. `unidentified` is true where either tree id, before or after the
 call, is `none`.
 
 `meow-loop` goes to 0.4.0, and its README states the ending and the two

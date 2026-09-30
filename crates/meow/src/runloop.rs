@@ -556,8 +556,13 @@ fn run(
     let (mut spend, mut largest) = (0.0_f64, 0.0_f64);
     let progress = context.progress.join("progress.md");
     // A progress file the runner can't read counts as changed, as an
-    // unidentified tree does, so neither can end a run `idle`.
-    let digest = || std::fs::read(&progress).ok().map(|bytes| sha256(&bytes));
+    // unidentified tree does, so neither can end a run `idle`. An absent file
+    // is a state of its own, so a call that removes it can't keep a run busy.
+    let digest = || match std::fs::read(&progress) {
+        Ok(bytes) => Some(sha256(&bytes)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Some("absent".to_string()),
+        Err(_) => None,
+    };
     let mut idle_before = false;
     for iteration in 1..=terms.iterations {
         // The next call may cost as much as the largest so far, so the run

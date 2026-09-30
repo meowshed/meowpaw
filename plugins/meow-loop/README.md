@@ -9,7 +9,8 @@ describes: [meow-loop@0.4.0]
 
 `meow-loop start` repeats one prompt in fresh `claude -p` calls until the
 verification verbs you name pass, or until the number of iterations you state
-has run or the next call could pass the budget you state. The runner is a
+has run, the next call could pass the budget you state, or two iterations in a
+row change nothing. The runner is a
 program outside the model, so nothing a call prints or writes extends the run,
 and the runner alone decides whether the work is done, from each verb's exit
 status.
@@ -157,7 +158,9 @@ difference, and the first call is held only by the platform's cap.
 
 An iteration changes nothing when the tree id and the sha256 of
 `progress/progress.md` are the same after the call as before it. Two such
-iterations in a row end the run `idle`. An iteration whose tree id is `none`,
+iterations in a row end the run `idle`. A call that removes the progress file
+changes it, and an absent file is the same before and after a later call. A
+file the runner can't read counts as changed. An iteration whose tree id is `none`,
 as with a dirty submodule, counts as a change, so a run in such a work tree
 never ends `idle`.
 
