@@ -32,7 +32,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       BASE: https://github.com/${{ github.repository }}/releases/download
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # The release check reads every unit's tags and the commits since.
           fetch-depth: 0
