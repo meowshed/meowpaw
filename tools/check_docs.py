@@ -37,18 +37,20 @@ END = "<!-- /check_docs index -->"
 NOT_WRITTEN = re.compile(r"^- `([a-z-]+)`:", re.M)
 WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
          "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")
-NUMBER = r"[*_]*(" + "|".join(WORDS) + r"|\d+)[*_]*"
+NUMBER = r"(?<![A-Za-z0-9])(" + "|".join(WORDS) + r"|\d+)"
 # The ways a page states how many steps the method has, each naming the method,
 # the harness or the chain. A count of anything else, such as "install it in
-# three steps" or "each tutorial follows the same three steps", matches none.
+# three steps", "each tutorial follows the same three steps" or "this install
+# method has three steps", matches none.
 STEP_COUNT = re.compile(
     rf"\bthrough\s+the\s+same\s+{NUMBER}\s+steps\b"
-    rf"|\bmethod(?:['\u2019]s|:|\s+has)\s+{NUMBER}\s+steps\b"
+    rf"|\b(?:the|a)\s+method(?:['\u2019]s|:|\s+has)\s+{NUMBER}\s+steps\b"
     rf"|\b(?:method|harness)\s+(?:that\s+)?(?:costs|costing|demands)\s+{NUMBER}\s+steps\b"
     rf"|{NUMBER}\s+steps\s+(?:run\s+in\s+a\s+chain|from\s+research)\b"
-    rf"|{NUMBER}-step\s+chain\b",
+    rf"|\bthe\s+{NUMBER}-step\s+chain\b",
     re.I,
 )
+EMPHASIS = re.compile(r"\*+|(?<![A-Za-z0-9])_+|_+(?![A-Za-z0-9])")
 STEP_LIST = re.compile(r"The\s+steps,\s+in\s+order,\s+are:?\s+(.*?)\.(?=\s|$)", re.S)
 STEP_NAME = re.compile(r"^[a-z]+$")
 QUOTE = re.compile(r"^\s*(?:>\s*)+")
@@ -258,10 +260,10 @@ def method_steps(root):
     # `a, b, ... and z`: commas separate, and only the last item holds `and`.
     items = [item.strip() for item in " ".join(listed.group(1).split()).split(",")]
     items[-1:] = [name.strip() for name in items[-1].rsplit(" and ", 1)] if " and " in items[-1] else items[-1:]
-    names = [re.sub(r"^and\s+", "", item) for item in items if item]
+    names = [re.sub(r"^and\s+", "", item) for item in items]
     odd = [name for name in names if not STEP_NAME.match(name)]
     if odd:
-        return None, [f"{rel}: names the step \"{odd[0]}\", where a step is one word, so the step count can't be held"]
+        return None, [f"{rel}: names the step \"{odd[0]}\", where a step is one lower-case word, so the step count can't be held"]
     return len(names), []
 
 
@@ -300,7 +302,7 @@ def check_steps(root):
             joined, starts = "", []
             for number, line in run:
                 starts.append((len(joined), number))
-                joined += COMMENT.sub("", CODE_SPAN.sub("", QUOTE.sub("", line))).strip() + " "
+                joined += EMPHASIS.sub("", COMMENT.sub("", CODE_SPAN.sub("", QUOTE.sub("", line)))).strip() + " "
             for match in STEP_COUNT.finditer(joined):
                 said = next(group for group in match.groups() if group)
                 at = match.start(match.lastindex)

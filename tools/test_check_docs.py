@@ -224,6 +224,8 @@ class CheckDocs(unittest.TestCase):
         self.with_method(tree)
         tree.write("README.md", "# Demo\n\nAll move through the same seven steps. The method's 7 steps. Install it in"
                    " three steps.\nEach tutorial follows the same three steps. Adding a pack costs two steps.\n"
+                   "When someone steps from research to design. The written steps run in a chain. A two-step chain of"
+                   " commands.\nThis install method has three steps. The HTTP method: two steps remain.\n"
                    "The old text said `the method's ten steps`. <!-- the method's ten steps -->\n")
         done = tree.check()
         self.assertEqual(done.returncode, 0, done.stdout)
@@ -243,7 +245,8 @@ class CheckDocs(unittest.TestCase):
         """REQ-3632: digits, emphasis, a quoted block, a curly apostrophe and a count above twelve are all read."""
         for text in ("through the same 10 steps", "the method's **ten** steps", "> the method\n> has ten steps",
                      "the method\u2019s ten steps", "through the same thirteen steps", "the ten-step chain",
-                     "a harness that demands ten steps"):
+                     "a harness that demands ten steps", "a harness that costs ten steps", "the method's _ten_ steps",
+                     "the **method's** ten steps", "through the same twenty steps", "Ten steps from research to review"):
             with self.subTest(text=text):
                 tree = self.tree()
                 self.with_method(tree)
@@ -255,7 +258,8 @@ class CheckDocs(unittest.TestCase):
     def test_a_skill_with_no_readable_step_list_fails(self):
         """REQ-3632: a method skill whose list can't be read is a failure, never a count that agreed."""
         for change, said in ((("The steps, in order, are", "The chain is"), "names no step list"),
-                             (("design, spec", "design and spec"), 'names the step "design and spec"')):
+                             (("design, spec", "design and spec"), 'names the step "design and spec"'),
+                             (("design, spec", "design, , spec"), 'names the step ""')):
             with self.subTest(said=said):
                 tree = self.tree()
                 tree.write("plugins/meow-demo/skills/method/SKILL.md", self.SKILL.replace(*change))
@@ -270,11 +274,28 @@ class CheckDocs(unittest.TestCase):
         self.assertFails(tree, "README.md:1: states ten steps, and the method names seven")
 
     def test_a_page_that_is_not_utf8_is_a_failure_and_no_crash(self):
-        """REQ-3632: a file that can't be read is named, and the check goes on."""
+        """REQ-3632: a root page that can't be read is named, and the check goes on to the next page."""
         tree = self.tree()
         self.with_method(tree)
         (tree.root / "CLAUDE.md").write_bytes(b"caf\xe9 the method's ten steps")
+        tree.write("project/vision.md", "Ten steps run in a chain.\n")
         self.assertFails(tree, "CLAUDE.md: isn't UTF-8")
+        self.assertIn("project/vision.md:1: states ten steps", tree.check().stdout)
+
+    def test_a_skill_that_is_not_utf8_is_a_failure(self):
+        """REQ-3632: a method skill that can't be read holds no count, and says so."""
+        tree = self.tree()
+        (tree.root / "plugins/meow-demo/skills/method").mkdir(parents=True)
+        (tree.root / "plugins/meow-demo/skills/method/SKILL.md").write_bytes(b"caf\xe9")
+        self.assertFails(tree, "SKILL.md: isn't UTF-8, so the method's step count can't be read")
+
+    def test_a_list_with_a_comma_before_and_is_counted(self):
+        """REQ-3632: `a, b, and c` names three steps."""
+        tree = self.tree()
+        tree.write("plugins/meow-demo/skills/method/SKILL.md", self.SKILL.replace("implement and", "implement, and"))
+        tree.write("README.md", "through the same seven steps\n")
+        done = tree.check()
+        self.assertEqual(done.returncode, 0, done.stdout)
 
     def test_the_step_count_is_read_from_the_skill(self):
         """REQ-3632: the count comes from the method skill, so a skill naming six makes seven the wrong count."""

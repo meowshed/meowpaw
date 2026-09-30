@@ -155,20 +155,24 @@ It fails when:
   skill names (REQ-3632).
 
 The step count is read from the method skill's list, "The steps, in order, are
-a, b, ... and z.", however that sentence wraps, and never from a constant. A
-skill whose list can't be read, or that names a step longer than one word, is
-a failure, because a count nobody could read must never pass as one that
-agreed. A repository shipping no method skill has no count to hold.
+a, b, ... and z.", however that sentence wraps, and never from a constant. The
+skill is the first `plugins/*/skills/method/SKILL.md` by name. A skill whose
+list can't be read, that isn't UTF-8, or that names a step that isn't one
+lower-case word, is a failure, because a count nobody could read must never
+pass as one that agreed. A repository shipping no method skill has no count
+to hold.
 
 A statement of the count is one of the forms that name the method, the harness
 or the chain: "through the same N steps", "the method's N steps", "the method:
-N steps", "the method has N steps", "a method or harness that costs, costing or
-demands N steps", "N steps run in a chain", "N steps from research" and "the
-N-step chain". N is a word up to twenty or digits, with or without emphasis.
-A statement is read across line wraps within a paragraph and inside a quoted
-block, and not inside fenced code, a code span or a comment. One statement is
-one failure, named at the line the number is on. A count of anything else,
-such as "install it in three steps", isn't read.
+N steps", "the method has N steps" (each also with "a method"), "a method or
+harness that costs, costing or demands N steps", "N steps run in a chain", "N
+steps from research" and "the N-step chain". N is a whole word up to twenty,
+or digits. A statement is read across line wraps within a paragraph, inside a
+quoted block and through emphasis marks, and not inside fenced code, a code
+span on one line or a comment on one line. One statement is one failure, named
+at the line the number is on. A count of anything else, such as "install it
+in three steps" or "this install method has three steps", isn't read. One of
+the root files that isn't UTF-8 is a failure of its own, and the check goes on.
 
 `python3 tools/check_docs.py --write` rewrites the table between the
 `<!-- check_docs index -->` and `<!-- /check_docs index -->` markers in
@@ -188,7 +192,7 @@ Each failure prints one line, and the check goes on to report the rest.
 | A page citing the record             | `<page>:<line>: cites the record: <text>`                            | State the fact on the page, without the identifier, kind, status or link |
 | A page stating the wrong step count  | `<page>:<line>: states <n> steps, and the method names <m>`          | State the number the method skill names                                  |
 | A method skill with no readable list | `<skill>: names no step list, ...` or `names the step "<name>", ...` | Write the list as "The steps, in order, are a, b, ... and z."            |
-| A page that isn't UTF-8              | `<page>: isn't UTF-8`                                                | Save the page as UTF-8                                                   |
+| A root file that isn't UTF-8         | `<file>: isn't UTF-8`                                                | Save the file as UTF-8                                                   |
 | A missing catalogue field            | `<unit>: plugin.json lacks <field>`                                  | Add the field to `plugin.json`                                           |
 | A homepage elsewhere                 | `<unit>: homepage doesn't point at plugins/<unit>/README.md`         | Point `homepage` at the unit's page                                      |
 | A description without the ceiling    | `<unit>: the description doesn't name its ceiling, <n>`              | Add the ceiling from `budget.toml` to the description                    |
