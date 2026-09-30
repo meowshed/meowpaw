@@ -3037,7 +3037,7 @@ class DeniedDispatch(unittest.TestCase):
 
     def denial_rule(self, name):
         text = self.AGENT_FILES[name].read_text(encoding="utf-8").split("---\n", 2)[2]
-        found = [s for s in sentences(text) if re.search(r"\bcall is denied\b", s) and re.search(r"\bno other tool\b", s)]
+        found = [s for s in sentences(text) if re.search(r"\bcall is denied\b", s) and re.search(r"use no other tool to reach the same result", s)]
         self.assertEqual(len(found), 1, f"{name} has {len(found)} sentences stating the denial rule, not one")
         return found[0]
 
@@ -3076,13 +3076,22 @@ class DeniedDispatch(unittest.TestCase):
         self.assertIsNotNone(found, "the review step has no W13")
         blocked = flat("\n".join(s for s in sentences(found.group(1)) if word_in("BLOCKED", s)))
         for pattern, what in (
-            (r"sendmessage", "names SendMessage as the resume it refuses"),
-            (r"\bsame permissions\b", "refuses a second dispatch under the same permissions"),
-            (r"\breview\b[^.;]*\byourself\b", "refuses a review by the session itself"),
+            (r"\bno sendmessage to resume\b", "names SendMessage as the resume it refuses"),
+            (r"\bno second agent under the same permissions\b", "refuses a second dispatch under the same permissions"),
+            (r"\bnever review the change yourself\b", "refuses a review by the session itself"),
             (r"\bnot run\b[^.;]*\bnever as self-assessed or passed\b", "reports it as not run"),
         ):
             with self.subTest(what=what):
                 self.assertRegex(blocked, pattern)
+
+    def test_the_steps_brief_the_agent_and_end_a_review_that_did_not_run(self):
+        """TSK-2703 criterion 3, REQ-2978: step 2 tells the agent to end a denied call as BLOCKED, since nothing
+        else gives it the rule, and step 8 and W8 have an ending for a review that didn't run."""
+        text = (METHOD / "steps" / "review.md").read_text(encoding="utf-8")
+        steps = flat(tagged(text, "steps"))
+        self.assertRegex(steps, r"2\. .*where a tool call is denied it makes no other call for it, asks nobody, and ends with outcome: blocked")
+        self.assertRegex(steps, r"8\. .*not run where the first agent reported blocked, the fixes unreviewed where the agent reviewing a round of them did")
+        self.assertRegex(flat(text), r"w8\. end in one verdict: finished, not run, or the findings still open")
 
 
 if __name__ == "__main__":

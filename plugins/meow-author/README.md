@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.5.0]
+describes: [meow-author@0.5.1]
 ---
 
 # meow-author
@@ -88,6 +88,10 @@ dispatch with: `DONE`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT` and `BLOCKED`. The
 check fails one that leaves any of them out, naming each missing word, because
 the skill that dispatches the agent acts on that word before it reads the
 report. It doesn't read your own agents under `.claude/agents/` for this.
+The write skill also has such an agent carry the denial rule: where a tool
+call is denied, the agent tries no other way, asks nobody for the permission
+and ends as `BLOCKED`, naming the tool and what it was called on. No check
+holds that rule.
 
 It exits 0 when it finds nothing, 1 on a finding, and 3 when there is nothing
 to check or its binary is missing for your machine.

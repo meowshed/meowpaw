@@ -431,7 +431,12 @@ class WriteSkill(unittest.TestCase):
     def test_an_agent_a_unit_ships_carries_the_denial_rule(self):
         """TSK-2703 criterion 1, REQ-2978: the rule beside D9 has an agent a unit ships name the four outcomes and
         carry the denial rule, and states its reason."""
-        found = self.rule(r"\bdone_with_concerns\b", r"\bneeds_context\b", r"\bblocked\b", r"\bdenial rule\b")
+        denial = (r"\bdone_with_concerns\b", r"\bneeds_context\b", r"\bdenial rule\b", r"no second call in another form",
+                  r"uses no other tool", r"asks nobody for the permission", r"ends as `blocked`",
+                  r"because a question asked where nobody answers")
+        found = self.rule(*denial)
+        self.assertFalse(self.matches("name done_with_concerns and needs_context, and have the agent carry the denial rule "
+                                      "as well, because the skill acts on the word.", denial))
         text = (UNIT / "skills" / "write" / "SKILL.md").read_text(encoding="utf-8")
         idents = [ident for ident, _ in rules(text)]
         self.assertIn("D9", idents)

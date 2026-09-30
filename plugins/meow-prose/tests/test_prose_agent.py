@@ -42,11 +42,11 @@ class ProseReport(unittest.TestCase):
 
     def test_it_says_when_it_reports_each_outcome(self):
         """TSK-2702 criterion 3, REQ-0816, SPC-1090 "The review before a gate": DONE for a review in the scope
-        asked or for the default reader; DONE_WITH_CONCERNS where a file the change touched couldn't be read;
+        asked or for the default reader; DONE_WITH_CONCERNS where a file the change touched doesn't exist;
         NEEDS_CONTEXT where the brief names nothing it can review; BLOCKED where a tool call was denied."""
         rows = (
             ("DONE", r"scope|reader|whatever"),
-            ("DONE_WITH_CONCERNS", r"could ?n.t (be )?read|touched"),
+            ("DONE_WITH_CONCERNS", r"doesn.t exist"),
             ("NEEDS_CONTEXT", r"names nothing|no text|nothing (to|you can|it can)|exist"),
             ("BLOCKED", r"denied"),
         )
@@ -83,7 +83,7 @@ class ProseDenial(unittest.TestCase):
         found = [s for s in sentences(body()) if re.search(r"\bcall is denied\b", s)]
         self.assertTrue(found, "no sentence states the denial rule")
         rule = found[0]
-        for pattern in (r"no second call in another form", r"\bno other tool\b", r"ask nobody for the permission",
+        for pattern in (r"no second call in another form", r"use no other tool to reach the same result", r"ask nobody for the permission",
                         r"outcome: BLOCKED", r"naming the tool and what it was called on", r"\bbecause\b"):
             with self.subTest(pattern=pattern):
                 self.assertRegex(rule, pattern)
