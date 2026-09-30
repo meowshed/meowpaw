@@ -204,7 +204,7 @@ kind also forbids `epic`, because only an epic would place one epic under
 another. A grouping written under a field name outside that list isn't
 reported (ADR-1800).
 
-The layout records every retired front matter field and status value with what
+The layout records every retired front matter field, status value and section with what
 replaced it, and the check refuses a record or a kind carrying one, so a
 retired name is never reused (REQ-3010, REQ-3011). `paw count` prints
 each kind's count by status and the number of identifiers, which a migration's
@@ -246,8 +246,9 @@ one its kind allows:
 
 | Kind            | May change after approval                                                                                                                                  |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| task            | its `## Evidence` and `## Cover` sections and its `issue`, because the implement and cover steps write them after the epic's approval                      |
-| epic            | anything, until its `checked-at` is set (REQ-0634)                                                                                                         |
+| task            | its `## Evidence` section and its `issue`, because the implement step writes them after the epic's approval                                                |
+| epic            | its `## Tasks` section, where the marks and their evidence are written (REQ-0634)                                                                          |
+| every record    | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652)                                |
 | every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic |
 | living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                             |
 

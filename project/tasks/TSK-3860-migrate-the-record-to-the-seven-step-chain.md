@@ -31,7 +31,26 @@ Edit front matter as structured data and sections by heading, never by text subs
 
 ## Evidence
 
-Not yet.
+`MigratedShape` in `plugins/meow-flow/tests/test_record.py` holds six checks
+and `tools/test_record_shape.py` one for criterion 1; all seven failed at the
+pull request's first commit. `paw count` printed the same before and after:
+1 vision, 20 specifications, 150 research, 1151 requirements, 73 decisions, 71
+epics, 212 tasks, 48 defects, 1726 identifiers. `paw check` reports 0 findings
+and `paw check frozen --base` against the trunk reports 0.
+
+The migration ran as four commits, each a deletion or a one-for-one rewrite:
+`## Cover` from 63 tasks; `## Verified` and `checked-at` from 71 epics;
+`## Open review findings` and `checked-at` from 45 other records, the 20
+specifications among them; and 40 citations of a kept run file in 35 records,
+each now naming the pull request that added the file, found from git's
+history. The layout retires the field and the three sections, so `paw check`
+reports one that returns.
+
+Left alone: RES-0301 keeps a kept file's path, because it records what a
+task's Evidence cited when the research was written. Prose that mentions the
+old sections or `project/evidence/` as history stays as it was. BUG-1360's
+Closed by states a condition and no fix, so the program reads the defect as
+closed; rewording a defect's closure is a change of data, not of format.
 
 ## Left alone
 

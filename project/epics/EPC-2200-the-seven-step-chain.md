@@ -93,8 +93,11 @@ A task is marked in the commit that advances it, never in a later pass.
       failing at the pull request's first commit.
       depends: TSK-3830 (not blocking)
 
-- [ ] T-007 TSK-3860 migrate every record to the seven-step chain's shape
+- [x] T-007 TSK-3860 migrate every record to the seven-step chain's shape
       closes: REQ-3652
+      evidence: 6 checks in `MigratedShape` and 1 in
+      `tools/test_record_shape.py`, each seen failing at the pull request's
+      first commit, and `paw count` equal before and after.
       depends: TSK-3800 (blocking), TSK-3830 (blocking)
 
 - [x] T-008 [P] TSK-3870 remove the `meow-method` stub from the marketplace

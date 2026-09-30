@@ -338,10 +338,10 @@ ADR-1550, ADR-1560 and ADR-2200: a requirement closes with the tasks that name
 it, verify goes, cover and document fold into implement, no agent reviews a
 record, and the repository keeps no run output. EPC-2200 realises it. `paw`
 and the method's prompts name the seven steps, and nothing dispatches a record
-reviewer. The repository keeps no run output, and the records written under the old chain keep their old sections until TSK-3860 migrates them.
-The skeptic ADR-2200 decided is dropped, and nothing dispatches it. The
-records written under the old chain migrate to the new shape (REQ-3652), and
-`meow-method` has left the marketplace (REQ-3654).
+reviewer. The repository keeps no run output. The skeptic ADR-2200 decided is
+dropped, and nothing dispatches it. The records written under the old chain
+were migrated to the new shape (REQ-3652), and `meow-method` has left the
+marketplace (REQ-3654).
 ADR-2100 decides the route, and EPC-2000 realises it: the `route` skill
 dispatches the router and reports the route before any edit, and the method
 skill and this repository's `CLAUDE.md` name it. Its cases run by hand, so
@@ -627,8 +627,9 @@ checks that an epic entry's marker agrees with it.
 
 `ready implement` reads no `## Cover` section: the task's first commit holds
 its failing tests (REQ-3616, REQ-3642), and nothing in the task records them.
-A `## Cover` section a task approved before ADR-2300 still carries is read by
-nothing, and TSK-3860 removes it.
+No record carries `## Cover`, `## Verified`, `## Open review findings` or
+`checked-at`: the layout retires them, and `paw check` reports one still
+carried (REQ-3652).
 
 ### The state
 

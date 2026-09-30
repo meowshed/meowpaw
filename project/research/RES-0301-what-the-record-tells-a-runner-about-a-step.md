@@ -145,7 +145,7 @@ therefore holds when every task is dropped.
 The record's rule `done-has-evidence` reports an epic that marks a task done
 while the task's `## Evidence` section holds nothing past "Not yet."
 (`record.rs`). It reads that the section holds text, and not what the text
-cites. TSK-3300's Evidence cites the run in #663, no longer kept, a run
+cites. TSK-3300's Evidence cites `project/evidence/5a1520eda28c.txt`, a run
 kept in the cover commit, before the implementation existed, so the citation
 shows the check failing before the work and not passing after it.
 I read TSK-3300 alone, so this shows the rule accepts such a citation, and not
