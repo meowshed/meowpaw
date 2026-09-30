@@ -17,6 +17,9 @@ supersedes: []
 `updated_at` among the run's create answers, and the `Date` of the run's first
 response only where no create answer carries one.
 
+**Amended by ADR-2340.** A created issue the read-back listing leaves out is
+read by its number before it is reported as not read back.
+
 **Amended by ADR-2330.** Every refusal line ends with GitHub's own reason, and
 after a 401 the run sends no further request.
 
