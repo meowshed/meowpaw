@@ -93,6 +93,7 @@ states:
     REQ-3102,
     REQ-3168,
     REQ-3190,
+    REQ-3654,
   ]
 ---
 
@@ -116,14 +117,13 @@ EPC-1710 realised them, verified under issue 625.
 
 ## Boundary
 
-| Surface                             | What it is                                                                       |
-| ----------------------------------- | -------------------------------------------------------------------------------- |
-| `.meowpaw/profile.toml`, `[record]` | Where the record lives                                                           |
-| `plugins/meow-flow/bin/paw`         | The program: `check` and `check <name>`                                          |
-| `crates/meow/src/record.rs`         | The program's source, `meow record`                                              |
-| `plugins/meow-flow/lib/layout.toml` | The record's layout, as data                                                     |
-| `plugins/meow-flow/README.md`       | The unit's documentation page                                                    |
-| `plugins/meow-method/hooks/notice`  | The stub's notice, printed when a session starts, until the release after 0.31.0 |
+| Surface                             | What it is                              |
+| ----------------------------------- | --------------------------------------- |
+| `.meowpaw/profile.toml`, `[record]` | Where the record lives                  |
+| `plugins/meow-flow/bin/paw`         | The program: `check` and `check <name>` |
+| `crates/meow/src/record.rs`         | The program's source, `meow record`     |
+| `plugins/meow-flow/lib/layout.toml` | The record's layout, as data            |
+| `plugins/meow-flow/README.md`       | The unit's documentation page           |
 
 ## Behaviour
 
@@ -267,10 +267,9 @@ checks over the harness's own units stay.
 The program is `meow record`, the `record` subcommand of the native tool, built
 with the unit's own feature as SPC-1080 states. A person runs it as `paw`, the
 name of the unit's launcher, and every usage line and message it prints names
-it `paw` (REQ-3168). The unit is `meow-flow` (REQ-3190), and `meow-method`
-stays in the catalogue for one release as a stub whose `SessionStart` hook says
-the unit is now `meow-flow` and how to move an install, removed in the release
-after (REQ-3004). The launcher runs the binary for the machine, and the binary
+it `paw` (REQ-3168). The unit is `meow-flow` (REQ-3190). The `meow-method` stub that
+told an install to move stayed one release (REQ-3004) and has left the
+marketplace (REQ-3654). The launcher runs the binary for the machine, and the binary
 reads `lib/layout.toml` from the unit it ships in. Where there is no binary for
 the machine, or the layout can't be read, the record is reported as not checked
 and the program exits 3, never 0.
