@@ -569,7 +569,8 @@ superseded ADR-2200.
 tasks, TSK-3800 to TSK-3870, all of them done, and each of the 28
 requirements ADR-2300 addresses lands in one of them.
 [EPC-1650](epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
-ADR-1700 in two tasks, TSK-2700 and TSK-2701, neither of them started, and
+ADR-1700 in two tasks, TSK-2700, which is done, and TSK-2701, which is in
+progress, and
 every requirement ADR-1700 addresses lands in one of them.
 [EPC-1651](epics/EPC-1651-a-delegated-agent-reports-one-of-four-outcomes.md)
 realises ADR-1710 in two tasks, TSK-2702 and TSK-2703, both done, and each of the two requirements ADR-1710 addresses lands in one of
