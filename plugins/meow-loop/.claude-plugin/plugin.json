@@ -1,7 +1,7 @@
 {
   "name": "meow-loop",
   "version": "0.3.0",
-  "description": "Repeats one prompt in fresh claude -p calls until the verification verbs a person names pass or the stated number of iterations has run, with the ceiling held outside the model. It keeps nothing in context on every turn.",
+  "description": "Repeats one prompt in fresh claude -p calls until the verification verbs a person names pass, the stated number of iterations has run or the next call could pass the stated budget, with both bounds held outside the model. It keeps nothing in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"

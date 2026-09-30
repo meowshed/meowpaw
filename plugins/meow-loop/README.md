@@ -9,7 +9,7 @@ describes: [meow-loop@0.3.0]
 
 `meow-loop start` repeats one prompt in fresh `claude -p` calls until the
 verification verbs you name pass, or until the number of iterations you state
-has run. The runner is a program outside the model, so nothing a call prints or
+has run or the next call could pass the budget you state. The runner is a program outside the model, so nothing a call prints or
 writes extends the run, and the runner alone decides whether the work is done,
 from each verb's exit status.
 
@@ -97,8 +97,10 @@ spend so far. It caps that one call on the platform's side, and the runner's
 own check is what bounds the run.
 
 After a call the runner reads `total_cost_usd` from the call's result and adds
-it to the spend. A call that prints no result, or a result with no cost, ends
-the run `unmetered`, because a spend the runner can't sum bounds nothing. A
+it to the spend. A call that prints no result, or a result whose cost is
+absent, negative or no number, ends the run `unmetered`, because a spend the
+runner can't sum bounds nothing. That call's line in the log holds `null` for
+`sum_usd`. A
 call whose result has the subtype `error_max_budget_usd` ends the run
 `budget`. Both come before the condition, so a call that reports no cost and
 also makes the verbs pass ends `unmetered`.
@@ -157,7 +159,7 @@ the budget ends the run. It doesn't check whether a call changed the prompt copy
 `run.toml`, and it resolves each verb from the profile again at every
 evaluation, so a call that rewrites `.meowpaw/profile.toml` changes what the
 condition runs. It doesn't stop a session inside Claude Code from starting a
-run. Until later versions add those checks, start a run yourself, read the
+run. Until later versions add those checks, start a run yourself, and read the
 profile's diff before you trust a `finished`.
 
 ## What it reports instead of a run

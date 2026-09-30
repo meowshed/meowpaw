@@ -33,6 +33,10 @@ const UNRESOLVED: u8 = 3;
 
 /// The one permission mode RES-0300 saw run a call.
 const MODE: &str = "dontAsk";
+/// What a sum of costs may pass the budget by and still count as within it:
+/// a billionth of a dollar, which covers the error of adding decimal costs in
+/// binary floating point and is far below any cost a call reports.
+const SLACK: f64 = 1e-9;
 /// How many of a work tree's runs are kept, the new one among them (ADR-2010).
 const KEPT: usize = 20;
 const VALUED: [&str; 7] = [
@@ -410,6 +414,13 @@ iteration said is in this conversation.
     )
 }
 
+/// An amount to six decimal places, without the zeros that end it, so a sum
+/// such as 0.8999999999999999 reads as 0.9.
+fn dollars(amount: f64) -> String {
+    let text = format!("{amount:.6}");
+    text.trim_end_matches('0').trim_end_matches('.').to_string()
+}
+
 /// Makes one call, capped at `left`, the budget less the spend so far. The cap
 /// is the platform's limit on this one call, and the check before the call is
 /// what bounds the run.
@@ -447,7 +458,7 @@ fn call(
     command.arg(&context.progress);
     command.args([
         "--max-budget-usd",
-        &left.to_string(),
+        &dollars(left),
         "--append-system-prompt",
         &context.preamble,
     ]);
@@ -535,10 +546,12 @@ fn run(
     for iteration in 1..=terms.iterations {
         // The next call may cost as much as the largest so far, so the run
         // ends before a call that could pass the budget, not after it.
-        if spend + largest > terms.budget_usd {
+        if spend + largest > terms.budget_usd + SLACK {
             println!(
-                "the next call could pass the budget: {spend} spent, {largest} the largest call, {} the budget",
-                terms.budget_usd
+                "the next call could pass the budget: {} spent, {} the largest call, {} the budget",
+                dollars(spend),
+                dollars(largest),
+                dollars(terms.budget_usd)
             );
             return Ok("budget");
         }
@@ -576,7 +589,9 @@ fn run(
         // A broken bound is reported before a success, so both endings come
         // before the condition is evaluated.
         let Some(cost) = cost else {
-            println!("iteration {iteration}: {shown}, the call reported no cost");
+            println!(
+                "iteration {iteration}: {shown}, the call reported no cost the runner can sum"
+            );
             return Ok("unmetered");
         };
         spend += cost;

@@ -111,6 +111,15 @@ counts as no cost, because adding it would lower the spend or make it
 unreadable. The run prints one line saying why it ended before its last line,
 such as the spend, the largest call and the budget.
 
+I made two more choices in review. A sum may pass the budget by a billionth
+of a dollar and still count as within it, because 0.2 + 0.1 is above 0.3 in
+binary floating point and the specification says "at most the budget". The
+cap a call gets is the budget left to six decimal places.
+
+SPC-1201 says under "The terms" that the budget reaches `claude` as typed.
+After this task the first call gets the number, so `1.00` arrives as `1`, and
+that sentence needs a change of its own.
+
 No real call ran, so the subtype `error_max_budget_usd` and the field
 `total_cost_usd` are as RES-0300 recorded them and the stand-in prints them.
 `meow-loop` goes to 0.3.0, and its README states the two endings, the check
