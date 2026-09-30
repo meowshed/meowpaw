@@ -448,9 +448,9 @@ class Project(unittest.TestCase):
 # headers on every response, and `cached` gives the age, `remaining` and reset of the headers a call sent with
 # `--cache` replays. A `null` among the `responses` lets that call through to the default answer. Each issue holds
 # the time on GitHub's clock it was written at, and the read-back listing answers with the issues written at or after
-# its `since`, less the numbers `omit` names. A create writes its issue `lag` seconds before the `Date` of its
-# answer, and its answer carries the issue's `updated_at` unless `no_updated_at` is set. The listing leaves out
-# the numbers `omit` names, with the body of each number `alter` names changed and the title of each number
+# its `since`. A create writes its issue `lag` seconds before the `Date` of its answer, `lag` being one number for
+# every create or a list with one for each, and its answer carries the issue's `updated_at` unless `no_updated_at`
+# is set. The listing leaves out the numbers `omit` names, with the body of each number `alter` names changed and the title of each number
 # `retitle` names changed, and a read of one issue by number shows the body of each number `read_alter` names changed and the title of each
 # number `read_retitle` names changed, and `page_size`
 # at a time where the script sets it, each page but the last naming the next in a `Link` header.
@@ -501,7 +501,9 @@ if answer is not None:
     headers.update(answer.get("headers", {}))
 elif method == "POST":
     number = len(state["issues"]) + 1
-    written = github_now - script.get("lag", 0)
+    lag = script.get("lag", 0)
+    written = github_now - (lag[number - 1] if isinstance(lag, list) and number <= len(lag) else
+                            lag if not isinstance(lag, list) else 0)
     state["issues"][str(number)] = {"number": number, "state": "open", "written": written, **fields}
     if not script.get("no_updated_at"):
         state["issues"][str(number)]["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(written))
@@ -845,8 +847,9 @@ class Partial(Layered, unittest.TestCase):
         """TSK-2960 criterion 2, REQ-2572: with the local clock two minutes ahead of the stand-in's `Date`, the
         listing's `since` is the `Date` of the run's first response, and both created issues are read back. The
         stand-in lists only the issues written at or after `since`, so a `since` taken from the local clock reads
-        neither back."""
-        root, done = self.five({"responses": {"POST repos/o/r/issues": [None, None, self.REFUSED]}}, skew=120)
+        neither back. Its create answers carry no `updated_at`, so the start comes from the `Date` (ADR-2320)."""
+        root, done = self.five({"no_updated_at": True,
+                                "responses": {"POST repos/o/r/issues": [None, None, self.REFUSED]}}, skew=120)
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         first = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 120))
         self.assertEqual(listings(self.calls(root)), [first])
@@ -950,26 +953,28 @@ class ReadBack(Layered, unittest.TestCase):
         self.assertEqual([line for line in lines if line.startswith("partial:")], [])
 
     def test_the_listing_starts_at_the_first_issues_own_time(self):
-        """TSK-4020 criterion 1, REQ-3322: with each issue written a second before its create's answer, the
-        repository named and two unmapped tasks, the listing starts at the first issue's `updated_at`, finds both
-        issues with no read by number, and the run exits 0."""
+        """TSK-4020 criterion 1, REQ-3322: with each issue written before its create's answer, the first two
+        seconds before and the second one, the repository named and two unmapped tasks, the listing starts at the
+        earliest `updated_at`, finds both issues with no read by number, and the run exits 0. A start at the latest
+        time, or at the first response's `Date`, misses the first issue and reads it by number."""
         root = Project.repository(self)
-        self.stand_in(root, {"lag": 1})
+        self.stand_in(root, {"lag": [2, 1]})
         done = self.meow_github(root, "project", "EPC-0001", "o/r")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         calls = self.calls(root)
-        self.assertEqual(listings(calls), [time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 1))])
+        self.assertEqual(listings(calls), [time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 2))])
         self.assertEqual([c for c in calls if re.fullmatch(r"repos/o/r/issues/\d+", c["args"][1])], [])
         self.assertEqual([line for line in done.stdout.splitlines() if line.startswith("partial:")], [])
 
     def test_with_no_updated_at_the_listing_starts_at_the_first_date(self):
         """TSK-4020 criterion 2, REQ-3322: where no create's answer carries `updated_at`, the listing starts at the
-        `Date` of the run's first response."""
+        `Date` of the run's first response, on GitHub's clock: the local clock runs two minutes ahead of the
+        stand-in's, so a start taken from the local clock fails."""
         root = Project.repository(self)
         self.stand_in(root, {"lag": 1, "no_updated_at": True})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
-        self.assertEqual(listings(self.calls(root)), [time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START))],
-                         done.stdout + done.stderr)
+        done = self.meow_github(root, "project", "EPC-0001", "o/r", skew=120)
+        self.assertEqual(listings(self.calls(root)),
+                         [time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 120))], done.stdout + done.stderr)
 
     def test_a_throttled_read_by_number_stops_the_reads(self):
         """TSK-4040 criterion 4, REQ-3322, REQ-3326: with both created issues left out of the listing, a secondary
