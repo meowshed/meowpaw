@@ -66,7 +66,39 @@ number.
 
 ## Evidence
 
-Not yet.
+`settle` in `crates/meow/src/github/project.rs` sends the read-back listing
+as before, then reads by number, through `get_mapped`, each created issue the
+listing left out. An issue that reads back as written is projected, one that
+reads differently goes under `created, not read back`, and a throttle during
+the reads stops them and leaves each remaining issue under
+`created, not read back` with `no read ran`.
+
+Each criterion is closed by the check it names, in
+`plugins/meow-github/tests/test_github.py`:
+
+1. `ReadBack.test_an_issue_the_listing_leaves_out_is_read_by_number`
+2. `Partial.test_an_issue_the_listing_omits_is_not_read_back`
+3. `Partial.test_created_issues_are_read_back_in_one_listing`
+4. `ReadBack.test_a_throttled_read_by_number_stops_the_reads`
+
+No criterion rests on judgement. The checks for criteria 1, 2 and 4 failed
+first, in the commit that holds them alone, where the `test` verb exited 1.
+That commit changes the `omit` case of criterion 2's check to read the issue
+by number with another body, because an issue the listing omits and that
+reads back is now projected. Criterion 3's check passed before the change,
+as the task expects, because no issue was left out. `format`, `lint`,
+`check`, `test` and `build` each pass on the change's tree, as the pull
+request cites.
+
+I made one choice the task leaves open. A read by number that fails other
+than by a throttle, a ceiling or a 401 puts the issue under
+`created, not read back` with `couldn't be read`, prints the failure, and the
+reads go on to the next issue, as a failed read of a mapped issue does. A 401
+stops the reads as a throttle does, as SPC-1080 states; review found the
+first version didn't, and criterion 4's check now sends one.
+
+`meow-github` goes to 0.10.0, and its README says an issue the listing leaves
+out is read by its number.
 
 ## Left alone
 

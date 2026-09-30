@@ -586,8 +586,8 @@ TSK-4020 realises ADR-2320 directly: the read-back listing starts at the
 earliest created issue's own `updated_at`. TSK-4030 realises ADR-2330
 directly: a refusal line quotes GitHub's reason, and a run sends nothing
 after a 401. TSK-4040 realises ADR-2340 directly: a created issue the
-listing leaves out is read by its number. All three amend ADR-1810, and none
-is done yet.
+listing leaves out is read by its number, and is done. All three amend
+ADR-1810.
 
 [EPC-2000](epics/EPC-2000-the-route-before-work.md) realises ADR-2100 in two
 tasks, TSK-3500 and TSK-3510, none of them started. Every requirement ADR-2100

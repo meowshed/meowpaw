@@ -245,7 +245,8 @@ fn throttled(line: &str) {
     println!("meow-github project: stopped at the throttle above, sending nothing more");
 }
 
-/// An issue this run created, until the listing reads it back.
+/// An issue this run created, until the listing or a read by number reads it
+/// back.
 struct Created {
     id: String,
     number: u64,
@@ -270,6 +271,15 @@ struct Outcome {
 }
 
 impl Outcome {
+    /// Puts a created issue's task under `projected`, as read back as written.
+    fn confirm(&mut self, c: Created) {
+        println!(
+            "{}: projected to issue #{} at {}, read back",
+            c.id, c.number, c.print
+        );
+        self.projected.push(c.id);
+    }
+
     /// Puts each created issue's task under `created, not read back`, with why.
     fn leave(&mut self, created: &[Created], why: &str) {
         for c in created {
@@ -327,9 +337,10 @@ fn read_back(layer: &mut Layer, repository: &str) -> Result<Vec<Value>, Failure>
     Ok(issues)
 }
 
-/// Reads the created issues back and sorts each task into `outcome`. The
-/// listing runs after a failed write or a refusal, and not after a throttle
-/// or a ceiling, because a request sent while throttled risks the integration.
+/// Reads the created issues back, in one listing and then by number for each
+/// the listing left out, and sorts each task into `outcome`. The listing runs
+/// after a failed write or a refusal, and not after a throttle or a ceiling,
+/// because a request sent while throttled risks the integration.
 fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &mut Outcome) {
     if created.is_empty() {
         return;
@@ -353,29 +364,57 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
             return outcome.leave(&created, "the listing couldn't be read");
         }
     };
+    let text = |issue: &Value, name: &str| {
+        issue
+            .get(name)
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_string()
+    };
+    let written = |issue: &Value, c: &Created| {
+        same(&text(issue, "title"), &c.title) && same(&text(issue, "body"), &c.body)
+    };
+    let mut missing = Vec::new();
     for c in created {
         let found = listed
             .iter()
             .find(|i| i.get("number").and_then(Value::as_u64) == Some(c.number));
-        let text = |issue: &Value, name: &str| {
-            issue
-                .get(name)
-                .and_then(Value::as_str)
-                .unwrap_or("")
-                .to_string()
-        };
         match found {
-            Some(issue)
-                if same(&text(issue, "title"), &c.title) && same(&text(issue, "body"), &c.body) =>
-            {
-                println!(
-                    "{}: projected to issue #{} at {}, read back",
-                    c.id, c.number, c.print
-                );
-                outcome.projected.push(c.id);
-            }
+            Some(issue) if written(issue, &c) => outcome.confirm(c),
             Some(_) => outcome.leave(&[c], "reads differently from what was written"),
-            None => outcome.leave(&[c], "not in the listing"),
+            None => missing.push(c),
+        }
+    }
+    // The listing can lag a create by seconds, so an issue it left out is read
+    // by its number before it is reported (ADR-2340).
+    let mut missing = missing.into_iter();
+    while let Some(c) = missing.next() {
+        let endpoint = format!("repos/{repository}/issues/{}", c.number);
+        match layer.get_mapped(&endpoint) {
+            Ok(issue) if written(&issue, &c) => outcome.confirm(c),
+            Ok(_) => outcome.leave(&[c], "reads differently from what was written"),
+            // A 401 stops the reads as a throttle does, because a rejected
+            // credential sent again counts towards GitHub's lockout.
+            Err(Failure::Throttled(line)) | Err(Failure::Refused(line))
+                if !line.starts_with("refused:") =>
+            {
+                if line.starts_with("unauthenticated:") {
+                    println!("{line}");
+                } else {
+                    throttled(&line);
+                }
+                outcome.throttled = true;
+                outcome.stopped = true;
+                let left: Vec<Created> = std::iter::once(c).chain(missing).collect();
+                return outcome.leave(&left, "no read ran");
+            }
+            Err(e) => {
+                report(
+                    &format!("{}: issue #{} couldn't be read back", c.id, c.number),
+                    &e,
+                );
+                outcome.leave(&[c], "couldn't be read");
+            }
         }
     }
 }
