@@ -5,6 +5,7 @@
 TSK-3870 asks for `meow-method` (REQ-3654, ADR-2300)."""
 
 import json
+import subprocess
 import tomllib
 import unittest
 from pathlib import Path
@@ -31,6 +32,73 @@ class RetiredUnits(unittest.TestCase):
             test = tomllib.load(handle)["verbs"]["test"]
         for unit in RETIRED:
             self.assertNotIn(f"plugins/{unit}", test)
+
+
+LIVE = ("plugins", "docs", "tools", "crates", ".claude-plugin", ".meowpaw", ".github", "README.md", "llms.txt",
+        "CLAUDE.md", "mise.toml", "REUSE.toml", "project/specs", "project/vision.md", "project/README.md")
+
+
+class Renamed(unittest.TestCase):
+    """TSK-3850, ADR-2300: `meow-verbs` is `meow-checks`, and the old name stays one release as a stub."""
+
+    def plugins(self):
+        return {p["name"]: p for p in json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())["plugins"]}
+
+    def test_the_marketplace_ships_meow_checks(self):
+        """Criterion 1, REQ-3634: the unit installs as `meow-checks`, with its skill and its program under that name."""
+        self.assertIn("meow-checks", self.plugins())
+        unit = ROOT / "plugins" / "meow-checks"
+        manifest = json.loads((unit / ".claude-plugin/plugin.json").read_text())
+        self.assertEqual(manifest["name"], "meow-checks")
+        self.assertTrue((unit / "skills/verify/SKILL.md").is_file())
+        self.assertEqual(sorted(p.name for p in (unit / "bin").iterdir() if p.is_file()), ["meow-checks"])
+
+    def test_meow_verbs_is_a_stub_that_names_its_replacement(self):
+        """Criterion 2, REQ-3636: the old name still installs, says it is deprecated, and ships no skill or program."""
+        self.assertIn("meow-verbs", self.plugins())
+        stub = ROOT / "plugins" / "meow-verbs"
+        manifest = json.loads((stub / ".claude-plugin/plugin.json").read_text())
+        self.assertEqual(manifest["name"], "meow-verbs")
+        self.assertIn("meow-checks", manifest["description"])
+        self.assertRegex(manifest["description"], r"(?i)renamed|deprecated")
+        # What ships is what git tracks: a checkout built before the rename keeps an ignored binary there.
+        shipped = subprocess.run(["git", "ls-files", "--", "plugins/meow-verbs/skills", "plugins/meow-verbs/bin"],
+                                 cwd=ROOT, capture_output=True, text=True, check=True)
+        self.assertEqual(shipped.stdout, "")
+        hooks = json.loads((stub / "hooks/hooks.json").read_text())
+        commands = [hook["command"] for entry in hooks["hooks"]["SessionStart"] for hook in entry["hooks"]]
+        self.assertEqual(commands, ['"${CLAUDE_PLUGIN_ROOT}"/hooks/notice'])
+        done = subprocess.run([str(stub / "hooks/notice")], capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("meow-verbs is now meow-checks", done.stdout)
+        self.assertIn("Tell the person", done.stdout.splitlines()[0])
+        self.assertIn("claude plugin install meow-checks@meowpaw", done.stdout)
+        self.assertIn("claude plugin uninstall meow-verbs@meowpaw", done.stdout)
+
+    def test_only_the_stub_names_the_old_unit(self):
+        """Criterion 3, REQ-3634: outside frozen records, the old name appears only in the stub, in the pages that
+        tell an install to move, and in these checks."""
+        allowed = ("plugins/meow-verbs/", "tools/test_marketplace.py", "docs/troubleshooting.md",
+                   ".claude-plugin/marketplace.json")
+        # Lines that name the stub or a frozen record's title, and nothing else in their file.
+        named = {"docs/README.md": "(../plugins/meow-verbs/README.md)",
+                 "project/specs/SPC-1040-the-five-verbs.md": "it was `meow-verbs`",
+                 "project/README.md": "ADR-1480"}
+        tracked = subprocess.run(["git", "ls-files", "--", *LIVE], cwd=ROOT, capture_output=True, text=True, check=True)
+        found = []
+        for name in tracked.stdout.splitlines():
+            if name.startswith(allowed):
+                continue
+            try:
+                text = (ROOT / name).read_text(encoding="utf-8")
+            except (UnicodeDecodeError, FileNotFoundError):
+                continue
+            lines = text.splitlines()
+            for number, line in enumerate(lines, 1):
+                before = lines[number - 2] if number > 1 else ""
+                if "meow-verbs" in line and named.get(name, "\0") not in line + before:
+                    found.append(f"{name}:{number}")
+        self.assertEqual(found, [])
 
 
 if __name__ == "__main__":

@@ -24,6 +24,11 @@
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-prose-gate/README.md"
     },
     {
+      "name": "meow-checks",
+      "source": "./plugins/meow-checks",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-checks/README.md"
+    },
+    {
       "name": "meow-verbs",
       "source": "./plugins/meow-verbs",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-verbs/README.md"

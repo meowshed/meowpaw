@@ -11,7 +11,7 @@ describes:
     meow-prose-gate@0.2.2,
     meow-prose@0.5.0,
     meow-scm@0.4.2,
-    meow-verbs@0.8.0,
+    meow-checks@0.9.0,
   ]
 ---
 
@@ -24,14 +24,14 @@ installs on its own.
 
 ## Quick start
 
-Add the marketplace, install `meow-verbs`, which runs your repository's
+Add the marketplace, install `meow-checks`, which runs your repository's
 checks, and declare one check. Run this from the repository's root. If
 `.meowpaw/profile.toml` already exists, add the `[verbs]` table to it by hand
 instead of running the last line, because that line replaces the file:
 
 ```bash
 claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
-claude plugin install meow-verbs@meowpaw
+claude plugin install meow-checks@meowpaw
 mkdir -p .meowpaw && printf '[verbs]\ntest = "./scripts/test"\n' > .meowpaw/profile.toml
 ```
 
@@ -49,6 +49,7 @@ Every page, who it is for and what it answers:
 | Page                                                    | For                                                                                                   | Answers                                                                                         | Kind            |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------- |
 | [meow-author](../plugins/meow-author/README.md)         | someone choosing or running meow-author                                                               | what meow-author does, what it adds to a session and how to run it                              | reference       |
+| [meow-checks](../plugins/meow-checks/README.md)         | someone choosing or running meow-checks                                                               | what meow-checks does, what it adds to a session and how to run it                              | reference       |
 | [meow-code](../plugins/meow-code/README.md)             | someone choosing or running meow-code                                                                 | what meow-code does, what it adds to a session and how to use it                                | reference       |
 | [meow-core](../plugins/meow-core/README.md)             | someone choosing or running meow-core                                                                 | what meow-core does, what it adds to a session and how to run it                                | reference       |
 | [meow-flow](../plugins/meow-flow/README.md)             | someone choosing or running meow-flow                                                                 | what meow-flow does, what it adds to a session and how to run it                                | reference       |
@@ -62,7 +63,7 @@ Every page, who it is for and what it answers:
 | [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
 | [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
 | [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended                                                           | what meow-unattended plans, what it writes and what its deny rules don't stop                   | reference       |
-| [meow-verbs](../plugins/meow-verbs/README.md)           | someone choosing or running meow-verbs                                                                | what meow-verbs does, what it adds to a session and how to run it                               | reference       |
+| [meow-verbs](../plugins/meow-verbs/README.md)           | someone who has meow-verbs installed and sees its notice                                              | why meow-verbs is a stub now, and how to move to meow-checks                                    | reference       |
 | [troubleshooting](troubleshooting.md)                   | someone whose meowpaw unit just refused, blocked or reported something they didn't expect             | what each message a unit prints means, why it appeared and what fixes it                        | troubleshooting |
 | [tutorial](tutorial.md)                                 | someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work | how to get from an empty repository to a first check that Claude Code runs and reports honestly | tutorial        |
 
@@ -88,7 +89,7 @@ turn on auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.
 These parts are planned, and no unit ships them yet, so no page describes
 them:
 
-- packs that resolve the five verbs `meow-verbs` runs, `format`, `lint`,
+- packs that resolve the five verbs `meow-checks` runs, `format`, `lint`,
   `check`, `test` and `build`, for a language or a task runner without
   your declaring each command;
 - packs for version control tools other than git, and for trackers other than

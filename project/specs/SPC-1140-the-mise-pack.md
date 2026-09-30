@@ -41,7 +41,7 @@ and binds the five verbs to the tasks a repository declares. It states what
 `status` reports, what `bind` prints, what `check` finds, and how each
 unresolved state reads.
 
-It leaves running a verb to SPC-1040, which `meow-verbs` implements: a bound
+It leaves running a verb to SPC-1040, which `meow-checks` implements: a bound
 verb is a command in the profile like any other. Packs for other runners are
 not written yet.
 

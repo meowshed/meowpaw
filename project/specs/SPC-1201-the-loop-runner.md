@@ -122,7 +122,7 @@ always exits 0 (REQ-0874). The runner evaluates the condition itself, through
 the `verbs` and `record` features' code, and runs no other unit's program to
 do it, because a unit's file runs no path outside its own directory, which
 the `standalone` check enforces, and so the unit works whether or not
-`meow-verbs` or `meow-flow` is installed.
+`meow-checks` or `meow-flow` is installed.
 
 After the command line, `start` checks the inputs through the `record` code,
 with the test `paw ready <step> <inputs>` applies. It exits 3 when an input
@@ -178,7 +178,7 @@ whose tree id changed or couldn't be identified. One evaluation:
    one with a dirty submodule, holds no condition;
 3. records each verb's result in the evidence ledger through the `verbs`
    code, with the tree before and after, as SPC-1040 states, so the person can
-   cite the run's final results as `meow-verbs evidence` prints them.
+   cite the run's final results as `meow-checks evidence` prints them.
 
 The runner reads no pass back from the ledger and nothing the model printed,
 so a result whose text claims the work is done changes nothing, and no option

@@ -2,12 +2,12 @@
 reader: someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work
 answers: how to get from an empty repository to a first check that Claude Code runs and reports honestly
 kind: tutorial
-describes: [meow-verbs@0.8.0]
+describes: [meow-checks@0.9.0]
 ---
 
 # Your first verified change
 
-In this tutorial you install one unit of `meowpaw`, `meow-verbs`, into a new
+In this tutorial you install one unit of `meowpaw`, `meow-checks`, into a new
 repository, declare the one check that repository has, and watch Claude Code
 run it and report the checks you never declared as unresolved. It takes about
 ten minutes. You need macOS or Linux, Claude Code installed and signed in,
@@ -31,20 +31,20 @@ check has to do for this tutorial.
 
 ## 2. Install the unit
 
-Add the marketplace and install `meow-verbs` from it:
+Add the marketplace and install `meow-checks` from it:
 
 ```bash
 claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
-claude plugin install meow-verbs@meowpaw
+claude plugin install meow-checks@meowpaw
 ```
 
-The second command reports `meow-verbs` as installed. `meow-verbs` ships its
+The second command reports `meow-checks` as installed. `meow-checks` ships its
 own program for macOS, Linux and Windows on arm64 and x86_64, so you install
 nothing else.
 
 ## 3. Declare the check
 
-Tell `meow-verbs` how this repository runs its tests. Create
+Tell `meow-checks` how this repository runs its tests. Create
 `.meowpaw/profile.toml` with one line under `[verbs]`:
 
 ```bash
@@ -54,7 +54,7 @@ cat .meowpaw/profile.toml
 ```
 
 The last command prints the two lines you wrote. You declared `test` and
-nothing else, so you can see how `meow-verbs` reports a check that doesn't
+nothing else, so you can see how `meow-checks` reports a check that doesn't
 exist.
 
 ## 4. Ask Claude Code to test
@@ -65,7 +65,7 @@ Start Claude Code in the repository and ask it to run the tests:
 claude "run the tests"
 ```
 
-Claude Code loads the `meow-verbs:verify` skill before it runs anything, and
+Claude Code loads the `meow-checks:verify` skill before it runs anything, and
 shows you what each verb resolves to:
 
 ```text
@@ -77,7 +77,7 @@ build      unresolved  undeclared: the profile doesn't name it; declare it under
 ```
 
 If Claude Code asks for permission to run the program, allow it. Then it runs
-your script through `meow-verbs` and reports the result with the command, its
+your script through `meow-checks` and reports the result with the command, its
 exit status and its output:
 
 ```text
@@ -109,7 +109,7 @@ Claude Code shows the same table of what each verb resolves to, then reports
 summary: lint unresolved
 ```
 
-`meow-verbs` exists for this moment. An agent asked to lint a repository with
+`meow-checks` exists for this moment. An agent asked to lint a repository with
 no linter can guess a command, and a guessed command that exits 0 reads as a
 pass. Here the report says nothing ran, and the program exits 3, which no
 caller can mistake for success.
