@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.46.1]
+describes: [meow-flow@0.46.2]
 ---
 
 # meow-flow
@@ -74,7 +74,9 @@ is waiting on.
 To approve a whole decision at once, ask for it in one pull request. Claude
 then writes the research, requirements, decision, specification changes, epic
 and tasks in turn, checks each as a draft before marking it approved, and
-stops once at the pull request. Merging it is your approval, and nothing is
+stops once at the pull request, which it opens and names for you. Where your
+repository declares no code host, it stops at the branch and names that.
+Merging it is your approval, and nothing is
 implemented before you do.
 
 To run one step yourself, ask for it by name, such as "run the design step for

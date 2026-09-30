@@ -678,7 +678,9 @@ reads silence, a change of subject or an unrelated instruction as approval
 Where a person asks for a decision to land in one pull request, the method
 skill writes its research, requirements, decision record, specification
 changes, epic and tasks in turn and stops once, at that pull request, whose
-merge is the approval (REQ-3650, REQ-3656, ADR-2310). It writes each record
+merge is the approval (REQ-3650, REQ-3656, ADR-2310). The session opens the
+pull request and names it in its report, and where the repository declares no
+code host it names the branch in its place. It writes each record
 as a draft, runs `paw check`, and sets it to `approved` only where the check
 reports nothing (REQ-3658), and it implements nothing on that path. On that path the statuses land in the pull request's commits, and
 not each in a commit of its own. A task that isn't approved on the trunk the
