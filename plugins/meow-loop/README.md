@@ -9,9 +9,10 @@ describes: [meow-loop@0.3.0]
 
 `meow-loop start` repeats one prompt in fresh `claude -p` calls until the
 verification verbs you name pass, or until the number of iterations you state
-has run or the next call could pass the budget you state. The runner is a program outside the model, so nothing a call prints or
-writes extends the run, and the runner alone decides whether the work is done,
-from each verb's exit status.
+has run or the next call could pass the budget you state. The runner is a
+program outside the model, so nothing a call prints or writes extends the run,
+and the runner alone decides whether the work is done, from each verb's exit
+status.
 
 ## Install it
 
@@ -100,10 +101,9 @@ After a call the runner reads `total_cost_usd` from the call's result and adds
 it to the spend. A call that prints no result, or a result whose cost is
 absent, negative or no number, ends the run `unmetered`, because a spend the
 runner can't sum bounds nothing. That call's line in the log holds `null` for
-`sum_usd`. A
-call whose result has the subtype `error_max_budget_usd` ends the run
-`budget`. Both come before the condition, so a call that reports no cost and
-also makes the verbs pass ends `unmetered`.
+`sum_usd`. A call whose result has the subtype `error_max_budget_usd` ends the
+run `budget`. Both come before the condition, so a call that reports no cost
+and also makes the verbs pass ends `unmetered`.
 
 Then the runner compares the work tree's tree id with the one before
 the call. The tree id covers every tracked file and every untracked file git
@@ -155,8 +155,8 @@ more than every call before it can take the spend past the budget by the
 difference, and the first call is held only by the platform's cap.
 
 This version keeps running when a call changes nothing, until the ceiling or
-the budget ends the run. It doesn't check whether a call changed the prompt copy or
-`run.toml`, and it resolves each verb from the profile again at every
+the budget ends the run. It doesn't check whether a call changed the prompt
+copy or `run.toml`, and it resolves each verb from the profile again at every
 evaluation, so a call that rewrites `.meowpaw/profile.toml` changes what the
 condition runs. It doesn't stop a session inside Claude Code from starting a
 run. Until later versions add those checks, start a run yourself, and read the
@@ -200,7 +200,8 @@ creates no run directory:
 
 During a run, a file the runner can't write, a `claude` or a verb's command it
 can't start, or a verb that no longer resolves stops the run with the same
-`unresolved:` line and exit status 3. The run then has no ending, and reads as interrupted.
+`unresolved:` line and exit status 3. The run then has no ending, and reads as
+interrupted.
 
 ## What it costs you
 

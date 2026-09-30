@@ -421,6 +421,17 @@ fn dollars(amount: f64) -> String {
     text.trim_end_matches('0').trim_end_matches('.').to_string()
 }
 
+/// The cap one call gets for `left`, the budget less the spend so far: six
+/// decimal places, or every digit where six would round it to nothing, and
+/// never below 0.
+fn cap(left: f64) -> String {
+    if left >= 0.000001 {
+        dollars(left)
+    } else {
+        left.max(0.0).to_string()
+    }
+}
+
 /// Makes one call, capped at `left`, the budget less the spend so far. The cap
 /// is the platform's limit on this one call, and the check before the call is
 /// what bounds the run.
@@ -458,7 +469,7 @@ fn call(
     command.arg(&context.progress);
     command.args([
         "--max-budget-usd",
-        &dollars(left),
+        &cap(left),
         "--append-system-prompt",
         &context.preamble,
     ]);
