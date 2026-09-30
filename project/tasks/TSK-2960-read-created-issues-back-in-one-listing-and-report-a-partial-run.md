@@ -75,8 +75,49 @@ issues are read back in one listing and shows the `partial:` line.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`run` in `crates/meow/src/github/project.rs` no longer reads an issue after
+creating it. It keeps each created issue until its loop ends, and `settle`
+then reads them back through `read_back`, one uncached listing of
+`repos/{r}/issues?state=all&since=<start>&per_page=100`, every page, matched
+by number. `<start>` is `Layer::began`, the `Date` of the run's first
+response. `settle` sends no listing after a throttle or a ceiling. A run that
+stopped before its last task, or that holds a created issue it didn't read
+back as written, prints the `partial:` line and exits 3.
+
+Each criterion is closed by the check it names, in
+`plugins/meow-github/tests/test_github.py`:
+
+1. `Partial.test_a_failed_write_reads_back_and_reports_partial`
+2. `Partial.test_the_listing_starts_at_githubs_date`
+3. `Partial.test_a_throttle_sends_no_listing`
+4. `Partial.test_an_issue_the_listing_omits_is_not_read_back`
+5. `Partial.test_created_issues_are_read_back_in_one_listing`
+
+No criterion rests on judgement. The five checks failed first, in the commit
+that holds them alone, where the `test` verb exited 1. That commit also
+changes `Project.test_an_approved_epic_projects_one_issue_per_task`, which
+named the two single reads this task removes and failed there too, and lets
+`Project.test_project_groups_an_issue_nowhere` accept the listing's address.
+`format`, `lint`, `check`, `test` and `build` each pass on the change's tree,
+as the pull request cites.
+
+I made five choices the task leaves open. The line always names the three
+groups and writes `none` for an empty one, so a reader never infers a group
+from its absence. Each task under `created, not read back` carries its
+issue's number and the reason. A run that visits every task and still holds
+an unread issue prints the line and exits 3, because criterion 4 puts that
+task under the group and the group exists only on the line. A run that can't
+name its repository prints the line with every task under `not projected`,
+because it stopped before visiting any. An issue created whose mapping
+couldn't be written stops the run under `created, not read back`, because the
+next run would otherwise create a second issue.
+
+The line after a throttle no longer says the tasks above it were projected,
+because after this change they are created and not read back.
+
+No run against GitHub created an issue, so the listing is shown by the
+stand-in alone. `meow-github` goes to 0.8.0, and its README states the
+listing and the `partial:` line.
 
 ## Left alone
 

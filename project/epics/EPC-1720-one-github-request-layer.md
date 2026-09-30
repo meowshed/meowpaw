@@ -110,10 +110,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       after failing first, and the five verbs pass. TSK-2950 carries the rest.
       depends: TSK-2940 (blocking) - the counts sit in the layer
 
-- [ ] T-003 [P] TSK-2960 read the created issues back in one listing after the
+- [x] T-003 [P] TSK-2960 read the created issues back in one listing after the
       last create, and print `partial:` when `project` stops before visiting
       every task
       closes: REQ-2572
+      evidence: the five checks in `Partial` pass after failing first, and the
+      five verbs pass. TSK-2960 carries the rest.
       depends: TSK-2940 (blocking) - the listing goes through the layer, and
       the run stops at a throttle only once the layer does
 

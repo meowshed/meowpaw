@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.7.0]
+describes: [meow-github@0.8.0]
 ---
 
 # meow-github
@@ -92,8 +92,34 @@ Each issue is titled with the task's identifier and title, and its body cites
 the epic, the requirements the task closes and its dependencies, and ends with
 a marker naming the task and a fingerprint. The task gains `issue:` with the
 issue's number and `projected:` with the fingerprint, so the mapping lives in
-the repository. Each issue is read back after it is created. Run it again and
-nothing changes. It refuses an epic that isn't approved.
+the repository. After its last create, the run reads the issues it created
+back in one listing of the issues written since it began, and matches each by
+number. Run it again and nothing changes. It refuses an epic that isn't
+approved.
+
+Where a run stops before its last task, or the listing doesn't show a created
+issue as it was written, the report says which tasks are in which state and
+the run exits 3:
+
+```text
+partial: projected TSK-1930; created, not read back TSK-1940 (issue #512, not in the listing); not projected TSK-1950, TSK-1960
+```
+
+| Group                    | Holds each task whose issue                                               |
+| ------------------------ | ------------------------------------------------------------------------- |
+| `projected`              | Was updated, was found unchanged, or was created and read back as written |
+| `created, not read back` | Was created and not confirmed, with the issue's number and the reason     |
+| `not projected`          | Is any other task of the epic, visited or not                             |
+
+A group with no task reads `none`. The reason is `not in the listing`,
+`reads differently from what was written`, `the listing couldn't be read`,
+`the listing was throttled`, `no listing ran` or `the task doesn't name it`.
+The run sends the listing after a write GitHub refused, and sends none after a
+throttle or a budget ceiling, where it sends nothing more at all. A task under
+`created, not read back` keeps its `issue:`, so the next run reads that issue
+through the mapping and creates no second one. The one exception is
+`the task doesn't name it`: the issue exists and the task file couldn't be
+written, so set `issue:` on the task by hand before the next run.
 
 A decision one task realises has no epic. Name the decision, and the pack files
 an issue for each task that names it in `realises:`, under nothing:
