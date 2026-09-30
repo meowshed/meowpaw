@@ -2,7 +2,7 @@
 id: TSK-2700
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1650
 closes: [REQ-2974, REQ-2982, REQ-2984, REQ-2988, REQ-3270]
 issue: 659
@@ -14,8 +14,10 @@ projected: 6cc5c14f469e
 `meow-author check` fails an agent that leaves out `maxTurns`, `tools`,
 `model`, `effort`, `omitClaudeMd` or `skills`, or holds a value SPC-1030's
 table doesn't accept, and fails a shipped agent whose `tools` can delegate.
-`record-reviewer` and `prose` declare all six in the same change, so the gate
+Each shipped agent declares all six in the same change, so the gate
 stays green. One task, one branch, one pull request, one review.
+
+**Amended by ADR-2300.** It names no `record-reviewer`, which ADR-2300 removed with its evaluation case, its gate criterion is closed by the pull request's gate, and What to do no longer adds that case.
 
 ## Acceptance criteria
 
@@ -58,15 +60,11 @@ stays green. One task, one branch, one pull request, one review.
    agent with only a `description` today and a check asserting only the 0
    couldn't fail before the change.
 6. Given this change's tree, when `mise run prompts` runs, then it exits 0,
-   and `plugins/meow-flow/agents/record-reviewer.md` and
-   `plugins/meow-prose/agents/prose.md` declare the values in SPC-1030's
-   table under "What an agent declares". Closed by: the kept evidence of the
-   gate's run at the merging revision.
-7. Given `plugins/meow-flow/evals/review-without-delegating/`, when a person
-   runs it by hand, then the transcript shows `record-reviewer` making no
-   Agent call and doing the review itself. Closed by: judgement, because a
-   hand-run evaluation is a model's run read by a person and never runs in
-   CI; the kept transcript is the evidence.
+   and each shipped agent declares the values in SPC-1030's table under
+   "What an agent declares". Closed by: the gate's outcome in the task's
+   pull request.
+7. Dropped by ADR-2300: the case `review-without-delegating` exercised
+   `record-reviewer`, and both are removed.
 
 ## What to do
 
@@ -85,11 +83,7 @@ they drive the built binary as the existing `Check` fixtures do. Write the
 failing fixtures first, in a commit of their own, and see them fail against
 the current check before the passing fixture gains its declarations.
 
-Give `plugins/meow-flow/agents/record-reviewer.md` and
-`plugins/meow-prose/agents/prose.md` the values in SPC-1030's table. Add the
-hand-run case `plugins/meow-flow/evals/review-without-delegating/`, with a
-`prompt.md` and graders in the shape of the unit's other cases, and its line
-in `plugins/meow-flow/evals/thresholds.toml`; it never runs in CI.
+Give each shipped agent the values in SPC-1030's table.
 
 Raise `meow-author`'s minor version, because the check fails agents it
 passed before, and name the six fields and the reason for each in its README

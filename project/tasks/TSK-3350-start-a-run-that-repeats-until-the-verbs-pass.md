@@ -2,7 +2,7 @@
 id: TSK-3350
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1910
 closes: [REQ-0872]
 issue: 725
@@ -21,6 +21,8 @@ REQ-0872 alone. REQ-0870 and REQ-0876 each name a budget as well as a
 condition or a ceiling, so TSK-3370 closes both once the runner holds the
 budget, citing criteria 1 and 3 below for their other halves. One task, one
 branch, one pull request, one review.
+
+**Amended by ADR-2300.** Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -68,8 +70,8 @@ was expected (EPC-1910 criterion 13).
    except three: the sum so far, which TSK-3370 adds, and whether
    `progress.md` changed and the `unidentified` marker, which TSK-3380 adds.
    Closed by: `Files.test_run_directory`.
-8. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+8. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 Criteria 4 to 8 are evidence for SPC-1201 and EPC-1910, and close no
 requirement.
@@ -87,7 +89,7 @@ subcommand to `crates/meow/src/main.rs`, the unit's pair to
 `.meowpaw/profile.toml`.
 
 Resolve and run each verb through the `verbs` feature's code, never by
-running `meow-verbs`, because a unit runs no other unit's program
+running `meow-checks`, because a unit runs no other unit's program
 (SPC-1201). Resolve each named verb at start, so a verb that resolves to no
 command refuses the run. TSK-3390 holds the command resolved at start for
 every later evaluation. Find the state directory and the work tree key as the
@@ -114,9 +116,7 @@ platform's limit on one call, and TSK-3370 replaces it with the budget left. Log
 `total_cost_usd` where the result has one, because SPC-1201's log line
 carries the field and TSK-3370 sums it.
 
-Write the checks first, in a commit of their own, and see them fail, because
-the cover step keeps that failing run as the evidence that the checks can
-fail (EPC-1910, Coverage).
+Write the checks first, in a commit of their own, and see them fail, because that commit is the evidence that the checks can fail (EPC-1910, Coverage).
 
 ## Depends on
 
@@ -138,4 +138,4 @@ ending, which TSK-3380 adds. The hash check, the
 settings file's hash, the unit's own `--plugin-dir`, the hook and holding each verb's command resolved
 at start, which TSK-3390 adds. The skill, the
 `CLAUDECODE` refusal and the deny rule, which TSK-3400 adds.
-`docs/README.md` and the root `README.md`, which the document step updates.
+`docs/README.md` and the root `README.md`, which the implement step updates in the same pull request.

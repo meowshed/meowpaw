@@ -2,7 +2,7 @@
 id: TSK-3440
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1920
 closes: [REQ-0888]
 issue: 740
@@ -13,10 +13,11 @@ projected: 9a5324d8e467
 
 After the `crossed` check, the runner ends the run `off-step`, naming each
 record or path, when a call wrote a record of a kind its step doesn't write,
-changed a path outside the record root in a step that doesn't allow it, left
-an input failing the start test, or set an epic's `checked-at` in an
-`implement` run. REQ-0888 closes here, citing the evidence TSK-3410, TSK-3420
-and TSK-3430 kept. One task, one branch, one pull request, one review.
+changed a path outside the record root in a step that doesn't allow it, or left
+an input failing the start test. REQ-0888 closes here, citing the checks of TSK-3410, TSK-3420
+and TSK-3430. One task, one branch, one pull request, one review.
+
+**Amended by ADR-2300.** Criterion 2 drops `checked-at` and the Cover lines, which ADR-2300 removed, and tests a dependency left undone, which fails the start test without changing an approved record's frozen part. Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -30,10 +31,12 @@ on a count of zero where one was expected (EPC-1920 criterion 17).
    ends `off-step` naming the file; when one writes only the decision while
    the verb passes, then it ends `finished`. Closed by:
    `OffStep.test_design_run_kinds` (REQ-0888, EPC-1920 criterion 8).
-2. Given an `implement` run, when a stand-in sets the epic's `checked-at`,
-   then the run ends `off-step` naming the epic; when one empties the input
-   task's `## Cover` lines, then it ends `off-step` naming the task. Closed
-   by: `OffStep.test_implement_run_limits` (REQ-0888, EPC-1920 criterion 11).
+2. Given an `implement` run of a task with a blocking dependency marked done,
+   when a stand-in clears that dependency's mark in the approved epic's Tasks
+   and changes nothing else, then the input fails the start test and the run
+   ends `off-step` naming the input task. Closed by:
+   `OffStep.test_implement_run_limits` (REQ-0888, in place of EPC-1920
+   criterion 11).
 3. Given a `design` run with a dirty submodule, when a stand-in writes the
    decision, then the run ends `off-step` and `log.jsonl` records the tree as
    `unidentified`. Closed by: `OffStep.test_unidentified_tree_in_a_record_step`
@@ -50,14 +53,14 @@ on a count of zero where one was expected (EPC-1920 criterion 17).
 6. Given a call that both approves a draft and writes another step's record,
    when the run ends, then it ends `crossed`. Closed by:
    `OffStep.test_crossed_first`.
-7. Given REQ-0888, when this task closes it, then its evidence cites the kept
-   runs of TSK-3410's criteria 6 and 9, TSK-3420's criteria 1 to 4 and
+7. Given REQ-0888, when this task closes it, then its evidence cites the
+   checks of TSK-3410's criteria 6 and 9, TSK-3420's criteria 1 to 4 and
    TSK-3430's criterion 1 at their merged revisions. Judgement, because
    whether one requirement is met by five tasks' checks is a reading of the
    evidence together, which no single check performs; the reviewer reads
-   that each cited run passed at the revision it names.
-8. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+   that each cited check passed in the pull request that merged it.
+8. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -89,7 +92,7 @@ the revision that merges.
 
 ## Left alone
 
-The user-facing pages a `cover` or `implement` run may change, because the
+The user-facing pages an `implement` run may change, because the
 harness names no language and can't tell a page from code (ADR-2020). Binding
 a run to the step's own artifact paths, which ADR-2020 names as the change a
 reversal would bring.

@@ -2,7 +2,7 @@
 id: EPC-1651
 artifact: epic
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 realises: ADR-1710
 ---
 
@@ -14,6 +14,8 @@ each of the three shipped agents ends its report with `outcome:`, a space and on
 and the review step act on that word, a denied tool ends an agent as
 `BLOCKED` with nothing waiting, and `meow-author check` fails a unit's agent
 that doesn't name all four.
+
+**Amended by ADR-2300.** ADR-2300 removed `record-reviewer`, so the criteria read for the agents the harness ships, `router` and `prose`; the hand-run cases that exercise `record-reviewer` (criteria 3 to 7, where they name it) no longer apply, and criterion 8 is checked by `paw check coverage` in each task's gate.
 
 ## Acceptance criteria
 
@@ -80,11 +82,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-0816
       depends: nothing
 
-- [ ] T-002 TSK-2703 give the three shipped agents and `meow-author:write` the
-      denial rule, make the method skill and W13 end a `BLOCKED` dispatch
-      without resuming, re-sending or reviewing it themselves, report
-      `prose`'s unreadable standard as `BLOCKED`, and add the hand-run cases
-      for criteria 4 and 5
+- [ ] T-002 TSK-2703 give the shipped agents and `meow-author:write` the
+      denial rule, make W13 end a `BLOCKED` dispatch without resuming,
+      re-sending or reviewing it itself, report `prose`'s unreadable standard
+      as `BLOCKED`, and add the hand-run case for criterion 5
       closes: REQ-2978
       depends: TSK-2702 (blocking) - the denial rule ends the agent with
       `outcome: BLOCKED`, a line only TSK-2702 makes the agents write and the

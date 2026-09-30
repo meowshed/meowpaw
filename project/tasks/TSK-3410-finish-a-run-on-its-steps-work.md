@@ -2,7 +2,7 @@
 id: TSK-3410
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1920
 closes: [REQ-0884]
 issue: 737
@@ -17,6 +17,8 @@ first evaluation. The condition becomes two terms at one tree: the step's
 test from SPC-1201's table, and the held verb commands, with one repeat where
 a verb rewrote the tree. The runner reads no pass from the ledger and nothing
 the model printed. One task, one branch, one pull request, one review.
+
+**Amended by ADR-2300.** It names no `cover`, `document` or `verify` step, which ADR-2300 removed. Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -46,7 +48,7 @@ on a count of zero where one was expected (EPC-1920 criterion 17).
    `## Evidence` while the verb passes, then it ends `finished` after that
    call. Closed by: `Step.test_dropped_is_not_done` and
    `Step.test_marked_done_finishes` (REQ-0884, EPC-1920 criterion 5).
-6. Given `start` without `--step`, with `--step document`, `--step review` or
+6. Given `start` without `--step`, with `--step review` or
    an unknown step, with `--inputs` on `research`, or without it on `design`,
    when it runs, then it exits 2 and leaves no run directory. Given `start`
    over a draft requirement, or with the record root ignored by git, missing,
@@ -69,11 +71,11 @@ on a count of zero where one was expected (EPC-1920 criterion 17).
 9. Given a run of at least two calls, when the recorded preambles are read,
    then each names the step and its inputs and all are byte identical. Closed
    by: `Step.test_preamble_names_the_step` (EPC-1920 criterion 16).
-10. Given a `cover`, `implement` or `verify` run whose work is already done
+10. Given an `implement` run whose work is already done
     and whose verbs pass, when it starts, then it ends `finished` with no
     call. Closed by: `Step.test_done_work_makes_no_call`.
-11. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+11. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -102,8 +104,7 @@ Raise `meow-loop`'s minor version in `plugin.json`, and its README's
 condition gains a term.
 
 Write the checks first, in a commit of their own, and see them fail on the
-tree EPC-1910 leaves, because the cover step keeps that failing run as the
-evidence that the checks can fail (EPC-1920, Coverage).
+tree EPC-1910 leaves, because that commit is the evidence that the checks can fail (EPC-1920, Coverage).
 
 ## Depends on
 

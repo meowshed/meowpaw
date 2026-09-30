@@ -2,7 +2,7 @@
 id: TSK-3360
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1910
 closes: [REQ-0880, REQ-0882]
 issue: 726
@@ -16,6 +16,8 @@ in a new session, and the preamble names the run's `progress/progress.md`,
 which `--add-dir` makes reachable. Each iteration then begins from the same
 stated context, and what the model did before reaches it only through that
 file. One task, one branch, one pull request, one review.
+
+**Amended by ADR-2300.** Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -48,8 +50,8 @@ criterion 13).
    runner instead, which is stronger: they show the file named, reachable by
    rule and kept between calls, not only the code that names it. Whether a
    real call can write it is unobserved, as Left alone says.
-4. Given this change's tree, when `meow-verbs run format lint check test
-build` runs, then each passes. Closed by: the kept evidence of that run.
+4. Given this change's tree, when `meow-checks run format lint check test
+build` runs, then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -67,8 +69,7 @@ Raise `meow-loop`'s minor version in `plugin.json`, and its README's
 file.
 
 Write the checks for criteria 1 to 3 first, in a commit of their own, and
-see them fail, because the cover step keeps that failing run as the evidence
-that the checks can fail (EPC-1910, Coverage). Criterion 4 is outside this
+see them fail, because that commit is the evidence that the checks can fail (EPC-1910, Coverage). Criterion 4 is outside this
 rule, because it runs the verbs over the change and adds no check of its
 own.
 

@@ -2,7 +2,7 @@
 id: EPC-1650
 artifact: epic
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 realises: ADR-1700
 ---
 
@@ -12,6 +12,8 @@ Realises exactly one authorising record, ADR-1700. The epic is complete when
 `meow-author check` fails an agent that leaves out any of the six fields,
 both agents the harness ships declare them and hold no delegation tool, and
 the write skill and the method skill carry the rules no program can check.
+
+**Amended by ADR-2300.** ADR-2300 removed `record-reviewer` and its evaluation cases, so criterion 3's hand-run case, criterion 4's ceiling case, which dispatched it, and the `record-reviewer` half of criterion 6 no longer apply, and criterion 7 is checked by `paw check coverage` in each task's gate.
 
 ## Acceptance criteria
 
@@ -66,23 +68,20 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 ## Tasks
 
 - [>] T-001 [P] TSK-2700 make `meow-author check` in `crates/meow/src/author.rs`
-  require the six fields, declare them in both shipped agents, and add
-  the hand-run case that asks `record-reviewer` to delegate
+  require the six fields and declare them in each shipped agent
   closes: REQ-2974, REQ-2982, REQ-2984, REQ-2988, REQ-3270
   evidence: the 26 `AgentFields` checks and `ShippedAgents` pass after
   failing first, and `meow-author check` passes every shipped agent,
   `router` included, in #667. TSK-2700 carries the runs. Criterion 3's
-  hand-run case waits for a person to run it and keep the transcript.
+  hand-run case is dropped with `record-reviewer`.
   depends: nothing
 
 - [>] T-002 [P] TSK-2701 give `meow-author:write` the rules a program can't
-  check, give the method skill the partial-output rule, and add the
-  hand-run cases for the ceiling and for knowledge shipped as a skill
+  check, and add the hand-run case for knowledge shipped as a skill
   closes: REQ-2972, REQ-2976
   evidence: the `WriteSkill` and `MethodSkill` checks pass after failing
-  first, in #686. TSK-2701 carries the runs. Criteria 4, 5 and 6 wait for
-  a person to run the two hand-run cases and the two judges and keep what
-  they print.
+  first, in #686. TSK-2701 carries the runs. Criteria 5 and 6 wait for a
+  person to run the hand-run case and to read what `prose` reports.
   depends: nothing
 
 TSK-2700 and TSK-2701 touch different files except `meow-flow`'s and

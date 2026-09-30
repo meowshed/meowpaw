@@ -2,7 +2,7 @@
 id: TSK-2701
 artifact: task
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 epic: EPC-1650
 closes: [REQ-2972, REQ-2976]
 issue: 660
@@ -13,9 +13,10 @@ projected: c46ec446735d
 
 `meow-author:write` says knowledge ships as a skill and never as an agent,
 says a delegated agent is no isolation boundary, and gives each of the six
-agent fields its rule and reason. The method skill reports a record whose
-review stopped at its turn ceiling as unreviewed by an agent. One task, one
+agent fields its rule and reason. One task, one
 branch, one pull request, one review.
+
+**Amended by ADR-2300.** Criterion 5 names `prose` alone, since ADR-2300 removed `record-reviewer`. Criteria 2 and 3 are dropped: the method skill reviews no record, so it has no rule for a review that stopped at its ceiling, and the case that exercised one is removed. Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
 
 ## Acceptance criteria
 
@@ -27,30 +28,24 @@ branch, one pull request, one review.
    marked partial as unfinished. Closed by: a fixture in
    `plugins/meow-author/tests/test_author.py`, class `WriteSkill`, that finds
    each rule, and the `prompts` check in the gate, which holds its tags.
-2. Given `plugins/meow-flow/skills/method/SKILL.md`, then a rule beside M22
-   says a review whose output is marked as stopped at its ceiling leaves the
-   record unreviewed by an agent. Closed by:
-   `MethodSkill.test_a_partial_review_is_unreviewed` in
-   `plugins/meow-flow/tests/test_record.py`.
-3. Given a hand-run case that dispatches an agent defined with `maxTurns: 2`
-   on work that needs more, when a person runs it, then its output comes back
-   marked as stopped at its ceiling. Closed by: judgement, because the
-   marking is the platform's behaviour, observed in a hand-run transcript that
-   never runs in CI.
+2. Dropped by ADR-2300: the method skill dispatches no reviewer of a record,
+   so it holds no rule for one that stopped at its ceiling.
+3. Dropped by ADR-2300: the hand-run case for the ceiling dispatched the
+   record reviewer, and both are removed.
 4. Given a hand-run `meow-author` case under `plugins/meow-author/evals/`
    that asks for an agent carrying a language's idioms, when a person runs
    it, then the write skill produces a skill and no agent. Closed by:
-   judgement, because a model's output is read by a person, and the kept
-   transcript is the evidence.
+   judgement, because a model's output is read by a person; the task's
+   Evidence names who read the run.
 5. Given the updated SPC-1030, SPC-1090 and write skill, when
-   `meow-prose:prose` and `meow-flow:record-reviewer` are each dispatched
-   with a path alone, then neither reports a sentence treating a delegated
+   `meow-prose:prose` is dispatched
+   with a path alone, then it doesn't report a sentence treating a delegated
    agent as a boundary. Closed by: judgement, because REQ-2976 names an agent
-   as its verifier; the task's evidence names both agents as the judge, and a
-   person reads both reports before the task closes, because the two agents
+   as its verifier; the task's evidence names `prose` as the judge, and a
+   person reads its report before the task closes, because the agent
    may share the author's model family.
-6. Given this change's tree, when `meow-verbs run format lint test` runs,
-   then each passes. Closed by: the kept evidence of that run.
+6. Given this change's tree, when `meow-checks run format lint test` runs,
+   then each passes. Closed by: each verb's outcome in the task's pull request.
 
 ## What to do
 
@@ -59,15 +54,9 @@ skill gains, each with the reason the decision gives, following the skill's
 own form. The rules for the six fields state why each is written out, and
 match the table in SPC-1030 under "What an agent declares".
 
-Add to the method skill a rule beside M22 that a review whose output comes
-back marked as stopped at the agent's ceiling is reported as unreviewed by an
-agent, as SPC-1090 states under "The review before a gate". Keep the method
-skill's core within `budget.toml`.
-
-Add the hand-run case for the ceiling under `plugins/meow-flow/evals/`, with
-a fixture agent defined with `maxTurns: 2`, and the case for knowledge under
-`plugins/meow-author/evals/`, each with a `prompt.md`, graders and a line in
-its unit's `thresholds.toml`. A person runs them; neither runs in CI.
+Add the hand-run case for knowledge under `plugins/meow-author/evals/`, with
+a `prompt.md`, graders and a line in the unit's `thresholds.toml`. A person
+runs it; it never runs in CI.
 
 Raise `meow-author`'s and `meow-flow`'s patch versions, because both skills
 gain rules and no capability, and match each README's `describes:`. If
@@ -109,5 +98,4 @@ keeps what they print.
 
 `crates/meow/src/author.rs` and the two shipped agents, which TSK-2700
 changes. The session's nesting depth, REQ-3271, which ADR-1700 postpones.
-The user-facing pages beyond each README's `describes`, which the document
-step updates.
+The user-facing pages beyond each README's `describes`, which the implement step updates in the same pull request.
