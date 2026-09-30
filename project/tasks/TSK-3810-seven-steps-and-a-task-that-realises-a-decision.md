@@ -37,9 +37,20 @@ the task until they are filled.
 
 ## Evidence
 
-Not yet.
+In #753. The class `SevenSteps` in `plugins/meow-flow/tests/test_record.py`
+holds 15 checks and `Project` in `plugins/meow-github/tests/test_github.py`
+holds three for criterion 4. The seven in the pull request's first commit
+failed against `main`, and `meow-verbs run format lint check test` passed all
+four verbs. An agent's code review found 16 defects in the first version,
+among them a decision called closed beside an open direct task and a direct
+task that could never be dropped, and the pull request fixes each but one:
+`realises: [ADR-NNNN]` written as a list isn't unwrapped, as an epic's isn't.
 
 ## Left alone
+
+The method's prompts still name the cover, document and verify steps until
+TSK-3820 lands, so a session following them meets the exit 2 that names the
+replacing step.
 
 The in-flight worktrees for TSK-2703, TSK-2950, TSK-3350 and TSK-3700 are
 postponed by the owner and left as they are.

@@ -129,12 +129,21 @@ fn projection(task: &Record, epic: &Record) -> (String, String) {
     let id = task.field("id");
     let title = format!("{id}: {}", task.title());
     let closes = task.closes();
-    let mut body = format!(
-        "{id} of {}, which realises {}.\n\nCloses {}.",
-        epic.field("id"),
-        epic.field("realises"),
-        closes.join(", ")
-    );
+    // A task realising a decision with no epic sits under nothing (REQ-3630).
+    let mut body = if epic.field("artifact") == "adr" {
+        format!(
+            "{id}, which realises {}.\n\nCloses {}.",
+            epic.field("id"),
+            closes.join(", ")
+        )
+    } else {
+        format!(
+            "{id} of {}, which realises {}.\n\nCloses {}.",
+            epic.field("id"),
+            epic.field("realises"),
+            closes.join(", ")
+        )
+    };
     let depends = task.section("Depends on");
     if !depends.is_empty() {
         body.push_str(&format!("\n\nDepends on: {depends}"));
@@ -255,12 +264,16 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         .unwrap_or("project")
         .to_string();
     let base = root.join(record_root);
-    let Some(epic) = records(&base.join("epics"), &format!("{epic_id}-"))
+    // A decision groups the tasks that realise it with no epic (REQ-3630).
+    let direct = epic_id.starts_with("ADR-");
+    let dir = if direct { "adrs" } else { "epics" };
+    let Some(epic) = records(&base.join(dir), &format!("{epic_id}-"))
         .into_iter()
         .next()
     else {
+        let kind = if direct { "decision" } else { "epic" };
         println!(
-            "meow-github project: {epic_id} resolves to no epic under {}",
+            "meow-github project: {epic_id} resolves to no {kind} under {}",
             base.display()
         );
         return FOUND;
@@ -282,9 +295,33 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
     };
     let tasks: Vec<Record> = records(&base.join("tasks"), "TSK-")
         .into_iter()
-        .filter(|t| t.field("epic") == epic_id)
+        .filter(|t| {
+            if direct {
+                t.field("realises") == epic_id
+                    && t.field("epic").is_empty()
+                    && t.field("bug").is_empty()
+                    && !matches!(
+                        t.field("status").as_str(),
+                        "withdrawn" | "rejected" | "superseded"
+                    )
+            } else {
+                t.field("epic") == epic_id
+            }
+        })
         .collect();
-    let done = done_in(&epic);
+    // With no epic to mark it, a task is done once its Evidence is written.
+    let done: Vec<String> = if direct {
+        tasks
+            .iter()
+            .filter(|t| {
+                let evidence = t.section("Evidence");
+                !evidence.is_empty() && !evidence.starts_with("Not yet")
+            })
+            .map(|t| t.field("id"))
+            .collect()
+    } else {
+        done_in(&epic)
+    };
     let mut worst = CLEAN;
     for task in &tasks {
         let id = task.field("id");
@@ -310,9 +347,15 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                 }
             };
             if closed && !done.contains(&id) {
-                println!(
-                    "{id}: issue #{issue} is closed on GitHub while {epic_id} leaves the task unmarked; the epic decides what the tasks are, so this is reported, not reconciled"
-                );
+                if direct {
+                    println!(
+                        "{id}: issue #{issue} is closed on GitHub while the task's Evidence isn't written; the record decides when a task is done, so this is reported, not reconciled"
+                    );
+                } else {
+                    println!(
+                        "{id}: issue #{issue} is closed on GitHub while {epic_id} leaves the task unmarked; the epic decides what the tasks are, so this is reported, not reconciled"
+                    );
+                }
                 worst = worst.max(FOUND);
             }
             if on_tracker != projected {

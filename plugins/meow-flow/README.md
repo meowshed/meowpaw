@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.42.0]
+describes: [meow-flow@0.43.0]
 ---
 
 # meow-flow
@@ -68,10 +68,7 @@ is at `project/`.
 
 Type `/meow-flow:run` to be taken to the next approval gate. It reads where
 the record stands, runs the next step, and stops where that step waits for
-your approval, saying what the next run will do. A step that ends with no
-approval, such as cover, doesn't stop it: it reads the record again and runs
-the step after, so one run takes an approved task through cover and
-implement. Run it again after you approve, and it carries on; run it with nothing approved, and it says what it
+your approval, saying what the next run will do. Run it again after you approve, and it carries on; run it with nothing approved, and it says what it
 is waiting on.
 
 To run one step yourself, ask for it by name, such as "run the design step for
@@ -85,11 +82,14 @@ To run one step yourself, ask for it by name, such as "run the design step for
 | `spec`         | an approved decision           | the specification, updated  |
 | `epic`         | an approved decision or defect | an epic and its tasks       |
 | `implement`    | an approved task               | the change and its evidence |
-| `document`     | an epic with every task done   | your documentation, updated |
-| `verify`       | an epic with every task done   | the epic's verification     |
-| `review`       | a verified epic                | findings, never a file      |
+| `review`       | the task's pull request        | findings, never a file      |
 
-The document step writes to the documentation style you declare in
+A task's pull request carries the whole task: its tests first, in a commit of
+their own where they fail, then the implementation, the documentation it
+changes and its record marks. `paw ready cover`, `document` and `verify` name
+the step that took their work and exit 2, for one release.
+
+The implement step writes to the documentation style you declare in
 `.meowpaw/profile.toml`, as a path to your style guide or the name of an
 installed unit that ships one:
 
@@ -113,10 +113,10 @@ reports a task, an epic or a defect carrying a grouping field, `milestone`,
 status, and an epic carrying `epic`.
 
 A defect is reproduced before it is triaged, and its triage names in `enters`
-the step it enters at: `cover`, `implement` or `design` where it violates a requirement,
+the step it enters at: `implement` or `design` where it violates a requirement,
 `requirements` where the requirement is wrong or none covers the behaviour,
 and `research` where the cause is unknown. `paw check` reports a triaged
-draft with no `enters`, a defect entering at `cover`, `implement` or `design` with no
+draft with no `enters`, a defect entering at `implement` or `design` with no
 `violates`, a triage with no reproduction, a rejected report with no
 reasoning, a closed defect whose Closed by names no check, an epic for a
 defect that one task would fix, and a `prompted-by` naming no defect.
@@ -130,33 +130,14 @@ paw ready implement: not ready
   TSK-1420, which TSK-1430 depends on, isn't done
 ```
 
-`paw ready cover` asks that of a task: the task and its epic or defect
-approved, and each task under its `## Depends on` done. `paw ready implement`
-asks the same and also reads the task's `## Cover` section, four lines naming
-the checks, the kept run in which they failed, where they landed and each
-criterion resting on judgement with its reason:
-
-```text
-- Checks: tests/test_a_task.py
-- Failing run: evidence/a-failing-run.txt
-- Landed in: #12
-- Judgement: 2: whether the page reads well rests on a reader
-```
-
-It refuses while the section is missing or reads `Not yet.`, while a path
-under `Checks` or `Failing run` names no file in the repository, while
-the failing run lies outside the evidence directory or is a file git ignores,
-while `Landed in` reads `none` beside a named check, while a `Judgement`
-number has no reason, and while a criterion with no `Closed by:` line is left
-out of `Judgement`. A task with no check to write reads `none` on the first
-three lines and names every numbered acceptance criterion under `Judgement`.
-`ready` reads only these lines and the criteria, so it doesn't check that the
-run failed.
+`paw ready implement` asks that of a task: the task and its epic, defect or
+decision approved, and each task under its `## Depends on` done. A decision
+one task realises needs no epic: the task names `realises: ADR-NNNN` in place
+of `epic:`, and it is done once its Evidence is written.
 
 `paw status` prints where the record stands, leading with whatever waits for
 your approval. For an epic with open tasks it names the first task it can
-take, at `cover` while the task's Cover isn't filled and at `implement` once it
-is, and calls an epic closed once every task is done or dropped. It counts the
+take, at `implement`, and calls an epic closed once every task is done or dropped. It counts the
 requirements in force by the state it derives from the tasks and defects
 naming them: closed, in a task not yet done, reopened by a defect, postponed,
 or named by no task. A requirement closes when a task naming it is done and

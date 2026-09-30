@@ -114,8 +114,9 @@ name = "task"
 artifact = "task"
 prefix = "TSK"
 dir = "tasks"
-# A task names the epic or the defect that authorises it, exactly one of the
-# two, which `one-authority` checks on drafts: three planning tasks approved
+# A task names the epic or the defect that authorises it, or the decision it
+# realises with no epic (REQ-3630), exactly one of the three, which
+# `one-authority` checks on drafts: three planning tasks approved
 # before ADR-1440 name neither, and keep the rules they were approved under.
 # `dependency-declared` asks each dependency line to say whether it blocks,
 # on drafts only, because an approved bare line keeps the order it was

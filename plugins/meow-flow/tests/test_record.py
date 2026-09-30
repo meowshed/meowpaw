@@ -714,16 +714,16 @@ class Chain(unittest.TestCase):
         self.assertEqual(done.returncode, 1)
         self.assertIn("REQ-0001, which ADR-0001 addresses, is stated by no specification", done.stdout)
 
-    def test_cover_refuses_until_its_dependency_is_done(self):
+    def test_implement_refuses_until_its_dependency_is_done(self):
         repository = self.repo()
         repository.write("tasks/TSK-0002-a-second-task.md", CLEAN["tasks/TSK-0001-a-task.md"]
                          .replace("TSK-0001", "TSK-0002").replace("## Depends on\n\nText.", "## Depends on\n\nTSK-0001."))
         self.mark(repository, " ")
-        done = self.ready(repository, "cover", "TSK-0002")
+        done = self.ready(repository, "implement", "TSK-0002")
         self.assertEqual(done.returncode, 1)
         self.assertIn("TSK-0001, which TSK-0002 depends on, isn't done", done.stdout)
         self.mark_done(repository)
-        self.assertEqual(self.ready(repository, "cover", "TSK-0002").returncode, 0)
+        self.assertEqual(self.ready(repository, "implement", "TSK-0002").returncode, 0)
 
     def mark_done(self, repository):
         repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
@@ -735,31 +735,13 @@ class Chain(unittest.TestCase):
         self.assertEqual(done.returncode, 1)
         self.assertIn("EPC-0001, the epic of TSK-0001, is draft and not approved", done.stdout)
 
-    def test_document_and_verify_wait_for_every_task(self):
-        repository = self.repo()
-        self.mark(repository, " ")
-        for step in ("document", "verify"):
-            done = self.ready(repository, step, "EPC-0001")
-            self.assertEqual(done.returncode, 1, step)
-            self.assertIn("TSK-0001, a task of EPC-0001, isn't done", done.stdout, step)
-        self.mark_done(repository)
-        for step in ("document", "verify"):
-            self.assertEqual(self.ready(repository, step, "EPC-0001").returncode, 0, step)
-
     def test_review_needs_no_verification(self):
         """ADR-2300: nothing writes checked-at, so review doesn't wait on it."""
         done = self.ready(self.repo(), "review", "EPC-0001")
         self.assertEqual(done.returncode, 0, done.stdout)
 
-    def test_an_unknown_step_names_the_ten(self):
-        """TSK-2530 criterion 1, REQ-3207 and REQ-3216: `ready` knows the ten steps, cover among them."""
-        done = self.ready(self.repo(), "bogus", "TSK-0001")
-        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
-        self.assertIn("research, requirements, design, spec, epic, cover, implement, document, verify, review",
-                      done.stderr)
-
     def test_status_leads_with_drafts_and_places_each_decision(self):
-        """TSK-2540 criterion 1, REQ-3202: an open task with no Cover is placed at cover (REQ-0321 for the drafts)."""
+        """REQ-3202, REQ-3638: an open task is placed at implement (REQ-0321 for the drafts)."""
         repository = self.repo()
         repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
         self.mark(repository, " ")
@@ -768,7 +750,7 @@ class Chain(unittest.TestCase):
         lines = done.stdout.splitlines()
         self.assertEqual(lines[0], "Waiting for approval")
         self.assertIn("RES-0002 research, draft", lines[1])
-        self.assertIn("next: cover TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
+        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
         self.mark_done(repository)
         self.assertIn("closed: EPC-0001 (1 task done)", repository.run("status").stdout)
 
@@ -778,21 +760,15 @@ class Chain(unittest.TestCase):
         self.assertIn("next: spec, then epic", repository.run("status").stdout)
 
     def test_status_prints_the_same_state_twice(self):
-        """TSK-2540 criterion 3, REQ-3202 and REQ-0210: status prints the same text twice, uncovered or covered."""
+        """REQ-0210: status prints the same text twice, with an open task or with none."""
         repository = self.repo()
         first = repository.run("status").stdout
         self.assertIn("ADR-0001", first)
         self.assertEqual(first, repository.run("status").stdout)
         self.mark(repository, " ")
         first = repository.run("status").stdout
-        self.assertIn(self.NEXT.format(step="cover"), first)
+        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", first)
         self.assertEqual(first, repository.run("status").stdout)
-        self.cover(repository)
-        first = repository.run("status").stdout
-        self.assertIn(self.NEXT.format(step="implement"), first)
-        self.assertEqual(first, repository.run("status").stdout)
-
-    NEXT = "next: {step} TSK-0001 (EPC-0001, 0 of 1 task done)"
 
     def cover(self, repository):
         repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
@@ -801,27 +777,6 @@ class Chain(unittest.TestCase):
             path = repository.path / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("A file.\n", encoding="utf-8")
-
-    def test_status_names_cover_for_an_uncovered_task(self):
-        """TSK-2540 criterion 1, REQ-3202: an open task with no Cover is next for cover, not implement."""
-        repository = self.repo()
-        self.mark(repository, " ")
-        done = repository.run("status")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn(self.NEXT.format(step="cover"), [l.strip() for l in done.stdout.splitlines()])
-        self.assertNotIn(self.NEXT.format(step="implement"), done.stdout)
-
-    def test_status_names_implement_once_covered(self):
-        """TSK-2540 criterion 2, REQ-3202: the same line names implement once the task's Cover is filled."""
-        repository = self.repo()
-        self.mark(repository, " ")
-        self.assertIn(self.NEXT.format(step="cover"), repository.run("status").stdout)
-        self.cover(repository)
-        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
-        done = repository.run("status")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn(self.NEXT.format(step="implement"), [l.strip() for l in done.stdout.splitlines()])
-        self.assertNotIn(self.NEXT.format(step="cover"), done.stdout)
 
     def test_the_profile_template_names_no_language(self):
         repository = Repository()
@@ -872,11 +827,11 @@ class Chain(unittest.TestCase):
         for line in ("Checks", "Failing run", "Landed in", "Judgement"):
             self.assertIn(line, cover, line)
 
-    def test_the_bug_template_names_cover(self):
-        """TSK-2550 criterion 6, REQ-3200: the bug template's `enters` comment names cover among the steps."""
+    def test_the_bug_template_names_no_retired_step(self):
+        """REQ-3638: the bug template's `enters` comment names no step a draft is refused for."""
         enters = [line for line in self.template("bug").splitlines() if line.startswith("enters:")]
         self.assertEqual(len(enters), 1, enters)
-        self.assertRegex(enters[0].split("#", 1)[1], r"\bcover\b")
+        self.assertNotRegex(enters[0].split("#", 1)[1], r"\b(cover|document|verify)\b")
 
 
 FILLED = """- Checks: tests/test_a_task.py
@@ -902,347 +857,18 @@ class TasklessEpic(unittest.TestCase):
                             "## Not covered\n\n- REQ-0001 is closed by a task another record carries.")
         return repository
 
-    def test_an_epic_naming_every_requirement_is_ready(self):
-        """TSK-2560 criterion 1: no tasks, every addressed requirement named under Not covered."""
-        repository = self.repo(named=True)
-        for step in ("document", "verify"):
-            done = repository.run("ready", step, "EPC-0001")
-            self.assertEqual(done.returncode, 0, done.stdout)
-
     def test_status_names_document_and_ready_agrees(self):
-        """TSK-2560 criterion 2, REQ-3620: a taskless epic naming everything is closed, and the document gate still lets the step run."""
+        """TSK-2560 criterion 2, REQ-3620: a taskless epic naming everything is closed."""
         repository = self.repo(named=True)
         self.assertIn("closed: EPC-0001 (0 tasks done)", repository.run("status").stdout)
-        done = repository.run("ready", "document", "EPC-0001")
-        self.assertEqual(done.returncode, 0, done.stdout)
 
     def test_an_epic_leaving_a_requirement_unnamed_is_refused_by_both(self):
-        """TSK-2560 criterion 3: ready refuses naming the requirement, and status names the same refusal."""
+        """TSK-2560 criterion 3: status waits on a taskless epic that leaves a requirement unnamed."""
         repository = self.repo(named=False)
         reason = "EPC-0001 lists no tasks, and REQ-0001, which ADR-0001 addresses, isn't named under Not covered"
-        done = repository.run("ready", "document", "EPC-0001")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn(reason, done.stdout)
         status = repository.run("status").stdout
         self.assertIn(f"waiting: {reason}", status)
         self.assertNotIn("closed: EPC-0001", status)
-
-
-class Cover(unittest.TestCase):
-    """SPC-1090 "The gate": `ready cover` takes today's implement gate, and `ready implement` needs a filled Cover.
-
-    REQ-3207 keeps the run in which the checks failed, and REQ-3216 names each
-    criterion resting on judgement before any implementation starts. A path
-    under `Checks` or `Failing run` resolves against the repository's root.
-    """
-
-    def repo(self, cover=None, criteria=None):
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        sections = ""
-        if criteria is None and cover is not None:
-            criteria = CRITERIA
-        if criteria is not None:
-            sections += "## Acceptance criteria\n\n" + criteria + "\n\n"
-        if cover is not None:
-            sections += "## Cover\n\n" + cover + "\n\n"
-        if sections:
-            repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", sections + "## Evidence")
-        return repository
-
-    def landed(self, repository, *names):
-        for name in names:
-            path = repository.path / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("A file.\n", encoding="utf-8")
-
-    def implement(self, repository, task="TSK-0001"):
-        return repository.run("ready", "implement", task)
-
-    def test_cover_is_ready_on_an_approved_task(self):
-        """TSK-2530 criterion 2, REQ-3207: `ready cover` exits 0 on an approved task under an approved epic."""
-        done = self.repo().run("ready", "cover", "TSK-0001")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-
-    def test_cover_refuses_a_draft_task(self):
-        """TSK-2530 criterion 2, REQ-3207: `ready cover` exits 1 naming a draft task as not approved."""
-        repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
-        done = repository.run("ready", "cover", "TSK-0001")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("TSK-0001, a task, is draft and not approved", done.stdout)
-
-    def test_cover_refuses_until_its_dependency_is_done(self):
-        """TSK-2530 criterion 2, REQ-3207: `ready cover` exits 1 naming a dependency that isn't done."""
-        repository = self.repo()
-        repository.write("tasks/TSK-0002-a-second-task.md", CLEAN["tasks/TSK-0001-a-task.md"]
-                         .replace("TSK-0001", "TSK-0002").replace("## Depends on\n\nText.", "## Depends on\n\nTSK-0001."))
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
-                        "## Tasks\n\n- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        done = repository.run("ready", "cover", "TSK-0002")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("TSK-0001, which TSK-0002 depends on, isn't done", done.stdout)
-        repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
-        done = repository.run("ready", "cover", "TSK-0002")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-
-    def test_implement_refuses_a_task_with_no_cover(self):
-        """TSK-2530 criterion 3, REQ-3207: `ready implement` exits 1 naming the missing Cover."""
-        done = self.implement(self.repo())
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("Cover", done.stdout)
-        self.assertIn("TSK-0001", done.stdout)
-
-    def test_implement_refuses_a_cover_left_not_yet(self):
-        """TSK-2530 criterion 3, REQ-3207: a Cover reading `Not yet.` is not filled either."""
-        done = self.implement(self.repo(cover="Not yet."))
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("Cover", done.stdout)
-
-    def test_implement_names_a_missing_failing_run(self):
-        """TSK-2530 criterion 4, REQ-3207: a `Failing run` naming no file is named on its own line."""
-        repository = self.repo(cover=FILLED)
-        self.landed(repository, "tests/test_a_task.py")
-        done = self.implement(repository)
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertTrue(any("project/evidence/a-failing-run.txt" in line for line in done.stdout.splitlines()), done.stdout)
-        self.assertNotIn("tests/test_a_task.py", done.stdout)
-
-    def test_implement_names_a_missing_check(self):
-        """TSK-2530 criterion 4, REQ-3207: a path under `Checks` naming no file is named on its own line."""
-        repository = self.repo(cover=FILLED)
-        self.landed(repository, "project/evidence/a-failing-run.txt")
-        done = self.implement(repository)
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("tests/test_a_task.py", done.stdout)
-        self.assertNotIn("project/evidence/a-failing-run.txt", done.stdout)
-
-    def test_implement_names_landed_in_left_none(self):
-        """TSK-2530 criterion 5, REQ-3207: checks named and landed nowhere is named by its `Landed in` line."""
-        repository = self.repo(cover=FILLED.replace("- Landed in: #12", "- Landed in: none"))
-        self.landed(repository, "tests/test_a_task.py", "project/evidence/a-failing-run.txt")
-        done = self.implement(repository)
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("Landed in", done.stdout)
-
-    def test_implement_names_a_judgement_with_no_reason(self):
-        """TSK-2530 criterion 6, REQ-3216: a `Judgement` number with no reason is named by its number."""
-        repository = self.repo(cover=FILLED.replace(
-            "- Judgement: 2: whether the page reads well rests on a reader",
-            "- Judgement: 2: whether the page reads well rests on a reader; 3:"))
-        self.landed(repository, "tests/test_a_task.py", "project/evidence/a-failing-run.txt")
-        done = self.implement(repository)
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        named = [line for line in done.stdout.splitlines() if re.search(r"\b3\b", line.replace("TSK-0001", ""))]
-        self.assertTrue(named, done.stdout)
-        self.assertFalse(any(re.search(r"\b2\b", line.replace("TSK-0001", "")) for line in named), done.stdout)
-
-    def test_implement_is_ready_once_the_cover_is_filled(self):
-        """TSK-2530 criterion 7, REQ-3207 and REQ-3216: every line filled and every path present exits 0.
-
-        The files are landed only after the refusal, so the check fails while
-        `ready implement` reads no Cover at all.
-        """
-        repository = self.repo(cover=FILLED)
-        refused = self.implement(repository)
-        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
-        self.landed(repository, "tests/test_a_task.py", "project/evidence/a-failing-run.txt")
-        done = self.implement(repository)
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-
-    def test_implement_is_ready_when_every_criterion_is_judgement(self):
-        """TSK-2530 criterion 7, REQ-3216: all-`none` lines pass only when `Judgement` names every criterion."""
-        criteria = "1. Given a page, then it reads well.\n2. Given a table, then it is ordered as a reader expects."
-        partly = ("- Checks: none\n- Failing run: none\n- Landed in: none\n"
-                  "- Judgement: 1: a reader decides whether it reads well")
-        repository = self.repo(cover=partly, criteria=criteria)
-        refused = self.implement(repository)
-        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
-        repository.edit("tasks/TSK-0001-a-task.md", "a reader decides whether it reads well",
-                        "a reader decides whether it reads well; 2: the order a reader expects is a judgement")
-        done = self.implement(repository)
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-
-    def test_a_finished_task_needs_no_cover(self):
-        """TSK-2530 criterion 8, REQ-3207: `paw check` asks no Cover of a task marked `[x]`, so a task finished before
-        ADR-1620 stays valid, while `ready implement` asks one of the same task while it is open."""
-        repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
-                        "## Tasks\n\n- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        refused = self.implement(repository)
-        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
-        self.assertIn("Cover", refused.stdout)
-        repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixture passed.")
-        done = repository.run("check")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertNotIn("TSK-0001", done.stdout + done.stderr)
-        self.assertNotIn("Cover", done.stdout + done.stderr)
-
-
-class CoverPaths(unittest.TestCase):
-    """BUG-1260, REQ-3207: a path under `Checks` or `Failing run` is a regular file kept inside the repository, and
-    the failing run isn't one of the checks."""
-
-    def refused(self, line, path, outside=False):
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        cover = FILLED.replace("tests/test_a_task.py" if line == "Checks" else "project/evidence/a-failing-run.txt", path)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
-                        "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + cover + "\n\n## Evidence")
-        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
-            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
-            (repository.path / name).write_text("A file.\n", encoding="utf-8")
-        if outside:
-            (repository.path.parent / "outside.txt").write_text("A file.\n", encoding="utf-8")
-        done = repository.run("ready", "implement", "TSK-0001")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertTrue(any(path in l and line in l for l in done.stdout.splitlines()), done.stdout)
-
-    def test_a_failing_run_outside_the_repository_is_refused(self):
-        """TSK-2570 criterion 1: an absolute path, and a `..` path to a file that exists, under `Failing run`."""
-        self.refused("Failing run", "/etc/hosts")
-        self.refused("Failing run", "../outside.txt", outside=True)
-
-    def test_a_failing_run_that_is_a_directory_is_refused(self):
-        """TSK-2570 criterion 1: a directory in the repository under `Failing run` is no run."""
-        self.refused("Failing run", "tests")
-
-    def test_a_check_outside_the_repository_or_a_directory_is_refused(self):
-        """TSK-2570 criterion 2: an absolute path, a `..` escape and a directory under `Checks`."""
-        self.refused("Checks", "/etc/hosts")
-        self.refused("Checks", "../outside.txt", outside=True)
-        self.refused("Checks", "project/evidence")
-
-    def test_a_check_named_as_its_own_failing_run_is_refused(self):
-        """TSK-2570 criterion 3: `Failing run` naming the file `Checks` names."""
-        self.refused("Failing run", "tests/test_a_task.py")
-
-
-class CoverRun(unittest.TestCase):
-    """BUG-1262, REQ-3207: the failing run is kept as evidence, under the evidence directory ADR-1550 places it in, and
-    in a file git doesn't ignore."""
-
-    def implement(self, run, profile=None, ignore=None):
-        repository = Repository(profile=profile)
-        self.addCleanup(repository.tmp.cleanup)
-        cover = FILLED.replace("project/evidence/a-failing-run.txt", run)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
-                        "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + cover + "\n\n## Evidence")
-        for name in ("tests/test_a_task.py", run):
-            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
-            (repository.path / name).write_text("A file.\n", encoding="utf-8")
-        if ignore is not None:
-            (repository.path / ".gitignore").write_text(ignore + "\n", encoding="utf-8")
-        return repository.run("ready", "implement", "TSK-0001")
-
-    def refused(self, done, path, *words):
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        lines = [l for l in done.stdout.splitlines() if path in l and "Failing run" in l]
-        self.assertTrue(lines, done.stdout)
-        for word in words:
-            self.assertTrue(any(word in l for l in lines), done.stdout)
-
-    def test_a_failing_run_outside_the_evidence_directory_is_refused(self):
-        """TSK-2572 criterion 1: `README.md` at the root is a file in the repository and no kept run."""
-        self.refused(self.implement("README.md"), "README.md", "evidence")
-
-    def test_a_failing_run_git_ignores_is_refused(self):
-        """TSK-2572 criterion 2: a file under the evidence directory that `.gitignore` ignores reaches no clone."""
-        self.refused(self.implement("project/evidence/run.txt", ignore="project/evidence/"), "project/evidence/run.txt",
-                     "ignore")
-
-    def test_the_profile_declares_the_evidence_directory(self):
-        """TSK-2572 criterion 3: `[verbs] evidence_dir` moves the directory, so a run under it is kept and one under
-        the record root's `evidence` isn't."""
-        profile = '[verbs]\nevidence_dir = "kept"\n'
-        done = self.implement("kept/run.txt", profile=profile)
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.refused(self.implement("project/evidence/run.txt", profile=profile), "project/evidence/run.txt")
-
-
-class CoverClosedBy(unittest.TestCase):
-    """BUG-1263, REQ-3216: a criterion with no `Closed by:` line names nothing that checks it, so it is named under
-    `Judgement` with a reason whatever `Checks` lists."""
-
-    CRITERIA = ("1. Given a task, then a check passes.\n   Closed by: tests/test_a_task.py.\n"
-                "2. Given a page, then it reads well.\n"
-                "3. Given a table, then it is ordered as a reader expects.")
-
-    def implement(self, judgement):
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        cover = FILLED.replace("- Judgement: 2: whether the page reads well rests on a reader", "- Judgement: " + judgement)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
-                        "## Acceptance criteria\n\n" + self.CRITERIA + "\n\n## Cover\n\n" + cover + "\n\n## Evidence")
-        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
-            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
-            (repository.path / name).write_text("A file.\n", encoding="utf-8")
-        return repository.run("ready", "implement", "TSK-0001")
-
-    def named(self, done, number):
-        return [l for l in done.stdout.splitlines() if re.search(rf"\bcriterion {number}\b", l)]
-
-    def test_a_criterion_naming_no_check_is_named_under_judgement(self):
-        """TSK-2573 criterion 1: with a check listed, criteria 2 and 3 carry no `Closed by:` and `Judgement` is none."""
-        done = self.implement("none")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        for number in ("2", "3"):
-            self.assertTrue(self.named(done, number), done.stdout)
-        self.assertFalse(self.named(done, "1"), done.stdout)
-
-    def test_a_reason_with_no_letter_is_no_reason(self):
-        """TSK-2573 criterion 2: `2: .; 3: -` names the criteria and gives no reason."""
-        done = self.implement("2: .; 3: -")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        for number in ("2", "3"):
-            self.assertTrue(any("no reason" in l for l in self.named(done, number)), done.stdout)
-
-    def test_every_criterion_named_or_closed_is_ready(self):
-        """TSK-2573 criterion 3: criterion 1 names its check, and 2 and 3 rest on judgement with a reason."""
-        done = self.implement("2: a reader decides; 3: a reader decides")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-
-
-class CoverCriteria(unittest.TestCase):
-    """BUG-1261, REQ-3216: no criterion that nothing checks reads as covered, whatever the Cover's other lines say."""
-
-    def implement(self, cover, criteria="1. Given a, then b.\n2. Given c, then d."):
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        sections = "## Acceptance criteria\n\n" + criteria + "\n\n" if criteria is not None else ""
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", sections + "## Cover\n\n" + cover + "\n\n## Evidence")
-        for name in ("tests/t.py", "project/evidence/run.txt"):
-            (repository.path / name).parent.mkdir(parents=True, exist_ok=True)
-            (repository.path / name).write_text("A file.\n", encoding="utf-8")
-        done = repository.run("ready", "implement", "TSK-0001")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        return done.stdout.splitlines()
-
-    def test_no_checks_names_every_criterion_whatever_else_is_named(self):
-        """TSK-2571 criterion 1: `Checks: none` with a run and a pull request named still asks for every criterion."""
-        lines = self.implement("- Checks: none\n- Failing run: project/evidence/run.txt\n- Landed in: #1\n- Judgement: none")
-        for number in ("1", "2"):
-            self.assertTrue(any(f"criterion {number}" in l for l in lines), lines)
-
-    def test_a_task_with_no_numbered_criterion_is_refused(self):
-        """TSK-2571 criterion 2: bullets in place of numbered criteria, and no criteria section, are refused."""
-        none = "- Checks: none\n- Failing run: none\n- Landed in: none\n- Judgement: none"
-        for criteria in ("- One.\n- Two.", None):
-            with self.subTest(criteria=criteria):
-                lines = self.implement(none, criteria)
-                self.assertTrue(any("no numbered" in l and "criterion" in l for l in lines), lines)
-
-    def test_a_judgement_naming_no_criterion_is_refused(self):
-        """TSK-2571 criterion 3: `Judgement: 7` on a task whose criteria are 1 and 2."""
-        lines = self.implement("- Checks: tests/t.py\n- Failing run: project/evidence/run.txt\n- Landed in: #1\n"
-                               "- Judgement: 7: a reason")
-        self.assertTrue(any(re.search(r"\b7\b", l.replace("TSK-0001", "")) for l in lines), lines)
-
-    def test_an_empty_judgement_is_refused(self):
-        """TSK-2571 criterion 4: `Judgement:` with nothing after it is neither a reason nor `none`."""
-        lines = self.implement("- Checks: tests/t.py\n- Failing run: project/evidence/run.txt\n- Landed in: #1\n- Judgement:")
-        self.assertTrue(any("Judgement" in l for l in lines), lines)
 
 
 class RunSkill(unittest.TestCase):
@@ -1816,7 +1442,7 @@ class DefectTasks(unittest.TestCase):
 
     def test_a_task_under_an_approved_defect_is_ready(self):
         """REQ-0352: a defect record authorises work exactly as a decision record does."""
-        done = self.repo(mark=" ").run("ready", "cover", "TSK-0002")
+        done = self.repo(mark=" ").run("ready", "implement", "TSK-0002")
         self.assertEqual(done.returncode, 0, done.stdout)
 
     def test_a_task_under_a_draft_defect_is_not_ready(self):
@@ -2177,7 +1803,7 @@ class Dependencies(unittest.TestCase):
         """TSK-2900 criterion 3, REQ-1358: a task whose only open dependency is `(not blocking)` is ready to
         cover and to implement."""
         repository = self.repo(["- TSK-0001 (not blocking): shares a helper"])
-        for step in ("cover", "implement"):
+        for step in ("implement",):
             done = repository.run("ready", step, "TSK-0002")
             self.assertEqual(done.returncode, 0, step + done.stdout + done.stderr)
             self.assertNotIn("TSK-0001, which TSK-0002 depends on", done.stdout, step)
@@ -2187,7 +1813,7 @@ class Dependencies(unittest.TestCase):
         `ready implement` waiting on it, and only the marker separates the two outcomes."""
         for marker, code in (("blocking", 1), ("not blocking", 0)):
             repository = self.repo([f"- TSK-0001 ({marker}): the parser lands there"])
-            for step in ("cover", "implement"):
+            for step in ("implement",):
                 done = repository.run("ready", step, "TSK-0002")
                 self.assertEqual(done.returncode, code, marker + " " + step + done.stdout + done.stderr)
                 named = "TSK-0001, which TSK-0002 depends on, isn't done"
@@ -2801,6 +2427,143 @@ class RequirementState(unittest.TestCase):
         status = repository.run("status").stdout
         self.assertIn("1 postponed", status)
         self.assertIn("  REQ-0002 by ADR-0002, until: The owner asks.\n", status)
+
+
+class SevenSteps(unittest.TestCase):
+    """TSK-3810, ADR-2300: `paw` knows seven steps, reads no Cover, and lets a task realise a decision."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def test_an_unknown_step_names_the_seven(self):
+        """REQ-3638: the steps are research, requirements, design, spec, epic, implement and review."""
+        done = self.repo().run("ready", "bogus", "TSK-0001")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("the steps are research, requirements, design, spec, epic, implement, review\n", done.stderr)
+
+    def test_a_retired_step_names_what_replaced_it(self):
+        """REQ-3638: cover, document and verify are refused, each naming what took its work."""
+        repository = self.repo()
+        for step, said in (("cover", "cover is part of implement"), ("document", "document is part of implement"),
+                           ("verify", "verify is gone: a requirement closes with the tasks that name it")):
+            done = repository.run("ready", step, "TSK-0001")
+            self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+            self.assertIn(f"paw ready: {said} (ADR-2300)", done.stderr)
+
+    def test_implement_reads_no_cover(self):
+        """REQ-3616: an approved task with no Cover section is ready to implement."""
+        repository = self.repo()
+        text = (repository.root / "tasks/TSK-0001-a-task.md").read_text(encoding="utf-8")
+        self.assertNotIn("## Cover", text)
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def direct(self, repository, evidence="Not yet."):
+        (repository.root / "epics/EPC-0001-a-plan.md").unlink()
+        repository.edit("README.md", "- EPC-0001\n", "")
+        repository.edit("tasks/TSK-0001-a-task.md", "epic: EPC-0001", "realises: ADR-0001")
+        repository.edit("tasks/TSK-0001-a-task.md", "\nSee [the plan](../epics/EPC-0001-a-plan.md).\n", "\n")
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", f"## Evidence\n\n{evidence}")
+
+    def test_a_task_realises_a_decision_with_no_epic(self):
+        """REQ-3630: a task naming `realises: ADR-NNNN` and no epic passes every check and is next to implement."""
+        repository = self.repo()
+        self.direct(repository)
+        done = repository.run("check")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("next: implement TSK-0001 (ADR-0001, 0 of 1 task done)", repository.run("status").stdout)
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+
+    def test_a_draft_task_may_realise_a_decision(self):
+        """REQ-3630: `realises` counts as the one authority a draft names."""
+        repository = self.repo()
+        self.direct(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        done = repository.run("check", "rules")
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def second_direct(self, repository, status="approved", evidence="Not yet.", extra=""):
+        text = (repository.root / "tasks/TSK-0001-a-task.md").read_text(encoding="utf-8")
+        text = text.replace("TSK-0001", "TSK-0002").replace("epic: EPC-0001", f"realises: ADR-0001{extra}")
+        text = text.replace("status: approved", f"status: {status}").replace("## Evidence\n\nText.", f"## Evidence\n\n{evidence}")
+        repository.write("tasks/TSK-0002-direct.md", text.replace("\nSee [the plan](../epics/EPC-0001-a-plan.md).\n", "\n"))
+
+    def test_a_decision_with_an_epic_and_an_open_direct_task_is_not_closed(self):
+        """REQ-3604, REQ-3630: a direct task open beside a finished epic keeps the decision open in status."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.second_direct(repository)
+        status = repository.run("status").stdout
+        self.assertIn("next: implement TSK-0002 (EPC-0001, 1 of 2 tasks done)", status)
+        self.assertNotIn("closed: EPC-0001", status)
+
+    def test_a_withdrawn_direct_task_is_dropped(self):
+        """REQ-3630: a direct task withdrawn has nothing to mark it, so its status drops it."""
+        repository = self.repo()
+        self.direct(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: withdrawn")
+        self.assertIn("closed: ADR-0001 (1 task done)", repository.run("status").stdout)
+        self.assertIn("TSK-0001 dropped in ADR-0001", repository.run("show", "REQ-0001").stdout)
+
+    def test_status_waits_on_a_draft_direct_task_as_ready_does(self):
+        """REQ-3630: status and `ready implement` agree that a draft direct task waits for approval."""
+        repository = self.repo()
+        self.direct(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        self.assertIn("waiting: TSK-0001 is draft and not approved", repository.run("status").stdout)
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 1)
+
+    def test_a_task_realises_only_a_decision(self):
+        """REQ-3630: `realises` naming a defect is refused by the draft rule and by `ready`."""
+        repository = self.repo()
+        self.direct(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "realises: ADR-0001", "realises: BUG-0001")
+        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("TSK-0001 realises BUG-0001, which is not a decision", done.stdout)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        self.assertIn("realises BUG-0001, where a task realises only a decision", repository.run("check", "rules").stdout)
+
+    def test_a_task_naming_no_authority_closes_nothing_from_its_evidence(self):
+        """REQ-3630: only a task naming `realises` is done by its Evidence; one naming nothing stays open."""
+        repository = self.repo()
+        self.second_direct(repository, evidence="In #1.")
+        repository.edit("tasks/TSK-0002-direct.md", "realises: ADR-0001\n", "")
+        self.assertIn("TSK-0002 open in \n", repository.run("show", "REQ-0001").stdout)
+
+    def test_a_direct_task_waits_on_its_dependency(self):
+        """REQ-1358, REQ-3630: a direct task's blocking dependency is done once that task's Evidence is written."""
+        repository = self.repo()
+        self.direct(repository)
+        self.second_direct(repository, extra="")
+        repository.edit("tasks/TSK-0002-direct.md", "## Depends on\n\nText.", "## Depends on\n\n- TSK-0001 (blocking): it lands first")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0002").returncode, 1)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nNot yet.", "## Evidence\n\nIn #1.")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0002").returncode, 0)
+
+    def test_a_retired_step_is_refused_in_a_draft_defect_only(self):
+        """REQ-3638: a draft defect may not enter at a retired step; one approved, superseded or withdrawn keeps it."""
+        repository = self.repo()
+        for step in ("cover", "document", "verify"):
+            repository.edit("bugs/BUG-0001-a-defect.md", "found:", f"enters: {step}\nfound:")
+            for status, code in (("approved", 0), ("superseded", 0), ("withdrawn", 0), ("draft", 1)):
+                text = (repository.root / "bugs/BUG-0001-a-defect.md").read_text(encoding="utf-8")
+                text = re.sub(r"\nstatus: \w+", f"\nstatus: {status}", text, count=1)
+                repository.write("bugs/BUG-0001-a-defect.md", text)
+                done = repository.run("check", "rules")
+                self.assertEqual(done.returncode, code, f"{step} {status}: {done.stdout}")
+                if code:
+                    self.assertIn(f"enters {step}, which is not a step", done.stdout)
+            repository.edit("bugs/BUG-0001-a-defect.md", f"enters: {step}\n", "")
+
+    def test_a_direct_task_closes_with_its_evidence(self):
+        """REQ-3630, REQ-3604: with no epic to mark it, a task is done once its Evidence is written."""
+        repository = self.repo()
+        self.direct(repository, evidence="In #1: the checks pass.")
+        self.assertIn("closed: ADR-0001 (1 task done)", repository.run("status").stdout)
+        self.assertIn("State\n  closed\n  TSK-0001 done in ADR-0001\n", repository.run("show", "REQ-0001").stdout)
 
 
 if __name__ == "__main__":

@@ -64,9 +64,11 @@ A task is marked in the commit that advances it, never in a later pass.
       pull request's first commit, and 241 `meow-flow` fixtures passing, in
       #752.
 
-- [ ] T-002 TSK-3810 give `paw` seven steps, drop the Cover gate, and let a task realise a decision
+- [x] T-002 TSK-3810 give `paw` seven steps, drop the Cover gate, and let a task realise a decision
       closes: REQ-3638, REQ-3630
       depends: TSK-3800 (not blocking)
+      evidence: 15 checks in `SevenSteps` and 3 in `meow-github`'s `Project`,
+      7 seen failing at the pull request's first commit, in #753.
 
 - [ ] T-003 TSK-3820 rewrite the method's prompts and templates for the seven-step chain
       closes: REQ-3606, REQ-3612, REQ-3616, REQ-3618, REQ-3624, REQ-3626, REQ-3628, REQ-3640, REQ-3642, REQ-3644, REQ-3650
