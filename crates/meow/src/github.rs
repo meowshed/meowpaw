@@ -128,7 +128,7 @@ fn listing(
     while let Some(page) = next {
         let (body, following) = layer.page(&page, true).map_err(|e| match e {
             Failure::Throttled(line) => line,
-            Failure::Refused(line) => format!("{name}: {line}"),
+            Failure::Refused(line) | Failure::Rejected(line) => format!("{name}: {line}"),
             Failure::Failed(e) => format!("{name}, {endpoint}: {e}"),
         })?;
         match body {

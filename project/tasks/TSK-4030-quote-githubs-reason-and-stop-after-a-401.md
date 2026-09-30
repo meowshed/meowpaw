@@ -62,7 +62,49 @@ sends nothing after a 401.
 
 ## Evidence
 
-Not yet.
+`exchange` in `crates/meow/src/github/request.rs` ends each refusal line
+with `; GitHub said "<message>"` where GitHub's answer carries a message the
+line doesn't already quote, and answers a 401 with the new
+`Failure::Rejected`. After a 401 the layer returns `Failure::Rejected` for
+every later call without starting `gh`. `project` stops at a rejected
+credential as it does at a throttle, through `halt`, which names what it
+stopped at, and `history` reports the listing unread.
+
+Each criterion is closed by the check it names, in
+`plugins/meow-github/tests/test_github.py`:
+
+1. `Refusal.test_a_403_names_the_github_permission`
+2. `Refusal.test_a_401_is_unauthenticated`
+3. `Refusal.test_a_401_ends_the_run`
+4. `Refusal.test_a_403_naming_nothing_quotes_github`
+
+No criterion rests on judgement. The checks for criteria 1 to 3 failed first,
+in the commit that holds them alone, where the `test` verb exited 1. That
+commit also changes `Refusal.test_a_403_names_the_oauth_scopes` and
+`Refusal.test_history_reports_a_refusal_as_unread`, whose lines now end with
+GitHub's reason. Criterion 4's check passed before the change, as it should,
+because the line with neither header already quoted the message once.
+`format`, `lint`, `check`, `test` and `build` each pass on the change's
+tree, as the pull request cites.
+
+I made two choices the task leaves open. A read-back listing answered 401
+leaves each created issue under `created, not read back` with
+`the listing's credential was rejected`. A call made after a 401, which the
+layer doesn't send, reads
+`unauthenticated: <method> <endpoint> not sent, because GitHub rejected this run's credential`,
+so a caller that asks is told why nothing went out.
+
+Review added one more choice. A quoted message has any control character or
+line separator printed as a space and any backslash or double quote escaped,
+and the `HTTP <status>:` line gets the same flattening, so GitHub's text
+can't split a report's line or end its quotation; `a_quoted_message_stays_on_its_line`
+in `request.rs` checks it. Two records now say less than the code, and this
+step may not edit them: SPC-1080 doesn't state the escaping, and this task's
+opening says every line ends with GitHub's message, where a line with no
+permission header quotes it earlier in the line.
+
+`meow-github` goes to 0.11.0, and its README shows the lines with GitHub's
+reason and says a run sends nothing after a 401.
 
 ## Left alone
 
