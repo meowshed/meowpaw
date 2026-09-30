@@ -14,10 +14,10 @@ projected: 6cc5c14f469e
 `meow-author check` fails an agent that leaves out `maxTurns`, `tools`,
 `model`, `effort`, `omitClaudeMd` or `skills`, or holds a value SPC-1030's
 table doesn't accept, and fails a shipped agent whose `tools` can delegate.
-`prose` declares all six in the same change, so the gate
+Each shipped agent declares all six in the same change, so the gate
 stays green. One task, one branch, one pull request, one review.
 
-**Amended by ADR-2300.** It names no `record-reviewer`, which ADR-2300 removed with its evaluation case, and its gate criterion is closed by the pull request's gate. Its verbs criterion is closed by the pull request's gate, since no run output is kept, and it names the checks unit `meow-checks`.
+**Amended by ADR-2300.** It names no `record-reviewer`, which ADR-2300 removed with its evaluation case, its gate criterion is closed by the pull request's gate, and What to do no longer adds that case.
 
 ## Acceptance criteria
 
@@ -83,10 +83,7 @@ they drive the built binary as the existing `Check` fixtures do. Write the
 failing fixtures first, in a commit of their own, and see them fail against
 the current check before the passing fixture gains its declarations.
 
-Give each shipped agent the values in SPC-1030's table. Add the
-hand-run case `plugins/meow-flow/evals/review-without-delegating/`, with a
-`prompt.md` and graders in the shape of the unit's other cases, and its line
-in `plugins/meow-flow/evals/thresholds.toml`; it never runs in CI.
+Give each shipped agent the values in SPC-1030's table.
 
 Raise `meow-author`'s minor version, because the check fails agents it
 passed before, and name the six fields and the reason for each in its README

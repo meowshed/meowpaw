@@ -2,7 +2,7 @@
 id: EPC-1651
 artifact: epic
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 realises: ADR-1710
 ---
 
@@ -82,11 +82,10 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       closes: REQ-0816
       depends: nothing
 
-- [ ] T-002 TSK-2703 give the three shipped agents and `meow-author:write` the
-      denial rule, make the method skill and W13 end a `BLOCKED` dispatch
-      without resuming, re-sending or reviewing it themselves, report
-      `prose`'s unreadable standard as `BLOCKED`, and add the hand-run cases
-      for criteria 4 and 5
+- [ ] T-002 TSK-2703 give the shipped agents and `meow-author:write` the
+      denial rule, make W13 end a `BLOCKED` dispatch without resuming,
+      re-sending or reviewing it itself, report `prose`'s unreadable standard
+      as `BLOCKED`, and add the hand-run case for criterion 5
       closes: REQ-2978
       depends: TSK-2702 (blocking) - the denial rule ends the agent with
       `outcome: BLOCKED`, a line only TSK-2702 makes the agents write and the

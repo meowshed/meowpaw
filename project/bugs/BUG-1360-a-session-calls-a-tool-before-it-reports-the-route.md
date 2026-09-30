@@ -6,7 +6,7 @@ severity: major
 violates: REQ-0332
 enters: research
 found: 2026-09-29
-revised: 2026-09-29
+revised: 2026-09-30
 issue: 716
 ---
 

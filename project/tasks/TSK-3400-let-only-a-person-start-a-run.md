@@ -55,8 +55,8 @@ criterion 13).
 6. Given the unit's `budget.toml`, when the `budget` check in the `lint` verb
    runs, then it passes with the skill's description counted. Given the
    README, when `tools/check_docs.py` in the `test` verb runs, then its
-   `describes:` matches the version in `plugin.json`. Closed by: the kept
-   evidence of criterion 8's run.
+   `describes:` matches the version in `plugin.json`. Closed by: criterion 8's
+   `lint` and `test` outcomes in the task's pull request.
 7. Given the diff against TSK-3390's tree, when a reviewer reads it, then
    `plugin.json` carries a minor version above TSK-3390's, and the README says
    a run starts from a terminal outside Claude Code, such as a tmux window.

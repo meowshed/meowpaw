@@ -2,7 +2,7 @@
 id: EPC-1920
 artifact: epic
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 realises: ADR-2020
 ---
 
@@ -15,7 +15,7 @@ step's work in the record and the named verbs pass at the tree that stands,
 and ends `crossed` or `off-step`, naming the cause, the call after a model
 decides a status, changes an approved record or writes another step's files.
 
-**Amended by ADR-2300.** ADR-2300 removed the cover and verify steps and `checked-at`, so the `verify` half of criterion 10 and the `checked-at` half of criterion 11 no longer apply, and each task's tests land first in its own pull request.
+**Amended by ADR-2300.** ADR-2300 removed the cover and verify steps and `checked-at`, so the `verify` half of criterion 10, criterion 11 in both halves (`checked-at` and the Cover lines) and `--step document` in criterion 6 no longer apply; TSK-3440's criterion 2 tests an input left failing the start test in criterion 11's place, and each task's tests land first in its own pull request.
 
 ## Acceptance criteria
 

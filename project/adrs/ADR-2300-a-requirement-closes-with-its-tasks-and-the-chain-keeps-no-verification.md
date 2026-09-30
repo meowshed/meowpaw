@@ -2,7 +2,7 @@
 id: ADR-2300
 artifact: adr
 status: approved
-revised: 2026-09-29
+revised: 2026-09-30
 addresses:
   [
     REQ-3600,
@@ -175,9 +175,8 @@ files.
 ## Consequences
 
 - **Corrected by EPC-2200.** 51 approved requirements are withdrawn: the 47
-  below, and four verification rules withdrawn while the epic's prompts were
-  written, on what an unrealised decision, a task list, and checking the
-  record apart from verifying the work each meant.
+  below, and REQ-0241, REQ-0275, REQ-0291 and REQ-0327, withdrawn while the
+  epic's prompts were written.
 - 47 approved requirements are withdrawn by tombstone in the change that
   proposes this decision, each naming its replacement where one exists: the
   verification step's rules, the documentation step's, review after
