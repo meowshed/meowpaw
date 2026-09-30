@@ -66,9 +66,15 @@ the trunk. TSK-3880's `## Left alone` names the first two.
 
 ## Closed by
 
-Not closed.
+TSK-4000. Cases 1 to 3 pass as three checks in `OffTheTrunk` in
+`plugins/meow-flow/tests/test_record.py`, and a fourth holds `status` to one
+tree listing for each trunk commit. Case 2 passes with the remote
+configured, and a ref kept for a remote other than `origin` that isn't
+configured stays unread, because
+it may be a fetched fork. Case 4's time didn't move, because the
+git reads were never most of it, as TSK-4000's `## Left alone` says.
 
 ## Tasks
 
-- [ ] T-001 TSK-4000 read the trunk where it is, in
+- [x] T-001 TSK-4000 read the trunk where it is, in
       `crates/meow/src/record.rs`
