@@ -1041,28 +1041,51 @@ class Refusal(Layered, unittest.TestCase):
         self.assertEqual(lines.count("TSK-0001: not projected: repos/o/r/issues: HTTP 404: Not Found"), 1, lines)
 
     def test_a_401_is_unauthenticated(self):
-        """TSK-2970 criterion 5, REQ-2574: a 401 prints `unauthenticated: <method> <endpoint>` and exits 3."""
+        """TSK-2970 criterion 5 and TSK-4030 criterion 2, REQ-2574, REQ-3324: a 401 prints
+        `unauthenticated: <method> <endpoint>; GitHub said "<message>"` and exits 3."""
         lines = self.refused_create(401, {}, "Bad credentials")
         # TSK-4030 criterion 2, REQ-3324.
         self.assertEqual(lines.count('unauthenticated: POST repos/o/r/issues; GitHub said "Bad credentials"'), 1, lines)
 
     def test_a_401_ends_the_run(self):
-        """TSK-4030 criterion 3, REQ-3326: a 401 answering the read of the first of two mapped tasks is the last
-        request the run sends, and the run prints the `partial:` line and exits 3."""
-        root = Project.repository(self)
-        self.stand_in(root, {})
-        first = self.meow_github(root, "project", "EPC-0001", "o/r")
-        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
-        before = len(self.calls(root))
+        """TSK-4030 criterion 3, REQ-3326: a 401 is the last request the run sends, wherever it lands: the read of a
+        mapped issue, the update of a changed one, a create after an earlier create, or the read-back listing. The
+        run prints the `partial:` line with the tasks in the groups the stop leaves them in, and exits 3."""
         rejected = {"status": 401, "body": {"message": "Bad credentials"}}
-        self.stand_in(root, {"responses": {"GET repos/o/r/issues/1": [rejected]}})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
-        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
-        sent = [call["args"][1] for call in self.calls(root)[before:]]
-        self.assertEqual(sent, ["repos/o/r/issues/1"])
-        self.assertEqual(done.stdout.splitlines().count(
-            'unauthenticated: GET repos/o/r/issues/1; GitHub said "Bad credentials"'), 1, done.stdout)
-        self.assertEqual(groups(self, done), ("none", "none", "TSK-0001, TSK-0002"))
+        since = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START))
+        listing = f"repos/o/r/issues?state=all&since={since}&per_page=100"
+        unread = "TSK-0001 (issue #1, {why}), TSK-0002 (issue #2, {why})"
+        cases = (
+            ("read", True, {"GET repos/o/r/issues/1": [rejected]}, "repos/o/r/issues/1",
+             ("none", "none", "TSK-0001, TSK-0002")),
+            ("update", True, {"PATCH repos/o/r/issues/1": [rejected]}, "repos/o/r/issues/1",
+             ("none", "none", "TSK-0001, TSK-0002")),
+            ("create", False, {"POST repos/o/r/issues": [None, rejected]}, "repos/o/r/issues",
+             ("none", "TSK-0001 (issue #1, no listing ran)", "TSK-0002")),
+            ("listing", False, {f"GET {listing}": [rejected]}, listing,
+             ("none", unread.format(why="the listing's credential was rejected"), "none")),
+        )
+        for where, mapped, responses, last, expected in cases:
+            with self.subTest(where=where):
+                root = Project.repository(self)
+                self.stand_in(root, {})
+                if mapped:
+                    first = self.meow_github(root, "project", "EPC-0001", "o/r")
+                    self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+                    if where == "update":
+                        task = root / "project" / "tasks" / "TSK-0001-first.md"
+                        task.write_text(task.read_text(encoding="utf-8").replace(
+                            "# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+                before = len(self.calls(root))
+                self.stand_in(root, {"responses": responses})
+                done = self.meow_github(root, "project", "EPC-0001", "o/r")
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                sent = [call["args"][1] for call in self.calls(root)[before:]]
+                self.assertEqual(sent[-1], last, sent)
+                self.assertEqual(len([line for line in done.stdout.splitlines()
+                                      if line.startswith("unauthenticated: ")
+                                      and line.endswith('; GitHub said "Bad credentials"')]), 1, done.stdout)
+                self.assertEqual(groups(self, done), expected)
 
     def test_history_reports_a_refusal_as_unread(self):
         """TSK-2970, REQ-2574: `history` reports a refused listing as unread, naming the listing, with the same
