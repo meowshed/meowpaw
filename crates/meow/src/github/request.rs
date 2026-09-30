@@ -49,6 +49,9 @@ pub(crate) enum Failure {
     /// The run is throttled: the `throttled:` line to print, after which it
     /// sends nothing more.
     Throttled(String),
+    /// GitHub refused the call: the `refused:` or `unauthenticated:` line to
+    /// print, naming the method, the endpoint and the permission (REQ-2574).
+    Refused(String),
     /// Anything else, as `gh` or GitHub said it.
     Failed(String),
 }
@@ -56,7 +59,9 @@ pub(crate) enum Failure {
 impl std::fmt::Display for Failure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Failure::Throttled(line) | Failure::Failed(line) => f.write_str(line),
+            Failure::Throttled(line) | Failure::Refused(line) | Failure::Failed(line) => {
+                f.write_str(line)
+            }
         }
     }
 }
@@ -239,17 +244,27 @@ impl Layer {
     /// Reads `endpoint`, through `gh`'s cache for an hour where `cache` is set,
     /// except on the run's first call, which is always sent fresh.
     pub(crate) fn get(&mut self, endpoint: &str, cache: bool) -> Result<Value, Failure> {
-        self.send("GET", endpoint, &[], cache)
+        self.exchange("GET", endpoint, &[], cache, false)
+            .map(|r| r.body)
     }
 
-    /// Sends `method` to `endpoint` with each field as `-f name=value`.
+    /// Reads `endpoint`, an object the record says exists, so a 404 on it is
+    /// reported as a refusal that may be the object hidden from the credential.
+    pub(crate) fn get_mapped(&mut self, endpoint: &str) -> Result<Value, Failure> {
+        self.exchange("GET", endpoint, &[], false, true)
+            .map(|r| r.body)
+    }
+
+    /// Sends `method` to `endpoint` with each field as `-f name=value`. A
+    /// `PATCH` goes to an object the record says exists.
     pub(crate) fn write(
         &mut self,
         method: &str,
         endpoint: &str,
         fields: &[(&str, &str)],
     ) -> Result<Value, Failure> {
-        self.send(method, endpoint, fields, false)
+        self.exchange(method, endpoint, fields, false, method == "PATCH")
+            .map(|r| r.body)
     }
 
     /// When the run began on GitHub's clock, as the `Date` of its first
@@ -267,21 +282,10 @@ impl Layer {
         endpoint: &str,
         cache: bool,
     ) -> Result<(Value, Option<String>), Failure> {
-        self.exchange("GET", endpoint, &[], cache).map(|r| {
+        self.exchange("GET", endpoint, &[], cache, false).map(|r| {
             let next = r.header("link").and_then(next_page);
             (r.body, next)
         })
-    }
-
-    fn send(
-        &mut self,
-        method: &str,
-        endpoint: &str,
-        fields: &[(&str, &str)],
-        cache: bool,
-    ) -> Result<Value, Failure> {
-        self.exchange(method, endpoint, fields, cache)
-            .map(|r| r.body)
     }
 
     fn exchange(
@@ -290,6 +294,7 @@ impl Layer {
         endpoint: &str,
         fields: &[(&str, &str)],
         cache: bool,
+        mapped: bool,
     ) -> Result<Response, Failure> {
         loop {
             if let Some(stop) = self.held.get(resource_of(endpoint)).cloned() {
@@ -454,7 +459,18 @@ impl Layer {
             } else {
                 message.to_string()
             };
-            return Err(Failure::Failed(format!("HTTP {}: {why}", response.status)));
+            return Err(match response.status {
+                401 => Failure::Refused(format!("unauthenticated: {method} {endpoint}")),
+                403 => Failure::Refused(format!(
+                    "refused: {method} {endpoint} needs {}",
+                    permission(&response, &why)
+                )),
+                404 if mapped => Failure::Refused(format!(
+                    "refused: {method} {endpoint} needs {}, or it is hidden from this credential",
+                    permission(&response, &why)
+                )),
+                status => Failure::Failed(format!("HTTP {status}: {why}")),
+            });
         }
     }
 
@@ -484,6 +500,28 @@ impl Layer {
             sleep(left);
         }
         Ok(())
+    }
+}
+
+/// The permission a refused call needed, as GitHub named it: its fine-grained
+/// permissions, or else the scopes it accepts beside the credential's own, or
+/// else GitHub's message, quoted, where it named neither.
+fn permission(response: &Response, message: &str) -> String {
+    let stated = |name: &str| {
+        response
+            .header(name)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+    };
+    if let Some(permissions) = stated("x-accepted-github-permissions") {
+        permissions.to_string()
+    } else if let Some(scopes) = stated("x-accepted-oauth-scopes") {
+        format!(
+            "one of the scopes {scopes}; the credential holds {}",
+            stated("x-oauth-scopes").unwrap_or("none")
+        )
+    } else {
+        format!("a permission: GitHub named no permission and said \"{message}\"")
     }
 }
 
