@@ -76,13 +76,13 @@ issues are read back in one listing and shows the `partial:` line.
 ## Evidence
 
 `run` in `crates/meow/src/github/project.rs` no longer reads an issue after
-creating it. It keeps each created issue until its loop ends, and `settle`
-then reads them back through `read_back`, one uncached listing of
-`repos/{r}/issues?state=all&since=<start>&per_page=100`, every page, matched
-by number. `<start>` is `Layer::began`, the `Date` of the run's first
-response. `settle` sends no listing after a throttle or a ceiling. A run that
-stopped before its last task, or that holds a created issue it didn't read
-back as written, prints the `partial:` line and exits 3.
+creating it. It keeps each created issue until its loop ends, and `settle` then
+reads them back through `read_back`, one uncached listing of
+`repos/{r}/issues?state=all&since=<start>&per_page=100`, every page, matched by
+number. `<start>` is `Layer::began`, the `Date` of the run's first response.
+`settle` sends no listing after a throttle or a ceiling. A run that stopped
+before it had projected every task, or that holds a created issue it didn't
+read back as written, prints the `partial:` line and exits 3.
 
 Each criterion is closed by the check it names, in
 `plugins/meow-github/tests/test_github.py`:
@@ -115,20 +115,22 @@ next run would otherwise create a second issue.
 The line after a throttle no longer says the tasks above it were projected,
 because after this change they are created and not read back.
 
-No run against GitHub created an issue, so the listing is shown by the
-stand-in alone. One read against GitHub shows the listing includes an issue
-whose `updated_at` equals `since`: `repos/meowshed/meowpaw/issues` with
-`since` set to issue 778's `updated_at` listed 778. One case stays
-unobserved. A run given the repository's name whose first task is unmapped
-sends a create as its first request, so `<start>` is that create's own
-`Date`. If GitHub stamps the response a second after the issue, the listing
-starts after the issue and the run reports it `not in the listing` and exits 3. The task keeps `issue:`, so the next run reads the issue through the
-mapping. ADR-1810 fixes `<start>`, so a start taken before the first create
-needs an amendment to it.
+No run against GitHub created an issue, so the listing is shown by the stand-in
+alone. One read against GitHub shows the listing includes an issue whose
+`updated_at` equals `since`: `repos/meowshed/meowpaw/issues` with `since` set
+to issue 778's `updated_at` listed 778. One case stays unobserved. A run given
+the repository's name whose first task is unmapped sends a create as its first
+request, so `<start>` is that create's own `Date`. If GitHub stamps the
+response a second after the issue, the listing starts after the issue and the
+run reports it `not in the listing` and exits 3. The task keeps `issue:`, so
+the next run reads the issue through the mapping. ADR-1810 fixes `<start>`, so
+a start taken before the first create needs an amendment to it.
 
 SPC-1080 says the line is printed whenever `project` stops before it has
 visited every task. Criterion 4 also needs it where every task was visited
-and one issue wasn't read back, and the specification doesn't say so yet. `meow-github` goes to 0.8.0, and its README states the
+and one issue wasn't read back, and the specification doesn't say so yet.
+
+`meow-github` goes to 0.8.0, and its README states the
 listing and the `partial:` line.
 
 ## Left alone

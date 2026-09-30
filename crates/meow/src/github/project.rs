@@ -11,8 +11,8 @@
 //! which `shasum -a 256` reproduces by hand. Every call goes through the
 //! request layer, and a throttle stops the run where it is met (ADR-1810).
 //! The issues a run created are read back in one listing after its last
-//! create, and a run that stops before its last task says which tasks it
-//! projected, which it created and couldn't read back, and which it left
+//! create, and a run that stops before it has projected every task says
+//! which tasks it projected, which it created and couldn't read back, and which it left
 //! (REQ-2572).
 
 use super::name_repository;
