@@ -30,7 +30,7 @@ don't overrule it.
 8. End by naming the artifact you wrote, the gate it now waits at, and the
    step that picks it up, with the command that runs it, and say the record
    is unreviewed by a person. Where M20 applies, the gate is the pull request,
-   and what you name is every record in it. Where M20 applies and the check
+   or the branch where no code host is declared, and what you name is every record in it. Where M20 applies and the check
    still reports a finding, name the draft and the finding, and stop there.
 </steps>
 
@@ -102,9 +102,12 @@ don't overrule it.
 - M20. Where a person asks for a decision to land in one pull request, write
   its research, requirements, decision record, specification changes, epic
   and tasks in turn, withdraw in it the approved records they replace, and
-  stop once, at that pull request, because its merge is the one approval, and
-  a pull request for each record adds a merge and no review. Without that
-  request, M5 holds.
+  stop once, at that pull request, which you open and name in your report,
+  because its merge is the one approval, a pull request for each record adds
+  a merge and no review, and a stop before one exists leaves the person a
+  branch to find. Where the repository declares no code host, name the branch
+  in its place, because no pull request can exist there and the branch is
+  what the person merges. Without that request, M5 holds.
 - M21. Under M20, write each record as a draft, run `paw check`, and set it
   to `approved` only where the check reports nothing, and go no further than
   the epic step, because a draft meets rules an approved record is excused

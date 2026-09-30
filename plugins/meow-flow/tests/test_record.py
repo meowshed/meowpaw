@@ -3018,6 +3018,13 @@ class OffTheTrunk(unittest.TestCase):
         self.assertRegex(steps, r"8\. End by naming")
         self.assertRegex(steps, r"Where M20 applies and the check still reports a finding, name the draft and the finding")
 
+    def test_the_skill_says_who_opens_the_pull_request(self):
+        """TSK-4010 criterion 1, BUG-1380, REQ-3656: M20 has the session open the pull request and name it in its
+        report, and name the branch where the repository declares no code host."""
+        rule = dict(self.rules())["M20"]
+        self.assertRegex(rule, r"stop once, at that pull request, which you open and name in your report")
+        self.assertRegex(rule, r"Where the repository declares no code host, name the branch in its place")
+
 
 if __name__ == "__main__":
     unittest.main()
