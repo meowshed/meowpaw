@@ -76,7 +76,7 @@ fn name_repository(layer: &mut Layer, repository: Option<&str>) -> Result<String
             Err(Failure::Failed(e)) => Err(Failure::Failed(format!(
                 "couldn't name this directory's repository: {e}; name it as <owner>/<name>"
             ))),
-            Err(throttled) => Err(throttled),
+            Err(other) => Err(other),
         },
     }
 }
@@ -128,6 +128,7 @@ fn listing(
     while let Some(page) = next {
         let (body, following) = layer.page(&page, true).map_err(|e| match e {
             Failure::Throttled(line) => line,
+            Failure::Refused(line) => format!("{name}: {line}"),
             Failure::Failed(e) => format!("{name}, {endpoint}: {e}"),
         })?;
         match body {
