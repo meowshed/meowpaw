@@ -23,6 +23,7 @@ gotask = ["dep:regex", "dep:yaml-rust2"]
 prose = ["dep:regex"]
 markdown = ["dep:yaml-rust2"]
 unattended = ["dep:sha2"]
+loop = ["dep:sha2"]
 
 [dependencies]
 toml = { version = "1.0", features = ["preserve_order"] }

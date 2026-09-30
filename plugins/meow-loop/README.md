@@ -1,0 +1,180 @@
+---
+reader: someone choosing or running meow-loop
+answers: what meow-loop start repeats, what bounds a run and what a run keeps
+kind: reference
+describes: [meow-loop@0.1.0]
+---
+
+# meow-loop
+
+`meow-loop start` repeats one prompt in fresh `claude -p` calls until the
+verification verbs you name pass, or until the number of iterations you state
+has run. The runner is a program outside the model, so nothing a call prints or
+writes extends the run, and the runner alone decides whether the work is done,
+from each verb's exit status.
+
+## Install it
+
+Add the marketplace and install the unit:
+
+```bash
+claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin install meow-loop@meowpaw
+```
+
+## Start a run
+
+Before you start, declare each verb the run waits for under `[verbs]` in your
+repository's `.meowpaw/profile.toml`, and write the prompt to a file. Then run
+the launcher by its path in the installed unit, from a terminal in the
+repository, replacing `./scripts/prompt.md` with your prompt file:
+
+```bash
+meow-loop start --prompt ./scripts/prompt.md --until verbs=test \
+  --iterations 5 --budget-usd 10 --permission-mode dontAsk
+```
+
+The run holds the terminal until it ends, and its last line is the ending.
+
+| Term                | Holds                                                                         | Required |
+| ------------------- | ----------------------------------------------------------------------------- | -------- |
+| `--prompt`          | The file whose bytes every call gets on its standard input                    | yes      |
+| `--until`           | `verbs=` and one or more of `format`, `lint`, `check`, `test` and `build`     | yes      |
+| `--iterations`      | The ceiling: the most calls the run makes, an integer of 1 or more            | yes      |
+| `--budget-usd`      | The budget in US dollars, a decimal number above 0, such as `2.50`            | yes      |
+| `--permission-mode` | `dontAsk`, the only mode accepted                                             | yes      |
+| `--allowed-tools`   | One permission rule each call may use without asking. Repeat it for each rule | no       |
+| `--plugin-dir`      | One unit's directory each call loads. Repeat it for each unit                 | no       |
+
+`start` refuses a run with no condition, no ceiling or no budget, because a
+loop with a bound missing stops only when you notice it. It refuses
+`bypassPermissions` and every other mode, because `dontAsk` denies what you
+didn't allow where another mode would ask a person who isn't there, or allow
+everything.
+
+## What a run does
+
+The runner resolves each named verb to the command your profile declares, and
+runs the verbs once before any call. If every one passes, the run ends
+`finished` with no call. Otherwise each iteration makes one call:
+
+```text
+claude -p --output-format json --no-session-persistence
+       --setting-sources project --plugin-dir <dir>...
+       --permission-mode dontAsk --allowedTools <rule>...
+       --permission-prompts none --max-budget-usd <budget>
+```
+
+Each call is a new session: the runner passes no `--resume` and no
+`--continue`. `--setting-sources project` keeps the plugins you installed for
+yourself out of the call, so a call loads only the directories you name with
+`--plugin-dir` and what the repository's own settings add.
+
+After a call, the runner compares the work tree's tree id with the one before
+the call. The tree id covers every tracked file and every untracked file git
+doesn't ignore. If the tree id changed or couldn't be identified, the runner
+runs the verbs again, and
+the run ends `finished` when every one exits 0 and the verbs left the tree as
+they found it. An unchanged tree would repeat the last result, so the runner
+skips the verbs and makes the next call. Where a verb changes the tree, such
+as a formatter that rewrites files, the runner runs the verbs a second time at
+once, and that second result stands.
+
+| Ending     | When                                | Exit status |
+| ---------- | ----------------------------------- | ----------- |
+| `finished` | Every named verb passed at one tree | 0           |
+| `ceiling`  | The stated number of iterations ran | 1           |
+
+`meow-loop` runs the verbs itself and needs no other unit. It records each
+verb's result in the ledger `meow-checks` reads, so where that unit is
+installed, `meow-checks evidence` prints the run's last results.
+
+## What a run keeps
+
+A run writes nothing into your work tree. Its files go to
+`<state>/meowpaw/runs/<work tree key>/<run id>/`, where `<state>` is
+`$XDG_STATE_HOME`, or `~/.local/state` where that isn't set, and
+`MEOWPAW_STATE_DIR` replaces `<state>/meowpaw`. `start` prints the directory
+when the run begins.
+
+| File                   | Holds                                                                                                                                                                                    |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `run.toml`             | The prompt's sha256, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending  |
+| `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                             |
+| `progress/progress.md` | An empty file, which a later version gives the model to carry notes between iterations                                                                                                   |
+| `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, the count of `permission_denials`, its exit status, and the condition's result where it ran |
+
+A `run.toml` with no `ending` belongs to a run that was interrupted, and the
+last line of its log says how far it got. One run holds a work tree at a time,
+through a lock the operating system releases when the runner's process ends,
+so a killed run never blocks the next one. When a run starts, the runner keeps
+the newest 20 runs of the work tree, counting the new one, and prints the id
+of each run it removes.
+
+## What this version doesn't bound yet
+
+The ceiling is the only bound this version holds across calls. It passes the
+whole budget to every call as `--max-budget-usd`, so the platform caps one
+call at the budget, and a run of five iterations can spend up to five times
+the budget. The runner logs each call's cost and doesn't sum it yet.
+
+This version also keeps running when a call changes nothing, until the ceiling
+ends the run. It doesn't check whether a call changed the prompt copy or
+`run.toml`, and it resolves each verb from the profile again at every
+evaluation, so a call that rewrites `.meowpaw/profile.toml` changes what the
+condition runs. It doesn't stop a session inside Claude Code from starting a
+run. Until later versions add those checks, start a run yourself, read the
+profile's diff before you trust a `finished`, and choose the ceiling as if
+every call spends the whole budget.
+
+## What it reports instead of a run
+
+A usage error exits 2 and prints `usage: <what>` for every error in the
+command, so one attempt names every flag to fix:
+
+| Line                                                            | Means                                                                          |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `usage: <flag> is required`                                     | A required term is absent                                                      |
+| `usage: --prompt <file> can't be read`                          | The prompt file is missing or unreadable                                       |
+| `usage: --until names no verb`                                  | `verbs=` is followed by nothing                                                |
+| `usage: <name> is not a verb`                                   | `verbs=` names something other than the five verbs                             |
+| `usage: --until <value> is not a condition kind`                | The condition doesn't start with `verbs=`                                      |
+| `usage: --iterations <value> is not at least 1`                 | The ceiling isn't an integer of 1 or more                                      |
+| `usage: --iterations <value> is above 9223372036854775807`      | The ceiling is larger than `run.toml` can hold                                 |
+| `usage: --budget-usd <value> is not a decimal number`           | The budget isn't digits with one optional point, so `1e1` and `+1` are refused |
+| `usage: --budget-usd <value> is not above 0`                    | The budget is 0                                                                |
+| `usage: --budget-usd <value> is too large or too small to hold` | The budget has more digits than the runner's number holds                      |
+| `usage: --permission-mode <value> is refused`                   | The mode is anything but `dontAsk`                                             |
+| `usage: <flag> needs a value`                                   | A term is the last word of the command                                         |
+| `usage: <word> is not a term of start`                          | The command holds a word that is no term                                       |
+
+A state the runner can't read past exits 3, prints `unresolved: <what>` and
+creates no run directory:
+
+| Line                                                                            | Means                                                     |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `unresolved: not a git work tree`                                               | The current directory isn't inside one                    |
+| `unresolved: state writing is off, and a run needs state`                       | `MEOWPAW_STATE=off` is set                                |
+| `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME` | None of the three variables names where state goes        |
+| `unresolved: claude is not on the path`                                         | No `claude` that can be run is on `PATH`                  |
+| `unresolved: verb <verb> resolves to no command`                                | The profile declares no command for a named verb          |
+| `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                      |
+| `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file |
+| `unresolved: can't create a run in <directory>: <error>`                        | The runner can't create the run's directory               |
+
+During a run, a file the runner can't write, a `claude` or a verb's command it
+can't start, or a verb that no longer resolves stops the run with the same
+`unresolved:` line and exit status 3. The run then has no ending, and reads as interrupted.
+
+## What it costs you
+
+The unit ships no skill, so it keeps nothing in context on every turn, and its
+budget states zero characters. The program is a native binary shipped inside
+the unit. On a machine the unit carries no binary for, `start` reports the run
+as unresolved and exits 3. Each run leaves a directory of a few kilobytes in
+the state directory until a later run removes it.
+
+## What it needs
+
+Claude Code 2.1.280 or later, declared in `plugins/meow-loop/requires.toml`,
+with `claude` on your `PATH`, and git.
