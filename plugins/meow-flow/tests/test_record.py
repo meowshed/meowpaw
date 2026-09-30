@@ -2494,5 +2494,80 @@ class ShortChainPrompts(unittest.TestCase):
         self.assertRegex(text, r"Write no epic for a decision one task realises, because")
 
 
+class MigratedShape(unittest.TestCase):
+    """TSK-3860, ADR-2300, REQ-3652: no record carries the old chain's sections or `checked-at`."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def commit(self, repository):
+        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                                     "commit", "-q", "-m", "base"]):
+            subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
+
+    def test_the_clean_record_carries_no_checked_at(self):
+        """A specification and an epic need no `checked-at` to pass every check."""
+        repository = self.repo()
+        for name in ("specs/SPC-0001-a-part.md", "epics/EPC-0001-a-plan.md"):
+            self.assertNotIn("checked-at", (repository.root / name).read_text(encoding="utf-8"), name)
+        self.assertEqual(repository.run("check").returncode, 0)
+
+    def test_checked_at_is_a_retired_field(self):
+        """A record still carrying `checked-at` is reported, by file and line."""
+        repository = self.repo()
+        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", 'realises: ADR-0001\nchecked-at: "#1"')
+        done = repository.run("check", "front-matter")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/epics/EPC-0001-a-plan.md:7: carries checked-at, a retired field", done.stdout)
+
+    def test_a_retired_section_is_reported(self):
+        """A record still carrying `## Cover`, `## Verified` or `## Open review findings` is reported by `shape`."""
+        for name, section in (("tasks/TSK-0001-a-task.md", "Cover"), ("epics/EPC-0001-a-plan.md", "Verified"),
+                              ("adrs/ADR-0001-a-choice.md", "Open review findings")):
+            with self.subTest(section=section):
+                repository = self.repo()
+                path = repository.root / name
+                path.write_text(path.read_text(encoding="utf-8") + f"\n## {section}\n\nText.\n", encoding="utf-8")
+                done = repository.run("check", "shape")
+                self.assertEqual(done.returncode, 1, done.stdout)
+                self.assertRegex(done.stdout, rf"project/{re.escape(name)}:\d+: carries the section {section}, which is retired")
+
+    def test_a_retired_heading_inside_fenced_code_is_an_example(self):
+        """A fenced example showing an old section is text, not a section."""
+        repository = self.repo()
+        path = repository.root / "adrs/ADR-0001-a-choice.md"
+        path.write_text(path.read_text(encoding="utf-8") + "\n```text\n## Cover\n```\n", encoding="utf-8")
+        self.assertEqual(repository.run("check", "shape").returncode, 0)
+
+    def test_removing_a_retired_section_or_field_leaves_an_approved_record_frozen_and_clean(self):
+        """The migration's own edits aren't a change: an approved record loses `## Cover`, `## Open review findings`
+        or `checked-at` with no finding, and still can't change anything else."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "## Cover\n\n- Checks: none\n\n## Evidence")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001\n", "# REQ-0001\n\n## Open review findings\n\nOne.\n")
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at: "#1"')
+        self.commit(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\n- Checks: none\n\n## Evidence", "## Evidence")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "\n## Open review findings\n\nOne.\n", "")
+        repository.edit("adrs/ADR-0001-a-choice.md", '\nchecked-at: "#1"', "")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001", "# REQ-0001\n\nIt MUST do more.")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
+
+    def test_an_approved_epic_may_change_its_tasks_and_nothing_else(self):
+        """With no `checked-at` to freeze it, an approved epic changes only under `## Tasks`."""
+        repository = self.repo()
+        self.commit(repository)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task")
+        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Acceptance criteria\n\nText.", "## Acceptance criteria\n\nEasier.")
+        done = repository.run("check", "frozen", "--base", "HEAD")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("project/epics/EPC-0001-a-plan.md: approved at HEAD", done.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
