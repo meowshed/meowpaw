@@ -358,110 +358,81 @@ class Subset(unittest.TestCase):
         self.assertEqual([r["targets"] for r in records], [None, ["a"]])
 
 
-class Kept(unittest.TestCase):
-    """ADR-1530: a cited record is kept in the repository, outside the tree id."""
+class NoKeptEvidence(unittest.TestCase):
+    """TSK-3830, ADR-2300, REQ-3614: the repository keeps no run output, so `evidence` keeps and lists none."""
 
     PROFILE = '[verbs]\ntest = "echo tested"\n'
 
-    def repo(self, profile=None):
-        repository = Repository(profile or self.PROFILE)
+    def repo(self):
+        repository = Repository(self.PROFILE)
         self.addCleanup(repository.close)
         repository.git("init", "-q", "-b", "work")
         return repository
 
-    def test_a_current_record_is_kept_with_its_header_and_output(self):
-        """REQ-2956, REQ-2964: the kept file is the contract a person reads."""
+    def test_keep_is_refused_and_writes_nothing(self):
+        """Criterion 2: `evidence --keep` exits 2 naming ADR-2300, and no evidence directory appears."""
         repo = self.repo()
-        repo.run("run", "test")
-        record = repo.records()[-1]
+        self.assertEqual(repo.run("run", "test").returncode, 0)
         done = repo.run("evidence", "--keep", "test")
-        self.assertEqual(done.returncode, 0, done.stdout)
-        kept = repo.root / "project" / "evidence" / f"{record['record']}.txt"
-        self.assertIn(f"kept: project/evidence/{record['record']}.txt", done.stdout)
-        text = kept.read_text(encoding="utf-8")
-        self.assertTrue(text.startswith("meow-verbs evidence 1\n"), text)
-        for line in (f"record: {record['record']}", "verb: test", "command: echo tested", "outcome: passed",
-                     "exit status: 0", f"tree: {record['tree']}"):
-            self.assertIn(line + "\n", text)
-        self.assertTrue(text.endswith("\n\ntested\n"), text)
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("kept evidence was removed by ADR-2300", done.stderr)
+        self.assertFalse((repo.root / "project").exists())
 
-    def test_keeping_a_record_leaves_it_current(self):
-        """REQ-2956: the evidence directory is not part of the work it describes."""
+    def test_kept_is_refused(self):
+        """Criterion 2: `evidence --kept` has nothing to list, and says why."""
+        done = self.repo().run("evidence", "--kept")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("kept evidence was removed by ADR-2300", done.stderr)
+
+    def test_an_evidence_directory_is_part_of_the_tree(self):
+        """REQ-3614: nothing is left out of the tree id, so a file under `project/evidence` stales a result."""
         repo = self.repo()
-        repo.run("run", "test")
-        repo.run("evidence", "--keep", "test")
+        self.assertEqual(repo.run("run", "test").returncode, 0)
+        (repo.root / "project" / "evidence").mkdir(parents=True)
+        (repo.root / "project" / "evidence" / "a.txt").write_text("x", encoding="utf-8")
         done = repo.run("evidence", "test")
-        self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertIn("current at tree", done.stdout)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("stale", done.stdout)
 
-    def test_a_stale_record_is_not_kept(self):
-        """REQ-2956: a record describing other content than the tree isn't evidence for it."""
+    def test_state_names_no_evidence_directory(self):
+        """REQ-3614: `state` reports the ledger and no evidence directory."""
         repo = self.repo()
         repo.run("run", "test")
-        (repo.root / "edited.txt").write_text("a\n", encoding="utf-8")
-        done = repo.run("evidence", "--keep", "test")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("not kept", done.stdout)
-        self.assertFalse((repo.root / "project" / "evidence").exists())
+        done = repo.run("state")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("ledger: ", done.stdout)
+        self.assertNotIn("evidence directory", done.stdout)
 
-    def test_the_declared_directory_is_used_and_left_out(self):
-        """REQ-2956: a repository chooses where its evidence lives."""
-        repo = self.repo(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "proof"\n'))
-        repo.run("run", "test")
-        repo.run("evidence", "--keep")
-        self.assertEqual(len(list((repo.root / "proof").glob("*.txt"))), 1)
-        self.assertNotIn("verbs.evidence_dir", repo.status()["ignored"])
-        self.assertEqual(repo.run("evidence", "test").returncode, 0)
+    def test_keep_is_refused_beside_all(self):
+        """REQ-3614: the refusal comes before anything is read, whatever else is asked."""
+        done = self.repo().run("evidence", "--all", "--keep")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
 
-    def test_the_default_follows_a_moved_record(self):
-        """REQ-2956, ADR-1550: evidence sits beside the record wherever the profile puts it."""
-        repo = self.repo(self.PROFILE + '\n[record]\nroot = "docs/record"\n')
-        repo.run("run", "test")
-        done = repo.run("evidence", "--keep")
-        self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertEqual(len(list((repo.root / "docs" / "record" / "evidence").glob("*.txt"))), 1)
-
-    def test_a_kept_file_git_ignores_is_reported_and_left(self):
-        """REQ-2956, ADR-1550: a file git won't commit isn't kept."""
-        repo = self.repo()
-        (repo.root / ".gitignore").write_text("project/evidence/\n", encoding="utf-8")
-        repo.run("run", "test")
-        done = repo.run("evidence", "--keep", "test")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("ignored by .gitignore:1", done.stdout)
-        self.assertEqual(len(list((repo.root / "project" / "evidence").glob("*.txt"))), 1)
-
-    def test_outside_git_a_kept_file_is_unchecked(self):
-        """REQ-2956, ADR-1550: an ignore check git can't answer is unresolved, never a keep."""
-        repository = Repository(self.PROFILE)
+    def test_a_declared_evidence_directory_is_an_unread_key(self):
+        """REQ-3614: `evidence_dir` means nothing now, so status lists it as ignored and its files are part of the tree."""
+        repository = Repository(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "proof"\n'))
         self.addCleanup(repository.close)
-        repository.run("run", "test")
-        done = repository.run("evidence", "--keep", "test")
-        self.assertEqual(done.returncode, 3, done.stdout)
+        repository.git("init", "-q", "-b", "work")
+        self.assertIn("verbs.evidence_dir", repository.status()["ignored"])
+        self.assertEqual(repository.run("run", "test").returncode, 0)
+        (repository.root / "proof").mkdir()
+        (repository.root / "proof" / "a.txt").write_text("x", encoding="utf-8")
+        self.assertEqual(repository.run("evidence", "test").returncode, 1)
 
-    def test_an_unusual_evidence_path_is_read_as_it_is(self):
-        """REQ-2522: a path git would escape reaches the listing as the path it is."""
-        repo = self.repo(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "pro\\"of \u00e9\\nx"\n'))
-        repo.run("run", "test")
-        done = repo.run("evidence", "--keep", "test")
-        self.assertEqual(done.returncode, 0, done.stdout)
-        weird = repo.root / 'pro"of \u00e9\nx'
-        self.assertEqual(len(list(weird.glob("*.txt"))), 1)
-        listed = repo.run("evidence", "--kept")
-        self.assertIn('pro"of \u00e9\nx/', listed.stdout)
-
-    def test_a_commit_tree_matches_the_kept_record(self):
-        """REQ-2956: a reviewer compares a kept record with the commit that carries it."""
+    def test_tree_prints_a_commits_tree_id(self):
+        """ADR-1530: `tree <commit>` prints the id a result on that clean commit names, and refuses a bad ref."""
         repo = self.repo()
-        repo.run("run", "test")
-        record = repo.records()[-1]
-        repo.run("evidence", "--keep", "test")
+        (repo.root / "a.txt").write_text("a\n", encoding="utf-8")
         repo.git("add", "-A")
-        repo.git("commit", "-q", "-m", "c")
+        repo.git("commit", "-q", "-m", "a")
         done = repo.run("tree", "HEAD")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertEqual(done.stdout.strip(), record["tree"])
-        self.assertNotEqual(repo.git("rev-parse", "HEAD^{tree}").stdout.strip(), record["tree"])
+        self.assertEqual(done.stdout.strip(), repo.git("rev-parse", "HEAD^{tree}").stdout.strip())
+        repo.run("run", "test")
+        self.assertEqual(repo.records()[-1]["tree"], done.stdout.strip())
+        bad = repo.run("tree", "nope")
+        self.assertEqual(bad.returncode, 1, bad.stdout + bad.stderr)
+        self.assertIn("nope is not a commit here", bad.stdout + bad.stderr)
 
 
 class State(unittest.TestCase):
@@ -508,7 +479,7 @@ class State(unittest.TestCase):
         repo = self.repo()
         repo.run("run", "test")
         said = repo.run("state").stdout
-        for fact in ("ledger: ", "records: 1", "oldest: ", "newest: ", "evidence directory: project/evidence", "lock: "):
+        for fact in ("ledger: ", "records: 1", "oldest: ", "newest: ", "lock: "):
             self.assertIn(fact, said)
 
     def test_old_records_and_their_output_are_pruned(self):
@@ -687,85 +658,6 @@ class Claims(unittest.TestCase):
         done = repo.run("evidence", "test")
         self.assertEqual(done.returncode, 3, done.stdout)
         self.assertIn("the submodule sub has uncommitted changes", done.stdout)
-
-    def branch(self, repo):
-        repo.run("run", "test")
-        repo.run("evidence", "--keep", "test")
-        repo.git("add", "-A")
-        repo.git("commit", "-q", "-m", "trunk evidence")
-        repo.git("checkout", "-q", "-b", "change")
-        (repo.root / "work.txt").write_text("w\n", encoding="utf-8")
-
-    def test_the_listing_names_only_what_the_work_adds(self):
-        """REQ-0456: the evidence behind this change, joined to each claim by its record."""
-        repo = self.repo()
-        self.branch(repo)
-        repo.run("run", "test")
-        record = repo.records()[-1]["record"]
-        repo.run("evidence", "--keep", "test")
-        done = repo.run("evidence", "--kept")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertEqual(done.stdout.count("project/evidence/"), 1, done.stdout)
-        self.assertIn(f"test passed, record {record}, differs from HEAD", done.stdout)
-        repo.git("add", "-A")
-        repo.git("commit", "-q", "-m", "change")
-        done = repo.run("evidence", "--kept")
-        self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertIn(f"test passed, record {record}, matches HEAD", done.stdout)
-
-    def test_a_superseded_file_is_listed_and_not_counted(self):
-        """REQ-0456: only the latest kept result per verb stands for the change."""
-        repo = self.repo()
-        self.branch(repo)
-        repo.run("run", "test")
-        repo.run("evidence", "--keep", "test")
-        (repo.root / "work.txt").write_text("again\n", encoding="utf-8")
-        repo.run("run", "test")
-        repo.run("evidence", "--keep", "test")
-        repo.git("add", "-A")
-        repo.git("commit", "-q", "-m", "change")
-        done = repo.run("evidence", "--kept")
-        self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertIn("superseded", done.stdout)
-
-    def test_a_failed_result_fails_the_listing(self):
-        """REQ-0456: a kept failure is never a pass."""
-        repo = self.repo()
-        self.branch(repo)
-        repo.run("run", "lint")
-        repo.run("evidence", "--keep", "lint")
-        repo.git("add", "-A")
-        repo.git("commit", "-q", "-m", "change")
-        self.assertEqual(repo.run("evidence", "--kept").returncode, 1)
-
-    def test_an_empty_listing_is_unresolved(self):
-        """REQ-0456: no evidence is never a pass."""
-        repo = self.repo()
-        self.branch(repo)
-        done = repo.run("evidence", "--kept")
-        self.assertEqual(done.returncode, 3, done.stdout)
-        self.assertIn("no kept evidence in this work", done.stdout)
-
-    def test_with_no_trunk_every_file_is_listed_with_a_note(self):
-        """REQ-0456: where the work's base is unknown, the listing says so."""
-        repo = self.repo('[verbs]\ntest = "echo tested"\n')
-        repo.run("run", "test")
-        repo.run("evidence", "--keep", "test")
-        done = repo.run("evidence", "--kept")
-        self.assertEqual(done.returncode, 3, done.stdout)
-        self.assertIn("no trunk is declared under [git]", done.stdout)
-
-    def test_outside_git_each_file_is_bound_to_nothing(self):
-        """REQ-0456: evidence with no tree is never current."""
-        repository = Repository(self.PROFILE)
-        self.addCleanup(repository.close)
-        kept = repository.root / "project" / "evidence"
-        kept.mkdir(parents=True)
-        (kept / "abc.txt").write_text("meow-verbs evidence 1\nrecord: abc\nverb: test\noutcome: passed\n"
-                                      "tree: none\ntime: 2026-01-01T00:00:00Z\n\nok\n", encoding="utf-8")
-        done = repository.run("evidence", "--kept")
-        self.assertEqual(done.returncode, 3, done.stdout)
-        self.assertIn("bound to no tree", done.stdout)
 
 
 class Launcher(unittest.TestCase):

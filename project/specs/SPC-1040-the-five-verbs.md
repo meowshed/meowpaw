@@ -199,37 +199,22 @@ as current for the whole verb: it reads the latest record run without
 targets, prints the latest subset record beside it as `subset only`, and reads
 a record carrying no targets field as a whole run.
 
-### Evidence kept in the repository
+### No run output in the repository
 
-`evidence --keep [verb...]` copies each named verb's latest current record, or
-every current one when none is named, into the repository at
-`<record root>/evidence/<record>.txt`, which is `project/evidence/` unless the
-profile moves the record with `[record] root`, or under the `evidence_dir` the
-profile declares under `[verbs]` (ADR-1550). ADR-2300 removes kept evidence, so `--keep` goes with EPC-2200 (REQ-3614) (not yet). It asks git whether each kept file
-is ignored: an ignored one is named with its rule, left in place, and exits 1,
-and where git can't answer it exits 3 (ADR-1550). The file opens with `meow-verbs evidence 1`,
-then the verb, the command, the targets, the outcome, the exit status, the tree
-id and the time, and holds the whole output; that format is a contract, and the
-ledger's own format is private (REQ-2964). A stale record isn't kept. The tree
-id leaves the evidence directory out, and `meow-verbs tree <commit>` prints a
-commit's tree id the same way (ADR-1530).
-
-### The evidence behind a change's claims
+The repository keeps no run output (REQ-3614). A record or a pull request
+cites a result as `evidence` prints it: the verb, the outcome, the record and
+the tree id. `evidence --keep` and `evidence --kept` exit 2, naming ADR-2300,
+and write nothing, for one release. The tree id leaves no directory out,
+and `meow-verbs tree <commit>` prints a commit's tree id, for comparing a
+cited result with a commit (ADR-1530).
 
 Every record carries the tree id it was collected at, and any change to the
 tree makes it stale (REQ-0452, REQ-0454). Where a submodule has uncommitted
 changes the tree id is `none`, so a result then is bound to nothing and an
 earlier one reads as bound to nothing too, with `evidence` naming the
-submodule and exiting 3 (ADR-1560).
-
-`evidence --kept` lists every kept file the work adds against the branch's
-base on `trunk` under `[git]`, committed, uncommitted or untracked, each with
-its record identifier, verb, outcome, tree id and whether that matches the
-tree of `HEAD` less the evidence directory (REQ-0456). The latest file per
-verb counts, and an earlier one is listed as `superseded`. It exits 1 where a
-counted file failed or differs, else 4 where one was interrupted, else 3
-where the listing is empty, the trunk or base is unknown, or a file is bound
-to nothing, else 0.
+submodule and exiting 3 (ADR-1560). `evidence` reports, for each verb the
+work claims, the result behind the claim and whether it holds for the tree as
+it is (REQ-0456).
 
 ### The ledger as run state
 
@@ -237,7 +222,7 @@ The ledger is run state, kept outside the repository (REQ-3072). Each record
 names the repository's identity, the hash of its first commit (REQ-0752). A
 missing ledger or an unparseable line reads as absent (REQ-0754).
 `meow-verbs state` prints where the ledger is, its record count, the oldest
-and newest, and the evidence directory (REQ-0756). Every write takes a lock in
+and newest (REQ-0756). Every write takes a lock in
 `$XDG_RUNTIME_DIR`, or the user's temporary directory where that is unset, and
 a lock older than a minute is replaced (REQ-0758, REQ-2958, REQ-2967).
 `MEOWPAW_STATE_DIR` moves the state directory and `MEOWPAW_STATE=off` writes

@@ -84,7 +84,7 @@ class LintCatchesACollapsibleIf(unittest.TestCase):
         """Criterion 4 (REQ-1186): `crate-lint` exits non-zero on the planted `if` and names `collapsible_if`.
 
         clippy itself exits 101; the 1 the criterion states is `meow-verbs`
-        reporting that failure, which the kept evidence of that run shows."""
+        reporting that failure, which that task's pull request showed."""
         command = mise_task("crate-lint")
         with tempfile.TemporaryDirectory() as planted:
             failed = shell(against(command, copy_crate(planted, COLLAPSIBLE_IF)))
