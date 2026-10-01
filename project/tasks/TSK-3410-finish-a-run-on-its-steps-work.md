@@ -115,8 +115,36 @@ tree EPC-1910 leaves, because that commit is the evidence that the checks can fa
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+Criteria 1 to 10 are closed by the `Step` checks in
+`plugins/meow-loop/tests/test_loop.py`. Fourteen of them failed first in
+commit dd9b27a8, where `start` refused `--step` as no term, and the layout
+check failed first in ec94e3bd. Of the checks the review added or tightened,
+the `spec` check, the empty `--inputs` case and the trimmed-inputs check
+failed first in 0440fda7. The other four were tightened against code that
+was already correct.
+All 57 checks of the unit pass on this change. The crate's unit check
+`every_missing_term_is_named_in_one_attempt` counts six required terms.
+Criterion 11 is closed by the five verbs' outcomes in this task's pull
+request, since no run output is kept.
+
+The agent review found two checks that passed for another reason. The check
+for a dropped task now writes the task's Evidence, so the mark alone keeps
+the run from finishing. The forged ledger line now holds every field a real
+one holds, at the tree the call leaves. The review also found that a `spec`
+run over a decision addressing nothing finished with no work done, so that
+step's test now needs a decision with at least one requirement.
+
+The step's test reads `## Evidence` past a leading "Not yet." paragraph, as
+`paw` does. A task whose Evidence holds only that placeholder doesn't pass
+`implement`. `meow-loop` ships its own `lib/layout.toml` and reads it as `paw`
+reads `meow-flow`'s. A layout compiled in from another unit's directory left
+the crate unbuildable on its own, which `tools/test_crate_verbs.py` showed.
+`Step.test_layout_is_meow_flows` holds the two copies byte-equal.
+
+SPC-1201 leaves five failure states unnamed, which BUG-1390 records as a
+draft, because the implement step writes no specification. Among them, an
+input of the wrong kind for its step passes start, and the run then spends
+its ceiling.
 
 ## Left alone
 

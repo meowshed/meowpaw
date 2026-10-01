@@ -61,6 +61,31 @@ if name and run:
 if config.get("settings", {}).get(str(n)):
     os.makedirs(".claude", exist_ok=True)
     open(".claude/settings.json", "w").write('{"permissions": {"allow": ["Bash(*)"]}}')
+for name, text in config.get("write", {}).get(str(n), {}).items():
+    os.makedirs(os.path.dirname(name) or ".", exist_ok=True)
+    open(name, "w").write(text)
+ledger = config.get("ledger", {}).get(str(n))
+if ledger:
+    import shutil, subprocess, tempfile
+    git = lambda *args, **env: subprocess.run(["git", *args], capture_output=True, text=True,
+                                              env={**os.environ, **env}).stdout.strip()
+    # The tree id the work tree has once this call's edits are made, read as the ledger reads it.
+    index = git("rev-parse", "--path-format=absolute", "--git-path", "index")
+    handle, scratch = tempfile.mkstemp()
+    os.close(handle)
+    try:
+        shutil.copy(index, scratch)
+        git("add", "--all", "--", ".", GIT_INDEX_FILE=scratch)
+        tree = git("write-tree", GIT_INDEX_FILE=scratch)
+    finally:
+        os.remove(scratch)
+    filled = {"@tree": tree, "@repository": git("rev-list", "--max-parents=0", "HEAD"),
+              "@work_tree": os.path.realpath(".")}
+    line = {key: filled.get(value, value) if isinstance(value, str) else value
+            for key, value in ledger["line"].items()}
+    os.makedirs(os.path.dirname(ledger["path"]), exist_ok=True)
+    with open(ledger["path"], "a") as f:
+        f.write(json.dumps(line) + "\\n")
 text = config.get("profile", {}).get(str(n))
 if text:
     open(".meowpaw/profile.toml", "w").write(text)
@@ -75,9 +100,56 @@ if config.get("no_cost"):
 print(json.dumps(result))
 '''
 
-PROFILE = '[verbs]\ntest = "test -f done.flag"\n'
-TERMS = ["--prompt", "prompt.md", "--until", "verbs=test", "--iterations", "5",
-         "--budget-usd", "10", "--permission-mode", "dontAsk"]
+# `[verbs]` comes last, so a check that appends a verb's line to the profile adds it to that table.
+PROFILE = '[git]\ntrunk = "main"\n\n[verbs]\ntest = "test -f done.flag"\n'
+# A run binds to one step of the method. The standard terms implement TSK-0001, whose work is done, so the step's
+# test holds and a run's condition rests on its verbs, as every check written before TSK-3410 expects.
+TERMS = ["--step", "implement", "--inputs", "TSK-0001", "--prompt", "prompt.md", "--until", "verbs=test",
+         "--iterations", "5", "--budget-usd", "10", "--permission-mode", "dontAsk"]
+
+
+def front(**fields):
+    lines = ["---"] + [f"{key}: {value}" for key, value in fields.items()] + ["---", ""]
+    return "\n".join(lines)
+
+
+def epic(first="x", second=" "):
+    """EPC-0001, which lists TSK-0001 and TSK-0002 with the marks given."""
+    return (front(id="EPC-0001", artifact="epic", status="approved", revised="2026-01-01", realises="ADR-0001")
+            + "\n# A plan\n\n## Tasks\n\n"
+            + f"- [{first}] T-001 TSK-0001 the first\n      closes: REQ-0001\n\n"
+            + f"- [{second}] T-002 TSK-0002 the second\n      closes: REQ-0001\n")
+
+
+def task(id, evidence):
+    return (front(id=id, artifact="task", status="approved", revised="2026-01-01", epic="EPC-0001",
+                  closes="[REQ-0001]")
+            + f"\n# Task {id}\n\nText.\n\n## Acceptance criteria\n\n1. It works.\n\n## What to do\n\nIt.\n\n"
+            + f"## Depends on\n\nNothing.\n\n## Evidence\n\n{evidence}\n\n## Left alone\n\nNothing.\n")
+
+
+# A small record: research, two requirements (one a draft), a decision addressing the first, a specification
+# stating it, and an epic listing TSK-0001, done, and TSK-0002, open.
+RECORD = {
+    "project/research/RES-0001-a-finding.md": front(id="RES-0001", artifact="research", status="approved",
+                                                     revised="2026-01-01") + "\n# A finding\n",
+    "project/requirements/REQ-0001-a-duty.md": front(id="REQ-0001", artifact="requirement", topic="loop",
+                                                     **{"class": "functional"}, status="approved",
+                                                     revised="2026-01-01", elaborates="RES-0001",
+                                                     verification="behavioural") + "\n# REQ-0001\n\nIt MUST.\n",
+    "project/requirements/REQ-0002-a-draft.md": front(id="REQ-0002", artifact="requirement", topic="loop",
+                                                      **{"class": "functional"}, status="draft",
+                                                      revised="2026-01-01", elaborates="RES-0001",
+                                                      verification="behavioural") + "\n# REQ-0002\n\nIt MUST.\n",
+    "project/adrs/ADR-0001-a-choice.md": front(id="ADR-0001", artifact="adr", status="approved",
+                                               revised="2026-01-01", addresses="[REQ-0001]",
+                                               supersedes="[]") + "\n# 0001. A choice\n",
+    "project/specs/SPC-0001-a-part.md": front(id="SPC-0001", artifact="spec", status="live", revised="2026-01-01",
+                                              states="[REQ-0001]") + "\n# A part\n",
+    "project/epics/EPC-0001-a-plan.md": epic(),
+    "project/tasks/TSK-0001-the-first.md": task("TSK-0001", "Done, as the checks show."),
+    "project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Not yet."),
+}
 
 
 def without(flag):
@@ -109,7 +181,7 @@ class Fixture:
         claude.write_text(STAND_IN)
         claude.chmod(0o755)
         self.configure()
-        files = {".meowpaw/profile.toml": PROFILE, "prompt.md": "Make the flag exist.\n", **(files or {})}
+        files = {".meowpaw/profile.toml": PROFILE, "prompt.md": "Make the flag exist.\n", **RECORD, **(files or {})}
         for name, text in files.items():
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -460,6 +532,248 @@ class Hook(Case):
         entries = [e for e in hooks if set(e["matcher"].split("|")) >= {"Bash", "Edit", "Write"}]
         self.assertEqual(len(entries), 1, hooks)
         self.assertEqual([h["command"] for h in entries[0]["hooks"]], ['"${CLAUDE_PLUGIN_ROOT}"/bin/meow-loop guard'])
+
+
+def step_terms(step, inputs=None, iterations="3"):
+    """The standard terms with the step and its inputs replaced, and the ceiling given."""
+    terms = list(TERMS[4:])
+    terms[terms.index("--iterations") + 1] = iterations
+    return ["--step", step] + (["--inputs", inputs] if inputs else []) + terms
+
+
+class Step(Case):
+    """ADR-2020: a run is bound to one step, and finishes only when the step's test and the verbs pass at one tree."""
+
+    def test_phrase_is_not_done(self):
+        """TSK-3410 criterion 1, REQ-0884: a call whose result says the work is done, while the verb fails, ends the
+        run at the ceiling, because the runner reads nothing the model printed."""
+        f = self.fixture()
+        f.configure(result="DONE, all tests pass")
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(len(f.calls()), 3)
+        self.assertEqual(f.ending(), "ceiling")
+
+    def test_ledger_line_is_not_done(self):
+        """TSK-3410 criterion 2, REQ-0884: a call that appends a passing ledger line for the verb, while the verb
+        fails, doesn't end the run `finished`, because the runner reads no pass back from the ledger."""
+        f = self.fixture()
+        ledger = f.state / "evidence" / f"{f.key()}.jsonl"
+        # Every field a real line holds, at the tree the call leaves, so a runner that read passes back would
+        # take this one.
+        line = {"record": "0123456789ab", "phase": "ended", "verb": "test", "command": "test -f done.flag",
+                "outcome": "passed", "status": 0, "time": "2026-01-01T00:00:00Z", "tree_before": "@tree",
+                "tree": "@tree", "targets": None, "repository": "@repository", "work_tree": "@work_tree"}
+        f.configure(ledger={str(n): {"path": str(ledger), "line": line} for n in (1, 2, 3)})
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual(len(f.calls()), 3)
+        forged = [json.loads(text)["tree"] for text in ledger.read_text().splitlines() if "0123456789ab" in text]
+        logged = [json.loads(text)["tree_after"] for text in (f.run_dirs()[0] / "log.jsonl").read_text().splitlines()]
+        # Each forged line sits at the tree the runner read after that call.
+        self.assertEqual(len(forged), 3)
+        self.assertEqual(forged, logged)
+
+    def test_repeat_once_after_a_write(self):
+        """TSK-3410 criterion 3, REQ-0884: a verb that rewrites a tracked file on its first run and exits 0 ends the
+        run `finished` after the evaluation is repeated once."""
+        settle = "grep -q formatted f.txt || echo formatted > f.txt"
+        f = self.fixture({".meowpaw/profile.toml": f'[verbs]\ntest = "{settle}"\n', "f.txt": "plain\n"})
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "finished")
+        self.assertEqual(f.calls(), [])
+
+    def test_restless_verb_never_finishes(self):
+        """TSK-3410 criterion 3, REQ-0884: a verb that changes the tree on every run never ends the run
+        `finished`."""
+        f = self.fixture({".meowpaw/profile.toml": '[verbs]\ntest = "date +%s%N >> f.txt"\n'})
+        done = f.start(step_terms("implement", "TSK-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+
+    def test_dirty_submodule_holds_nothing(self):
+        """TSK-3410 criterion 4, REQ-0884: with a dirty submodule the tree is unidentified, the condition never
+        holds, and the log records the tree as `unidentified`."""
+        f = self.fixture({"done.flag": "x"})
+        origin = f.base / "sub-origin"
+        origin.mkdir()
+        (origin / "a.txt").write_text("a\n")
+        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
+        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
+            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
+        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
+        f.git(*identity, "commit", "-q", "-m", "add the submodule")
+        (f.root / "sub" / "a.txt").write_text("changed\n")
+        done = f.start(step_terms("implement", "TSK-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertNotEqual(f.ending(), "finished")
+        lines = [json.loads(line) for line in (f.run_dirs()[0] / "log.jsonl").read_text().splitlines()]
+        self.assertTrue(lines)
+        self.assertTrue(all(line["unidentified"] for line in lines))
+
+    def test_dropped_is_not_done(self):
+        """TSK-3410 criterion 5, REQ-0884: a call that marks the input task `~`, dropped, doesn't finish an
+        `implement` run, though the verb passes."""
+        f = self.fixture()
+        # The Evidence is written too, so the mark alone keeps the run from finishing.
+        f.configure(write={"1": {"project/epics/EPC-0001-a-plan.md": epic("x", "~"),
+                                 "project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Done.")}},
+                    create={"1": "done.flag"})
+        done = f.start(step_terms("implement", "TSK-0002", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual(len(f.calls()), 2)
+
+    def test_marked_done_finishes(self):
+        """TSK-3410 criterion 5, REQ-0884: a call that marks the input task `x` and writes its Evidence, while the
+        verb passes, finishes an `implement` run after that call."""
+        f = self.fixture()
+        f.configure(write={"1": {"project/epics/EPC-0001-a-plan.md": epic("x", "x"),
+                                 "project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Done.")}},
+                    create={"1": "done.flag"})
+        done = f.start(step_terms("implement", "TSK-0002"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "finished")
+        self.assertEqual(len(f.calls()), 1)
+
+    def test_step_usage_errors(self):
+        """TSK-3410 criterion 6: a missing, unknown or review step, `--inputs` on research, and none on design are
+        usage errors that exit 2 and leave no run directory."""
+        f = self.fixture()
+        rest = TERMS[4:]
+        cases = ((rest, "usage: --step is required"),
+                 (["--step", "review", "--inputs", "TSK-0001"] + rest, "usage: --step review is not a step a run takes"),
+                 (["--step", "polish", "--inputs", "TSK-0001"] + rest, "usage: --step polish is not a step a run takes"),
+                 (["--step", "research", "--inputs", "RES-0001"] + rest, "usage: research takes no --inputs"),
+                 (["--step", "research", "--inputs", ""] + rest, "usage: research takes no --inputs"),
+                 (["--step", "design", "--inputs", " , "] + rest, "usage: --step design needs --inputs"),
+                 (["--step", "design"] + rest, "usage: --step design needs --inputs"))
+        for terms, message in cases:
+            with self.subTest(message=message):
+                done = f.start(terms)
+                self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+                self.assertIn(message, done.stderr)
+                self.assertEqual(f.run_dirs(), [])
+
+    def test_step_unresolved_states(self):
+        """TSK-3410 criterion 6: an input that isn't ready, and a record root that is ignored by git, missing or
+        outside the work tree, each exit 3 with the reason and leave no run directory."""
+        cases = (({}, step_terms("design", "REQ-0002"), "unresolved: REQ-0002, a requirement, is draft and not approved"),
+                 ({".gitignore": "project/\n"}, TERMS, "unresolved: record root project is ignored by git"),
+                 ({".meowpaw/profile.toml": PROFILE + '\n[record]\nroot = "nowhere"\n'}, TERMS,
+                  "unresolved: record root nowhere is missing"),
+                 ({".meowpaw/profile.toml": PROFILE + '\n[record]\nroot = "../elsewhere"\n'}, TERMS,
+                  "unresolved: record root ../elsewhere is outside the work tree"))
+        for files, terms, message in cases:
+            with self.subTest(message=message):
+                f = self.fixture(files)
+                done = f.start(terms)
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertIn(message, done.stdout)
+                self.assertEqual(f.run_dirs(), [])
+                self.assertEqual(f.calls(), [])
+
+    def test_inputs_are_trimmed(self):
+        """TSK-3410: each input is read without the spaces around it, so `TSK-0001, ` names TSK-0001."""
+        f = self.fixture({"done.flag": "x"})
+        done = f.start(step_terms("implement", " TSK-0001, "))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        table = tomllib.loads((f.run_dirs()[0] / "run.toml").read_text())
+        self.assertEqual(table["inputs"], ["TSK-0001"])
+
+    def test_absolute_record_root(self):
+        """TSK-3410 criterion 6: an absolute `[record] root` inside the work tree starts a run, and one outside it
+        is refused as outside the work tree."""
+        f = self.fixture({"done.flag": "x"})
+        profile = f.root / ".meowpaw" / "profile.toml"
+        profile.write_text(PROFILE + f'\n[record]\nroot = "{f.root / "project"}"\n')
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        elsewhere = f.base / "elsewhere"
+        shutil.copytree(f.root / "project", elsewhere)
+        profile.write_text(PROFILE + f'\n[record]\nroot = "{elsewhere}"\n')
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn(f"unresolved: record root {elsewhere} is outside the work tree", done.stdout)
+        self.assertEqual(len(f.run_dirs()), 1)
+
+    def test_run_toml_holds_the_step(self):
+        """TSK-3410 criterion 6: `run.toml` holds the step as a string and the inputs as a list."""
+        f = self.fixture({"done.flag": "x"})
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        table = tomllib.loads((f.run_dirs()[0] / "run.toml").read_text())
+        self.assertEqual((table["step"], table["inputs"]), ("implement", ["TSK-0001"]))
+
+    def test_spec_run_finishes(self):
+        """TSK-3410 criterion 7: a call that writes a new specification stating each requirement the input decision
+        addresses, while the verb passes, finishes a `spec` run."""
+        f = self.fixture()
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}}, create={"1": "done.flag"})
+        done = f.start(step_terms("spec", "ADR-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "finished")
+        self.assertEqual(len(f.calls()), 1)
+
+    def test_spec_run_over_no_requirement_never_finishes(self):
+        """TSK-3410 criterion 7: a `spec` run over a decision that addresses nothing, or over an input that is no
+        decision, never finishes, though a call writes a specification and the verb passes."""
+        decision = front(id="ADR-0002", artifact="adr", status="approved", revised="2026-01-01", addresses="[]",
+                         supersedes="[]") + "\n# 0002. Another choice\n"
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        for input in ("ADR-0002", "REQ-0001"):
+            with self.subTest(input=input):
+                f = self.fixture({"done.flag": "x", "project/adrs/ADR-0002-another.md": decision})
+                f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
+                done = f.start(step_terms("spec", input, iterations="2"))
+                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                self.assertEqual(f.ending(), "ceiling")
+                self.assertEqual(len(f.calls()), 2)
+
+    def test_amending_design_run_finishes(self):
+        """TSK-3410 criterion 8, REQ-0884: a `design` run over a requirement an approved decision already addresses
+        makes a call, and finishes when the call writes a new draft decision addressing it that names the decision
+        it amends and changes nothing in it."""
+        f = self.fixture({"done.flag": "x"})
+        decision = front(id="ADR-0002", artifact="adr", status="draft", revised="2026-01-01",
+                         addresses="[REQ-0001]", supersedes="[]") + "\n# 0002. An amendment of ADR-0001\n"
+        f.configure(write={"1": {"project/adrs/ADR-0002-an-amendment.md": decision}})
+        done = f.start(step_terms("design", "REQ-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "finished")
+        self.assertEqual(len(f.calls()), 1)
+
+    def test_preamble_names_the_step(self):
+        """TSK-3410 criterion 9: every call's preamble names the step and its inputs, and all are byte identical."""
+        f = self.fixture()
+        done = f.start(step_terms("implement", "TSK-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        preambles = [values(call["argv"], "--append-system-prompt")[0] for call in f.calls()]
+        self.assertEqual(len(preambles), 2)
+        self.assertEqual(len(set(preambles)), 1)
+        self.assertIn("`implement`", preambles[0])
+        self.assertIn("TSK-0001", preambles[0])
+
+    def test_layout_is_meow_flows(self):
+        """TSK-3410: the layout `meow-loop` ships is byte for byte the one `meow-flow` ships, so the run reads the
+        record as `paw` reads it."""
+        ours = (UNIT / "lib" / "layout.toml").read_bytes()
+        self.assertTrue(ours)
+        self.assertEqual(ours, (UNIT.parent / "meow-flow" / "lib" / "layout.toml").read_bytes())
+
+    def test_done_work_makes_no_call(self):
+        """TSK-3410 criterion 10: an `implement` run whose work is done and whose verbs pass ends `finished` with no
+        call."""
+        f = self.fixture({"done.flag": "x"})
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "finished")
+        self.assertEqual(f.calls(), [])
 
 
 class Ceiling(Case):
