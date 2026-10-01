@@ -1047,6 +1047,7 @@ mod tests {
         // REQ-0872: no run starts without a condition, a ceiling and a budget.
         let found = errors(&[]);
         for flag in [
+            "--step",
             "--prompt",
             "--until",
             "--iterations",
@@ -1058,7 +1059,7 @@ mod tests {
                 "{flag} in {found:?}"
             );
         }
-        assert_eq!(found.len(), 5);
+        assert_eq!(found.len(), 6);
     }
 
     #[test]
