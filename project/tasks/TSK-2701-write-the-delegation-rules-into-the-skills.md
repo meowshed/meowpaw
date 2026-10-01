@@ -69,30 +69,34 @@ that hold whether or not TSK-2700's check has landed.
 
 ## Evidence
 
-`meow-author:write` gains the rules D1 to D9 under `<rules name="agents and
-delegation">`. D1 ships knowledge, such as a language's idioms, as a skill and
-never as an agent (REQ-2972). D2 forbids describing a delegated agent as a
-boundary, because it runs under the parent's sandbox configuration
-(REQ-2976). D3 to D8 give each of the six fields its rule and reason, matching
-SPC-1030's table, and D9 reads an output marked partial as unfinished. The
-method skill gains M23 beside M22, and its core stays within `budget.toml`.
-The hand-run cases are `plugins/meow-flow/evals/stopped-at-the-ceiling/` and
-`plugins/meow-author/evals/knowledge-as-a-skill/`, each with its line in
-`thresholds.toml`. `meow-author` goes to 0.4.1 and `meow-flow` to 0.39.3,
-one patch above the versions TSK-2700 set.
+Not yet. Criteria 4 and 5 rest on judgement and wait on a person, because a
+model's output is read by a person and the agent judging criterion 5 may
+share the author's model family.
 
-Criteria 1, 2 and 6 are met. The checks in `Cover` failed first and pass now,
-`timeout 500 mise run all` exits 0, and `meow-verbs evidence --keep format
-lint check test build` keeps a passing run of each verb at this change's
-tree, as the pull request cites.
+Criteria 1 and 6 are met by #686. `meow-author:write` holds D1 to D9 under
+`<rules name="agents and delegation">`: D1 ships knowledge, such as a
+language's idioms, as a skill and never as an agent (REQ-2972), D2 forbids
+describing a delegated agent as a boundary (REQ-2976), D3 to D8 give each of
+the six fields its rule and reason, and D9 reads an output marked partial as
+unfinished. `WriteSkill` in `plugins/meow-author/tests/test_author.py`
+finds each rule, failed first and passes now, and the `prompts` check holds
+the skill's tags. Criteria 2 and 3 are dropped by ADR-2300, so the method
+skill's rule for a reviewer stopped at its ceiling and the case
+`stopped-at-the-ceiling` are gone.
 
-Criteria 3, 4 and 5 are open. Nobody has run either hand-run case, and
-neither `meow-prose:prose` nor `meow-flow:record-reviewer` has read the
-updated SPC-1030, SPC-1090 and write skill, so no transcript and no report is
-kept and no person has read one. The fixtures read the rules' wording and not
-whether a model follows them, so they stand in for none of the three. The
-task stays open until a person runs the two cases and the two judges and
-keeps what they print.
+Criterion 4 is open. The hand-run case is
+`plugins/meow-author/evals/knowledge-as-a-skill/`, with its threshold of
+0.66 in `plugins/meow-author/evals/thresholds.toml`. Nobody has run it. A
+person runs it with `python3 tools/loop.py plugins/meow-author/`, which
+calls real models and costs money, and names here who read the run.
+
+Criterion 5 is open. On 2026-09-30 `meow-prose:prose` was dispatched with a
+path alone on SPC-1030, SPC-1090 and `plugins/meow-author/skills/write/SKILL.md`.
+None of the three reports named a sentence treating a delegated agent as a
+boundary. The write skill's report noted that D1's "knowledge needs no
+isolation" could read as opposing D2, and suggested "context isolation". No
+person has read the reports, and no report is kept, so a person dispatches
+`prose` on the three paths again and names here who read what it printed.
 
 ## Left alone
 
