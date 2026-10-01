@@ -342,6 +342,11 @@ class Guards(Case):
     def test_claudecode_refused(self):
         """TSK-3400 criterion 2, REQ-0894: with `CLAUDECODE` set, even to nothing, `start` exits 3, prints the
         refusal, leaves the state directory exactly as it was, file by file, and holds no lock afterwards."""
+        for value in ("1", ""):
+            with self.subTest(CLAUDECODE=value):
+                self.refused_with(value)
+
+    def refused_with(self, value):
         f = self.fixture()
         earlier = f.runs_dir() / f"{1:020d}-earlier"
         earlier.mkdir(parents=True)
@@ -352,7 +357,7 @@ class Guards(Case):
                     for p in sorted(f.state.rglob("*"))}
 
         before = snapshot()
-        done = f.start(env={**f.env(), "CLAUDECODE": ""})
+        done = f.start(env={**f.env(), "CLAUDECODE": value})
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         self.assertIn("unresolved: a run starts from a terminal outside Claude Code", done.stdout)
         self.assertEqual(snapshot(), before)
@@ -431,7 +436,10 @@ class Hook(Case):
                   f"/x/meow-loop/bin/aarch64-apple-darwin/meow loop start {terms}",
                   # The review of TSK-3400: an escaped space, a continued line and a redirect joined to `start`.
                   f"bash -c meow-loop\\ start {terms}", f"meow-loop \\\n  start {terms}",
-                  f"meow-loop start>run.log {terms}", f"meow-loop start<p.md")
+                  f"meow-loop start>run.log {terms}", f"meow-loop start<p.md",
+                  # The second review: a redirect between the name and `start`.
+                  f"env -u CLAUDECODE meow-loop >/dev/null start {terms}", f"meow loop 2>&1 start {terms}",
+                  f"meow-loop > out.log start {terms}")
         answers = []
         for command in denied:
             done = self.bash(f, command)
