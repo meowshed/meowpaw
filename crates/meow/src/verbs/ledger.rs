@@ -437,6 +437,12 @@ pub fn now() -> String {
     )
 }
 
+/// The directory every work tree's runs sit under, `<state>/meowpaw/runs`.
+#[cfg(feature = "loop")]
+pub fn runs_root() -> Option<PathBuf> {
+    Some(state_dir()?.parent()?.join("runs"))
+}
+
 /// The directory holding a work tree's runs and the lock that lets one run
 /// hold it at a time, beside the ledger under the same state directory and
 /// keyed the same way (SPC-1201).
