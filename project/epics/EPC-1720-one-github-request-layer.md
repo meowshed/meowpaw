@@ -127,9 +127,11 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-2940 (blocking) - the layer is what reads a refused call's
       headers
 
-- [ ] T-005 [P] TSK-2980 refuse a write off the allow list in the layer, hold
+- [x] T-005 [P] TSK-2980 refuse a write off the allow list in the layer, hold
       the governance list, and ship the `governance-guard` hook
       closes: REQ-2576
+      evidence: the three layer checks and the four `Guard` checks pass after
+      failing first, and the five verbs pass. TSK-2980 carries the rest.
       depends: TSK-2940 (blocking) - the allow list is checked in the layer
 
 TSK-2950, TSK-2960, TSK-2970 and TSK-2980 each wait only on TSK-2940, and none

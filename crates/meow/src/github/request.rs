@@ -264,9 +264,29 @@ impl Layer {
             .map(|r| r.body)
     }
 
+    /// Creates an issue in `repository` with each field as `-f name=value`.
+    pub(crate) fn create_issue(
+        &mut self,
+        repository: &str,
+        fields: &[(&str, &str)],
+    ) -> Result<Value, Failure> {
+        self.write("POST", &create_issue_endpoint(repository), fields)
+    }
+
+    /// Updates issue `issue` in `repository`, an object the record says
+    /// exists, with each field as `-f name=value`.
+    pub(crate) fn update_issue(
+        &mut self,
+        repository: &str,
+        issue: &str,
+        fields: &[(&str, &str)],
+    ) -> Result<Value, Failure> {
+        self.write("PATCH", &update_issue_endpoint(repository, issue), fields)
+    }
+
     /// Sends `method` to `endpoint` with each field as `-f name=value`. A
     /// `PATCH` goes to an object the record says exists.
-    pub(crate) fn write(
+    fn write(
         &mut self,
         method: &str,
         endpoint: &str,
@@ -305,6 +325,10 @@ impl Layer {
         cache: bool,
         mapped: bool,
     ) -> Result<Response, Failure> {
+        // A write off the allow list is refused before `gh` starts (REQ-2576).
+        if let Err(line) = admits(method, endpoint) {
+            return Err(Failure::Refused(line));
+        }
         if self.rejected {
             return Err(Failure::Rejected(format!(
                 "unauthenticated: {method} {endpoint} not sent, because GitHub rejected this run's credential"
@@ -568,6 +592,89 @@ fn permission(response: &Response, message: &str) -> (String, bool) {
     }
 }
 
+/// The endpoint that creates an issue in `repository`, the first of the two
+/// writes on the allow list.
+pub(crate) fn create_issue_endpoint(repository: &str) -> String {
+    format!("repos/{repository}/issues")
+}
+
+/// The endpoint that updates `issue` in `repository`, the second of the two
+/// writes on the allow list.
+pub(crate) fn update_issue_endpoint(repository: &str, issue: impl std::fmt::Display) -> String {
+    format!("repos/{repository}/issues/{issue}")
+}
+
+/// Whether the layer may send `method` to `endpoint`: any `GET`, and as a
+/// write only `POST repos/{o}/{r}/issues` and `PATCH repos/{o}/{r}/issues/{n}`
+/// (REQ-2576). A later decision that adds a write adds its endpoint here.
+pub(crate) fn admits(method: &str, endpoint: &str) -> Result<(), String> {
+    if method == "GET" {
+        return Ok(());
+    }
+    let parts: Vec<&str> = path_of(endpoint).split('/').collect();
+    let allowed = match (method, parts.as_slice()) {
+        ("POST", ["repos", owner, name, "issues"]) => !owner.is_empty() && !name.is_empty(),
+        ("PATCH", ["repos", owner, name, "issues", number]) => {
+            !owner.is_empty()
+                && !name.is_empty()
+                && !number.is_empty()
+                && number.bytes().all(|b| b.is_ascii_digit())
+        }
+        _ => false,
+    };
+    if allowed {
+        Ok(())
+    } else {
+        Err(format!(
+            "refused by meow-github: {method} {endpoint} isn't a write this pack makes"
+        ))
+    }
+}
+
+/// An endpoint as a path: with no leading slash, no host and no query.
+fn path_of(endpoint: &str) -> &str {
+    let path = endpoint
+        .trim_start_matches("https://api.github.com/")
+        .trim_start_matches('/');
+    path.split(['?', '#']).next().unwrap_or(path)
+}
+
+/// The governance list: the parts of a repository a write to which changes how
+/// the team governs it, each with everything under it. `*` stands for one
+/// segment.
+const GOVERNANCE: [&[&str]; 11] = [
+    &["branches", "*", "protection"],
+    &["rulesets"],
+    &["actions", "permissions"],
+    &["actions", "workflows", "*", "enable"],
+    &["actions", "workflows", "*", "disable"],
+    &["actions", "secrets"],
+    &["actions", "variables"],
+    &["environments"],
+    &["hooks"],
+    &["collaborators"],
+    &["contents", ".github", "workflows"],
+];
+
+/// Whether `endpoint` is the repository itself or on the governance list.
+pub(crate) fn governance(endpoint: &str) -> bool {
+    let parts: Vec<&str> = path_of(endpoint)
+        .split('/')
+        .filter(|p| !p.is_empty())
+        .collect();
+    let ["repos", _, _, rest @ ..] = parts.as_slice() else {
+        return false;
+    };
+    rest.is_empty()
+        || GOVERNANCE.iter().any(|pattern| {
+            rest.len() >= pattern.len()
+                && pattern
+                    .iter()
+                    .zip(rest.iter())
+                    .all(|(want, got)| *want == "*" || want == got)
+        })
+}
+
 /// GitHub's message as one line to quote, with a backslash and a double quote
 /// escaped, so a message can't split a report's line or end its quotation.
 fn printable(message: &str) -> String {
@@ -813,7 +920,10 @@ mod tests {
     /// governance.
     #[test]
     fn no_allowed_write_is_governance() {
-        for endpoint in [create_issue_endpoint("o/r"), update_issue_endpoint("o/r", 7)] {
+        for endpoint in [
+            create_issue_endpoint("o/r"),
+            update_issue_endpoint("o/r", 7),
+        ] {
             assert!(!governance(&endpoint), "{endpoint}");
         }
         for endpoint in [

@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.12.0]
+describes: [meow-github@0.13.0]
 ---
 
 # meow-github
@@ -268,10 +268,45 @@ the count and when it frees, as in
 does at a throttle. The counts cover this run alone, so another run or a
 person using the same account can still meet GitHub's own throttle.
 
+## What it writes, and what it asks about
+
+The pack writes to GitHub only through two endpoints: `POST repos/{o}/{r}/issues`,
+which creates an issue, and `PATCH repos/{o}/{r}/issues/{n}`, which updates
+one. It sends any other method than `GET` to no other endpoint, and refuses
+such a call before `gh` starts:
+
+```text
+refused by meow-github: PUT repos/OWNER/REPO/branches/main/protection isn't a write this pack makes
+```
+
+The pack also ships a `PreToolUse` hook on the Bash tool. When a Bash command
+runs `gh` to change how a repository is governed, the hook asks you before the
+command runs, naming the method and the endpoint, and never the command,
+because a command can carry a token. It asks about:
+
+- `gh api` with a method other than `GET`, or with a field or an `--input`
+  body, to the repository itself, `branches/{b}/protection`, `rulesets`,
+  `actions/permissions`, `actions/workflows/{id}/enable` or `/disable`,
+  `actions/secrets`, `actions/variables`, `environments`, `hooks`,
+  `collaborators` or `contents/.github/workflows/`, or anything under them;
+- `gh api graphql` whose query holds `mutation`, or comes from a file or from
+  standard input;
+- `gh repo edit`, `gh repo rename`, `gh repo archive` and `gh repo delete`;
+- `gh workflow enable` and `gh workflow disable`;
+- `gh secret` and `gh variable` with `set` or `delete`.
+
+It reads each part of a command between `&&`, `||`, `;`, `|`, `&` and a new
+line, after any variable assignments and a leading `env`. For anything else it
+says nothing, and your own permission rules decide.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-github/requires.toml`, and GitHub's client, `gh`, signed in.
-It relies on this platform behaviour, documented by Claude Code:
+The hook runs a native program on every Bash command, which loads nothing into
+context, so the unit still keeps 0 characters in context on every turn. It
+relies on these platform behaviours, each documented by Claude Code:
 
 - a plugin's `bin/` programs on the Bash tool's `PATH`: [documentation](https://code.claude.com/docs/en/plugins-reference.md)
+- a `PreToolUse` command hook that answers `ask` through
+  `hookSpecificOutput.permissionDecision`: [documentation](https://code.claude.com/docs/en/hooks.md)
