@@ -128,7 +128,12 @@ stands. The hook still reads text, so a name split by quotes or a backslash,
 as in `st""art` or `st\art`, gets past it, as a name in a script, a
 variable or a command substitution does; the README says so, and SPC-1201's
 list of misses names only the last three. `Guards.test_claudecode_refused`
-runs with `CLAUDECODE` set to `1` and to nothing.
+runs with `CLAUDECODE` set to `1` and to nothing. Review of that round found it had
+let `echo '>'; meow-loop start` through, by taking a quoted `>` for a
+redirect and the runner's name for its target, and that `{fd}>/dev/null`
+before `start` got past; the hook now never takes a runner's name as a
+target and drops a named descriptor with its redirect. No agent reviewed
+this last fix, because review stops after two rounds.
 
 I made one choice the task leaves open. `meow-author cost` counts a skill
 only the person invokes as loading nothing, because the platform doesn't put

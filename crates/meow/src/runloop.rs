@@ -961,8 +961,8 @@ fn deny(reason: &str) {
 /// followed by `start`, or a word ending in `meow` followed by `loop start`.
 /// It reads the text and not what the text expands to, so it catches a
 /// path-qualified runner and one inside `bash -c`, and misses a name hidden
-/// in a script, a variable or a command substitution, or split by quotes
-/// (SPC-1201). A redirect is dropped wherever it stands, because the shell
+/// in a script, a variable or a command substitution, or split by quotes or
+/// a backslash (SPC-1201). A redirect is dropped wherever it stands, because the shell
 /// passes the words around it on as they are.
 fn starts_a_run(command: &str) -> bool {
     let raw = command
@@ -971,14 +971,21 @@ fn starts_a_run(command: &str) -> bool {
     let mut words: Vec<&str> = Vec::new();
     let mut target = false;
     for word in raw {
-        if std::mem::take(&mut target) {
+        // A runner's name is never taken as a redirect's target, because
+        // a `>` the split separated from what follows it, as in `'>'; x`,
+        // isn't one.
+        if std::mem::take(&mut target) && !word.ends_with("meow-loop") && !word.ends_with("meow") {
             continue;
         }
         match word.find(['<', '>']) {
             Some(at) => {
                 let (before, redirect) = word.split_at(at);
                 let before = before.trim_matches('&');
-                if !before.is_empty() && !before.bytes().all(|b| b.is_ascii_digit()) {
+                // A descriptor, by number or by name as in `{fd}>`, belongs
+                // to the redirect.
+                let descriptor = before.bytes().all(|b| b.is_ascii_digit())
+                    || (before.starts_with('{') && before.ends_with('}'));
+                if !before.is_empty() && !descriptor {
                     words.push(before);
                 }
                 // A redirect with nothing after its operator takes the next
