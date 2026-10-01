@@ -2707,17 +2707,15 @@ pub(crate) struct Held {
 
 #[cfg(feature = "loop")]
 impl Held {
-    /// The record held for this document: the one of its identifier, or, for
-    /// a document with none, the one at its path.
+    /// The record held for this document: the one of its identifier, or the
+    /// one at its path, so a record whose identifier a call removed or changed
+    /// is still the record held there.
     fn of(&self, doc: &Doc) -> Option<&HeldDoc> {
         let id = bare(doc.id());
-        self.docs.iter().find(|held| {
-            if id.is_empty() {
-                held.id.is_empty() && held.path == doc.path
-            } else {
-                held.id == id
-            }
-        })
+        self.docs
+            .iter()
+            .find(|held| !id.is_empty() && held.id == id)
+            .or_else(|| self.docs.iter().find(|held| held.path == doc.path))
     }
 }
 
@@ -2788,11 +2786,14 @@ pub(crate) fn step_holds(
                 new(doc) && cites(doc, &["addresses", "postpones"], id)
             })
         }),
+        // A decision that addresses nothing, or an input that is no decision,
+        // gives the step no work, so its test never holds.
         "spec" => inputs.iter().all(|id| {
             known.get(id.as_str()).is_some_and(|decision| {
-                requirements_in(record, decision.value("addresses"))
-                    .iter()
-                    .all(|requirement| {
+                let addressed = requirements_in(record, decision.value("addresses"));
+                kind_of(record, decision) == "decision"
+                    && !addressed.is_empty()
+                    && addressed.iter().all(|requirement| {
                         any("specification", &|doc| {
                             touched(doc) && cites(doc, &["states"], requirement)
                         })

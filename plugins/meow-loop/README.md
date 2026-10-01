@@ -9,9 +9,9 @@ describes: [meow-loop@0.7.0]
 
 `meow-loop start` repeats one prompt in fresh `claude -p` calls, bound to one
 step of the method, until the step's work is done in the record and the
-verification verbs you name pass at the same tree, or until the number of iterations you state
-has run, the next call could pass the budget you state, or two iterations in a
-row change nothing. The runner is a
+verification verbs you name pass at one tree. It also ends when the number of
+iterations you state has run, when the next call could pass the budget you
+state, or when two iterations in a row change nothing. The runner is a
 program outside the model, so nothing a call prints or writes extends the run,
 and the runner alone decides whether the work is done, from the record and
 each verb's exit status.
@@ -45,23 +45,24 @@ meow-loop start --step implement --inputs TSK-0042 \
 
 The run holds the terminal until it ends, and its last line is the ending.
 
-| Term                | Holds                                                                                       | Required                |
-| ------------------- | ------------------------------------------------------------------------------------------- | ----------------------- |
-| `--step`            | The step the run takes: `research`, `requirements`, `design`, `spec`, `epic` or `implement` | yes                     |
-| `--inputs`          | The identifiers the step reads, separated by commas. `research` takes none                  | yes, but for `research` |
-| `--prompt`          | The file whose bytes every call gets on its standard input                                  | yes                     |
-| `--until`           | `verbs=` and one or more of `format`, `lint`, `check`, `test` and `build`                   | yes                     |
-| `--iterations`      | The ceiling: the most calls the run makes, an integer of 1 or more                          | yes                     |
-| `--budget-usd`      | The budget in US dollars, a decimal number above 0, such as `2.50`                          | yes                     |
-| `--permission-mode` | `dontAsk`, the only mode accepted                                                           | yes                     |
-| `--allowed-tools`   | One permission rule each call may use without asking. Repeat it for each rule               | no                      |
-| `--plugin-dir`      | One unit's directory each call loads. Repeat it for each unit                               | no                      |
+| Term                | Holds                                                                                       | Required                                      |
+| ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `--step`            | The step the run takes: `research`, `requirements`, `design`, `spec`, `epic` or `implement` | yes                                           |
+| `--inputs`          | The identifiers the step reads, separated by commas. `research` takes none                  | yes, except with `research`, which refuses it |
+| `--prompt`          | The file whose bytes every call gets on its standard input                                  | yes                                           |
+| `--until`           | `verbs=` and one or more of `format`, `lint`, `check`, `test` and `build`                   | yes                                           |
+| `--iterations`      | The ceiling: the most calls the run makes, an integer of 1 or more                          | yes                                           |
+| `--budget-usd`      | The budget in US dollars, a decimal number above 0, such as `2.50`                          | yes                                           |
+| `--permission-mode` | `dontAsk`, the only mode accepted                                                           | yes                                           |
+| `--allowed-tools`   | One permission rule each call may use without asking. Repeat it for each rule               | no                                            |
+| `--plugin-dir`      | One unit's directory each call loads. Repeat it for each unit                               | no                                            |
 
 `start` refuses a run whose inputs aren't ready for the step, printing each
-line `paw ready` would print, and a run whose record root is missing, ignored
-by git or outside the work tree, because the tree id would then leave the
-record out. `review` is no step a run takes. `start` refuses a run with no
-step, no condition, no ceiling or no budget, because a
+line `paw ready` would print, because a step run over unapproved inputs builds
+on work nobody accepted. It refuses a run whose record root is missing,
+ignored by git or outside the work tree, because the tree id would then leave
+the record out. `review` is no step a run takes, because a person reviews.
+`start` refuses a run with no step, no condition, no ceiling or no budget, because a
 loop with a bound missing stops only when you notice it. It refuses
 `bypassPermissions` and every other mode, because `dontAsk` denies what you
 didn't allow where another mode would ask a person who isn't there, or allow
@@ -86,16 +87,17 @@ status, so a draft counts:
 | `epic`         | An epic new since start names the input in `realises`                                                             |
 | `implement`    | Each input task is marked `x` by the record that authorises it, and its `## Evidence` holds text                  |
 
-"Since start" compares with a copy of the record the runner holds from just
-after its first evaluation, so a verb that rewrote a record then isn't counted
-as the first call's change. A task marked `~`, dropped, doesn't pass
+"Since start" compares with the copy of the record the runner takes just after
+its first evaluation. A verb that rewrote a record in that evaluation then
+isn't counted as the first call's change. A task marked `~`, dropped, doesn't pass
 `implement`. The runner reads no pass from the ledger and nothing a call
 printed, so a result saying the work is done changes nothing.
 
 The runner evaluates the condition once before any call. An `implement` run
 whose work is done and whose verbs pass ends `finished` with no call. Every
 other step's test counts only a record new or changed since start, so those
-runs always make at least one call. Otherwise each iteration makes one call:
+runs always make at least one call. While the condition doesn't hold, each
+iteration makes one call:
 
 ```text
 claude -p --output-format json --no-session-persistence
@@ -131,10 +133,10 @@ bytes on its standard input, so an edit to the file during a run reaches no
 call. Every call also gets the same preamble, appended to the system prompt.
 The preamble names the run's `progress/progress.md` by its absolute path and
 the condition, and says the runner decides whether the run is finished and
-holds its bounds. It names the step, its inputs and what the step may write,
-says that a decided status, a change to an approved record or a change to
-another step's files ends the run early, and tells the model to record a
-defect as a draft where the work shows an approved artifact is wrong. It holds no iteration number and no spend, so each iteration
+holds its bounds. It names the step, its inputs and what the step may write.
+It says that a decided status, a change to an approved record or a change to
+another step's files ends the run early. Where the work shows an approved
+artifact is wrong, it tells the model to record a defect as a draft. It holds no iteration number and no spend, so each iteration
 begins from the same stated context.
 
 What one iteration leaves for the next goes in `progress/progress.md`, which
@@ -160,11 +162,10 @@ and also makes the verbs pass ends `unmetered`.
 Then the runner compares the work tree's tree id with the one before
 the call. The tree id covers every tracked file and every untracked file git
 doesn't ignore. If the tree id changed or couldn't be identified, the runner
-evaluates the condition again, and the run ends `finished` when the step's
-test holds, every verb exits 0 and the evaluation left the tree as it found
-it. An unidentified tree, such as one with a dirty submodule, holds no
+evaluates the condition again. When the step's test holds, every verb exits 0
+and the evaluation left the tree as it found it, the run ends `finished`. An unidentified tree, such as one with a dirty submodule, holds no
 condition. An unchanged tree would repeat the last result, so the runner
-skips the verbs and makes the next call. Where a verb changes the tree, such
+skips the evaluation and makes the next call. Where a verb changes the tree, such
 as a formatter that rewrites files, the runner evaluates a second time at
 once, and that second result stands.
 
@@ -269,6 +270,7 @@ creates no run directory:
 | `unresolved: record root <path> is missing`                                     | The record root, `[record] root` or `project`, doesn't exist                                         |
 | `unresolved: record root <path> is ignored by git`                              | Git ignores the record root, so the tree id leaves the record out                                    |
 | `unresolved: record root <path> is outside the work tree`                       | The record root resolves to a path outside the work tree                                             |
+| `unresolved: can't check whether record root <path> is ignored by git: <error>` | `git check-ignore` failed, so nothing shows that the tree id covers the record                       |
 | `unresolved: <line>`                                                            | An input isn't ready for the step: one line for each line `paw ready <step> <inputs>` would print    |
 | `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                                                                 |
 | `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file                                            |

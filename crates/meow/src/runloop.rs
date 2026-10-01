@@ -104,22 +104,23 @@ fn terms(args: &[String]) -> Result<Terms, Vec<String>> {
         stated("--permission-mode"),
     );
 
-    let inputs: Vec<String> = single
+    let given = single
         .iter()
         .rev()
         .find(|(name, _)| *name == "--inputs")
-        .map(|(_, list)| {
-            list.split(',')
-                .filter(|id| !id.is_empty())
-                .map(str::to_string)
-                .collect()
-        })
-        .unwrap_or_default();
+        .map(|(_, list)| *list);
+    let inputs: Vec<String> = given
+        .into_iter()
+        .flat_map(|list| list.split(','))
+        .map(str::trim)
+        .filter(|id| !id.is_empty())
+        .map(str::to_string)
+        .collect();
     let step = step.and_then(|step| {
         if !record::RUN_STEPS.contains(&step) {
             errors.push(format!("--step {step} is not a step a run takes"));
             None
-        } else if step == "research" && !inputs.is_empty() {
+        } else if step == "research" && given.is_some() {
             errors.push("research takes no --inputs".to_string());
             None
         } else if step != "research" && inputs.is_empty() {
@@ -523,9 +524,10 @@ iteration said is in this conversation.
 - L2. Before you stop, bring that file up to date with what is done, what is
   left and what failed, keeping what it already holds that is still true,
   because this conversation ends with the session and the file carries over.
-- L3. Work until the condition `verbs={verbs}` holds, and never report it as
-  held, because the runner runs those verification verbs itself after this
-  session and decides from their exit status whether the run is finished.
+- L3. Work until the `{step}` step's test holds on the record and the
+  condition `verbs={verbs}` holds at the same tree, and never report either
+  as held, because the runner checks both itself after this session and
+  decides from them whether the run is finished.
 - L4. Never try to extend the run, because the runner holds its bounds in its
   own process and nothing this session writes or prints changes them.
 - L5. Do the `{step}` step of the method{over}, and write only {writes}, or a
@@ -955,7 +957,9 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
     if !record_root.is_dir() {
         return Err(vec![format!("record root {declared} is missing")]);
     }
-    let ignored = profile::reading_git()
+    // `check-ignore` exits 0 for an ignored path and 1 for a kept one, and
+    // anything else leaves it unknown whether the tree id covers the record.
+    let checked = profile::reading_git()
         .current_dir(&tree)
         .args(["check-ignore", "-q", "--"])
         .arg(if inside.as_os_str().is_empty() {
@@ -963,10 +967,21 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
         } else {
             inside
         })
-        .status()
-        .is_ok_and(|status| status.success());
-    if ignored {
-        return Err(vec![format!("record root {declared} is ignored by git")]);
+        .status();
+    match checked.as_ref().map(std::process::ExitStatus::code) {
+        Ok(Some(1)) => {}
+        Ok(Some(0)) => return Err(vec![format!("record root {declared} is ignored by git")]),
+        Ok(code) => {
+            return Err(vec![format!(
+                "can't check whether record root {declared} is ignored by git: git check-ignore exited {}",
+                code.map_or("by a signal".to_string(), |code| code.to_string())
+            )]);
+        }
+        Err(error) => {
+            return Err(vec![format!(
+                "can't check whether record root {declared} is ignored by git: {error}"
+            )]);
+        }
     }
     let read = record::read_for_run(root, &record_root).map_err(|reason| vec![reason])?;
     let missing = record::unready(&read, root, &record_root, &terms.step, &terms.inputs);
