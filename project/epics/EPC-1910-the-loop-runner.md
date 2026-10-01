@@ -123,11 +123,13 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-3350, because it reads the tree id and the progress file
       that task and the loop it writes record
 
-- [ ] T-005 [P] TSK-3390 end the run `tampered` when `run.toml` or
+- [x] T-005 [P] TSK-3390 end the run `tampered` when `run.toml` or
       `prompt.md` changes, run the command each verb resolved to at start,
       name the unit's own directory on every call, and add the hook that
       denies an edit under the runs directory
       closes: REQ-0874
+      evidence: the six `Terms` checks and the two `Hook` checks pass after
+      failing first, and the five verbs pass. TSK-3390 carries the rest.
       depends: TSK-3350, because it checks the files that task writes
 
 - [ ] T-006 TSK-3400 let only a person start a run: the skill a model can't

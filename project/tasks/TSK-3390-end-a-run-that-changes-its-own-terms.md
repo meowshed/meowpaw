@@ -99,8 +99,46 @@ TSK-3350, because this task checks the files that task writes.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`run` in `crates/meow/src/runloop.rs` seals the sha256 of the run's
+`run.toml` and `prompt.md` and of the work tree's `.claude/settings.json` at
+start, checks them before each call, after each call's log line, and before
+it reports `ceiling`, and ends the run `tampered` on a change. `evaluate`
+runs the command each verb resolved to at start, which `Context` holds and
+`run.toml` records. `call` names the unit's own directory, found from the
+program's path, with the first `--plugin-dir`. `meow-loop guard`, which
+`plugins/meow-loop/hooks/hooks.json` runs on every Edit and Write, denies a
+write under the runs directory other than a run's `progress/progress.md`,
+after resolving every link and `..` in both paths.
+
+Each criterion a program checks is closed by the check it names, in
+`plugins/meow-loop/tests/test_loop.py`:
+
+1. `Terms.test_tampered_run_toml`
+2. `Terms.test_tampered_prompt` and `Terms.test_tampered_settings`
+3. `Hook.test_run_files_are_denied`
+4. `Hook.test_hook_is_registered`
+5. `Terms.test_profile_edit_changes_no_condition`
+6. `Terms.test_own_unit_on_every_call`
+7. `Terms.test_tampered_before_the_call`
+
+Criterion 3 rests on judgement, as the task says: after start the runner
+opens `run.toml` only to hash it, in `Context::seal`, and to write the
+ending, and it reads no bound from it. The checks failed first, in the commit
+that holds them alone, where the `test` verb exited 1. That commit also
+changes `Call.test_flags_and_prompt`, whose argv now names the unit's own
+directory first. `format`, `lint`, `check`, `test` and `build` each pass on
+the change's tree, as the pull request cites.
+
+I made three choices the task leaves open. The hook's subcommand is
+`meow-loop guard`, and with no binary for the machine the launcher lets
+every write through, because a hook that fails blocks every Edit and Write.
+A watched file that can't be read seals as unreadable, so it ends the run
+only if it later reads differently. The run checks its terms once more
+before it reports `ceiling`, so a change made by the last evaluation is
+reported as `tampered`.
+
+`meow-loop` goes to 0.5.0, and its README states the ending, the hook and
+the held commands.
 
 ## Left alone
 

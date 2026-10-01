@@ -324,14 +324,14 @@ fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
 /// before them. Where the verbs changed the tree, they run once more and that
 /// second result stands, so a verb that settles after one pass can finish the
 /// run and one that changes the tree on every pass never does.
-fn evaluate(root: &Path, named: &[String]) -> Result<bool, String> {
+fn evaluate(root: &Path, held: &[(String, String)]) -> Result<bool, String> {
     for _ in 0..2 {
         let mut passed = true;
         let mut ends: Option<(String, String)> = None;
-        for verb in named {
-            let command = verbs::command_of(root, verb)
-                .map_err(|_| format!("verb {verb} resolves to no command"))?;
-            let ran = verbs::run_recorded(root, verb, &command)
+        // Each verb runs the command it resolved to at start, so a call that
+        // rewrites the profile changes no condition (REQ-0874).
+        for (verb, command) in held {
+            let ran = verbs::run_recorded(root, verb, command)
                 .map_err(|reason| format!("verb {verb} didn't run: {reason}"))?;
             match ran.status {
                 0 => println!("{verb}: passed"),
@@ -373,16 +373,66 @@ struct Context {
     /// platform finds it.
     progress: PathBuf,
     preamble: String,
+    /// `meow-loop`'s own directory, which every call names first with
+    /// `--plugin-dir`, so the unit's hook loads in every call.
+    unit: PathBuf,
+    /// Each named verb with the command it resolved to at start.
+    held: Vec<(String, String)>,
+    /// The files whose change ends the run `tampered`: the run's `run.toml`
+    /// and `prompt.md`, and the work tree's `.claude/settings.json`.
+    watched: [PathBuf; 3],
 }
 
 impl Context {
-    fn new(dir: &Path, terms: &Terms) -> Result<Self, String> {
+    fn new(
+        dir: &Path,
+        root: &Path,
+        terms: &Terms,
+        unit: PathBuf,
+        held: Vec<(String, String)>,
+    ) -> Result<Self, String> {
         let progress = dir.join("progress");
         let progress = progress
             .canonicalize()
             .map_err(|error| format!("can't resolve {}: {error}", progress.display()))?;
         let preamble = preamble(&progress.join("progress.md"), &terms.verbs);
-        Ok(Context { progress, preamble })
+        let watched = [
+            dir.join("run.toml"),
+            dir.join("prompt.md"),
+            root.join(".claude").join("settings.json"),
+        ];
+        Ok(Context {
+            progress,
+            preamble,
+            unit,
+            held,
+            watched,
+        })
+    }
+
+    /// The sha256 of each watched file, or `absent` where it doesn't exist and
+    /// `unreadable` where it can't be read, which a later read can't match
+    /// unless it fails the same way.
+    fn seal(&self) -> Vec<String> {
+        self.watched
+            .iter()
+            .map(|path| match std::fs::read(path) {
+                Ok(bytes) => sha256(&bytes),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => "absent".to_string(),
+                Err(error) => format!("unreadable: {error}"),
+            })
+            .collect()
+    }
+
+    /// The watched files whose sha256 differs from `sealed`.
+    fn tampered(&self, sealed: &[String]) -> Vec<String> {
+        self.seal()
+            .iter()
+            .zip(sealed)
+            .zip(&self.watched)
+            .filter(|((now, then), _)| now != then)
+            .map(|(_, path)| path.display().to_string())
+            .collect()
     }
 }
 
@@ -451,6 +501,7 @@ fn call(
         "--setting-sources",
         "project",
     ]);
+    command.arg("--plugin-dir").arg(&context.unit);
     for dir in &terms.plugin_dirs {
         command.args(["--plugin-dir", dir]);
     }
@@ -550,7 +601,17 @@ fn run(
     claude: &Path,
     log: &Path,
 ) -> Result<&'static str, String> {
-    if evaluate(root, &terms.verbs)? {
+    let sealed = context.seal();
+    // A changed term is reported as that, whichever bound the run also
+    // reached, so this check comes first before a call and after it.
+    let tampered = || {
+        let changed = context.tampered(&sealed);
+        (!changed.is_empty()).then(|| {
+            println!("the run's terms changed: {}", changed.join(", "));
+            "tampered"
+        })
+    };
+    if evaluate(root, &context.held)? {
         return Ok("finished");
     }
     let (mut spend, mut largest) = (0.0_f64, 0.0_f64);
@@ -565,6 +626,9 @@ fn run(
     };
     let mut idle_before = false;
     for iteration in 1..=terms.iterations {
+        if let Some(ending) = tampered() {
+            return Ok(ending);
+        }
         // The next call may cost as much as the largest so far, so the run
         // ends before a call that could pass the budget, not after it.
         if spend + largest > terms.budget_usd + SLACK {
@@ -612,6 +676,9 @@ fn run(
             "condition": null,
         });
         let logged = log_line(log, None, &line)?;
+        if let Some(ending) = tampered() {
+            return Ok(ending);
+        }
         let shown = match called.status {
             Some(status) => format!("exit status {status}"),
             None => "ended by a signal".to_string(),
@@ -635,7 +702,7 @@ fn run(
         }
         // An unchanged tree would repeat the last result.
         let held = if after != before || after == ledger::UNBOUND {
-            let held = evaluate(root, &terms.verbs)?;
+            let held = evaluate(root, &context.held)?;
             line["condition"] = json!(held);
             log_line(log, Some(&logged), &line)?;
             Some(held)
@@ -655,6 +722,9 @@ fn run(
             return Ok("idle");
         }
         idle_before = idle;
+    }
+    if let Some(ending) = tampered() {
+        return Ok(ending);
     }
     Ok("ceiling")
 }
@@ -685,6 +755,9 @@ fn start(args: &[String]) -> u8 {
     };
     let Some(claude) = claude() else {
         return refuse("claude is not on the path");
+    };
+    let Some(unit) = own_unit() else {
+        return refuse("meow-loop's own directory can't be found from its program's path");
     };
     let mut commands = Vec::new();
     let mut unresolved = false;
@@ -724,7 +797,7 @@ fn start(args: &[String]) -> u8 {
         })
         .and_then(|()| write(&dir.join("progress").join("progress.md"), b""))
         .and_then(|()| write(&log, b""))
-        .and_then(|()| Context::new(&dir, &terms));
+        .and_then(|()| Context::new(&dir, &root, &terms, unit, commands.clone()));
     let context = match written {
         Ok(context) => context,
         Err(reason) => {
@@ -752,9 +825,95 @@ fn start(args: &[String]) -> u8 {
     }
 }
 
+/// `meow-loop`'s own directory: the program sits at
+/// `<unit>/bin/<target>/meow`, so the unit is three levels up from it.
+fn own_unit() -> Option<PathBuf> {
+    let program = std::env::current_exe().ok()?.canonicalize().ok()?;
+    Some(program.parent()?.parent()?.parent()?.to_path_buf())
+}
+
+/// `path` as an absolute path with every link and `..` resolved, where it
+/// exists, and its missing tail joined to the resolved part lexically, so a
+/// file about to be written is resolved as well as one that exists.
+fn resolved(path: &Path) -> PathBuf {
+    let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
+    let mut existing = absolute.as_path();
+    let mut tail = Vec::new();
+    while !existing.exists() {
+        match (existing.parent(), existing.file_name()) {
+            (Some(parent), Some(name)) => {
+                tail.push(name.to_os_string());
+                existing = parent;
+            }
+            _ => break,
+        }
+    }
+    let mut out = existing
+        .canonicalize()
+        .unwrap_or_else(|_| existing.to_path_buf());
+    for name in tail.iter().rev() {
+        match name.to_str() {
+            Some("..") => {
+                out.pop();
+            }
+            Some(".") => {}
+            _ => out.push(name),
+        }
+    }
+    out
+}
+
+/// The `PreToolUse` hook on Edit and Write: it denies a write of any path under
+/// the runs directory other than a run's `progress/progress.md`, because a
+/// run's files hold its terms and only the runner writes them (REQ-0874). The
+/// hash check decides whether the terms changed, whether or not this ran.
+fn guard() -> u8 {
+    let mut text = String::new();
+    let _ = std::io::Read::read_to_string(&mut std::io::stdin(), &mut text);
+    let event: Value = serde_json::from_str(&text).unwrap_or(Value::Null);
+    let Some(path) = event
+        .pointer("/tool_input/file_path")
+        .and_then(Value::as_str)
+    else {
+        return FINISHED;
+    };
+    let Some(runs) = ledger::runs_root() else {
+        return FINISHED;
+    };
+    let runs = resolved(&runs);
+    let target = resolved(Path::new(path));
+    let Ok(inside) = target.strip_prefix(&runs) else {
+        return FINISHED;
+    };
+    let names: Vec<_> = inside.iter().collect();
+    if let [_, _, progress, file] = names.as_slice()
+        && *progress == "progress"
+        && *file == "progress.md"
+    {
+        return FINISHED;
+    }
+    let tool = event
+        .get("tool_name")
+        .and_then(Value::as_str)
+        .unwrap_or("A write");
+    let answer = json!({
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": format!(
+                "meow-loop: {tool} of {} under the runs directory is denied, because a run's files hold its terms and only the runner writes them; a call writes only its progress/progress.md (REQ-0874)",
+                inside.display()
+            ),
+        }
+    });
+    println!("{answer}");
+    FINISHED
+}
+
 pub fn main(args: &[String]) -> u8 {
     match args.split_first() {
         Some((command, rest)) if command == "start" => start(rest),
+        Some((command, rest)) if command == "guard" && rest.is_empty() => guard(),
         _ => {
             eprintln!(
                 "usage: meow-loop start --prompt <file> --until verbs=<verb>[,<verb>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..."
