@@ -94,8 +94,67 @@ README's section "What it needs".
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`admits` in `crates/meow/src/github/request.rs` holds the allow list, and
+`exchange` refuses any other write before `gh` starts. The only writes the
+crate builds go through `Layer::create_issue` and `Layer::update_issue`,
+whose endpoints come from `create_issue_endpoint` and `update_issue_endpoint`,
+and `write` is private to the layer. `governance` holds the governance list.
+`governance-guard`, in `crates/meow/src/github/guard.rs`, reads the hook's
+input and answers `ask` for the five kinds of part SPC-1080 lists, and
+`plugins/meow-github/hooks/hooks.json` runs it on every Bash command.
+
+Criteria 1 to 7 are closed by the checks they name:
+
+1. `a_write_off_the_allow_list_starts_no_gh` in `request.rs`
+2. `no_allowed_write_is_governance` in `request.rs`
+3. `every_built_write_is_allowed` in `request.rs`
+4. `Guard.test_a_governance_change_is_asked` in
+   `plugins/meow-github/tests/test_github.py`
+5. `Guard.test_a_read_passes_in_silence`
+6. `Guard.test_the_token_is_never_echoed`
+7. `Guard.test_the_hook_runs_the_guard_on_bash`
+
+Criterion 8 rests on judgement, as the task says: no session ran the hook,
+and `hooks.json` follows the schema Claude Code documents for a `PreToolUse`
+command hook, as `meow-git`'s does.
+
+The checks failed first, in the commit that holds them alone: the crate's
+tests didn't build, and the guard's checks failed against the tool as it was.
+`format`, `lint`, `check`, `test` and `build` each pass on the change's
+tree, as the pull request cites.
+
+I made three choices the task leaves open. The hook runs on every Bash
+command, with no `if` rule, because "`gh` as a word" can sit anywhere in a
+command and an `if` rule matches only how one starts; the guard returns at
+once where no part runs `gh`. `&` separates parts as `&&` does, because a
+command sent to the background still runs. A `-X` flag with its method
+joined, as in `-XPUT`, is read as a method.
+
+Review of the first version found commands that hid a governance change, and
+the guard now reads them: a line a backslash continues, `--hostname` before
+the endpoint, short flags joined as in `-iXPUT` or `-fname=x`, a redirect
+before the endpoint, a full address or a leading slash, `graphql` by path, a
+query from the shell, a leading `command`, `then` or `do`, `gh` by path, and
+`gh secret remove`. The reason shows the endpoint as a path with no host and
+no query, and names a method only where it is an HTTP method, so no word the
+command carries beyond those reaches it. With no binary, the launcher lets
+the hook's call through. Organisation rulesets are on the governance list,
+as ADR-1810 states; SPC-1080 lists `rulesets` under a repository alone, and
+this step may not edit it. `Launcher.test_a_missing_binary_lets_every_bash_call_through`
+checks the launcher.
+
+A second review found that the shell check asked about GraphQL reads that use
+variables, and that an address inside an endpoint's query was read as the
+endpoint, in the guard and in the layer's allow list. The guard now marks a
+`$` or a backtick the shell expands, outside single quotes, and treats only
+that as a query it can't read, and `path_of` cuts the query before it looks
+for a scheme. The guard also keeps `2>&1` and `&>` as redirects, reads
+`-f=v` as pflag does, and skips `{`, `nohup` and `command`'s flags. It still
+doesn't read `sudo` or `timeout`, which the README names.
+
+`meow-github` goes to 0.13.0. Its README gains the section "What it writes,
+and what it asks about", names the hook and its cost under "What it needs",
+and its manifest's description no longer says it writes nothing to GitHub.
 
 ## Left alone
 
