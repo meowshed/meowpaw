@@ -525,7 +525,7 @@ iteration said is in this conversation.
   left and what failed, keeping what it already holds that is still true,
   because this conversation ends with the session and the file carries over.
 - L3. Work until the `{step}` step's test holds on the record and the
-  condition `verbs={verbs}` holds at the same tree, and never report either
+  condition `verbs={verbs}` holds at one tree, and never report either
   as held, because the runner checks both itself after this session and
   decides from them whether the run is finished.
 - L4. Never try to extend the run, because the runner holds its bounds in its
@@ -973,8 +973,10 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
         Ok(Some(0)) => return Err(vec![format!("record root {declared} is ignored by git")]),
         Ok(code) => {
             return Err(vec![format!(
-                "can't check whether record root {declared} is ignored by git: git check-ignore exited {}",
-                code.map_or("by a signal".to_string(), |code| code.to_string())
+                "can't check whether record root {declared} is ignored by git: git check-ignore {}",
+                code.map_or("was ended by a signal".to_string(), |code| format!(
+                    "exited {code}"
+                ))
             )]);
         }
         Err(error) => {

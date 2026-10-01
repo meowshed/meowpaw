@@ -8,13 +8,13 @@ describes: [meow-loop@0.7.0]
 # meow-loop
 
 `meow-loop start` repeats one prompt in fresh `claude -p` calls, bound to one
-step of the method, until the step's work is done in the record and the
+step of the method. It ends when the step's work is done in the record and the
 verification verbs you name pass at one tree. It also ends when the number of
-iterations you state has run, when the next call could pass the budget you
-state, or when two iterations in a row change nothing. The runner is a
-program outside the model, so nothing a call prints or writes extends the run,
-and the runner alone decides whether the work is done, from the record and
-each verb's exit status.
+iterations has run, when the next call could pass the budget you state, or
+when two iterations in a row change nothing. The runner is a program outside
+the model, so nothing a call prints or writes extends the run. The runner
+alone decides whether the work is done, from the record and each verb's exit
+status.
 
 ## Install it
 
