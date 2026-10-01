@@ -546,7 +546,7 @@ two tasks, TSK-3300 and TSK-3310, each closed with evidence, and was verified
 against every acceptance criterion under issue 626.
 
 [EPC-1910](epics/EPC-1910-the-loop-runner.md) realises ADR-2010 in six tasks,
-TSK-3350 to TSK-3400, the first five of them done, and each of the nine
+TSK-3350 to TSK-3400, all of them done, and each of the nine
 requirements
 ADR-2010 addresses lands in one of them.
 [EPC-1920](epics/EPC-1920-a-run-bound-to-one-step.md) realises ADR-2020 in

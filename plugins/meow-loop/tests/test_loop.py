@@ -326,6 +326,59 @@ class Terms(Case):
                 self.assertEqual(f.calls(), [])
 
 
+class Guards(Case):
+    """ADR-2010: only a person starts a run."""
+
+    def test_skill_is_person_only(self):
+        """TSK-3400 criterion 1, REQ-0894: the skill `meow-loop:loop` sets `disable-model-invocation: true`, so the
+        model can't invoke it."""
+        text = (UNIT / "skills" / "loop" / "SKILL.md").read_text()
+        self.assertTrue(text.startswith("---\n"), text[:40])
+        front = text.split("---\n")[1]
+        fields = dict(line.split(": ", 1) for line in front.splitlines() if ": " in line)
+        self.assertEqual(fields.get("name"), "loop")
+        self.assertEqual(fields.get("disable-model-invocation"), "true")
+
+    def test_claudecode_refused(self):
+        """TSK-3400 criterion 2, REQ-0894: with `CLAUDECODE` set, even to nothing, `start` exits 3, prints the
+        refusal, leaves the state directory exactly as it was, file by file, and holds no lock afterwards."""
+        for value in ("1", ""):
+            with self.subTest(CLAUDECODE=value):
+                self.refused_with(value)
+
+    def refused_with(self, value):
+        f = self.fixture()
+        earlier = f.runs_dir() / f"{1:020d}-earlier"
+        earlier.mkdir(parents=True)
+        (earlier / "run.toml").write_text('ending = "ceiling"\n')
+
+        def snapshot():
+            return {str(p.relative_to(f.state)): (p.read_bytes() if p.is_file() else None)
+                    for p in sorted(f.state.rglob("*"))}
+
+        before = snapshot()
+        done = f.start(env={**f.env(), "CLAUDECODE": value})
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: a run starts from a terminal outside Claude Code", done.stdout)
+        self.assertEqual(snapshot(), before)
+        self.assertEqual(f.calls(), [])
+        # The snapshot holds every file under the state directory, so no lock file was made either.
+        self.assertFalse((f.runs_dir() / "lock").exists())
+
+    def test_deny_rule_on_every_call(self):
+        """TSK-3400 criterion 4, REQ-0894: every call passes `--disallowedTools` with a rule for each name a run
+        starts by, so a call can't start a nested run."""
+        f = self.fixture()
+        done = f.start(replaced("--iterations", "2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        calls = f.calls()
+        self.assertEqual(len(calls), 2)
+        for call in calls:
+            argv = call["argv"]
+            at = argv.index("--disallowedTools")
+            self.assertEqual(argv[at + 1:at + 3], ["Bash(meow-loop *)", "Bash(meow loop *)"])
+
+
 class Hook(Case):
     """ADR-2010: the unit's hook denies an Edit or a Write of a run's files other than its progress file."""
 
@@ -366,11 +419,45 @@ class Hook(Case):
             matched += 1
         self.assertEqual(matched, 11)
 
+    def bash(self, f, command):
+        event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}}
+        return subprocess.run([str(BIN), "guard"], input=json.dumps(event), capture_output=True, text=True,
+                              env=f.env(), cwd=f.root)
+
+    def test_start_is_denied(self):
+        """TSK-3400 criterion 3, REQ-0894: a Bash command that starts a run, by either name and however it is
+        reached, is denied, and one that runs `meow-loop` without starting a run is allowed in silence, even where
+        its text holds `start` elsewhere."""
+        f = self.fixture()
+        terms = "--prompt p.md --until verbs=test --iterations 1 --budget-usd 1 --permission-mode dontAsk"
+        denied = (f"meow-loop start {terms}", f"cd x && meow-loop start {terms}",
+                  f"${{CLAUDE_PLUGIN_ROOT}}/bin/meow-loop start {terms}",
+                  f"env -u CLAUDECODE meow-loop start {terms}", f"bash -c 'meow-loop start {terms}'",
+                  f"/x/meow-loop/bin/aarch64-apple-darwin/meow loop start {terms}",
+                  # The review of TSK-3400: an escaped space, a continued line and a redirect joined to `start`.
+                  f"bash -c meow-loop\\ start {terms}", f"meow-loop \\\n  start {terms}",
+                  f"meow-loop start>run.log {terms}", f"meow-loop start<p.md",
+                  # The second review: a redirect between the name and `start`.
+                  f"env -u CLAUDECODE meow-loop >/dev/null start {terms}", f"meow loop 2>&1 start {terms}",
+                  f"meow-loop > out.log start {terms}",
+                  # The third review: a quoted `>` before the name, and a named descriptor's redirect.
+                  f"echo '>'; meow-loop start {terms}", f"echo \">\"\nmeow-loop start {terms}",
+                  f"meow-loop {{fd}}>/dev/null start {terms}")
+        answers = []
+        for command in denied:
+            done = self.bash(f, command)
+            self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+            answers.append(json.loads(done.stdout or "{}").get("hookSpecificOutput", {}).get("permissionDecision"))
+        self.assertEqual(answers, ["deny"] * len(denied), list(zip(denied, answers)))
+        for command in ("meow-loop --help", "meow-loop status", "meow-loop status; echo start"):
+            done = self.bash(f, command)
+            self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""), command)
+
     def test_hook_is_registered(self):
-        """TSK-3390 criterion 5: `hooks.json` registers a PreToolUse entry whose matcher covers Edit and Write and
-        whose command runs the guard."""
+        """TSK-3390 criterion 5 and TSK-3400, REQ-0894: `hooks.json` registers a PreToolUse entry whose matcher
+        covers Bash, Edit and Write and whose command runs the guard."""
         hooks = json.loads((UNIT / "hooks" / "hooks.json").read_text())["hooks"]["PreToolUse"]
-        entries = [e for e in hooks if set(e["matcher"].split("|")) >= {"Edit", "Write"}]
+        entries = [e for e in hooks if set(e["matcher"].split("|")) >= {"Bash", "Edit", "Write"}]
         self.assertEqual(len(entries), 1, hooks)
         self.assertEqual([h["command"] for h in entries[0]["hooks"]], ['"${CLAUDE_PLUGIN_ROOT}"/bin/meow-loop guard'])
 
@@ -525,7 +612,9 @@ class Call(Case):
                                      "--permission-mode", "dontAsk", "--allowedTools", "Read",
                                      *allow_rules(progress / "progress.md"),
                                      "--permission-prompts", "none", "--add-dir", str(progress),
-                                     "--max-budget-usd", "10", "--append-system-prompt"])
+                                     "--max-budget-usd", "10",
+                                     "--disallowedTools", "Bash(meow-loop *)", "Bash(meow loop *)",
+                                     "--append-system-prompt"])
         carrying = [argument for argument in argv if "Make the flag exist" in argument]
         self.assertEqual(carrying, [])
 

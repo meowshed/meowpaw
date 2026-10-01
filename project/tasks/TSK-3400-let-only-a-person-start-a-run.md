@@ -87,8 +87,58 @@ TSK-3390, because this task extends the hook that task adds.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`start` in `crates/meow/src/runloop.rs` refuses with
+`unresolved: a run starts from a terminal outside Claude Code` and exits 3
+when `CLAUDECODE` is set, before it reads the work tree or the state
+directory. `call` passes `--disallowedTools "Bash(meow-loop *)" "Bash(meow loop *)"`
+on every call. `guard` denies a Bash command whose text holds a word ending
+in `meow-loop` followed by `start`, or a word ending in `meow` followed by
+`loop start`, and `plugins/meow-loop/hooks/hooks.json` now matches Bash as
+well as Edit and Write. `plugins/meow-loop/skills/loop/SKILL.md` sets
+`disable-model-invocation: true`.
+
+Each criterion a program checks is closed by the check it names, in
+`plugins/meow-loop/tests/test_loop.py`:
+
+- Criterion 1: `Guards.test_skill_is_person_only`
+- Criterion 2: `Guards.test_claudecode_refused`
+- Criterion 3: `Hook.test_start_is_denied`
+- Criterion 4: `Guards.test_deny_rule_on_every_call`
+- Criterion 6: the `budget` check in the `lint` verb and `tools/check_docs.py`
+  in the `test` verb, in the pull request's gate
+
+Criteria 5 and 7 rest on judgement, as the task says. The skill writes the
+prompt file, prints the `start` command for a terminal outside Claude Code
+and runs nothing, by its rules L1 to L4. `plugin.json` goes from 0.5.0 to
+0.6.0, and the README says a run starts from a terminal outside Claude Code,
+such as a separate tmux window.
+
+The checks failed first, in the commit that holds them alone. That commit also
+changes `Call.test_flags_and_prompt`, whose argv now holds the deny rule.
+`format`, `lint`, `check`, `test` and `build` each pass on the change's tree,
+as the pull request cites.
+
+Review of the first version found that an escaped space, a continued line
+and a redirect joined to `start` slipped past the hook, that an empty
+`CLAUDECODE` let `start` run, and that no check failed if the hook stopped
+matching Bash; all three are fixed and checked. A second review found a
+redirect between the name and `start`, as in `meow-loop >/dev/null start`,
+slipping past; the hook now drops a redirect and its target wherever it
+stands. The hook still reads text, so a name split by quotes or a backslash,
+as in `st""art` or `st\art`, gets past it, as a name in a script, a
+variable or a command substitution does; the README says so, and SPC-1201's
+list of misses names only the last three. `Guards.test_claudecode_refused`
+runs with `CLAUDECODE` set to `1` and to nothing. Review of that round found it had
+let `echo '>'; meow-loop start` through, by taking a quoted `>` for a
+redirect and the runner's name for its target, and that `{fd}>/dev/null`
+before `start` got past; the hook now never takes a runner's name as a
+target and drops a named descriptor with its redirect. No agent reviewed
+this last fix, because review stops after two rounds.
+
+I made one choice the task leaves open. `meow-author cost` counts a skill
+only the person invokes as loading nothing, because the platform doesn't put
+its description in context, so `budget.toml` keeps 0 characters and its
+comment says why.
 
 ## Left alone
 
