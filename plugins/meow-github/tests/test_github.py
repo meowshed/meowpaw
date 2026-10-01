@@ -1229,6 +1229,14 @@ class Guard(unittest.TestCase):
             ("command gh repo delete o/r", "gh repo delete"),
             ("/usr/bin/gh repo delete o/r", "gh repo delete"),
             ("gh secret remove FOO", "gh secret remove"),
+            # The second review: redirects that use `&`, a short flag with `=`, and more leading shell words.
+            ("gh api 2>&1 -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api &>/dev/null -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api graphql -f=query='mutation { x }'", "gh api POST graphql"),
+            ("{ gh repo delete o/r; }", "gh repo delete"),
+            ("command -p gh repo delete o/r", "gh repo delete"),
+            ("nohup gh repo delete o/r", "gh repo delete"),
+            ("gh api -X PUT 'repos/o/r/hooks/1?a=http://h/x'", "gh api PUT repos/o/r/hooks/1"),
         )
         for command, named in cases:
             with self.subTest(command=command):
@@ -1238,6 +1246,8 @@ class Guard(unittest.TestCase):
     def test_a_read_passes_in_silence(self):
         """TSK-2980 criterion 5, REQ-2576: a read, or a command with no `gh` in it, prints nothing and exits 0."""
         for command in ("gh api repos/o/r/issues", "gh api graphql -f query='{ viewer { login } }'",
+                        "gh api graphql -f query='query($n:String!){ repository(name:$n){id} }' -f n=x",
+                        "gh api -X PUT 'repos/x?a=https://h/repos/o/r/hooks/1'",
                         "git status", "echo gh is fine"):
             with self.subTest(command=command):
                 done = self.guard(command)

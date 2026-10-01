@@ -921,6 +921,8 @@ mod tests {
             ("PUT", "repos/o/r/actions/permissions/workflow"),
             ("PUT", "repos/o/r/contents/.github/workflows/ci.yml"),
         ];
+        // A query naming an allowed path doesn't make the path allowed.
+        assert!(admits("POST", "repos/o/r/hooks?x=http://h/repos/o/r/issues").is_err());
         for (method, endpoint) in writes {
             assert!(admits(method, endpoint).is_err(), "{method} {endpoint}");
             let mut layer = Layer::new(false);
@@ -962,6 +964,7 @@ mod tests {
             "orgs/o/rulesets/4",
             "/repos/o/r/hooks/1",
             "https://ghe.example.com/repos/o/r/hooks/1",
+            "repos/o/r/hooks/1?a=http://h/x",
         ] {
             assert!(governance(endpoint), "{endpoint}");
         }
