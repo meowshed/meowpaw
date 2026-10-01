@@ -439,7 +439,10 @@ class Hook(Case):
                   f"meow-loop start>run.log {terms}", f"meow-loop start<p.md",
                   # The second review: a redirect between the name and `start`.
                   f"env -u CLAUDECODE meow-loop >/dev/null start {terms}", f"meow loop 2>&1 start {terms}",
-                  f"meow-loop > out.log start {terms}")
+                  f"meow-loop > out.log start {terms}",
+                  # The third review: a quoted `>` before the name, and a named descriptor's redirect.
+                  f"echo '>'; meow-loop start {terms}", f"echo \">\"\nmeow-loop start {terms}",
+                  f"meow-loop {{fd}}>/dev/null start {terms}")
         answers = []
         for command in denied:
             done = self.bash(f, command)
