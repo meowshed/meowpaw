@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.4.0]
+describes: [meow-loop@0.5.0]
 ---
 
 # meow-loop
@@ -56,13 +56,15 @@ everything.
 
 ## What a run does
 
-The runner resolves each named verb to the command your profile declares, and
-runs the verbs once before any call. If every one passes, the run ends
+The runner resolves each named verb to the command your profile declares,
+holds that command for the whole run and records it in `run.toml`, so a call
+that rewrites `.meowpaw/profile.toml` changes nothing the run checks. It runs
+the verbs once before any call. If every one passes, the run ends
 `finished` with no call. Otherwise each iteration makes one call:
 
 ```text
 claude -p --output-format json --no-session-persistence
-       --setting-sources project --plugin-dir <dir>...
+       --setting-sources project --plugin-dir <meow-loop> --plugin-dir <dir>...
        --permission-mode dontAsk --allowedTools <rule>...
        --allowedTools "Edit(/<run>/progress/progress.md)"
        --allowedTools "Write(/<run>/progress/progress.md)"
@@ -71,7 +73,18 @@ claude -p --output-format json --no-session-persistence
 ```
 
 `<run>` is the run's directory, an absolute path with every link resolved, and
-a permission rule writes an absolute path after one more slash.
+a permission rule writes an absolute path after one more slash. `<meow-loop>`
+is the unit's own directory, named first so the unit's hook loads in every
+call, and each `--plugin-dir` you named follows it in the order given.
+
+Before each call and after it, the runner compares the sha256 of the run's
+`run.toml` and `prompt.md` and of the work tree's `.claude/settings.json`
+with their values at start, and ends the run `tampered` where one changed. It
+checks this before the ceiling and the budget, so a run that changed its own
+terms is reported as that whatever bound it also reached. The unit's
+`PreToolUse` hook on Edit and Write denies a write of any path under the runs
+directory other than a run's `progress/progress.md`. No real call has been
+observed running the hook, so the sha256 check decides either way.
 
 Each call is a new session: the runner passes no `--resume` and no
 `--continue`. `--setting-sources project` keeps the plugins you installed for
@@ -116,13 +129,14 @@ skips the verbs and makes the next call. Where a verb changes the tree, such
 as a formatter that rewrites files, the runner runs the verbs a second time at
 once, and that second result stands.
 
-| Ending      | When                                                                   | Exit status |
-| ----------- | ---------------------------------------------------------------------- | ----------- |
-| `finished`  | Every named verb passed at one tree                                    | 0           |
-| `budget`    | The next call could pass the budget, or a call reached its own cap     | 1           |
-| `ceiling`   | The stated number of iterations ran                                    | 1           |
-| `unmetered` | A call reported no cost, so the spend can't be summed                  | 1           |
-| `idle`      | Two iterations in a row changed neither the tree nor the progress file | 1           |
+| Ending      | When                                                                      | Exit status |
+| ----------- | ------------------------------------------------------------------------- | ----------- |
+| `finished`  | Every named verb passed at one tree                                       | 0           |
+| `budget`    | The next call could pass the budget, or a call reached its own cap        | 1           |
+| `ceiling`   | The stated number of iterations ran                                       | 1           |
+| `unmetered` | A call reported no cost, so the spend can't be summed                     | 1           |
+| `idle`      | Two iterations in a row changed neither the tree nor the progress file    | 1           |
+| `tampered`  | `run.toml`, `prompt.md` or `.claude/settings.json` changed during the run | 1           |
 
 `meow-loop` runs the verbs itself and needs no other unit. It records each
 verb's result in the ledger `meow-checks` reads, so where that unit is
@@ -138,7 +152,7 @@ when the run begins.
 
 | File                   | Holds                                                                                                                                                                                                                                                                                                        |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `run.toml`             | The prompt's sha256, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                                                                                                                      |
+| `run.toml`             | The prompt's sha256, the sha256 of `.claude/settings.json` at start or `absent`, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                                                          |
 | `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                                                                                                                                                 |
 | `progress/progress.md` | What each iteration wrote for the next one. It starts empty                                                                                                                                                                                                                                                  |
 | `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, `sum_usd` with the spend up to and including it, the count of `permission_denials`, its exit status, `progress_changed`, `unidentified` where either tree id is `none`, and the condition's result where it ran |
@@ -164,12 +178,11 @@ file the runner can't read counts as changed. An iteration whose tree id is `non
 as with a dirty submodule, counts as a change, so a run in such a work tree
 never ends `idle`.
 
-This version doesn't check whether a call changed the prompt
-copy or `run.toml`, and it resolves each verb from the profile again at every
-evaluation, so a call that rewrites `.meowpaw/profile.toml` changes what the
-condition runs. It doesn't stop a session inside Claude Code from starting a
-run. Until later versions add those checks, start a run yourself, and read the
-profile's diff before you trust a `finished`.
+A held command still runs files in the work tree: a call that rewrites a
+script or a task file the command runs changes what the condition checks,
+and no sha256 covers those files. This version also doesn't stop a session
+inside Claude Code from starting a run. Until later versions close both,
+start a run yourself, and read the run's diff before you trust a `finished`.
 
 ## What it reports instead of a run
 
@@ -195,27 +208,30 @@ command, so one attempt names every flag to fix:
 A state the runner can't read past exits 3, prints `unresolved: <what>` and
 creates no run directory:
 
-| Line                                                                            | Means                                                     |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `unresolved: not a git work tree`                                               | The current directory isn't inside one                    |
-| `unresolved: state writing is off, and a run needs state`                       | `MEOWPAW_STATE=off` is set                                |
-| `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME` | None of the three variables names where state goes        |
-| `unresolved: claude is not on the path`                                         | No `claude` that can be run is on `PATH`                  |
-| `unresolved: verb <verb> resolves to no command`                                | The profile declares no command for a named verb          |
-| `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                      |
-| `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file |
-| `unresolved: can't create a run in <directory>: <error>`                        | The runner can't create the run's directory               |
-| `unresolved: can't resolve <directory>: <error>`                                | The runner can't resolve the run's progress directory     |
+| Line                                                                            | Means                                                                                                |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `unresolved: not a git work tree`                                               | The current directory isn't inside one                                                               |
+| `unresolved: state writing is off, and a run needs state`                       | `MEOWPAW_STATE=off` is set                                                                           |
+| `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME` | None of the three variables names where state goes                                                   |
+| `unresolved: claude is not on the path`                                         | No `claude` that can be run is on `PATH`                                                             |
+| `unresolved: verb <verb> resolves to no command`                                | The profile declares no command for a named verb                                                     |
+| `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                                                                 |
+| `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file                                            |
+| `unresolved: can't create a run in <directory>: <error>`                        | The runner can't create the run's directory                                                          |
+| `unresolved: meow-loop's own directory can't be found from its program's path`  | The program doesn't sit in a unit whose manifest names `meow-loop`, so a call couldn't load its hook |
+| `unresolved: can't resolve <directory>: <error>`                                | The runner can't resolve the run's progress directory                                                |
 
-During a run, a file the runner can't write, a `claude` or a verb's command it
-can't start, or a verb that no longer resolves stops the run with the same
+During a run, a file the runner can't write, or a `claude` or a verb's
+command it can't start, stops the run with the same
 `unresolved:` line and exit status 3. The run then has no ending, and reads as
 interrupted.
 
 ## What it costs you
 
 The unit ships no skill, so it keeps nothing in context on every turn, and its
-budget states zero characters. The program is a native binary shipped inside
+budget states zero characters. Its hook runs the native program on every Edit
+and Write, which loads nothing into context; on a machine the unit carries no
+binary for, the hook lets every write through. The program is a native binary shipped inside
 the unit. On a machine the unit carries no binary for, `start` reports the run
 as unresolved and exits 3. Each run leaves a directory of a few kilobytes in
 the state directory until a later run removes it.
@@ -223,4 +239,6 @@ the state directory until a later run removes it.
 ## What it needs
 
 Claude Code 2.1.280 or later, declared in `plugins/meow-loop/requires.toml`,
-with `claude` on your `PATH`, and git.
+with `claude` on your `PATH`, and git. It relies on a `PreToolUse` command
+hook that answers `deny` through `hookSpecificOutput.permissionDecision`:
+[documentation](https://code.claude.com/docs/en/hooks.md).
