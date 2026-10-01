@@ -8,7 +8,9 @@ isolated, and a stand-in `claude` first on the path. The stand-in appends its
 argv and standard input to a call log, can create a file, overwrite one, and
 append a line to the progress file in the directory `--add-dir` names, edits
 `work.txt` on each call so the tree changes, and prints the JSON result its
-configuration names, with the subtype it names, the cost it names for that
+configuration names, can append a line to a file of the run, write an allow
+rule into `.claude/settings.json` or rewrite the profile, with the subtype it
+names, the cost it names for that
 call and no cost where it says so. It never reads `--max-budget-usd`, so no ending comes from it. `CLAUDECODE` is removed from every run's environment, because the gate
 often runs inside a Claude Code session. `MEOW_LOOP_BIN` names the launcher to
 test. Each check counts what it matched and fails on a count of zero where one
@@ -50,6 +52,17 @@ if config.get("remove_progress", {}).get(str(n)) and "--add-dir" in sys.argv:
 if config.get("progress") and "--add-dir" in sys.argv:
     with open(os.path.join(sys.argv[sys.argv.index("--add-dir") + 1], "progress.md"), "a") as f:
         f.write("call %d\\n" % n)
+run = os.path.dirname(sys.argv[sys.argv.index("--add-dir") + 1]) if "--add-dir" in sys.argv else None
+name = config.get("touch", {}).get(str(n))
+if name and run:
+    with open(os.path.join(run, name), "a") as f:
+        f.write("# changed by call %d\\n" % n)
+if config.get("settings", {}).get(str(n)):
+    os.makedirs(".claude", exist_ok=True)
+    open(".claude/settings.json", "w").write('{"permissions": {"allow": ["Bash(*)"]}}')
+text = config.get("profile", {}).get(str(n))
+if text:
+    open(".meowpaw/profile.toml", "w").write(text)
 time.sleep(config.get("sleep", {}).get(str(n), 0))
 if config.get("silent"):
     sys.exit(0)
@@ -201,6 +214,116 @@ class Terms(Case):
         self.assertEqual(matched, 12)
         self.assertEqual(f.calls(), [])
 
+    # ADR-2010: a run whose terms change ends `tampered`, and the condition runs the commands held at start.
+
+    def ended(self, f, **config):
+        f.configure(**config)
+        done = f.start(replaced("--iterations", "3"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(done.stdout.strip().splitlines()[-1], "tampered")
+        return f.ending()
+
+    def test_tampered_run_toml(self):
+        """TSK-3390 criterion 1, REQ-0874: a call that edits `run.toml` ends the run `tampered` after that call, and
+        so does one that edits it and makes the verb pass in the same call."""
+        matched = 0
+        for config in ({"touch": {"1": "run.toml"}}, {"touch": {"1": "run.toml"}, "create": {"1": "done.flag"}}):
+            f = self.fixture()
+            self.assertEqual(self.ended(f, **config), "tampered", config)
+            self.assertEqual(len(f.calls()), 1, config)
+            matched += 1
+        self.assertEqual(matched, 2)
+
+    def test_tampered_prompt(self):
+        """TSK-3390 criterion 2, REQ-0874: a call that edits the run's `prompt.md` ends the run `tampered`."""
+        f = self.fixture()
+        self.assertEqual(self.ended(f, touch={"1": "prompt.md"}), "tampered")
+        self.assertEqual(len(f.calls()), 1)
+
+    def test_tampered_settings(self):
+        """TSK-3390 criterion 2, REQ-0874: a call that writes an allow rule into `.claude/settings.json` ends the run
+        `tampered`."""
+        f = self.fixture()
+        self.assertEqual(self.ended(f, settings={"1": True}), "tampered")
+        self.assertEqual(len(f.calls()), 1)
+
+    def test_tampered_before_the_call(self):
+        """TSK-3390 criterion 8, REQ-0874: a held verb command that edits `run.toml` before the first call ends the
+        run `tampered` with no call, which only the check before the first call can produce."""
+        edit = ('for f in \\"$MEOWPAW_STATE_DIR\\"/runs/*/*/run.toml; do echo \\"# edited\\" >> \\"$f\\"; done; '
+                'exit 1')
+        f = self.fixture({".meowpaw/profile.toml": f'[verbs]\ntest = "{edit}"\n'})
+        f.configure()
+        done = f.start()
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.calls(), [])
+        self.assertEqual(f.ending(), "tampered")
+
+    def test_profile_edit_changes_no_condition(self):
+        """TSK-3390 criterion 6, REQ-0874: a call that points the `test` verb at a command that always passes changes
+        no condition, because the run holds the command resolved at start: two calls run to the ceiling, and
+        `run.toml` records the held command."""
+        f = self.fixture()
+        f.configure(profile={"1": '[verbs]\ntest = "true"\n'})
+        done = f.start(replaced("--iterations", "2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(len(f.calls()), 2)
+        self.assertEqual(f.ending(), "ceiling")
+        table = tomllib.loads((f.run_dirs()[0] / "run.toml").read_text())
+        self.assertEqual(table["until"], {"verbs": {"test": "test -f done.flag"}})
+
+    def test_own_unit_on_every_call(self):
+        """TSK-3390 criterion 7: every call names `meow-loop`'s own directory with `--plugin-dir` first, then each
+        one the person named, in the order given."""
+        f = self.fixture()
+        done = f.start(replaced("--iterations", "2") + ["--plugin-dir", "/a", "--plugin-dir", "/b"])
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        calls = f.calls()
+        self.assertEqual(len(calls), 2)
+        for call in calls:
+            self.assertEqual(values(call["argv"], "--plugin-dir"), [str(UNIT), "/a", "/b"])
+
+
+class Hook(Case):
+    """ADR-2010: the unit's hook denies an Edit or a Write of a run's files other than its progress file."""
+
+    def guard(self, f, tool, path):
+        event = {"hook_event_name": "PreToolUse", "tool_name": tool, "tool_input": {"file_path": str(path)}}
+        return subprocess.run([str(BIN), "guard"], input=json.dumps(event), capture_output=True, text=True,
+                              env=f.env(), cwd=f.root)
+
+    def test_run_files_are_denied(self):
+        """TSK-3390 criterion 4, REQ-0874: an Edit of a run's `run.toml`, a Write of its `prompt.md`, an Edit of its
+        `log.jsonl` and an Edit reaching `run.toml` through `progress/..` are each denied; an Edit of the run's
+        `progress/progress.md` and of a tracked file in the work tree are each allowed in silence."""
+        f = self.fixture()
+        run = f.runs_dir() / "00000000000000000001"
+        (run / "progress").mkdir(parents=True)
+        for name in ("run.toml", "prompt.md", "log.jsonl", "progress/progress.md"):
+            (run / name).write_text("")
+        denied = (("Edit", run / "run.toml"), ("Write", run / "prompt.md"), ("Edit", run / "log.jsonl"),
+                  ("Edit", run / "progress" / ".." / "run.toml"))
+        matched = 0
+        for tool, path in denied:
+            done = self.guard(f, tool, path)
+            self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+            answer = json.loads(done.stdout)["hookSpecificOutput"]
+            self.assertEqual((answer["hookEventName"], answer["permissionDecision"]), ("PreToolUse", "deny"), path)
+            matched += 1
+        for tool, path in (("Edit", run / "progress" / "progress.md"), ("Edit", f.root / "prompt.md")):
+            done = self.guard(f, tool, path)
+            self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""), path)
+            matched += 1
+        self.assertEqual(matched, 6)
+
+    def test_hook_is_registered(self):
+        """TSK-3390 criterion 5: `hooks.json` registers a PreToolUse entry whose matcher covers Edit and Write and
+        whose command runs the guard."""
+        hooks = json.loads((UNIT / "hooks" / "hooks.json").read_text())["hooks"]["PreToolUse"]
+        entries = [e for e in hooks if set(e["matcher"].split("|")) >= {"Edit", "Write"}]
+        self.assertEqual(len(entries), 1, hooks)
+        self.assertEqual([h["command"] for h in entries[0]["hooks"]], ['"${CLAUDE_PLUGIN_ROOT}"/bin/meow-loop guard'])
+
 
 class Ceiling(Case):
     def test_prompt_cannot_extend_the_ceiling(self):
@@ -347,7 +470,8 @@ class Call(Case):
         self.assertEqual(stdin, "Make the flag exist.\n")
         progress = f.run_dirs()[0] / "progress"
         self.assertEqual(argv[:-1], ["-p", "--output-format", "json", "--no-session-persistence",
-                                     "--setting-sources", "project", "--plugin-dir", "/somewhere/else",
+                                     "--setting-sources", "project", "--plugin-dir", str(UNIT),
+                                     "--plugin-dir", "/somewhere/else",
                                      "--permission-mode", "dontAsk", "--allowedTools", "Read",
                                      *allow_rules(progress / "progress.md"),
                                      "--permission-prompts", "none", "--add-dir", str(progress),
