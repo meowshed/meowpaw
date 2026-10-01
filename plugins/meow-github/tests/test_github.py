@@ -11,6 +11,7 @@ import re
 import subprocess
 import tempfile
 import time
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -1180,6 +1181,105 @@ class Credential(Layered, unittest.TestCase):
                         self.assertEqual(json.loads(done.stdout).get("credential"), FORMS[variable], done.stdout)
 
 
+class Guard(unittest.TestCase):
+    """ADR-1810: the hook asks before a Bash command's `gh` changes governance, and passes a read in silence."""
+
+    def guard(self, command):
+        """`meow-github governance-guard` run on a Bash tool call holding `command`, as the hook runs it."""
+        event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}}
+        return subprocess.run([str(BIN), "governance-guard"], input=json.dumps(event), capture_output=True,
+                              text=True)
+
+    def asked(self, done):
+        """The reason of an `ask` answer, failing where the answer is anything else."""
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        answer = json.loads(done.stdout)["hookSpecificOutput"]
+        self.assertEqual(answer["hookEventName"], "PreToolUse")
+        self.assertEqual(answer["permissionDecision"], "ask")
+        return answer["permissionDecisionReason"]
+
+    def test_a_governance_change_is_asked(self):
+        """TSK-2980 criterion 4, REQ-2576: each command that changes governance is answered `ask`, with a reason
+        naming the method and the endpoint and nothing else of the command, however the command is written."""
+        put = "gh api PUT repos/o/r/branches/main/protection"
+        cases = (
+            ("gh api -X PUT repos/o/r/branches/main/protection", put),
+            ("gh api repos/o/r/rulesets -f name=x", "gh api POST repos/o/r/rulesets"),
+            ("gh api repos/o/r/rulesets --input rs.json", "gh api POST repos/o/r/rulesets"),
+            ("gh repo edit --visibility private", "gh repo edit"),
+            ("gh repo archive", "gh repo archive"),
+            ("gh api graphql -f query='mutation { x }'", "gh api POST graphql"),
+            ("GH_TOKEN=x gh api -X PUT repos/o/r/branches/main/protection", put),
+            ("env GH_TOKEN=x gh repo delete o/r", "gh repo delete"),
+            ("git status && gh api -X PUT repos/o/r/rulesets/1", "gh api PUT repos/o/r/rulesets/1"),
+            # Review of TSK-2980: forms that hid the method, the endpoint or `gh` itself.
+            ("gh api \\\n  -X PUT repos/o/r/branches/main/protection", put),
+            ("gh \\\n repo delete o/r", "gh repo delete"),
+            ("gh api --hostname github.com -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api -iX PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api -iXPUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api repos/o/r/rulesets -fname=x", "gh api POST repos/o/r/rulesets"),
+            ("gh api 2>/dev/null -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api -X PUT /repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api /graphql -f query='mutation { x }'", "gh api POST graphql"),
+            ("gh api https://api.github.com/graphql -f query='mutation { x }'", "gh api POST graphql"),
+            ("gh api -X POST orgs/o/rulesets -f name=x", "gh api POST orgs/o/rulesets"),
+            ("gh api graphql -f query=\"$(cat m.graphql)\"", "gh api POST graphql"),
+            ("if true; then gh repo delete o/r; fi", "gh repo delete"),
+            ("command gh repo delete o/r", "gh repo delete"),
+            ("/usr/bin/gh repo delete o/r", "gh repo delete"),
+            ("gh secret remove FOO", "gh secret remove"),
+            # The second review: redirects that use `&`, a short flag with `=`, and more leading shell words.
+            ("gh api 2>&1 -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api &>/dev/null -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh api graphql -f=query='mutation { x }'", "gh api POST graphql"),
+            ("{ gh repo delete o/r; }", "gh repo delete"),
+            ("command -p gh repo delete o/r", "gh repo delete"),
+            ("nohup gh repo delete o/r", "gh repo delete"),
+            ("gh api -X PUT 'repos/o/r/hooks/1?a=http://h/x'", "gh api PUT repos/o/r/hooks/1"),
+        )
+        for command, named in cases:
+            with self.subTest(command=command):
+                self.assertEqual(self.asked(self.guard(command)), f"meow-github: {named} changes how the repository "
+                                                                  "is governed, which a person approves (REQ-2576)")
+
+    def test_a_read_passes_in_silence(self):
+        """TSK-2980 criterion 5, REQ-2576: a read, or a command with no `gh` in it, prints nothing and exits 0."""
+        for command in ("gh api repos/o/r/issues", "gh api graphql -f query='{ viewer { login } }'",
+                        "gh api graphql -f query='query($n:String!){ repository(name:$n){id} }' -f n=x",
+                        "gh api -X PUT 'repos/x?a=https://h/repos/o/r/hooks/1'",
+                        "git status", "echo gh is fine"):
+            with self.subTest(command=command):
+                done = self.guard(command)
+                self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
+
+    def test_the_token_is_never_echoed(self):
+        """TSK-2980 criterion 6, REQ-2576: a token anywhere in a command the guard asks about, in front of it, in
+        the endpoint's query or in place of the method, appears nowhere in its answer."""
+        for command in (f"GH_TOKEN={SENTINEL} gh api -X PUT repos/o/r/branches/main/protection",
+                        f"env GITHUB_TOKEN={SENTINEL} gh repo delete o/r",
+                        f"gh api -X PUT 'repos/o/r/hooks/1?access_token={SENTINEL}'",
+                        f"gh api -X {SENTINEL} repos/o/r/hooks/1"):
+            with self.subTest(command=command):
+                done = self.guard(command)
+                self.asked(done)
+                self.assertNotIn(SENTINEL, done.stdout + done.stderr)
+
+    def test_the_hook_runs_the_guard_on_bash(self):
+        """TSK-2980 criterion 7: `hooks.json` declares one `PreToolUse` command hook matching Bash that runs
+        `meow-github governance-guard`, and the unit's budget still states 0 characters."""
+        hooks = json.loads((UNIT / "hooks" / "hooks.json").read_text(encoding="utf-8"))["hooks"]
+        self.assertEqual(list(hooks), ["PreToolUse"])
+        self.assertEqual(len(hooks["PreToolUse"]), 1)
+        entry = hooks["PreToolUse"][0]
+        self.assertEqual(entry["matcher"], "Bash")
+        self.assertEqual(len(entry["hooks"]), 1)
+        self.assertEqual(entry["hooks"][0]["type"], "command")
+        self.assertEqual(entry["hooks"][0]["command"], '"${CLAUDE_PLUGIN_ROOT}"/bin/meow-github governance-guard')
+        budget = tomllib.loads((UNIT / "budget.toml").read_text(encoding="utf-8"))
+        self.assertEqual(budget["permanent_characters"], 0)
+
+
 class Launcher(unittest.TestCase):
     """ADR-1270: a launcher with no binary for the machine names the machine and the fix."""
 
@@ -1195,6 +1295,19 @@ class Launcher(unittest.TestCase):
             self.assertIn("unread", done.stdout)
             self.assertIn(machine, done.stdout)
             self.assertIn("reinstall the unit", done.stdout)
+
+    def test_a_missing_binary_lets_every_bash_call_through(self):
+        """TSK-2980, REQ-2576: with no binary for the machine, the hook's `governance-guard` reads its input,
+        prints nothing and exits 0, because a hook that fails blocks every Bash call in the session."""
+        with tempfile.TemporaryDirectory() as tmp:
+            launcher = Path(tmp) / "bin" / "meow-github"
+            launcher.parent.mkdir()
+            launcher.write_text((UNIT / "bin" / "meow-github").read_text(encoding="utf-8"), encoding="utf-8")
+            launcher.chmod(0o755)
+            event = json.dumps({"tool_input": {"command": "gh repo delete o/r"}})
+            done = subprocess.run(["sh", str(launcher), "governance-guard"], input=event, cwd=tmp,
+                                  capture_output=True, text=True)
+            self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
 
 
 if __name__ == "__main__":
