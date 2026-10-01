@@ -961,12 +961,33 @@ fn deny(reason: &str) {
 /// followed by `start`, or a word ending in `meow` followed by `loop start`.
 /// It reads the text and not what the text expands to, so it catches a
 /// path-qualified runner and one inside `bash -c`, and misses a name hidden
-/// in a script or a variable (SPC-1201).
+/// in a script, a variable or a command substitution, or split by quotes
+/// (SPC-1201). A redirect is dropped wherever it stands, because the shell
+/// passes the words around it on as they are.
 fn starts_a_run(command: &str) -> bool {
-    let words: Vec<&str> = command
-        .split(|c: char| c.is_whitespace() || "'\"`;&|()\\<>".contains(c))
-        .filter(|w| !w.is_empty())
-        .collect();
+    let raw = command
+        .split(|c: char| c.is_whitespace() || "'\"`;|()\\".contains(c))
+        .filter(|w| !w.is_empty());
+    let mut words: Vec<&str> = Vec::new();
+    let mut target = false;
+    for word in raw {
+        if std::mem::take(&mut target) {
+            continue;
+        }
+        match word.find(['<', '>']) {
+            Some(at) => {
+                let (before, redirect) = word.split_at(at);
+                let before = before.trim_matches('&');
+                if !before.is_empty() && !before.bytes().all(|b| b.is_ascii_digit()) {
+                    words.push(before);
+                }
+                // A redirect with nothing after its operator takes the next
+                // word as its target, as in `> out.log`; `2>&1` takes none.
+                target = redirect.trim_start_matches(['<', '>', '&']).is_empty();
+            }
+            None => words.extend(word.split('&').filter(|w| !w.is_empty())),
+        }
+    }
     words
         .windows(2)
         .any(|pair| pair[0].ends_with("meow-loop") && pair[1] == "start")

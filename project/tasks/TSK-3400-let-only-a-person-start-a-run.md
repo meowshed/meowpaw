@@ -121,9 +121,14 @@ as the pull request cites.
 Review of the first version found that an escaped space, a continued line
 and a redirect joined to `start` slipped past the hook, that an empty
 `CLAUDECODE` let `start` run, and that no check failed if the hook stopped
-matching Bash; all three are fixed and checked. The hook still reads text,
-so a name split by quotes, as in `st""art`, gets past it, as a name in a
-script or a variable does; the README says so.
+matching Bash; all three are fixed and checked. A second review found a
+redirect between the name and `start`, as in `meow-loop >/dev/null start`,
+slipping past; the hook now drops a redirect and its target wherever it
+stands. The hook still reads text, so a name split by quotes or a backslash,
+as in `st""art` or `st\art`, gets past it, as a name in a script, a
+variable or a command substitution does; the README says so, and SPC-1201's
+list of misses names only the last three. `Guards.test_claudecode_refused`
+runs with `CLAUDECODE` set to `1` and to nothing.
 
 I made one choice the task leaves open. `meow-author cost` counts a skill
 only the person invokes as loading nothing, because the platform doesn't put

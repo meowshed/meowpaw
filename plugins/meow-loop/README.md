@@ -193,8 +193,8 @@ person invokes, `start` refusing when `CLAUDECODE` is set, the hook denying a
 Bash command that runs `meow-loop start` or `meow loop start`, and every call
 passing `--disallowedTools "Bash(meow-loop *)" "Bash(meow loop *)"`. The hook
 reads the command's text, not what it expands to, so it misses a name hidden
-in a script, a variable or a command substitution, or split by quotes, as in
-`st""art`, and it also denies a harmless command whose text
+in a script, a variable or a command substitution, or split by quotes or a
+backslash, as in `st""art` or `st\art`, and it also denies a harmless command whose text
 holds those words, such as a search for `meow-loop start`.
 
 ## What it reports instead of a run

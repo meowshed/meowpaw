@@ -37,8 +37,6 @@ Claude Code, because a run the model started is one nobody chose to pay for
 - L4. Write the prompt as the same text for every iteration, with no
   iteration number and no running total, because every call gets these bytes
   unchanged.
-- L5. Write the prompt file outside `.claude/` and outside the state
-  directory that holds the runs, because a change to `.claude/settings.json`
-  ends a run `tampered`, and the hook denies a write under the runs
-  directory.
+- L5. Write the prompt file outside the state directory that holds the runs,
+  because the hook denies a write under the runs directory.
 </rules>
