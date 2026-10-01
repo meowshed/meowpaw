@@ -684,6 +684,13 @@ class Step(Case):
         self.assertIn("`implement`", preambles[0])
         self.assertIn("TSK-0001", preambles[0])
 
+    def test_layout_is_meow_flows(self):
+        """TSK-3410: the layout `meow-loop` ships is byte for byte the one `meow-flow` ships, so the run reads the
+        record as `paw` reads it."""
+        ours = (UNIT / "lib" / "layout.toml").read_bytes()
+        self.assertTrue(ours)
+        self.assertEqual(ours, (UNIT.parent / "meow-flow" / "lib" / "layout.toml").read_bytes())
+
     def test_done_work_makes_no_call(self):
         """TSK-3410 criterion 10: an `implement` run whose work is done and whose verbs pass ends `finished` with no
         call."""
