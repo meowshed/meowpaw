@@ -79,9 +79,9 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
 - [>] T-002 [P] TSK-2701 give `meow-author:write` the rules a program can't
   check, and add the hand-run case for knowledge shipped as a skill
   closes: REQ-2972, REQ-2976
-  evidence: the `WriteSkill` and `MethodSkill` checks pass after failing
-  first, in #686. TSK-2701 carries the runs. Criteria 5 and 6 wait for a
-  person to run the hand-run case and to read what `prose` reports.
+  evidence: the `WriteSkill` checks pass after failing first, in #686.
+  TSK-2701 carries the rest. Criteria 4 and 5 wait for a person to run the
+  hand-run case and to read what `prose` reports.
   depends: nothing
 
 TSK-2700 and TSK-2701 touch different files except `meow-flow`'s and
