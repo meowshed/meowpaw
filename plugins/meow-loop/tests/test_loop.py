@@ -236,10 +236,11 @@ class Terms(Case):
         self.assertEqual(matched, 2)
 
     def test_tampered_prompt(self):
-        """TSK-3390 criterion 2, REQ-0874: a call that edits the run's `prompt.md` and makes the verb pass ends the
-        run `tampered`, which only the check after the call can produce."""
+        """TSK-3390 criterion 2, REQ-0874: a call that edits the run's `prompt.md` and reports no cost ends the run
+        `tampered` and not `unmetered`, which only the check after the call, before the cost is read, can
+        produce."""
         f = self.fixture()
-        self.assertEqual(self.ended(f, touch={"1": "prompt.md"}, create={"1": "done.flag"}), "tampered")
+        self.assertEqual(self.ended(f, touch={"1": "prompt.md"}, no_cost=True), "tampered")
         self.assertEqual(len(f.calls()), 1)
 
     def test_tampered_settings(self):
@@ -254,11 +255,15 @@ class Terms(Case):
 
     def test_an_evaluation_that_changes_the_terms_ends_tampered(self):
         """TSK-3390, REQ-0874: a verb that writes the settings and passes ends the run `tampered` and not
-        `finished`, whichever evaluation it runs in."""
-        # The verb writes only once the flag exists, so the evaluation before the first call changes nothing.
+        `finished`, in the evaluation after a call and in the one before the first call."""
+        # The verb writes only once the flag exists, so where the flag comes from decides which evaluation writes.
         write = "test -f done.flag && mkdir -p .claude && echo changed > .claude/settings.json"
-        f = self.fixture({".meowpaw/profile.toml": f'[verbs]\ntest = "{write}"\n'})
+        profile = {".meowpaw/profile.toml": f'[verbs]\ntest = "{write}"\n'}
+        f = self.fixture(profile)
         self.assertEqual(self.ended(f, create={"1": "done.flag"}), "tampered")
+        f = self.fixture({**profile, "done.flag": "x"})
+        self.assertEqual(self.ended(f), "tampered")
+        self.assertEqual(f.calls(), [])
 
     def test_tampered_before_the_call(self):
         """TSK-3390 criterion 8, REQ-0874: a held verb command that edits `run.toml` before the first call ends the
@@ -305,14 +310,20 @@ class Terms(Case):
         """TSK-3390: a program three levels below a directory that isn't `meow-loop` can't name the unit's own
         directory, so it refuses the run rather than start calls that load no hook."""
         f = self.fixture()
-        stray = f.base / "a" / "b" / "c" / "meow"
-        stray.parent.mkdir(parents=True)
-        shutil.copy2(next((UNIT / "bin").glob("*-*/meow*")), stray)
-        done = subprocess.run([str(stray), "loop", "start", *TERMS], cwd=f.root, env=f.env(),
-                              capture_output=True, text=True, timeout=120)
-        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
-        self.assertIn("unresolved: meow-loop's own directory can't be found", done.stdout)
-        self.assertEqual(f.calls(), [])
+        for manifest in (None, '{"name": "meow-git"}'):
+            with self.subTest(manifest=manifest):
+                unit = f.base / ("bare" if manifest is None else "other")
+                stray = unit / "bin" / "target" / "meow"
+                stray.parent.mkdir(parents=True)
+                shutil.copy2(next((UNIT / "bin").glob("*-*/meow*")), stray)
+                if manifest is not None:
+                    (unit / ".claude-plugin").mkdir()
+                    (unit / ".claude-plugin" / "plugin.json").write_text(manifest)
+                done = subprocess.run([str(stray), "loop", "start", *TERMS], cwd=f.root, env=f.env(),
+                                      capture_output=True, text=True, timeout=120)
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertIn("unresolved: meow-loop's own directory can't be found", done.stdout)
+                self.assertEqual(f.calls(), [])
 
 
 class Hook(Case):
@@ -340,7 +351,8 @@ class Hook(Case):
         denied = (("Edit", run / "run.toml"), ("Write", run / "prompt.md"), ("Edit", run / "log.jsonl"),
                   ("Edit", run / "progress" / ".." / "run.toml"), ("Write", link / "run.toml"),
                   ("Write", run / "missing" / ".." / "run.toml"), ("Edit", unresolved / "run.toml"),
-                  ("Write", unresolved / "missing" / ".." / "run.toml"))
+                  ("Write", unresolved / "missing" / ".." / "run.toml"),
+                  ("Write", link / "missing" / ".." / "run.toml"))
         matched = 0
         for tool, path in denied:
             done = self.guard(f, tool, path)
@@ -352,7 +364,7 @@ class Hook(Case):
             done = self.guard(f, tool, path)
             self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""), path)
             matched += 1
-        self.assertEqual(matched, 10)
+        self.assertEqual(matched, 11)
 
     def test_hook_is_registered(self):
         """TSK-3390 criterion 5: `hooks.json` registers a PreToolUse entry whose matcher covers Edit and Write and
