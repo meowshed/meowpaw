@@ -132,10 +132,12 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       failing first, and the five verbs pass. TSK-3390 carries the rest.
       depends: TSK-3350, because it checks the files that task writes
 
-- [ ] T-006 TSK-3400 let only a person start a run: the skill a model can't
+- [x] T-006 TSK-3400 let only a person start a run: the skill a model can't
       invoke, the refusal under `CLAUDECODE`, the hook's Bash rule and the
       deny rule on every call
       closes: REQ-0894
+      evidence: the three `Guards` checks and `Hook.test_start_is_denied` pass
+      after failing first, and the five verbs pass. TSK-3400 carries the rest.
       depends: TSK-3390, because it extends the hook that task adds
 
 TSK-3360, TSK-3370, TSK-3380 and TSK-3390 can run in parallel once TSK-3350

@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.5.0]
+describes: [meow-loop@0.6.0]
 ---
 
 # meow-loop
@@ -25,6 +25,11 @@ claude plugin install meow-loop@meowpaw
 ```
 
 ## Start a run
+
+Only a person starts a run, from a terminal outside Claude Code, such as a
+separate tmux window, because the run holds that terminal until it ends. In a
+Claude Code session, `/meow-loop:loop` helps you write the prompt file and
+prints the command; it runs nothing, and the model can't invoke it.
 
 Before you start, declare each verb the run waits for under `[verbs]` in your
 repository's `.meowpaw/profile.toml`, and write the prompt to a file. Then run
@@ -180,9 +185,16 @@ never ends `idle`.
 
 A held command still runs files in the work tree: a call that rewrites a
 script or a task file the command runs changes what the condition checks,
-and no sha256 covers those files. This version also doesn't stop a session
-inside Claude Code from starting a run. Until later versions close both,
-start a run yourself, and read the run's diff before you trust a `finished`.
+and no sha256 covers those files. Read the run's diff before you trust a
+`finished`.
+
+Four guards stop the model starting a run: the skill `meow-loop:loop` only a
+person invokes, `start` refusing when `CLAUDECODE` is set, the hook denying a
+Bash command that runs `meow-loop start` or `meow loop start`, and every call
+passing `--disallowedTools "Bash(meow-loop *)" "Bash(meow loop *)"`. The hook
+reads the command's text, not what it expands to, so it misses a name hidden
+in a script or a variable, and it also denies a harmless command whose text
+holds those words, such as a search for `meow-loop start`.
 
 ## What it reports instead of a run
 
@@ -210,6 +222,7 @@ creates no run directory:
 
 | Line                                                                            | Means                                                                                                |
 | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `unresolved: a run starts from a terminal outside Claude Code`                  | `CLAUDECODE` is set, so the command ran inside a Claude Code session                                 |
 | `unresolved: not a git work tree`                                               | The current directory isn't inside one                                                               |
 | `unresolved: state writing is off, and a run needs state`                       | `MEOWPAW_STATE=off` is set                                                                           |
 | `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME` | None of the three variables names where state goes                                                   |
@@ -228,13 +241,15 @@ interrupted.
 
 ## What it costs you
 
-The unit ships no skill, so it keeps nothing in context on every turn, and its
-budget states zero characters. Its hook runs the native program on every Edit
-and Write, which loads nothing into context; on a machine the unit carries no
-binary for, the hook lets every write through. The program is a native binary shipped inside
-the unit. On a machine the unit carries no binary for, `start` reports the run
-as unresolved and exits 3. Each run leaves a directory of a few kilobytes in
-the state directory until a later run removes it.
+The unit's one skill, `meow-loop:loop`, is invoked only by a person, so its
+description isn't loaded into context, and the unit keeps nothing in context
+on every turn; its budget states zero characters. Its hook runs the native
+program on every Bash command, Edit and Write, which loads nothing into
+context; on a machine the unit carries no binary for, the hook lets every
+command and write through. The program is a native binary shipped inside the unit. On a
+machine the unit carries no binary for, `start` reports the run as unresolved
+and exits 3. Each run leaves a directory of a few kilobytes in the state
+directory until a later run removes it.
 
 ## What it needs
 
