@@ -12,6 +12,7 @@
 use request::{Failure, Layer, credential};
 use serde_json::{Value, json};
 
+mod guard;
 mod project;
 mod request;
 
@@ -24,13 +25,16 @@ const LISTINGS: [(&str, &str); 4] = [
     ("review comments", "pulls/comments?per_page=100"),
 ];
 
-const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic> [--check] [--wait] [<owner>/<name>]";
+const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic> [--check] [--wait] [<owner>/<name>] | governance-guard";
 
 pub fn main(args: &[String]) -> u8 {
     let Some((command, rest)) = args.split_first() else {
         eprintln!("{USAGE_LINE}");
         return USAGE;
     };
+    if command == "governance-guard" && rest.is_empty() {
+        return guard::main();
+    }
     let flag = |name: &str| rest.iter().any(|a| a == name);
     let (check, wait) = (flag("--check"), flag("--wait"));
     let words: Vec<&str> = rest

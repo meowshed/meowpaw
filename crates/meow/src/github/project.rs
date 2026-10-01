@@ -602,7 +602,8 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
             } else {
                 let full = format!("{body}\n\n{}", marker(&id, &print));
                 let endpoint = format!("repos/{repository}/issues/{issue}");
-                match layer.write("PATCH", &endpoint, &[("title", &title), ("body", &full)]) {
+                match layer.update_issue(&repository, &issue, &[("title", &title), ("body", &full)])
+                {
                     Ok(_) => match issue
                         .parse::<u64>()
                         .ok()
@@ -643,7 +644,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         }
         let full = format!("{body}\n\n{}", marker(&id, &print));
         let endpoint = format!("repos/{repository}/issues");
-        let answer = match layer.write("POST", &endpoint, &[("title", &title), ("body", &full)]) {
+        let answer = match layer.create_issue(&repository, &[("title", &title), ("body", &full)]) {
             Ok(answer) => answer,
             Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
                 halt(&stop);
