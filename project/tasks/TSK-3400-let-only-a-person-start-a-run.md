@@ -118,6 +118,13 @@ changes `Call.test_flags_and_prompt`, whose argv now holds the deny rule.
 `format`, `lint`, `check`, `test` and `build` each pass on the change's tree,
 as the pull request cites.
 
+Review of the first version found that an escaped space, a continued line
+and a redirect joined to `start` slipped past the hook, that an empty
+`CLAUDECODE` let `start` run, and that no check failed if the hook stopped
+matching Bash; all three are fixed and checked. The hook still reads text,
+so a name split by quotes, as in `st""art`, gets past it, as a name in a
+script or a variable does; the README says so.
+
 I made one choice the task leaves open. `meow-author cost` counts a skill
 only the person invokes as loading nothing, because the platform doesn't put
 its description in context, so `budget.toml` keeps 0 characters and its

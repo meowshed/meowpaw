@@ -761,7 +761,7 @@ fn start(args: &[String]) -> u8 {
     // A session inside Claude Code sets `CLAUDECODE`, so a run started from
     // one was started by the model, and only a person starts a run
     // (REQ-0894). Nothing is written before this refusal.
-    if std::env::var_os("CLAUDECODE").is_some_and(|v| !v.is_empty()) {
+    if std::env::var_os("CLAUDECODE").is_some() {
         println!("unresolved: a run starts from a terminal outside Claude Code");
         return UNRESOLVED;
     }
@@ -896,7 +896,8 @@ fn resolved(path: &Path) -> PathBuf {
     out
 }
 
-/// The `PreToolUse` hook on Edit and Write: it denies a write of any path under
+/// The `PreToolUse` hook on Bash, Edit and Write: it denies a Bash command
+/// that starts a run (REQ-0894), and a write of any path under
 /// the runs directory other than a run's `progress/progress.md`, because a
 /// run's files hold its terms and only the runner writes them (REQ-0874). The
 /// hash check decides whether the terms changed, whether or not this ran.
@@ -963,7 +964,7 @@ fn deny(reason: &str) {
 /// in a script or a variable (SPC-1201).
 fn starts_a_run(command: &str) -> bool {
     let words: Vec<&str> = command
-        .split(|c: char| c.is_whitespace() || "'\"`;&|()".contains(c))
+        .split(|c: char| c.is_whitespace() || "'\"`;&|()\\<>".contains(c))
         .filter(|w| !w.is_empty())
         .collect();
     words

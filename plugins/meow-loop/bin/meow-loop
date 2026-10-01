@@ -29,8 +29,9 @@ fi
 reason="no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"
 case "$1" in
 guard)
-  # The hook runs on every Edit and Write, and a hook that fails blocks them
-  # all, so with no binary it lets every write through to the hash check.
+  # The hook runs on every Bash command, Edit and Write, and a hook that
+  # fails blocks them all, so with no binary it lets each through: a write
+  # to the hash check, and a start to the refusal under CLAUDECODE.
   cat >/dev/null
   exit 0
   ;;

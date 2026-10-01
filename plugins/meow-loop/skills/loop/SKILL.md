@@ -15,10 +15,9 @@ Claude Code, because a run the model started is one nobody chose to pay for
 1. Ask what the run should achieve and which verbs must pass for it to be
    done, and read `.meowpaw/profile.toml` to see which of `format`, `lint`,
    `check`, `test` and `build` it declares.
-2. Write the prompt to a file the person names, outside `.claude/` and
-   outside the run's state directory: the work to do, the verbs that end it,
-   and where to leave notes for the next iteration, which the runner names
-   in its preamble.
+2. Write the prompt to a file the person names: the work to do, the verbs
+   that end it, and where to leave notes for the next iteration, which the
+   runner names in its preamble.
 3. Ask for the ceiling, the number of iterations, and the budget in US
    dollars, and choose neither yourself.
 4. Print the command, filled in, and stop:
@@ -38,4 +37,8 @@ Claude Code, because a run the model started is one nobody chose to pay for
 - L4. Write the prompt as the same text for every iteration, with no
   iteration number and no running total, because every call gets these bytes
   unchanged.
+- L5. Write the prompt file outside `.claude/` and outside the state
+  directory that holds the runs, because a change to `.claude/settings.json`
+  ends a run `tampered`, and the hook denies a write under the runs
+  directory.
 </rules>
