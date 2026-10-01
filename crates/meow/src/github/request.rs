@@ -885,8 +885,8 @@ fn sleep(seconds: f64) {
 #[cfg(test)]
 mod tests {
     use super::{
-        Failure, Layer, admits, create_issue_endpoint, governance, one_line, printable,
-        update_issue_endpoint, wait,
+        Failure, Layer, admits, create_issue_call, create_issue_endpoint, governance, one_line,
+        printable, update_issue_call, update_issue_endpoint, wait,
     };
 
     /// TSK-2980 criterion 1, REQ-2576: a write off the allow list is refused
@@ -938,17 +938,23 @@ mod tests {
             "repos/o/r/hooks/3",
             "repos/o/r/collaborators/ada",
             "repos/o/r/contents/.github/workflows/ci.yml",
+            "orgs/o/rulesets",
+            "orgs/o/rulesets/4",
+            "/repos/o/r/hooks/1",
+            "https://ghe.example.com/repos/o/r/hooks/1",
         ] {
             assert!(governance(endpoint), "{endpoint}");
         }
     }
 
-    /// TSK-2980 criterion 3, REQ-2576: the crate builds a write only through
-    /// the two allow-list endpoints, so no other module calls `write`.
+    /// TSK-2980 criterion 3, REQ-2576: the crate's two writes send what the
+    /// allow list admits, as `create_issue` and `update_issue` send them, and
+    /// no other module calls `write`.
     #[test]
     fn every_built_write_is_allowed() {
-        assert!(admits("POST", &create_issue_endpoint("o/r")).is_ok());
-        assert!(admits("PATCH", &update_issue_endpoint("o/r", 7)).is_ok());
+        for (method, endpoint) in [create_issue_call("o/r"), update_issue_call("o/r", "7")] {
+            assert!(admits(method, &endpoint).is_ok(), "{method} {endpoint}");
+        }
         let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
         let mut files = vec![src.join("github.rs")];
         for entry in std::fs::read_dir(src.join("github")).expect("src/github reads") {
@@ -962,6 +968,7 @@ mod tests {
             let text = std::fs::read_to_string(&file).expect("a source file reads");
             assert!(!text.contains(call), "{} calls write", file.display());
         }
+    }
     }
 
     /// TSK-4030, REQ-3324: a message quoted in a report stays on one line and
