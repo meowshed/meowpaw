@@ -83,7 +83,8 @@ if config.get("no_cost"):
 print(json.dumps(result))
 '''
 
-PROFILE = '[verbs]\ntest = "test -f done.flag"\n\n[git]\ntrunk = "main"\n'
+# `[verbs]` comes last, so a check that appends a verb's line to the profile adds it to that table.
+PROFILE = '[git]\ntrunk = "main"\n\n[verbs]\ntest = "test -f done.flag"\n'
 # A run binds to one step of the method. The standard terms implement TSK-0001, whose work is done, so the step's
 # test holds and a run's condition rests on its verbs, as every check written before TSK-3410 expects.
 TERMS = ["--step", "implement", "--inputs", "TSK-0001", "--prompt", "prompt.md", "--until", "verbs=test",
