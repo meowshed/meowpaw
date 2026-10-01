@@ -126,7 +126,7 @@ impl Finding {
     }
 }
 
-struct Record {
+pub(crate) struct Record {
     layout: Layout,
     docs: Vec<Doc>,
     outside: Vec<Doc>,
@@ -803,6 +803,12 @@ fn load_layout() -> Result<Layout, String> {
 }
 
 fn record_root(repository: &Path) -> Result<PathBuf, String> {
+    Ok(repository.join(declared_root(repository)?))
+}
+
+/// The record's root as the profile declares it, `[record] root`, or
+/// `project`.
+pub(crate) fn declared_root(repository: &Path) -> Result<String, String> {
     let declared = match profile::read(repository) {
         Profile::Parsed(data) => data
             .get("record")
@@ -813,7 +819,7 @@ fn record_root(repository: &Path) -> Result<PathBuf, String> {
         Profile::Unparseable(reason) => return Err(format!("the profile can't be read: {reason}")),
         Profile::Absent => None,
     };
-    Ok(repository.join(declared.unwrap_or_else(|| "project".into())))
+    Ok(declared.unwrap_or_else(|| "project".into()))
 }
 
 fn markdown_under(dir: &Path, leave_out: Option<&Path>, out: &mut Vec<PathBuf>) {
@@ -2528,6 +2534,92 @@ fn task_finished(known: &BTreeMap<String, &Doc>, task: &str) -> bool {
         .is_some_and(|doc| finished(mark_of(known, doc)))
 }
 
+/// What keeps the inputs from being ready for a step, one line each, as `paw
+/// ready` prints them: empty where every input is ready.
+pub(crate) fn unready(
+    record: &Record,
+    repository: &Path,
+    root: &Path,
+    step: &str,
+    ids: &[String],
+) -> Vec<String> {
+    let trunk = (step == "implement").then(|| trunk_of(repository, root));
+    let known = known(record);
+    let mut missing: Vec<String> = Vec::new();
+    for id in ids {
+        let Some(doc) = known.get(id.as_str()) else {
+            missing.push(format!("{id} has no file"));
+            continue;
+        };
+        let kind = kind_of(record, doc);
+        match step {
+            "requirements" | "design" | "spec" | "epic" | "implement" if !approved(doc) => {
+                missing.push(format!(
+                    "{id}, a {kind}, is {} and not approved",
+                    bare(doc.value("status"))
+                ));
+                continue;
+            }
+            _ => {}
+        }
+        match step {
+            "epic" if kind == "decision" => {
+                let mut stated = BTreeSet::new();
+                for spec in of_kind(record, "specification") {
+                    stated.extend(requirements_in(record, spec.value("states")));
+                }
+                for requirement in requirements_in(record, doc.value("addresses")) {
+                    if !stated.contains(&requirement) {
+                        missing.push(format!(
+                            "{requirement}, which {id} addresses, is stated by no specification"
+                        ));
+                    }
+                }
+            }
+            "implement" => {
+                let epic_id = authority_of(doc);
+                let what = if !bare(doc.value("epic")).is_empty() {
+                    "the epic"
+                } else if !bare(doc.value("bug")).is_empty() {
+                    "the defect"
+                } else {
+                    "the decision"
+                };
+                match known.get(epic_id) {
+                    Some(epic) if what == "the decision" && kind_of(record, epic) != "decision" => {
+                        missing.push(format!("{id} realises {epic_id}, which is not a decision"))
+                    }
+                    Some(epic) if approved(epic) => {}
+                    Some(epic) => missing.push(format!(
+                        "{epic_id}, {what} of {id}, is {} and not approved",
+                        bare(epic.value("status"))
+                    )),
+                    None if epic_id.is_empty() => {
+                        missing.push(format!("{id} names no epic, no defect and no decision"))
+                    }
+                    None => missing.push(format!("{epic_id}, {what} of {id}, has no file")),
+                }
+                for dependency in depends_on(doc) {
+                    if !task_finished(&known, &dependency) {
+                        missing.push(format!("{dependency}, which {id} depends on, isn't done"));
+                    }
+                }
+                if !task_finished(&known, id)
+                    && let Some(name) = trunk
+                        .as_ref()
+                        .and_then(|trunk| off_trunk(repository, trunk, doc))
+                {
+                    missing.push(format!(
+                        "{id} is not approved on {name} yet, so it waits on the merge of the change that approves it"
+                    ));
+                }
+            }
+            _ => {}
+        }
+    }
+    missing
+}
+
 fn ready(rest: &[String]) -> u8 {
     let Some((step, ids)) = rest.split_first() else {
         eprintln!(
@@ -2560,82 +2652,7 @@ fn ready(rest: &[String]) -> u8 {
         Ok(opened) => opened,
         Err(code) => return code,
     };
-    let trunk = (step == "implement").then(|| trunk_of(&repository, &root));
-    let known = known(&record);
-    let mut missing: Vec<String> = Vec::new();
-    for id in ids {
-        let Some(doc) = known.get(id.as_str()) else {
-            missing.push(format!("{id} has no file"));
-            continue;
-        };
-        let kind = kind_of(&record, doc);
-        match step {
-            "requirements" | "design" | "spec" | "epic" | "implement" if !approved(doc) => {
-                missing.push(format!(
-                    "{id}, a {kind}, is {} and not approved",
-                    bare(doc.value("status"))
-                ));
-                continue;
-            }
-            _ => {}
-        }
-        match step {
-            "epic" if kind == "decision" => {
-                let mut stated = BTreeSet::new();
-                for spec in of_kind(&record, "specification") {
-                    stated.extend(requirements_in(&record, spec.value("states")));
-                }
-                for requirement in requirements_in(&record, doc.value("addresses")) {
-                    if !stated.contains(&requirement) {
-                        missing.push(format!(
-                            "{requirement}, which {id} addresses, is stated by no specification"
-                        ));
-                    }
-                }
-            }
-            "implement" => {
-                let epic_id = authority_of(doc);
-                let what = if !bare(doc.value("epic")).is_empty() {
-                    "the epic"
-                } else if !bare(doc.value("bug")).is_empty() {
-                    "the defect"
-                } else {
-                    "the decision"
-                };
-                match known.get(epic_id) {
-                    Some(epic)
-                        if what == "the decision" && kind_of(&record, epic) != "decision" =>
-                    {
-                        missing.push(format!("{id} realises {epic_id}, which is not a decision"))
-                    }
-                    Some(epic) if approved(epic) => {}
-                    Some(epic) => missing.push(format!(
-                        "{epic_id}, {what} of {id}, is {} and not approved",
-                        bare(epic.value("status"))
-                    )),
-                    None if epic_id.is_empty() => {
-                        missing.push(format!("{id} names no epic, no defect and no decision"))
-                    }
-                    None => missing.push(format!("{epic_id}, {what} of {id}, has no file")),
-                }
-                for dependency in depends_on(doc) {
-                    if !task_finished(&known, &dependency) {
-                        missing.push(format!("{dependency}, which {id} depends on, isn't done"));
-                    }
-                }
-                if !task_finished(&known, id)
-                    && let Some(name) = trunk
-                        .as_ref()
-                        .and_then(|trunk| off_trunk(&repository, trunk, doc))
-                {
-                    missing.push(format!(
-                        "{id} is not approved on {name} yet, so it waits on the merge of the change that approves it"
-                    ));
-                }
-            }
-            _ => {}
-        }
-    }
+    let missing = unready(&record, &repository, &root, step, ids);
     if missing.is_empty() {
         say!(
             "paw ready {step}: ready; {} approved and complete",
@@ -2648,6 +2665,145 @@ fn ready(rest: &[String]) -> u8 {
             say!("  {line}");
         }
         FOUND
+    }
+}
+
+/// The steps a run of `meow-loop` takes, which are every step but review
+/// (SPC-1201).
+#[cfg(feature = "loop")]
+pub(crate) const RUN_STEPS: [&str; 6] = [
+    "research",
+    "requirements",
+    "design",
+    "spec",
+    "epic",
+    "implement",
+];
+
+/// The record under `root` as a run reads it, with the layout `MEOW_LAYOUT`
+/// names or the copy `meow-loop` ships in its own `lib/layout.toml`.
+#[cfg(feature = "loop")]
+pub(crate) fn read_for_run(repository: &Path, root: &Path) -> Result<Record, String> {
+    Ok(read_record(load_layout()?, repository, root))
+}
+
+/// One record as the copy held at the start of a run keeps it.
+#[cfg(feature = "loop")]
+#[allow(dead_code)]
+struct HeldDoc {
+    id: String,
+    kind: Option<usize>,
+    path: PathBuf,
+    status: String,
+    text: String,
+}
+
+/// The copy of the record a run holds from start, which "new since start" and
+/// "changed since start" compare with (SPC-1201).
+#[cfg(feature = "loop")]
+pub(crate) struct Held {
+    docs: Vec<HeldDoc>,
+}
+
+#[cfg(feature = "loop")]
+impl Held {
+    /// The record held for this document: the one of its identifier, or the
+    /// one at its path, so a record whose identifier a call removed or changed
+    /// is still the record held there.
+    fn of(&self, doc: &Doc) -> Option<&HeldDoc> {
+        let id = bare(doc.id());
+        self.docs
+            .iter()
+            .find(|held| !id.is_empty() && held.id == id)
+            .or_else(|| self.docs.iter().find(|held| held.path == doc.path))
+    }
+}
+
+/// Takes the copy of the record a run holds: each record's identifier, kind,
+/// path, stored status and text.
+#[cfg(feature = "loop")]
+pub(crate) fn hold(record: &Record) -> Held {
+    Held {
+        docs: record
+            .docs
+            .iter()
+            .filter(|doc| doc.kind.is_some())
+            .map(|doc| HeldDoc {
+                id: bare(doc.id()).to_string(),
+                kind: doc.kind,
+                path: doc.path.clone(),
+                status: bare(doc.value("status")).to_string(),
+                text: doc.text.clone(),
+            })
+            .collect(),
+    }
+}
+
+/// Whether the step's test holds over `inputs`, as SPC-1201's table states.
+/// A record counts whatever its status. Every step but `implement` counts
+/// only a record new or changed since `held` was taken, so before the copy
+/// exists only `implement` can hold.
+#[cfg(feature = "loop")]
+pub(crate) fn step_holds(
+    record: &Record,
+    held: Option<&Held>,
+    step: &str,
+    inputs: &[String],
+) -> bool {
+    let known = known(record);
+    if step == "implement" {
+        return inputs.iter().all(|id| {
+            known.get(id.as_str()).is_some_and(|task| {
+                kind_of(record, task) == "task"
+                    && mark_of(&known, task) == 'x'
+                    && !evidence_of(task).is_empty()
+            })
+        });
+    }
+    let Some(held) = held else {
+        return false;
+    };
+    let new = |doc: &Doc| held.of(doc).is_none();
+    let touched = |doc: &Doc| held.of(doc).is_none_or(|then| then.text != doc.text);
+    let cites = |doc: &Doc, keys: &[&str], id: &str| {
+        keys.iter().any(|key| {
+            record
+                .ids
+                .find_iter(doc.value(key))
+                .any(|m| m.as_str() == id)
+        })
+    };
+    let any = |kind: &str, keep: &dyn Fn(&Doc) -> bool| of_kind(record, kind).into_iter().any(keep);
+    match step {
+        "research" => any("research", &|doc| new(doc)),
+        "requirements" => inputs.iter().all(|id| {
+            any("requirement", &|doc| {
+                touched(doc) && cites(doc, &["elaborates"], id)
+            })
+        }),
+        "design" => inputs.iter().all(|id| {
+            any("decision", &|doc| {
+                new(doc) && cites(doc, &["addresses", "postpones"], id)
+            })
+        }),
+        // A decision that addresses nothing, or an input that is no decision,
+        // gives the step no work, so its test never holds.
+        "spec" => inputs.iter().all(|id| {
+            known.get(id.as_str()).is_some_and(|decision| {
+                let addressed = requirements_in(record, decision.value("addresses"));
+                kind_of(record, decision) == "decision"
+                    && !addressed.is_empty()
+                    && addressed.iter().all(|requirement| {
+                        any("specification", &|doc| {
+                            touched(doc) && cites(doc, &["states"], requirement)
+                        })
+                    })
+            })
+        }),
+        "epic" => inputs
+            .iter()
+            .all(|id| any("epic", &|doc| new(doc) && cites(doc, &["realises"], id))),
+        _ => false,
     }
 }
 

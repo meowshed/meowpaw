@@ -550,7 +550,7 @@ TSK-3350 to TSK-3400, all of them done, and each of the nine
 requirements
 ADR-2010 addresses lands in one of them.
 [EPC-1920](epics/EPC-1920-a-run-bound-to-one-step.md) realises ADR-2020 in
-four tasks, TSK-3410 to TSK-3440, none of them started, and each of the two
+four tasks, TSK-3410 to TSK-3440, of which TSK-3410 is done, and each of the two
 requirements ADR-2020 addresses lands in one of them.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
@@ -647,8 +647,10 @@ addresses lands in one of them.
 | [BUG-1342](bugs/BUG-1342-the-unattended-suite-passes-a-plan-that-ignores-the-declaration.md) | The `meow-unattended` checks passed nine versions of `plan` that ignore what the repository declares                            |
 | [BUG-1370](bugs/BUG-1370-the-trunk-guard-misreads-a-trunk-outside-the-plain-case.md)         | `paw` misjudged a task's approval on the trunk with CRLF endings, a remote not named `origin`, or a link leaving the repository |
 | [BUG-1380](bugs/BUG-1380-the-method-skill-names-nobody-to-open-the-one-pull-request.md)      | The method skill named nobody to open the pull request on the one-pull-request path                                             |
+| [BUG-1390](bugs/BUG-1390-spc-1201-leaves-five-failure-states-unnamed.md)                     | SPC-1201 leaves five failure states of a run unnamed                                                                            |
 
 Forty are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
-after its fix, and says so.
+after its fix, and says so. BUG-1390 is a draft, and routes to the spec step,
+because SPC-1201 leaves out failure states that `meow-loop` reaches.

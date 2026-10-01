@@ -115,11 +115,13 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
 
 ## Tasks
 
-- [ ] T-001 TSK-3410 bind `start` to `--step` and `--inputs`, hold a copy of
+- [x] T-001 TSK-3410 bind `start` to `--step` and `--inputs`, hold a copy of
       the record, and finish a run only when the step's test and the verbs
       pass at one tree, in `plugins/meow-loop/` and the `loop` feature of
       `crates/meow`
       closes: REQ-0884
+      evidence: the `Step` checks pass after failing first in their own
+      commits, and the five verbs pass. TSK-3410 carries the rest.
       depends: TSK-3360 (blocking) - the preamble this task extends
       depends: TSK-3370 (blocking) - the condition and the meter checks
       depends: TSK-3390 (blocking) - the held verb commands and hash checks

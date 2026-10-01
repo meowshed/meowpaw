@@ -1,15 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! Repeat one prompt in fresh `claude -p` calls until the named verbs pass or
-//! the ceiling ends the run.
+//! Repeat one prompt in fresh `claude -p` calls until one step's work is done
+//! and the named verbs pass, or the ceiling ends the run.
 //!
 //! SPC-1201 states the behaviour. `start` refuses to begin without a
 //! condition, a ceiling and a budget (REQ-0872), keeps a run's files under the
 //! state directory and never in the work tree, and holds the ceiling in this
-//! process, so nothing a call prints or writes extends it. The runner decides
-//! the condition from each verb's exit status and reads nothing the model
-//! printed. Every call gets the prompt's bytes as they were at start and one
+//! process, so nothing a call prints or writes extends it. A run is bound to
+//! one step of the method over inputs that are ready (REQ-0888), and the
+//! runner decides the condition from the step's test on the record and each
+//! verb's exit status at one tree, reading nothing the model printed
+//! (REQ-0884). Every call gets the prompt's bytes as they were at start and one
 //! fixed preamble, in a new session (REQ-0880), and what an iteration leaves
 //! for the next goes in the run's progress file (REQ-0882). Before each call
 //! the runner checks that the spend so far and one more call as large as the
@@ -17,6 +19,7 @@
 //! read ends the run, because a spend that can't be summed bounds nothing.
 
 use crate::profile;
+use crate::record;
 use crate::verbs::{self, ledger};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -39,7 +42,9 @@ const MODE: &str = "dontAsk";
 const SLACK: f64 = 1e-9;
 /// How many of a work tree's runs are kept, the new one among them (ADR-2010).
 const KEPT: usize = 20;
-const VALUED: [&str; 7] = [
+const VALUED: [&str; 9] = [
+    "--step",
+    "--inputs",
     "--prompt",
     "--until",
     "--iterations",
@@ -51,6 +56,8 @@ const VALUED: [&str; 7] = [
 
 /// What the person typed, read once and held for the whole run.
 struct Terms {
+    step: String,
+    inputs: Vec<String>,
     prompt: Vec<u8>,
     verbs: Vec<String>,
     iterations: i64,
@@ -88,7 +95,8 @@ fn terms(args: &[String]) -> Result<Terms, Vec<String>> {
         }
         found.map(|(_, value)| *value)
     };
-    let (prompt, until, iterations, budget, mode) = (
+    let (step, prompt, until, iterations, budget, mode) = (
+        stated("--step"),
         stated("--prompt"),
         stated("--until"),
         stated("--iterations"),
@@ -96,6 +104,32 @@ fn terms(args: &[String]) -> Result<Terms, Vec<String>> {
         stated("--permission-mode"),
     );
 
+    let given = single
+        .iter()
+        .rev()
+        .find(|(name, _)| *name == "--inputs")
+        .map(|(_, list)| *list);
+    let inputs: Vec<String> = given
+        .into_iter()
+        .flat_map(|list| list.split(','))
+        .map(str::trim)
+        .filter(|id| !id.is_empty())
+        .map(str::to_string)
+        .collect();
+    let step = step.and_then(|step| {
+        if !record::RUN_STEPS.contains(&step) {
+            errors.push(format!("--step {step} is not a step a run takes"));
+            None
+        } else if step == "research" && given.is_some() {
+            errors.push("research takes no --inputs".to_string());
+            None
+        } else if step != "research" && inputs.is_empty() {
+            errors.push(format!("--step {step} needs --inputs"));
+            None
+        } else {
+            Some(step.to_string())
+        }
+    });
     let prompt = prompt.and_then(|file| {
         std::fs::read(file)
             .map_err(|_| errors.push(format!("--prompt {file} can't be read")))
@@ -159,15 +193,19 @@ fn terms(args: &[String]) -> Result<Terms, Vec<String>> {
         errors.push(format!("--permission-mode {value} is refused"));
     }
 
-    match (prompt, ceiling, budget_usd) {
-        (Some(prompt), Some(iterations), Some(budget_usd)) if errors.is_empty() => Ok(Terms {
-            prompt,
-            verbs: named,
-            iterations,
-            budget_usd,
-            allowed,
-            plugin_dirs,
-        }),
+    match (step, prompt, ceiling, budget_usd) {
+        (Some(step), Some(prompt), Some(iterations), Some(budget_usd)) if errors.is_empty() => {
+            Ok(Terms {
+                step,
+                inputs,
+                prompt,
+                verbs: named,
+                iterations,
+                budget_usd,
+                allowed,
+                plugin_dirs,
+            })
+        }
         _ => Err(errors),
     }
 }
@@ -288,6 +326,8 @@ fn run_table(root: &Path, terms: &Terms, commands: &[(String, String)]) -> toml:
         toml::Value::Array(items.iter().cloned().map(toml::Value::String).collect())
     };
     let mut table = toml::Table::new();
+    table.insert("step".into(), terms.step.clone().into());
+    table.insert("inputs".into(), strings(&terms.inputs));
     table.insert("prompt_sha256".into(), sha256(&terms.prompt).into());
     let settings = match std::fs::read(root.join(".claude").join("settings.json")) {
         Ok(bytes) => sha256(&bytes),
@@ -325,18 +365,25 @@ fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
     std::fs::write(path, bytes).map_err(|error| format!("can't write {}: {error}", path.display()))
 }
 
-/// One evaluation of the condition: it holds only when every named verb's
-/// command exits 0 and the tree is identified and the same after the verbs as
-/// before them. Where the verbs changed the tree, they run once more and that
-/// second result stands, so a verb that settles after one pass can finish the
-/// run and one that changes the tree on every pass never does.
-fn evaluate(root: &Path, held: &[(String, String)]) -> Result<bool, String> {
+/// One evaluation of the condition: it holds only when the step's test passes,
+/// every named verb's command exits 0, and the tree is identified and the same
+/// after the verbs as before the test. Where the verbs changed the tree, the
+/// evaluation runs once more and that second result stands, so a verb that
+/// settles after one pass can finish the run and one that changes the tree on
+/// every pass never does. `copy` is the record held at start, which the first
+/// evaluation runs without.
+fn evaluate(root: &Path, context: &Context, copy: Option<&record::Held>) -> Result<bool, String> {
     for _ in 0..2 {
-        let mut passed = true;
-        let mut ends: Option<(String, String)> = None;
+        let before = ledger::tree_id(root);
+        let read = record::read_for_run(root, &context.record_root)?;
+        let mut passed = record::step_holds(&read, copy, &context.step, &context.inputs);
+        match passed {
+            true => println!("step {}: its test holds", context.step),
+            false => println!("step {}: its test doesn't hold", context.step),
+        }
         // Each verb runs the command it resolved to at start, so a call that
         // rewrites the profile changes no condition (REQ-0874).
-        for (verb, command) in held {
+        for (verb, command) in &context.held {
             let ran = verbs::run_recorded(root, verb, command)
                 .map_err(|reason| format!("verb {verb} didn't run: {reason}"))?;
             match ran.status {
@@ -347,14 +394,8 @@ fn evaluate(root: &Path, held: &[(String, String)]) -> Result<bool, String> {
                 println!("not recorded: {verb} ({reason})");
             }
             passed &= ran.status == 0;
-            ends = Some(match ends {
-                Some((before, _)) => (before, ran.after),
-                None => (ran.before, ran.after),
-            });
         }
-        let Some((before, after)) = ends else {
-            return Ok(false);
-        };
+        let after = ledger::tree_id(root);
         if before == ledger::UNBOUND || after == ledger::UNBOUND {
             return Ok(false);
         }
@@ -384,6 +425,11 @@ struct Context {
     unit: PathBuf,
     /// Each named verb with the command it resolved to at start.
     held: Vec<(String, String)>,
+    /// The step the run is bound to, and its inputs.
+    step: String,
+    inputs: Vec<String>,
+    /// The record's root, checked at start.
+    record_root: PathBuf,
     /// The files whose change ends the run `tampered`: the run's `run.toml`
     /// and `prompt.md`, and the work tree's `.claude/settings.json`.
     watched: [PathBuf; 3],
@@ -396,12 +442,13 @@ impl Context {
         terms: &Terms,
         unit: PathBuf,
         held: Vec<(String, String)>,
+        record_root: PathBuf,
     ) -> Result<Self, String> {
         let progress = dir.join("progress");
         let progress = progress
             .canonicalize()
             .map_err(|error| format!("can't resolve {}: {error}", progress.display()))?;
-        let preamble = preamble(&progress.join("progress.md"), &terms.verbs);
+        let preamble = preamble(&progress.join("progress.md"), terms);
         let watched = [
             dir.join("run.toml"),
             dir.join("prompt.md"),
@@ -412,6 +459,9 @@ impl Context {
             preamble,
             unit,
             held,
+            step: terms.step.clone(),
+            inputs: terms.inputs.clone(),
+            record_root,
             watched,
         })
     }
@@ -442,9 +492,25 @@ impl Context {
     }
 }
 
+/// What each step may write, as SPC-1201's table states.
+fn may_write(step: &str) -> &'static str {
+    match step {
+        "research" => "research records",
+        "requirements" => "requirements",
+        "design" => "decisions",
+        "spec" => "specifications",
+        "epic" => "epics and tasks",
+        _ => "tasks, the task marks of epics and defects, and any path outside the record's root",
+    }
+}
+
 /// The preamble every call of a run carries. It holds no iteration number and
 /// no spend, so its bytes are the same on every call (REQ-0880).
-fn preamble(progress: &Path, verbs: &[String]) -> String {
+fn preamble(progress: &Path, terms: &Terms) -> String {
+    let over = match terms.inputs.as_slice() {
+        [] => String::new(),
+        inputs => format!(" over {}", inputs.join(", ")),
+    };
     format!(
         "<role>
 This session is one iteration of a run that `meow-loop` repeats. Each
@@ -458,15 +524,26 @@ iteration said is in this conversation.
 - L2. Before you stop, bring that file up to date with what is done, what is
   left and what failed, keeping what it already holds that is still true,
   because this conversation ends with the session and the file carries over.
-- L3. Work until the condition `verbs={verbs}` holds, and never report it as
-  held, because the runner runs those verification verbs itself after this
-  session and decides from their exit status whether the run is finished.
+- L3. Work until the `{step}` step's test holds on the record and the
+  condition `verbs={verbs}` holds at one tree, and never report either
+  as held, because the runner checks both itself after this session and
+  decides from them whether the run is finished.
 - L4. Never try to extend the run, because the runner holds its bounds in its
   own process and nothing this session writes or prints changes them.
+- L5. Do the `{step}` step of the method{over}, and write only {writes}, or a
+  defect or an insight as a draft, because the run is bound to that one step
+  and the runner applies that step's test to the record.
+- L6. Never give a record a decided status, change an approved record, or
+  change another step's files, because each ends the run early: a decided
+  status and an approved record are a person's to change.
+- L7. Where the work shows an approved artifact is wrong, record a defect as a
+  draft and leave the artifact as it is, because a person decides the change.
 </rules>
 ",
         file = progress.display(),
-        verbs = verbs.join(","),
+        verbs = terms.verbs.join(","),
+        step = terms.step,
+        writes = may_write(&terms.step),
     )
 }
 
@@ -621,13 +698,16 @@ fn run(
             "tampered"
         })
     };
-    if evaluate(root, &context.held)? {
+    if evaluate(root, context, None)? {
         // The verbs may themselves have changed a watched file.
         if let Some(ending) = tampered() {
             return Ok(ending);
         }
         return Ok("finished");
     }
+    // The copy is taken after the first evaluation, so a verb that rewrote a
+    // record then is never blamed on the first call (SPC-1201).
+    let copy = record::hold(&record::read_for_run(root, &context.record_root)?);
     let (mut spend, mut largest) = (0.0_f64, 0.0_f64);
     let progress = context.progress.join("progress.md");
     // A progress file the runner can't read counts as changed, as an
@@ -716,7 +796,7 @@ fn run(
         }
         // An unchanged tree would repeat the last result.
         let held = if after != before || after == ledger::UNBOUND {
-            let held = evaluate(root, &context.held)?;
+            let held = evaluate(root, context, Some(&copy))?;
             line["condition"] = json!(held);
             log_line(log, Some(&logged), &line)?;
             Some(held)
@@ -799,6 +879,15 @@ fn start(args: &[String]) -> u8 {
     if unresolved {
         return UNRESOLVED;
     }
+    let record_root = match ready(&root, &terms) {
+        Ok(record_root) => record_root,
+        Err(lines) => {
+            for line in lines {
+                refuse(&line);
+            }
+            return UNRESOLVED;
+        }
+    };
     let _held = match lock(&runs) {
         Ok(file) => file,
         Err(reason) => return refuse(&reason),
@@ -823,7 +912,7 @@ fn start(args: &[String]) -> u8 {
         })
         .and_then(|()| write(&dir.join("progress").join("progress.md"), b""))
         .and_then(|()| write(&log, b""))
-        .and_then(|()| Context::new(&dir, &root, &terms, unit, commands.clone()));
+        .and_then(|()| Context::new(&dir, &root, &terms, unit, commands.clone(), record_root));
     let context = match written {
         Ok(context) => context,
         Err(reason) => {
@@ -848,6 +937,60 @@ fn start(args: &[String]) -> u8 {
         FINISHED
     } else {
         ENDED
+    }
+}
+
+/// The record's root, where it can hold the step's test, and the step's
+/// inputs are ready for it; or each reason one isn't, as the line `paw ready`
+/// would print. The root has to sit inside the work tree, exist and be kept by
+/// git, because otherwise the tree id leaves the record out and binds the
+/// step's test to no tree.
+fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
+    let declared = record::declared_root(root).map_err(|reason| vec![reason])?;
+    let record_root = resolved(&root.join(&declared));
+    let tree = resolved(root);
+    let Ok(inside) = record_root.strip_prefix(&tree) else {
+        return Err(vec![format!(
+            "record root {declared} is outside the work tree"
+        )]);
+    };
+    if !record_root.is_dir() {
+        return Err(vec![format!("record root {declared} is missing")]);
+    }
+    // `check-ignore` exits 0 for an ignored path and 1 for a kept one, and
+    // anything else leaves it unknown whether the tree id covers the record.
+    let checked = profile::reading_git()
+        .current_dir(&tree)
+        .args(["check-ignore", "-q", "--"])
+        .arg(if inside.as_os_str().is_empty() {
+            Path::new(".")
+        } else {
+            inside
+        })
+        .status();
+    match checked.as_ref().map(std::process::ExitStatus::code) {
+        Ok(Some(1)) => {}
+        Ok(Some(0)) => return Err(vec![format!("record root {declared} is ignored by git")]),
+        Ok(code) => {
+            return Err(vec![format!(
+                "can't check whether record root {declared} is ignored by git: git check-ignore {}",
+                code.map_or("was ended by a signal".to_string(), |code| format!(
+                    "exited {code}"
+                ))
+            )]);
+        }
+        Err(error) => {
+            return Err(vec![format!(
+                "can't check whether record root {declared} is ignored by git: {error}"
+            )]);
+        }
+    }
+    let read = record::read_for_run(root, &record_root).map_err(|reason| vec![reason])?;
+    let missing = record::unready(&read, root, &record_root, &terms.step, &terms.inputs);
+    if missing.is_empty() {
+        Ok(record_root)
+    } else {
+        Err(missing)
     }
 }
 
@@ -1009,7 +1152,7 @@ pub fn main(args: &[String]) -> u8 {
         Some((command, rest)) if command == "guard" && rest.is_empty() => guard(),
         _ => {
             eprintln!(
-                "usage: meow-loop start --prompt <file> --until verbs=<verb>[,<verb>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..."
+                "usage: meow-loop start --step <step> [--inputs <id>[,<id>...]] --prompt <file> --until verbs=<verb>[,<verb>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..."
             );
             USAGE
         }
@@ -1047,6 +1190,7 @@ mod tests {
         // REQ-0872: no run starts without a condition, a ceiling and a budget.
         let found = errors(&[]);
         for flag in [
+            "--step",
             "--prompt",
             "--until",
             "--iterations",
@@ -1058,7 +1202,7 @@ mod tests {
                 "{flag} in {found:?}"
             );
         }
-        assert_eq!(found.len(), 5);
+        assert_eq!(found.len(), 6);
     }
 
     #[test]

@@ -1,0 +1,163 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# The record's layout, as CLAUDE.md states it and SPC-1070 reads it: for each
+# kind, where its files live under the record's root, the front matter it
+# requires, the statuses it may store, the file that indexes it, and the
+# sections it must carry. Paths are relative to the root.
+
+# Every artifact carries these, whatever its kind.
+fields = ["id", "artifact", "status", "revised"]
+
+# The front matter fields whose values name other artifacts.
+relations = ["elaborates", "addresses", "postpones", "supersedes", "realises", "epic", "bug", "closes", "states", "violates", "prompted-by"]
+
+# Per kind: `sections` every record carries, `draft_sections` a draft carries
+# as well, `first_section` it opens with, `required_values` fields it must
+# fill, `forbidden_fields` it must not carry, and the named checks of `rules`
+# for every record and `draft_rules` for drafts only (ADR-1140). A rule the
+# approved record already breaks applies to drafts, because an approved record
+# is frozen.
+
+# A file with this name is an index, and indexes are checked as indexes.
+index_name = "README.md"
+
+# Names the record has retired, each with what replaced it (ADR-1240). A
+# retired name is never reused, because reuse gives every old record carrying
+# it a new meaning and nothing fails; the check refuses it in a record and in
+# a kind below.
+[retired.fields]
+unit = "the unit of work is named by the relations the record carries"
+checked-at = "no verification is recorded; a requirement closes with the tasks that name it (ADR-2300)"
+
+# Sections the record has retired, reported wherever one is still carried.
+[retired.sections]
+Cover = "a task's tests land first in its own pull request, and nothing in the task records them (ADR-2300)"
+Verified = "no verification is recorded; an epic closes with its tasks (ADR-2300)"
+"Open review findings" = "no agent reviews a record, so none leaves findings in it (ADR-2300)"
+
+[retired.statuses]
+proposed = "replaced by draft"
+current = "replaced by live"
+
+[[kind]]
+name = "vision"
+artifact = "vision"
+file = "vision.md"
+statuses = ["live"]
+
+[[kind]]
+name = "onboarding"
+artifact = "onboarding"
+file = "onboarding.md"
+statuses = ["draft", "approved", "superseded"]
+sections = ["Verbs", "Conventions", "Documents", "Gaps", "Adoption"]
+first_section = "Verbs"
+rules = ["adoption-in-steps"]
+
+[[kind]]
+name = "specification"
+artifact = "spec"
+prefix = "SPC"
+dir = "specs"
+fields = ["states"]
+statuses = ["live"]
+index = "README.md"
+sections = ["Scope", "Boundary", "Behaviour", "Failure paths"]
+
+[[kind]]
+name = "research"
+artifact = "research"
+prefix = "RES"
+dir = "research"
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "research/RES-0001-synthesis.md"
+sections = ["Summary", "Method", "Conclusions", "Sources"]
+first_section = "Summary"
+draft_rules = ["sources-dated", "cites-no-requirement"]
+rules = ["prompted-by-defect"]
+
+[[kind]]
+name = "requirement"
+artifact = "requirement"
+prefix = "REQ"
+dir = "requirements"
+fields = ["topic", "class", "verification", "elaborates"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "requirements/README.md"
+forbidden_fields = ["priority", "owner", "difficulty"]
+draft_rules = ["judgement-verifier", "one-obligation", "stands-alone", "no-negated-requirement"]
+rules = ["prompted-by-defect", "verification-kind"]
+
+[[kind]]
+name = "decision"
+artifact = "adr"
+prefix = "ADR"
+dir = "adrs"
+fields = ["addresses"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "adrs/README.md"
+sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]
+draft_sections = ["How I will know it was realised", "What this does not settle"]
+rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect"]
+
+[[kind]]
+name = "epic"
+artifact = "epic"
+prefix = "EPC"
+dir = "epics"
+fields = ["realises"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "README.md"
+sections = ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]
+rules = ["realises-one", "done-has-evidence", "added-says-why", "dropped-says-why", "defect-epic-ordered"]
+# A task sits under its epic or its defect and nothing else, so the task, epic
+# and defect kinds forbid every grouping field, and an epic forbids `epic`,
+# which would place it under another epic (ADR-1800).
+forbidden_fields = ["epic", "milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
+
+[[kind]]
+name = "task"
+artifact = "task"
+prefix = "TSK"
+dir = "tasks"
+# A task names the epic or the defect that authorises it, or the decision it
+# realises with no epic (REQ-3630), exactly one of the three, which
+# `one-authority` checks on drafts: three planning tasks approved
+# before ADR-1440 name neither, and keep the rules they were approved under.
+# `dependency-declared` asks each dependency line to say whether it blocks,
+# on drafts only, because an approved bare line keeps the order it was
+# approved with (ADR-1800).
+fields = ["closes"]
+draft_rules = ["one-authority", "dependency-declared"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+sections = ["What to do", "Depends on", "Evidence", "Left alone"]
+draft_sections = ["Acceptance criteria"]
+forbidden_fields = ["milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
+
+[[kind]]
+name = "defect"
+artifact = "bug"
+prefix = "BUG"
+dir = "bugs"
+# `violates` is left out where no requirement covers the defect yet, as the
+# defect template says, so it isn't required.
+fields = ["severity", "found"]
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+index = "README.md"
+sections = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
+forbidden_fields = ["priority", "milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
+# `enters` names the step a defect enters at, required once its Triage is
+# written, which is a draft rule so defects approved before ADR-1440 keep the
+# rules they were approved under.
+rules = ["done-has-evidence", "added-says-why", "dropped-says-why", "enters-fits", "rejected-says-why", "closed-names-check"]
+draft_rules = ["enters-after-triage"]
+
+[[kind]]
+name = "insight"
+artifact = "insight"
+prefix = "INS"
+dir = "insights"
+statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+sections = ["Evidence", "What looked right", "The pattern"]
+rules = ["title-states-claim", "evidence-measured", "ends-with-pattern"]
