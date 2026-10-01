@@ -152,7 +152,7 @@ when the run begins.
 
 | File                   | Holds                                                                                                                                                                                                                                                                                                        |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `run.toml`             | The prompt's sha256, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                                                                                                                      |
+| `run.toml`             | The prompt's sha256, the sha256 of `.claude/settings.json` at start or `absent`, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                                                          |
 | `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                                                                                                                                                 |
 | `progress/progress.md` | What each iteration wrote for the next one. It starts empty                                                                                                                                                                                                                                                  |
 | `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, `sum_usd` with the spend up to and including it, the count of `permission_denials`, its exit status, `progress_changed`, `unidentified` where either tree id is `none`, and the condition's result where it ran |
@@ -178,8 +178,11 @@ file the runner can't read counts as changed. An iteration whose tree id is `non
 as with a dirty submodule, counts as a change, so a run in such a work tree
 never ends `idle`.
 
-This version doesn't stop a session inside Claude Code from starting a run.
-Until a later version adds that guard, start a run yourself.
+A held command still runs files in the work tree: a call that rewrites a
+script or a task file the command runs changes what the condition checks,
+and no sha256 covers those files. This version also doesn't stop a session
+inside Claude Code from starting a run. Until later versions close both,
+start a run yourself, and read the run's diff before you trust a `finished`.
 
 ## What it reports instead of a run
 
@@ -205,20 +208,21 @@ command, so one attempt names every flag to fix:
 A state the runner can't read past exits 3, prints `unresolved: <what>` and
 creates no run directory:
 
-| Line                                                                            | Means                                                     |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `unresolved: not a git work tree`                                               | The current directory isn't inside one                    |
-| `unresolved: state writing is off, and a run needs state`                       | `MEOWPAW_STATE=off` is set                                |
-| `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME` | None of the three variables names where state goes        |
-| `unresolved: claude is not on the path`                                         | No `claude` that can be run is on `PATH`                  |
-| `unresolved: verb <verb> resolves to no command`                                | The profile declares no command for a named verb          |
-| `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                      |
-| `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file |
-| `unresolved: can't create a run in <directory>: <error>`                        | The runner can't create the run's directory               |
-| `unresolved: can't resolve <directory>: <error>`                                | The runner can't resolve the run's progress directory     |
+| Line                                                                            | Means                                                                                                |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `unresolved: not a git work tree`                                               | The current directory isn't inside one                                                               |
+| `unresolved: state writing is off, and a run needs state`                       | `MEOWPAW_STATE=off` is set                                                                           |
+| `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME` | None of the three variables names where state goes                                                   |
+| `unresolved: claude is not on the path`                                         | No `claude` that can be run is on `PATH`                                                             |
+| `unresolved: verb <verb> resolves to no command`                                | The profile declares no command for a named verb                                                     |
+| `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                                                                 |
+| `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file                                            |
+| `unresolved: can't create a run in <directory>: <error>`                        | The runner can't create the run's directory                                                          |
+| `unresolved: meow-loop's own directory can't be found from its program's path`  | The program doesn't sit in a unit whose manifest names `meow-loop`, so a call couldn't load its hook |
+| `unresolved: can't resolve <directory>: <error>`                                | The runner can't resolve the run's progress directory                                                |
 
-During a run, a file the runner can't write, a `claude` or a verb's command it
-can't start, or a verb that no longer resolves stops the run with the same
+During a run, a file the runner can't write, or a `claude` or a verb's
+command it can't start, stops the run with the same
 `unresolved:` line and exit status 3. The run then has no ending, and reads as
 interrupted.
 

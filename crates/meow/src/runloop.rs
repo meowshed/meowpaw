@@ -289,6 +289,11 @@ fn run_table(root: &Path, terms: &Terms, commands: &[(String, String)]) -> toml:
     };
     let mut table = toml::Table::new();
     table.insert("prompt_sha256".into(), sha256(&terms.prompt).into());
+    let settings = match std::fs::read(root.join(".claude").join("settings.json")) {
+        Ok(bytes) => sha256(&bytes),
+        Err(_) => "absent".to_string(),
+    };
+    table.insert("settings_sha256".into(), settings.into());
     table.insert("iterations".into(), terms.iterations.into());
     table.insert("budget_usd".into(), terms.budget_usd.into());
     table.insert("permission_mode".into(), MODE.into());
@@ -711,6 +716,11 @@ fn run(
         };
         match held {
             Some(true) => {
+                // The verbs may themselves have changed a watched file, and
+                // a changed term is reported before a success.
+                if let Some(ending) = tampered() {
+                    return Ok(ending);
+                }
                 println!("iteration {iteration}: {shown}, the condition holds");
                 return Ok("finished");
             }
@@ -826,10 +836,15 @@ fn start(args: &[String]) -> u8 {
 }
 
 /// `meow-loop`'s own directory: the program sits at
-/// `<unit>/bin/<target>/meow`, so the unit is three levels up from it.
+/// `<unit>/bin/<target>/meow`, so the unit is three levels up from it, and
+/// it is the unit only where its manifest names `meow-loop`, because a call
+/// that names another directory loads no hook.
 fn own_unit() -> Option<PathBuf> {
     let program = std::env::current_exe().ok()?.canonicalize().ok()?;
-    Some(program.parent()?.parent()?.parent()?.to_path_buf())
+    let unit = program.parent()?.parent()?.parent()?.to_path_buf();
+    let manifest = std::fs::read_to_string(unit.join(".claude-plugin").join("plugin.json")).ok()?;
+    let manifest: Value = serde_json::from_str(&manifest).ok()?;
+    (manifest.get("name").and_then(Value::as_str) == Some("meow-loop")).then_some(unit)
 }
 
 /// `path` as an absolute path with every link and `..` resolved, where it
@@ -839,10 +854,12 @@ fn resolved(path: &Path) -> PathBuf {
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     let mut existing = absolute.as_path();
     let mut tail = Vec::new();
+    // Walk up past every component that doesn't exist, `..` included, so a
+    // path through a missing directory is resolved like any other.
     while !existing.exists() {
-        match (existing.parent(), existing.file_name()) {
-            (Some(parent), Some(name)) => {
-                tail.push(name.to_os_string());
+        match (existing.parent(), existing.components().next_back()) {
+            (Some(parent), Some(last)) => {
+                tail.push(last.as_os_str().to_os_string());
                 existing = parent;
             }
             _ => break,

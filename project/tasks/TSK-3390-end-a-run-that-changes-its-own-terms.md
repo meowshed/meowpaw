@@ -113,13 +113,13 @@ after resolving every link and `..` in both paths.
 Each criterion a program checks is closed by the check it names, in
 `plugins/meow-loop/tests/test_loop.py`:
 
-1. `Terms.test_tampered_run_toml`
-2. `Terms.test_tampered_prompt` and `Terms.test_tampered_settings`
-3. `Hook.test_run_files_are_denied`
-4. `Hook.test_hook_is_registered`
-5. `Terms.test_profile_edit_changes_no_condition`
-6. `Terms.test_own_unit_on_every_call`
-7. `Terms.test_tampered_before_the_call`
+- Criterion 1: `Terms.test_tampered_run_toml`
+- Criterion 2: `Terms.test_tampered_prompt` and `Terms.test_tampered_settings`
+- Criterion 4: `Hook.test_run_files_are_denied`
+- Criterion 5: `Hook.test_hook_is_registered`
+- Criterion 6: `Terms.test_profile_edit_changes_no_condition`
+- Criterion 7: `Terms.test_own_unit_on_every_call`
+- Criterion 8: `Terms.test_tampered_before_the_call`
 
 Criterion 3 rests on judgement, as the task says: after start the runner
 opens `run.toml` only to hash it, in `Context::seal`, and to write the
@@ -136,6 +136,19 @@ A watched file that can't be read seals as unreadable, so it ends the run
 only if it later reads differently. The run checks its terms once more
 before it reports `ceiling`, so a change made by the last evaluation is
 reported as `tampered`.
+
+Review of the first version found four things, now fixed. The guard let a
+path through a missing directory and `..` pass where the path wasn't already
+resolved; it now walks past every missing component. `run.toml` didn't
+record the settings' sha256, which SPC-1201 asks for; it now records it as
+`settings_sha256`. A verb that changed a watched file and passed ended the
+run `finished`; the run now checks its terms before it reports `finished`,
+which `Terms.test_an_evaluation_that_changes_the_terms_ends_tampered`
+checks. The unit's own directory was taken from the program's path without a
+check; it is now taken only where the manifest names `meow-loop`, which
+`Terms.test_a_program_outside_its_unit_starts_no_run` checks. A held command
+still runs files in the work tree that no sha256 covers, and the README says
+so.
 
 `meow-loop` goes to 0.5.0, and its README states the ending, the hook and
 the held commands.
