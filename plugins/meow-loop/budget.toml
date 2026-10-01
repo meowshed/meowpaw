@@ -2,5 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # What this unit may load on every turn, in characters (REQ-1056). The unit
-# ships a program and no skill, so it loads nothing into context.
+# ships a program and one skill only a person invokes, whose description the
+# platform doesn't load, so it loads nothing into context.
 permanent_characters = 0
