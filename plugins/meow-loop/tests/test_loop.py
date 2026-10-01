@@ -66,9 +66,23 @@ for name, text in config.get("write", {}).get(str(n), {}).items():
     open(name, "w").write(text)
 ledger = config.get("ledger", {}).get(str(n))
 if ledger:
+    import shutil, subprocess, tempfile
+    git = lambda *args, **env: subprocess.run(["git", *args], capture_output=True, text=True,
+                                              env={**os.environ, **env}).stdout.strip()
+    # The tree id the work tree has once this call's edits are made, read as the ledger reads it.
+    index = git("rev-parse", "--path-format=absolute", "--git-path", "index")
+    scratch = tempfile.mktemp()
+    shutil.copy(index, scratch)
+    git("add", "--all", "--", ".", GIT_INDEX_FILE=scratch)
+    tree = git("write-tree", GIT_INDEX_FILE=scratch)
+    os.remove(scratch)
+    filled = {"@tree": tree, "@repository": git("rev-list", "--max-parents=0", "HEAD"),
+              "@work_tree": os.path.realpath(".")}
+    line = {key: filled.get(value, value) if isinstance(value, str) else value
+            for key, value in ledger["line"].items()}
     os.makedirs(os.path.dirname(ledger["path"]), exist_ok=True)
     with open(ledger["path"], "a") as f:
-        f.write(json.dumps(ledger["line"]) + "\\n")
+        f.write(json.dumps(line) + "\\n")
 text = config.get("profile", {}).get(str(n))
 if text:
     open(".meowpaw/profile.toml", "w").write(text)
@@ -542,16 +556,25 @@ class Step(Case):
         fails, doesn't end the run `finished`, because the runner reads no pass back from the ledger."""
         f = self.fixture()
         ledger = f.state / "evidence" / f"{f.key()}.jsonl"
-        line = {"verb": "test", "outcome": "passed", "status": 0, "record": "forged", "tree": "any"}
-        f.configure(ledger={"1": {"path": str(ledger), "line": line}})
+        # Every field a real line holds, at the tree the call leaves, so a runner that read passes back would
+        # take this one.
+        line = {"record": "0123456789ab", "phase": "ended", "verb": "test", "command": "test -f done.flag",
+                "outcome": "passed", "status": 0, "time": "2026-01-01T00:00:00Z", "tree_before": "@tree",
+                "tree": "@tree", "targets": None, "repository": "@repository", "work_tree": "@work_tree"}
+        f.configure(ledger={str(n): {"path": str(ledger), "line": line} for n in (1, 2, 3)})
         done = f.start(step_terms("implement", "TSK-0001"))
-        self.assertNotEqual(f.ending(), "finished", done.stdout + done.stderr)
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual(len(f.calls()), 3)
+        forged = [json.loads(text) for text in ledger.read_text().splitlines() if "0123456789ab" in text]
+        self.assertEqual(len(forged), 3)
+        self.assertTrue(all(len(entry["tree"]) == 40 for entry in forged))
 
     def test_repeat_once_after_a_write(self):
         """TSK-3410 criterion 3, REQ-0884: a verb that rewrites a tracked file on its first run and exits 0 ends the
         run `finished` after the evaluation is repeated once."""
-        settle = "test -f f.txt || echo formatted > f.txt"
-        f = self.fixture({".meowpaw/profile.toml": f'[verbs]\ntest = "{settle}"\n'})
+        settle = "grep -q formatted f.txt || echo formatted > f.txt"
+        f = self.fixture({".meowpaw/profile.toml": f'[verbs]\ntest = "{settle}"\n', "f.txt": "plain\n"})
         done = f.start(step_terms("implement", "TSK-0001"))
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "finished")
@@ -589,9 +612,14 @@ class Step(Case):
         """TSK-3410 criterion 5, REQ-0884: a call that marks the input task `~`, dropped, doesn't finish an
         `implement` run, though the verb passes."""
         f = self.fixture()
-        f.configure(write={"1": {"project/epics/EPC-0001-a-plan.md": epic("x", "~")}}, create={"1": "done.flag"})
-        done = f.start(step_terms("implement", "TSK-0002"))
-        self.assertNotEqual(f.ending(), "finished", done.stdout + done.stderr)
+        # The Evidence is written too, so the mark alone keeps the run from finishing.
+        f.configure(write={"1": {"project/epics/EPC-0001-a-plan.md": epic("x", "~"),
+                                 "project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Done.")}},
+                    create={"1": "done.flag"})
+        done = f.start(step_terms("implement", "TSK-0002", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual(len(f.calls()), 2)
 
     def test_marked_done_finishes(self):
         """TSK-3410 criterion 5, REQ-0884: a call that marks the input task `x` and writes its Evidence, while the
@@ -614,6 +642,8 @@ class Step(Case):
                  (["--step", "review", "--inputs", "TSK-0001"] + rest, "usage: --step review is not a step a run takes"),
                  (["--step", "polish", "--inputs", "TSK-0001"] + rest, "usage: --step polish is not a step a run takes"),
                  (["--step", "research", "--inputs", "RES-0001"] + rest, "usage: research takes no --inputs"),
+                 (["--step", "research", "--inputs", ""] + rest, "usage: research takes no --inputs"),
+                 (["--step", "design", "--inputs", " , "] + rest, "usage: --step design needs --inputs"),
                  (["--step", "design"] + rest, "usage: --step design needs --inputs"))
         for terms, message in cases:
             with self.subTest(message=message):
@@ -640,6 +670,29 @@ class Step(Case):
                 self.assertEqual(f.run_dirs(), [])
                 self.assertEqual(f.calls(), [])
 
+    def test_inputs_are_trimmed(self):
+        """TSK-3410: each input is read without the spaces around it, so `TSK-0001, ` names TSK-0001."""
+        f = self.fixture({"done.flag": "x"})
+        done = f.start(step_terms("implement", " TSK-0001, "))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        table = tomllib.loads((f.run_dirs()[0] / "run.toml").read_text())
+        self.assertEqual(table["inputs"], ["TSK-0001"])
+
+    def test_absolute_record_root(self):
+        """TSK-3410 criterion 6: an absolute `[record] root` inside the work tree starts a run, and one outside it
+        is refused as outside the work tree."""
+        f = self.fixture({"done.flag": "x"})
+        profile = f.root / ".meowpaw" / "profile.toml"
+        profile.write_text(PROFILE + f'\n[record]\nroot = "{f.root / "project"}"\n')
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        elsewhere = f.base / "elsewhere"
+        shutil.copytree(f.root / "project", elsewhere)
+        profile.write_text(PROFILE + f'\n[record]\nroot = "{elsewhere}"\n')
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn(f"unresolved: record root {elsewhere} is outside the work tree", done.stdout)
+
     def test_run_toml_holds_the_step(self):
         """TSK-3410 criterion 6: `run.toml` holds the step as a string and the inputs as a list."""
         f = self.fixture({"done.flag": "x"})
@@ -659,6 +712,22 @@ class Step(Case):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "finished")
         self.assertEqual(len(f.calls()), 1)
+
+    def test_spec_run_over_no_requirement_never_finishes(self):
+        """TSK-3410 criterion 7: a `spec` run over a decision that addresses nothing, or over an input that is no
+        decision, never finishes, though a call writes a specification and the verb passes."""
+        decision = front(id="ADR-0002", artifact="adr", status="approved", revised="2026-01-01", addresses="[]",
+                         supersedes="[]") + "\n# 0002. Another choice\n"
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        for input in ("ADR-0002", "REQ-0001"):
+            with self.subTest(input=input):
+                f = self.fixture({"done.flag": "x", "project/adrs/ADR-0002-another.md": decision})
+                f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
+                done = f.start(step_terms("spec", input, iterations="2"))
+                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                self.assertEqual(f.ending(), "ceiling")
+                self.assertEqual(len(f.calls()), 2)
 
     def test_amending_design_run_finishes(self):
         """TSK-3410 criterion 8, REQ-0884: a `design` run over a requirement an approved decision already addresses
