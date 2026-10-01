@@ -328,8 +328,6 @@ fn signal_code(_: std::process::ExitStatus) -> i32 {
 #[cfg(feature = "loop")]
 pub(crate) struct Ran {
     pub status: i32,
-    pub before: String,
-    pub after: String,
     /// The ledger record's identifier, or why nothing was recorded.
     pub recorded: std::result::Result<String, String>,
 }
@@ -371,12 +369,7 @@ pub(crate) fn run_recorded(
         started.as_deref(),
     );
     let (status, _) = ran?;
-    Ok(Ran {
-        status,
-        before,
-        after,
-        recorded,
-    })
+    Ok(Ran { status, recorded })
 }
 
 fn run(root: &Path, args: &[String]) -> u8 {

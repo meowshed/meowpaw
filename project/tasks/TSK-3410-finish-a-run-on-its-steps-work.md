@@ -115,8 +115,26 @@ tree EPC-1910 leaves, because that commit is the evidence that the checks can fa
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+Criteria 1 to 10 are closed by the fifteen `Step` checks in
+`plugins/meow-loop/tests/test_loop.py`, which failed first in their own
+commit, where `start` refused `--step` as no term, and pass on this change
+with the other 39 checks of the unit. The crate's unit check
+`every_missing_term_is_named_in_one_attempt` counts six required terms.
+Criterion 11 is closed by the five verbs' outcomes in this task's pull
+request, since no run output is kept.
+
+The step's test reads `## Evidence` past a leading "Not yet." paragraph, as
+`paw` reads it, so a task whose Evidence holds only that placeholder doesn't
+pass `implement`. `meow-loop` ships its own `lib/layout.toml`, which the
+program reads as `paw` reads `meow-flow`'s, because a layout compiled in from
+another unit's directory left the crate unbuildable on its own, which
+`tools/test_crate_verbs.py` showed. `Step.test_layout_is_meow_flows` holds
+the two copies byte-equal. The evaluation reads the tree id itself around the
+step's test and the verbs, so the verb result no longer carries the tree.
+
+A check written first had a fixture defect: it appended a verb to a profile
+whose last table was now `[git]`, and the fix puts `[verbs]` last, in a
+commit of its own.
 
 ## Left alone
 

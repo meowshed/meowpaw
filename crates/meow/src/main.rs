@@ -25,7 +25,8 @@ mod mise;
 mod profile;
 #[cfg(feature = "prose")]
 mod prose;
-#[cfg(feature = "record")]
+#[cfg(any(feature = "record", feature = "loop"))]
+#[cfg_attr(not(feature = "record"), allow(dead_code))]
 mod record;
 #[cfg(feature = "loop")]
 mod runloop;
