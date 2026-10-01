@@ -20,6 +20,7 @@ import fcntl
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import time
@@ -235,17 +236,29 @@ class Terms(Case):
         self.assertEqual(matched, 2)
 
     def test_tampered_prompt(self):
-        """TSK-3390 criterion 2, REQ-0874: a call that edits the run's `prompt.md` ends the run `tampered`."""
+        """TSK-3390 criterion 2, REQ-0874: a call that edits the run's `prompt.md` and makes the verb pass ends the
+        run `tampered`, which only the check after the call can produce."""
         f = self.fixture()
-        self.assertEqual(self.ended(f, touch={"1": "prompt.md"}), "tampered")
+        self.assertEqual(self.ended(f, touch={"1": "prompt.md"}, create={"1": "done.flag"}), "tampered")
         self.assertEqual(len(f.calls()), 1)
 
     def test_tampered_settings(self):
-        """TSK-3390 criterion 2, REQ-0874: a call that writes an allow rule into `.claude/settings.json` ends the run
-        `tampered`."""
-        f = self.fixture()
-        self.assertEqual(self.ended(f, settings={"1": True}), "tampered")
+        """TSK-3390 criterion 2, REQ-0874: a call that writes an allow rule into an existing `.claude/settings.json`
+        and makes the verb pass ends the run `tampered`, and `run.toml` records the settings' sha256 at start."""
+        before = '{"permissions": {}}'
+        f = self.fixture({".claude/settings.json": before})
+        self.assertEqual(self.ended(f, settings={"1": True}, create={"1": "done.flag"}), "tampered")
         self.assertEqual(len(f.calls()), 1)
+        table = tomllib.loads((f.run_dirs()[0] / "run.toml").read_text())
+        self.assertEqual(table["settings_sha256"], hashlib.sha256(before.encode()).hexdigest())
+
+    def test_an_evaluation_that_changes_the_terms_ends_tampered(self):
+        """TSK-3390, REQ-0874: a verb that writes the settings and passes ends the run `tampered` and not
+        `finished`, whichever evaluation it runs in."""
+        # The verb writes only once the flag exists, so the evaluation before the first call changes nothing.
+        write = "test -f done.flag && mkdir -p .claude && echo changed > .claude/settings.json"
+        f = self.fixture({".meowpaw/profile.toml": f'[verbs]\ntest = "{write}"\n'})
+        self.assertEqual(self.ended(f, create={"1": "done.flag"}), "tampered")
 
     def test_tampered_before_the_call(self):
         """TSK-3390 criterion 8, REQ-0874: a held verb command that edits `run.toml` before the first call ends the
@@ -276,12 +289,30 @@ class Terms(Case):
         """TSK-3390 criterion 7: every call names `meow-loop`'s own directory with `--plugin-dir` first, then each
         one the person named, in the order given."""
         f = self.fixture()
-        done = f.start(replaced("--iterations", "2") + ["--plugin-dir", "/a", "--plugin-dir", "/b"])
+        # A copy of the unit, so a directory fixed when the program was built can't pass for the one it runs from.
+        copy = f.base / "installed" / "meow-loop"
+        shutil.copytree(UNIT, copy, ignore=shutil.ignore_patterns("tests", "__pycache__"))
+        done = subprocess.run([str(copy / "bin" / "meow-loop"), "start",
+                               *replaced("--iterations", "2"), "--plugin-dir", "/a", "--plugin-dir", "/b"],
+                              cwd=f.root, env=f.env(), capture_output=True, text=True, timeout=120)
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         calls = f.calls()
         self.assertEqual(len(calls), 2)
         for call in calls:
-            self.assertEqual(values(call["argv"], "--plugin-dir"), [str(UNIT), "/a", "/b"])
+            self.assertEqual(values(call["argv"], "--plugin-dir"), [str(copy.resolve()), "/a", "/b"])
+
+    def test_a_program_outside_its_unit_starts_no_run(self):
+        """TSK-3390: a program three levels below a directory that isn't `meow-loop` can't name the unit's own
+        directory, so it refuses the run rather than start calls that load no hook."""
+        f = self.fixture()
+        stray = f.base / "a" / "b" / "c" / "meow"
+        stray.parent.mkdir(parents=True)
+        shutil.copy2(next((UNIT / "bin").glob("*-*/meow*")), stray)
+        done = subprocess.run([str(stray), "loop", "start", *TERMS], cwd=f.root, env=f.env(),
+                              capture_output=True, text=True, timeout=120)
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: meow-loop's own directory can't be found", done.stdout)
+        self.assertEqual(f.calls(), [])
 
 
 class Hook(Case):
@@ -301,8 +332,15 @@ class Hook(Case):
         (run / "progress").mkdir(parents=True)
         for name in ("run.toml", "prompt.md", "log.jsonl", "progress/progress.md"):
             (run / name).write_text("")
+        # The same run reached through a link, through a directory that doesn't exist and `..`, and, on macOS,
+        # through `/var` where the state directory resolves under `/private/var`.
+        link = f.base / "link"
+        link.symlink_to(run)
+        unresolved = Path(str(run).replace("/private/var/", "/var/", 1))
         denied = (("Edit", run / "run.toml"), ("Write", run / "prompt.md"), ("Edit", run / "log.jsonl"),
-                  ("Edit", run / "progress" / ".." / "run.toml"))
+                  ("Edit", run / "progress" / ".." / "run.toml"), ("Write", link / "run.toml"),
+                  ("Write", run / "missing" / ".." / "run.toml"), ("Edit", unresolved / "run.toml"),
+                  ("Write", unresolved / "missing" / ".." / "run.toml"))
         matched = 0
         for tool, path in denied:
             done = self.guard(f, tool, path)
@@ -314,7 +352,7 @@ class Hook(Case):
             done = self.guard(f, tool, path)
             self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""), path)
             matched += 1
-        self.assertEqual(matched, 6)
+        self.assertEqual(matched, 10)
 
     def test_hook_is_registered(self):
         """TSK-3390 criterion 5: `hooks.json` registers a PreToolUse entry whose matcher covers Edit and Write and
