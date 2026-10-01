@@ -71,11 +71,14 @@ if ledger:
                                               env={**os.environ, **env}).stdout.strip()
     # The tree id the work tree has once this call's edits are made, read as the ledger reads it.
     index = git("rev-parse", "--path-format=absolute", "--git-path", "index")
-    scratch = tempfile.mktemp()
-    shutil.copy(index, scratch)
-    git("add", "--all", "--", ".", GIT_INDEX_FILE=scratch)
-    tree = git("write-tree", GIT_INDEX_FILE=scratch)
-    os.remove(scratch)
+    handle, scratch = tempfile.mkstemp()
+    os.close(handle)
+    try:
+        shutil.copy(index, scratch)
+        git("add", "--all", "--", ".", GIT_INDEX_FILE=scratch)
+        tree = git("write-tree", GIT_INDEX_FILE=scratch)
+    finally:
+        os.remove(scratch)
     filled = {"@tree": tree, "@repository": git("rev-list", "--max-parents=0", "HEAD"),
               "@work_tree": os.path.realpath(".")}
     line = {key: filled.get(value, value) if isinstance(value, str) else value
@@ -566,9 +569,11 @@ class Step(Case):
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "ceiling")
         self.assertEqual(len(f.calls()), 3)
-        forged = [json.loads(text) for text in ledger.read_text().splitlines() if "0123456789ab" in text]
+        forged = [json.loads(text)["tree"] for text in ledger.read_text().splitlines() if "0123456789ab" in text]
+        logged = [json.loads(text)["tree_after"] for text in (f.run_dirs()[0] / "log.jsonl").read_text().splitlines()]
+        # Each forged line sits at the tree the runner read after that call.
         self.assertEqual(len(forged), 3)
-        self.assertTrue(all(len(entry["tree"]) == 40 for entry in forged))
+        self.assertEqual(forged, logged)
 
     def test_repeat_once_after_a_write(self):
         """TSK-3410 criterion 3, REQ-0884: a verb that rewrites a tracked file on its first run and exits 0 ends the
@@ -692,6 +697,7 @@ class Step(Case):
         done = f.start(step_terms("implement", "TSK-0001"))
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         self.assertIn(f"unresolved: record root {elsewhere} is outside the work tree", done.stdout)
+        self.assertEqual(len(f.run_dirs()), 1)
 
     def test_run_toml_holds_the_step(self):
         """TSK-3410 criterion 6: `run.toml` holds the step as a string and the inputs as a list."""
