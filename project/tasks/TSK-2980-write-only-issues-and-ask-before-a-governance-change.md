@@ -143,6 +143,15 @@ as ADR-1810 states; SPC-1080 lists `rulesets` under a repository alone, and
 this step may not edit it. `Launcher.test_a_missing_binary_lets_every_bash_call_through`
 checks the launcher.
 
+A second review found that the shell check asked about GraphQL reads that use
+variables, and that an address inside an endpoint's query was read as the
+endpoint, in the guard and in the layer's allow list. The guard now marks a
+`$` or a backtick the shell expands, outside single quotes, and treats only
+that as a query it can't read, and `path_of` cuts the query before it looks
+for a scheme. The guard also keeps `2>&1` and `&>` as redirects, reads
+`-f=v` as pflag does, and skips `{`, `nohup` and `command`'s flags. It still
+doesn't read `sudo` or `timeout`, which the README names.
+
 `meow-github` goes to 0.13.0. Its README gains the section "What it writes,
 and what it asks about", names the hook and its cost under "What it needs",
 and its manifest's description no longer says it writes nothing to GitHub.

@@ -647,13 +647,22 @@ pub(crate) fn admits(method: &str, endpoint: &str) -> Result<(), String> {
 /// prefix, query or fragment, so it can be matched and shown without anything
 /// else the address carried.
 pub(crate) fn path_of(endpoint: &str) -> &str {
+    // The query goes first, so an address inside it is never read as the
+    // endpoint's own.
+    let endpoint = endpoint.split(['?', '#']).next().unwrap_or(endpoint);
     let path = match endpoint.split_once("://") {
-        Some((_, rest)) => rest.split_once('/').map_or("", |(_, path)| path),
-        None => endpoint,
+        Some((scheme, rest))
+            if !scheme.is_empty()
+                && scheme
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || "+.-".contains(c)) =>
+        {
+            rest.split_once('/').map_or("", |(_, path)| path)
+        }
+        _ => endpoint,
     };
     let path = path.trim_start_matches('/');
-    let path = path.strip_prefix("api/v3/").unwrap_or(path);
-    path.split(['?', '#']).next().unwrap_or(path)
+    path.strip_prefix("api/v3/").unwrap_or(path)
 }
 
 /// The governance list: the parts of a repository a write to which changes how

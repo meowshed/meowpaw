@@ -59,6 +59,10 @@ pub fn main() -> u8 {
     0
 }
 
+/// Marks, inside a word, a `$` or a backtick the shell expands, so a query the
+/// shell builds can be told from a GraphQL variable written in single quotes.
+const EXPANDS: char = '\u{1}';
+
 /// The command's words, grouped into the parts its separators divide it into.
 /// Quotes group words and are dropped, and a backslash outside single quotes
 /// keeps the next character as it is.
@@ -93,7 +97,14 @@ fn parts(command: &str) -> Vec<Vec<String>> {
                 Some(next) => word.push(next),
                 None => {}
             },
+            '$' | '`' if !single => {
+                word.push(EXPANDS);
+                word.push(c);
+            }
             c if single || double => word.push(c),
+            // `2>&1` and `&>` are redirects, not a command sent to the
+            // background.
+            '&' if word.ends_with(['>', '<']) || chars.peek() == Some(&'>') => word.push('&'),
             c if c.is_whitespace() && c != '\n' => end_word(&mut word, &mut quoted, &mut parts),
             ';' | '|' | '&' | '\n' => {
                 end_word(&mut word, &mut quoted, &mut parts);
@@ -121,8 +132,8 @@ fn assignment(word: &str) -> bool {
 }
 
 /// The shell words that can stand before a command and run it.
-const LEADS: [&str; 10] = [
-    "then", "do", "else", "elif", "if", "while", "until", "time", "!", "exec",
+const LEADS: [&str; 12] = [
+    "then", "do", "else", "elif", "if", "while", "until", "time", "!", "exec", "{", "nohup",
 ];
 
 /// What a part changes, as the method and the endpoint, where it runs `gh` to
@@ -131,8 +142,14 @@ fn governs(part: &[String]) -> Option<String> {
     let mut words = part.iter().map(String::as_str).peekable();
     loop {
         match words.peek() {
-            Some(w) if assignment(w) || LEADS.contains(w) || *w == "command" => {
+            Some(w) if assignment(w) || LEADS.contains(w) => {
                 words.next();
+            }
+            Some(&"command") => {
+                words.next();
+                while words.peek().is_some_and(|w| w.starts_with('-')) {
+                    words.next();
+                }
             }
             Some(&"env") => {
                 words.next();
@@ -206,6 +223,7 @@ fn api(args: &[&str]) -> Option<String> {
             continue;
         }
         if arg.starts_with(['<', '>'])
+            || arg.starts_with("&>")
             || (arg.starts_with(|c: char| c.is_ascii_digit()) && arg.contains('>'))
         {
             i += 1;
@@ -231,6 +249,8 @@ fn api(args: &[&str]) -> Option<String> {
             for (at, c) in cluster.char_indices() {
                 if SHORT_VALUED.contains(&c) {
                     let joined = &cluster[at + c.len_utf8()..];
+                    // pflag reads `-f=v` as the value `v`.
+                    let joined = joined.strip_prefix('=').unwrap_or(joined);
                     let value = if joined.is_empty() {
                         i += 1;
                         args.get(i).copied().unwrap_or("")
@@ -246,7 +266,8 @@ fn api(args: &[&str]) -> Option<String> {
         }
         i += 1;
     }
-    let path = path_of(endpoint?);
+    let endpoint = endpoint?.replace(EXPANDS, "");
+    let path = path_of(&endpoint);
     let method = method.unwrap_or_else(|| if body { "POST" } else { "GET" }.to_string());
     let shown = if METHODS.contains(&method.as_str()) {
         method.clone()
@@ -256,9 +277,9 @@ fn api(args: &[&str]) -> Option<String> {
     if path == "graphql" || path == "api/graphql" {
         // A query from a file, from standard input or from the shell can't be
         // read here, so it is asked about as a mutation would be.
-        let mutates = query.iter().any(|q| {
-            q.contains("mutation") || q.starts_with('@') || q.contains('$') || q.contains('`')
-        });
+        let mutates = query
+            .iter()
+            .any(|q| q.contains("mutation") || q.starts_with('@') || q.contains(EXPANDS));
         return mutates.then(|| format!("gh api {shown} graphql"));
     }
     (method != "GET" && governance(path)).then(|| format!("gh api {shown} {path}"))

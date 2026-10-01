@@ -297,14 +297,15 @@ because a command can carry a token. It asks about:
 - `gh secret` and `gh variable` with `set`, `delete` or `remove`.
 
 It reads each part of a command between `&&`, `||`, `;`, `|`, `&` and a new
-line, joining a line a backslash continues, after any variable assignments, a
-leading `env` or `command`, and a shell word such as `then` or `do`. It reads
+line, joining a line a backslash continues and keeping a redirect such as
+`2>&1` whole, after any variable assignments, a leading `env` or `command`
+with its flags, `nohup`, and a shell word such as `then`, `do` or `{`. It reads
 `gh` by name or by a path ending in `/gh`. For anything else it says nothing,
 and your own permission rules decide.
 
 The hook is a guard and not a barrier. It doesn't see a `gh` run inside a
-subshell, `bash -c`, `eval`, `xargs`, a script, a function or an alias, or a
-session with hooks turned off. Where the machine has no `meow-github` binary,
+subshell, `bash -c`, `eval`, `xargs`, `sudo`, `timeout`, a script, a function
+or an alias, or a session with hooks turned off. Where the machine has no `meow-github` binary,
 it lets every command through, because a hook that fails blocks every Bash
 call.
 
