@@ -777,7 +777,82 @@ fn sleep(seconds: f64) {
 
 #[cfg(test)]
 mod tests {
-    use super::{one_line, printable, wait};
+    use super::{
+        Failure, Layer, admits, create_issue_endpoint, governance, one_line, printable,
+        update_issue_endpoint, wait,
+    };
+
+    /// TSK-2980 criterion 1, REQ-2576: a write off the allow list is refused
+    /// before `gh` starts, so the answer is the layer's refusal and never
+    /// anything `gh` or GitHub said.
+    #[test]
+    fn a_write_off_the_allow_list_starts_no_gh() {
+        let writes = [
+            ("PATCH", "repos/o/r"),
+            ("PUT", "repos/o/r/branches/main/protection"),
+            ("POST", "repos/o/r/rulesets"),
+            ("PUT", "repos/o/r/actions/permissions/workflow"),
+            ("PUT", "repos/o/r/contents/.github/workflows/ci.yml"),
+        ];
+        for (method, endpoint) in writes {
+            assert!(admits(method, endpoint).is_err(), "{method} {endpoint}");
+            let mut layer = Layer::new(false);
+            match layer.write(method, endpoint, &[]) {
+                Err(Failure::Refused(line)) => assert_eq!(
+                    line,
+                    format!(
+                        "refused by meow-github: {method} {endpoint} isn't a write this pack makes"
+                    )
+                ),
+                _ => panic!("{method} {endpoint} wasn't refused by the layer"),
+            }
+        }
+    }
+
+    /// TSK-2980 criterion 2, REQ-2576: no write on the allow list touches
+    /// governance.
+    #[test]
+    fn no_allowed_write_is_governance() {
+        for endpoint in [create_issue_endpoint("o/r"), update_issue_endpoint("o/r", 7)] {
+            assert!(!governance(&endpoint), "{endpoint}");
+        }
+        for endpoint in [
+            "repos/o/r",
+            "repos/o/r/branches/main/protection",
+            "repos/o/r/rulesets/1",
+            "repos/o/r/actions/permissions/workflow",
+            "repos/o/r/actions/workflows/9/enable",
+            "repos/o/r/actions/secrets/X",
+            "repos/o/r/actions/variables/X",
+            "repos/o/r/environments/prod",
+            "repos/o/r/hooks/3",
+            "repos/o/r/collaborators/ada",
+            "repos/o/r/contents/.github/workflows/ci.yml",
+        ] {
+            assert!(governance(endpoint), "{endpoint}");
+        }
+    }
+
+    /// TSK-2980 criterion 3, REQ-2576: the crate builds a write only through
+    /// the two allow-list endpoints, so no other module calls `write`.
+    #[test]
+    fn every_built_write_is_allowed() {
+        assert!(admits("POST", &create_issue_endpoint("o/r")).is_ok());
+        assert!(admits("PATCH", &update_issue_endpoint("o/r", 7)).is_ok());
+        let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let mut files = vec![src.join("github.rs")];
+        for entry in std::fs::read_dir(src.join("github")).expect("src/github reads") {
+            let path = entry.expect("an entry reads").path();
+            if path.extension().is_some_and(|e| e == "rs") && !path.ends_with("request.rs") {
+                files.push(path);
+            }
+        }
+        let call = concat!(".write", "(");
+        for file in files {
+            let text = std::fs::read_to_string(&file).expect("a source file reads");
+            assert!(!text.contains(call), "{} calls write", file.display());
+        }
+    }
 
     /// TSK-4030, REQ-3324: a message quoted in a report stays on one line and
     /// inside its quotation marks.
