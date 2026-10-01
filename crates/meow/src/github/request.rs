@@ -270,7 +270,8 @@ impl Layer {
         repository: &str,
         fields: &[(&str, &str)],
     ) -> Result<Value, Failure> {
-        self.write("POST", &create_issue_endpoint(repository), fields)
+        let (method, endpoint) = create_issue_call(repository);
+        self.write(method, &endpoint, fields)
     }
 
     /// Updates issue `issue` in `repository`, an object the record says
@@ -281,7 +282,8 @@ impl Layer {
         issue: &str,
         fields: &[(&str, &str)],
     ) -> Result<Value, Failure> {
-        self.write("PATCH", &update_issue_endpoint(repository, issue), fields)
+        let (method, endpoint) = update_issue_call(repository, issue);
+        self.write(method, &endpoint, fields)
     }
 
     /// Sends `method` to `endpoint` with each field as `-f name=value`. A
@@ -604,6 +606,16 @@ pub(crate) fn update_issue_endpoint(repository: &str, issue: impl std::fmt::Disp
     format!("repos/{repository}/issues/{issue}")
 }
 
+/// The method and the endpoint `Layer::create_issue` sends.
+pub(crate) fn create_issue_call(repository: &str) -> (&'static str, String) {
+    ("POST", create_issue_endpoint(repository))
+}
+
+/// The method and the endpoint `Layer::update_issue` sends.
+pub(crate) fn update_issue_call(repository: &str, issue: &str) -> (&'static str, String) {
+    ("PATCH", update_issue_endpoint(repository, issue))
+}
+
 /// Whether the layer may send `method` to `endpoint`: any `GET`, and as a
 /// write only `POST repos/{o}/{r}/issues` and `PATCH repos/{o}/{r}/issues/{n}`
 /// (REQ-2576). A later decision that adds a write adds its endpoint here.
@@ -631,11 +643,16 @@ pub(crate) fn admits(method: &str, endpoint: &str) -> Result<(), String> {
     }
 }
 
-/// An endpoint as a path: with no leading slash, no host and no query.
-fn path_of(endpoint: &str) -> &str {
-    let path = endpoint
-        .trim_start_matches("https://api.github.com/")
-        .trim_start_matches('/');
+/// An endpoint as a path: with no scheme, host, leading slash, `api/v3/`
+/// prefix, query or fragment, so it can be matched and shown without anything
+/// else the address carried.
+pub(crate) fn path_of(endpoint: &str) -> &str {
+    let path = match endpoint.split_once("://") {
+        Some((_, rest)) => rest.split_once('/').map_or("", |(_, path)| path),
+        None => endpoint,
+    };
+    let path = path.trim_start_matches('/');
+    let path = path.strip_prefix("api/v3/").unwrap_or(path);
     path.split(['?', '#']).next().unwrap_or(path)
 }
 
@@ -662,6 +679,9 @@ pub(crate) fn governance(endpoint: &str) -> bool {
         .split('/')
         .filter(|p| !p.is_empty())
         .collect();
+    if let ["orgs", _, "rulesets", ..] = parts.as_slice() {
+        return true;
+    }
     let ["repos", _, _, rest @ ..] = parts.as_slice() else {
         return false;
     };
@@ -968,7 +988,6 @@ mod tests {
             let text = std::fs::read_to_string(&file).expect("a source file reads");
             assert!(!text.contains(call), "{} calls write", file.display());
         }
-    }
     }
 
     /// TSK-4030, REQ-3324: a message quoted in a report stays on one line and

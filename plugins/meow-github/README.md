@@ -285,19 +285,28 @@ command runs, naming the method and the endpoint, and never the command,
 because a command can carry a token. It asks about:
 
 - `gh api` with a method other than `GET`, or with a field or an `--input`
-  body, to the repository itself, `branches/{b}/protection`, `rulesets`,
+  body, to an organisation's `rulesets`, or to the repository itself, `branches/{b}/protection`, `rulesets`,
   `actions/permissions`, `actions/workflows/{id}/enable` or `/disable`,
   `actions/secrets`, `actions/variables`, `environments`, `hooks`,
   `collaborators` or `contents/.github/workflows/`, or anything under them;
-- `gh api graphql` whose query holds `mutation`, or comes from a file or from
-  standard input;
-- `gh repo edit`, `gh repo rename`, `gh repo archive` and `gh repo delete`;
+- `gh api graphql` whose query holds `mutation`, or comes from a file, from
+  standard input or from the shell, as `$(...)` or a variable;
+- `gh repo edit`, `gh repo rename`, `gh repo archive`, `gh repo unarchive`
+  and `gh repo delete`;
 - `gh workflow enable` and `gh workflow disable`;
-- `gh secret` and `gh variable` with `set` or `delete`.
+- `gh secret` and `gh variable` with `set`, `delete` or `remove`.
 
 It reads each part of a command between `&&`, `||`, `;`, `|`, `&` and a new
-line, after any variable assignments and a leading `env`. For anything else it
-says nothing, and your own permission rules decide.
+line, joining a line a backslash continues, after any variable assignments, a
+leading `env` or `command`, and a shell word such as `then` or `do`. It reads
+`gh` by name or by a path ending in `/gh`. For anything else it says nothing,
+and your own permission rules decide.
+
+The hook is a guard and not a barrier. It doesn't see a `gh` run inside a
+subshell, `bash -c`, `eval`, `xargs`, a script, a function or an alias, or a
+session with hooks turned off. Where the machine has no `meow-github` binary,
+it lets every command through, because a hook that fails blocks every Bash
+call.
 
 ## What it needs
 

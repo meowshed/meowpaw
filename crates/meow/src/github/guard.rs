@@ -12,29 +12,23 @@
 //! never the command, because a command can carry a token. For anything else
 //! it prints nothing and exits 0, so the platform's own rules decide.
 
-use super::request::governance;
+use super::request::{governance, path_of};
 use serde_json::{Value, json};
 use std::io::Read;
 
-/// The flags of `gh api` that take a value, so the value isn't read as the
-/// endpoint.
-const VALUED: [&str; 16] = [
-    "-X",
-    "--method",
-    "-f",
-    "-F",
-    "--field",
-    "--raw-field",
-    "-H",
-    "--header",
-    "--input",
-    "-q",
-    "--jq",
-    "-t",
-    "--template",
+/// The long flags of `gh api` that take a value, as `gh api --help` lists
+/// them in `gh` 2.101.0, so a value isn't read as the endpoint.
+const VALUED: [&str; 10] = [
     "--cache",
-    "-p",
+    "--field",
+    "--header",
+    "--hostname",
+    "--input",
+    "--jq",
+    "--method",
     "--preview",
+    "--raw-field",
+    "--template",
 ];
 
 pub fn main() -> u8 {
@@ -92,11 +86,13 @@ fn parts(command: &str) -> Vec<Vec<String>> {
                 double = !double;
                 quoted = true;
             }
-            '\\' if !single => {
-                if let Some(next) = chars.next() {
-                    word.push(next);
-                }
-            }
+            // A backslash before a new line continues the line, as the shell
+            // reads it, so both go.
+            '\\' if !single => match chars.next() {
+                Some('\n') if !double => {}
+                Some(next) => word.push(next),
+                None => {}
+            },
             c if single || double => word.push(c),
             c if c.is_whitespace() && c != '\n' => end_word(&mut word, &mut quoted, &mut parts),
             ';' | '|' | '&' | '\n' => {
@@ -124,23 +120,36 @@ fn assignment(word: &str) -> bool {
     })
 }
 
+/// The shell words that can stand before a command and run it.
+const LEADS: [&str; 10] = [
+    "then", "do", "else", "elif", "if", "while", "until", "time", "!", "exec",
+];
+
 /// What a part changes, as the method and the endpoint, where it runs `gh` to
 /// change governance; `None` otherwise.
 fn governs(part: &[String]) -> Option<String> {
     let mut words = part.iter().map(String::as_str).peekable();
-    while words.peek().is_some_and(|w| assignment(w)) {
-        words.next();
-    }
-    if words.peek() == Some(&"env") {
-        words.next();
-        while words
-            .peek()
-            .is_some_and(|w| assignment(w) || w.starts_with('-'))
-        {
-            words.next();
+    loop {
+        match words.peek() {
+            Some(w) if assignment(w) || LEADS.contains(w) || *w == "command" => {
+                words.next();
+            }
+            Some(&"env") => {
+                words.next();
+                while words
+                    .peek()
+                    .is_some_and(|w| assignment(w) || w.starts_with('-'))
+                {
+                    words.next();
+                }
+            }
+            _ => break,
         }
     }
-    if words.next() != Some("gh") {
+    if !words
+        .next()
+        .is_some_and(|w| w == "gh" || w.ends_with("/gh"))
+    {
         return None;
     }
     let rest: Vec<&str> = words.collect();
@@ -148,7 +157,7 @@ fn governs(part: &[String]) -> Option<String> {
         ["api", args @ ..] => api(args),
         [
             "repo",
-            action @ ("edit" | "rename" | "archive" | "delete"),
+            action @ ("edit" | "rename" | "archive" | "unarchive" | "delete"),
             ..,
         ]
         | ["workflow", action @ ("enable" | "disable"), ..] => {
@@ -156,64 +165,103 @@ fn governs(part: &[String]) -> Option<String> {
         }
         [
             noun @ ("secret" | "variable"),
-            action @ ("set" | "delete"),
+            action @ ("set" | "delete" | "remove"),
             ..,
         ] => Some(format!("gh {noun} {action}")),
         _ => None,
     }
 }
 
+/// The short flags of `gh api` that take a value, written alone or joined to
+/// their value or to other short flags, as in `-iXPUT`.
+const SHORT_VALUED: [char; 7] = ['X', 'f', 'F', 'H', 'q', 't', 'p'];
+
+/// The HTTP methods a reason may name; anything else is named as a method
+/// other than `GET`, so no word of the command reaches the reason.
+const METHODS: [&str; 7] = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
+
 /// What a `gh api` call changes, where it changes governance.
 fn api(args: &[&str]) -> Option<String> {
     let (mut method, mut endpoint, mut body) = (None, None, false);
     let mut query: Vec<String> = Vec::new();
+    let mut take = |flag: &str, value: &str, method: &mut Option<String>| match flag {
+        "-X" | "--method" => *method = Some(value.to_ascii_uppercase()),
+        "-f" | "-F" | "--field" | "--raw-field" => {
+            body = true;
+            if let Some(("query", text)) = value.split_once('=') {
+                query.push(text.to_string());
+            }
+        }
+        "--input" => {
+            body = true;
+            query.push("@input".to_string());
+        }
+        _ => {}
+    };
     let mut i = 0;
     while i < args.len() {
         let arg = args[i];
-        let (flag, inline) = match arg.split_once('=') {
-            Some((flag, value)) if arg.starts_with("--") => (flag, Some(value)),
-            _ => (arg, None),
-        };
-        if VALUED.contains(&flag) {
-            let value = match inline {
-                Some(value) => value,
-                None => {
-                    i += 1;
-                    args.get(i).copied().unwrap_or("")
-                }
+        if [">", ">>", "<", "2>", "2>>", "&>"].contains(&arg) {
+            i += 2;
+            continue;
+        }
+        if arg.starts_with(['<', '>'])
+            || (arg.starts_with(|c: char| c.is_ascii_digit()) && arg.contains('>'))
+        {
+            i += 1;
+            continue;
+        }
+        if let Some(long) = arg.strip_prefix("--") {
+            let (name, inline) = match long.split_once('=') {
+                Some((name, value)) => (name, Some(value)),
+                None => (long, None),
             };
-            match flag {
-                "-X" | "--method" => method = Some(value.to_ascii_uppercase()),
-                "-f" | "-F" | "--field" | "--raw-field" => {
-                    body = true;
-                    if let Some(("query", text)) = value.split_once('=') {
-                        query.push(text.to_string());
+            let flag = format!("--{name}");
+            if VALUED.contains(&flag.as_str()) {
+                let value = match inline {
+                    Some(value) => value,
+                    None => {
+                        i += 1;
+                        args.get(i).copied().unwrap_or("")
                     }
-                }
-                "--input" => {
-                    body = true;
-                    query.push("@input".to_string());
-                }
-                _ => {}
+                };
+                take(&flag, value, &mut method);
             }
-        } else if let Some(rest) = arg.strip_prefix("-X").filter(|r| !r.is_empty()) {
-            method = Some(rest.to_ascii_uppercase());
-        } else if !arg.starts_with('-') && endpoint.is_none() {
+        } else if let Some(cluster) = arg.strip_prefix('-').filter(|c| !c.is_empty()) {
+            for (at, c) in cluster.char_indices() {
+                if SHORT_VALUED.contains(&c) {
+                    let joined = &cluster[at + c.len_utf8()..];
+                    let value = if joined.is_empty() {
+                        i += 1;
+                        args.get(i).copied().unwrap_or("")
+                    } else {
+                        joined
+                    };
+                    take(&format!("-{c}"), value, &mut method);
+                    break;
+                }
+            }
+        } else if endpoint.is_none() {
             endpoint = Some(arg);
         }
         i += 1;
     }
-    let endpoint = endpoint?;
+    let path = path_of(endpoint?);
     let method = method.unwrap_or_else(|| if body { "POST" } else { "GET" }.to_string());
-    if endpoint == "graphql" {
-        // A query from a file or from standard input can't be read here, so it
-        // is asked about as a mutation would be.
-        let mutates = query
-            .iter()
-            .any(|q| q.contains("mutation") || q.starts_with('@'));
-        return mutates.then(|| format!("gh api {method} graphql"));
+    let shown = if METHODS.contains(&method.as_str()) {
+        method.clone()
+    } else {
+        "a method other than GET".to_string()
+    };
+    if path == "graphql" || path == "api/graphql" {
+        // A query from a file, from standard input or from the shell can't be
+        // read here, so it is asked about as a mutation would be.
+        let mutates = query.iter().any(|q| {
+            q.contains("mutation") || q.starts_with('@') || q.contains('$') || q.contains('`')
+        });
+        return mutates.then(|| format!("gh api {shown} graphql"));
     }
-    (method != "GET" && governance(endpoint)).then(|| format!("gh api {method} {endpoint}"))
+    (method != "GET" && governance(path)).then(|| format!("gh api {shown} {path}"))
 }
 
 #[cfg(test)]

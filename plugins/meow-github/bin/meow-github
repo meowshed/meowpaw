@@ -4,7 +4,8 @@
 
 # Runs this unit's binary of the native tool for this machine (SPC-1080).
 # Where there is none, it reports the history as unread, because a history
-# nobody read must never read as one that holds nothing.
+# nobody read must never read as one that holds nothing, and lets the hook's
+# guard pass every call.
 
 case $0 in
 */*) here=${0%/*} ;;
@@ -27,6 +28,12 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
 fi
 
 reason="no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"
+if [ "$1" = "governance-guard" ]; then
+  # The hook runs on every Bash call, and a hook that fails blocks them all,
+  # so with no binary it lets every call through to the person's own rules.
+  cat >/dev/null
+  exit 0
+fi
 if [ "$1" = "history" ]; then
   echo "meow-github history: unread ($reason); nothing was read"
   exit 3

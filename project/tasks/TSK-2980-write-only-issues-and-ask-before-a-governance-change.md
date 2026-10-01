@@ -130,6 +130,19 @@ once where no part runs `gh`. `&` separates parts as `&&` does, because a
 command sent to the background still runs. A `-X` flag with its method
 joined, as in `-XPUT`, is read as a method.
 
+Review of the first version found commands that hid a governance change, and
+the guard now reads them: a line a backslash continues, `--hostname` before
+the endpoint, short flags joined as in `-iXPUT` or `-fname=x`, a redirect
+before the endpoint, a full address or a leading slash, `graphql` by path, a
+query from the shell, a leading `command`, `then` or `do`, `gh` by path, and
+`gh secret remove`. The reason shows the endpoint as a path with no host and
+no query, and names a method only where it is an HTTP method, so no word the
+command carries beyond those reaches it. With no binary, the launcher lets
+the hook's call through. Organisation rulesets are on the governance list,
+as ADR-1810 states; SPC-1080 lists `rulesets` under a repository alone, and
+this step may not edit it. `Launcher.test_a_missing_binary_lets_every_bash_call_through`
+checks the launcher.
+
 `meow-github` goes to 0.13.0. Its README gains the section "What it writes,
 and what it asks about", names the hook and its cost under "What it needs",
 and its manifest's description no longer says it writes nothing to GitHub.
