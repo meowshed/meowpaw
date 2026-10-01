@@ -291,7 +291,8 @@ fn run_table(root: &Path, terms: &Terms, commands: &[(String, String)]) -> toml:
     table.insert("prompt_sha256".into(), sha256(&terms.prompt).into());
     let settings = match std::fs::read(root.join(".claude").join("settings.json")) {
         Ok(bytes) => sha256(&bytes),
-        Err(_) => "absent".to_string(),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => "absent".to_string(),
+        Err(error) => format!("unreadable: {error}"),
     };
     table.insert("settings_sha256".into(), settings.into());
     table.insert("iterations".into(), terms.iterations.into());
@@ -617,6 +618,10 @@ fn run(
         })
     };
     if evaluate(root, &context.held)? {
+        // The verbs may themselves have changed a watched file.
+        if let Some(ending) = tampered() {
+            return Ok(ending);
+        }
         return Ok("finished");
     }
     let (mut spend, mut largest) = (0.0_f64, 0.0_f64);

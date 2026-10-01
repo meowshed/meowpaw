@@ -102,7 +102,7 @@ TSK-3350, because this task checks the files that task writes.
 `run` in `crates/meow/src/runloop.rs` seals the sha256 of the run's
 `run.toml` and `prompt.md` and of the work tree's `.claude/settings.json` at
 start, checks them before each call, after each call's log line, and before
-it reports `ceiling`, and ends the run `tampered` on a change. `evaluate`
+it reports `finished` or `ceiling`, and ends the run `tampered` on a change. `evaluate`
 runs the command each verb resolved to at start, which `Context` holds and
 `run.toml` records. `call` names the unit's own directory, found from the
 program's path, with the first `--plugin-dir`. `meow-loop guard`, which
@@ -148,7 +148,10 @@ checks. The unit's own directory was taken from the program's path without a
 check; it is now taken only where the manifest names `meow-loop`, which
 `Terms.test_a_program_outside_its_unit_starts_no_run` checks. A held command
 still runs files in the work tree that no sha256 covers, and the README says
-so.
+so. A second review found the evaluation before the first call still
+unchecked, and a settings file that can't be read recorded as absent; both
+are fixed. SPC-1201's "The loop" doesn't yet name the checks before
+`finished` and `ceiling`, and this step may not edit it.
 
 `meow-loop` goes to 0.5.0, and its README states the ending, the hook and
 the held commands.
