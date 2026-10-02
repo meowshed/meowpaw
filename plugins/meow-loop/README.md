@@ -132,10 +132,10 @@ its directory, so `live` passes in a specification and not in a requirement.
 It reads the file on disk, so an Edit of an approved task's Evidence, which
 leaves the status as it is, passes. Without the variable, the rule allows
 every Edit and Write, because in a session the model writes an approval a
-person gave. The hook also allows a write where it can't read the layout or
-the profile, and it doesn't see a Bash command, a MultiEdit or a NotebookEdit
-that writes a record. The comparison after each call decides whether a gate
-was crossed in those cases. Nobody has observed a real call run the hook or
+person gave. A variable set to an empty string counts as set. The hook allows
+a write where it can't read the layout or the profile. It doesn't see a Bash
+command or a MultiEdit that writes a record. The comparison after each call
+decides whether a gate was crossed in those cases. Nobody has observed a real call run the hook or
 see the variable, so treat the hook as a first warning and the comparison as
 the check.
 

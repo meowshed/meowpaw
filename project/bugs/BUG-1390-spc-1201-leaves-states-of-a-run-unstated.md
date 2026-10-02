@@ -57,10 +57,11 @@ them up.
   and the evidence lines written with them. The spec should say that, and say
   whether a run may mark a task other than its input.
 - The hook's status rule covers Edit and Write, the two tools "The status
-  rule" names. A MultiEdit has an `edits` list and no `new_string`, and a
-  NotebookEdit has a `notebook_path` and no `file_path`, so each passes the
-  hook and its runs-directory rule if a person's `--allowed-tools` lets a run
-  use it. The comparison after the call is the backstop. The spec should say
+  rule" names. A MultiEdit has an `edits` list and no `new_string`, so it
+  passes the rule and the runs-directory rule if a person's `--allowed-tools`
+  lets a run use it. A NotebookEdit has a `notebook_path` and no `file_path`,
+  so it passes the runs-directory rule, though it can't write a record. The
+  comparison after the call is the backstop for records. The spec should say
   which tools the hook covers.
 
 `--inputs` with no identifier in it, such as `" , "`, is reported as
@@ -72,9 +73,9 @@ as absent.
 
 SPC-1201 names each of these states with the line it prints and its exit
 status, or the allowance it grants, because REQ-1240 asks a design to name
-every failure state the system can reach. An input of the wrong kind should be refused at start, with its
-own line, because a run that can never finish spends money that tells the
-person nothing.
+every failure state the system can reach. An input of the wrong kind should be
+refused at start, with its own line, because a run that can never finish
+spends money that tells the person nothing.
 
 ## Triage
 

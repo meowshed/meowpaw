@@ -1198,11 +1198,14 @@ fn status_rule(event: &Value, target: &Path) {
                 input("new_string").and_then(Value::as_str),
             );
             let all = input("replace_all").and_then(Value::as_bool) == Some(true);
-            match (before.as_deref(), old, new) {
+            // Line endings are read as one form, so an old_string that spans a
+            // line break matches a CRLF file as it does an LF one.
+            let plain = |text: &str| text.replace("\r\n", "\n");
+            match (before.as_deref().map(plain), old.map(plain), new.map(plain)) {
                 // An Edit with an empty old_string creates a missing file.
-                (None, Some(""), Some(new)) => Some(new.to_string()),
-                (Some(text), Some(old), Some(new)) if all => Some(text.replace(old, new)),
-                (Some(text), Some(old), Some(new)) => Some(text.replacen(old, new, 1)),
+                (None, Some(old), Some(new)) if old.is_empty() => Some(new),
+                (Some(text), Some(old), Some(new)) if all => Some(text.replace(&old, &new)),
+                (Some(text), Some(old), Some(new)) => Some(text.replacen(&old, &new, 1)),
                 _ => None,
             }
         }
