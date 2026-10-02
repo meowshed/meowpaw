@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.9.0]
+describes: [meow-loop@0.10.0]
 ---
 
 # meow-loop
@@ -43,9 +43,9 @@ meow-loop start --step implement --inputs TSK-0042 \
   --iterations 5 --budget-usd 10 --permission-mode dontAsk
 ```
 
-The run holds the terminal until it ends. Its last line is the ending, and for
-`crossed` it also names each record that crossed and, for an evaluation, the
-verb that ran.
+The run holds the terminal until it ends. Its last line is the ending. For
+`crossed` and `off-step` it also names each record or path that caused it and,
+for an evaluation, the verb that ran.
 
 | Term                | Holds                                                                                       | Required                                      |
 | ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -205,6 +205,41 @@ that changed the tree, so a verb that crosses a gate ends the run `crossed`.
 The last line of the output then names each record that crossed and, for an
 evaluation, the verb that ran.
 
+When a call writes another step's files or leaves its input unready, the
+runner ends the run `off-step`, after the comparison for `crossed`. A step
+writes only what its row names:
+
+| Step           | May write                                                                        |
+| -------------- | -------------------------------------------------------------------------------- |
+| `research`     | Research records                                                                 |
+| `requirements` | Requirements                                                                     |
+| `design`       | Decisions                                                                        |
+| `spec`         | Specifications                                                                   |
+| `epic`         | Epics and tasks                                                                  |
+| `implement`    | Tasks, the task marks of epics and defects, and any path outside the record root |
+
+Every step may also write a draft defect, because a run records a defect it
+finds, and a draft insight, because a run records what it learns. It may write
+a file under the record root that is no record, such as an index, because
+`paw index --write` regenerates those. A step other than `implement` may not
+change a path outside the record root. Where the record root is the work tree
+itself, that limit has no effect, because every path is inside it.
+
+The runner lists the paths a call changed with `git diff-tree` between the
+tree id it read just before the call and the one after. A path a verb rewrote
+in an evaluation is therefore not listed, because the runner read the first
+id after that evaluation. Where the runner can't identify either tree, it
+can't list the paths. It then compares the records with its copy instead, so a
+record of the wrong kind still ends the run. A step that writes only records
+ends `off-step` for that reason alone, because nothing shows that the call
+kept to the record root. An `implement` run doesn't end `off-step` for that
+reason, because it may write any path outside the record root.
+
+An input is unready when the test `paw ready` applies no longer passes for it,
+for example after a call clears the mark of a task the input depends on. The
+last line names each record or path, or the reason the runner can't list the
+paths.
+
 If the tree id changed or couldn't be identified, the runner then evaluates
 the condition. The tree id covers every tracked file and every untracked file
 git doesn't ignore. When the step's test holds, every verb exits 0 and the
@@ -224,6 +259,7 @@ that second result stands.
 | `idle`      | Two iterations in a row changed neither the tree nor the progress file             | 1           |
 | `tampered`  | `run.toml`, `prompt.md` or `.claude/settings.json` changed during the run          | 1           |
 | `crossed`   | A call or an evaluation decided a status, or changed or removed an approved record | 1           |
+| `off-step`  | A call wrote another step's files, or left its input unready                       | 1           |
 
 `meow-loop` runs the verbs itself and needs no other unit. It records each
 verb's result in the ledger `meow-checks` reads, so where that unit is
