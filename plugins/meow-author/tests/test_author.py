@@ -481,6 +481,30 @@ class WriteSkill(unittest.TestCase):
             with self.subTest(field=field):
                 self.rule(re.escape(f"`{field.lower()}`"), reason)
 
+    @staticmethod
+    def body(ident):
+        text = (UNIT / "skills" / "write" / "SKILL.md").read_text(encoding="utf-8")
+        found = [body for found_ident, body in rules(text) if found_ident == ident]
+        assert found, f"the write skill has no rule {ident}"
+        return found[0]
+
+    def test_only_d3_gives_the_turn_ceiling(self):
+        """TSK-2701 criterion 1, REQ-2974: the rule for `maxTurns` is D3 alone, so D9's mention of a ceiling can't
+        satisfy the check for D3 if D3 loses its reason."""
+        self.assertEqual(self.rule(re.escape("`maxturns`"), r"\bceiling\b"), ["D3"])
+
+    def test_the_tools_reason_follows_the_list_it_governs(self):
+        """TSK-2701 criterion 1, REQ-3270: D4 gives the reason for listing no delegation tool after the list, so a
+        reason moved to the other clause fails."""
+        tail = self.body("D4").split("list no", 1)[1]
+        self.assertIn("because each reaches the delegation tool", tail)
+
+    def test_the_ceiling_fallback_has_its_own_reason(self):
+        """TSK-2701 criterion 1, REQ-2974: D9 gives a reason for reading the output of a run that reached its
+        ceiling as unfinished, after the sentence that states it, not only for the marked output."""
+        tail = self.body("D9").split("until a run has shown", 1)[1]
+        self.assertIn("because", tail)
+
     def test_a_partial_output_is_unfinished(self):
         """TSK-2701 criterion 1, REQ-2974: a dispatcher reads an output marked partial as unfinished work."""
         self.rule(r"\bdispatch", r"\bpartial\b", r"\bunfinished\b")
