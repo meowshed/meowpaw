@@ -40,7 +40,12 @@ n = (sum(1 for _ in open(log)) if os.path.exists(log) else 0) + 1
 with open(log, "a") as f:
     f.write(json.dumps({"n": n, "argv": sys.argv[1:], "stdin": stdin, "run": os.environ.get("MEOW_LOOP_RUN")}) + "\\n")
 if config.get("edit", True):
-    with open("work.txt", "a") as f:
+    # A step that writes only records may not touch the work tree's root, so its calls edit a file under the record
+    # root that is no record. An implement step may write anywhere.
+    run_dir = os.path.dirname(sys.argv[sys.argv.index("--add-dir") + 1])
+    import tomllib
+    step = tomllib.load(open(os.path.join(run_dir, "run.toml"), "rb"))["step"]
+    with open("work.txt" if step == "implement" else "project/work.txt", "a") as f:
         f.write("call %d\\n" % n)
 name = config.get("create", {}).get(str(n))
 if name:
@@ -867,10 +872,10 @@ class Step(Case):
     def test_spec_run_finishes(self):
         """TSK-3410 criterion 7: a call that writes a new specification stating each requirement the input decision
         addresses, while the verb passes, finishes a `spec` run."""
-        f = self.fixture()
+        f = self.fixture({"done.flag": "x"})
         spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
                      states="[REQ-0001]") + "\n# Another part\n"
-        f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}}, create={"1": "done.flag"})
+        f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
         done = f.start(step_terms("spec", "ADR-0001"))
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "finished")
@@ -1056,10 +1061,10 @@ class Crossed(Case):
                                  RECORD["project/requirements/REQ-0002-a-draft.md"].replace("status: draft",
                                                                                           "status: live")}})
         self.crossed(f, f.start(step_terms("spec", "ADR-0001")), "REQ-0002")
-        g = self.fixture()
+        g = self.fixture({"done.flag": "x"})
         spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
                      states="[REQ-0001]") + "\n# Another part\n"
-        g.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}}, create={"1": "done.flag"})
+        g.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
         done = g.start(step_terms("spec", "ADR-0001"))
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(g.ending(), "finished")
@@ -1069,15 +1074,20 @@ class Crossed(Case):
         Evidence cross nothing in a `design` run."""
         f = self.fixture({DECISION_FILE: DRAFT_DECISION})
         f.configure(write={"1": {DECISION_FILE: DRAFT_DECISION + "\nMore.\n",
-                                 "project/adrs/ADR-0003-new.md": DRAFT_DECISION.replace("0002", "0003"),
-                                 "project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Not yet.\n\nMore.")}})
+                                 "project/adrs/ADR-0003-new.md": DRAFT_DECISION.replace("0002", "0003")}})
         done = f.start(step_terms("design", "REQ-0001", iterations="2"))
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "ceiling")
-        # The writes landed, so the run crossed nothing though it changed three records.
+        # The writes landed, so the run crossed nothing though it changed two records.
         self.assertIn("More.", (f.root / DECISION_FILE).read_text())
         self.assertTrue((f.root / "project/adrs/ADR-0003-new.md").exists())
-        self.assertIn("More.", (f.root / "project/tasks/TSK-0002-the-second.md").read_text())
+        # A task's Evidence is an `implement` run's to write.
+        g = self.fixture()
+        g.configure(write={"1": {"project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Not yet.\n\nMore.")}})
+        done = g.start(step_terms("implement", "TSK-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(g.ending(), "ceiling")
+        self.assertIn("More.", (g.root / "project/tasks/TSK-0002-the-second.md").read_text())
 
     def test_evaluation_crosses(self):
         """TSK-3420 criterion 5, REQ-0888: a verb whose command withdraws an approved requirement on its second run
@@ -1246,6 +1256,165 @@ class Crossed(Case):
                     create={"1": "done.flag"})
         done = f.start(step_terms("implement", "TSK-0001"))
         self.crossed(f, done, "ADR-0002")
+
+
+class OffStep(Case):
+    """ADR-2020: a call that writes another step's files, or leaves its input unready, ends the run `off-step`,
+    after `crossed`, and the last line names each record or path."""
+
+    def off_step(self, f, done, *names, calls=1, found="after iteration 1", other=()):
+        """The run ended `off-step` after `calls` calls, and its last line starts with `found`, names every one of
+        `names` and none of `other`."""
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "off-step")
+        last = done.stdout.strip().splitlines()[-1]
+        self.assertTrue(last.startswith(f"off-step: {found}"), last)
+        for name in names:
+            self.assertIn(name, last)
+        for name in other:
+            self.assertNotIn(name, last)
+        self.assertEqual(len(f.calls()), calls)
+
+    def design(self, f, **config):
+        f.configure(**config)
+        return f.start(step_terms("design", "REQ-0001"))
+
+    def test_design_run_kinds(self):
+        """TSK-3440 criterion 1, REQ-0888: in a `design` run, a call that writes a draft decision addressing the
+        input and a specification ends the run `off-step` naming the specification; one that writes a file outside
+        the record root ends it `off-step` naming the file; one that writes only the decision, while the verb
+        passes, ends it `finished`."""
+        decision = DRAFT_DECISION.replace("[REQ-0002]", "[REQ-0001]")
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        f = self.fixture({"done.flag": "x"})
+        self.off_step(f, self.design(f, write={"1": {"project/adrs/ADR-0002-new.md": decision,
+                                                      "project/specs/SPC-0002-another.md": spec}}),
+                      "SPC-0002", other=("ADR-0002",))
+        g = self.fixture({"done.flag": "x"})
+        self.off_step(g, self.design(g, write={"1": {"stray.txt": "x"}}), "stray.txt")
+        h = self.fixture({"done.flag": "x"})
+        h.configure(write={"1": {"project/adrs/ADR-0002-new.md": decision}})
+        done = h.start(step_terms("design", "REQ-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(h.ending(), "finished")
+
+    def test_implement_run_limits(self):
+        """TSK-3440 criterion 2, REQ-0888: in an `implement` run of a task with a blocking dependency marked done, a
+        call that clears the dependency's mark in the approved epic and changes nothing else leaves the input
+        failing the start test, so the run ends `off-step` naming the input task; one that writes a
+        specification ends it `off-step` naming the specification; one that writes a file outside the record
+        root does not."""
+        dependent = task("TSK-0002", "Not yet.").replace("Nothing.", "- TSK-0001 (blocking): the first.")
+        files = {"project/tasks/TSK-0002-the-second.md": dependent}
+        f = self.fixture(files)
+        f.configure(write={"1": {"project/epics/EPC-0001-a-plan.md": epic(" ", " ")}})
+        self.off_step(f, f.start(step_terms("implement", "TSK-0002")), "TSK-0002", "TSK-0001")
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        g = self.fixture(files)
+        g.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
+        self.off_step(g, g.start(step_terms("implement", "TSK-0002")), "SPC-0002")
+        h = self.fixture(files)
+        h.configure(write={"1": {"stray.txt": "x"}})
+        done = h.start(step_terms("implement", "TSK-0002", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(h.ending(), "ceiling")
+
+    def test_unidentified_tree_in_a_record_step(self):
+        """TSK-3440 criterion 3, REQ-0888: in a `design` run with a dirty submodule, a call that writes the decision
+        ends the run `off-step`, because the changed paths can't be listed, and `log.jsonl` records the tree as
+        `unidentified`."""
+        decision = DRAFT_DECISION.replace("[REQ-0002]", "[REQ-0001]")
+        f = self.fixture({"done.flag": "x"})
+        origin = f.base / "sub-origin"
+        origin.mkdir()
+        (origin / "a.txt").write_text("a\n")
+        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
+        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
+            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
+        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
+        f.git(*identity, "commit", "-q", "-m", "add the submodule")
+        (f.root / "sub" / "a.txt").write_text("changed\n")
+        done = self.design(f, write={"1": {"project/adrs/ADR-0002-new.md": decision}})
+        self.off_step(f, done, "can't be listed")
+        lines = [json.loads(text) for text in (f.run_dirs()[0] / "log.jsonl").read_text().splitlines()]
+        self.assertTrue(lines)
+        self.assertTrue(all(line["unidentified"] for line in lines))
+
+    def test_verb_rewrites_are_not_the_calls(self):
+        """TSK-3440 criterion 4, REQ-0888: in a `design` run whose verb rewrites an approved requirement and a file
+        outside the record root on its first run, a call that writes only the decision ends the run `finished`, and
+        neither `crossed` nor `off-step`, because the copy and the paths are taken after the verb's run."""
+        decision = DRAFT_DECISION.replace("[REQ-0002]", "[REQ-0001]")
+        f = self.fixture({"stray.txt": "plain\n"})
+        count = f.base / "count"
+        script = f.base / "verb.sh"
+        script.write_text(
+            f"n=$(cat {count} 2>/dev/null || echo 0)\necho $((n + 1)) > {count}\n"
+            f"if [ \"$n\" -eq 0 ]; then\n  echo '' >> {REQUIREMENT_FILE}\n  echo changed >> stray.txt\nfi\n"
+            f"test -f project/adrs/ADR-0002-new.md\n")
+        (f.root / ".meowpaw" / "profile.toml").write_text(PROFILE.replace('test -f done.flag', f"sh {script}"))
+        done = self.design(f, write={"1": {"project/adrs/ADR-0002-new.md": decision}})
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "finished")
+        self.assertEqual(len(f.calls()), 1)
+
+    def test_always_allowed(self):
+        """TSK-3440 criterion 5, REQ-0888: in every step, a call that writes a draft defect, a draft insight and an
+        index under the record root does not end the run `off-step`."""
+        defect = front(id="BUG-0002", artifact="bug", status="draft", severity="minor", violates="REQ-0001",
+                       enters="implement", found="2026-01-01", revised="2026-01-01") + "\n# A defect\n"
+        insight = front(id="INS-0001", artifact="insight", status="draft", revised="2026-01-01") + "\n# A lesson\n"
+        writes = {"project/bugs/BUG-0002-a-defect.md": defect, "project/insights/INS-0001-a-lesson.md": insight,
+                  "project/README.md": "# Index\n"}
+        matched = 0
+        for step, inputs in (("research", None), ("requirements", "RES-0001"), ("design", "REQ-0001"),
+                             ("spec", "ADR-0001"), ("epic", "ADR-0001"), ("implement", "TSK-0001")):
+            with self.subTest(step=step):
+                f = self.fixture()
+                f.configure(write={"1": writes})
+                done = f.start(step_terms(step, inputs, iterations="2"))
+                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                self.assertEqual(f.ending(), "ceiling")
+                self.assertTrue((f.root / "project/insights/INS-0001-a-lesson.md").exists())
+                matched += 1
+        self.assertEqual(matched, 6)
+
+    def test_crossed_first(self):
+        """TSK-3440 criterion 6, REQ-0888: a call that approves a draft and writes another step's record ends the
+        run `crossed`, because a crossed gate is the graver of the two."""
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        f = self.fixture({DECISION_FILE: DRAFT_DECISION})
+        f.configure(write={"1": {DECISION_FILE: DRAFT_DECISION.replace("status: draft", "status: approved"),
+                                 "project/specs/SPC-0002-another.md": spec}})
+        done = f.start(step_terms("design", "REQ-0001"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "crossed")
+
+    def test_each_kind_has_its_step(self):
+        """TSK-3440 criterion 1, REQ-0888: each step writes the kind its row names and no other: a requirement in a
+        `requirements` run, a research record in a `research` run, an epic in an `epic` run and a task in an `epic`
+        run do not end the run `off-step`, and a decision in a `requirements` run does."""
+        research = front(id="RES-0002", artifact="research", status="draft", revised="2026-01-01") + "\n# More\n"
+        requirement = RECORD["project/requirements/REQ-0002-a-draft.md"].replace("REQ-0002", "REQ-0003")
+        new_epic = epic().replace("EPC-0001", "EPC-0002")
+        new_task = task("TSK-0004", "Not yet.")
+        allowed = (("research", None, {"project/research/RES-0002-more.md": research}),
+                   ("requirements", "RES-0001", {"project/requirements/REQ-0003-new.md": requirement}),
+                   ("epic", "ADR-0001", {"project/epics/EPC-0002-new.md": new_epic,
+                                         "project/tasks/TSK-0004-new.md": new_task}))
+        for step, inputs, writes in allowed:
+            with self.subTest(step=step):
+                f = self.fixture()
+                f.configure(write={"1": writes})
+                done = f.start(step_terms(step, inputs, iterations="2"))
+                self.assertNotEqual(f.ending(), "off-step", done.stdout + done.stderr)
+        f = self.fixture()
+        f.configure(write={"1": {DECISION_FILE: DRAFT_DECISION}})
+        done = f.start(step_terms("requirements", "RES-0001"))
+        self.off_step(f, done, "ADR-0002")
 
 
 class Ceiling(Case):
