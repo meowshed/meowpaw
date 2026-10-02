@@ -69,10 +69,6 @@ that hold whether or not TSK-2700's check has landed.
 
 ## Evidence
 
-Not yet. Criteria 4 and 5 rest on judgement and wait on a person, because a
-model's output is read by a person and the agent judging criterion 5 may
-share the author's model family.
-
 Criteria 1 and 6 are met by #686. `meow-author:write` holds D1 to D9 under
 `<rules name="agents and delegation">`: D1 ships knowledge, such as a
 language's idioms, as a skill and never as an agent (REQ-2972), D2 forbids
@@ -84,19 +80,24 @@ the skill's tags. Criteria 2 and 3 are dropped by ADR-2300, so the method
 skill's rule for a reviewer stopped at its ceiling and the case
 `stopped-at-the-ceiling` are gone.
 
-Criterion 4 is open. The hand-run case is
+Criterion 4 rests on judgement. The hand-run case is
 `plugins/meow-author/evals/knowledge-as-a-skill/`, with its threshold of
-0.66 in `plugins/meow-author/evals/thresholds.toml`. Nobody has run it. A
-person runs it with `python3 tools/loop.py plugins/meow-author/`, which
-calls real models and costs money, and names here who read the run.
+0.66 in `plugins/meow-author/evals/thresholds.toml`. Andrew Vasilyev checked
+the criterion and approved it on 2026-10-02. He gave no score, so none is
+recorded here.
 
-Criterion 5 is open. On 2026-09-30 `meow-prose:prose` was dispatched with a
-path alone on SPC-1030, SPC-1090 and `plugins/meow-author/skills/write/SKILL.md`.
-None of the three reports named a sentence treating a delegated agent as a
-boundary. The write skill's report noted that D1's "knowledge needs no
-isolation" could read as opposing D2, and suggested "context isolation". No
-person has read the reports, and no report is kept, so a person dispatches
-`prose` on the three paths again and names here who read what it printed.
+Criterion 5 rests on judgement. On 2026-10-02, at Andrew Vasilyev's
+instruction, the session dispatched `meow-prose:prose` on SPC-1030,
+SPC-1090 and `plugins/meow-author/skills/write/SKILL.md`, one path to each
+dispatch. Each dispatch also carried the kernel's reply-shape block, which its
+rule R10 requires of any dispatch, so none carried a path alone. The three
+reports held 34, 34 and 22 numbered findings, and none names a sentence that
+treats a delegated agent as a boundary. The word appears only in the name of
+the specifications' own "Boundary" section. The reports found other prose
+problems in the three files, which this task leaves alone. The session read
+the reports, and it is Claude, so it may share the author's model family, the
+reason the criterion asks for a person. Andrew Vasilyev chose that the
+session read them, and no person has read them. No report is kept.
 
 ## Left alone
 

@@ -571,9 +571,8 @@ superseded ADR-2200.
 tasks, TSK-3800 to TSK-3870, all of them done, and each of the 28
 requirements ADR-2300 addresses lands in one of them.
 [EPC-1650](epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
-ADR-1700 in two tasks, TSK-2700, which is done, and TSK-2701, which is in
-progress, and
-every requirement ADR-1700 addresses lands in one of them.
+ADR-1700 in two tasks, TSK-2700 and TSK-2701, both done, and every
+requirement ADR-1700 addresses lands in one of them.
 [EPC-1651](epics/EPC-1651-a-delegated-agent-reports-one-of-four-outcomes.md)
 realises ADR-1710 in two tasks, TSK-2702 and TSK-2703, both done, and each of the two requirements ADR-1710 addresses lands in one of
 them.
@@ -652,5 +651,5 @@ addresses lands in one of them.
 Forty are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
-after its fix, and says so. BUG-1390 is a draft, and routes to the spec step,
+after its fix, and says so. BUG-1390 is approved, and routes to the spec step,
 because SPC-1201 leaves out failure states that `meow-loop` reaches.

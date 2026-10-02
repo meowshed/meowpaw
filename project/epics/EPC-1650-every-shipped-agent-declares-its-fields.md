@@ -76,13 +76,13 @@ as in `- [ ] T-002 [P] TSK-NNNN`.
       hand-run case is dropped with `record-reviewer`.
       depends: nothing
 
-- [>] T-002 [P] TSK-2701 give `meow-author:write` the rules a program can't
-  check, and add the hand-run case for knowledge shipped as a skill
-  closes: REQ-2972, REQ-2976
-  evidence: the `WriteSkill` checks pass after failing first, in #686.
-  TSK-2701 carries the rest. Criteria 4 and 5 wait for a person to run the
-  hand-run case and to read what `prose` reports.
-  depends: nothing
+- [x] T-002 [P] TSK-2701 give `meow-author:write` the rules a program can't
+      check, and add the hand-run case for knowledge shipped as a skill
+      closes: REQ-2972, REQ-2976
+      evidence: the `WriteSkill` checks pass after failing first, in #686.
+      Andrew Vasilyev approved criterion 4, and criterion 5 was run by the
+      session at his instruction. TSK-2701 carries the details.
+      depends: nothing
 
 TSK-2700 and TSK-2701 touch different files except `meow-flow`'s and
 `meow-author`'s versions and their READMEs' `describes`, so whichever lands
