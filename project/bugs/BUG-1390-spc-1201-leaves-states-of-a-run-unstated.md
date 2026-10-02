@@ -1,12 +1,12 @@
 ---
 id: BUG-1390
 artifact: bug
-status: draft
+status: approved
 severity: minor
 violates: REQ-1240
 enters: spec
 found: 2026-10-01
-revised: 2026-10-01
+revised: 2026-10-02
 issue:
 ---
 
