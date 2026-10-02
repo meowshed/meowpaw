@@ -549,6 +549,8 @@ class Hook(Case):
                 ("give a record a status", no_status, "revised: 2026-01-01", "revised: 2026-01-01\nstatus: approved",
                  "approved"),
                 ("approve a CRLF file", crlf, "status: draft\r\n", "status: approved\r\n", "approved"),
+                ("approve a CRLF file across a line break", crlf, "status: draft\nrevised: 2026-01-01",
+                 "status: approved\nrevised: 2026-01-01", "approved"),
                 ("create a file with an empty old_string", f.root / "project/adrs/ADR-0009-new.md", "",
                  DRAFT_DECISION.replace("status: draft", "status: approved"), "approved"))
         allow = (("edit an approved task's Evidence", task_file, "Not yet.", "Not yet. More."),
@@ -576,6 +578,17 @@ class Hook(Case):
                 self.allowed(self.edit(f, "Edit", run=False, file_path=str(path), old_string=old, new_string=new), what)
                 allowed += 1
         self.assertEqual((denied, allowed), (len(deny), len(allow) + len(deny)))
+
+    def test_status_rule_with_an_empty_variable(self):
+        """TSK-3430 criterion 1, REQ-0888: `MEOW_LOOP_RUN` set to an empty string counts as set, so the rule denies
+        an Edit that approves a draft."""
+        f = self.fixture()
+        event = {"hook_event_name": "PreToolUse", "tool_name": "Edit",
+                 "tool_input": {"file_path": str(f.root / "project/requirements/REQ-0002-a-draft.md"),
+                                "old_string": "status: draft", "new_string": "status: approved"}}
+        done = subprocess.run([str(BIN), "guard"], input=json.dumps(event), capture_output=True, text=True,
+                              env=f.env(MEOW_LOOP_RUN=""), cwd=f.root)
+        self.reason(done, "an empty variable", "decided status", "approved")
 
     def test_status_rule_on_write(self):
         """TSK-3430 criterion 2, REQ-0888: with `MEOW_LOOP_RUN` set, a Write whose content holds `status: approved`
