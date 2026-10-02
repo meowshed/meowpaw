@@ -161,13 +161,8 @@ runner can't sum bounds nothing. That call's line in the log holds `null` for
 run `budget`. Both come before the condition, so a call that reports no cost
 and also makes the verbs pass ends `unmetered`.
 
-After the budget checks, the runner compares the record with the copy it took
-at start. It skips the comparison only when it can identify the work tree
-before and after the call and finds it unchanged. A changed term, a missing
-cost and a call's own cap end the run before this comparison. The comparison
-comes before the condition, so a call that approves a draft and also makes the
-verbs pass ends `crossed`, not `finished`. The run ends `crossed` when the
-comparison shows one of four changes:
+A call ends the run `crossed` when the record, compared with the copy the
+runner took at start, shows one of four changes:
 
 - a record's stored status became a decided status, which is any status except
   `draft`, and except `live` in a living kind such as a specification,
@@ -176,6 +171,12 @@ comparison shows one of four changes:
 - an approved record is gone from the path it had at start, deleted or
   renamed;
 - an approved record changed outside what a run may change in it.
+
+The runner makes this comparison after every call, unless it can identify the
+work tree before and after the call and finds it unchanged. A changed term, a
+missing cost and a call's own cap end the run first. The comparison comes
+before the condition, so a call that approves a draft and also makes the
+verbs pass ends `crossed`, not `finished`.
 
 A run may change an approved task only in its Evidence, its Left alone
 section, its issue, its projection and its revision date. It may change an
@@ -190,15 +191,15 @@ that changed the tree, so a verb that crosses a gate ends the run `crossed`.
 The last line of the output then names each record that crossed and, for an
 evaluation, the verb that ran.
 
-Then the runner compares the work tree's tree id with the one before
-the call. The tree id covers every tracked file and every untracked file git
-doesn't ignore. If the tree id changed or couldn't be identified, the runner
-evaluates the condition again. When the step's test holds, every verb exits 0
-and the evaluation left the tree as it found it, the run ends `finished`. An unidentified tree, such as one with a dirty submodule, holds no
-condition. An unchanged tree would repeat the last result, so the runner
-skips the evaluation and makes the next call. Where a verb changes the tree, such
-as a formatter that rewrites files, the runner evaluates a second time at
-once, and that second result stands.
+If the tree id changed or couldn't be identified, the runner then evaluates
+the condition. The tree id covers every tracked file and every untracked file
+git doesn't ignore. When the step's test holds, every verb exits 0 and the
+evaluation left the tree as it found it, the run ends `finished`. An
+unidentified tree, such as one with a dirty submodule, holds no condition. An
+unchanged tree would repeat the last result, so the runner skips the
+evaluation and makes the next call. Where a verb changes the tree, such as a
+formatter that rewrites files, the runner evaluates a second time at once, and
+that second result stands.
 
 | Ending      | When                                                                               | Exit status |
 | ----------- | ---------------------------------------------------------------------------------- | ----------- |

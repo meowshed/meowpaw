@@ -2704,20 +2704,6 @@ pub(crate) struct Held {
     docs: Vec<HeldDoc>,
 }
 
-#[cfg(feature = "loop")]
-impl Held {
-    /// The record held for this document: the one of its identifier, or the
-    /// one at its path, so a record whose identifier a call removed or changed
-    /// is still the record held there.
-    fn of(&self, doc: &Doc) -> Option<&HeldDoc> {
-        let id = bare(doc.id());
-        self.docs
-            .iter()
-            .find(|held| !id.is_empty() && held.id == id)
-            .or_else(|| self.docs.iter().find(|held| held.path == doc.path))
-    }
-}
-
 /// Takes the copy of the record a run holds: each record's identifier, kind,
 /// path, stored status and text.
 #[cfg(feature = "loop")]
@@ -2755,10 +2741,13 @@ fn decided(kind: &Kind, status: &str) -> bool {
 #[cfg(feature = "loop")]
 fn without_marks(text: &str) -> String {
     let head = Regex::new(r"^(- \[).(\] T-\d+ )").expect("mark pattern");
-    let key = Regex::new(r"^\s+[a-z-]+:").expect("key pattern");
+    // An entry's own fields end a run of evidence lines, so an evidence line
+    // that wraps onto text shaped like a field stays evidence.
+    let field = Regex::new(r"^\s+(?:closes|depends|evidence):").expect("field pattern");
     let (mut in_tasks, mut skipping) = (false, false);
     let mut out: Vec<String> = Vec::new();
-    for line in text.lines() {
+    // Split on newlines alone, so a change of line ending is a change.
+    for line in text.split('\n') {
         if let Some(heading) = line.strip_prefix("## ") {
             (in_tasks, skipping) = (heading.trim() == "Tasks", false);
         } else if in_tasks {
@@ -2767,9 +2756,9 @@ fn without_marks(text: &str) -> String {
                 out.push(head.replace(line, "${1} ${2}").into_owned());
                 continue;
             }
-            let evidence = line.trim_start().starts_with("evidence:") && key.is_match(line);
+            let evidence = line.trim_start().starts_with("evidence:") && field.is_match(line);
             let wrapped = skipping && line.starts_with(' ') && !line.trim().is_empty();
-            if evidence || (wrapped && !key.is_match(line)) {
+            if evidence || (wrapped && !field.is_match(line)) {
                 skipping = true;
                 continue;
             }
@@ -2859,7 +2848,7 @@ pub(crate) fn crossings(record: &Record, held: &Held, step: &str) -> Vec<String>
                     && !run_may_change(&kind.name, step, &then.text, &doc.text) =>
             {
                 out.push(format!(
-                    "{} (an approved {} changed outside what a {step} run may change)",
+                    "{} (an approved {} changed outside what the {step} step may change)",
                     doc.shown, kind.name
                 ));
             }
@@ -2901,8 +2890,10 @@ pub(crate) fn step_holds(
     let Some(held) = held else {
         return false;
     };
-    let new = |doc: &Doc| held.of(doc).is_none();
-    let touched = |doc: &Doc| held.of(doc).is_none_or(|then| then.text != doc.text);
+    let present: BTreeSet<&Path> = record.docs.iter().map(|doc| doc.path.as_path()).collect();
+    let found = |doc: &Doc| held_for(held, doc, &present);
+    let new = |doc: &Doc| found(doc).is_none();
+    let touched = |doc: &Doc| found(doc).is_none_or(|(then, _)| then.text != doc.text);
     let cites = |doc: &Doc, keys: &[&str], id: &str| {
         keys.iter().any(|key| {
             record
