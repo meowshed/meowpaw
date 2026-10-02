@@ -134,7 +134,8 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
 
 - [x] T-003 [P] TSK-3430 add the hook's status rule, active when
       `MEOW_LOOP_RUN` is set, and set that variable in every call
-      evidence: the three new checks pass after failing first in their own
+      evidence: `Hook.test_status_rule`, `Hook.test_status_rule_on_write` and
+      `Step.test_run_id_in_every_call` pass after failing first in their own
       commit, and the five verbs pass.
       depends: TSK-3410 (blocking) - the record code naming living kinds
       depends: TSK-3400 (blocking) - the last change to the hook it joins

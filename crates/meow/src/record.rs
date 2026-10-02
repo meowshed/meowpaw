@@ -2755,12 +2755,15 @@ pub(crate) fn decided_by_edit(
         .to_string_lossy()
         .replace('\\', "/");
     let (parent, name) = relative.rsplit_once('/').unwrap_or(("", relative.as_str()));
+    // The reader takes Markdown files only, and an index is no record.
     let kind = layout.kinds.iter().find(|kind| {
         kind.file.as_deref() == Some(relative.as_str())
-            || (kind.dir.as_deref() == Some(parent) && name != layout.index_name)
+            || (kind.dir.as_deref() == Some(parent)
+                && name.ends_with(".md")
+                && name != layout.index_name)
     })?;
     let status_of = |text: &str| {
-        parse_front_matter(text)
+        parse_front_matter(&text.replace("\r\n", "\n"))
             .and_then(|fields| fields.into_iter().find(|field| field.key == "status"))
             .map(|field| bare(&field.value).to_string())
             .unwrap_or_default()

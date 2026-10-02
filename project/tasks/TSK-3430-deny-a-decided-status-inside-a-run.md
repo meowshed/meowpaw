@@ -66,20 +66,26 @@ TSK-3410's tree.
 
 ## Evidence
 
-Criteria 1 to 3 are closed by `Hook.test_status_rule`,
-`Hook.test_status_rule_on_write` and `Step.test_run_id_in_every_call` in
-`plugins/meow-loop/tests/test_loop.py`. All three failed first in commit
-3053dfa7: the hook printed no denial, and the stand-in's environment held no
-`MEOW_LOOP_RUN`. All 85 checks of the unit pass on this change, by `python3
--m unittest plugins/meow-loop/tests/test_loop.py`, which exits 0. Criterion 4
-is closed by the five verbs' outcomes in this task's pull request, since no
-run output is kept.
+`python3 -m unittest plugins/meow-loop/tests/test_loop.py` exits 0 on this
+change, reporting `Ran 86 tests` and `OK`. Four checks in that file close
+criteria 1 to 3: `Hook.test_status_rule`, `Hook.test_status_rule_on_write`,
+`Step.test_run_id_in_every_call` and `Step.test_run_id_only_in_calls`. The
+first three failed first in commit 3053dfa7, where the hook printed no denial
+and the stand-in's environment held no `MEOW_LOOP_RUN`. The review then
+rewrote the hook checks in 5d17365c. The rows for a CRLF file, an Edit with an
+empty `old_string` and a non-Markdown file in a kind directory failed first,
+and the other rows pin the rule against a wrong change. Criterion 4 is closed
+by the five verbs' outcomes in this task's pull request, #797, since no run
+output is kept.
 
 The rule is `status_rule` in `crates/meow/src/runloop.rs`, and the status and
 kind logic is `decided_by_edit` in `crates/meow/src/record.rs`, beside the
-`decided` rule the comparison after each call uses. The hook fails open where
-the layout or the profile can't be read, because the comparison after the call
-decides whether a gate was crossed.
+`decided` rule the comparison after each call uses. The hook allows a write
+where it can't read the layout or the profile. It covers Edit and Write, the
+tools SPC-1201 names, so a MultiEdit or a NotebookEdit passes it, which
+BUG-1390 records for the spec step. A record with CRLF line endings has no
+front matter for the record reader, so the comparison after a call reads its
+status as empty, while the hook reads that file's status correctly.
 
 ## Left alone
 

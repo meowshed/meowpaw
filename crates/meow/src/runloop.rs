@@ -1199,6 +1199,8 @@ fn status_rule(event: &Value, target: &Path) {
             );
             let all = input("replace_all").and_then(Value::as_bool) == Some(true);
             match (before.as_deref(), old, new) {
+                // An Edit with an empty old_string creates a missing file.
+                (None, Some(""), Some(new)) => Some(new.to_string()),
                 (Some(text), Some(old), Some(new)) if all => Some(text.replace(old, new)),
                 (Some(text), Some(old), Some(new)) => Some(text.replacen(old, new, 1)),
                 _ => None,

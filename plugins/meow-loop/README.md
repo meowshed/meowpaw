@@ -125,17 +125,19 @@ terms is reported as that whatever bound it also reached. The unit's
 directory other than a run's `progress/progress.md`.
 
 Every call's environment holds `MEOW_LOOP_RUN`, set to the run's id. Where
-that variable is set, the same hook also denies an Edit or a Write that would
-give a file under the record root a decided status, so the model hears the
+that variable is set, the same hook denies an Edit or a Write that would give
+a file under the record root a decided status. The model then hears the
 refusal before it spends the iteration. The hook reads the file's kind from
 its directory, so `live` passes in a specification and not in a requirement.
 It reads the file on disk, so an Edit of an approved task's Evidence, which
-leaves the status as it is, passes. Where the variable isn't set, the rule
-allows every edit, because in a session the model writes an approval a person
-gave. A Bash command that writes a record passes the hook, so the comparison
-after the call decides whether a gate was crossed. No real call has been
-observed running the hook or seeing the variable, so the sha256 check and
-that comparison decide either way.
+leaves the status as it is, passes. Without the variable, the rule allows
+every Edit and Write, because in a session the model writes an approval a
+person gave. The hook also allows a write where it can't read the layout or
+the profile, and it doesn't see a Bash command, a MultiEdit or a NotebookEdit
+that writes a record. The comparison after each call decides whether a gate
+was crossed in those cases. Nobody has observed a real call run the hook or
+see the variable, so treat the hook as a first warning and the comparison as
+the check.
 
 Each call is a new session: the runner passes no `--resume` and no
 `--continue`. `--setting-sources project` keeps the plugins you installed for

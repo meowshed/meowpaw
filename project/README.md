@@ -551,7 +551,8 @@ requirements
 ADR-2010 addresses lands in one of them.
 [EPC-1920](epics/EPC-1920-a-run-bound-to-one-step.md) realises ADR-2020 in
 four tasks, TSK-3410 to TSK-3440, of which TSK-3410, TSK-3420 and TSK-3430
-are done, and each of the two requirements ADR-2020 addresses lands in one of them.
+are done, and each of the two requirements ADR-2020 addresses lands in one of
+them.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
