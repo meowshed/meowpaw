@@ -499,6 +499,13 @@ class WriteSkill(unittest.TestCase):
         tail = self.body("D4").split("list no", 1)[1]
         self.assertIn("because each reaches the delegation tool", tail)
 
+    def test_the_denial_ending_stays_inside_its_condition(self):
+        """TSK-2703 criterion 1, REQ-2978: D10 ends an agent as `BLOCKED` only where a tool call is denied, so the
+        ending sits in a sentence that holds the condition, and not in one of its own."""
+        sentences = re.split(r"(?<=\.)\s+", self.body("D10"))
+        denied = [sentence for sentence in sentences if "denied" in sentence]
+        self.assertTrue(any("ends as `blocked`" in sentence for sentence in denied), denied)
+
     def test_the_ceiling_fallback_has_its_own_reason(self):
         """TSK-2701 criterion 1, REQ-2974: D9 gives a reason for reading the output of a run that reached its
         ceiling as unfinished, after the sentence that states it, not only for the marked output."""
