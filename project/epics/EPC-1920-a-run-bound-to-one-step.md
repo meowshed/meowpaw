@@ -128,8 +128,8 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
 
 - [x] T-002 [P] TSK-3420 end a run `crossed` when a call or an evaluation
       decides a status, or changes or removes an approved record
-      evidence: the twelve `Crossed` checks pass after failing first in their
-      own commit, and the five verbs pass.
+      evidence: the `Crossed` checks that guard a crossing failed first in
+      their own commits, and the five verbs pass.
       depends: TSK-3410 (blocking) - the step and the copy held at start
 
 - [ ] T-003 [P] TSK-3430 add the hook's status rule, active when

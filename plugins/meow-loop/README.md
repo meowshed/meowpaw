@@ -43,7 +43,9 @@ meow-loop start --step implement --inputs TSK-0042 \
   --iterations 5 --budget-usd 10 --permission-mode dontAsk
 ```
 
-The run holds the terminal until it ends, and its last line is the ending.
+The run holds the terminal until it ends. Its last line is the ending, and for
+`crossed` it also names each record that crossed and, for an evaluation, the
+verb that ran.
 
 | Term                | Holds                                                                                       | Required                                      |
 | ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -159,28 +161,34 @@ runner can't sum bounds nothing. That call's line in the log holds `null` for
 run `budget`. Both come before the condition, so a call that reports no cost
 and also makes the verbs pass ends `unmetered`.
 
-Before it evaluates, the runner compares the record with the copy it took at
-start, unless the tree id is identified and the same as before the call. The
-run ends `crossed` when the comparison shows one of four changes:
+After the budget checks, the runner compares the record with the copy it took
+at start. It skips the comparison only when it can identify the work tree
+before and after the call and finds it unchanged. A changed term, a missing
+cost and a call's own cap end the run before this comparison. The comparison
+comes before the condition, so a call that approves a draft and also makes the
+verbs pass ends `crossed`, not `finished`. The run ends `crossed` when the
+comparison shows one of four changes:
 
-- a record's stored status became a decided status, which is any status but
-  `draft`, and but `live` in a kind that is living, such as a specification;
+- a record's stored status became a decided status, which is any status except
+  `draft`, and except `live` in a living kind such as a specification,
+  because a specification is `live` from its first draft;
 - a record new since start carries a decided status;
 - an approved record is gone from the path it had at start, deleted or
   renamed;
 - an approved record changed outside what a run may change in it.
 
-A run may change an approved task outside its frozen part, which is its
-Evidence, what it left alone, its issue, its projection and its revision
-date. A run may change an approved epic or defect only under its Tasks, and
-only in an `implement` run. The comparison takes none of `paw check frozen`'s
-exemptions: a status now `withdrawn` or `superseded`, and a line naming an
-authority, each cross, because a person decides those. The runner also makes
-the comparison after each verb of its own evaluation that changed the tree,
-so a verb that crosses a gate ends the run `crossed`. The last line of the
-output then names each record, and the verb for an evaluation. A call that
-crosses a gate and also makes the verbs pass ends `crossed`, because a broken
-bound is reported before a success.
+A run may change an approved task only in its Evidence, its Left alone
+section, its issue, its projection and its revision date. It may change an
+approved epic or defect only in its task marks and the evidence lines written
+with them, and only in an `implement` run. The comparison takes none of
+`paw check frozen`'s exemptions, because a person makes those decisions. A
+status now `withdrawn` or `superseded` crosses. So does a line naming an
+authority.
+
+The runner makes the same comparison after each verb of its own evaluation
+that changed the tree, so a verb that crosses a gate ends the run `crossed`.
+The last line of the output then names each record that crossed and, for an
+evaluation, the verb that ran.
 
 Then the runner compares the work tree's tree id with the one before
 the call. The tree id covers every tracked file and every untracked file git

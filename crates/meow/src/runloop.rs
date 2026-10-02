@@ -365,6 +365,22 @@ fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
     std::fs::write(path, bytes).map_err(|error| format!("can't write {}: {error}", path.display()))
 }
 
+/// How a run ended, and what the last line of output names after the ending:
+/// each record that crossed, and the verb where an evaluation did.
+struct Ended {
+    name: &'static str,
+    named: String,
+}
+
+impl From<&'static str> for Ended {
+    fn from(name: &'static str) -> Self {
+        Ended {
+            name,
+            named: String::new(),
+        }
+    }
+}
+
 /// What one evaluation found: whether the condition holds, or that a verb it
 /// ran changed the record across a gate.
 enum Evaluated {
@@ -713,8 +729,7 @@ fn run(
     context: &Context,
     claude: &Path,
     log: &Path,
-    named: &mut String,
-) -> Result<&'static str, String> {
+) -> Result<Ended, String> {
     let sealed = context.seal();
     // A changed term is reported as that, whichever bound the run also
     // reached, so this check comes first before a call and after it.
@@ -728,9 +743,9 @@ fn run(
     if matches!(evaluate(root, context, None)?, Evaluated::Holds(true)) {
         // The verbs may themselves have changed a watched file.
         if let Some(ending) = tampered() {
-            return Ok(ending);
+            return Ok(ending.into());
         }
-        return Ok("finished");
+        return Ok("finished".into());
     }
     // The copy is taken after the first evaluation, so a verb that rewrote a
     // record then is never blamed on the first call (SPC-1201).
@@ -748,7 +763,7 @@ fn run(
     let mut idle_before = false;
     for iteration in 1..=terms.iterations {
         if let Some(ending) = tampered() {
-            return Ok(ending);
+            return Ok(ending.into());
         }
         // The next call may cost as much as the largest so far, so the run
         // ends before a call that could pass the budget, not after it.
@@ -759,7 +774,7 @@ fn run(
                 dollars(largest),
                 dollars(terms.budget_usd)
             );
-            return Ok("budget");
+            return Ok("budget".into());
         }
         // Read after the last evaluation, so a verb that writes to the tree
         // never counts as a change this call made.
@@ -798,7 +813,7 @@ fn run(
         });
         let logged = log_line(log, None, &line)?;
         if let Some(ending) = tampered() {
-            return Ok(ending);
+            return Ok(ending.into());
         }
         let shown = match called.status {
             Some(status) => format!("exit status {status}"),
@@ -810,7 +825,7 @@ fn run(
             println!(
                 "iteration {iteration}: {shown}, the call reported no cost the runner can sum"
             );
-            return Ok("unmetered");
+            return Ok("unmetered".into());
         };
         spend += cost;
         largest = largest.max(cost);
@@ -819,18 +834,20 @@ fn run(
             .and_then(Value::as_str);
         if subtype == Some("error_max_budget_usd") {
             println!("iteration {iteration}: {shown}, the call reached its own cap");
-            return Ok("budget");
+            return Ok("budget".into());
         }
         // A call that crossed a gate ends the run before the condition is
         // evaluated, so a call that approves a draft and makes the verbs pass
-        // is not finished. Only two equal, identified trees skip the
+        // isn't finished. Only two equal, identified trees skip the
         // comparison.
         if unidentified || before != after {
             let read = record::read_for_run(root, &context.record_root)?;
             let records = record::crossings(&read, &copy, &context.step);
             if !records.is_empty() {
-                *named = format!("after iteration {iteration}: {}", records.join("; "));
-                return Ok("crossed");
+                return Ok(Ended {
+                    name: "crossed",
+                    named: format!("after iteration {iteration}: {}", records.join("; ")),
+                });
             }
         }
         // An unchanged tree would repeat the last result.
@@ -839,13 +856,15 @@ fn run(
                 Evaluated::Holds(held) => held,
                 Evaluated::Crossed { verb, records } => {
                     if let Some(ending) = tampered() {
-                        return Ok(ending);
+                        return Ok(ending.into());
                     }
-                    *named = format!(
-                        "in the evaluation after iteration {iteration}, verb {verb}: {}",
-                        records.join("; ")
-                    );
-                    return Ok("crossed");
+                    return Ok(Ended {
+                        name: "crossed",
+                        named: format!(
+                            "in the evaluation after iteration {iteration}, verb {verb}: {}",
+                            records.join("; ")
+                        ),
+                    });
                 }
             };
             line["condition"] = json!(held);
@@ -859,24 +878,24 @@ fn run(
                 // The verbs may themselves have changed a watched file, and
                 // a changed term is reported before a success.
                 if let Some(ending) = tampered() {
-                    return Ok(ending);
+                    return Ok(ending.into());
                 }
                 println!("iteration {iteration}: {shown}, the condition holds");
-                return Ok("finished");
+                return Ok("finished".into());
             }
             Some(false) => println!("iteration {iteration}: {shown}, the condition doesn't hold"),
             None => println!("iteration {iteration}: {shown}, the tree didn't change"),
         }
         if idle && idle_before {
             println!("two iterations in a row changed neither the tree nor the progress file");
-            return Ok("idle");
+            return Ok("idle".into());
         }
         idle_before = idle;
     }
     if let Some(ending) = tampered() {
-        return Ok(ending);
+        return Ok(ending.into());
     }
-    Ok("ceiling")
+    Ok("ceiling".into())
 }
 
 fn start(args: &[String]) -> u8 {
@@ -975,21 +994,21 @@ fn start(args: &[String]) -> u8 {
     remove_old_runs(&runs, &dir);
     println!("run {}", dir.display());
 
-    let mut named = String::new();
-    let ending = match run(&root, &terms, &context, &claude, &log, &mut named) {
-        Ok(ending) => ending,
+    let ended = match run(&root, &terms, &context, &claude, &log) {
+        Ok(ended) => ended,
         Err(reason) => return refuse(&reason),
     };
+    let ending = ended.name;
     table.insert("ending".into(), ending.into());
     if let Err(reason) = write(&terms_file, table.to_string().as_bytes()) {
         return refuse(&reason);
     }
     // The last line names each record that crossed, and the verb where an
     // evaluation did.
-    if named.is_empty() {
+    if ended.named.is_empty() {
         println!("{ending}");
     } else {
-        println!("{ending}: {named}");
+        println!("{ending}: {}", ended.named);
     }
     if ending == "finished" {
         FINISHED

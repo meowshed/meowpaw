@@ -2738,9 +2738,10 @@ pub(crate) fn hold(record: &Record) -> Held {
     }
 }
 
-/// Whether a stored status is a decision a person makes: any status but
-/// `draft`, and but `live` in a kind the layout declares living, because a
-/// specification is `live` from its first draft and that marks no approval.
+/// Whether a stored status is a decision a person makes. It is any status but
+/// `draft`, and any but `live` in a living kind, because a specification is
+/// `live` from its first draft and that marks no approval. A record with no
+/// status has decided nothing.
 #[cfg(feature = "loop")]
 fn decided(kind: &Kind, status: &str) -> bool {
     !status.is_empty()
@@ -2748,46 +2749,111 @@ fn decided(kind: &Kind, status: &str) -> bool {
         && !(status == "live" && kind.statuses.iter().any(|s| s == "live"))
 }
 
+/// A record's text with each task mark under its Tasks set to open and each
+/// entry's `evidence:` lines removed, so two texts that differ only in the
+/// marks and the evidence written with them compare equal.
+#[cfg(feature = "loop")]
+fn without_marks(text: &str) -> String {
+    let head = Regex::new(r"^(- \[).(\] T-\d+ )").expect("mark pattern");
+    let key = Regex::new(r"^\s+[a-z-]+:").expect("key pattern");
+    let (mut in_tasks, mut skipping) = (false, false);
+    let mut out: Vec<String> = Vec::new();
+    for line in text.lines() {
+        if let Some(heading) = line.strip_prefix("## ") {
+            (in_tasks, skipping) = (heading.trim() == "Tasks", false);
+        } else if in_tasks {
+            if head.is_match(line) {
+                skipping = false;
+                out.push(head.replace(line, "${1} ${2}").into_owned());
+                continue;
+            }
+            let evidence = line.trim_start().starts_with("evidence:") && key.is_match(line);
+            let wrapped = skipping && line.starts_with(' ') && !line.trim().is_empty();
+            if evidence || (wrapped && !key.is_match(line)) {
+                skipping = true;
+                continue;
+            }
+            skipping = false;
+        }
+        out.push(line.to_string());
+    }
+    out.join("\n")
+}
+
 /// Whether a run of `step` may change an approved record of `kind` from
-/// `before` to `after`: a task outside its frozen part in any step, and an epic
-/// or a defect only in the marks under its Tasks, and only in an `implement`
-/// run. None of the frozen comparison's exemptions apply, because a status now
-/// `withdrawn` and a line naming an authority are a person's decisions
-/// (ADR-2020).
+/// `before` to `after`. A task may change outside its frozen part in any step.
+/// An epic or a defect may change only in its task marks and the evidence
+/// written with them, and only in an `implement` run. None of the frozen
+/// comparison's exemptions apply, because a status now `withdrawn` and a line
+/// naming an authority are a person's decisions (ADR-2020).
 #[cfg(feature = "loop")]
 fn run_may_change(kind: &str, step: &str, before: &str, after: &str) -> bool {
     match kind {
         "task" => frozen_part(before) == frozen_part(after),
-        "epic" | "defect" if step == "implement" => {
-            frozen_text(before, &["Tasks"], &["revised"])
-                == frozen_text(after, &["Tasks"], &["revised"])
-        }
+        "epic" | "defect" if step == "implement" => without_marks(before) == without_marks(after),
         _ => false,
     }
 }
 
+/// The held record a document is, and whether it moved. A record is the held
+/// one at its path with its identifier, else the held one of its identifier
+/// whose path is gone, which is a rename, else the held one at its path with
+/// another identifier. Anything else is new. Identifiers can repeat, so the
+/// path decides first.
+#[cfg(feature = "loop")]
+fn held_for<'a>(
+    held: &'a Held,
+    doc: &Doc,
+    present: &BTreeSet<&Path>,
+) -> Option<(&'a HeldDoc, bool)> {
+    let id = bare(doc.id());
+    let same = |then: &&HeldDoc| then.path == doc.path;
+    held.docs
+        .iter()
+        .find(|then| same(then) && then.id == id)
+        .map(|then| (then, false))
+        .or_else(|| {
+            held.docs
+                .iter()
+                .find(|then| {
+                    !id.is_empty() && then.id == id && !present.contains(then.path.as_path())
+                })
+                .map(|then| (then, true))
+        })
+        .or_else(|| held.docs.iter().find(same).map(|then| (then, false)))
+}
+
 /// What a call or an evaluation changed in the record since `held` was taken
-/// that a run of `step` must not change, one entry for each record, each
-/// naming the record's path and why (SPC-1201 "Keeping to one step"): a stored
-/// status that became a decided one, a new record that carries one, an
+/// that a run of `step` must not change, one entry for each record naming its
+/// path and why (SPC-1201 "Keeping to one step"). The four changes are a
+/// stored status that became a decided one, a new record that carries one, an
 /// approved record gone from its path, and an approved record changed outside
 /// what the run may change in it.
 #[cfg(feature = "loop")]
 pub(crate) fn crossings(record: &Record, held: &Held, step: &str) -> Vec<String> {
+    let present: BTreeSet<&Path> = record.docs.iter().map(|doc| doc.path.as_path()).collect();
+    let mut moved: BTreeSet<&Path> = BTreeSet::new();
     let mut out = Vec::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
             continue;
         };
         let status = bare(doc.value("status"));
-        match held.of(doc) {
+        match held_for(held, doc, &present) {
             None if decided(kind, status) => {
                 out.push(format!("{} (new, and {status})", doc.shown));
             }
-            Some(then) if then.status != status && decided(kind, status) => {
+            Some((then, true)) if then.status == "approved" => {
+                moved.insert(then.path.as_path());
+                out.push(format!(
+                    "{} (an approved record moved from {})",
+                    doc.shown, then.shown
+                ));
+            }
+            Some((then, _)) if then.status != status && decided(kind, status) => {
                 out.push(format!("{} (became {status})", doc.shown));
             }
-            Some(then)
+            Some((then, _))
                 if then.status == "approved"
                     && then.text != doc.text
                     && !run_may_change(&kind.name, step, &then.text, &doc.text) =>
@@ -2801,7 +2867,7 @@ pub(crate) fn crossings(record: &Record, held: &Held, step: &str) -> Vec<String>
         }
     }
     for then in held.docs.iter().filter(|then| then.status == "approved") {
-        if !record.docs.iter().any(|doc| doc.path == then.path) {
+        if !present.contains(then.path.as_path()) && !moved.contains(then.path.as_path()) {
             out.push(format!(
                 "{} (an approved record is gone from its path)",
                 then.shown

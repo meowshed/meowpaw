@@ -89,19 +89,34 @@ TSK-3410's tree.
 
 ## Evidence
 
-Criteria 1 to 6 are closed by the twelve `Crossed` checks in
-`plugins/meow-loop/tests/test_loop.py`. Eleven failed first in commit
-29fb51fb, ending `ceiling` or `finished` where `crossed` was expected. The
-twelfth, `test_drafts_and_task_evidence_cross_nothing`, passed there as well,
-because it guards against a comparison that crosses too much: drafts and an
-approved task's Evidence change freely. All 69 checks of the unit pass on this
-change. Criterion 7 is closed by the five verbs' outcomes in this task's pull
-request, since no run output is kept.
+Criteria 1 to 6 are closed by the 21 `Crossed` checks in
+`plugins/meow-loop/tests/test_loop.py`. In commit 29fb51fb, eleven of the
+first twelve failed, ending `ceiling` or `finished` where `crossed` was
+expected, and `test_defect_allowances` failed in its second half only. The
+twelfth, `test_drafts_and_task_evidence_cross_nothing`, passed there, because
+it guards against a comparison that crosses too much. The review then added
+nine checks in d8a58083. Six cases of them failed first: a copied approved
+record, an approved record overwritten by a draft with a held identifier, two
+records sharing an identifier at start, and three epic changes outside the
+marks. The others passed on the earlier code and pin a rule against a wrong
+change, such as moving `crossed` ahead of `tampered`. All 78 checks of the
+unit pass on this change, by `python3 -m unittest
+plugins/meow-loop/tests/test_loop.py`, which exits 0. Criterion 7 is closed
+by the five verbs' outcomes in this task's pull request, #796, since no run
+output is kept.
 
 The comparison lives in `crossings` in `crates/meow/src/record.rs`, and the
 runner calls it after a call and after each verb of an evaluation that changed
-the tree. The verb result carries the tree before and after again, which
-TSK-3410 had dropped as unread.
+the tree. A document is matched to its held copy by path and identifier
+first, because identifiers can repeat. The verb result carries the tree
+before and after again, which TSK-3410 had dropped as unread.
+
+A record the program can't read becomes empty text with no status. One
+unreadable at start is then never guarded, and one a call makes unreadable
+crosses. SPC-1201 names no failure state for it, so it belongs on the list
+BUG-1390 holds for the spec step. A layout that can't be read after start
+stops the run with exit status 3 and no ending, which BUG-1390 already
+records.
 
 ## Left alone
 
