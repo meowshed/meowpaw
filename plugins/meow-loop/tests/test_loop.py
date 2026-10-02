@@ -38,7 +38,7 @@ stdin = sys.stdin.buffer.read().decode()
 log = config["log"]
 n = (sum(1 for _ in open(log)) if os.path.exists(log) else 0) + 1
 with open(log, "a") as f:
-    f.write(json.dumps({"n": n, "argv": sys.argv[1:], "stdin": stdin}) + "\\n")
+    f.write(json.dumps({"n": n, "argv": sys.argv[1:], "stdin": stdin, "run": os.environ.get("MEOW_LOOP_RUN")}) + "\\n")
 if config.get("edit", True):
     with open("work.txt", "a") as f:
         f.write("call %d\\n" % n)
@@ -495,6 +495,86 @@ class Hook(Case):
             matched += 1
         self.assertEqual(matched, 11)
 
+    def edit(self, f, tool, run=True, **tool_input):
+        """The hook's answer to `tool` with `tool_input`, inside a run unless `run` is false."""
+        event = {"hook_event_name": "PreToolUse", "tool_name": tool, "tool_input": tool_input}
+        env = f.env(MEOW_LOOP_RUN="00000000000000000001") if run else f.env()
+        return subprocess.run([str(BIN), "guard"], input=json.dumps(event), capture_output=True, text=True,
+                              env=env, cwd=f.root)
+
+    def denied(self, done, what):
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        answer = json.loads(done.stdout)["hookSpecificOutput"]
+        self.assertEqual((answer["hookEventName"], answer["permissionDecision"]), ("PreToolUse", "deny"), what)
+        return answer["permissionDecisionReason"]
+
+    def allowed(self, done, what):
+        self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""), what)
+
+    def test_status_rule(self):
+        """TSK-3430 criterion 1, REQ-0888: with `MEOW_LOOP_RUN` set, an Edit that changes a draft record's status to
+        `approved` is denied, and so is one that sets a requirement `live` or an approved record `withdrawn`; an Edit
+        of an approved task's `## Evidence` and one that leaves a status as it is are allowed in silence. Without
+        the variable, every one of them is allowed."""
+        f = self.fixture()
+        draft = f.root / "project/requirements/REQ-0002-a-draft.md"
+        approved = f.root / "project/requirements/REQ-0001-a-duty.md"
+        task_file = f.root / "project/tasks/TSK-0002-the-second.md"
+        deny = (("approve a draft", draft, "status: draft", "status: approved"),
+                ("set a requirement live", draft, "status: draft", "status: live"),
+                ("withdraw an approved record", approved, "status: approved", "status: withdrawn"),
+                # A relative path reaches the same file from the work tree.
+                ("approve through a relative path", Path("project/requirements/REQ-0002-a-draft.md"),
+                 "status: draft", "status: approved"))
+        allow = (("edit an approved task's Evidence", task_file, "Not yet.", "Not yet. More."),
+                 ("keep an approved status", approved, "status: approved", "status: approved"),
+                 ("edit a draft's body", draft, "# REQ-0002", "# REQ-0002 reworded"),
+                 ("edit a file outside the record", f.root / "prompt.md", "Make", "Made"))
+        matched = 0
+        for what, path, old, new in deny:
+            with self.subTest(what=what):
+                done = self.edit(f, "Edit", file_path=str(path), old_string=old, new_string=new)
+                self.assertIn("decided status", self.denied(done, what))
+                matched += 1
+        for what, path, old, new in allow:
+            with self.subTest(what=what):
+                done = self.edit(f, "Edit", file_path=str(path), old_string=old, new_string=new)
+                self.allowed(done, what)
+                matched += 1
+        for what, path, old, new in deny + allow:
+            with self.subTest(what=what, run=False):
+                done = self.edit(f, "Edit", run=False, file_path=str(path), old_string=old, new_string=new)
+                self.allowed(done, what)
+                matched += 1
+        self.assertEqual(matched, 16)
+
+    def test_status_rule_on_write(self):
+        """TSK-3430 criterion 2, REQ-0888: with `MEOW_LOOP_RUN` set, a Write whose content holds `status: approved`
+        for a draft record is denied, and so is a Write of a new approved decision; a Write of a new specification
+        with `status: live`, a Write that leaves a draft a draft and a Write outside the record are allowed."""
+        f = self.fixture()
+        draft_file = f.root / "project/requirements/REQ-0002-a-draft.md"
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        matched = 0
+        for what, path, content in (
+                ("approve a draft", draft_file, RECORD["project/requirements/REQ-0002-a-draft.md"].replace(
+                    "status: draft", "status: approved")),
+                ("write a new approved decision", f.root / "project/adrs/ADR-0002-new.md",
+                 DRAFT_DECISION.replace("status: draft", "status: approved"))):
+            with self.subTest(what=what):
+                done = self.edit(f, "Write", file_path=str(path), content=content)
+                self.assertIn("decided status", self.denied(done, what))
+                matched += 1
+        for what, path, content in (
+                ("write a new live specification", f.root / "project/specs/SPC-0002-new.md", spec),
+                ("keep a draft a draft", draft_file, RECORD["project/requirements/REQ-0002-a-draft.md"] + "\nMore.\n"),
+                ("write outside the record", f.root / "notes.md", "---\nstatus: approved\n---\n")):
+            with self.subTest(what=what):
+                self.allowed(self.edit(f, "Write", file_path=str(path), content=content), what)
+                matched += 1
+        self.assertEqual(matched, 5)
+
     def bash(self, f, command):
         event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}}
         return subprocess.run([str(BIN), "guard"], input=json.dumps(event), capture_output=True, text=True,
@@ -710,6 +790,15 @@ class Step(Case):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         table = tomllib.loads((f.run_dirs()[0] / "run.toml").read_text())
         self.assertEqual((table["step"], table["inputs"]), ("implement", ["TSK-0001"]))
+
+    def test_run_id_in_every_call(self):
+        """TSK-3430 criterion 3, REQ-0888: each call's environment holds `MEOW_LOOP_RUN` equal to the run's id."""
+        f = self.fixture()
+        done = f.start(step_terms("implement", "TSK-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        calls = f.calls()
+        self.assertEqual(len(calls), 2)
+        self.assertEqual([call["run"] for call in calls], [f.run_dirs()[0].name] * 2)
 
     def test_spec_run_finishes(self):
         """TSK-3410 criterion 7: a call that writes a new specification stating each requirement the input decision
