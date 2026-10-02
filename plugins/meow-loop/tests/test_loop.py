@@ -38,7 +38,7 @@ stdin = sys.stdin.buffer.read().decode()
 log = config["log"]
 n = (sum(1 for _ in open(log)) if os.path.exists(log) else 0) + 1
 with open(log, "a") as f:
-    f.write(json.dumps({"n": n, "argv": sys.argv[1:], "stdin": stdin}) + "\\n")
+    f.write(json.dumps({"n": n, "argv": sys.argv[1:], "stdin": stdin, "run": os.environ.get("MEOW_LOOP_RUN")}) + "\\n")
 if config.get("edit", True):
     with open("work.txt", "a") as f:
         f.write("call %d\\n" % n)
@@ -199,7 +199,7 @@ class Fixture:
         self.config.write_text(json.dumps({"log": str(self.log), **config}))
 
     def env(self, **more):
-        env = {k: v for k, v in os.environ.items() if k not in ("CLAUDECODE", "MEOWPAW_STATE", "XDG_STATE_HOME")}
+        env = {k: v for k, v in os.environ.items() if k not in ("CLAUDECODE", "MEOWPAW_STATE", "XDG_STATE_HOME", "MEOW_LOOP_RUN")}
         env.update(PATH=f"{self.bin}{os.pathsep}{os.environ['PATH']}", HOME=str(self.home),
                    MEOWPAW_STATE_DIR=str(self.state), FAKE_CLAUDE=str(self.config),
                    GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL="/dev/null", **more)
@@ -495,6 +495,136 @@ class Hook(Case):
             matched += 1
         self.assertEqual(matched, 11)
 
+    def edit(self, f, tool, run=True, **tool_input):
+        """The hook's answer to `tool` with `tool_input`, inside a run unless `run` is false."""
+        event = {"hook_event_name": "PreToolUse", "tool_name": tool, "tool_input": tool_input}
+        env = f.env(MEOW_LOOP_RUN="00000000000000000001") if run else f.env()
+        return subprocess.run([str(BIN), "guard"], input=json.dumps(event), capture_output=True, text=True,
+                              env=env, cwd=f.root)
+
+    def denied(self, done, what):
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        answer = json.loads(done.stdout)["hookSpecificOutput"]
+        self.assertEqual((answer["hookEventName"], answer["permissionDecision"]), ("PreToolUse", "deny"), what)
+        return answer["permissionDecisionReason"]
+
+    def allowed(self, done, what):
+        self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""), what)
+
+    def reason(self, done, what, *names):
+        """The denial's reason, which names every one of `names`."""
+        reason = self.denied(done, what)
+        for name in names:
+            self.assertIn(name, reason, what)
+        return reason
+
+    def test_status_rule(self):
+        """TSK-3430 criterion 1, REQ-0888: with `MEOW_LOOP_RUN` set, an Edit that gives a record a decided status is
+        denied, naming the status and the file: approving a draft, setting a requirement `live`, withdrawing an
+        approved record, an edit through a relative path or a link, `replace_all`, a status a record gained, a CRLF
+        file, and an Edit with an empty `old_string` that creates a file. An Edit that leaves a status as it is,
+        removes one, sits in a body fence or lies outside the record is allowed in silence, and so is every Edit
+        without the variable."""
+        f = self.fixture({"notes.md": "---\nstatus: draft\n---\nText\n",
+                          "project/requirements/REQ-0005-no-status.md":
+                          RECORD["project/requirements/REQ-0002-a-draft.md"].replace("status: draft\n", ""),
+                          "project/requirements/REQ-0006-crlf.md":
+                          RECORD["project/requirements/REQ-0002-a-draft.md"].replace("\n", "\r\n")})
+        draft = f.root / "project/requirements/REQ-0002-a-draft.md"
+        approved = f.root / "project/requirements/REQ-0001-a-duty.md"
+        task_file = f.root / "project/tasks/TSK-0002-the-second.md"
+        inside, outside = f.root / "project/requirements/REQ-0007-link.md", f.root / "project/requirements/REQ-0008-out.md"
+        inside.symlink_to(draft)
+        (f.base / "elsewhere.md").write_text("---\nstatus: draft\n---\nText\n")
+        outside.symlink_to(f.base / "elsewhere.md")
+        no_status = f.root / "project/requirements/REQ-0005-no-status.md"
+        crlf = f.root / "project/requirements/REQ-0006-crlf.md"
+        approve = ("status: draft", "status: approved")
+        deny = (("approve a draft", draft, *approve, "approved"),
+                ("set a requirement live", draft, "status: draft", "status: live", "live"),
+                ("withdraw an approved record", approved, "status: approved", "status: withdrawn", "withdrawn"),
+                ("approve through a relative path", Path("project/requirements/REQ-0002-a-draft.md"), *approve, "approved"),
+                ("approve through a link into the record", inside, *approve, "approved"),
+                ("approve with replace_all", draft, "draft", "approved", "approved"),
+                ("give a record a status", no_status, "revised: 2026-01-01", "revised: 2026-01-01\nstatus: approved",
+                 "approved"),
+                ("approve a CRLF file", crlf, "status: draft\r\n", "status: approved\r\n", "approved"),
+                ("approve a CRLF file across a line break", crlf, "status: draft\nrevised: 2026-01-01",
+                 "status: approved\nrevised: 2026-01-01", "approved"),
+                ("create a file with an empty old_string", f.root / "project/adrs/ADR-0009-new.md", "",
+                 DRAFT_DECISION.replace("status: draft", "status: approved"), "approved"))
+        allow = (("edit an approved task's Evidence", task_file, "Not yet.", "Not yet. More."),
+                 ("keep an approved status", approved, "status: approved", "status: approved"),
+                 ("edit a draft's body", draft, "# REQ-0002", "# REQ-0002 reworded"),
+                 ("remove a status", approved, "status: approved\n", ""),
+                 ("quote a status in a body fence", draft, "# REQ-0002", "# REQ-0002\n\n```\nstatus: approved\n```"),
+                 ("edit a file outside the record", f.root / "notes.md", *approve),
+                 ("approve through a link out of the record", outside, *approve),
+                 ("edit with an old_string that isn't there", draft, "nothing like this", "status: approved"))
+        denied = allowed = 0
+        for what, path, old, new, status in deny:
+            with self.subTest(what=what):
+                done = self.edit(f, "Edit", file_path=str(path), old_string=old, new_string=new)
+                # A denial names the file a link resolves to.
+                self.reason(done, what, "decided status", status, (f.root / path).resolve().name)
+                denied += 1
+        for what, path, old, new in allow:
+            with self.subTest(what=what):
+                self.allowed(self.edit(f, "Edit", file_path=str(path), old_string=old, new_string=new), what)
+                allowed += 1
+        # Without the variable, a session writes an approval a person gave.
+        for what, path, old, new, status in deny:
+            with self.subTest(what=what, run=False):
+                self.allowed(self.edit(f, "Edit", run=False, file_path=str(path), old_string=old, new_string=new), what)
+                allowed += 1
+        self.assertEqual((denied, allowed), (len(deny), len(allow) + len(deny)))
+
+    def test_status_rule_with_an_empty_variable(self):
+        """TSK-3430 criterion 1, REQ-0888: `MEOW_LOOP_RUN` set to an empty string counts as set, so the rule denies
+        an Edit that approves a draft."""
+        f = self.fixture()
+        event = {"hook_event_name": "PreToolUse", "tool_name": "Edit",
+                 "tool_input": {"file_path": str(f.root / "project/requirements/REQ-0002-a-draft.md"),
+                                "old_string": "status: draft", "new_string": "status: approved"}}
+        done = subprocess.run([str(BIN), "guard"], input=json.dumps(event), capture_output=True, text=True,
+                              env=f.env(MEOW_LOOP_RUN=""), cwd=f.root)
+        self.reason(done, "an empty variable", "decided status", "approved")
+
+    def test_status_rule_on_write(self):
+        """TSK-3430 criterion 2, REQ-0888: with `MEOW_LOOP_RUN` set, a Write whose content holds `status: approved`
+        for a draft record is denied, and so is a Write of a new approved decision and of a CRLF file; a Write of a
+        new specification with `status: live`, one that keeps a draft a draft, one that keeps an approved status,
+        one to the index or to a file that is no record in a kind directory, and one outside the record are
+        allowed."""
+        f = self.fixture()
+        draft_text = RECORD["project/requirements/REQ-0002-a-draft.md"]
+        draft_file = f.root / "project/requirements/REQ-0002-a-draft.md"
+        approved_text = RECORD[REQUIREMENT_FILE]
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        deny = (("approve a draft", draft_file, draft_text.replace("status: draft", "status: approved"), "approved"),
+                ("write a new approved decision", f.root / "project/adrs/ADR-0002-new.md",
+                 DRAFT_DECISION.replace("status: draft", "status: approved"), "approved"),
+                ("write an approved CRLF file", draft_file,
+                 draft_text.replace("status: draft", "status: approved").replace("\n", "\r\n"), "approved"))
+        allow = (("write a new live specification", f.root / "project/specs/SPC-0002-new.md", spec),
+                 ("keep a draft a draft", draft_file, draft_text + "\nMore.\n"),
+                 ("keep an approved status", f.root / REQUIREMENT_FILE, approved_text + "\nMore.\n"),
+                 ("write an index", f.root / "project/requirements/README.md", approved_text),
+                 ("write a file that is no record", f.root / "project/requirements/notes.txt", approved_text),
+                 ("write outside the record", f.root / "notes.md", "---\nstatus: approved\n---\n"))
+        denied = allowed = 0
+        for what, path, content, status in deny:
+            with self.subTest(what=what):
+                self.reason(self.edit(f, "Write", file_path=str(path), content=content), what, "decided status",
+                            status, path.name)
+                denied += 1
+        for what, path, content in allow:
+            with self.subTest(what=what):
+                self.allowed(self.edit(f, "Write", file_path=str(path), content=content), what)
+                allowed += 1
+        self.assertEqual((denied, allowed), (len(deny), len(allow)))
+
     def bash(self, f, command):
         event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}}
         return subprocess.run([str(BIN), "guard"], input=json.dumps(event), capture_output=True, text=True,
@@ -710,6 +840,29 @@ class Step(Case):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         table = tomllib.loads((f.run_dirs()[0] / "run.toml").read_text())
         self.assertEqual((table["step"], table["inputs"]), ("implement", ["TSK-0001"]))
+
+    def test_run_id_in_every_call(self):
+        """TSK-3430 criterion 3, REQ-0888: each call's environment holds `MEOW_LOOP_RUN` equal to the run's id."""
+        f = self.fixture()
+        done = f.start(step_terms("implement", "TSK-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        calls = f.calls()
+        self.assertEqual(len(calls), 2)
+        self.assertEqual([call["run"] for call in calls], [f.run_dirs()[0].name] * 2)
+
+    def test_run_id_only_in_calls(self):
+        """TSK-3430 criterion 3, REQ-0888: the verbs, which the runner runs outside a call, see no `MEOW_LOOP_RUN`,
+        so the variable is set in a call's environment and not in the runner's."""
+        f = self.fixture()
+        seen = f.base / "seen"
+        script = f.base / "verb.sh"
+        script.write_text(f'echo "[$MEOW_LOOP_RUN]" >> {seen}\ntest -f done.flag\n')
+        (f.root / ".meowpaw" / "profile.toml").write_text(PROFILE.replace('test -f done.flag', f"sh {script}"))
+        done = f.start(step_terms("implement", "TSK-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        lines = seen.read_text().splitlines()
+        self.assertGreaterEqual(len(lines), 2)
+        self.assertEqual(set(lines), {"[]"})
 
     def test_spec_run_finishes(self):
         """TSK-3410 criterion 7: a call that writes a new specification stating each requirement the input decision
