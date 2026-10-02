@@ -86,4 +86,13 @@ ceiling and budget the person set.
 
 ## Closed by
 
-Not yet.
+SPC-1201 now names each state and the allowance, and TSK-4050 makes the runner
+refuse an input of the wrong kind and a record file it can't read, with a check
+for each. The states the runner already reported, a failed `git check-ignore`,
+an unreadable profile and an unreadable layout, need no code.
+
+## Tasks
+
+- [ ] T-001 TSK-4050 refuse an input of the wrong kind and an unreadable record
+      file at start, in `plugins/meow-loop/` and the `loop` feature of
+      `crates/meow`
