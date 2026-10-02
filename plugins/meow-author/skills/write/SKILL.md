@@ -1,6 +1,6 @@
 ---
 name: write
-description: How a skill, agent definition, output style, command or hook prompt for Claude Code is written in this repository. It MUST be loaded before any of them is created, edited or reviewed, including a one-line change to a skill's description.
+description: How a skill, agent definition, output style, command or hook prompt for Claude Code is written in this repository. It MUST be loaded before any of them is created, edited or reviewed, including a one-line change to a skill's description. It MUST NOT be skipped, however small the change looks.
 ---
 
 <role>
@@ -18,10 +18,10 @@ procedure states where it stops.
    invocation, paths and context its kind needs. For an agent, write
    `maxTurns`, `tools`, `model`, `effort`, `omitClaudeMd` and `skills`, as D3
    to D8 set out.
-3. Write the body in the tags `<role>`, `<rules>`, `<steps>`, `<example>` and
-   `<input>` where the content mixes kinds (B2). Put every obligation in a
-   numbered item under `<rules>`, except the steps of a procedure, and name
-   every file the material relies on in the body of its own file.
+3. Write the body in the five tags, `<role>`, `<rules>`, `<steps>`,
+   `<example>` and `<input>`, using each where the content mixes kinds (B2),
+   with every obligation a numbered list item under `<rules>` and every file
+   the material relies on named in the body of its own file.
 4. Where the material adds to what loads on every turn, run
    `${CLAUDE_SKILL_DIR}/../../bin/meow-author cost`. Before cutting or keeping
    material, run `/skill-doctor` and read how often the material was used.
@@ -34,7 +34,8 @@ procedure states where it stops.
   load it, because the model chooses what to load from that line alone.
 - A2. Write a command as a skill only a person invokes, with
   `disable-model-invocation: true`, and ship no `commands/` directory,
-  because two kinds of loadable material give the next author two places to look.
+  because two kinds of loadable material give the next author two places to
+  look.
 - A3. Let only a person invoke material with side effects, and only the model
   load material that is knowledge, because the model must not act unasked and
   a person gains nothing by invoking a rule.
@@ -42,15 +43,15 @@ procedure states where it stops.
   directory, because loading it everywhere costs every other session.
 - A5. Run material whose work is a long read ending in a short answer in a
   forked context, so the reading stays out of the context that continues.
-- A6. Keep cheap and certain anything the material injects when it loads, run
-  no verification verb (format, lint, check, test or build) in it, and never
-  let the material depend on the injection, because a failing injection fails
+- A6. Keep anything the material injects when it loads cheap and certain, run
+  no verification verb (format, lint, check, test or build) in the injection,
+  and never let the material depend on it, because a failing injection fails
   every load.
 - A7. Rely on the platform's namespacing of a plugin's skills for every
   command, and claim no bare name, because a bare name lasts only until
   something else claims it.
-- A8. Propose the permissions the material needs in the material's own file,
-  and leave the repository to declare them, because permissions are the repository's
+- A8. Propose the permissions the material needs in its own file, and leave
+  the repository to declare them, because permissions are the repository's
   decision.
 </rules>
 
@@ -77,8 +78,8 @@ procedure states where it stops.
   script that is run, because a summary drifts from the script it describes.
 - B8. Write instructions in the words of the work they govern, because the
   model retrieves an instruction by the words a request uses.
-- B9. Keep the tags, front matter and rule identifiers uniform with every
-  other piece of material, so one check audits all of it.
+- B9. Keep the form uniform with every other piece of material, meaning its
+  tags, front matter and rule identifiers, so one check audits all of it.
 </rules>
 
 <rules name="when material loads">
@@ -102,8 +103,8 @@ procedure states where it stops.
 - C7. Carry instruction that applies only to certain files in a path-scoped
   rule, not in always-loaded material, because a path-scoped rule loads only
   when those files are touched.
-- C8. Splitting always-loaded material into imported files saves nothing,
-  because the platform expands imports at launch.
+- C8. Count no saving from splitting always-loaded material into imported
+  files, because the platform expands imports at launch.
 - C9. Load nothing because it might be relevant, because material that is
   nearly relevant distracts the model and costs its context.
 - C10. Put no obligation in a file the model reads at its own discretion,
@@ -113,10 +114,10 @@ procedure states where it stops.
 </rules>
 
 <rules name="agents and delegation">
-- D1. Ship knowledge, such as the questions a reviewer asks or a language's
-  idioms, as a skill loaded into the working context and never as an agent,
-  because knowledge needs no isolation and an agent costs a fresh context and
-  a summary on every dispatch.
+- D1. Ship knowledge, such as a lens (the questions a reviewer asks) or a
+  language's idioms, as a skill loaded into the working context and never as
+  an agent, because knowledge needs no isolation and an agent costs a fresh
+  context and a summary on every dispatch.
 - D2. Never describe a delegated agent as a boundary that contains what it
   does, because it runs in the parent's process and under the parent's
   sandbox configuration.
@@ -124,10 +125,11 @@ procedure states where it stops.
   runner enforces, and an agent without one runs until the work or the
   session ends.
 - D4. Write `tools` as a list, `tools: []` included, because a missing list and
-  `*` both grant every tool, the delegation tool among them. In an agent this
-  repository ships, list no `*`, `Agent` or `Task`, alone or restricted such
-  as `Agent(worker)`, because each grants the delegation tool and the platform
-  still takes `Task` as the earlier name of `Agent`.
+  `*` both grant every tool, the delegation tool among them. In an agent a
+  plugin ships, list no `*`, `Agent` or `Task`, alone or restricted such as
+  `Agent(worker)`, because each reaches the delegation tool. The platform still
+  takes `Task` as the earlier name of `Agent`, which is why `Task` is on that
+  list.
 - D5. Name `model` as `sonnet`, `opus`, `haiku`, `fable` or a full identifier
   containing `claude-`, never `inherit`, because `inherit` leaves the model,
   and so the cost, to whichever session dispatches the agent.
@@ -135,38 +137,41 @@ procedure states where it stops.
   missing one runs at the session's level, a cost nobody chose, and those
   five are the levels the platform documents.
 - D7. Set `omitClaudeMd` to `false` where the agent judges against the
-  repository's rules and to `true` where it judges against a standard it
-  preloads. Write the key either way, because the platform honours only
-  `true`: a missing key loads the project's instructions exactly as `false`
-  does, and only a written value shows the author decided.
+  repository's rules. Set it to `true` where the agent judges against a
+  standard it preloads. Write the key either way, because the platform honours
+  only `true`: a missing key loads the project's instructions exactly as
+  `false` does, and only a written value shows the author decided.
 - D8. List in `skills` the skills the agent preloads, and write `skills: []`
   where it needs none, because the list decides what the agent loads at
   startup and grants nothing. An empty list states that nothing is needed.
 - D9. Where you dispatch an agent, treat output marked partial (the agent
   stopped at its ceiling) as unfinished work, because a partial list of
   findings reads as a complete one. Until a run has shown that marking, treat
-  the output of any run that used all its `maxTurns` turns the same way.
-- D10. In an agent this repository ships, name the four outcomes `DONE`,
+  the output of any run that reached its ceiling the same way, because without
+  the marking nothing else says the list is partial.
+- D10. In an agent a plugin ships, name the four outcomes `DONE`,
   `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT` and `BLOCKED`, and say when the agent
   reports each. Have it write `outcome:`, a space and the word on a line of its
   own, with one sentence naming the cause where the outcome isn't `DONE`. The
   skill that dispatched it acts on the word without reading the rest, so the
-  check fails an agent that leaves one out. Have it carry the denial rule
-  too: where a tool call is denied, it issues no second call in another form,
-  uses no other tool to reach the same result, asks nobody for the permission
-  and ends as `BLOCKED` naming the tool and what it was called on. The rule
+  check fails an agent that leaves one out. Have it carry the denial rule too.
+  Where a tool call is denied, it issues no second call in another form, uses
+  no other tool to reach the same result and asks nobody for the permission.
+  It ends as `BLOCKED`, naming the tool and what it was called on. The rule
   exists because a question asked where nobody answers waits for nothing, and
   a way round the denial reaches what the permission withheld.
 </rules>
 
 <example>
-A rule in always-loaded material, judged against C5. The failing case gives a
-reason the model's default already honours, and every turn pays for it:
+Judge a rule in always-loaded material against C5. In the failing case the
+reason repeats what the model's default already honours, and every turn pays
+for it. This line is an example, not a rule:
 
 `- R1. Write every file as UTF-8, because UTF-8 is the usual encoding.`
 
 The corrected case drops the reason, because the default is right and nothing
-counter-intuitive needs defending:
+counter-intuitive needs defending. A reason that is needed moves to material
+loaded on demand:
 
 `- R1. Write every file as UTF-8.`
 
