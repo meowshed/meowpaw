@@ -42,9 +42,11 @@ with open(log, "a") as f:
 if config.get("edit", True):
     # A step that writes only records may not touch the work tree's root, so its calls edit a file under the record
     # root that is no record. An implement step may write anywhere.
-    run_dir = os.path.dirname(sys.argv[sys.argv.index("--add-dir") + 1])
     import tomllib
-    step = tomllib.load(open(os.path.join(run_dir, "run.toml"), "rb"))["step"]
+    step = "implement"
+    if "--add-dir" in sys.argv:
+        run_dir = os.path.dirname(sys.argv[sys.argv.index("--add-dir") + 1])
+        step = tomllib.load(open(os.path.join(run_dir, "run.toml"), "rb"))["step"]
     with open("work.txt" if step == "implement" else "project/work.txt", "a") as f:
         f.write("call %d\\n" % n)
 name = config.get("create", {}).get(str(n))
@@ -747,7 +749,8 @@ class Step(Case):
         (f.root / "sub" / "a.txt").write_text("changed\n")
         done = f.start(step_terms("implement", "TSK-0001", iterations="2"))
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertNotEqual(f.ending(), "finished")
+        # An unidentified tree ends no `implement` run `off-step`: its paths outside the record are its to write.
+        self.assertEqual(f.ending(), "ceiling")
         lines = [json.loads(line) for line in (f.run_dirs()[0] / "log.jsonl").read_text().splitlines()]
         self.assertTrue(lines)
         self.assertTrue(all(line["unidentified"] for line in lines))
@@ -1070,8 +1073,9 @@ class Crossed(Case):
         self.assertEqual(g.ending(), "finished")
 
     def test_drafts_and_task_evidence_cross_nothing(self):
-        """TSK-3420 criterion 1, REQ-0888: a new draft, an edit to a draft and a change to an approved task's
-        Evidence cross nothing in a `design` run."""
+        """TSK-3420 criterion 1, REQ-0888: a new draft and an edit to a draft cross nothing in a `design` run, and a
+        change to an approved task's Evidence crosses nothing in an `implement` run, where a `design` run that
+        writes it ends `off-step` and not `crossed`."""
         f = self.fixture({DECISION_FILE: DRAFT_DECISION})
         f.configure(write={"1": {DECISION_FILE: DRAFT_DECISION + "\nMore.\n",
                                  "project/adrs/ADR-0003-new.md": DRAFT_DECISION.replace("0002", "0003")}})
@@ -1081,7 +1085,12 @@ class Crossed(Case):
         # The writes landed, so the run crossed nothing though it changed two records.
         self.assertIn("More.", (f.root / DECISION_FILE).read_text())
         self.assertTrue((f.root / "project/adrs/ADR-0003-new.md").exists())
-        # A task's Evidence is an `implement` run's to write.
+        # A task's Evidence is an `implement` run's to write, and a `design` run that writes it is off its step.
+        h = self.fixture()
+        h.configure(write={"1": {"project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Not yet.\n\nMore.")}})
+        done = h.start(step_terms("design", "REQ-0001"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(h.ending(), "off-step")
         g = self.fixture()
         g.configure(write={"1": {"project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Not yet.\n\nMore.")}})
         done = g.start(step_terms("implement", "TSK-0001", iterations="2"))
@@ -1309,7 +1318,7 @@ class OffStep(Case):
         files = {"project/tasks/TSK-0002-the-second.md": dependent}
         f = self.fixture(files)
         f.configure(write={"1": {"project/epics/EPC-0001-a-plan.md": epic(" ", " ")}})
-        self.off_step(f, f.start(step_terms("implement", "TSK-0002")), "TSK-0002", "TSK-0001")
+        self.off_step(f, f.start(step_terms("implement", "TSK-0002")), "TSK-0002", "TSK-0001", other=("EPC-0001",))
         spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
                      states="[REQ-0001]") + "\n# Another part\n"
         g = self.fixture(files)
@@ -1393,28 +1402,104 @@ class OffStep(Case):
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "crossed")
 
-    def test_each_kind_has_its_step(self):
-        """TSK-3440 criterion 1, REQ-0888: each step writes the kind its row names and no other: a requirement in a
-        `requirements` run, a research record in a `research` run, an epic in an `epic` run and a task in an `epic`
-        run do not end the run `off-step`, and a decision in a `requirements` run does."""
-        research = front(id="RES-0002", artifact="research", status="draft", revised="2026-01-01") + "\n# More\n"
-        requirement = RECORD["project/requirements/REQ-0002-a-draft.md"].replace("REQ-0002", "REQ-0003")
-        new_epic = epic().replace("EPC-0001", "EPC-0002")
-        new_task = task("TSK-0004", "Not yet.")
-        allowed = (("research", None, {"project/research/RES-0002-more.md": research}),
-                   ("requirements", "RES-0001", {"project/requirements/REQ-0003-new.md": requirement}),
-                   ("epic", "ADR-0001", {"project/epics/EPC-0002-new.md": new_epic,
-                                         "project/tasks/TSK-0004-new.md": new_task}))
-        for step, inputs, writes in allowed:
-            with self.subTest(step=step):
-                f = self.fixture()
-                f.configure(write={"1": writes})
-                done = f.start(step_terms(step, inputs, iterations="2"))
-                self.assertNotEqual(f.ending(), "off-step", done.stdout + done.stderr)
+    def dirty(self, f):
+        """A dirty submodule in the fixture's work tree, so its tree id is unidentified."""
+        origin = f.base / "sub-origin"
+        origin.mkdir()
+        (origin / "a.txt").write_text("a\n")
+        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
+        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
+            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
+        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
+        f.git(*identity, "commit", "-q", "-m", "add the submodule")
+        (f.root / "sub" / "a.txt").write_text("changed\n")
+
+    def test_unidentified_tree_in_an_implement_step(self):
+        """TSK-3440 criterion 3, REQ-0888: in an `implement` run with a dirty submodule, a call that writes a
+        specification still ends the run `off-step` naming it, because the kind of a record needs no list of
+        paths, while a call that writes only a file outside the record root does not."""
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
         f = self.fixture()
-        f.configure(write={"1": {DECISION_FILE: DRAFT_DECISION}})
-        done = f.start(step_terms("requirements", "RES-0001"))
-        self.off_step(f, done, "ADR-0002")
+        self.dirty(f)
+        f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
+        self.off_step(f, f.start(step_terms("implement", "TSK-0001")), "SPC-0002")
+        g = self.fixture()
+        self.dirty(g)
+        g.configure(write={"1": {"stray.txt": "x"}})
+        done = g.start(step_terms("implement", "TSK-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(g.ending(), "ceiling")
+
+    def test_a_link_hides_no_record(self):
+        """TSK-3440 criterion 1, REQ-0888: a `design` run that edits a specification through a link in the decisions
+        directory ends `off-step` naming the specification, because the link and the file are one path to git and
+        the file is a specification."""
+        f = self.fixture()
+        (f.root / "project/adrs/ADR-0007-link.md").symlink_to("../specs/SPC-0001-a-part.md")
+        f.git("add", "-A")
+        f.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false",
+              "commit", "-q", "-m", "a link")
+        text = RECORD["project/specs/SPC-0001-a-part.md"] + "\nMore.\n"
+        done = self.design(f, write={"1": {"project/adrs/ADR-0007-link.md": text}})
+        self.off_step(f, done, "SPC-0001")
+
+    def test_a_verb_rewrite_after_a_call_is_not_the_next_calls(self):
+        """TSK-3440 criterion 4, REQ-0888: a verb that rewrites a file outside the record root in the evaluation
+        after the first call does not take the second call off its step, because the tree id before a call is
+        read after the evaluation."""
+        f = self.fixture({"stray.txt": "plain\n"})
+        count = f.base / "count"
+        script = f.base / "verb.sh"
+        script.write_text(f"n=$(cat {count} 2>/dev/null || echo 0)\necho $((n + 1)) > {count}\n"
+                          "if [ \"$n\" -eq 1 ]; then echo changed >> stray.txt; fi\nexit 1\n")
+        (f.root / ".meowpaw" / "profile.toml").write_text(PROFILE.replace('test -f done.flag', f"sh {script}"))
+        done = f.start(step_terms("design", "REQ-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual(len(f.calls()), 2)
+        self.assertIn("changed", (f.root / "stray.txt").read_text())
+
+    def test_every_step_and_kind(self):
+        """TSK-3440 criterion 1, REQ-0888: for each of the six steps and each of the ten kinds, a call that writes a
+        new record of that kind ends the run `off-step` unless the step's row names the kind or the kind is a
+        defect or an insight, and then the run ends `ceiling`."""
+        def new(artifact, status, **fields):
+            return front(id=fields.pop("id", None) or "X-0009", artifact=artifact, status=status, revised="2026-01-01",
+                         **fields) + "\n# New\n"
+        kinds = {
+            "research": ("project/research/RES-0009-new.md", new("research", "draft", id="RES-0009")),
+            "requirement": ("project/requirements/REQ-0009-new.md", RECORD["project/requirements/REQ-0002-a-draft.md"]
+                            .replace("REQ-0002", "REQ-0009")),
+            "decision": ("project/adrs/ADR-0009-new.md", DRAFT_DECISION.replace("0002", "0009")),
+            "specification": ("project/specs/SPC-0009-new.md", new("spec", "live", id="SPC-0009", states="[REQ-0001]")),
+            "epic": ("project/epics/EPC-0009-new.md", epic().replace("EPC-0001", "EPC-0009").replace(
+                "status: approved", "status: draft")),
+            "task": ("project/tasks/TSK-0009-new.md", task("TSK-0009", "Not yet.").replace(
+                "status: approved", "status: draft")),
+            "defect": ("project/bugs/BUG-0009-new.md", new("bug", "draft", id="BUG-0009", severity="minor",
+                                                           violates="REQ-0001", enters="implement", found="2026-01-01")),
+            "insight": ("project/insights/INS-0009-new.md", new("insight", "draft", id="INS-0009")),
+            "vision": ("project/vision.md", new("vision", "live", id="vision")),
+            "onboarding": ("project/onboarding.md", new("onboarding", "draft", id="onboarding")),
+        }
+        writes = {"research": {"research"}, "requirements": {"requirement"}, "design": {"decision"},
+                  "spec": {"specification"}, "epic": {"epic", "task"}, "implement": {"task"}}
+        inputs = {"research": None, "requirements": "RES-0001", "design": "REQ-0001", "spec": "ADR-0001",
+                  "epic": "ADR-0001", "implement": "TSK-0001"}
+        matched = 0
+        for step, allowed in writes.items():
+            for kind, (path, text) in kinds.items():
+                with self.subTest(step=step, kind=kind):
+                    f = self.fixture()
+                    f.configure(write={"1": {path: text}})
+                    done = f.start(step_terms(step, inputs[step], iterations="1"))
+                    self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                    off = kind not in allowed | {"defect", "insight"}
+                    self.assertEqual(f.ending(), "off-step" if off else "ceiling", done.stdout)
+                    self.assertTrue((f.root / path).exists())
+                    matched += 1
+        self.assertEqual(matched, 60)
 
 
 class Ceiling(Case):
