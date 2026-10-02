@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.7.0]
+describes: [meow-loop@0.8.0]
 ---
 
 # meow-loop
@@ -159,6 +159,29 @@ runner can't sum bounds nothing. That call's line in the log holds `null` for
 run `budget`. Both come before the condition, so a call that reports no cost
 and also makes the verbs pass ends `unmetered`.
 
+Before it evaluates, the runner compares the record with the copy it took at
+start, unless the tree id is identified and the same as before the call. The
+run ends `crossed` when the comparison shows one of four changes:
+
+- a record's stored status became a decided status, which is any status but
+  `draft`, and but `live` in a kind that is living, such as a specification;
+- a record new since start carries a decided status;
+- an approved record is gone from the path it had at start, deleted or
+  renamed;
+- an approved record changed outside what a run may change in it.
+
+A run may change an approved task outside its frozen part, which is its
+Evidence, what it left alone, its issue, its projection and its revision
+date. A run may change an approved epic or defect only under its Tasks, and
+only in an `implement` run. The comparison takes none of `paw check frozen`'s
+exemptions: a status now `withdrawn` or `superseded`, and a line naming an
+authority, each cross, because a person decides those. The runner also makes
+the comparison after each verb of its own evaluation that changed the tree,
+so a verb that crosses a gate ends the run `crossed`. The last line of the
+output then names each record, and the verb for an evaluation. A call that
+crosses a gate and also makes the verbs pass ends `crossed`, because a broken
+bound is reported before a success.
+
 Then the runner compares the work tree's tree id with the one before
 the call. The tree id covers every tracked file and every untracked file git
 doesn't ignore. If the tree id changed or couldn't be identified, the runner
@@ -169,14 +192,15 @@ skips the evaluation and makes the next call. Where a verb changes the tree, suc
 as a formatter that rewrites files, the runner evaluates a second time at
 once, and that second result stands.
 
-| Ending      | When                                                                      | Exit status |
-| ----------- | ------------------------------------------------------------------------- | ----------- |
-| `finished`  | The step's test held and every named verb passed at one tree              | 0           |
-| `budget`    | The next call could pass the budget, or a call reached its own cap        | 1           |
-| `ceiling`   | The stated number of iterations ran                                       | 1           |
-| `unmetered` | A call reported no cost, so the spend can't be summed                     | 1           |
-| `idle`      | Two iterations in a row changed neither the tree nor the progress file    | 1           |
-| `tampered`  | `run.toml`, `prompt.md` or `.claude/settings.json` changed during the run | 1           |
+| Ending      | When                                                                               | Exit status |
+| ----------- | ---------------------------------------------------------------------------------- | ----------- |
+| `finished`  | The step's test held and every named verb passed at one tree                       | 0           |
+| `budget`    | The next call could pass the budget, or a call reached its own cap                 | 1           |
+| `ceiling`   | The stated number of iterations ran                                                | 1           |
+| `unmetered` | A call reported no cost, so the spend can't be summed                              | 1           |
+| `idle`      | Two iterations in a row changed neither the tree nor the progress file             | 1           |
+| `tampered`  | `run.toml`, `prompt.md` or `.claude/settings.json` changed during the run          | 1           |
+| `crossed`   | A call or an evaluation decided a status, or changed or removed an approved record | 1           |
 
 `meow-loop` runs the verbs itself and needs no other unit. It records each
 verb's result in the ledger `meow-checks` reads, so where that unit is

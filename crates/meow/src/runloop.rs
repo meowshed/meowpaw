@@ -365,14 +365,27 @@ fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
     std::fs::write(path, bytes).map_err(|error| format!("can't write {}: {error}", path.display()))
 }
 
+/// What one evaluation found: whether the condition holds, or that a verb it
+/// ran changed the record across a gate.
+enum Evaluated {
+    Holds(bool),
+    Crossed { verb: String, records: Vec<String> },
+}
+
 /// One evaluation of the condition: it holds only when the step's test passes,
 /// every named verb's command exits 0, and the tree is identified and the same
 /// after the verbs as before the test. Where the verbs changed the tree, the
 /// evaluation runs once more and that second result stands, so a verb that
 /// settles after one pass can finish the run and one that changes the tree on
 /// every pass never does. `copy` is the record held at start, which the first
-/// evaluation runs without.
-fn evaluate(root: &Path, context: &Context, copy: Option<&record::Held>) -> Result<bool, String> {
+/// evaluation runs without. A verb that changed the tree is followed by a
+/// comparison of the record with the copy, so a verb that crosses a gate ends
+/// the run `crossed` naming that verb.
+fn evaluate(
+    root: &Path,
+    context: &Context,
+    copy: Option<&record::Held>,
+) -> Result<Evaluated, String> {
     for _ in 0..2 {
         let before = ledger::tree_id(root);
         let read = record::read_for_run(root, &context.record_root)?;
@@ -394,16 +407,29 @@ fn evaluate(root: &Path, context: &Context, copy: Option<&record::Held>) -> Resu
                 println!("not recorded: {verb} ({reason})");
             }
             passed &= ran.status == 0;
+            let changed = ran.before != ran.after
+                || ran.before == ledger::UNBOUND
+                || ran.after == ledger::UNBOUND;
+            if let (Some(copy), true) = (copy, changed) {
+                let read = record::read_for_run(root, &context.record_root)?;
+                let records = record::crossings(&read, copy, &context.step);
+                if !records.is_empty() {
+                    return Ok(Evaluated::Crossed {
+                        verb: verb.clone(),
+                        records,
+                    });
+                }
+            }
         }
         let after = ledger::tree_id(root);
         if before == ledger::UNBOUND || after == ledger::UNBOUND {
-            return Ok(false);
+            return Ok(Evaluated::Holds(false));
         }
         if before == after {
-            return Ok(passed);
+            return Ok(Evaluated::Holds(passed));
         }
     }
-    Ok(false)
+    Ok(Evaluated::Holds(false))
 }
 
 /// What one call left: its exit status, or none where a signal ended it, and
@@ -687,6 +713,7 @@ fn run(
     context: &Context,
     claude: &Path,
     log: &Path,
+    named: &mut String,
 ) -> Result<&'static str, String> {
     let sealed = context.seal();
     // A changed term is reported as that, whichever bound the run also
@@ -698,7 +725,7 @@ fn run(
             "tampered"
         })
     };
-    if evaluate(root, context, None)? {
+    if matches!(evaluate(root, context, None)?, Evaluated::Holds(true)) {
         // The verbs may themselves have changed a watched file.
         if let Some(ending) = tampered() {
             return Ok(ending);
@@ -794,9 +821,33 @@ fn run(
             println!("iteration {iteration}: {shown}, the call reached its own cap");
             return Ok("budget");
         }
+        // A call that crossed a gate ends the run before the condition is
+        // evaluated, so a call that approves a draft and makes the verbs pass
+        // is not finished. Only two equal, identified trees skip the
+        // comparison.
+        if unidentified || before != after {
+            let read = record::read_for_run(root, &context.record_root)?;
+            let records = record::crossings(&read, &copy, &context.step);
+            if !records.is_empty() {
+                *named = format!("after iteration {iteration}: {}", records.join("; "));
+                return Ok("crossed");
+            }
+        }
         // An unchanged tree would repeat the last result.
         let held = if after != before || after == ledger::UNBOUND {
-            let held = evaluate(root, context, Some(&copy))?;
+            let held = match evaluate(root, context, Some(&copy))? {
+                Evaluated::Holds(held) => held,
+                Evaluated::Crossed { verb, records } => {
+                    if let Some(ending) = tampered() {
+                        return Ok(ending);
+                    }
+                    *named = format!(
+                        "in the evaluation after iteration {iteration}, verb {verb}: {}",
+                        records.join("; ")
+                    );
+                    return Ok("crossed");
+                }
+            };
             line["condition"] = json!(held);
             log_line(log, Some(&logged), &line)?;
             Some(held)
@@ -924,7 +975,8 @@ fn start(args: &[String]) -> u8 {
     remove_old_runs(&runs, &dir);
     println!("run {}", dir.display());
 
-    let ending = match run(&root, &terms, &context, &claude, &log) {
+    let mut named = String::new();
+    let ending = match run(&root, &terms, &context, &claude, &log, &mut named) {
         Ok(ending) => ending,
         Err(reason) => return refuse(&reason),
     };
@@ -932,7 +984,13 @@ fn start(args: &[String]) -> u8 {
     if let Err(reason) = write(&terms_file, table.to_string().as_bytes()) {
         return refuse(&reason);
     }
-    println!("{ending}");
+    // The last line names each record that crossed, and the verb where an
+    // evaluation did.
+    if named.is_empty() {
+        println!("{ending}");
+    } else {
+        println!("{ending}: {named}");
+    }
     if ending == "finished" {
         FINISHED
     } else {

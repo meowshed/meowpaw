@@ -550,7 +550,7 @@ TSK-3350 to TSK-3400, all of them done, and each of the nine
 requirements
 ADR-2010 addresses lands in one of them.
 [EPC-1920](epics/EPC-1920-a-run-bound-to-one-step.md) realises ADR-2020 in
-four tasks, TSK-3410 to TSK-3440, of which TSK-3410 is done, and each of the two
+four tasks, TSK-3410 to TSK-3440, of which TSK-3410 and TSK-3420 are done, and each of the two
 requirements ADR-2020 addresses lands in one of them.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)

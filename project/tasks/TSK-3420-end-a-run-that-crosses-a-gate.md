@@ -89,8 +89,19 @@ TSK-3410's tree.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+Criteria 1 to 6 are closed by the twelve `Crossed` checks in
+`plugins/meow-loop/tests/test_loop.py`. Eleven failed first in commit
+29fb51fb, ending `ceiling` or `finished` where `crossed` was expected. The
+twelfth, `test_drafts_and_task_evidence_cross_nothing`, passed there as well,
+because it guards against a comparison that crosses too much: drafts and an
+approved task's Evidence change freely. All 69 checks of the unit pass on this
+change. Criterion 7 is closed by the five verbs' outcomes in this task's pull
+request, since no run output is kept.
+
+The comparison lives in `crossings` in `crates/meow/src/record.rs`, and the
+runner calls it after a call and after each verb of an evaluation that changed
+the tree. The verb result carries the tree before and after again, which
+TSK-3410 had dropped as unread.
 
 ## Left alone
 

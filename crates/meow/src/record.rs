@@ -2689,11 +2689,10 @@ pub(crate) fn read_for_run(repository: &Path, root: &Path) -> Result<Record, Str
 
 /// One record as the copy held at the start of a run keeps it.
 #[cfg(feature = "loop")]
-#[allow(dead_code)]
 struct HeldDoc {
     id: String,
-    kind: Option<usize>,
     path: PathBuf,
+    shown: String,
     status: String,
     text: String,
 }
@@ -2730,13 +2729,86 @@ pub(crate) fn hold(record: &Record) -> Held {
             .filter(|doc| doc.kind.is_some())
             .map(|doc| HeldDoc {
                 id: bare(doc.id()).to_string(),
-                kind: doc.kind,
                 path: doc.path.clone(),
+                shown: doc.shown.clone(),
                 status: bare(doc.value("status")).to_string(),
                 text: doc.text.clone(),
             })
             .collect(),
     }
+}
+
+/// Whether a stored status is a decision a person makes: any status but
+/// `draft`, and but `live` in a kind the layout declares living, because a
+/// specification is `live` from its first draft and that marks no approval.
+#[cfg(feature = "loop")]
+fn decided(kind: &Kind, status: &str) -> bool {
+    !status.is_empty()
+        && status != "draft"
+        && !(status == "live" && kind.statuses.iter().any(|s| s == "live"))
+}
+
+/// Whether a run of `step` may change an approved record of `kind` from
+/// `before` to `after`: a task outside its frozen part in any step, and an epic
+/// or a defect only in the marks under its Tasks, and only in an `implement`
+/// run. None of the frozen comparison's exemptions apply, because a status now
+/// `withdrawn` and a line naming an authority are a person's decisions
+/// (ADR-2020).
+#[cfg(feature = "loop")]
+fn run_may_change(kind: &str, step: &str, before: &str, after: &str) -> bool {
+    match kind {
+        "task" => frozen_part(before) == frozen_part(after),
+        "epic" | "defect" if step == "implement" => {
+            frozen_text(before, &["Tasks"], &["revised"])
+                == frozen_text(after, &["Tasks"], &["revised"])
+        }
+        _ => false,
+    }
+}
+
+/// What a call or an evaluation changed in the record since `held` was taken
+/// that a run of `step` must not change, one entry for each record, each
+/// naming the record's path and why (SPC-1201 "Keeping to one step"): a stored
+/// status that became a decided one, a new record that carries one, an
+/// approved record gone from its path, and an approved record changed outside
+/// what the run may change in it.
+#[cfg(feature = "loop")]
+pub(crate) fn crossings(record: &Record, held: &Held, step: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    for doc in &record.docs {
+        let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
+            continue;
+        };
+        let status = bare(doc.value("status"));
+        match held.of(doc) {
+            None if decided(kind, status) => {
+                out.push(format!("{} (new, and {status})", doc.shown));
+            }
+            Some(then) if then.status != status && decided(kind, status) => {
+                out.push(format!("{} (became {status})", doc.shown));
+            }
+            Some(then)
+                if then.status == "approved"
+                    && then.text != doc.text
+                    && !run_may_change(&kind.name, step, &then.text, &doc.text) =>
+            {
+                out.push(format!(
+                    "{} (an approved {} changed outside what a {step} run may change)",
+                    doc.shown, kind.name
+                ));
+            }
+            _ => {}
+        }
+    }
+    for then in held.docs.iter().filter(|then| then.status == "approved") {
+        if !record.docs.iter().any(|doc| doc.path == then.path) {
+            out.push(format!(
+                "{} (an approved record is gone from its path)",
+                then.shown
+            ));
+        }
+    }
+    out
 }
 
 /// Whether the step's test holds over `inputs`, as SPC-1201's table states.
