@@ -218,24 +218,27 @@ writes only what its row names:
 | `epic`         | Epics and tasks                                                                  |
 | `implement`    | Tasks, the task marks of epics and defects, and any path outside the record root |
 
-Every step may also write a draft defect or insight, because a run records a
-defect it finds, and a file under the record root that is no record, such as
-an index, because `paw index --write` regenerates those. A step other than
-`implement` may not change a path outside the record root. Where the record
-root is the work tree itself, that limit has no effect, because every path is
-inside it.
+Every step may also write a draft defect, because a run records a defect it
+finds, and a draft insight, because a run records what it learns. It may write
+a file under the record root that is no record, such as an index, because
+`paw index --write` regenerates those. A step other than `implement` may not
+change a path outside the record root. Where the record root is the work tree
+itself, that limit has no effect, because every path is inside it.
 
 The runner lists the paths a call changed with `git diff-tree` between the
 tree id it read just before the call and the one after. A path a verb rewrote
-in an evaluation is then never the call's. Where it can't identify either
-tree, it can't list the paths, so it compares the records with its copy
-instead, and a record of the wrong kind still ends the run. A step that writes
-only records then ends `off-step` for that reason alone, because nothing shows
-that the call kept to the record root. `implement` doesn't, because it may
-write any path outside the record. An input is unready when the test
-`paw ready` applies no longer passes for it, for example after a call clears
-the mark of a task the input depends on. The last line names each record or
-path, or the reason the paths can't be listed.
+in an evaluation is therefore not listed, because the runner read the first
+id after that evaluation. Where the runner can't identify either tree, it
+can't list the paths. It then compares the records with its copy instead, so a
+record of the wrong kind still ends the run. A step that writes only records
+ends `off-step` for that reason alone, because nothing shows that the call
+kept to the record root. An `implement` run doesn't end `off-step` for that
+reason, because it may write any path outside the record root.
+
+An input is unready when the test `paw ready` applies no longer passes for it,
+for example after a call clears the mark of a task the input depends on. The
+last line names each record or path, or the reason the runner can't list the
+paths.
 
 If the tree id changed or couldn't be identified, the runner then evaluates
 the condition. The tree id covers every tracked file and every untracked file

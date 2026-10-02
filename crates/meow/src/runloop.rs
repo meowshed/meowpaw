@@ -784,7 +784,7 @@ fn off_step(
     match changed_paths(root, before, after) {
         Ok(paths) => out.extend(record::off_step(read, copy, &context.step, &prefix, &paths)),
         Err(reason) => {
-            let stand_in = record::changed_record_paths(read, copy);
+            let stand_in = record::changed_record_paths(read, copy, &prefix);
             out.extend(record::off_step(
                 read,
                 copy,

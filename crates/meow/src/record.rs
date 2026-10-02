@@ -2693,6 +2693,8 @@ struct HeldDoc {
     id: String,
     kind: Option<usize>,
     path: PathBuf,
+    /// The path under the record root, with `/` for a separator.
+    relative: String,
     shown: String,
     status: String,
     text: String,
@@ -2718,6 +2720,7 @@ pub(crate) fn hold(record: &Record) -> Held {
                 id: bare(doc.id()).to_string(),
                 kind: doc.kind,
                 path: doc.path.clone(),
+                relative: doc.relative.clone(),
                 shown: doc.shown.clone(),
                 status: bare(doc.value("status")).to_string(),
                 text: doc.text.clone(),
@@ -2824,22 +2827,37 @@ fn run_may_change(kind: &str, step: &str, before: &str, after: &str) -> bool {
     }
 }
 
+/// The work tree's path of a record under the record root `root`, as git
+/// lists it. It is built from the path under the root and not from the
+/// canonical path, because a link whose target lies elsewhere has the path git
+/// lists and not its target's.
+#[cfg(feature = "loop")]
+fn tree_path(root: &str, relative: &str) -> String {
+    if root.is_empty() {
+        relative.to_string()
+    } else {
+        format!("{root}/{relative}")
+    }
+}
+
 /// The paths of the records that differ from the copy held at start: a record
-/// new since start, one whose text changed, and one gone from its path. A run
+/// new since start, one whose text changed or that moved, and one gone from its
+/// path. A run
 /// uses them in place of the paths git lists where it can't list those.
 #[cfg(feature = "loop")]
-pub(crate) fn changed_record_paths(record: &Record, held: &Held) -> Vec<String> {
+pub(crate) fn changed_record_paths(record: &Record, held: &Held, root: &str) -> Vec<String> {
     let present: BTreeSet<&Path> = record.docs.iter().map(|doc| doc.path.as_path()).collect();
     let mut out: Vec<String> = Vec::new();
     for doc in record.docs.iter().filter(|doc| doc.kind.is_some()) {
-        let changed = held_for(held, doc, &present).is_none_or(|(then, _)| then.text != doc.text);
+        let changed = held_for(held, doc, &present)
+            .is_none_or(|(then, moved)| moved || then.text != doc.text);
         if changed {
-            out.push(doc.shown.replace('\\', "/"));
+            out.push(tree_path(root, &doc.relative));
         }
     }
     for then in &held.docs {
         if !present.contains(then.path.as_path()) {
-            out.push(then.shown.replace('\\', "/"));
+            out.push(tree_path(root, &then.relative));
         }
     }
     out
@@ -2873,7 +2891,6 @@ pub(crate) fn off_step(
                 _ => kind == "task",
             }
     };
-    let slash = |shown: &str| shown.replace('\\', "/");
     let mut out = Vec::new();
     for path in paths {
         let inside = root.is_empty()
@@ -2884,7 +2901,7 @@ pub(crate) fn off_step(
         if !inside {
             if step != "implement" {
                 out.push(format!(
-                    "{path} (outside the record root, which a {step} run doesn't write)"
+                    "{path} (outside the record root, which the {step} step doesn't write)"
                 ));
             }
             continue;
@@ -2892,12 +2909,12 @@ pub(crate) fn off_step(
         let docs: Vec<&Doc> = record
             .docs
             .iter()
-            .filter(|doc| slash(&doc.shown) == *path)
+            .filter(|doc| tree_path(root, &doc.relative) == *path)
             .collect();
         let thens: Vec<&HeldDoc> = held
             .docs
             .iter()
-            .filter(|then| slash(&then.shown) == *path)
+            .filter(|then| tree_path(root, &then.relative) == *path)
             .collect();
         let mut entries: Vec<(usize, Option<&Doc>, Option<&HeldDoc>)> = docs
             .iter()
@@ -2919,12 +2936,12 @@ pub(crate) fn off_step(
                 );
                 if !marks_only {
                     out.push(format!(
-                        "{path} (an epic changed beyond its task marks, which an implement run writes)"
+                        "{path} (an epic changed beyond its task marks, which the implement step writes)"
                     ));
                 }
             } else if !allowed(kind) {
                 out.push(format!(
-                    "{path} (a {kind} record, which a {step} run doesn't write)"
+                    "{path} ({kind} record, which the {step} step doesn't write)"
                 ));
             }
         }

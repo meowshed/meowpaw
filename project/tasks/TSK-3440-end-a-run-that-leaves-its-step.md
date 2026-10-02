@@ -99,10 +99,11 @@ closed by `test_implement_run_limits`. Criterion 3 is closed by
 by `test_always_allowed`, and criterion 6 by `test_crossed_first`. In the
 checks' own commit, `test_design_run_kinds`, `test_implement_run_limits` and
 `test_unidentified_tree_in_a_record_step` failed first, ending `ceiling` or
-`finished` where `off-step` was expected. After the agent review, I added more
-checks in a commit of their own. `test_a_link_hides_no_record` and
-`test_unidentified_tree_in_an_implement_step` failed first there, and the
-others pin a rule that held already. Criterion 8 is closed by the five verbs'
+`finished` where `off-step` was expected. A review of this pull request found
+gaps, and two later commits of checks pin them. `test_a_link_hides_no_record`
+and `test_unidentified_tree_in_an_implement_step` failed first in the first of
+those, and `test_a_link_out_of_the_work_tree_hides_no_record` in the second.
+The others pin a rule that held already. Criterion 8 is closed by the five verbs'
 outcomes in this task's pull request, #798, since no run output is kept.
 
 Criterion 7 rests on judgement, because whether one requirement is met by four
@@ -125,17 +126,21 @@ its pull request, whose gate ran before the merge.
 and `off_step` in `crates/meow/src/runloop.rs` lists them with
 `changed_paths` and calls it after `crossed`. A step that writes only records
 may not change a path outside the record root, so the stand-in `claude` edits a
-file under the record root in those steps. Three older checks changed with it.
+file under the record root in those steps. Four older checks changed with it.
 Two spec-run checks start with `done.flag` in place and no longer create it in
 a call. `Crossed.test_drafts_and_task_evidence_cross_nothing` keeps its
 decisions in a `design` run and moves the task's Evidence to an `implement`
 run, where a `design` run that writes it now ends `off-step`.
+`Step.test_dirty_submodule_holds_nothing` now asserts `ceiling`.
 
-Two limits remain. An `implement` run compares an epic with the copy held at
-start, so a draft epic that a verb rewrote in an evaluation after a call
-shows as changed beyond its task marks when a later call flips a mark. Where
-the record root is the work tree itself, the limit on paths outside the record
-root has no effect, which the README says.
+Three limits remain. An `implement` run compares an epic with the copy held
+at start. A draft epic that a verb rewrote in an evaluation after a call
+then shows as changed beyond its task marks when a later call flips a mark.
+Where the record root is the work tree itself, the limit on paths outside the
+record root has no effect, which the README says. A file whose name holds a
+backslash is read by the record reader as a nested path on every system, so a
+specification written under such a name is no record to the runner, as it is
+none to `paw`.
 
 ## Left alone
 
