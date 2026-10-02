@@ -250,6 +250,18 @@ class Case(unittest.TestCase):
         self.addCleanup(fixture.close)
         return fixture
 
+    def dirty(self, f):
+        """A dirty submodule in the fixture's work tree, so its tree id is unidentified."""
+        origin = f.base / "sub-origin"
+        origin.mkdir()
+        (origin / "a.txt").write_text("a\n")
+        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
+        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
+            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
+        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
+        f.git(*identity, "commit", "-q", "-m", "add the submodule")
+        (f.root / "sub" / "a.txt").write_text("changed\n")
+
 
 class Condition(Case):
     def test_finished_after_two(self):
@@ -738,15 +750,7 @@ class Step(Case):
         """TSK-3410 criterion 4, REQ-0884: with a dirty submodule the tree is unidentified, the condition never
         holds, and the log records the tree as `unidentified`."""
         f = self.fixture({"done.flag": "x"})
-        origin = f.base / "sub-origin"
-        origin.mkdir()
-        (origin / "a.txt").write_text("a\n")
-        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
-        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
-            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
-        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
-        f.git(*identity, "commit", "-q", "-m", "add the submodule")
-        (f.root / "sub" / "a.txt").write_text("changed\n")
+        self.dirty(f)
         done = f.start(step_terms("implement", "TSK-0001", iterations="2"))
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         # An unidentified tree ends no `implement` run `off-step`: its paths outside the record are its to write.
@@ -1044,15 +1048,7 @@ class Crossed(Case):
         """TSK-3420 criterion 3, REQ-0888: with a dirty submodule, a call that sets a draft decision to `approved`
         still ends a `design` run `crossed`, because the comparison is skipped only for two equal identified trees."""
         f = self.fixture({DECISION_FILE: DRAFT_DECISION})
-        origin = f.base / "sub-origin"
-        origin.mkdir()
-        (origin / "a.txt").write_text("a\n")
-        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
-        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
-            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
-        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
-        f.git(*identity, "commit", "-q", "-m", "add the submodule")
-        (f.root / "sub" / "a.txt").write_text("changed\n")
+        self.dirty(f)
         done = self.design(f, write={"1": {DECISION_FILE: DRAFT_DECISION.replace("status: draft", "status: approved")}})
         self.crossed(f, done, "ADR-0002")
 
@@ -1282,6 +1278,7 @@ class OffStep(Case):
             self.assertIn(name, last)
         for name in other:
             self.assertNotIn(name, last)
+        self.assertNotRegex(last, r"\ba (implement|epic) ")
         self.assertEqual(len(f.calls()), calls)
 
     def design(self, f, **config):
@@ -1336,15 +1333,7 @@ class OffStep(Case):
         `unidentified`."""
         decision = DRAFT_DECISION.replace("[REQ-0002]", "[REQ-0001]")
         f = self.fixture({"done.flag": "x"})
-        origin = f.base / "sub-origin"
-        origin.mkdir()
-        (origin / "a.txt").write_text("a\n")
-        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
-        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
-            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
-        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
-        f.git(*identity, "commit", "-q", "-m", "add the submodule")
-        (f.root / "sub" / "a.txt").write_text("changed\n")
+        self.dirty(f)
         done = self.design(f, write={"1": {"project/adrs/ADR-0002-new.md": decision}})
         self.off_step(f, done, "can't be listed")
         lines = [json.loads(text) for text in (f.run_dirs()[0] / "log.jsonl").read_text().splitlines()]
@@ -1368,6 +1357,10 @@ class OffStep(Case):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "finished")
         self.assertEqual(len(f.calls()), 1)
+        # The verb's rewrites happened, and it ran again after the call.
+        self.assertIn("changed", (f.root / "stray.txt").read_text())
+        self.assertTrue((f.root / REQUIREMENT_FILE).read_text().endswith("\n\n"))
+        self.assertGreaterEqual(int(count.read_text()), 2)
 
     def test_always_allowed(self):
         """TSK-3440 criterion 5, REQ-0888: in every step, a call that writes a draft defect, a draft insight and an
@@ -1402,18 +1395,6 @@ class OffStep(Case):
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "crossed")
 
-    def dirty(self, f):
-        """A dirty submodule in the fixture's work tree, so its tree id is unidentified."""
-        origin = f.base / "sub-origin"
-        origin.mkdir()
-        (origin / "a.txt").write_text("a\n")
-        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
-        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
-            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
-        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
-        f.git(*identity, "commit", "-q", "-m", "add the submodule")
-        (f.root / "sub" / "a.txt").write_text("changed\n")
-
     def test_unidentified_tree_in_an_implement_step(self):
         """TSK-3440 criterion 3, REQ-0888: in an `implement` run with a dirty submodule, a call that writes a
         specification still ends the run `off-step` naming it, because the kind of a record needs no list of
@@ -1443,6 +1424,28 @@ class OffStep(Case):
         text = RECORD["project/specs/SPC-0001-a-part.md"] + "\nMore.\n"
         done = self.design(f, write={"1": {"project/adrs/ADR-0007-link.md": text}})
         self.off_step(f, done, "SPC-0001")
+
+    def test_a_link_out_of_the_work_tree_hides_no_record(self):
+        """TSK-3440 criterion 1, REQ-0888: a call that moves a tracked link, whose target lies outside the work tree
+        and reads as a specification, into the specifications directory ends the run `off-step` naming the new path,
+        in a `design` run and, with a dirty submodule, in an `implement` run, and never names the target."""
+        spec = front(id="SPC-0008", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Outside\n"
+        moved = {"1": {}}
+        for step, inputs in (("design", "REQ-0001"), ("implement", "TSK-0001")):
+            with self.subTest(step=step):
+                f = self.fixture()
+                outside = f.base / "outside.md"
+                outside.write_text(spec)
+                (f.root / "project/adrs/ADR-0008-out.md").symlink_to(outside)
+                f.git("add", "-A")
+                f.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false",
+                      "commit", "-q", "-m", "a link")
+                if step == "implement":
+                    self.dirty(f)
+                f.configure(rename={"1": {"project/adrs/ADR-0008-out.md": "project/specs/SPC-0008-out.md"}})
+                done = f.start(step_terms(step, inputs))
+                self.off_step(f, done, "project/specs/SPC-0008-out.md", other=("outside.md",))
 
     def test_a_verb_rewrite_after_a_call_is_not_the_next_calls(self):
         """TSK-3440 criterion 4, REQ-0888: a verb that rewrites a file outside the record root in the evaluation
@@ -1893,15 +1896,7 @@ class Idle(Case):
         """TSK-3380 criterion 4, SPC-1201 "The loop": with a dirty submodule the tree id is `none` on every call,
         which counts as a change, so three calls run to the ceiling and each line is marked `unidentified`."""
         f = self.fixture()
-        origin = f.base / "sub-origin"
-        origin.mkdir()
-        (origin / "a.txt").write_text("a\n")
-        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
-        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
-            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
-        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
-        f.git(*identity, "commit", "-q", "-m", "add the submodule")
-        (f.root / "sub" / "a.txt").write_text("changed\n")
+        self.dirty(f)
         done, lines = self.run_of(f, "3")
         self.assertEqual(len(f.calls()), 3)
         self.assertEqual(f.ending(), "ceiling")
