@@ -66,8 +66,27 @@ TSK-3410's tree.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`python3 -m unittest plugins/meow-loop/tests/test_loop.py` exits 0 on this
+change, reporting `Ran 87 tests` and `OK`. Five checks in that file close
+criteria 1 to 3: `Hook.test_status_rule`, `Hook.test_status_rule_on_write`,
+`Step.test_run_id_in_every_call`, `Step.test_run_id_only_in_calls` and
+`Hook.test_status_rule_with_an_empty_variable`. The first three failed first
+in the checks' own commit, where the hook printed no denial and the stand-in's
+environment held no `MEOW_LOOP_RUN`. After the agent review, I
+rewrote the hook checks in commits of their own. The rows for a CRLF file, an
+Edit with an empty `old_string`, a non-Markdown file in a kind directory and a
+CRLF Edit across a line break failed first there, and the other rows pin the
+rule against a wrong change. Criterion 4 is closed by the five verbs' outcomes
+in this task's pull request, #797, since no run output is kept.
+
+The rule is `status_rule` in `crates/meow/src/runloop.rs`, and the status and
+kind logic is `decided_by_edit` in `crates/meow/src/record.rs`, beside the
+`decided` rule the comparison after each call uses. The hook allows a write
+where it can't read the layout or the profile. It covers Edit and Write, the
+tools SPC-1201 names, so a MultiEdit passes it, which BUG-1390 records for the
+spec step. A record with CRLF line endings has no front matter for the record
+reader, so the comparison after a call reads its status as empty, while the
+hook reads that file's status correctly.
 
 ## Left alone
 
