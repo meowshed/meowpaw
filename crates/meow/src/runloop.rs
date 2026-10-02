@@ -730,6 +730,85 @@ fn log_line(log: &Path, over: Option<&Logged>, line: &Value) -> Result<Logged, S
     put().map_err(|error: std::io::Error| format!("can't write {}: {error}", log.display()))
 }
 
+/// The work tree's paths that differ between two tree ids, or why it can't
+/// list them. `git diff-tree` between the tree read just before a call and the
+/// one after it lists only what the call changed, because the runner reads
+/// the first id after its own evaluation (RES-0301).
+fn changed_paths(root: &Path, before: &str, after: &str) -> Result<Vec<String>, String> {
+    if before == ledger::UNBOUND || after == ledger::UNBOUND {
+        return Err("the tree couldn't be identified".to_string());
+    }
+    let listed = profile::reading_git()
+        .current_dir(root)
+        .args(["diff-tree", "-r", "--name-only", "--no-renames", "-z"])
+        .args([before, after])
+        .output()
+        .map_err(|error| format!("git couldn't be run: {error}"))?;
+    if !listed.status.success() {
+        let code = listed.status.code();
+        return Err(format!(
+            "git diff-tree {}",
+            code.map_or("was ended by a signal".to_string(), |code| format!(
+                "exited {code}"
+            ))
+        ));
+    }
+    Ok(String::from_utf8_lossy(&listed.stdout)
+        .split('\0')
+        .filter(|path| !path.is_empty())
+        .map(str::to_string)
+        .collect())
+}
+
+/// What took a call off its step: a record of a kind the step doesn't write, a
+/// path outside the record root where the step doesn't allow one, or an input
+/// that no longer passes the test `start` applied. Where the changed paths
+/// can't be listed, the records that differ from the copy stand in for them,
+/// because a record's kind needs no list, and a step that writes only records
+/// ends `off-step` for that reason.
+fn off_step(
+    root: &Path,
+    context: &Context,
+    read: &record::Record,
+    copy: &record::Held,
+    before: &str,
+    after: &str,
+) -> Vec<String> {
+    let mut out = Vec::new();
+    // `start` checked that the record root sits inside the work tree.
+    let prefix = context
+        .record_root
+        .strip_prefix(resolved(root))
+        .map(|prefix| prefix.to_string_lossy().replace('\\', "/"))
+        .expect("the record root sits inside the work tree");
+    match changed_paths(root, before, after) {
+        Ok(paths) => out.extend(record::off_step(read, copy, &context.step, &prefix, &paths)),
+        Err(reason) => {
+            let stand_in = record::changed_record_paths(read, copy, &prefix);
+            out.extend(record::off_step(
+                read,
+                copy,
+                &context.step,
+                &prefix,
+                &stand_in,
+            ));
+            if context.step != "implement" {
+                out.push(format!(
+                    "the changed paths can't be listed, because {reason}"
+                ));
+            }
+        }
+    }
+    out.extend(record::unready(
+        read,
+        root,
+        &context.record_root,
+        &context.step,
+        &context.inputs,
+    ));
+    out
+}
+
 /// Runs the loop to its ending, or to the state it can't read past.
 fn run(
     root: &Path,
@@ -855,6 +934,13 @@ fn run(
                 return Ok(Ended {
                     name: "crossed",
                     named: format!("after iteration {iteration}: {}", records.join("; ")),
+                });
+            }
+            let off = off_step(root, context, &read, &copy, &before, &after);
+            if !off.is_empty() {
+                return Ok(Ended {
+                    name: "off-step",
+                    named: format!("after iteration {iteration}: {}", off.join("; ")),
                 });
             }
         }

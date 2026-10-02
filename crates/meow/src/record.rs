@@ -2691,7 +2691,10 @@ pub(crate) fn read_for_run(repository: &Path, root: &Path) -> Result<Record, Str
 #[cfg(feature = "loop")]
 struct HeldDoc {
     id: String,
+    kind: Option<usize>,
     path: PathBuf,
+    /// The path under the record root, with `/` for a separator.
+    relative: String,
     shown: String,
     status: String,
     text: String,
@@ -2715,7 +2718,9 @@ pub(crate) fn hold(record: &Record) -> Held {
             .filter(|doc| doc.kind.is_some())
             .map(|doc| HeldDoc {
                 id: bare(doc.id()).to_string(),
+                kind: doc.kind,
                 path: doc.path.clone(),
+                relative: doc.relative.clone(),
                 shown: doc.shown.clone(),
                 status: bare(doc.value("status")).to_string(),
                 text: doc.text.clone(),
@@ -2820,6 +2825,128 @@ fn run_may_change(kind: &str, step: &str, before: &str, after: &str) -> bool {
         "epic" | "defect" if step == "implement" => without_marks(before) == without_marks(after),
         _ => false,
     }
+}
+
+/// The work tree's path of a record under the record root `root`, as git
+/// lists it. It is built from the path under the root and not from the
+/// canonical path, because a link whose target lies elsewhere has the path git
+/// lists and not its target's.
+#[cfg(feature = "loop")]
+fn tree_path(root: &str, relative: &str) -> String {
+    if root.is_empty() {
+        relative.to_string()
+    } else {
+        format!("{root}/{relative}")
+    }
+}
+
+/// The paths of the records that differ from the copy held at start: a record
+/// new since start, one whose text changed or that moved, and one gone from its
+/// path. A run
+/// uses them in place of the paths git lists where it can't list those.
+#[cfg(feature = "loop")]
+pub(crate) fn changed_record_paths(record: &Record, held: &Held, root: &str) -> Vec<String> {
+    let present: BTreeSet<&Path> = record.docs.iter().map(|doc| doc.path.as_path()).collect();
+    let mut out: Vec<String> = Vec::new();
+    for doc in record.docs.iter().filter(|doc| doc.kind.is_some()) {
+        let changed = held_for(held, doc, &present)
+            .is_none_or(|(then, moved)| moved || then.text != doc.text);
+        if changed {
+            out.push(tree_path(root, &doc.relative));
+        }
+    }
+    for then in &held.docs {
+        if !present.contains(then.path.as_path()) {
+            out.push(tree_path(root, &then.relative));
+        }
+    }
+    out
+}
+
+/// What a call wrote that a run of `step` doesn't write, one entry for each
+/// changed path and kind, naming the path and why (SPC-1201 "Keeping to one
+/// step"). `paths` are the work tree's paths the call changed, with `/` for a
+/// separator, and `root` is the record root among them. A step writes the kind
+/// its row names, and a defect or an insight in every step. A file under the
+/// root that is no record, such as an index, is allowed in every step, and a
+/// path outside the root only in `implement`. An `implement` run changes an
+/// epic only in its task marks. A path that holds more than one record, as a
+/// link and its target do, is judged for each.
+#[cfg(feature = "loop")]
+pub(crate) fn off_step(
+    record: &Record,
+    held: &Held,
+    step: &str,
+    root: &str,
+    paths: &[String],
+) -> Vec<String> {
+    let allowed = |kind: &str| {
+        matches!(kind, "defect" | "insight")
+            || match step {
+                "research" => kind == "research",
+                "requirements" => kind == "requirement",
+                "design" => kind == "decision",
+                "spec" => kind == "specification",
+                "epic" => matches!(kind, "epic" | "task"),
+                _ => kind == "task",
+            }
+    };
+    let mut out = Vec::new();
+    for path in paths {
+        let inside = root.is_empty()
+            || path == root
+            || path
+                .strip_prefix(root)
+                .is_some_and(|rest| rest.starts_with('/'));
+        if !inside {
+            if step != "implement" {
+                out.push(format!(
+                    "{path} (outside the record root, which the {step} step doesn't write)"
+                ));
+            }
+            continue;
+        }
+        let docs: Vec<&Doc> = record
+            .docs
+            .iter()
+            .filter(|doc| tree_path(root, &doc.relative) == *path)
+            .collect();
+        let thens: Vec<&HeldDoc> = held
+            .docs
+            .iter()
+            .filter(|then| tree_path(root, &then.relative) == *path)
+            .collect();
+        let mut entries: Vec<(usize, Option<&Doc>, Option<&HeldDoc>)> = docs
+            .iter()
+            .filter_map(|doc| doc.kind.map(|k| (k, Some(*doc), thens.first().copied())))
+            .collect();
+        if docs.is_empty() {
+            entries.extend(
+                thens
+                    .iter()
+                    .filter_map(|then| then.kind.map(|k| (k, None, Some(*then)))),
+            );
+        }
+        for (k, doc, then) in entries {
+            let kind = record.layout.kinds[k].name.as_str();
+            if step == "implement" && kind == "epic" {
+                let marks_only = matches!(
+                    (doc, then),
+                    (Some(doc), Some(then)) if without_marks(&then.text) == without_marks(&doc.text)
+                );
+                if !marks_only {
+                    out.push(format!(
+                        "{path} (an epic changed beyond its task marks, which the implement step writes)"
+                    ));
+                }
+            } else if !allowed(kind) {
+                out.push(format!(
+                    "{path} ({kind} record, which the {step} step doesn't write)"
+                ));
+            }
+        }
+    }
+    out
 }
 
 /// The held record a document is, and whether it moved. A record is the held

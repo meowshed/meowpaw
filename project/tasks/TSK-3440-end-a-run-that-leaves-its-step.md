@@ -87,8 +87,60 @@ tree TSK-3420 and TSK-3430 leave.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`python3 -m unittest plugins/meow-loop/tests/test_loop.py` exits 0 on this
+change, reporting `Ran 97 tests` and `OK`. Ten checks in the `OffStep` class
+close criteria 1 to 6. Criterion 1 is closed by `test_design_run_kinds`,
+`test_every_step_and_kind` and `test_a_link_hides_no_record`. Criterion 2 is
+closed by `test_implement_run_limits`. Criterion 3 is closed by
+`test_unidentified_tree_in_a_record_step` and
+`test_unidentified_tree_in_an_implement_step`. Criterion 4 is closed by
+`test_verb_rewrites_are_not_the_calls` and
+`test_a_verb_rewrite_after_a_call_is_not_the_next_calls`. Criterion 5 is closed
+by `test_always_allowed`, and criterion 6 by `test_crossed_first`. In the
+checks' own commit, `test_design_run_kinds`, `test_implement_run_limits` and
+`test_unidentified_tree_in_a_record_step` failed first, ending `ceiling` or
+`finished` where `off-step` was expected. A review of this pull request found
+gaps, and two later commits of checks pin them. `test_a_link_hides_no_record`
+and `test_unidentified_tree_in_an_implement_step` failed first in the first of
+those, and `test_a_link_out_of_the_work_tree_hides_no_record` in the second.
+The others pin a rule that held already. Criterion 8 is closed by the five verbs'
+outcomes in this task's pull request, #798, since no run output is kept.
+
+Criterion 7 rests on judgement, because whether one requirement is met by four
+tasks' checks is a reading of the evidence together, which no single check
+performs. REQ-0888 is met by these checks, each at the pull request that
+merged it. In #795, `Step.test_step_usage_errors`,
+`Step.test_step_unresolved_states`, `Step.test_run_toml_holds_the_step` and
+`Step.test_preamble_names_the_step` cover the step, its inputs and the
+preamble that names them. In #796, `Crossed.test_decided_status`,
+`Crossed.test_withdrawal`, `Crossed.test_authority_line`,
+`Crossed.test_removed`, `Crossed.test_renamed`,
+`Crossed.test_epic_allowances`, `Crossed.test_defect_allowances`,
+`Crossed.test_crossed_with_unidentified_tree` and
+`Crossed.test_live_only_in_a_living_kind` cover a decided status and a change
+to an approved record. In #797, `Hook.test_status_rule` covers the hook's
+refusal. The checks of this task cover the rest. Each cited check passed in
+its pull request, whose gate ran before the merge.
+
+`record::off_step` in `crates/meow/src/record.rs` judges the changed paths,
+and `off_step` in `crates/meow/src/runloop.rs` lists them with
+`changed_paths` and calls it after `crossed`. A step that writes only records
+may not change a path outside the record root, so the stand-in `claude` edits a
+file under the record root in those steps. Four older checks changed with it.
+Two spec-run checks start with `done.flag` in place and no longer create it in
+a call. `Crossed.test_drafts_and_task_evidence_cross_nothing` keeps its
+decisions in a `design` run and moves the task's Evidence to an `implement`
+run, where a `design` run that writes it now ends `off-step`.
+`Step.test_dirty_submodule_holds_nothing` now asserts `ceiling`.
+
+Three limits remain. An `implement` run compares an epic with the copy held
+at start. A draft epic that a verb rewrote in an evaluation after a call
+then shows as changed beyond its task marks when a later call flips a mark.
+Where the record root is the work tree itself, the limit on paths outside the
+record root has no effect, which the README says. A file whose name holds a
+backslash is read by the record reader as a nested path on every system, so a
+specification written under such a name is no record to the runner, as it is
+none to `paw`.
 
 ## Left alone
 
