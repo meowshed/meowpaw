@@ -61,6 +61,10 @@ if name and run:
 if config.get("settings", {}).get(str(n)):
     os.makedirs(".claude", exist_ok=True)
     open(".claude/settings.json", "w").write('{"permissions": {"allow": ["Bash(*)"]}}')
+for name in config.get("delete", {}).get(str(n), []):
+    os.remove(name)
+for old, new in config.get("rename", {}).get(str(n), {}).items():
+    os.rename(old, new)
 for name, text in config.get("write", {}).get(str(n), {}).items():
     os.makedirs(os.path.dirname(name) or ".", exist_ok=True)
     open(name, "w").write(text)
@@ -116,7 +120,7 @@ def front(**fields):
 def epic(first="x", second=" "):
     """EPC-0001, which lists TSK-0001 and TSK-0002 with the marks given."""
     return (front(id="EPC-0001", artifact="epic", status="approved", revised="2026-01-01", realises="ADR-0001")
-            + "\n# A plan\n\n## Tasks\n\n"
+            + "\n# A plan\n\n## Acceptance criteria\n\n1. It works.\n\n## Tasks\n\n"
             + f"- [{first}] T-001 TSK-0001 the first\n      closes: REQ-0001\n\n"
             + f"- [{second}] T-002 TSK-0002 the second\n      closes: REQ-0001\n")
 
@@ -774,6 +778,172 @@ class Step(Case):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertEqual(f.ending(), "finished")
         self.assertEqual(f.calls(), [])
+
+
+DRAFT_DECISION = front(id="ADR-0002", artifact="adr", status="draft", revised="2026-01-01", addresses="[REQ-0002]",
+                       supersedes="[]") + "\n# 0002. A draft\n"
+DECISION_FILE = "project/adrs/ADR-0002-a-draft.md"
+REQUIREMENT_FILE = "project/requirements/REQ-0001-a-duty.md"
+DEFECT_FILE = "project/bugs/BUG-0001-a-defect.md"
+DEFECT = (front(id="BUG-0001", artifact="bug", status="approved", severity="minor", violates="REQ-0001",
+                enters="implement", found="2026-01-01", revised="2026-01-01")
+          + "\n# A defect\n\nIt is broken.\n\n## Reproduction\n\nRun it.\n\n## Tasks\n\n- [ ] T-001 TSK-0003 fix it\n")
+DEFECT_TASK = task("TSK-0003", "Not yet.").replace("epic: EPC-0001", "bug: BUG-0001")
+
+
+class Crossed(Case):
+    """ADR-2020: a call or an evaluation that decides a status, or changes or removes an approved record outside what
+    the step may change in it, ends the run `crossed`, and the last line names each record."""
+
+    def crossed(self, f, done, *names, calls=1):
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "crossed")
+        last = done.stdout.strip().splitlines()[-1]
+        self.assertTrue(last.startswith("crossed: "), last)
+        for name in names:
+            self.assertIn(name, last)
+        self.assertEqual(len(f.calls()), calls)
+
+    def design(self, f, **config):
+        f.configure(**config)
+        return f.start(step_terms("design", "REQ-0001"))
+
+    def test_decided_status(self):
+        """TSK-3420 criterion 1, REQ-0888: a call that sets a draft decision's status to `approved` ends a `design`
+        run `crossed` after that call, and the last line names the decision."""
+        f = self.fixture({DECISION_FILE: DRAFT_DECISION})
+        done = self.design(f, write={"1": {DECISION_FILE: DRAFT_DECISION.replace("status: draft", "status: approved")}})
+        self.crossed(f, done, "ADR-0002")
+
+    def test_withdrawal(self):
+        """TSK-3420 criterion 1, REQ-0888: a call that sets an approved requirement to `withdrawn` ends the run
+        `crossed`, though the frozen comparison accepts a withdrawal."""
+        f = self.fixture()
+        text = RECORD[REQUIREMENT_FILE].replace("status: approved", "status: withdrawn")
+        self.crossed(f, self.design(f, write={"1": {REQUIREMENT_FILE: text}}), "REQ-0001")
+
+    def test_authority_line(self):
+        """TSK-3420 criterion 1, REQ-0888: a call that appends to an approved requirement a line naming an
+        amendment ends the run `crossed`, though the frozen comparison accepts that line."""
+        f = self.fixture()
+        text = RECORD[REQUIREMENT_FILE] + "\nAmended by ADR-0002.\n"
+        self.crossed(f, self.design(f, write={"1": {REQUIREMENT_FILE: text}}), "REQ-0001")
+
+    def test_removed(self):
+        """TSK-3420 criterion 1, REQ-0888: a call that deletes an approved requirement ends the run `crossed`,
+        naming it."""
+        f = self.fixture()
+        self.crossed(f, self.design(f, delete={"1": [REQUIREMENT_FILE]}), "REQ-0001")
+
+    def test_renamed(self):
+        """TSK-3420 criterion 1, REQ-0888: a call that renames an approved requirement ends the run `crossed`,
+        naming it."""
+        f = self.fixture()
+        moved = "project/requirements/REQ-0001-another-name.md"
+        self.crossed(f, self.design(f, rename={"1": {REQUIREMENT_FILE: moved}}), "REQ-0001")
+
+    def test_epic_allowances(self):
+        """TSK-3420 criterion 2, REQ-0888: in an `implement` run, rewording a criterion of the approved epic ends the
+        run `crossed` naming the epic, and marking the input task `x` there and changing nothing else does not."""
+        epic_file = "project/epics/EPC-0001-a-plan.md"
+        f = self.fixture()
+        reworded = epic("x", "x").replace("1. It works.", "1. It works well.")
+        f.configure(write={"1": {epic_file: reworded, "project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Done.")}})
+        self.crossed(f, f.start(step_terms("implement", "TSK-0002")), "EPC-0001")
+        marked = self.fixture()
+        marked.configure(write={"1": {epic_file: epic("x", "x"),
+                                      "project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Done.")}},
+                         create={"1": "done.flag"})
+        done = marked.start(step_terms("implement", "TSK-0002"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(marked.ending(), "finished")
+
+    def test_defect_allowances(self):
+        """TSK-3420 criterion 2, REQ-0888: in an `implement` run of a task an approved defect authorises, marking the
+        task `x` in the defect does not end the run `crossed`, and rewording the defect's reproduction does."""
+        files = {DEFECT_FILE: DEFECT, "project/tasks/TSK-0003-the-third.md": DEFECT_TASK}
+        done_task = {"project/tasks/TSK-0003-the-third.md": task("TSK-0003", "Done.").replace("epic: EPC-0001",
+                                                                                           "bug: BUG-0001")}
+        marked = DEFECT.replace("- [ ] T-001", "- [x] T-001")
+        f = self.fixture(files)
+        f.configure(write={"1": {DEFECT_FILE: marked, **done_task}}, create={"1": "done.flag"})
+        done = f.start(step_terms("implement", "TSK-0003"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "finished")
+        g = self.fixture(files)
+        g.configure(write={"1": {DEFECT_FILE: marked.replace("Run it.", "Run it twice."), **done_task}},
+                    create={"1": "done.flag"})
+        self.crossed(g, g.start(step_terms("implement", "TSK-0003")), "BUG-0001")
+
+    def test_crossed_with_unidentified_tree(self):
+        """TSK-3420 criterion 3, REQ-0888: with a dirty submodule, a call that sets a draft decision to `approved`
+        still ends a `design` run `crossed`, because the comparison is skipped only for two equal identified trees."""
+        f = self.fixture({DECISION_FILE: DRAFT_DECISION})
+        origin = f.base / "sub-origin"
+        origin.mkdir()
+        (origin / "a.txt").write_text("a\n")
+        identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.com", "-c", "commit.gpgsign=false"]
+        for args in (["init", "-q", "-b", "main"], ["add", "-A"], [*identity, "commit", "-q", "-m", "sub"]):
+            subprocess.run(["git", *args], cwd=origin, check=True, capture_output=True, env=f.env())
+        f.git("-c", "protocol.file.allow=always", "submodule", "add", "-q", str(origin), "sub")
+        f.git(*identity, "commit", "-q", "-m", "add the submodule")
+        (f.root / "sub" / "a.txt").write_text("changed\n")
+        done = self.design(f, write={"1": {DECISION_FILE: DRAFT_DECISION.replace("status: draft", "status: approved")}})
+        self.crossed(f, done, "ADR-0002")
+
+    def test_live_only_in_a_living_kind(self):
+        """TSK-3420 criterion 4, REQ-0888: in a `spec` run, setting a draft requirement's status to `live` ends the
+        run `crossed`, and writing a new specification with status `live` does not."""
+        f = self.fixture()
+        f.configure(write={"1": {"project/requirements/REQ-0002-a-draft.md":
+                                 RECORD["project/requirements/REQ-0002-a-draft.md"].replace("status: draft",
+                                                                                          "status: live")}})
+        self.crossed(f, f.start(step_terms("spec", "ADR-0001")), "REQ-0002")
+        g = self.fixture()
+        spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
+                     states="[REQ-0001]") + "\n# Another part\n"
+        g.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}}, create={"1": "done.flag"})
+        done = g.start(step_terms("spec", "ADR-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(g.ending(), "finished")
+
+    def test_drafts_and_task_evidence_cross_nothing(self):
+        """TSK-3420 criterion 1, REQ-0888: a new draft, an edit to a draft and a change to an approved task's
+        Evidence cross nothing in a `design` run."""
+        f = self.fixture({DECISION_FILE: DRAFT_DECISION})
+        f.configure(write={"1": {DECISION_FILE: DRAFT_DECISION + "\nMore.\n",
+                                 "project/adrs/ADR-0003-new.md": DRAFT_DECISION.replace("0002", "0003"),
+                                 "project/tasks/TSK-0002-the-second.md": task("TSK-0002", "Not yet.\n\nMore.")}})
+        done = f.start(step_terms("design", "REQ-0001", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+
+    def test_evaluation_crosses(self):
+        """TSK-3420 criterion 5, REQ-0888: a verb whose command withdraws an approved requirement on its second run
+        and not its first ends the run `crossed` in the evaluation after the call, and the last line names the
+        evaluation, the verb and the record, not a call."""
+        f = self.fixture()
+        count = f.base / "count"
+        script = f.base / "verb.sh"
+        script.write_text(
+            f"n=$(cat {count} 2>/dev/null || echo 0)\necho $((n + 1)) > {count}\n"
+            f"if [ \"$n\" -ge 1 ]; then\n  sed 's/^status: approved/status: withdrawn/' {REQUIREMENT_FILE} > tmp.md\n"
+            f"  mv tmp.md {REQUIREMENT_FILE}\nfi\nexit 1\n")
+        (f.root / ".meowpaw" / "profile.toml").write_text(PROFILE.replace('test -f done.flag', f"sh {script}"))
+        done = f.start(step_terms("design", "REQ-0001"))
+        self.crossed(f, done, "REQ-0001")
+        last = done.stdout.strip().splitlines()[-1]
+        self.assertIn("evaluation", last)
+        self.assertIn("verb test", last)
+
+    def test_crossed_before_finished(self):
+        """TSK-3420 criterion 6, REQ-0888: a call that approves a draft and makes the verbs pass ends the run
+        `crossed` and not `finished`."""
+        f = self.fixture({DECISION_FILE: DRAFT_DECISION})
+        f.configure(write={"1": {DECISION_FILE: DRAFT_DECISION.replace("status: draft", "status: approved")}},
+                    create={"1": "done.flag"})
+        done = f.start(step_terms("implement", "TSK-0001"))
+        self.crossed(f, done, "ADR-0002")
 
 
 class Ceiling(Case):
