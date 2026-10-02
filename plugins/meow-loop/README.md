@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.7.0]
+describes: [meow-loop@0.8.0]
 ---
 
 # meow-loop
@@ -43,7 +43,9 @@ meow-loop start --step implement --inputs TSK-0042 \
   --iterations 5 --budget-usd 10 --permission-mode dontAsk
 ```
 
-The run holds the terminal until it ends, and its last line is the ending.
+The run holds the terminal until it ends. Its last line is the ending, and for
+`crossed` it also names each record that crossed and, for an evaluation, the
+verb that ran.
 
 | Term                | Holds                                                                                       | Required                                      |
 | ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -159,24 +161,55 @@ runner can't sum bounds nothing. That call's line in the log holds `null` for
 run `budget`. Both come before the condition, so a call that reports no cost
 and also makes the verbs pass ends `unmetered`.
 
-Then the runner compares the work tree's tree id with the one before
-the call. The tree id covers every tracked file and every untracked file git
-doesn't ignore. If the tree id changed or couldn't be identified, the runner
-evaluates the condition again. When the step's test holds, every verb exits 0
-and the evaluation left the tree as it found it, the run ends `finished`. An unidentified tree, such as one with a dirty submodule, holds no
-condition. An unchanged tree would repeat the last result, so the runner
-skips the evaluation and makes the next call. Where a verb changes the tree, such
-as a formatter that rewrites files, the runner evaluates a second time at
-once, and that second result stands.
+A call ends the run `crossed` when the record, compared with the copy the
+runner took at start, shows one of four changes:
 
-| Ending      | When                                                                      | Exit status |
-| ----------- | ------------------------------------------------------------------------- | ----------- |
-| `finished`  | The step's test held and every named verb passed at one tree              | 0           |
-| `budget`    | The next call could pass the budget, or a call reached its own cap        | 1           |
-| `ceiling`   | The stated number of iterations ran                                       | 1           |
-| `unmetered` | A call reported no cost, so the spend can't be summed                     | 1           |
-| `idle`      | Two iterations in a row changed neither the tree nor the progress file    | 1           |
-| `tampered`  | `run.toml`, `prompt.md` or `.claude/settings.json` changed during the run | 1           |
+- a record's stored status became a decided status, which is any status except
+  `draft`, and except `live` in a living kind such as a specification,
+  because a specification is `live` from its first draft;
+- a record new since start carries a decided status;
+- an approved record is gone from the path it had at start, deleted or
+  renamed;
+- an approved record changed outside what a run may change in it.
+
+The runner makes this comparison after every call, unless it can identify the
+work tree before and after the call and finds it unchanged. A changed term, a
+missing cost and a call's own cap end the run first. The comparison comes
+before the condition, so a call that approves a draft and also makes the
+verbs pass ends `crossed`, not `finished`.
+
+A run may change an approved task only in its Evidence, its Left alone
+section, its issue, its projection and its revision date. It may change an
+approved epic or defect only in its task marks and the evidence lines written
+with them, and only in an `implement` run. The comparison takes none of
+`paw check frozen`'s exemptions, because a person makes those decisions. A
+status now `withdrawn` or `superseded` crosses. So does a line naming an
+authority.
+
+The runner makes the same comparison after each verb of its own evaluation
+that changed the tree, so a verb that crosses a gate ends the run `crossed`.
+The last line of the output then names each record that crossed and, for an
+evaluation, the verb that ran.
+
+If the tree id changed or couldn't be identified, the runner then evaluates
+the condition. The tree id covers every tracked file and every untracked file
+git doesn't ignore. When the step's test holds, every verb exits 0 and the
+evaluation left the tree as it found it, the run ends `finished`. An
+unidentified tree, such as one with a dirty submodule, holds no condition. An
+unchanged tree would repeat the last result, so the runner skips the
+evaluation and makes the next call. Where a verb changes the tree, such as a
+formatter that rewrites files, the runner evaluates a second time at once, and
+that second result stands.
+
+| Ending      | When                                                                               | Exit status |
+| ----------- | ---------------------------------------------------------------------------------- | ----------- |
+| `finished`  | The step's test held and every named verb passed at one tree                       | 0           |
+| `budget`    | The next call could pass the budget, or a call reached its own cap                 | 1           |
+| `ceiling`   | The stated number of iterations ran                                                | 1           |
+| `unmetered` | A call reported no cost, so the spend can't be summed                              | 1           |
+| `idle`      | Two iterations in a row changed neither the tree nor the progress file             | 1           |
+| `tampered`  | `run.toml`, `prompt.md` or `.claude/settings.json` changed during the run          | 1           |
+| `crossed`   | A call or an evaluation decided a status, or changed or removed an approved record | 1           |
 
 `meow-loop` runs the verbs itself and needs no other unit. It records each
 verb's result in the ledger `meow-checks` reads, so where that unit is
