@@ -140,9 +140,12 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-3410 (blocking) - the record code naming living kinds
       depends: TSK-3400 (blocking) - the last change to the hook it joins
 
-- [ ] T-004 TSK-3440 end a run `off-step` when a call writes another step's
+- [x] T-004 TSK-3440 end a run `off-step` when a call writes another step's
       records or paths, or leaves its input unready
       closes: REQ-0888
+      evidence: the `OffStep` checks that guard a limit failed first in their
+      own commit, the five verbs pass, and REQ-0888 is met by the guards of
+      TSK-3410, TSK-3420 and TSK-3430 with this one.
       depends: TSK-3420 (blocking) - `crossed` is checked before `off-step`
       depends: TSK-3430 (blocking) - REQ-0888 closes here, after every guard
 

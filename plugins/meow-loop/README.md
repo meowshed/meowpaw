@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.9.0]
+describes: [meow-loop@0.10.0]
 ---
 
 # meow-loop
@@ -205,6 +205,21 @@ that changed the tree, so a verb that crosses a gate ends the run `crossed`.
 The last line of the output then names each record that crossed and, for an
 evaluation, the verb that ran.
 
+After the comparison for `crossed`, the runner ends the run `off-step` when
+the call wrote another step's files or left its input unready. A `research`
+run writes research records, `requirements` requirements, `design` decisions,
+`spec` specifications, `epic` epics and tasks, and `implement` tasks, the task
+marks of epics, and any path outside the record root. A draft defect or
+insight, and a file under the record root that is no record, such as an index,
+are allowed in every step. The runner lists the paths a call changed with
+`git diff-tree` between the tree id it read just before the call and the one
+after, so a path a verb rewrote in an evaluation is never the call's. Where it
+can't identify either tree, it ends a run of a step that writes only records
+`off-step`, because it can't list the paths. An input fails when the start
+test no longer passes, for example after a call clears the mark of a task the
+input depends on. The last line then names each record or path, and `crossed`
+comes first when a call does both.
+
 If the tree id changed or couldn't be identified, the runner then evaluates
 the condition. The tree id covers every tracked file and every untracked file
 git doesn't ignore. When the step's test holds, every verb exits 0 and the
@@ -224,6 +239,7 @@ that second result stands.
 | `idle`      | Two iterations in a row changed neither the tree nor the progress file             | 1           |
 | `tampered`  | `run.toml`, `prompt.md` or `.claude/settings.json` changed during the run          | 1           |
 | `crossed`   | A call or an evaluation decided a status, or changed or removed an approved record | 1           |
+| `off-step`  | A call wrote another step's files, or left its input unready                       | 1           |
 
 `meow-loop` runs the verbs itself and needs no other unit. It records each
 verb's result in the ledger `meow-checks` reads, so where that unit is

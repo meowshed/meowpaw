@@ -87,8 +87,40 @@ tree TSK-3420 and TSK-3430 leave.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+`python3 -m unittest plugins/meow-loop/tests/test_loop.py` exits 0 on this
+change, reporting `Ran 94 tests` and `OK`. Seven checks in the `OffStep`
+class close criteria 1 to 6: `test_design_run_kinds`,
+`test_implement_run_limits`, `test_unidentified_tree_in_a_record_step`,
+`test_verb_rewrites_are_not_the_calls`, `test_always_allowed`,
+`test_crossed_first` and `test_each_kind_has_its_step`. Four of them failed
+first in the checks' own commit, ending `ceiling` or `finished` where
+`off-step` was expected: the design kinds, the implement limits, the
+unidentified tree and each kind's step. The other three pin rules that held
+already, such as `crossed` coming first. Criterion 8 is closed by the five
+verbs' outcomes in this task's pull request, since no run output is kept.
+
+Criterion 7 rests on judgement, because whether one requirement is met by five
+tasks' checks is a reading of the evidence together, which no single check
+performs. REQ-0888 is met by these checks, each at the pull request that
+merged it. In #795, `Step.test_step_usage_errors`,
+`Step.test_step_unresolved_states`, `Step.test_run_toml_holds_the_step` and
+`Step.test_preamble_names_the_step` cover the step, its inputs and the
+preamble that names them. In #796, `Crossed.test_decided_status`,
+`Crossed.test_withdrawal`, `Crossed.test_authority_line`,
+`Crossed.test_removed`, `Crossed.test_renamed`,
+`Crossed.test_epic_allowances`, `Crossed.test_defect_allowances`,
+`Crossed.test_crossed_with_unidentified_tree` and
+`Crossed.test_live_only_in_a_living_kind` cover a decided status and a change
+to an approved record. In #797, `Hook.test_status_rule` covers the hook's
+refusal. The checks of this task cover the rest. Each cited check passed in
+its pull request, whose gate ran before the merge.
+
+The comparison lives in `off_step` in `crates/meow/src/record.rs`, and the
+runner calls it after `crossed` and lists the changed paths in `changed_paths`
+in `crates/meow/src/runloop.rs`. A step that writes only records may not
+change the work tree's root, so the stand-in `claude` edits a file under the
+record root in those steps, and two spec-run checks start with `done.flag` in
+place and no longer create it in a call.
 
 ## Left alone
 

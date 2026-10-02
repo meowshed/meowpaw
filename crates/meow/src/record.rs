@@ -2691,6 +2691,7 @@ pub(crate) fn read_for_run(repository: &Path, root: &Path) -> Result<Record, Str
 #[cfg(feature = "loop")]
 struct HeldDoc {
     id: String,
+    kind: Option<usize>,
     path: PathBuf,
     shown: String,
     status: String,
@@ -2715,6 +2716,7 @@ pub(crate) fn hold(record: &Record) -> Held {
             .filter(|doc| doc.kind.is_some())
             .map(|doc| HeldDoc {
                 id: bare(doc.id()).to_string(),
+                kind: doc.kind,
                 path: doc.path.clone(),
                 shown: doc.shown.clone(),
                 status: bare(doc.value("status")).to_string(),
@@ -2820,6 +2822,76 @@ fn run_may_change(kind: &str, step: &str, before: &str, after: &str) -> bool {
         "epic" | "defect" if step == "implement" => without_marks(before) == without_marks(after),
         _ => false,
     }
+}
+
+/// What a call wrote that a run of `step` doesn't write, one entry for each
+/// changed path, naming the path and why (SPC-1201 "Keeping to one step").
+/// `paths` are the work tree's paths the call changed and `root` is the record
+/// root among them. A step writes the kind its row names, and a defect or an
+/// insight, as a draft, in every step. A file under the root that is no
+/// record, such as an index, is allowed in every step, and a path outside the
+/// root only in `implement`. An `implement` run changes an epic only in its
+/// task marks.
+#[cfg(feature = "loop")]
+pub(crate) fn off_step(
+    record: &Record,
+    held: &Held,
+    step: &str,
+    root: &str,
+    paths: &[String],
+) -> Vec<String> {
+    let allowed = |kind: &str| {
+        matches!(kind, "defect" | "insight")
+            || match step {
+                "research" => kind == "research",
+                "requirements" => kind == "requirement",
+                "design" => kind == "decision",
+                "spec" => kind == "specification",
+                "epic" => matches!(kind, "epic" | "task"),
+                _ => matches!(kind, "task" | "epic"),
+            }
+    };
+    let mut out = Vec::new();
+    for path in paths {
+        let inside = root.is_empty()
+            || path == root
+            || path
+                .strip_prefix(root)
+                .is_some_and(|rest| rest.starts_with('/'));
+        if !inside {
+            if step != "implement" {
+                out.push(format!(
+                    "{path} (outside the record root, which a {step} run doesn't write)"
+                ));
+            }
+            continue;
+        }
+        let doc = record.docs.iter().find(|doc| doc.shown == *path);
+        let then = held.docs.iter().find(|then| then.shown == *path);
+        let kind = doc
+            .and_then(|doc| doc.kind)
+            .or(then.and_then(|then| then.kind))
+            .map(|k| record.layout.kinds[k].name.as_str());
+        let Some(kind) = kind else {
+            continue;
+        };
+        if step == "implement" && kind == "epic" {
+            let marks_only = matches!(
+                (doc, then),
+                (Some(doc), Some(then)) if without_marks(&then.text) == without_marks(&doc.text)
+            );
+            if !marks_only {
+                out.push(format!(
+                    "{path} (an epic changed beyond its task marks, which an implement run writes)"
+                ));
+            }
+        } else if !allowed(kind) {
+            out.push(format!(
+                "{path} (a {kind} record, which a {step} run doesn't write)"
+            ));
+        }
+    }
+    out
 }
 
 /// The held record a document is, and whether it moved. A record is the held
