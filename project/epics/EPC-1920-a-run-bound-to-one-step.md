@@ -143,9 +143,11 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
 - [x] T-004 TSK-3440 end a run `off-step` when a call writes another step's
       records or paths, or leaves its input unready
       closes: REQ-0888
-      evidence: the `OffStep` checks that guard a limit failed first in their
-      own commit, the five verbs pass, and REQ-0888 is met by the guards of
-      TSK-3410, TSK-3420 and TSK-3430 with this one.
+      evidence: `OffStep.test_design_run_kinds`,
+      `OffStep.test_implement_run_limits` and
+      `OffStep.test_unidentified_tree_in_a_record_step` failed first in their
+      own commit, and the five verbs pass. The task lists the checks that
+      close REQ-0888.
       depends: TSK-3420 (blocking) - `crossed` is checked before `off-step`
       depends: TSK-3430 (blocking) - REQ-0888 closes here, after every guard
 

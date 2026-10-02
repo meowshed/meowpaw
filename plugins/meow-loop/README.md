@@ -43,9 +43,9 @@ meow-loop start --step implement --inputs TSK-0042 \
   --iterations 5 --budget-usd 10 --permission-mode dontAsk
 ```
 
-The run holds the terminal until it ends. Its last line is the ending, and for
-`crossed` it also names each record that crossed and, for an evaluation, the
-verb that ran.
+The run holds the terminal until it ends. Its last line is the ending. For
+`crossed` and `off-step` it also names each record or path that caused it and,
+for an evaluation, the verb that ran.
 
 | Term                | Holds                                                                                       | Required                                      |
 | ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -205,20 +205,37 @@ that changed the tree, so a verb that crosses a gate ends the run `crossed`.
 The last line of the output then names each record that crossed and, for an
 evaluation, the verb that ran.
 
-After the comparison for `crossed`, the runner ends the run `off-step` when
-the call wrote another step's files or left its input unready. A `research`
-run writes research records, `requirements` requirements, `design` decisions,
-`spec` specifications, `epic` epics and tasks, and `implement` tasks, the task
-marks of epics, and any path outside the record root. A draft defect or
-insight, and a file under the record root that is no record, such as an index,
-are allowed in every step. The runner lists the paths a call changed with
-`git diff-tree` between the tree id it read just before the call and the one
-after, so a path a verb rewrote in an evaluation is never the call's. Where it
-can't identify either tree, it ends a run of a step that writes only records
-`off-step`, because it can't list the paths. An input fails when the start
-test no longer passes, for example after a call clears the mark of a task the
-input depends on. The last line then names each record or path, and `crossed`
-comes first when a call does both.
+When a call writes another step's files or leaves its input unready, the
+runner ends the run `off-step`, after the comparison for `crossed`. A step
+writes only what its row names:
+
+| Step           | May write                                                                        |
+| -------------- | -------------------------------------------------------------------------------- |
+| `research`     | Research records                                                                 |
+| `requirements` | Requirements                                                                     |
+| `design`       | Decisions                                                                        |
+| `spec`         | Specifications                                                                   |
+| `epic`         | Epics and tasks                                                                  |
+| `implement`    | Tasks, the task marks of epics and defects, and any path outside the record root |
+
+Every step may also write a draft defect or insight, because a run records a
+defect it finds, and a file under the record root that is no record, such as
+an index, because `paw index --write` regenerates those. A step other than
+`implement` may not change a path outside the record root. Where the record
+root is the work tree itself, that limit has no effect, because every path is
+inside it.
+
+The runner lists the paths a call changed with `git diff-tree` between the
+tree id it read just before the call and the one after. A path a verb rewrote
+in an evaluation is then never the call's. Where it can't identify either
+tree, it can't list the paths, so it compares the records with its copy
+instead, and a record of the wrong kind still ends the run. A step that writes
+only records then ends `off-step` for that reason alone, because nothing shows
+that the call kept to the record root. `implement` doesn't, because it may
+write any path outside the record. An input is unready when the test
+`paw ready` applies no longer passes for it, for example after a call clears
+the mark of a task the input depends on. The last line names each record or
+path, or the reason the paths can't be listed.
 
 If the tree id changed or couldn't be identified, the runner then evaluates
 the condition. The tree id covers every tracked file and every untracked file

@@ -2824,14 +2824,36 @@ fn run_may_change(kind: &str, step: &str, before: &str, after: &str) -> bool {
     }
 }
 
+/// The paths of the records that differ from the copy held at start: a record
+/// new since start, one whose text changed, and one gone from its path. A run
+/// uses them in place of the paths git lists where it can't list those.
+#[cfg(feature = "loop")]
+pub(crate) fn changed_record_paths(record: &Record, held: &Held) -> Vec<String> {
+    let present: BTreeSet<&Path> = record.docs.iter().map(|doc| doc.path.as_path()).collect();
+    let mut out: Vec<String> = Vec::new();
+    for doc in record.docs.iter().filter(|doc| doc.kind.is_some()) {
+        let changed = held_for(held, doc, &present).is_none_or(|(then, _)| then.text != doc.text);
+        if changed {
+            out.push(doc.shown.replace('\\', "/"));
+        }
+    }
+    for then in &held.docs {
+        if !present.contains(then.path.as_path()) {
+            out.push(then.shown.replace('\\', "/"));
+        }
+    }
+    out
+}
+
 /// What a call wrote that a run of `step` doesn't write, one entry for each
-/// changed path, naming the path and why (SPC-1201 "Keeping to one step").
-/// `paths` are the work tree's paths the call changed and `root` is the record
-/// root among them. A step writes the kind its row names, and a defect or an
-/// insight, as a draft, in every step. A file under the root that is no
-/// record, such as an index, is allowed in every step, and a path outside the
-/// root only in `implement`. An `implement` run changes an epic only in its
-/// task marks.
+/// changed path and kind, naming the path and why (SPC-1201 "Keeping to one
+/// step"). `paths` are the work tree's paths the call changed, with `/` for a
+/// separator, and `root` is the record root among them. A step writes the kind
+/// its row names, and a defect or an insight in every step. A file under the
+/// root that is no record, such as an index, is allowed in every step, and a
+/// path outside the root only in `implement`. An `implement` run changes an
+/// epic only in its task marks. A path that holds more than one record, as a
+/// link and its target do, is judged for each.
 #[cfg(feature = "loop")]
 pub(crate) fn off_step(
     record: &Record,
@@ -2848,9 +2870,10 @@ pub(crate) fn off_step(
                 "design" => kind == "decision",
                 "spec" => kind == "specification",
                 "epic" => matches!(kind, "epic" | "task"),
-                _ => matches!(kind, "task" | "epic"),
+                _ => kind == "task",
             }
     };
+    let slash = |shown: &str| shown.replace('\\', "/");
     let mut out = Vec::new();
     for path in paths {
         let inside = root.is_empty()
@@ -2866,29 +2889,44 @@ pub(crate) fn off_step(
             }
             continue;
         }
-        let doc = record.docs.iter().find(|doc| doc.shown == *path);
-        let then = held.docs.iter().find(|then| then.shown == *path);
-        let kind = doc
-            .and_then(|doc| doc.kind)
-            .or(then.and_then(|then| then.kind))
-            .map(|k| record.layout.kinds[k].name.as_str());
-        let Some(kind) = kind else {
-            continue;
-        };
-        if step == "implement" && kind == "epic" {
-            let marks_only = matches!(
-                (doc, then),
-                (Some(doc), Some(then)) if without_marks(&then.text) == without_marks(&doc.text)
+        let docs: Vec<&Doc> = record
+            .docs
+            .iter()
+            .filter(|doc| slash(&doc.shown) == *path)
+            .collect();
+        let thens: Vec<&HeldDoc> = held
+            .docs
+            .iter()
+            .filter(|then| slash(&then.shown) == *path)
+            .collect();
+        let mut entries: Vec<(usize, Option<&Doc>, Option<&HeldDoc>)> = docs
+            .iter()
+            .filter_map(|doc| doc.kind.map(|k| (k, Some(*doc), thens.first().copied())))
+            .collect();
+        if docs.is_empty() {
+            entries.extend(
+                thens
+                    .iter()
+                    .filter_map(|then| then.kind.map(|k| (k, None, Some(*then)))),
             );
-            if !marks_only {
+        }
+        for (k, doc, then) in entries {
+            let kind = record.layout.kinds[k].name.as_str();
+            if step == "implement" && kind == "epic" {
+                let marks_only = matches!(
+                    (doc, then),
+                    (Some(doc), Some(then)) if without_marks(&then.text) == without_marks(&doc.text)
+                );
+                if !marks_only {
+                    out.push(format!(
+                        "{path} (an epic changed beyond its task marks, which an implement run writes)"
+                    ));
+                }
+            } else if !allowed(kind) {
                 out.push(format!(
-                    "{path} (an epic changed beyond its task marks, which an implement run writes)"
+                    "{path} (a {kind} record, which a {step} run doesn't write)"
                 ));
             }
-        } else if !allowed(kind) {
-            out.push(format!(
-                "{path} (a {kind} record, which a {step} run doesn't write)"
-            ));
         }
     }
     out

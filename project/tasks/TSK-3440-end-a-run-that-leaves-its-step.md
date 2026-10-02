@@ -88,18 +88,24 @@ tree TSK-3420 and TSK-3430 leave.
 ## Evidence
 
 `python3 -m unittest plugins/meow-loop/tests/test_loop.py` exits 0 on this
-change, reporting `Ran 94 tests` and `OK`. Seven checks in the `OffStep`
-class close criteria 1 to 6: `test_design_run_kinds`,
-`test_implement_run_limits`, `test_unidentified_tree_in_a_record_step`,
-`test_verb_rewrites_are_not_the_calls`, `test_always_allowed`,
-`test_crossed_first` and `test_each_kind_has_its_step`. Four of them failed
-first in the checks' own commit, ending `ceiling` or `finished` where
-`off-step` was expected: the design kinds, the implement limits, the
-unidentified tree and each kind's step. The other three pin rules that held
-already, such as `crossed` coming first. Criterion 8 is closed by the five
-verbs' outcomes in this task's pull request, since no run output is kept.
+change, reporting `Ran 97 tests` and `OK`. Ten checks in the `OffStep` class
+close criteria 1 to 6. Criterion 1 is closed by `test_design_run_kinds`,
+`test_every_step_and_kind` and `test_a_link_hides_no_record`. Criterion 2 is
+closed by `test_implement_run_limits`. Criterion 3 is closed by
+`test_unidentified_tree_in_a_record_step` and
+`test_unidentified_tree_in_an_implement_step`. Criterion 4 is closed by
+`test_verb_rewrites_are_not_the_calls` and
+`test_a_verb_rewrite_after_a_call_is_not_the_next_calls`. Criterion 5 is closed
+by `test_always_allowed`, and criterion 6 by `test_crossed_first`. In the
+checks' own commit, `test_design_run_kinds`, `test_implement_run_limits` and
+`test_unidentified_tree_in_a_record_step` failed first, ending `ceiling` or
+`finished` where `off-step` was expected. After the agent review, I added more
+checks in a commit of their own. `test_a_link_hides_no_record` and
+`test_unidentified_tree_in_an_implement_step` failed first there, and the
+others pin a rule that held already. Criterion 8 is closed by the five verbs'
+outcomes in this task's pull request, #798, since no run output is kept.
 
-Criterion 7 rests on judgement, because whether one requirement is met by five
+Criterion 7 rests on judgement, because whether one requirement is met by four
 tasks' checks is a reading of the evidence together, which no single check
 performs. REQ-0888 is met by these checks, each at the pull request that
 merged it. In #795, `Step.test_step_usage_errors`,
@@ -115,12 +121,21 @@ to an approved record. In #797, `Hook.test_status_rule` covers the hook's
 refusal. The checks of this task cover the rest. Each cited check passed in
 its pull request, whose gate ran before the merge.
 
-The comparison lives in `off_step` in `crates/meow/src/record.rs`, and the
-runner calls it after `crossed` and lists the changed paths in `changed_paths`
-in `crates/meow/src/runloop.rs`. A step that writes only records may not
-change the work tree's root, so the stand-in `claude` edits a file under the
-record root in those steps, and two spec-run checks start with `done.flag` in
-place and no longer create it in a call.
+`record::off_step` in `crates/meow/src/record.rs` judges the changed paths,
+and `off_step` in `crates/meow/src/runloop.rs` lists them with
+`changed_paths` and calls it after `crossed`. A step that writes only records
+may not change a path outside the record root, so the stand-in `claude` edits a
+file under the record root in those steps. Three older checks changed with it.
+Two spec-run checks start with `done.flag` in place and no longer create it in
+a call. `Crossed.test_drafts_and_task_evidence_cross_nothing` keeps its
+decisions in a `design` run and moves the task's Evidence to an `implement`
+run, where a `design` run that writes it now ends `off-step`.
+
+Two limits remain. An `implement` run compares an epic with the copy held at
+start, so a draft epic that a verb rewrote in an evaluation after a call
+shows as changed beyond its task marks when a later call flips a mark. Where
+the record root is the work tree itself, the limit on paths outside the record
+root has no effect, which the README says.
 
 ## Left alone
 
