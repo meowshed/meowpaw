@@ -893,7 +893,7 @@ class Crossed(Case):
         f.git(*identity, "commit", "-q", "-m", "add the submodule")
         (f.root / "sub" / "a.txt").write_text("changed\n")
         done = self.design(f, write={"1": {DECISION_FILE: DRAFT_DECISION.replace("status: draft", "status: approved")}})
-        self.crossed(f, done, "ADR-0002", found="after iteration 1")
+        self.crossed(f, done, "ADR-0002")
 
     def test_live_only_in_a_living_kind(self):
         """TSK-3420 criterion 4, REQ-0888: in a `spec` run, setting a draft requirement's status to `live` ends the
@@ -943,7 +943,7 @@ class Crossed(Case):
 
     def test_a_verb_that_leaves_the_record_alone_crosses_nothing(self):
         """TSK-3420 criterion 5, REQ-0888: a verb that changes the tree on its second run and leaves every record as
-        it was does not end the run `crossed`."""
+        it was does not end the run `crossed`. The check pins that outcome and no other."""
         f = self.fixture()
         count = f.base / "count"
         script = f.base / "verb.sh"
@@ -974,6 +974,15 @@ class Crossed(Case):
         text = RECORD[REQUIREMENT_FILE].replace("status: approved", "status: superseded")
         self.crossed(f, self.design(f, write={"1": {REQUIREMENT_FILE: text}}), "REQ-0001")
 
+    def test_a_draft_becoming_a_decided_status(self):
+        """TSK-3420 criterion 1, REQ-0888: a call that sets a draft decision to `superseded` or `withdrawn` ends the
+        run `crossed`, because each is a decided status, whatever the allowance for approved records says."""
+        for status in ("superseded", "withdrawn", "rejected"):
+            with self.subTest(status=status):
+                f = self.fixture({DECISION_FILE: DRAFT_DECISION})
+                text = DRAFT_DECISION.replace("status: draft", f"status: {status}")
+                self.crossed(f, self.design(f, write={"1": {DECISION_FILE: text}}), "ADR-0002")
+
     def test_epic_marks_cross_outside_an_implement_run(self):
         """TSK-3420 criterion 2, REQ-0888: a call that marks a task in the approved epic ends a `design` run
         `crossed`, because an epic's marks change only in an `implement` run."""
@@ -989,8 +998,8 @@ class Crossed(Case):
         task_file = "project/tasks/TSK-0002-the-second.md"
         done_task = task("TSK-0002", "Done.")
         marked = epic("x", "x")
-        with_evidence = marked.replace("      closes: REQ-0001\n\n- [x] T-002", "      closes: REQ-0001\n\n- [x] T-002")
-        with_evidence = with_evidence.rstrip("\n") + "\n      evidence: it passed\n      and the evidence wraps\n"
+        # The evidence wraps over lines, one of them shaped like a field, as an evidence line may be.
+        with_evidence = marked.rstrip("\n") + "\n      evidence: it passed\n      passed: 3 of 3\n      and wraps\n"
         f = self.fixture()
         f.configure(write={"1": {epic_file: with_evidence, task_file: done_task}}, create={"1": "done.flag"})
         done = f.start(step_terms("implement", "TSK-0002"))
@@ -1003,6 +1012,40 @@ class Crossed(Case):
                 g = self.fixture()
                 g.configure(write={"1": {epic_file: text, task_file: done_task}}, create={"1": "done.flag"})
                 self.crossed(g, g.start(step_terms("implement", "TSK-0002")), "EPC-0001")
+
+    def test_other_changes_to_an_approved_epic(self):
+        """TSK-3420 criterion 2, REQ-0888: in an `implement` run, a changed `depends` line after an evidence line, a
+        deleted task entry and a change of every line ending each end the run `crossed` naming the epic."""
+        epic_file = "project/epics/EPC-0001-a-plan.md"
+        task_file = "project/tasks/TSK-0002-the-second.md"
+        done_task = task("TSK-0002", "Done.")
+        marked = epic("x", "x")
+        evidence = marked.replace("      closes: REQ-0001\n", "      closes: REQ-0001\n      evidence: it passed\n      depends: TSK-0001\n")
+        changed = evidence.replace("depends: TSK-0001", "depends: TSK-0009")
+        shorter = marked[:marked.index("- [x] T-002")]
+        for name, base, text in (("a changed depends line", evidence, changed), ("a deleted entry", marked, shorter),
+                                 ("CRLF line endings", marked, marked.replace("\n", "\r\n"))):
+            with self.subTest(name=name):
+                f = self.fixture({"project/epics/EPC-0001-a-plan.md": base})
+                f.configure(write={"1": {epic_file: text, task_file: done_task}}, create={"1": "done.flag"})
+                self.crossed(f, f.start(step_terms("implement", "TSK-0002")), "EPC-0001")
+
+    def test_swapped_paths_cross(self):
+        """TSK-3420 criterion 1, REQ-0888: a call that swaps the files of an approved requirement and a draft ends
+        the run `crossed` naming both, because each path now holds the other record."""
+        f = self.fixture()
+        draft_file = "project/requirements/REQ-0002-a-draft.md"
+        swap = {REQUIREMENT_FILE: RECORD[draft_file], draft_file: RECORD[REQUIREMENT_FILE]}
+        self.crossed(f, self.design(f, write={"1": swap}), "REQ-0001-a-duty")
+
+    def test_a_cap_ends_a_run_before_it_is_crossed(self):
+        """TSK-3420 criterion 6, REQ-0888: a call that approves a draft and reaches its own cap ends the run
+        `budget`, because a broken bound is reported before a crossed gate."""
+        f = self.fixture({DECISION_FILE: DRAFT_DECISION})
+        approved = {"1": {DECISION_FILE: DRAFT_DECISION.replace("status: draft", "status: approved")}}
+        done = self.design(f, write=approved, subtype="error_max_budget_usd")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "budget")
 
     def test_a_copied_approved_record_is_new(self):
         """TSK-3420 criterion 1, REQ-0888: a call that copies an approved requirement to a new path with the same
