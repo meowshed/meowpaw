@@ -126,8 +126,10 @@ number, as in `- [ ] T-002 [P] TSK-NNNN`.
       depends: TSK-3370 (blocking) - the condition and the meter checks
       depends: TSK-3390 (blocking) - the held verb commands and hash checks
 
-- [ ] T-002 [P] TSK-3420 end a run `crossed` when a call or an evaluation
+- [x] T-002 [P] TSK-3420 end a run `crossed` when a call or an evaluation
       decides a status, or changes or removes an approved record
+      evidence: the `Crossed` checks that guard a crossing failed first in
+      their own commits, and the five verbs pass.
       depends: TSK-3410 (blocking) - the step and the copy held at start
 
 - [ ] T-003 [P] TSK-3430 add the hook's status rule, active when
