@@ -176,6 +176,12 @@ frozen` passing both, and each is a decision the method leaves to a person
 which is why the runner names a removed record itself. The ending names each
 record that crossed.
 
+**Amended by BUG-1390.** An epic or a defect may also change in the `evidence:`
+lines written with a task's mark, because the implement step writes one with
+each mark, and in the mark of any task in it, not only the input's. A start
+over an input of the wrong kind, or over a Markdown file under the record root
+that the runner can't read, exits 3.
+
 The run ends as `off-step` when a call did any of three things:
 
 - created or changed a record of a kind the table doesn't let its step write.

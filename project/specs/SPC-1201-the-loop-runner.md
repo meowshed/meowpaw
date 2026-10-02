@@ -2,7 +2,7 @@
 id: SPC-1201
 artifact: spec
 status: live
-revised: 2026-09-30
+revised: 2026-10-02
 states:
   [
     REQ-0870,
@@ -16,6 +16,7 @@ states:
     REQ-0886,
     REQ-0888,
     REQ-0894,
+    REQ-1240,
   ]
 ---
 
@@ -103,8 +104,10 @@ meow-loop start --step <step> [--inputs <id>[,<id>...]]
 bounds are stated before a run starts (REQ-0872, REQ-0888), and no call
 inherits the platform's default mode. `--step` names one of the six steps in
 the table under "The step's test". `--inputs` names the identifiers that step
-reads, and every step but `research` requires it, while `research` refuses it.
-`review` isn't a step a run takes.
+reads, and every step but `research` requires it, while `research` refuses it,
+even with an empty value. An `--inputs` value that holds no identifier, such as
+a lone comma, counts as absent, and each identifier is read without the spaces
+round it. `review` isn't a step a run takes.
 `--iterations` is an integer of 1 or more, written in digits alone, and
 `--budget-usd` a number above 0, in US dollars, written as digits with at
 most one point between them, because every reader of `run.toml`, the runner
@@ -128,11 +131,21 @@ the `standalone` check enforces, and so the unit works whether or not
 
 After the command line, `start` checks the inputs through the `record` code,
 with the test `paw ready <step> <inputs>` applies. It exits 3 when an input
-isn't ready, printing each line `paw ready` would print. It
-exits 3 as well when the record root, `[record] root` in
+isn't ready, printing each line `paw ready` would print. It exits 3 as well
+when an input is the wrong kind for the step, because the step's test could
+never hold and the run would spend its whole ceiling and budget. A
+`requirements` run reads research records, a `design` run requirements, a
+`spec` and an `epic` run decisions, and an `implement` run tasks.
+
+It exits 3 as well when the record root, `[record] root` in
 `.meowpaw/profile.toml` or `project/`, is missing, is ignored by git, or lies
 outside the work tree, because the tree id would then leave the record out
-and bind the step's test to no tree.
+and bind the step's test to no tree. It exits 3 when git can't say whether the
+record root is ignored, and when the profile or the layout can't be read,
+because a state the runner can't read is never a pass. It exits 3 when a
+Markdown file under the record root can't be read, because the runner reads
+such a file as empty text, never guards it and so can't tell a change to it
+(REQ-1240).
 
 At start, after the evaluation before the first call, the runner reads the
 whole record and holds in memory each record's identifier, kind, path, stored
@@ -313,8 +326,10 @@ kind the record declares living, such as a specification. The run ends
 
 A run may change an approved task outside its frozen part, as the record's
 frozen comparison allows. It may change an approved epic or an approved
-defect only in its task marks, and only in an `implement` run. Any other
-change to an approved epic or defect crosses. The runner takes none of the
+defect only in the marks of its tasks and the `evidence:` lines written with
+them, and only in an `implement` run, because the implement step writes an
+evidence line with each mark. The mark of any task in the record may change,
+not only the input's. Any other change to an approved epic or defect crosses. The runner takes none of the
 frozen comparison's other allowances: a status now `withdrawn` or `superseded`
 crosses, and so does an added line naming an authority. ADR-2300 removed the
 cover and verify steps, so no run is bound to either.
@@ -450,9 +465,12 @@ the kind from the file's directory, so it allows `live` in a specification,
 and it reads the file on disk, so an edit that leaves a status already there
 unchanged, such as an Edit of an approved task's `## Evidence`, passes. When
 `MEOW_LOOP_RUN` isn't set, the rule allows every edit, because in a session
-the model writes an approval a person gave. The comparison after each call
-decides whether a gate was crossed, because a Bash command that writes the
-file passes the hook (REQ-0888).
+the model writes an approval a person gave, and a variable set to an empty
+string counts as set. The rule covers Edit and Write. A Bash command, a
+MultiEdit or a NotebookEdit passes the hook, so the comparison after each call
+decides whether a gate was crossed (REQ-0888). The rule allows the write
+where the hook can't read the layout or the profile, and it reads a file with
+CRLF line endings as one with LF endings.
 
 ## Failure paths
 
@@ -462,8 +480,8 @@ Each usage error exits 2, creates no run directory and removes none:
 | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `--step`, `--prompt`, `--until`, `--iterations`, `--budget-usd` or `--permission-mode` absent | `usage: <flag> is required`, once for each                      |
 | `--step` names no step in the table, `review` among them                                      | `usage: --step <value> is not a step a run takes`               |
-| `--inputs` given with `--step research`                                                       | `usage: research takes no --inputs`                             |
-| `--inputs` absent with any other step                                                         | `usage: --step <step> needs --inputs`                           |
+| `--inputs` given with `--step research`, even empty                                           | `usage: research takes no --inputs`                             |
+| `--inputs` absent, or holding no identifier, with any other step                              | `usage: --step <step> needs --inputs`                           |
 | The prompt file is missing or can't be read                                                   | `usage: --prompt <file> can't be read`                          |
 | `--until verbs=` names no verb                                                                | `usage: --until names no verb`                                  |
 | `--until verbs=` names something other than the five verbs                                    | `usage: <name> is not a verb`, once for each                    |
@@ -489,6 +507,11 @@ Each state the runner can't read past exits 3, reported as
 | The record root is ignored by git                    | `unresolved: record root <path> is ignored by git`                                         |
 | The record root lies outside the work tree           | `unresolved: record root <path> is outside the work tree`                                  |
 | An input isn't ready for the step                    | `unresolved: <line>`, once for each line `paw ready <step> <inputs>` prints                |
+| An input is the wrong kind for the step              | `unresolved: <id>, a <kind>, is not a <expected kind>, which a <step> run reads`           |
+| Git can't say whether the record root is ignored     | `unresolved: can't check whether record root <path> is ignored by git: <error>`            |
+| The profile can't be read                            | `unresolved: the profile can't be read: <reason>`                                          |
+| The layout can't be read                             | `unresolved: <layout path>: <error>`                                                       |
+| A Markdown file under the record root can't be read  | `unresolved: record file <path> can't be read: <error>`                                    |
 | Another process holds the work tree's lock           | `unresolved: a run already holds this work tree`                                           |
 | No state directory can be named                      | `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME`            |
 | The lock file can't be opened                        | `unresolved: can't take the lock <path>: <error>`                                          |
@@ -497,8 +520,9 @@ Each state the runner can't read past exits 3, reported as
 A failure to remove an old run doesn't refuse the start: the runner prints
 `can't remove <run id>: <error>` and goes on, because retention is
 housekeeping and the new run doesn't depend on it. After start, a write the
-runner can't make to `log.jsonl` or `run.toml`, or a held verb command or
-`claude` it can't spawn, stops the run at once, before any further call. The
+runner can't make to `log.jsonl` or `run.toml`, a layout it can't read, or a
+held verb command or `claude` it can't spawn, stops the run at once, before
+any further call. The
 runner prints `unresolved: <what>`, exits 3 and writes no ending, so the run
 reads as interrupted, and an unspawned verb counts neither as a pass nor as a
 fail, because an unresolved verb is never a pass. For that verb it prints
