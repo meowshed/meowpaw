@@ -2735,6 +2735,41 @@ fn decided(kind: &Kind, status: &str) -> bool {
         && !(status == "live" && kind.statuses.iter().any(|s| s == "live"))
 }
 
+/// The decided status an Edit or a Write would give the file at `path`, if it
+/// would give one: `before` is the file on disk, if any, and `after` the text
+/// the edit would leave. A status counts only where it differs from the one on
+/// disk, and the kind comes from the file's directory under `root`, so `live`
+/// passes in a specification and not in a requirement (SPC-1201 "The status
+/// rule"). `root` and `path` are both resolved.
+#[cfg(feature = "loop")]
+pub(crate) fn decided_by_edit(
+    root: &Path,
+    path: &Path,
+    before: Option<&str>,
+    after: &str,
+) -> Option<String> {
+    let layout = load_layout().ok()?;
+    let relative = path
+        .strip_prefix(root)
+        .ok()?
+        .to_string_lossy()
+        .replace('\\', "/");
+    let (parent, name) = relative.rsplit_once('/').unwrap_or(("", relative.as_str()));
+    let kind = layout.kinds.iter().find(|kind| {
+        kind.file.as_deref() == Some(relative.as_str())
+            || (kind.dir.as_deref() == Some(parent) && name != layout.index_name)
+    })?;
+    let status_of = |text: &str| {
+        parse_front_matter(text)
+            .and_then(|fields| fields.into_iter().find(|field| field.key == "status"))
+            .map(|field| bare(&field.value).to_string())
+            .unwrap_or_default()
+    };
+    let new = status_of(after);
+    let old = before.map(status_of).unwrap_or_default();
+    (new != old && decided(kind, &new)).then_some(new)
+}
+
 /// A record's text with each task mark under its Tasks set to open and each
 /// entry's `evidence:` lines removed, so two texts that differ only in the
 /// marks and the evidence written with them compare equal.

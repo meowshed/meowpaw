@@ -66,8 +66,20 @@ TSK-3410's tree.
 
 ## Evidence
 
-Not yet. Once done: the command, its exit status and its output, collected at
-the revision that merges.
+Criteria 1 to 3 are closed by `Hook.test_status_rule`,
+`Hook.test_status_rule_on_write` and `Step.test_run_id_in_every_call` in
+`plugins/meow-loop/tests/test_loop.py`. All three failed first in commit
+3053dfa7: the hook printed no denial, and the stand-in's environment held no
+`MEOW_LOOP_RUN`. All 85 checks of the unit pass on this change, by `python3
+-m unittest plugins/meow-loop/tests/test_loop.py`, which exits 0. Criterion 4
+is closed by the five verbs' outcomes in this task's pull request, since no
+run output is kept.
+
+The rule is `status_rule` in `crates/meow/src/runloop.rs`, and the status and
+kind logic is `decided_by_edit` in `crates/meow/src/record.rs`, beside the
+`decided` rule the comparison after each call uses. The hook fails open where
+the layout or the profile can't be read, because the comparison after the call
+decides whether a gate was crossed.
 
 ## Left alone
 

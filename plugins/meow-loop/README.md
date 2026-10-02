@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.8.0]
+describes: [meow-loop@0.9.0]
 ---
 
 # meow-loop
@@ -122,8 +122,20 @@ with their values at start, and ends the run `tampered` where one changed. It
 checks this before the ceiling and the budget, so a run that changed its own
 terms is reported as that whatever bound it also reached. The unit's
 `PreToolUse` hook on Edit and Write denies a write of any path under the runs
-directory other than a run's `progress/progress.md`. No real call has been
-observed running the hook, so the sha256 check decides either way.
+directory other than a run's `progress/progress.md`.
+
+Every call's environment holds `MEOW_LOOP_RUN`, set to the run's id. Where
+that variable is set, the same hook also denies an Edit or a Write that would
+give a file under the record root a decided status, so the model hears the
+refusal before it spends the iteration. The hook reads the file's kind from
+its directory, so `live` passes in a specification and not in a requirement.
+It reads the file on disk, so an Edit of an approved task's Evidence, which
+leaves the status as it is, passes. Where the variable isn't set, the rule
+allows every edit, because in a session the model writes an approval a person
+gave. A Bash command that writes a record passes the hook, so the comparison
+after the call decides whether a gate was crossed. No real call has been
+observed running the hook or seeing the variable, so the sha256 check and
+that comparison decide either way.
 
 Each call is a new session: the runner passes no `--resume` and no
 `--continue`. `--setting-sources project` keeps the plugins you installed for

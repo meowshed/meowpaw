@@ -467,6 +467,8 @@ struct Context {
     unit: PathBuf,
     /// Each named verb with the command it resolved to at start.
     held: Vec<(String, String)>,
+    /// The run's id, which every call's environment holds as `MEOW_LOOP_RUN`.
+    id: String,
     /// The step the run is bound to, and its inputs.
     step: String,
     inputs: Vec<String>,
@@ -501,6 +503,10 @@ impl Context {
             preamble,
             unit,
             held,
+            id: dir
+                .file_name()
+                .map(|name| name.to_string_lossy().into_owned())
+                .unwrap_or_default(),
             step: terms.step.clone(),
             inputs: terms.inputs.clone(),
             record_root,
@@ -618,6 +624,8 @@ fn call(
     left: f64,
 ) -> Result<Called, String> {
     let mut command = Command::new(claude);
+    // The hook's status rule is active only where this is set.
+    command.env("MEOW_LOOP_RUN", &context.id);
     command.current_dir(root).args([
         "-p",
         "--output-format",
@@ -1139,12 +1147,13 @@ fn guard() -> u8 {
     else {
         return FINISHED;
     };
-    let Some(runs) = ledger::runs_root() else {
+    let target = resolved(Path::new(path));
+    let Some(runs) = ledger::runs_root().map(|runs| resolved(&runs)) else {
+        status_rule(&event, &target);
         return FINISHED;
     };
-    let runs = resolved(&runs);
-    let target = resolved(Path::new(path));
     let Ok(inside) = target.strip_prefix(&runs) else {
+        status_rule(&event, &target);
         return FINISHED;
     };
     let names: Vec<_> = inside.iter().collect();
@@ -1163,6 +1172,54 @@ fn guard() -> u8 {
         inside.display()
     ));
     FINISHED
+}
+
+/// Denies an Edit or a Write that would give a file under the record root a
+/// decided status, when `MEOW_LOOP_RUN` is set, because a run never decides a
+/// status (SPC-1201 "The status rule"). It reads the file on disk, so an edit
+/// that leaves a status as it is passes, and it fails open where the layout or
+/// the profile can't be read, because the comparison after the call decides
+/// whether a gate was crossed.
+fn status_rule(event: &Value, target: &Path) {
+    if std::env::var_os("MEOW_LOOP_RUN").is_none() {
+        return;
+    }
+    let tool = event
+        .get("tool_name")
+        .and_then(Value::as_str)
+        .unwrap_or("A write");
+    let input = |key: &str| event.pointer(&format!("/tool_input/{key}"));
+    let before = std::fs::read_to_string(target).ok();
+    let after = match tool {
+        "Write" => input("content").and_then(Value::as_str).map(str::to_string),
+        "Edit" => {
+            let (old, new) = (
+                input("old_string").and_then(Value::as_str),
+                input("new_string").and_then(Value::as_str),
+            );
+            let all = input("replace_all").and_then(Value::as_bool) == Some(true);
+            match (before.as_deref(), old, new) {
+                (Some(text), Some(old), Some(new)) if all => Some(text.replace(old, new)),
+                (Some(text), Some(old), Some(new)) => Some(text.replacen(old, new, 1)),
+                _ => None,
+            }
+        }
+        _ => None,
+    };
+    let Some(after) = after else {
+        return;
+    };
+    let repository = profile::repository_root();
+    let Ok(declared) = record::declared_root(&repository) else {
+        return;
+    };
+    let root = resolved(&repository.join(declared));
+    if let Some(status) = record::decided_by_edit(&root, target, before.as_deref(), &after) {
+        deny(&format!(
+            "meow-loop: {tool} of {} would set its status to {status}, a decided status, and a run never decides one; a person approves (REQ-0888)",
+            target.display()
+        ));
+    }
 }
 
 /// Answers the hook with `deny` and `reason`.
