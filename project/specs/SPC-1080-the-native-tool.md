@@ -121,6 +121,9 @@ states:
     REQ-3000,
     REQ-3002,
     REQ-3006,
+    REQ-1486,
+    REQ-2194,
+    REQ-2218,
   ]
 ---
 
@@ -141,6 +144,9 @@ realises that. BUG-1240 and TSK-2520 bring the launchers and the build
 script under the same verbs. ADR-1800 adds the check that `project` groups
 an issue nowhere, and EPC-1710 realised it, verified under issue 625. ADR-1810
 sends every GitHub request through one layer, and EPC-1720 realises it.
+ADR-2500 decides the unattended install, and TSK-4600 realises it. ADR-2520
+adds the release's attestation and the report of the trunk's protections, and
+EPC-2420 realises them.
 
 ## Boundary
 
@@ -338,6 +344,14 @@ one touching `crates/meow/` to every unit that ships the binary (ADR-1570).
 `tools/check_release.py` makes the check, and the workflow runs it before
 packing, with the full history so it can read each unit's tags.
 
+The job that publishes produces a build provenance attestation for each
+archive with `actions/attest-build-provenance`, so a consumer checks what an
+archive was built from, without trusting the publisher, by running
+`gh attestation verify <archive> --repo meowshed/meowpaw` (REQ-2218). That job
+alone holds `id-token: write` and `attestations: write`, beside the
+`contents: write` it already holds. A run that doesn't publish attests
+nothing.
+
 A person installs a released unit from that marketplace and never needs Rust,
 Python or Node.js. The repository's own `marketplace.json` keeps its relative
 paths for development. Run without publishing, the workflow builds and packs
@@ -373,7 +387,18 @@ that repository alone, and it runs when someone starts it by hand.
 
 Each unit installs through the platform's plugin mechanism from
 `.claude-plugin/marketplace.json`, and no unit ships an installer of its own
-(REQ-1480). Each carries a version in its `.claude-plugin/plugin.json`
+(REQ-1480).
+
+A machine-provisioning system installs and configures the harness with no
+person and no prompt by running the platform's own commands,
+`claude plugin marketplace add <address>` and
+`claude plugin install <unit>@meowpaw`, which take every argument on the
+command line (REQ-1486). `docs/README.md` gives those commands as the
+unattended form. A test under `tools/`, run by the `test` verb, runs them
+against a scratch configuration directory and fails on a unit the platform
+doesn't list as enabled afterwards. Where the platform's command-line tool
+isn't installed, the test reports itself as skipped with that reason, and
+never as passed. Each carries a version in its `.claude-plugin/plugin.json`
 (REQ-2990), and every version's major number stays zero while the public
 interface still moves (REQ-2994). A released version never changes: the
 release exits 1 before it packs anything, naming each unit whose tracked files
@@ -443,6 +468,29 @@ impossible read as unread, naming the listings it read, with no partial
 document (ADR-1290). The document also carries `credential`, the credential's
 form, and `budget`, the budget lines the next section states (REQ-2568,
 REQ-2582) (ADR-1810).
+
+### Reporting the trunk's protections
+
+The feature `github` carries `protections`, which `meow-github` ships: it reads
+the protection of the trunk the profile declares as `[git] trunk`,
+`repos/{r}/branches/{trunk}/protection`, and the rules in force on that branch,
+`repos/{r}/rules/branches/{trunk}`, through the request layer, and writes
+nothing (REQ-2194). A protection a ruleset sets counts as in force. It prints
+one line for each of six protections, in this order, each as
+`<protection>: in force` or `<protection>: absent`:
+
+1. `force pushes blocked`
+2. `deletion blocked`
+3. `required reviews`
+4. `required checks`
+5. `signed commits`
+6. `linear history`
+
+A 404 answering that the branch isn't protected makes every classic
+protection absent, and the rules are still read. A refused or throttled read
+is reported as the request layer reports it, with every protection it didn't
+read named as unread, never as absent, and exits 3. Where no trunk is
+declared, `protections` says so and exits 3 (ADR-2520).
 
 ### The GitHub request layer
 
@@ -657,7 +705,7 @@ process uses, and maps each to the control that answers it, or says none does
 | Category               | Control                                                                                                                                  |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | Spoofing               | The push guard's signature check, and the credential's form named by `meow-github`                                                       |
-| Tampering              | `paw check frozen` on approved records, and the SHA-256 of each released archive                                                         |
+| Tampering              | `paw check frozen` on approved records, the SHA-256 of each released archive and its build provenance attestation                        |
 | Repudiation            | Signed and signed-off commits, and one squashed pull request per task                                                                    |
 | Information disclosure | None by program; the instruction in `CLAUDE.md` alone                                                                                    |
 | Denial of service      | The request layer's ceilings for the code host; none for a slow hook                                                                     |
@@ -697,3 +745,5 @@ process uses, and maps each to the control that answers it, or says none does
 | GitHub answers 404 on a mapped object            | As a 403, adding that it may be hidden from this credential, exit 3                                          |
 | A write to an endpoint off the allow list        | Refused before `gh` starts, naming the method and the endpoint                                               |
 | A Bash command's `gh` changes governance         | The hook answers `ask`, naming the method and the endpoint                                                   |
+| `protections` can't read a protection            | The protection is named as unread, never as absent, exit 3                                                   |
+| The platform's command-line tool is missing      | The unattended install test reports itself skipped, never passed                                             |
