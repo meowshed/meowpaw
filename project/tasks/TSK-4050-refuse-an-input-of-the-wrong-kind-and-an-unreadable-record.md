@@ -63,21 +63,31 @@ Nothing.
 ## Evidence
 
 `python3 -m unittest plugins/meow-loop/tests/test_loop.py` exits 0 on this
-change, reporting `Ran 101 tests` and `OK`. Three checks in `Step` close
-criteria 1 to 3: `test_wrong_kind_input_is_refused`,
-`test_right_kind_input_is_not_refused` and
-`test_unreadable_record_file_is_refused`. The first and the third failed first
-in the checks' own commit, where `start` made its call instead of refusing,
-and the second passed there, as it guards that a right kind isn't refused.
-Criterion 4 is closed by the five verbs' outcomes in this task's pull request,
-since no run output is kept.
+change, and the gate's run of it reports `Ran 103 tests` and `OK`. Five checks
+in `Step` close criteria 1 to 3: `test_wrong_kind_input_is_refused`,
+`test_right_kind_input_is_not_refused`, `test_unreadable_record_file_is_refused`,
+`test_an_input_with_no_file_keeps_its_own_line` and
+`test_a_repeated_input_is_read_once`. In the pull request's first commit, the
+wrong-kind and unreadable-file checks failed first. For four of the wrong-kind
+cases `start` made its call instead of refusing, and for `implement` it
+refused with another line, `names no epic`. The right-kind check passed there,
+because it guards that a right kind isn't refused. A review of this pull
+request then found that a wrong-kind input also printed misleading
+`paw ready` lines and that a repeated input printed twice, and the later
+commit of checks pins both. Criterion 4 is closed by the five verbs' outcomes
+in this task's pull request, since no run output is kept.
 
 `wrong_kind` and `unreadable_files` in `crates/meow/src/record.rs` find the two
 states, and `ready` in `crates/meow/src/runloop.rs` refuses on them before the
-step's own readiness test. One older check changed in a commit of its own:
-`Step.test_spec_run_over_no_requirement_never_finishes` no longer runs a
+step's own readiness test. An input of the wrong kind skips that test, so it
+gets one line. One older check changed in a commit of its own:
+`Step.test_spec_run_over_no_requirement_never_finishes` no longer starts a
 `spec` run over a requirement, which `start` now refuses, and the new check
 covers that input.
+
+The check runs once, at start. A file made unreadable after start reads as
+empty text in each later iteration, and the comparison after a call catches
+the change only for an approved record.
 
 ## Left alone
 

@@ -135,7 +135,10 @@ isn't ready, printing each line `paw ready` would print. It exits 3 as well
 when an input is the wrong kind for the step, because the step's test could
 never hold and the run would spend its whole ceiling and budget. A
 `requirements` run reads research records, a `design` run requirements, a
-`spec` and an `epic` run decisions, and an `implement` run tasks.
+`spec` and an `epic` run decisions, and an `implement` run tasks. Such an input
+gets the one line the failure table gives, in which `a` reads `an` before a
+vowel, as in `an epic run`, and none of the lines `paw ready` would print for
+it, because the reader fixes the kind and not what those lines would blame.
 
 It exits 3 as well when the record root, `[record] root` in
 `.meowpaw/profile.toml` or `project/`, is missing, is ignored by git, or lies

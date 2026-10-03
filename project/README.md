@@ -648,8 +648,8 @@ addresses lands in one of them.
 | [BUG-1380](bugs/BUG-1380-the-method-skill-names-nobody-to-open-the-one-pull-request.md)      | The method skill named nobody to open the pull request on the one-pull-request path                                             |
 | [BUG-1390](bugs/BUG-1390-spc-1201-leaves-states-of-a-run-unstated.md)                        | SPC-1201 leaves states of a run unstated                                                                                        |
 
-Forty are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
+Forty-one are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
-after its fix, and says so. BUG-1390 is closed: SPC-1201 states the failure states that
+after its fix, and says so. BUG-1390 is closed: SPC-1201 names the failure states that
 `meow-loop` reaches, and TSK-4050 added the two refusals at start.

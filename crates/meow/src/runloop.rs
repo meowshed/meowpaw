@@ -109,13 +109,17 @@ fn terms(args: &[String]) -> Result<Terms, Vec<String>> {
         .rev()
         .find(|(name, _)| *name == "--inputs")
         .map(|(_, list)| *list);
-    let inputs: Vec<String> = given
+    let mut inputs: Vec<String> = given
         .into_iter()
         .flat_map(|list| list.split(','))
         .map(str::trim)
         .filter(|id| !id.is_empty())
         .map(str::to_string)
         .collect();
+    // An input named twice is one input, so `run.toml` and every line count it
+    // once.
+    let mut seen = std::collections::BTreeSet::new();
+    inputs.retain(|id| seen.insert(id.clone()));
     let step = step.and_then(|step| {
         if !record::RUN_STEPS.contains(&step) {
             errors.push(format!("--step {step} is not a step a run takes"));
@@ -1112,10 +1116,12 @@ fn start(args: &[String]) -> u8 {
 }
 
 /// The record's root, where it can hold the step's test, and the step's
-/// inputs are ready for it; or each reason one isn't, as the line `paw ready`
-/// would print. The root has to sit inside the work tree, exist and be kept by
-/// git, because otherwise the tree id leaves the record out and binds the
-/// step's test to no tree.
+/// inputs are the right kind and ready for it; or each reason one isn't. An
+/// input of the wrong kind gets a line of its own, and each other input the
+/// lines `paw ready` would print. The root has to sit inside the work tree,
+/// exist and be kept by git, because otherwise the tree id leaves the record
+/// out and binds the step's test to no tree. No Markdown file under it may be
+/// unreadable.
 fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
     let declared = record::declared_root(root).map_err(|reason| vec![reason])?;
     let record_root = resolved(&root.join(&declared));
@@ -1157,7 +1163,7 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
         }
     }
     // A file the reader can't read counts as empty text, which no later check
-    // would show, so the start refuses it.
+    // would show, so `start` refuses it.
     let unreadable = record::unreadable_files(&record_root);
     if !unreadable.is_empty() {
         return Err(unreadable
@@ -1171,13 +1177,23 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
             .collect());
     }
     let read = record::read_for_run(root, &record_root).map_err(|reason| vec![reason])?;
-    let mut missing = record::wrong_kind(&read, &terms.step, &terms.inputs);
+    // An input of the wrong kind gets its own line and no line from the
+    // readiness test, because the reader fixes the kind and not what the test
+    // would blame.
+    let wrong = record::wrong_kind(&read, &terms.step, &terms.inputs);
+    let rest: Vec<String> = terms
+        .inputs
+        .iter()
+        .filter(|id| !wrong.iter().any(|(named, _)| named == *id))
+        .cloned()
+        .collect();
+    let mut missing: Vec<String> = wrong.into_iter().map(|(_, line)| line).collect();
     missing.extend(record::unready(
         &read,
         root,
         &record_root,
         &terms.step,
-        &terms.inputs,
+        &rest,
     ));
     if missing.is_empty() {
         Ok(record_root)

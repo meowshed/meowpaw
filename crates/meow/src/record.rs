@@ -2844,12 +2844,12 @@ pub(crate) fn unreadable_files(root: &Path) -> Vec<(PathBuf, String)> {
         .collect()
 }
 
-/// A line for each input that is the wrong kind for `step`: a `requirements`
-/// run reads research records, a `design` run requirements, a `spec` and an
-/// `epic` run decisions, and an `implement` run tasks. An input with no file
-/// is `unready`'s to report.
+/// Each input that is the wrong kind for `step`, with its line: a
+/// `requirements` run reads research records, a `design` run requirements, a
+/// `spec` and an `epic` run decisions, and an `implement` run tasks. An input
+/// with no file is `unready`'s to report.
 #[cfg(feature = "loop")]
-pub(crate) fn wrong_kind(record: &Record, step: &str, ids: &[String]) -> Vec<String> {
+pub(crate) fn wrong_kind(record: &Record, step: &str, ids: &[String]) -> Vec<(String, String)> {
     let expected = match step {
         "requirements" => "research",
         "design" => "requirement",
@@ -2869,12 +2869,13 @@ pub(crate) fn wrong_kind(record: &Record, step: &str, ids: &[String]) -> Vec<Str
         .filter_map(|id| {
             let kind = kind_of(record, known.get(id.as_str())?);
             (kind != expected).then(|| {
-                format!(
+                let line = format!(
                     "{id}, {} {kind}, is not {} {expected}, which {} {step} run reads",
                     article(kind),
                     article(expected),
                     article(step)
-                )
+                );
+                (id.clone(), line)
             })
         })
         .collect()
