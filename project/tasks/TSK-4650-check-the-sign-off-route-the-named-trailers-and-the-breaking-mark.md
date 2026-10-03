@@ -72,12 +72,14 @@ It fails a subject carrying `!`, or a type meaning `major`, with no
 
 Each criterion is closed by the checks it names:
 
-1. `scm::tests::the_first_sign_off_names_the_author` and
-   `a_lower_case_sign_off_is_still_a_sign_off` (REQ-2206)
+1. `scm::tests::the_first_sign_off_names_the_author`,
+   `a_lower_case_sign_off_is_still_a_sign_off` and
+   `a_sign_off_in_the_body_is_not_the_first` (REQ-2206)
 2. `scm::tests::a_trailer_naming_a_person_needs_them_listed`,
    `a_later_sign_off_names_a_person`, `the_provenance_trailers_need_no_list`,
-   `a_body_line_names_nobody` and `a_malformed_list_names_nobody`, with `test_a_co_author_nobody_listed_is_refused`
-   and `test_convention_lists_who_may_be_named` in
+   `a_body_line_names_nobody` and `a_malformed_list_names_nobody`, with
+   `test_a_co_author_nobody_listed_is_refused` and
+   `test_convention_lists_who_may_be_named` in
    `plugins/meow-scm/tests/test_scm.py` (REQ-2208)
 3. `scm::tests::a_break_says_what_breaks` (REQ-2212)
 4. `TrunkGate` in `tools/test_trunk_gate.py` (REQ-2210)
@@ -85,17 +87,20 @@ Each criterion is closed by the checks it names:
 
 No criterion rests on judgement. Every crate check but
 `the_provenance_trailers_need_no_list` failed first, in the commit that holds
-the checks alone, as did both new fixtures. The `TrunkGate` checks passed from
-the start, because CI's `gate` job already ran `mise run all` on every pull
-request and every push to `main`.
+the checks alone, as did both new fixtures. That one passed there because no
+rule named a person yet. The `TrunkGate` checks passed from the start,
+because CI's `gate` job already ran `mise run all` on every pull request and
+every push to `main`.
 
-The agent's review found that a lower-case `signed-off-by:` escaped both
-person rules and that a body line could fail as a trailer, and a commit of
-their own strengthened three checks that would have passed against a wrong
+Two rounds of agent review found that a lower-case `signed-off-by:` and a
+sign-off in the body escaped the person rules, and that a body line could fail
+as a trailer. The sign-off route and the person rule now read one trailer
+block, the last paragraph, as git does. Two later commits, holding checks
+alone, strengthened the checks that would have passed against a wrong
 implementation: the provenance check now carries an unlisted reviewer, and
-`TrunkGate` refuses a condition, a forgiven failure or a filter leaving out
-the trunk. `a_lower_case_sign_off_is_still_a_sign_off` and
-`a_body_line_names_nobody` failed in that commit, before the fix.
+`TrunkGate` refuses a condition, a forgiven failure, a `needs`, a `types`
+filter, an inline trigger and a filter leaving out the trunk. The three new
+crate checks failed in those commits, before the fixes.
 
 Criterion 5 names the profile's table of keys, which isn't on `main` yet:
 TSK-4300 adds it. Until it lands, `meow-scm` is the only reader of

@@ -191,13 +191,7 @@ fn problems_by(
     found: &Convention,
     author: Option<&str>,
 ) -> Vec<(usize, String, String)> {
-    let mut lines: Vec<&str> = message
-        .lines()
-        .filter(|line| !line.starts_with('#'))
-        .collect();
-    while lines.last().is_some_and(|line| line.trim().is_empty()) {
-        lines.pop();
-    }
+    let lines = message_lines(message);
     if lines.is_empty() || lines[0].trim().is_empty() {
         return vec![(
             1,
@@ -293,12 +287,7 @@ fn problems_by(
     }
     let person = Regex::new(PERSON).expect("the person pattern compiles");
     let mut first_sign_off = true;
-    // Git reads trailers from the last paragraph alone, so a body line names nobody.
-    let block = lines
-        .iter()
-        .rposition(|line| line.trim().is_empty())
-        .map_or(lines.len(), |blank| blank + 1);
-    for (index, line) in lines.iter().enumerate().skip(block) {
+    for (number, line) in trailer_block(message) {
         let Some(parts) = person.captures(line) else {
             continue;
         };
@@ -314,7 +303,7 @@ fn problems_by(
         }
         if !found.may_name.iter().any(|listed| listed == named) {
             found_problems.push((
-                index + 1,
+                number,
                 "named person".into(),
                 format!(
                     "`{}` names {named}, whom [commits] may_name doesn't list; a trailer naming a person needs their agreement",
@@ -343,6 +332,34 @@ fn author(root: &Path) -> Option<String> {
     Some(ident[..=end].to_string())
 }
 
+/// The message's lines as git keeps them: no comment, and no trailing blank.
+fn message_lines(message: &str) -> Vec<&str> {
+    let mut lines: Vec<&str> = message
+        .lines()
+        .filter(|line| !line.starts_with('#'))
+        .collect();
+    while lines.last().is_some_and(|line| line.trim().is_empty()) {
+        lines.pop();
+    }
+    lines
+}
+
+/// The trailer block, as (line number, line): git reads trailers from the
+/// last paragraph after the subject alone, so a body line is never one.
+fn trailer_block(message: &str) -> Vec<(usize, &str)> {
+    let lines = message_lines(message);
+    let start = lines
+        .iter()
+        .rposition(|line| line.trim().is_empty())
+        .map_or(lines.len(), |blank| blank + 1);
+    lines
+        .into_iter()
+        .enumerate()
+        .skip(start)
+        .map(|(i, line)| (i + 1, line))
+        .collect()
+}
+
 /// The person a `Signed-off-by` line names, whatever the key's case, as git reads it.
 fn signed_by(line: &str) -> Option<&str> {
     let (key, value) = line.split_once(": ")?;
@@ -354,10 +371,9 @@ fn signed_by(line: &str) -> Option<&str> {
 /// names the author and each later one someone it passed through (REQ-1312,
 /// REQ-2206).
 fn sign_off(message: &str, author: &str) -> Vec<(usize, String, String)> {
-    message
-        .lines()
-        .enumerate()
-        .filter_map(|(i, line)| signed_by(line).map(|v| (i + 1, v)))
+    trailer_block(message)
+        .into_iter()
+        .filter_map(|(number, line)| signed_by(line).map(|v| (number, v)))
         .take(1)
         .filter(|(_, named)| *named != author)
         .map(|(number, named)| {
@@ -382,7 +398,10 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
         },
     };
     let found = convention(root);
-    let signed = found.state == "declared" && message.lines().any(|line| signed_by(line).is_some());
+    let signed = found.state == "declared"
+        && trailer_block(&message)
+            .iter()
+            .any(|(_, line)| signed_by(line).is_some());
     let author = if signed { author(root) } else { None };
     let mut listed = problems_by(&message, &found, author.as_deref());
     let mut notes = Vec::new();

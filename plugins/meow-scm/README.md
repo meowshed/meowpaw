@@ -88,10 +88,14 @@ lists. Where git reports no author, the check says the sign-off wasn't
 compared.
 
 A trailer names a person when its value has the form `Name <address>`, such as
-`Co-authored-by`, `Reviewed-by` or `Acked-by`. The check reads trailers from
-the message's last paragraph, as git does, and a key in any case. Three trailers record where
+`Co-authored-by`, `Reviewed-by` or `Acked-by`. Three trailers record where
 something came from and are exempt: `Signed-off-by` naming the author,
 `Cherry-picked-from` and `Fixes`.
+
+The sign-off route and the person rule read only the message's last
+paragraph, because git reads trailers from there, and they match a key in any
+case. The check for a trailer the convention requires still reads every line
+after the subject, with the key as you declared it.
 
 ## What it needs
 
