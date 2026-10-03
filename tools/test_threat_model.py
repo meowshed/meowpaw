@@ -45,9 +45,10 @@ def table_with(text, column):
     return matching[0]
 
 
-PLACEHOLDER = re.compile(r"^(?:|-+|\?+|tbd|todo|n/a)$", re.IGNORECASE)
+PLACEHOLDER = re.compile(r"^(?:|tbd|todo|na)$")
 RANK = {"likely": 1, "unlikely": 0, "severe": 1, "minor": 0}
-INSIDER = re.compile(r"^The (?:harness|person)\b")
+# The insiders ADR-2470 names: the harness itself, and the person's own session.
+INSIDER = re.compile(r"^The (?:harness|person's own session) ")
 BOUNDARIES = {
     "a repository's files": r"\brepository\b",
     "a tracker's issue text": r"\btracker\b.*\bissue\b",
@@ -56,10 +57,15 @@ BOUNDARIES = {
 }
 
 
+def placeholder(cell):
+    """Whether a cell holds nothing but a placeholder, read with its punctuation and dashes dropped."""
+    return bool(PLACEHOLDER.match(re.sub(r"[\W_]+", "", cell).lower()))
+
+
 def stride_gaps(text):
     """Each STRIDE category the section's category table leaves out or maps to nothing but a placeholder."""
     controls = {row["Category"]: row.get("Control", "") for row in table_with(text, "Category")}
-    return [name for name in STRIDE if PLACEHOLDER.match(controls.get(name, "").strip())]
+    return [name for name in STRIDE if placeholder(controls.get(name, ""))]
 
 
 class ThreatModel(unittest.TestCase):
@@ -97,7 +103,7 @@ class ThreatModel(unittest.TestCase):
         self.assertGreater(len(boundaries), 0, "the boundary table has no rows")
         for row in boundaries:
             with self.subTest(boundary=row["Boundary"]):
-                self.assertFalse(PLACEHOLDER.match(row.get("What crosses it", "").strip()))
+                self.assertFalse(placeholder(row["Boundary"]) or placeholder(row.get("What crosses it", "")))
         rows = [f"{row['Boundary']} {row.get('What crosses it', '')}" for row in boundaries]
         for name, pattern in BOUNDARIES.items():
             with self.subTest(boundary=name):
