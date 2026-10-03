@@ -45,10 +45,21 @@ def table_with(text, column):
     return matching[0]
 
 
+PLACEHOLDER = re.compile(r"^(?:|-+|\?+|tbd|todo|n/a)$", re.IGNORECASE)
+RANK = {"likely": 1, "unlikely": 0, "severe": 1, "minor": 0}
+INSIDER = re.compile(r"^The (?:harness|person)\b")
+BOUNDARIES = {
+    "a repository's files": r"\brepository\b",
+    "a tracker's issue text": r"\btracker\b.*\bissue\b",
+    "a pull request comment": r"\bpull request comment\b",
+    "a tool's output": r"\btool's output\b",
+}
+
+
 def stride_gaps(text):
-    """Each STRIDE category the section's category table leaves out or maps to nothing."""
+    """Each STRIDE category the section's category table leaves out or maps to nothing but a placeholder."""
     controls = {row["Category"]: row.get("Control", "") for row in table_with(text, "Category")}
-    return [name for name in STRIDE if not controls.get(name, "").strip()]
+    return [name for name in STRIDE if PLACEHOLDER.match(controls.get(name, "").strip())]
 
 
 class ThreatModel(unittest.TestCase):
@@ -65,32 +76,42 @@ class ThreatModel(unittest.TestCase):
         fail at all."""
         copy = "\n".join(line for line in self.text.splitlines() if not line.startswith("| Repudiation "))
         self.assertEqual(stride_gaps(copy), ["Repudiation"])
+        placeholder = re.sub(r"^(\| Tampering +\|).*$", r"\1 TBD |", self.text, flags=re.MULTILINE)
+        self.assertEqual(stride_gaps(placeholder), ["Tampering"])
 
     def test_the_first_ranked_threat_is_an_accident_by_the_harness(self):
-        """TSK-4380 criterion 2, REQ-2784, REQ-2792: the first threat ranked names the harness as its actor."""
+        """TSK-4380 criterion 2, REQ-2784, REQ-2792: the first threat ranked names the harness as its actor, no
+        threat below it ranks higher, and the insiders' threats come before every other."""
         threats = table_with(self.text, "Likelihood")
         self.assertGreater(len(threats), 0, "the threat table has no rows")
         self.assertRegex(threats[0]["Threat"], r"^The harness ")
+        rank = [(RANK[row["Likelihood"]], RANK[row["Impact"]]) for row in threats]
+        self.assertEqual([row["Threat"] for row, r in zip(threats, rank) if r > rank[0]], [])
+        insiders = [bool(INSIDER.match(row["Threat"])) for row in threats]
+        self.assertEqual(insiders, sorted(insiders, reverse=True), "an insider's threat follows an attacker's")
 
     def test_the_trust_boundaries_are_listed(self):
         """TSK-4380 criterion 3, REQ-2788: the section holds a table of the boundaries where data changes trust
-        level, each saying what crosses it."""
+        level, each saying what crosses it, and the four ADR-2470 names are among them."""
         boundaries = table_with(self.text, "Boundary")
         self.assertGreater(len(boundaries), 0, "the boundary table has no rows")
         for row in boundaries:
             with self.subTest(boundary=row["Boundary"]):
-                self.assertTrue(row["Boundary"] and row.get("What crosses it", "").strip())
+                self.assertFalse(PLACEHOLDER.match(row.get("What crosses it", "").strip()))
+        rows = [f"{row['Boundary']} {row.get('What crosses it', '')}" for row in boundaries]
+        for name, pattern in BOUNDARIES.items():
+            with self.subTest(boundary=name):
+                self.assertTrue(any(re.search(pattern, row, re.IGNORECASE) for row in rows), name)
 
     def test_each_threat_is_ranked_in_words(self):
         """TSK-4380 criterion 3, REQ-2790: each threat's likelihood is likely or unlikely and its impact severe or
-        minor, with no digit in either column."""
+        minor, which leaves no room for a digit in either column."""
         threats = table_with(self.text, "Likelihood")
         self.assertGreater(len(threats), 0, "the threat table has no rows")
         for row in threats:
             with self.subTest(threat=row["Threat"]):
                 self.assertIn(row["Likelihood"], ("likely", "unlikely"))
                 self.assertIn(row["Impact"], ("severe", "minor"))
-                self.assertNotRegex(row["Likelihood"] + row["Impact"], r"\d")
 
 
 if __name__ == "__main__":

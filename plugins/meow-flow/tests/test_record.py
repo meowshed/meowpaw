@@ -3117,9 +3117,12 @@ class ThreatModelPointer(unittest.TestCase):
         self.assertRegex(rule, r"\bthreat model\b[^.]*\bbecause\b")
 
     def test_d20_names_no_identifier_of_this_repository(self):
-        """ADR-2470: the rule names the threat model by its subject, never by an identifier only this repository
-        holds."""
-        self.assertNotRegex(self.rule(), r"\b(?:spc|adr|req|res|epc|tsk|bug|ins)-\d+")
+        """ADR-2470: the rule names the threat model by its subject, never by a record identifier, a path or a name
+        only this repository holds."""
+        rule = self.rule()
+        self.assertNotRegex(rule, r"\b(?:spc|adr|req|res|epc|tsk|bug|ins)-\d+")
+        for name in ("project/", "meowpaw", "paw ", "native tool"):
+            self.assertNotIn(name, rule)
 
 
 if __name__ == "__main__":
