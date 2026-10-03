@@ -3179,5 +3179,32 @@ class DeniedDispatch(unittest.TestCase):
         self.assertRegex(flat(text), r"w8\. end in one verdict: finished, not run, or the findings still open")
 
 
+class ThreatModelPointer(unittest.TestCase):
+    """TSK-4380 criterion 4, ADR-2470: design rule D20 sends a decision with a security-relevant boundary to the
+    threat model, named by its subject, because the step file ships to repositories that hold none of ours."""
+
+    def rule(self):
+        text = (METHOD / "steps" / "design.md").read_text(encoding="utf-8")
+        found = re.search(r"^- D20\.\s(.*?)(?=^- D\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(found, "the design step has no D20")
+        return flat(found.group(1))
+
+    def test_d20_updates_the_threat_model_with_its_reason(self):
+        """ADR-2470: a decision with a security-relevant boundary updates the threat model the repository's
+        specification keeps, and the rule says why."""
+        rule = self.rule()
+        self.assertRegex(rule, r"\bsecurity-relevant boundary\b")
+        self.assertRegex(rule, r"\bupdate the threat model the repository's specification keeps\b")
+        self.assertRegex(rule, r"\bthreat model\b[^.]*\bbecause\b")
+
+    def test_d20_names_no_identifier_of_this_repository(self):
+        """ADR-2470: the rule names the threat model by its subject, never by a record identifier, a path or a name
+        only this repository holds."""
+        rule = self.rule()
+        self.assertNotRegex(rule, r"\b(?:spc|adr|req|res|epc|tsk|bug|ins)-\d+")
+        for name in ("project/", "meowpaw", "paw ", "native tool"):
+            self.assertNotIn(name, rule)
+
+
 if __name__ == "__main__":
     unittest.main()
