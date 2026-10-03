@@ -418,10 +418,11 @@ shape, where `.meowpaw/profile.toml` declares the record:
 plugins/meow-flow/bin/paw check
 ```
 
-Five checks stay in `tools/` as Python scripts, because they read this
+Six checks stay in `tools/` as Python scripts, because they read this
 repository and not the record: the documentation, the documentation index,
-links, the shape a subordinate agent carries, and the community files under
-`.github/`. The `test` verb runs all six, and so does `meow-checks run test`.
+links, the shape a subordinate agent carries, the community files under
+`.github/` and the rules every workflow under `.github/workflows/` holds. The
+`test` verb runs all seven, and so does `meow-checks run test`.
 
 A check that reports a false positive is a defect in the check, and never a
 reason to reword the text around it. A check that trips on what it shouldn't

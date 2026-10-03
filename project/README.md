@@ -373,7 +373,7 @@ the diagram check, which EPC-2540 realises, aren't built yet.
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
 what this repository keeps under `.github/`: the community files, which
 TSK-4610 realises, and the rules every workflow holds, which EPC-2420
-realises. The community files are built, and the workflow rules aren't yet.
+realises. Both are built, and TSK-4620 holds the workflow rules with a check.
 
 [SPC-1230](specs/SPC-1230-the-vision.md) states the vision's sections, what
 `paw check` reports in it and what the design step asks of it, which EPC-2450
@@ -658,8 +658,9 @@ directly: the design step points at the threat model SPC-1080 keeps. None of
 the three is started.
 
 [EPC-2420](epics/EPC-2420-workflows-start-read-only-and-a-release-carries-an-attestation.md)
-realises ADR-2520 in three tasks, TSK-4620 to TSK-4640, none of them started,
-and each of the five requirements ADR-2520 addresses lands in one of them.
+realises ADR-2520 in three tasks, TSK-4620 to TSK-4640, and each of the five
+requirements ADR-2520 addresses lands in one of them. TSK-4620 is done, and
+neither TSK-4630 nor TSK-4640 is started.
 
 [EPC-2430](epics/EPC-2430-a-task-whose-blocking-dependency-is-unmerged-stacks-on-its-branch.md)
 realises ADR-2550 in four tasks, TSK-4660 to TSK-4690, none of them started,

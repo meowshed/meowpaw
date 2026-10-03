@@ -49,8 +49,11 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-4620 hold every workflow to a read-only top, no untrusted checkout and no expression in a `run:` line, in `tools/check_workflows.py` and `.github/workflows/`
+- [x] T-001 [P] TSK-4620 hold every workflow to a read-only top, no untrusted checkout and no expression in a `run:` line, in `tools/check_workflows.py` and `.github/workflows/`
       closes: REQ-2196, REQ-2198, REQ-2200
+      evidence: `tools/test_check_workflows.py`'s thirteen tests and
+      `python3 tools/check_workflows.py` reporting 0 findings on the three
+      workflows, in the `test` verb.
 
 - [ ] T-002 [P] TSK-4630 attest each released archive in `.github/workflows/release.yml`
       closes: REQ-2218

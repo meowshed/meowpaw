@@ -42,8 +42,10 @@ jobs:
           targets: ${{ matrix.target }}
       - if: runner.os == 'Linux'
         run: sudo apt-get install -y musl-tools
-      - run: crates/meow/build-units ${{ matrix.target }}
+      - run: crates/meow/build-units "$BUILD_TARGET"
         shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
       - uses: actions/upload-artifact@v7
         with:
           name: bin-${{ matrix.target }}

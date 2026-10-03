@@ -52,7 +52,50 @@ section gives.
 
 ## Evidence
 
-Not yet.
+`tools/check_workflows.py` reads every file under `.github/workflows/` and
+fails on each rule SPC-1210 states under "The workflows", closing REQ-2196,
+REQ-2198 and REQ-2200. Each criterion is closed by the tests it names, in
+`tools/test_check_workflows.py`, and each test compares the check's whole
+output:
+
+1. `Workflows.test_no_top_level_permissions_fails_naming_the_file`,
+   `Workflows.test_a_top_level_write_fails_naming_the_permission` and
+   `Workflows.test_a_top_level_write_all_fails_naming_it`.
+2. `Workflows.test_pull_request_target_with_a_checkout_fails_naming_the_trigger`
+   and `Workflows.test_workflow_run_with_a_checkout_fails_naming_the_trigger`,
+   with `Workflows.test_a_forbidden_trigger_without_a_checkout_passes` holding
+   the checkout as the condition.
+3. `Workflows.test_an_expression_in_a_run_block_fails_naming_its_line`,
+   `Workflows.test_an_expression_in_a_one_line_run_fails_naming_its_line` and
+   `Workflows.test_the_same_value_through_env_passes`.
+4. The `test` verb runs `tools/test_check_workflows.py` and
+   `python3 tools/check_workflows.py`, which prints
+   `3 workflow files, 0 findings` on this repository, and
+   `Workflows.test_this_repository_s_workflows_pass` holds the same.
+
+The tests failed first, in the commit that holds them alone, where the module
+they import didn't exist yet. With the check written and the workflows
+unchanged, the last test failed on the three lines the task names:
+`build.yml`'s `${{ matrix.target }}` and `ci.yml`'s base and head commits.
+Each now reaches its script through the step's `env:`, as `BUILD_TARGET`,
+`BASE_SHA` and `HEAD_SHA`. `format`, `lint`, `check`, `test` and `build` each
+pass on the change's tree, and `mise run all` and `paw check` exit 0, as the
+pull request cites.
+
+I made three choices the task leaves open:
+
+- The check reads YAML with a reader of its own, because the standard library
+  has none and ADR-2520 rejected adding a tool to the gate. It reads the
+  block and flow forms a workflow uses, and reports an anchor, an alias, a
+  tag, a tab in the indentation or a quoted scalar spanning lines as a file
+  that doesn't parse. On this repository's three workflows it builds the same
+  tree as PyYAML, compared once by hand outside the gate.
+- Any top-level entry other than `contents: read` is a finding, `none`
+  included, because SPC-1210 allows `contents: read` and nothing else there.
+  An empty `permissions: {}` passes, because it grants nothing.
+- A repository with no file under `.github/workflows/` fails the check,
+  because a check that read nothing has held nothing to the rules.
+  `Workflows.test_no_workflow_files_fails` holds it.
 
 ## Left alone
 
