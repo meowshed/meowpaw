@@ -4,10 +4,22 @@
 //! The profile's three states and its unknown keys, as `meow-checks` prints
 //! them from a fixture repository (TSK-4300, SPC-1080 "The profile").
 
-#![cfg(feature = "verbs")]
+#![cfg(all(
+    feature = "verbs",
+    feature = "scm",
+    feature = "git",
+    feature = "record",
+    feature = "github",
+    feature = "licence",
+    feature = "markdown",
+    feature = "mise",
+    feature = "gotask",
+    feature = "unattended"
+))]
 
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 const VERBS: [&str; 5] = ["format", "lint", "check", "test", "build"];
 
@@ -52,10 +64,10 @@ fn init(dir: &Path) {
     assert!(done.status.success(), "git init failed: {done:?}");
 }
 
-/// `meow verbs <args>` in `dir`, with a state directory of the fixture's own.
-fn checks(dir: &Path, state: &Path, args: &[&str]) -> (Output, String) {
-    let done = Command::new(env!("CARGO_BIN_EXE_meow"))
-        .arg("verbs")
+/// `meow <args>` in `dir`, given `input` on standard input, with a state
+/// directory of the fixture's own.
+fn meow(dir: &Path, state: &Path, args: &[&str], input: &str) -> Output {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_meow"))
         .args(args)
         .current_dir(dir)
         .env("XDG_STATE_HOME", state)
@@ -63,8 +75,23 @@ fn checks(dir: &Path, state: &Path, args: &[&str]) -> (Output, String) {
         .env("MEOWPAW_STATE_DIR", state)
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
         .env("GIT_CONFIG_NOSYSTEM", "1")
-        .output()
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(input.as_bytes())
+        .unwrap();
+    child.wait_with_output().unwrap()
+}
+
+/// `meow verbs <args>` in `dir`, and what it printed on standard output.
+fn checks(dir: &Path, state: &Path, args: &[&str]) -> (Output, String) {
+    let done = meow(dir, state, &[&["verbs"], args].concat(), "");
     let stdout = String::from_utf8_lossy(&done.stdout).into_owned();
     (done, stdout)
 }
@@ -114,8 +141,14 @@ fn an_unparseable_profile_names_the_parser_message_and_line_and_runs_nothing() {
         .expect_err("the fixture doesn't parse")
         .message()
         .to_string();
-    let first = message.lines().next().unwrap_or_default().to_string();
-    assert!(!first.is_empty(), "the parser gave no message");
+    let joined = message
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>()
+        .join("; ");
+    assert!(!joined.is_empty(), "the parser gave no message");
+    let expected = format!("profile error: line 3: {joined}");
 
     let (status, status_out) = checks(&root.0, &state.0, &["status"]);
     let (run, run_out) = checks(&root.0, &state.0, &["run", "test"]);
@@ -125,17 +158,9 @@ fn an_unparseable_profile_names_the_parser_message_and_line_and_runs_nothing() {
             found.contains(&"profile: unparseable"),
             "{name} prints no `profile: unparseable` line:\n{stdout}"
         );
-        let error = found
-            .iter()
-            .find(|line| line.starts_with("profile error: "))
-            .unwrap_or_else(|| panic!("{name} prints no `profile error:` line:\n{stdout}"));
         assert!(
-            error.starts_with("profile error: line 3: "),
-            "{name} doesn't give line 3: {error}"
-        );
-        assert!(
-            error.contains(&first),
-            "{name} doesn't carry the parser's message {first:?}: {error}"
+            found.contains(&expected.as_str()),
+            "{name} prints no {expected:?} line:\n{stdout}"
         );
     }
     assert_eq!(status.status.code(), Some(0), "{status_out}");
@@ -197,4 +222,94 @@ fn an_unknown_key_is_named_once_and_changes_no_exit_status() {
             .any(|line| line.starts_with("unknown key:")),
         "a profile of known keys names an unknown one:\n{plain_out}"
     );
+}
+
+#[test]
+fn every_subcommand_that_reads_the_profile_names_each_unknown_key_once() {
+    // TSK-4300 criterion 3, REQ-2942 and SPC-1080: every command that reads
+    // the profile names each unknown key, a key in a verb's table included,
+    // and exits as it would without the keys. The loop runner stays out,
+    // because it refuses before it reads the profile unless `claude` is
+    // installed and the binary sits in its unit.
+    let with = Dir::new("every");
+    let without = Dir::new("every-known");
+    let state = Dir::new("every-state");
+    for (dir, text) in [
+        (
+            &with,
+            "[verbs]\ntset = \"true\"\n[verbs.test]\ncommand = \"true\"\ncmd = \"x\"\n",
+        ),
+        (&without, "[verbs.test]\ncommand = \"true\"\n"),
+    ] {
+        init(&dir.0);
+        write_profile(&dir.0, text);
+        for name in ["a.md", "b.md"] {
+            std::fs::write(dir.0.join(name), "text\n").unwrap();
+        }
+        let added = Command::new("git")
+            .args(["add", "-A"])
+            .current_dir(&dir.0)
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .output()
+            .unwrap();
+        assert!(added.status.success(), "git add failed: {added:?}");
+    }
+    // A hook reads the session's directory and the shell command as JSON.
+    let event = |dir: &Dir, verb: &str| {
+        format!(
+            "{{\"cwd\": {:?}, \"tool_input\": {{\"command\": \"git {verb}\"}}}}",
+            dir.0.display().to_string()
+        )
+    };
+    let subcommands: [&[&str]; 15] = [
+        &["verbs", "status"],
+        &["verbs", "run", "test"],
+        &["scm", "convention"],
+        &["scm", "check-message"],
+        &["git", "commit-guard"],
+        &["git", "push-guard"],
+        &["record", "check"],
+        &["github", "project", "EPC-0001"],
+        &["licence", "check"],
+        &["markdown", "status"],
+        &["markdown", "check"],
+        &["markdown", "bind"],
+        &["mise", "check"],
+        &["gotask", "check"],
+        &["unattended", "plan"],
+    ];
+    for args in subcommands {
+        let name = args.join(" ");
+        let (given, plain) = match args {
+            ["git", "commit-guard"] => (event(&with, "commit"), event(&without, "commit")),
+            ["git", "push-guard"] => (event(&with, "push"), event(&without, "push")),
+            ["scm", "check-message"] => ("fix: a subject\n".into(), "fix: a subject\n".into()),
+            _ => (String::new(), String::new()),
+        };
+        let done = meow(&with.0, &state.0, args, &given);
+        let known = meow(&without.0, &state.0, args, &plain);
+        let printed = format!(
+            "{}{}",
+            String::from_utf8_lossy(&done.stdout),
+            String::from_utf8_lossy(&done.stderr)
+        );
+        for key in ["verbs.tset", "verbs.test.cmd"] {
+            let named: Vec<&str> = printed.lines().filter(|line| line.contains(key)).collect();
+            assert!(
+                named.len() == 1 && named[0].ends_with(&format!("unknown key: {key}")),
+                "{name} doesn't name {key} once as unknown:\n{printed}"
+            );
+        }
+        assert!(
+            printed
+                .lines()
+                .any(|line| line.ends_with("profile: parsed")),
+            "{name} prints no `profile: parsed` line:\n{printed}"
+        );
+        assert_eq!(
+            done.status.code(),
+            known.status.code(),
+            "{name} exits differently with the unknown keys:\n{printed}"
+        );
+    }
 }
