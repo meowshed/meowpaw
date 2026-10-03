@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-checks
 answers: what meow-checks does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-checks@0.9.0]
+describes: [meow-checks@0.10.0]
 ---
 
 # meow-checks
@@ -113,6 +113,15 @@ run as the whole verb's result, and prints it beside that result as
 An unresolved verb is one of six kinds: undeclared, no profile, a profile
 that doesn't parse, a declaration that isn't one command, no interpreter to
 run the program, and, for a run over part of the work, no subset form.
+
+`status` and `run` open with the profile's state: `profile: absent`,
+`profile: unparseable` or `profile: parsed`. An unparseable profile adds
+`profile error: line <n>: <message>`, the parser's message and the line it
+gives, and leaves every verb unresolved. A parsed one adds
+`unknown key: <path>` for each key no unit of the harness reads, such as
+`unknown key: verbs.tset` for a mistyped `test`, so you learn why a setting
+had no effect. The key is ignored and the exit status stays what it would be
+without it.
 
 ## What it costs you
 

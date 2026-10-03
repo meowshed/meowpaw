@@ -70,8 +70,8 @@ subject's length in characters, 72 where it isn't declared (REQ-1302).
 `trailers` names each trailer every message carries (REQ-1308). `may_name`
 lists each person, as `Name <address>`, who agreed to be named in a trailer, so
 a trailer naming them passes (REQ-2208). The key joins the profile's table of
-keys SPC-1080 states. A key the unit doesn't read is reported as ignored, as
-`meow-checks` reports one.
+keys SPC-1080 states. A key no unit reads is named as an unknown key, from
+that table.
 
 ### What `convention` reports
 

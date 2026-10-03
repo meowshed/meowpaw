@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-git
 answers: what meow-git does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-git@0.2.3]
+describes: [meow-git@0.3.0]
 ---
 
 # meow-git
@@ -60,6 +60,11 @@ has left the machine.
 
 Without a `[git]` table, the pack refuses nothing on commit, still checks
 messages on push, and says the trunk and the signing policy are undeclared.
+
+Each hook's report names the profile's state, as
+`meow-git push-guard: profile: parsed`, and each key no unit reads, as
+`meow-git push-guard: unknown key: git.trnk`. An unknown key refuses
+nothing.
 
 ## What it costs you
 
