@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-118 decisions in all: 110 approved, 8 superseded.
+119 decisions in all: 111 approved, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -136,6 +136,8 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2730](ADR-2730-a-delegated-artifact-s-pull-request-names-its-brief-and-its-record-and-never-an-agent.md)                                             | A delegated artifact's pull request names its brief and its record, and never an agent                                                     | approved   |
 | [ADR-2740](ADR-2740-an-active-obligation-keeps-a-decision-and-each-decision-keeps-a-plan.md)                                                              | An active obligation keeps a decision, and each decision keeps a plan                                                                      | approved   |
 | [ADR-2750](ADR-2750-an-attended-irreversible-action-asks-each-time.md)                                                                                    | An attended irreversible action asks each time                                                                                             | approved   |
+| [ADR-2760](ADR-2760-project-accepts-a-defect-as-an-authorising-record.md)                                                                                 | `project` accepts a defect as an authorising record                                                                                        | approved   |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310.
+
 <!-- /meow-flow index -->

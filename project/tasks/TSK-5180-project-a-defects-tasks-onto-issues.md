@@ -1,0 +1,50 @@
+---
+id: TSK-5180
+artifact: task
+status: approved
+revised: 2026-10-03
+realises: ADR-2760
+closes: [REQ-4000]
+issue:
+---
+
+# Project a defect's tasks onto issues
+
+Make `meow-github project BUG-NNNN` project and check the active tasks an
+approved defect carries through the same durable mapping as epic tasks. One
+task, one branch, one pull request and one review.
+
+## Acceptance criteria
+
+1. Given an approved defect carrying a task, when `project BUG-NNNN` runs,
+   then it creates or updates the task's issue, records the mapping and names
+   the defect in the issue body. Closed by: a `Project` fixture.
+2. Given that projection, when it replays or runs with `--check`, then replay
+   writes nothing and check reports disagreement without writing. Closed by:
+   `Project` fixtures inspecting tracker calls.
+3. Given open and closed task marks on the defect, when `--check` reads the
+   issue state, then it compares completion with the defect's mark. Closed by:
+   a `Project` fixture.
+4. Given the shipped command and documentation, when a reader looks for valid
+   targets, then both name `BUG-NNNN`. Closed by: launcher and documentation
+   checks.
+
+## What to do
+
+Generalise target resolution and projection prose without creating a second
+synchronisation path. Preserve request-layer budgets, mapping fingerprints,
+partial outcomes, read-back and the prohibition on tracker grouping. Update
+SPC-1080, the unit page and launcher fallback usage to match the interface.
+
+## Depends on
+
+Nothing.
+
+## Evidence
+
+Not yet.
+
+## Left alone
+
+Projecting the defect record itself and tracker-native grouping remain outside
+ADR-2760.
