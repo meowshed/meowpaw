@@ -34,6 +34,7 @@ states:
     REQ-3800,
     REQ-3900,
     REQ-3902,
+    REQ-4000,
     REQ-0074,
     REQ-0076,
     REQ-1186,
@@ -731,8 +732,12 @@ epic projects onto (REQ-2358), and GitHub Issues as the tracker, projected as
 a mapping from each task to its issue and never as an integration that keeps
 state of its own (REQ-2360) (ADR-2660). A repository
 declares its tracker as `[tracker] kind` in its profile (REQ-1351).
-`meow-github project <epic>` projects an approved epic's tasks through the
-request layer, one issue each, citing the requirements and dependencies and
+`meow-github project <record>` projects the tasks of an approved epic, an
+approved defect that carries tasks directly, or an approved decision realised
+without an epic. It selects defect tasks by their `bug` field, derives their
+completion from the defect's task marks and otherwise uses the same mapping,
+replay, read-back, disagreement and failure behaviour (REQ-4000). The command
+uses the request layer, one issue for each task, citing the requirements and dependencies and
 marked as a synchronisation's write, and records `issue:` and `projected:` on
 the task (REQ-1350, REQ-1352, REQ-1354, REQ-1356, REQ-1360, REQ-1382,
 REQ-1384, REQ-1386, REQ-1396). After its last create it reads the issues it
