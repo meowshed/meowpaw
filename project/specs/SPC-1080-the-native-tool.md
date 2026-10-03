@@ -20,6 +20,20 @@ states:
     REQ-0036,
     REQ-0038,
     REQ-0040,
+    REQ-1364,
+    REQ-1366,
+    REQ-1370,
+    REQ-1390,
+    REQ-1398,
+    REQ-2562,
+    REQ-2570,
+    REQ-2584,
+    REQ-2586,
+    REQ-2588,
+    REQ-2824,
+    REQ-3800,
+    REQ-3900,
+    REQ-3902,
     REQ-0074,
     REQ-0076,
     REQ-1186,
@@ -194,6 +208,9 @@ codes the units share are one module every feature uses.
 
 ### The profile
 
+The profile is TOML and permits comments before, beside and after its values
+(REQ-3800).
+
 The tool reads `.meowpaw/profile.toml` at the repository root, which is the top
 of the version control working tree it runs in, or the current directory where
 there is none, and never from a directory above the root (REQ-2940). Every
@@ -321,6 +338,11 @@ removes or renames an entry is a change to the interface, and its commit is
 marked breaking (ADR-2490, ADR-2720).
 
 ### The checks the crate passes
+
+The record check reports an approved requirement that no approved decision
+addresses or postpones, and an approved addressing decision with no approved
+epic or direct task (REQ-3900, REQ-3902). A decision that only postpones work
+needs no implementation plan.
 
 This repository's five verbs check the crate as they check every other file
 it ships, so evidence kept from the verbs covers the code every unit runs
