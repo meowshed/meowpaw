@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Checks that the marketplace ships no unit the chain no longer uses, as
-TSK-3870 asks for `meow-method` (REQ-3654, ADR-2300)."""
+TSK-3870 asks for `meow-method` and TSK-4070 for the `meow-verbs` stub
+(REQ-3654, ADR-2300, ADR-2360)."""
 
 import json
 import subprocess
@@ -72,7 +73,8 @@ class Renamed(unittest.TestCase):
         """TSK-4070 criterion 3, REQ-3634: outside frozen records, the old name appears only in the page that tells
         an install to move, in the specification's sentence about the rename, and in these checks."""
         allowed = ("tools/test_marketplace.py", "docs/troubleshooting.md")
-        # Lines that name the old unit or a frozen record's title, and nothing else in their file.
+        # Lines that name the old unit, and nothing else in their file. The README line is a frozen
+        # record's title (ADR-1480), which keeps the name, so it is not a fourth file naming the unit.
         named = {"project/specs/SPC-1040-the-five-verbs.md": "it was `meow-verbs`",
                  "project/README.md": "ADR-1480"}
         tracked = subprocess.run(["git", "ls-files", "--", *LIVE], cwd=ROOT, capture_output=True, text=True, check=True)
