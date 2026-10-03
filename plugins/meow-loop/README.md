@@ -47,34 +47,34 @@ The run holds the terminal until it ends. Its last line is the ending. For
 `crossed` and `off-step` it also names each record or path that caused it and,
 for an evaluation, the verb that ran.
 
-| Term                | Holds                                                                                       | Required                                      |
-| ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `--step`            | The step the run takes: `research`, `requirements`, `design`, `spec`, `epic` or `implement` | yes                                           |
-| `--inputs`          | The identifiers the step reads, separated by commas. `research` takes none                  | yes, except with `research`, which refuses it |
-| `--prompt`          | The file whose bytes every call gets on its standard input                                  | yes                                           |
-| `--until`           | `verbs=` and one or more of `format`, `lint`, `check`, `test` and `build`                   | yes                                           |
-| `--iterations`      | The ceiling: the most calls the run makes, an integer of 1 or more                          | yes                                           |
-| `--budget-usd`      | The budget in US dollars, a decimal number above 0, such as `2.50`                          | yes                                           |
-| `--permission-mode` | `dontAsk`, the only mode accepted                                                           | yes                                           |
-| `--allowed-tools`   | One permission rule each call may use without asking. Repeat it for each rule               | no                                            |
-| `--plugin-dir`      | One unit's directory each call loads. Repeat it for each unit                               | no                                            |
+| Term                | Holds                                                                                         | Required                                      |
+| ------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `--step`            | The step the run takes: `research`, `requirements`, `design`, `spec`, `epic` or `implement`   | yes                                           |
+| `--inputs`          | The identifiers the step reads, separated by commas, each counted once. `research` takes none | yes, except with `research`, which refuses it |
+| `--prompt`          | The file whose bytes every call gets on its standard input                                    | yes                                           |
+| `--until`           | `verbs=` and one or more of `format`, `lint`, `check`, `test` and `build`                     | yes                                           |
+| `--iterations`      | The ceiling: the most calls the run makes, an integer of 1 or more                            | yes                                           |
+| `--budget-usd`      | The budget in US dollars, a decimal number above 0, such as `2.50`                            | yes                                           |
+| `--permission-mode` | `dontAsk`, the only mode accepted                                                             | yes                                           |
+| `--allowed-tools`   | One permission rule each call may use without asking. Repeat it for each rule                 | no                                            |
+| `--plugin-dir`      | One unit's directory each call loads. Repeat it for each unit                                 | no                                            |
 
 `start` refuses a run whose inputs aren't ready for the step, printing each
 line `paw ready` would print, because a step run over unapproved inputs builds
-on work nobody accepted. It refuses an input of the wrong kind with one line of
-its own, because the step's test could never hold and the run would spend its
-whole ceiling and budget. A `requirements` run reads research records, a
+on work nobody accepted. It refuses an input of the wrong kind with one line
+of its own, because the step's test could never hold and the run would spend
+its whole ceiling and budget. A `requirements` run reads research records, a
 `design` run requirements, a `spec` and an `epic` run decisions, and an
-`implement` run tasks. It refuses a run whose record root is missing, ignored by git or
-outside the work tree, because the tree id would then leave the record out. It
-refuses a run over a Markdown file under the record root that the runner can't
-read, because the runner reads such a file as empty text and could never tell
-a change to it. `review` is no step a run takes, because a person reviews.
-`start` refuses a run with no step, no condition, no ceiling or no budget, because a
-loop with a bound missing stops only when you notice it. It refuses
-`bypassPermissions` and every other mode, because `dontAsk` denies what you
-didn't allow where another mode would ask a person who isn't there, or allow
-everything.
+`implement` run tasks. It refuses a run whose record root is missing, ignored
+by git or outside the work tree, because the tree id would then leave the
+record out. It refuses a run over a Markdown file under the record root that
+the runner can't read, because the runner reads such a file as empty text and
+could never tell a change to it. `review` is no step a run takes, because a
+person reviews. `start` refuses a run with no step, no condition, no ceiling
+or no budget, because a loop with a bound missing stops only when you notice
+it. It refuses `bypassPermissions` and every other mode, because `dontAsk`
+denies what you didn't allow where another mode would ask a person who isn't
+there, or allow everything.
 
 ## What a run does
 

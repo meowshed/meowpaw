@@ -67,14 +67,13 @@ change, and the gate's run of it reports `Ran 103 tests` and `OK`. Five checks
 in `Step` close criteria 1 to 3: `test_wrong_kind_input_is_refused`,
 `test_right_kind_input_is_not_refused`, `test_unreadable_record_file_is_refused`,
 `test_an_input_with_no_file_keeps_its_own_line` and
-`test_a_repeated_input_is_read_once`. In the pull request's first commit, the
-wrong-kind and unreadable-file checks failed first. For four of the wrong-kind
-cases `start` made its call instead of refusing, and for `implement` it
-refused with another line, `names no epic`. The right-kind check passed there,
-because it guards that a right kind isn't refused. A review of this pull
-request then found that a wrong-kind input also printed misleading
-`paw ready` lines and that a repeated input printed twice, and the later
-commit of checks pins both. Criterion 4 is closed by the five verbs' outcomes
+`test_a_repeated_input_is_read_once`. In the first commit of checks, a46033fd, the wrong-kind and unreadable-file
+checks failed first. For four of the wrong-kind cases `start` made its call
+instead of refusing, and for `implement` it refused with another line, `names
+no epic`. The right-kind check passed there, because it guards that a right
+kind isn't refused. A review of this pull request then found that a wrong-kind
+input also printed misleading `paw ready` lines and that a repeated input
+printed twice. The checks for both failed first in 6bc66188. Criterion 4 is closed by the five verbs' outcomes
 in this task's pull request, since no run output is kept.
 
 `wrong_kind` and `unreadable_files` in `crates/meow/src/record.rs` find the two

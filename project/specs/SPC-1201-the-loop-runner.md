@@ -106,8 +106,8 @@ inherits the platform's default mode. `--step` names one of the six steps in
 the table under "The step's test". `--inputs` names the identifiers that step
 reads, and every step but `research` requires it, while `research` refuses it,
 even with an empty value. An `--inputs` value that holds no identifier, such as
-a lone comma, counts as absent, and each identifier is read without the spaces
-round it. `review` isn't a step a run takes.
+a lone comma, counts as absent, each identifier is read without the spaces
+round it, and an identifier named twice counts once. `review` isn't a step a run takes.
 `--iterations` is an integer of 1 or more, written in digits alone, and
 `--budget-usd` a number above 0, in US dollars, written as digits with at
 most one point between them, because every reader of `run.toml`, the runner
@@ -138,7 +138,8 @@ never hold and the run would spend its whole ceiling and budget. A
 `spec` and an `epic` run decisions, and an `implement` run tasks. Such an input
 gets the one line the failure table gives, in which `a` reads `an` before a
 vowel, as in `an epic run`, and none of the lines `paw ready` would print for
-it, because the reader fixes the kind and not what those lines would blame.
+it, because the layout fixes the kind and those lines would blame the status or
+a missing epic, which is not the fault.
 
 It exits 3 as well when the record root, `[record] root` in
 `.meowpaw/profile.toml` or `project/`, is missing, is ignored by git, or lies
@@ -499,26 +500,26 @@ Each usage error exits 2, creates no run directory and removes none:
 Each state the runner can't read past exits 3, reported as
 `unresolved: <what>`, and creates no run directory and removes none:
 
-| State                                                | Reported as                                                                                |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `CLAUDECODE` is set                                  | `unresolved: a run starts from a terminal outside Claude Code`                             |
-| The current directory isn't in a git work tree       | `unresolved: not a git work tree`                                                          |
-| `MEOWPAW_STATE=off`                                  | `unresolved: state writing is off, and a run needs state`                                  |
-| No `claude` on the path that can be run              | `unresolved: claude is not on the path`                                                    |
-| A verb in the condition resolves to no command       | `unresolved: verb <verb> resolves to no command`                                           |
-| The record root is missing                           | `unresolved: record root <path> is missing`                                                |
-| The record root is ignored by git                    | `unresolved: record root <path> is ignored by git`                                         |
-| The record root lies outside the work tree           | `unresolved: record root <path> is outside the work tree`                                  |
-| An input isn't ready for the step                    | `unresolved: <line>`, once for each line `paw ready <step> <inputs>` prints                |
-| An input is the wrong kind for the step              | `unresolved: <id>, a <kind>, is not a <expected kind>, which a <step> run reads`           |
-| Git can't say whether the record root is ignored     | `unresolved: can't check whether record root <path> is ignored by git: <error>`            |
-| The profile can't be read                            | `unresolved: the profile can't be read: <reason>`                                          |
-| The layout can't be read                             | `unresolved: <layout path>: <error>`                                                       |
-| A Markdown file under the record root can't be read  | `unresolved: record file <path> can't be read: <error>`                                    |
-| Another process holds the work tree's lock           | `unresolved: a run already holds this work tree`                                           |
-| No state directory can be named                      | `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME`            |
-| The lock file can't be opened                        | `unresolved: can't take the lock <path>: <error>`                                          |
-| The run's directory or a file in it can't be written | `unresolved: can't create a run in <directory>: <error>`, or `can't write <path>: <error>` |
+| State                                                | Reported as                                                                                                                        |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `CLAUDECODE` is set                                  | `unresolved: a run starts from a terminal outside Claude Code`                                                                     |
+| The current directory isn't in a git work tree       | `unresolved: not a git work tree`                                                                                                  |
+| `MEOWPAW_STATE=off`                                  | `unresolved: state writing is off, and a run needs state`                                                                          |
+| No `claude` on the path that can be run              | `unresolved: claude is not on the path`                                                                                            |
+| A verb in the condition resolves to no command       | `unresolved: verb <verb> resolves to no command`                                                                                   |
+| The record root is missing                           | `unresolved: record root <path> is missing`                                                                                        |
+| The record root is ignored by git                    | `unresolved: record root <path> is ignored by git`                                                                                 |
+| The record root lies outside the work tree           | `unresolved: record root <path> is outside the work tree`                                                                          |
+| An input isn't ready for the step                    | `unresolved: <line>`, once for each line `paw ready <step> <inputs>` prints, except for an input already refused as the wrong kind |
+| An input is the wrong kind for the step              | `unresolved: <id>, a <kind>, is not a <expected kind>, which a <step> run reads`                                                   |
+| Git can't say whether the record root is ignored     | `unresolved: can't check whether record root <path> is ignored by git: <error>`                                                    |
+| The profile can't be read                            | `unresolved: the profile can't be read: <reason>`                                                                                  |
+| The layout can't be read                             | `unresolved: <layout path>: <error>`                                                                                               |
+| A Markdown file under the record root can't be read  | `unresolved: record file <path> can't be read: <error>`                                                                            |
+| Another process holds the work tree's lock           | `unresolved: a run already holds this work tree`                                                                                   |
+| No state directory can be named                      | `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME`                                                    |
+| The lock file can't be opened                        | `unresolved: can't take the lock <path>: <error>`                                                                                  |
+| The run's directory or a file in it can't be written | `unresolved: can't create a run in <directory>: <error>`, or `can't write <path>: <error>`                                         |
 
 A failure to remove an old run doesn't refuse the start: the runner prints
 `can't remove <run id>: <error>` and goes on, because retention is

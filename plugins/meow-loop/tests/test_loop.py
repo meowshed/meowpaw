@@ -886,7 +886,7 @@ class Step(Case):
         self.assertNotIn("REQ-0001,", done.stdout)
 
     def test_a_repeated_input_is_read_once(self):
-        """TSK-4050 criterion 1, REQ-1240: an input named twice is one input, so `run.toml` lists it once and a
+        """SPC-1201 "The terms", REQ-1240: an input named twice is one input, so `run.toml` lists it once and a
         refusal prints its line once."""
         f = self.fixture({"done.flag": "x"})
         done = f.start(step_terms("implement", "TSK-0001,TSK-0001"))
