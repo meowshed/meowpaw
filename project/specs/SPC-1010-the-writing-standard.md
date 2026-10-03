@@ -36,6 +36,7 @@ states:
     REQ-1014,
     REQ-1024,
     REQ-1026,
+    REQ-1426,
   ]
 ---
 
@@ -54,6 +55,9 @@ reply to SPC-1000.
 
 The harness does not implement this yet. ADR-1010 authorises it, ADR-1020,
 ADR-1030, ADR-1050, ADR-1600 and ADR-2390 amend it, EPC-1010 and EPC-1020 realise them.
+ADR-2700 names the gate's judge as the one hook call that reaches the network
+and waits on a model, and ADR-2710 decides that a missing binary denies the
+publish.
 
 ## Boundary
 
@@ -148,8 +152,10 @@ command (REQ-3183), and the fix names what to write instead. Claude Code hands
 the lines to the model as the reason, and the model corrects the text and
 publishes again. On no finding it exits 0 and prints nothing.
 
-Where the unit carries no binary for the machine, its launcher prints that
-nothing was checked and exits 0, so a missing binary never blocks a publish.
+Where the unit carries no binary for the machine, its launcher denies the
+publish with exit 2, and its reason names `meow-prose-gate`, the machine's
+target and the command that installs the unit again, as SPC-1240 states for
+every hook (REQ-1426).
 
 With no finding on P1, P2 or P3, the program asks a judge twice, in two calls
 started side by side, whether the text breaks a judged rule. The judged rules
@@ -186,6 +192,11 @@ cause. The 45 seconds bound the whole call, writing the prompt included, and
 at the limit the program kills the judge's process group, so a child the judge
 left running can't hold the gate. Each hook's timeout is 120 seconds, so the
 judge's limit fires first.
+
+The judge is the one call any hook the harness ships makes to the network,
+and the one wait longer than a hook's small fixed work. SPC-1240 names it as
+the exception to REQ-2727 and REQ-2716, and `meow-author check` accepts it by
+unit and subcommand only (ADR-2700).
 
 Before a release ships a judged rule, a run by hand shows BUG-1230's four texts
 passing and one text per judged rule blocked, each in three runs of three, and
