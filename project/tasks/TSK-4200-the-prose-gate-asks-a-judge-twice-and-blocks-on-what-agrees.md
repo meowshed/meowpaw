@@ -76,11 +76,49 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Closed in the pull request from `feat/prose-gate-judge`, which closes
+REQ-3740, REQ-3742, REQ-3744, REQ-3746, REQ-3748, REQ-3750 and REQ-3752. The
+fixtures in `plugins/meow-prose-gate/tests/test_gate.py`, class
+`TheJudgedRules`, close the criteria a program can check, each committed
+first in a commit of its own:
 
-Criterion 9 rests on a hand run judged by the owner, never on CI, because a
-run in CI would call a model on every change. It is a smoke check, and three
-runs show only a frequent false block.
+1. `test_a_finding_both_judgements_report_blocks` (REQ-3744), seen failing
+   first.
+2. `test_a_finding_one_judgement_reports_passes` (REQ-3744). It passed before
+   the judge existed, so it guards against a judge that blocks too eagerly.
+3. `test_a_finding_on_a_span_the_text_lacks_passes` (REQ-3746), which passed
+   first for the same reason.
+4. `test_an_exact_finding_calls_no_judge` (REQ-3740), which passed first for
+   the same reason.
+5. `test_a_missing_judge_is_reported_not_checked`,
+   `test_a_failing_judge_is_reported_not_checked`,
+   `test_a_slow_judge_is_reported_not_checked` and
+   `test_an_answer_outside_the_schema_is_reported_not_checked` (REQ-3748),
+   each seen failing first.
+6. `test_the_judge_loads_nothing` (REQ-3750), seen failing first.
+7. `test_the_schema_allows_exactly_the_judged_rules` (REQ-3742), seen failing
+   first.
+8. `test_every_hook_waits_long_enough_for_the_judge` (ADR-2390), seen failing
+   first.
+
+The review inside the pull request added
+`test_a_judged_span_inside_code_passes` (REQ-3746),
+`test_a_judged_span_outside_code_still_blocks_where_it_also_appears_inside`
+(REQ-3744), `test_a_failing_judge_names_its_last_error_line` and
+`test_a_judge_whose_child_holds_its_output_is_stopped_at_the_limit`
+(REQ-3748), each seen failing first, and rewrote criteria 1 and 2's fixtures
+to give the second call another fix and to run both orders.
+
+`meow-checks run format lint check test build` passed all five verbs on the
+branch. Criterion 9 was run by hand, never in CI, on 2026-10-03 with Claude
+Code 2.1.284, as `python3 plugins/meow-prose-gate/evals/hand_run.py 3`, after
+the review's fixes: it exited 0 with 21 of 21 runs as wanted. The four
+BUG-1230 texts passed in three runs of three, the J1, J2 and J3 texts each
+blocked in three runs of three, and each pair of calls took 3 to 7 seconds. It
+is a smoke check, and three runs show only a frequent false block. The agent
+implementing the task made the run, and the owner didn't. The main session
+accepted that run in place of the owner's, under the owner's standing
+approval of 2026-10-03.
 
 ## Left alone
 

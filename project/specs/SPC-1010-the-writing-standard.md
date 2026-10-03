@@ -156,11 +156,12 @@ started side by side, whether the text breaks a judged rule. The judged rules
 are a closed list, and a rule joins or leaves it only by a decision of its own
 (REQ-3742):
 
-- J1, an idiom, saying or culture reference that P1's list doesn't spell.
+- J1, an idiom, saying or culture reference that P1's list doesn't spell,
+  outside code font, URLs and identifiers.
 - J2, an acronym used before it is expanded, or never expanded, outside code
   font, URLs, identifiers and a commit subject's type and scope.
 - J3, a paragraph or list item opening with a bold phrase that goes on in the
-  same line.
+  same line, outside code font and fenced code.
 
 A judgement is one run of `claude -p` in safe mode with no tool, no session
 saved, one turn, the `sonnet` model and a JSON schema whose `rule` field
@@ -170,7 +171,8 @@ data inside a tag. Where `MEOW_PROSE_GATE_JUDGE` is set, the program runs that
 command in its place, which only the unit's fixtures do.
 
 The program keeps a judged finding only where its span is a slice of the text
-it read from the command (REQ-3746, REQ-3183), and blocks only on a finding
+it read from the command, and occurs there at least once outside the code,
+URLs and identifiers P1 skips (REQ-3746, REQ-3183). It blocks only on a finding
 whose rule and span both judgements report (REQ-3744). It prints those as
 `J1 | "span" | fix`, as it prints the exact rules' findings.
 
@@ -178,8 +180,12 @@ Where either judgement can't be made, because `claude` isn't on the path, a
 call exits non-zero, a call runs past 45 seconds or a reply is outside the
 schema, the program exits 0 and prints
 `{"systemMessage": "meow-prose-gate: the judged rules were not checked: <cause>"}`,
-so the person sees that only the exact rules ran (REQ-3748). Each hook's
-timeout is 120 seconds, so the judge's limit fires first.
+so the person sees that only the exact rules ran (REQ-3748). A call that
+exits non-zero adds the last line the judge wrote on standard error to the
+cause. The 45 seconds bound the whole call, writing the prompt included, and
+at the limit the program kills the judge's process group, so a child the judge
+left running can't hold the gate. Each hook's timeout is 120 seconds, so the
+judge's limit fires first.
 
 Before a release ships a judged rule, a run by hand shows BUG-1230's four texts
 passing and one text per judged rule blocked, each in three runs of three, and
