@@ -347,6 +347,7 @@ class TheJudgedRules(unittest.TestCase):
         source = (UNIT.parent.parent / "crates" / "meow" / "src" / "prose.rs").read_text(encoding="utf-8")
         line = re.search(r"const JUDGE_ARGS: \[&str; \d+\] = \[(.*?)\];", source, re.S)
         self.assertIsNotNone(line, "prose.rs holds no JUDGE_ARGS")
+        self.assertIn(".args(JUDGE_ARGS)", source, "the judge isn't started with JUDGE_ARGS")
         args = re.findall(r'"((?:[^"\\]|\\.)*)"', line.group(1))
         for flag in ("-p", "--safe-mode", "--no-session-persistence", "--json-schema"):
             self.assertIn(flag, args)
