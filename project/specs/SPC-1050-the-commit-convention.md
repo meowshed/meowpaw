@@ -2,7 +2,7 @@
 id: SPC-1050
 artifact: spec
 status: live
-revised: 2026-09-26
+revised: 2026-10-03
 states:
   [
     REQ-1290,
@@ -15,6 +15,7 @@ states:
     REQ-1314,
     REQ-1318,
     REQ-2816,
+    REQ-2952,
   ]
 ---
 
@@ -76,15 +77,15 @@ profile exists, it says the convention is undeclared.
 or from standard input where none is named. It reports every violation, each
 naming the rule and the line:
 
-| Check          | Fails when                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------ |
-| subject form   | The first line isn't `type(scope)!: description`, where the scope and the `!` are optional |
-| declared type  | The type isn't one the convention declares                                                 |
-| subject length | The first line is longer than the limit                                                    |
-| subject ending | The first line ends in a full stop                                                         |
-| blank line     | A body follows the subject without an empty line between them                              |
-| trailer        | A trailer the convention declares is missing                                               |
-| attribution    | Any line credits a tool, an agent or a vendor (REQ-1294, REQ-1295)                         |
+| Check          | Fails when                                                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- |
+| subject form   | The first line isn't `type(scope)!: description`, where the scope and the `!` are optional                           |
+| declared type  | The type isn't one `[commits.types]` declares, read from the profile and from no list built into the unit (REQ-2952) |
+| subject length | The first line is longer than the limit                                                                              |
+| subject ending | The first line ends in a full stop                                                                                   |
+| blank line     | A body follows the subject without an empty line between them                                                        |
+| trailer        | A trailer the convention declares is missing                                                                         |
+| attribution    | Any line credits a tool, an agent or a vendor (REQ-1294, REQ-1295)                                                   |
 
 The attribution check matches a co-author trailer naming a model or its
 vendor, a "Generated with" footer, and a vendor's no-reply address. It holds

@@ -2,7 +2,7 @@
 id: SPC-1040
 artifact: spec
 status: live
-revised: 2026-09-29
+revised: 2026-10-03
 states:
   [
     REQ-3634,
@@ -38,6 +38,9 @@ states:
     REQ-2969,
     REQ-2970,
     REQ-3072,
+    REQ-2942,
+    REQ-2946,
+    REQ-2948,
   ]
 ---
 
@@ -121,27 +124,33 @@ behind it.
 The profile is read from the repository's root only, found as the top of the
 version control working tree the program runs in, or the current directory
 where there is none. It doesn't walk further up, because a repository has one
-answer to what a verb means.
+answer to what a verb means. A personal profile beside it,
+`.meowpaw/profile.local.toml`, replaces a verb on one machine, and
+`meow-checks local <verb> <command>` writes it; SPC-1080 states how both files
+are read, the profile's three states and the table of keys.
 
 ### What `status` reports
 
 `meow-checks status` reports all five verbs and runs none of them (REQ-0150).
-For a resolved verb it gives the command and the file it came from. For an
-unresolved verb it gives the kind, one of five, and a run over part of the
-work adds a sixth (REQ-0154, REQ-0142):
+For a resolved verb it gives the command and the file it came from, the shared
+profile or the personal one. For an unresolved verb it gives the kind, one of
+six, and a run over part of the work adds a seventh (REQ-0154, REQ-0142,
+REQ-2946):
 
-| Kind                  | Means                                                                    |
-| --------------------- | ------------------------------------------------------------------------ |
-| undeclared            | The profile exists and doesn't name the verb                             |
-| no profile            | The repository has no `.meowpaw/profile.toml`                            |
-| profile unparseable   | The profile exists and can't be read; the parser's message is shown      |
-| malformed declaration | The profile names the verb with a value that isn't one command           |
-| no interpreter        | The program can't run on this machine: the unit carries no binary for it |
-| no subset form        | A run over part of the work names a verb that declares no `subset`       |
+| Kind                  | Means                                                                           |
+| --------------------- | ------------------------------------------------------------------------------- |
+| undeclared            | The profile exists and doesn't name the verb                                    |
+| no profile            | The repository has no `.meowpaw/profile.toml`                                   |
+| profile unparseable   | The profile exists and can't be read; the parser's message is shown             |
+| malformed declaration | The profile names the verb with a value that isn't one command                  |
+| machine path          | The personal profile's command starts with `~` or a path outside the repository |
+| no interpreter        | The program can't run on this machine: the unit carries no binary for it        |
+| no subset form        | A run over part of the work names a verb that declares no `subset`              |
 
-A key under `[verbs]` that is not one of the five, and a table the unit
-doesn't read, are listed as ignored, so the person learns why a setting had no
-effect. An unparseable profile resolves no verb, and nothing falls back.
+A key under `[verbs]` that is not one of the five, and a key the table of keys
+doesn't list, are named as unknown, so the person learns why a setting had no
+effect (REQ-2942). An unparseable profile resolves no verb, and nothing falls
+back (REQ-2948).
 
 `status --json` gives the same report as one JSON object, for a program to
 read.

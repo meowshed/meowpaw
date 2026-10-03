@@ -267,7 +267,10 @@ passes. The crate implements it, verified under issue 378, and the checks the
 crate passes, which EPC-1570 realises, were verified under issue 596. The
 check that `project` groups an issue nowhere, which ADR-1800 adds, was
 verified with EPC-1710 under issue 625. The GitHub request layer, which
-ADR-1810 adds and EPC-1720 realises, isn't built yet.
+ADR-1810 adds and EPC-1720 realises, isn't built yet. It also states how the profile is
+read, which EPC-2320 realises, the rules each subcommand keeps, which
+EPC-2330 realises, each unit's plugin contract, which EPC-2340 realises, and
+the threat model, which TSK-4380 holds; none of that work has started.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-checks` implements it, checked under
@@ -591,6 +594,24 @@ ADR-1810.
 [EPC-2000](epics/EPC-2000-the-route-before-work.md) realises ADR-2100 in two
 tasks, TSK-3500 and TSK-3510, none of them started. Every requirement ADR-2100
 addresses lands in one of them.
+
+[EPC-2320](epics/EPC-2320-the-profile-reports-its-state-and-keeps-a-personal-file-apart.md)
+realises ADR-2370 in three tasks, TSK-4300 to TSK-4320, none of them started,
+and each of the seven requirements ADR-2370 addresses lands in one of them.
+
+[EPC-2330](epics/EPC-2330-each-subcommand-makes-one-determination.md)
+realises ADR-2400 in three tasks, TSK-4330 to TSK-4350, none of them started,
+and each of the nine requirements ADR-2400 addresses lands in one of them.
+
+[EPC-2340](epics/EPC-2340-each-unit-is-a-versioned-plugin-held-to-its-manifest.md)
+realises ADR-2480 in four tasks, TSK-4390 to TSK-4420, none of them started,
+and each of the fifteen requirements ADR-2480 addresses lands in one of them.
+
+TSK-4360 realises ADR-2410 directly: `paw find` states its mode and counts
+artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill bounds a
+tool that runs source control operations. TSK-4380 realises ADR-2470
+directly: the design step points at the threat model SPC-1080 keeps. None of
+the three is started.
 
 ## Defects
 

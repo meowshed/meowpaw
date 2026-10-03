@@ -2,7 +2,7 @@
 id: SPC-1100
 artifact: spec
 status: live
-revised: 2026-09-29
+revised: 2026-10-03
 states:
   [
     REQ-0139,
@@ -52,6 +52,12 @@ states:
     REQ-2871,
     REQ-2872,
     REQ-2873,
+    REQ-2590,
+    REQ-2592,
+    REQ-2594,
+    REQ-2595,
+    REQ-2596,
+    REQ-2597,
   ]
 ---
 
@@ -147,9 +153,28 @@ an identifier becomes permanent at its first reference (REQ-0548).
 ### Searching
 
 `paw find <word>...` searches identifiers, titles, statements and
-summaries across the record and prints one line per match, `ID kind status:
-title`, ranked by the number of words matched, at most twenty, and never a
-document's body, which `show` prints on request (REQ-1601, REQ-1602). The
+summaries across the record and prints one line per matching artifact,
+`ID kind status: title`, ranked by the number of words matched, at most
+twenty, and never a document's body, which `show` prints on request (REQ-1601,
+REQ-1602). Each line ends with the artifact's file and the heading of the
+section the first match sits in, or `front matter` where the match is in its
+title or statement (REQ-2594).
+
+Its first line states its mode: `exhaustive: read <n> artifacts`, because it
+reads every artifact under the record root, or `ranked` where an index
+ordered the hits (REQ-2590). Its last line counts the artifacts that matched,
+`artifacts matched: <n>`, the ones past the twentieth included, and never the
+lines that matched, so three matches in one requirement count as one
+(REQ-2595). Where nothing matches, it prints its mode line and
+`paw find: nothing in the record carries <words>`.
+
+The `method` skill asserts that the record has no X only from an exhaustive
+search, and from a ranked one only that the search found X (REQ-2592). It
+reads an artifact with `show` before it quotes a hit (REQ-2594). Where a unit
+reads through an index, the index is a cache: the unit refreshes it before it
+relies on a miss, resolves each hit to its file before citing it (REQ-2596),
+and reports a result as local to this machine (REQ-2597). Every unit
+reads the files themselves today, so these rules wait for the first index. The
 record grows, and it is answered by search and never by deleting what it holds
 (REQ-0636). The `method` skill searches before it writes, follows or amends a
 decision it finds, and writes a durable finding back into an artifact; the
