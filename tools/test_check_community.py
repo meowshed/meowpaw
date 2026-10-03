@@ -83,6 +83,22 @@ class Community(unittest.TestCase):
         self.assertEqual(status, 1, out)
         self.assertEqual(out, ["missing: .github/ISSUE_TEMPLATE/", "6 community files, 1 missing from .github/"])
 
+    def test_a_file_of_another_kind_counts_as_missing(self):
+        """REQ-2214: a notes file in ISSUE_TEMPLATE/ is no issue template."""
+        files = [f for f in FILES if "ISSUE_TEMPLATE" not in f] + [".github/ISSUE_TEMPLATE/notes.txt"]
+        status, out = self.run_check(self.tree(files))
+        self.assertEqual(status, 1, out)
+        self.assertEqual(out, ["missing: .github/ISSUE_TEMPLATE/", "6 community files, 1 missing from .github/"])
+
+    def test_an_issue_form_is_an_issue_template(self):
+        """REQ-2214: GitHub reads an issue form written in YAML as a template."""
+        for form in (".github/ISSUE_TEMPLATE/defect.yml", ".github/ISSUE_TEMPLATE/defect.yaml"):
+            with self.subTest(form=form):
+                files = [f for f in FILES if "ISSUE_TEMPLATE" not in f] + [form]
+                status, out = self.run_check(self.tree(files))
+                self.assertEqual(status, 0, out)
+                self.assertEqual(out, ["6 community files, 0 missing from .github/"])
+
 
 if __name__ == "__main__":
     unittest.main()
