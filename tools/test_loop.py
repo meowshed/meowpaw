@@ -96,6 +96,37 @@ class Verdicts(unittest.TestCase):
         self.assertEqual(loop.meets(1.0, None), "no threshold set before the run")
 
 
+class Cases(unittest.TestCase):
+    """REQ-3752: a unit whose `evals/` holds only a hand run has no case to measure."""
+
+    def unit(self, *files):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        for name in files:
+            path = root / "evals" / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("", encoding="utf-8")
+        return root
+
+    def test_a_hand_run_alone_is_no_case(self):
+        self.assertFalse(loop.has_cases(self.unit("hand_run.py")))
+
+    def test_a_prompt_is_a_case(self):
+        self.assertTrue(loop.has_cases(self.unit("a-case/prompt.md")))
+
+    def test_a_case_file_at_any_depth_is_a_case(self):
+        self.assertTrue(loop.has_cases(self.unit("group/a-case/case.yaml")))
+
+    def test_the_loop_skips_a_unit_with_no_case(self):
+        unit = self.unit("hand_run.py")
+        done = subprocess.run([sys.executable, str(Path(loop.__file__)), str(unit)],
+                              capture_output=True, text=True, timeout=60)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("no eval case, nothing to measure", done.stdout)
+        self.assertFalse((unit / "evals" / "results").exists())
+
+
 class Refusals(unittest.TestCase):
     """REQ-0159, REQ-0153: the loop refuses what it can't hold."""
 

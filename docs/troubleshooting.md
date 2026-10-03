@@ -8,7 +8,7 @@ describes:
     meow-git@0.2.3,
     meow-github@0.13.0,
     meow-flow@0.46.4,
-    meow-prose-gate@0.3.0,
+    meow-prose-gate@0.4.0,
     meow-scm@0.4.2,
     meow-checks@0.9.0,
   ]
@@ -106,16 +106,26 @@ have it checked.
 `meow-prose-gate` blocked a commit, a pull request, an issue, a comment or a
 release note, and Claude Code shows its reason as `P1 | "span" | fix`, one line
 per problem. P1 is an idiom from the gate's list of fifteen, P2 a line holding
-only bold text, and P3 text hidden in a file the gate can't read. The span is
-copied from the command, so you can find it there. Claude Code rewrites the
-text from the reason and publishes again. If you ran the command yourself, or
-the retry is blocked too, apply the fix the reason names. If the span is inside
-code or a path the gate should have skipped, that is a defect in the gate:
-report it with the command.
+only bold text, and P3 text hidden in a file the gate can't read. J1 is any
+other idiom, J2 an acronym used before it is expanded, and J3 a bold phrase
+opening a paragraph. A model judged J1 to J3 twice, and the gate blocked only
+because both judgements reported the same span. The span is copied from the
+command, so you can find it there. Claude Code rewrites the text from the
+reason and publishes again. If you ran the command yourself, or the retry is
+blocked too, apply the fix the reason names. If the span is inside code or a
+path the gate should have skipped, or a J finding names text that breaks no
+rule, that is a defect in the gate: report it with the command.
 
 If the gate prints `unrun` and `nothing was checked`, the unit carries no
 binary for your machine, so it let the publish through unchecked. Reinstall
 the unit.
+
+If Claude Code shows `the judged rules were not checked`, the gate couldn't
+ask its judge, and the message names why: `claude` isn't on the path, a call
+failed or ran past 45 seconds, or the answer didn't match the gate's schema.
+The gate checked P1 to P3 only and let the publish through. Check that
+`claude -p` runs in your shell, and publish again if you want J1 to J3
+checked.
 
 ## A step is not ready
 
