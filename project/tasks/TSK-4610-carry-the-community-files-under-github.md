@@ -86,8 +86,12 @@ I made one choice the task leaves open. An issue template counts as present
 when `.github/ISSUE_TEMPLATE/` holds a Markdown or YAML file other than
 `config.yml`, because GitHub reads any template in that directory and reads
 `config.yml` as the chooser's settings.
-`Community.test_an_empty_issue_template_directory_counts_as_missing` and
-`Community.test_a_chooser_configuration_alone_is_no_issue_template` hold it.
+`Community.test_an_empty_issue_template_directory_counts_as_missing`,
+`Community.test_a_chooser_configuration_alone_is_no_issue_template` and
+`Community.test_a_file_that_is_no_template_counts_as_missing` hold it. The
+last came from the second round of review and passed when it landed, because
+the filter it holds was already in place, and it fails against the check with
+the suffix filter removed.
 The three defaults stay as the task records them: `gh api` lists `retran` as
 an admin of `meowshed/meowpaw`, so `@retran` can own the code. ADR-2510's
 second sign, GitHub's community profile, can be read only after the merge.
