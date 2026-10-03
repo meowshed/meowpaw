@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-77 decisions in all: 72 approved, 5 superseded.
+78 decisions in all: 73 approved, 5 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -95,6 +95,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2320](ADR-2320-the-read-back-listing-starts-at-the-earliest-created-issues-own-time.md)                                                              | The read-back listing starts at the earliest created issue's own `updated_at`                                                              | approved   |
 | [ADR-2330](ADR-2330-a-refusal-quotes-githubs-reason-and-a-rejected-credential-ends-the-run.md)                                                            | A refusal line quotes GitHub's reason, and a rejected credential ends the run                                                              | approved   |
 | [ADR-2340](ADR-2340-an-issue-the-listing-leaves-out-is-read-by-its-number.md)                                                                             | An issue the read-back listing leaves out is read by its number before it is reported                                                      | approved   |
+| [ADR-2350](ADR-2350-paw-ready-stops-naming-the-step-that-took-a-retired-steps-work.md)                                                                    | `paw ready` stops naming the step that took a retired step's work                                                                          | approved   |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310.
 <!-- /meow-flow index -->
