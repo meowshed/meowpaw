@@ -1,6 +1,6 @@
 {
   "name": "meow-author",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Holds how Claude Code writes skills, agents, output styles, commands and prompt hooks, checks them in a repository's plugins or its own .claude directory for fixed tags, a description, the six fields an agent declares, every supporting file named and a stated stopping point, and reports each unit's context cost. It keeps up to 400 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
