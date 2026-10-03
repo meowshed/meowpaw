@@ -75,8 +75,12 @@ fn root() -> PathBuf {
 }
 
 fn plan(root: &Path) -> u8 {
-    let data = match profile::read(root) {
-        Profile::Parsed(data) => data,
+    let read = profile::read(root);
+    for line in profile::report(&read) {
+        println!("{line}");
+    }
+    let data = match read {
+        Profile::Parsed(data, _) => data,
         Profile::Absent => return unresolved(&[NO_TABLE.to_string()]),
         Profile::Unparseable(reason) => {
             return unresolved(&[format!("unresolved: the profile doesn't parse: {reason}")]);
