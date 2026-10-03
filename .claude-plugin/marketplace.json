@@ -29,11 +29,6 @@
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-checks/README.md"
     },
     {
-      "name": "meow-verbs",
-      "source": "./plugins/meow-verbs",
-      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-verbs/README.md"
-    },
-    {
       "name": "meow-scm",
       "source": "./plugins/meow-scm",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-scm/README.md"

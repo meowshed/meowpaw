@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Checks that the marketplace ships no unit the chain no longer uses, as
-TSK-3870 asks for `meow-method` (REQ-3654, ADR-2300)."""
+TSK-3870 asks for `meow-method` and TSK-4070 for the `meow-verbs` stub
+(REQ-3654, ADR-2300, ADR-2360)."""
 
 import json
 import subprocess
@@ -34,12 +35,27 @@ class RetiredUnits(unittest.TestCase):
             self.assertNotIn(f"plugins/{unit}", test)
 
 
+class RemovedStub(unittest.TestCase):
+    """TSK-4070, ADR-2360: the `meow-verbs` stub left the marketplace after its one release (REQ-3004, REQ-3654)."""
+
+    def test_the_marketplace_lists_no_meow_verbs(self):
+        """Criterion 1: `.claude-plugin/marketplace.json` has no `meow-verbs` entry."""
+        listed = {p["name"] for p in json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())["plugins"]}
+        self.assertNotIn("meow-verbs", listed)
+
+    def test_git_tracks_nothing_under_meow_verbs(self):
+        """Criterion 2: no file under `plugins/meow-verbs` is tracked, whatever an ignored build left there."""
+        tracked = subprocess.run(["git", "ls-files", "--", "plugins/meow-verbs"],
+                                 cwd=ROOT, capture_output=True, text=True, check=True)
+        self.assertEqual(tracked.stdout, "")
+
+
 LIVE = ("plugins", "docs", "tools", "crates", ".claude-plugin", ".meowpaw", ".github", "README.md", "llms.txt",
         "CLAUDE.md", "mise.toml", "REUSE.toml", "project/specs", "project/vision.md", "project/README.md")
 
 
 class Renamed(unittest.TestCase):
-    """TSK-3850, ADR-2300: `meow-verbs` is `meow-checks`, and the old name stays one release as a stub."""
+    """TSK-3850, ADR-2300: `meow-verbs` is `meow-checks`. ADR-2360 ended the stub the old name kept for one release."""
 
     def plugins(self):
         return {p["name"]: p for p in json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())["plugins"]}
@@ -53,36 +69,13 @@ class Renamed(unittest.TestCase):
         self.assertTrue((unit / "skills/verify/SKILL.md").is_file())
         self.assertEqual(sorted(p.name for p in (unit / "bin").iterdir() if p.is_file()), ["meow-checks"])
 
-    def test_meow_verbs_is_a_stub_that_names_its_replacement(self):
-        """Criterion 2, REQ-3636: the old name still installs, says it is deprecated, and ships no skill or program."""
-        self.assertIn("meow-verbs", self.plugins())
-        stub = ROOT / "plugins" / "meow-verbs"
-        manifest = json.loads((stub / ".claude-plugin/plugin.json").read_text())
-        self.assertEqual(manifest["name"], "meow-verbs")
-        self.assertIn("meow-checks", manifest["description"])
-        self.assertRegex(manifest["description"], r"(?i)renamed|deprecated")
-        # What ships is what git tracks: a checkout built before the rename keeps an ignored binary there.
-        shipped = subprocess.run(["git", "ls-files", "--", "plugins/meow-verbs/skills", "plugins/meow-verbs/bin"],
-                                 cwd=ROOT, capture_output=True, text=True, check=True)
-        self.assertEqual(shipped.stdout, "")
-        hooks = json.loads((stub / "hooks/hooks.json").read_text())
-        commands = [hook["command"] for entry in hooks["hooks"]["SessionStart"] for hook in entry["hooks"]]
-        self.assertEqual(commands, ['"${CLAUDE_PLUGIN_ROOT}"/hooks/notice'])
-        done = subprocess.run([str(stub / "hooks/notice")], capture_output=True, text=True)
-        self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertIn("meow-verbs is now meow-checks", done.stdout)
-        self.assertIn("Tell the person", done.stdout.splitlines()[0])
-        self.assertIn("claude plugin install meow-checks@meowpaw", done.stdout)
-        self.assertIn("claude plugin uninstall meow-verbs@meowpaw", done.stdout)
-
     def test_only_the_stub_names_the_old_unit(self):
-        """Criterion 3, REQ-3634: outside frozen records, the old name appears only in the stub, in the pages that
-        tell an install to move, and in these checks."""
-        allowed = ("plugins/meow-verbs/", "tools/test_marketplace.py", "docs/troubleshooting.md",
-                   ".claude-plugin/marketplace.json")
-        # Lines that name the stub or a frozen record's title, and nothing else in their file.
-        named = {"docs/README.md": "(../plugins/meow-verbs/README.md)",
-                 "project/specs/SPC-1040-the-five-verbs.md": "it was `meow-verbs`",
+        """TSK-4070 criterion 3, REQ-3634: outside frozen records, the old name appears only in the page that tells
+        an install to move, in the specification's sentence about the rename, and in these checks."""
+        allowed = ("tools/test_marketplace.py", "docs/troubleshooting.md")
+        # Lines that name the old unit, and nothing else in their file. The README line is a frozen
+        # record's title (ADR-1480), which keeps the name, so it is not a fourth file naming the unit.
+        named = {"project/specs/SPC-1040-the-five-verbs.md": "it was `meow-verbs`",
                  "project/README.md": "ADR-1480"}
         tracked = subprocess.run(["git", "ls-files", "--", *LIVE], cwd=ROOT, capture_output=True, text=True, check=True)
         found = []
