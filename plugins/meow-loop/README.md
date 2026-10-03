@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.11.0]
+describes: [meow-loop@0.12.0]
 ---
 
 # meow-loop
@@ -344,6 +344,11 @@ command, so one attempt names every flag to fix:
 | `usage: --permission-mode <value> is refused`                   | The mode is anything but `dontAsk`                                             |
 | `usage: <flag> needs a value`                                   | A term is the last word of the command                                         |
 | `usage: <word> is not a term of start`                          | The command holds a word that is no term                                       |
+
+Before it resolves the verbs, `start` prints the profile's state,
+`profile: absent`, `profile: unparseable` or `profile: parsed`, and
+`unknown key: <path>` for each key no unit reads. An unknown key stops
+nothing.
 
 A state the runner can't read past exits 3, prints `unresolved: <what>` and
 creates no run directory:

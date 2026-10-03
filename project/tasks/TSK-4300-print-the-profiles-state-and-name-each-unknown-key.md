@@ -66,7 +66,33 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in the pull request's first commit, where all three
+fixtures in `crates/meow/tests/profile_states.rs` failed and the unit tests in
+`crates/meow/src/profile.rs` didn't compile.
+`a_profile_above_the_root_is_absent` closes criterion 1 (REQ-2940).
+`an_unparseable_profile_names_the_parser_message_and_line_and_runs_nothing`
+closes criterion 2 (REQ-2948). `an_unknown_key_is_named_once_and_changes_no_exit_status`
+closes criterion 3 (REQ-2942), and
+`every_subcommand_that_reads_the_profile_names_each_unknown_key_once` holds the
+same rule for fifteen subcommands across ten units.
+`every_key_in_the_table_carries_a_reason` closes criterion 4 (REQ-2950), and
+`this_repositorys_profile_names_no_unknown_key` closes criterion 5 in the
+`test` verb's run.
+
+The review agent found that the first tests matched the parser's message by
+its first line and pinned the state lines for `meow-checks` alone. A commit of
+its own rewrote both tests, and the second one then failed on `meow-git
+push-guard`, which returned before it printed the state when nothing was
+left to publish, and on `paw check`, which printed no state when its layout was missing. Both now
+print the state first. A second review found the test still matched loosely,
+so a commit of its own pinned the stream and the prefix of each report. It
+also found that a state line from `paw status --waiting` would break SPC-1090's
+silence at every session start, so SPC-1080 states that hook and
+`meow-loop`'s guard as the two that print none.
+
+Run locally on the completing commit's tree, `mise run all` exits 0,
+`meow-checks run format lint check test build` reports all five verbs passed
+and `paw check` reports 0 findings. CI runs `mise run all` on pull request #818.
 
 ## Left alone
 

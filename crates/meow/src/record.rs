@@ -159,8 +159,19 @@ pub fn main(args: &[String]) -> u8 {
     }
 }
 
+/// Prints the profile's state and its unknown keys on standard error, because
+/// standard output is what a step reads, such as a template or an identifier
+/// (SPC-1080).
+fn report_profile(repository: &Path) {
+    for line in profile::report(&profile::read(repository)) {
+        eprintln!("{line}");
+    }
+}
+
 /// The record at the declared root, or the exit code and why it can't be read.
 fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
+    let repository = profile::repository_root();
+    report_profile(&repository);
     let layout = match load_layout() {
         Ok(layout) => layout,
         Err(reason) => {
@@ -168,7 +179,6 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
             return Err(UNCHECKED);
         }
     };
-    let repository = profile::repository_root();
     let root = match record_root(&repository) {
         Ok(root) => root,
         Err(reason) => {
@@ -810,7 +820,7 @@ fn record_root(repository: &Path) -> Result<PathBuf, String> {
 /// `project`.
 pub(crate) fn declared_root(repository: &Path) -> Result<String, String> {
     let declared = match profile::read(repository) {
-        Profile::Parsed(data) => data
+        Profile::Parsed(data, _) => data
             .get("record")
             .and_then(|r| r.as_table())
             .and_then(|r| r.get("root"))
@@ -3214,7 +3224,7 @@ enum Trunk {
 
 fn trunk_of(repository: &Path, root: &Path) -> Trunk {
     let table = match profile::read(repository) {
-        Profile::Parsed(table) => table,
+        Profile::Parsed(table, _) => table,
         _ => toml::Table::new(),
     };
     let Some(name) = table

@@ -76,8 +76,9 @@ struct Corpus {
 }
 
 impl Corpus {
-    /// The corpus, or the reason it can't be read, in the order SPC-1195 lists them.
-    fn read() -> Result<Corpus, String> {
+    /// The corpus, or the reason it can't be read, in the order SPC-1195 lists
+    /// them. `say` gets the profile's state and its unknown keys (SPC-1080).
+    fn read(say: fn(&str)) -> Result<Corpus, String> {
         let root = profile::repository_root();
         let root = std::fs::canonicalize(&root).unwrap_or(root);
         let mut tracked = BTreeSet::new();
@@ -93,12 +94,16 @@ impl Corpus {
         if !detected(&tracked) {
             return Err("not a Markdown repository".into());
         }
-        let profile = match profile::read(&root) {
+        let read = profile::read(&root);
+        for line in profile::report(&read) {
+            say(&line);
+        }
+        let profile = match read {
             Profile::Absent => return Err(format!("no profile at {}", profile::PROFILE)),
             Profile::Unparseable(message) => {
                 return Err(format!("the profile doesn't parse: {message}"));
             }
-            Profile::Parsed(table) => table,
+            Profile::Parsed(table, _) => table,
         };
         Ok(Corpus {
             root,
@@ -220,7 +225,7 @@ fn detected(tracked: &BTreeSet<String>) -> bool {
 
 fn status() -> u8 {
     println!("meow-markdown status");
-    let corpus = match Corpus::read() {
+    let corpus = match Corpus::read(|line| println!("{line}")) {
         Ok(corpus) => corpus,
         Err(reason) => {
             println!("unresolved: {reason}");
@@ -298,7 +303,9 @@ fn status() -> u8 {
 /// what is installed, and printed, never written (ADR-1900). It exits 0 once
 /// the table is printed, because a verb printed with its reason is settled.
 fn bind() -> u8 {
-    let corpus = match Corpus::read() {
+    // What `bind` prints is pasted into the profile, so the state goes to
+    // standard error.
+    let corpus = match Corpus::read(|line| eprintln!("{line}")) {
         Ok(corpus) => corpus,
         Err(reason) => {
             println!("meow-markdown bind");
@@ -375,7 +382,7 @@ fn bind() -> u8 {
 /// files, and exits 1 on any finding.
 fn check() -> u8 {
     println!("meow-markdown check");
-    let corpus = match Corpus::read() {
+    let corpus = match Corpus::read(|line| println!("{line}")) {
         Ok(corpus) => corpus,
         Err(reason) => {
             println!("unresolved: {reason}");
@@ -617,7 +624,7 @@ impl Class {
 /// anything is unreachable, unresolved, absent or broken, and 0 otherwise.
 fn links(inputs: &[&str]) -> u8 {
     println!("meow-markdown links");
-    let corpus = match Corpus::read() {
+    let corpus = match Corpus::read(|line| println!("{line}")) {
         Ok(corpus) => corpus,
         Err(reason) => {
             println!("unresolved: {reason}");

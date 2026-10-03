@@ -50,7 +50,10 @@ struct Report {
     state: &'static str,
     error: Option<String>,
     verbs: Vec<(&'static str, Entry)>,
-    ignored: Vec<String>,
+    /// The lines naming the profile's state and its unknown keys (SPC-1080).
+    profile: Vec<String>,
+    /// Each key the profile holds that the table of keys doesn't list.
+    unknown: Vec<String>,
     notices: Vec<String>,
 }
 
@@ -70,7 +73,9 @@ fn resolve(root: &Path) -> Report {
             })
             .collect()
     };
-    match profile::read(root) {
+    let read = profile::read(root);
+    let lines = profile::report(&read);
+    match read {
         Profile::Absent => Report {
             path,
             state: "absent",
@@ -79,7 +84,8 @@ fn resolve(root: &Path) -> Report {
                 "no profile",
                 format!("{PROFILE} doesn't exist; write it, declaring each verb under [verbs]"),
             ),
-            ignored: Vec::new(),
+            profile: lines,
+            unknown: Vec::new(),
             notices: Vec::new(),
         },
         Profile::Unparseable(error) => Report {
@@ -87,15 +93,11 @@ fn resolve(root: &Path) -> Report {
             state: "unparseable",
             error: Some(error.clone()),
             verbs: every("profile unparseable", error),
-            ignored: Vec::new(),
+            profile: lines,
+            unknown: Vec::new(),
             notices: Vec::new(),
         },
-        Profile::Parsed(data) => {
-            let mut ignored: Vec<String> = data
-                .keys()
-                .filter(|key| *key != "verbs")
-                .map(|key| format!("[{key}]"))
-                .collect();
+        Profile::Parsed(data, unknown) => {
             let empty = toml::Table::new();
             let declared = match data.get("verbs") {
                 None => &empty,
@@ -103,20 +105,15 @@ fn resolve(root: &Path) -> Report {
                 Some(_) => {
                     return Report {
                         path,
-                        state: "present",
+                        state: "parsed",
                         error: None,
                         verbs: every("malformed declaration", "`verbs` isn't a table".to_string()),
-                        ignored,
+                        profile: lines,
+                        unknown,
                         notices: Vec::new(),
                     };
                 }
             };
-            ignored.extend(
-                declared
-                    .keys()
-                    .filter(|key| !VERBS.contains(&key.as_str()))
-                    .map(|key| format!("verbs.{key}")),
-            );
             let verbs = VERBS
                 .iter()
                 .map(|verb| {
@@ -139,10 +136,11 @@ fn resolve(root: &Path) -> Report {
                 .collect();
             Report {
                 path,
-                state: "present",
+                state: "parsed",
                 error: None,
                 verbs,
-                ignored,
+                profile: lines,
+                unknown,
                 notices: Vec::new(),
             }
         }
@@ -232,7 +230,7 @@ fn status(root: &Path, as_json: bool) -> u8 {
             "profile_state": report.state,
             "error": report.error,
             "verbs": verbs,
-            "ignored": report.ignored,
+            "unknown": report.unknown,
             "notices": report.notices,
         });
         println!("{}", serde_json::to_string_pretty(&out).unwrap_or_default());
@@ -244,6 +242,10 @@ fn status(root: &Path, as_json: bool) -> u8 {
         report.path.clone()
     };
     println!("meow-checks status, profile {where_}\n");
+    for line in &report.profile {
+        println!("{line}");
+    }
+    println!();
     for (verb, entry) in &report.verbs {
         match entry {
             Entry::Resolved { command, subset } => {
@@ -260,9 +262,6 @@ fn status(root: &Path, as_json: bool) -> u8 {
                 println!("{verb:<10} unresolved  {kind}: {detail}")
             }
         }
-    }
-    if !report.ignored.is_empty() {
-        println!("\nNot read by meow-checks: {}", report.ignored.join(", "));
     }
     for notice in &report.notices {
         println!("\nnotice: {notice}");
@@ -415,6 +414,10 @@ fn run(root: &Path, args: &[String]) -> u8 {
     }
 
     let report = resolve(root);
+    for line in &report.profile {
+        println!("{line}");
+    }
+    println!();
     for notice in &report.notices {
         println!("notice: {notice}\n");
     }

@@ -1046,14 +1046,16 @@ class Waiting(unittest.TestCase):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         done = repository.run("status", "--waiting")
-        self.assertEqual((done.returncode, done.stdout), (0, ""))
+        self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
         self.assertIn("ADR-0001", repository.run("status").stdout)
 
     def test_a_repository_with_no_record_prints_nothing(self):
-        repository = Repository(profile='[record]\nroot = "nowhere"\n')
+        # An unknown key would make the profile report print, and the session's
+        # opening hook must stay silent all the same (SPC-1090).
+        repository = Repository(profile='[record]\nroot = "nowhere"\nunread = 1\n')
         self.addCleanup(repository.tmp.cleanup)
         done = repository.run("status", "--waiting")
-        self.assertEqual((done.returncode, done.stdout), (0, ""))
+        self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
         self.assertIn("nowhere", repository.run("status").stdout)
 
 

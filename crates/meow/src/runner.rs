@@ -224,7 +224,11 @@ pub fn check(
 ) -> u8 {
     println!("{} check", runner.unit);
     let root = profile::repository_root();
-    let verbs = match profile::read(&root) {
+    let read = profile::read(&root);
+    for line in profile::report(&read) {
+        println!("{line}");
+    }
+    let verbs = match read {
         profile::Profile::Absent => {
             println!("unresolved: no profile at {}", profile::PROFILE);
             return UNRESOLVED;
@@ -233,7 +237,7 @@ pub fn check(
             println!("unresolved: the profile doesn't parse: {message}");
             return UNRESOLVED;
         }
-        profile::Profile::Parsed(table) => table
+        profile::Profile::Parsed(table, _) => table
             .get("verbs")
             .and_then(toml::Value::as_table)
             .cloned()
