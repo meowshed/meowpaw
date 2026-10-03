@@ -34,6 +34,21 @@ class RetiredUnits(unittest.TestCase):
             self.assertNotIn(f"plugins/{unit}", test)
 
 
+class RemovedStub(unittest.TestCase):
+    """TSK-4070, ADR-2360: the `meow-verbs` stub left the marketplace after its one release (REQ-3004, REQ-3654)."""
+
+    def test_the_marketplace_lists_no_meow_verbs(self):
+        """Criterion 1: `.claude-plugin/marketplace.json` has no `meow-verbs` entry."""
+        listed = {p["name"] for p in json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())["plugins"]}
+        self.assertNotIn("meow-verbs", listed)
+
+    def test_git_tracks_nothing_under_meow_verbs(self):
+        """Criterion 2: no file under `plugins/meow-verbs` is tracked, whatever an ignored build left there."""
+        tracked = subprocess.run(["git", "ls-files", "--", "plugins/meow-verbs"],
+                                 cwd=ROOT, capture_output=True, text=True, check=True)
+        self.assertEqual(tracked.stdout, "")
+
+
 LIVE = ("plugins", "docs", "tools", "crates", ".claude-plugin", ".meowpaw", ".github", "README.md", "llms.txt",
         "CLAUDE.md", "mise.toml", "REUSE.toml", "project/specs", "project/vision.md", "project/README.md")
 
@@ -76,13 +91,11 @@ class Renamed(unittest.TestCase):
         self.assertIn("claude plugin uninstall meow-verbs@meowpaw", done.stdout)
 
     def test_only_the_stub_names_the_old_unit(self):
-        """Criterion 3, REQ-3634: outside frozen records, the old name appears only in the stub, in the pages that
-        tell an install to move, and in these checks."""
-        allowed = ("plugins/meow-verbs/", "tools/test_marketplace.py", "docs/troubleshooting.md",
-                   ".claude-plugin/marketplace.json")
-        # Lines that name the stub or a frozen record's title, and nothing else in their file.
-        named = {"docs/README.md": "(../plugins/meow-verbs/README.md)",
-                 "project/specs/SPC-1040-the-five-verbs.md": "it was `meow-verbs`",
+        """TSK-4070 criterion 3, REQ-3634: outside frozen records, the old name appears only in the page that tells
+        an install to move, in the specification's sentence about the rename, and in these checks."""
+        allowed = ("tools/test_marketplace.py", "docs/troubleshooting.md")
+        # Lines that name the old unit or a frozen record's title, and nothing else in their file.
+        named = {"project/specs/SPC-1040-the-five-verbs.md": "it was `meow-verbs`",
                  "project/README.md": "ADR-1480"}
         tracked = subprocess.run(["git", "ls-files", "--", *LIVE], cwd=ROOT, capture_output=True, text=True, check=True)
         found = []
