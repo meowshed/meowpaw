@@ -196,6 +196,33 @@ mod tests {
         }
     }
 
+    #[test]
+    fn every_key_in_the_table_carries_a_reason() {
+        // TSK-4300 criterion 4, REQ-2950: a key without its reason is one
+        // nobody showed the profile has to carry.
+        assert!(KEYS.len() > 20, "the table holds only {} keys", KEYS.len());
+        assert_eq!(unreasoned(KEYS), Vec::<&str>::new());
+        let added = [
+            KEYS,
+            &[Key {
+                path: "verbs.added",
+                reason: " ",
+            }],
+        ]
+        .concat();
+        assert_eq!(unreasoned(&added), ["verbs.added"]);
+    }
+
+    #[test]
+    fn this_repositorys_profile_names_no_unknown_key() {
+        // TSK-4300 criterion 5: every key this repository declares is one a unit reads.
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
+        match read(&root) {
+            Profile::Parsed(_, unknown) => assert_eq!(unknown, Vec::<String>::new()),
+            _ => panic!("this repository's profile doesn't parse"),
+        }
+    }
+
     mod tempdir {
         use std::path::{Path, PathBuf};
 
