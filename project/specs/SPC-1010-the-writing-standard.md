@@ -2,7 +2,7 @@
 id: SPC-1010
 artifact: spec
 status: live
-revised: 2026-09-30
+revised: 2026-10-03
 states:
   [
     REQ-0990,
@@ -23,7 +23,13 @@ states:
     REQ-3182,
     REQ-3183,
     REQ-3184,
-    REQ-3187,
+    REQ-3740,
+    REQ-3742,
+    REQ-3744,
+    REQ-3746,
+    REQ-3748,
+    REQ-3750,
+    REQ-3752,
     REQ-3188,
     REQ-1012,
     REQ-1013,
@@ -47,7 +53,7 @@ whether a header of a declared form is present, and it leaves the shape of a
 reply to SPC-1000.
 
 The harness does not implement this yet. ADR-1010 authorises it, ADR-1020,
-ADR-1030, ADR-1050 and ADR-1600 amend it, EPC-1010 and EPC-1020 realise them.
+ADR-1030, ADR-1050, ADR-1600 and ADR-2390 amend it, EPC-1010 and EPC-1020 realise them.
 
 ## Boundary
 
@@ -111,7 +117,7 @@ program.
 Its `PreToolUse` hook of type `command` runs `meow-prose-gate check` before a
 text is published, and publishing covers a commit, an issue, a pull request
 body, a review comment and a release note (REQ-3182). The program reads the
-shell command from the hook's input, and no model reads the text. It finds
+shell command from the hook's input. It finds
 each `git commit` and each `gh` command in the command, including one with a
 global option before its subcommand, such as `git -C dir commit` or
 `gh -R owner/repo pr create`, and the hook routes both, as it does
@@ -120,7 +126,8 @@ from the arguments of `-m`, `--message`, `--title`, `--body` and `--notes`,
 their short forms for that tool, and each heredoc.
 
 It checks three rules, each of which names its defect exactly, so a program
-settles it the same way every time (REQ-3187):
+settles it the same way every time, and no model is called for them
+(REQ-3740):
 
 - P1, a phrase from a closed list of fifteen idioms, matched
   case-insensitively as whole words with any spaces, line breaks or hyphens
@@ -144,9 +151,40 @@ publishes again. On no finding it exits 0 and prints nothing.
 Where the unit carries no binary for the machine, its launcher prints that
 nothing was checked and exits 0, so a missing binary never blocks a publish.
 
-An unexplained acronym, an American spelling and a bold fragment with text
-after it on its line are left to the skill and the reviewer, because none of
-them names its defect exactly enough for a program.
+With no finding on P1, P2 or P3, the program asks a judge twice, in two calls
+started side by side, whether the text breaks a judged rule. The judged rules
+are a closed list, and a rule joins or leaves it only by a decision of its own
+(REQ-3742):
+
+- J1, an idiom, saying or culture reference that P1's list doesn't spell.
+- J2, an acronym used before it is expanded, or never expanded, outside code
+  font, URLs, identifiers and a commit subject's type and scope.
+- J3, a paragraph or list item opening with a bold phrase that goes on in the
+  same line.
+
+A judgement is one run of `claude -p` in safe mode with no tool, no session
+saved, one turn, the `sonnet` model and a JSON schema whose `rule` field
+allows only `J1`, `J2` and `J3`, so the judge loads no hook, plugin, skill,
+MCP server or project instruction (REQ-3750). The text reaches the judge as
+data inside a tag. Where `MEOW_PROSE_GATE_JUDGE` is set, the program runs that
+command in its place, which only the unit's fixtures do.
+
+The program keeps a judged finding only where its span is a slice of the text
+it read from the command (REQ-3746, REQ-3183), and blocks only on a finding
+whose rule and span both judgements report (REQ-3744). It prints those as
+`J1 | "span" | fix`, as it prints the exact rules' findings.
+
+Where either judgement can't be made, because `claude` isn't on the path, a
+call exits non-zero, a call runs past 45 seconds or a reply is outside the
+schema, the program exits 0 and prints
+`{"systemMessage": "meow-prose-gate: the judged rules were not checked: <cause>"}`,
+so the person sees that only the exact rules ran (REQ-3748). Each hook's
+timeout is 120 seconds, so the judge's limit fires first.
+
+Before a release ships a judged rule, a run by hand shows BUG-1230's four texts
+passing and one text per judged rule blocked, each in three runs of three, and
+no workflow runs it (REQ-3752). An American spelling, and every rule of the
+standard outside P1 to P3 and J1 to J3, stay with the skill and the reviewer.
 
 ### Loading the standard
 
@@ -179,11 +217,12 @@ comment, so it runs on the files a change touched.
 
 ### Why no pattern holds it
 
-No pattern that guesses at meaning enforces the standard (REQ-3187). A pattern
+No pattern that guesses at meaning enforces the standard (REQ-3740). A pattern
 reads words, and the defects that reach a branch are shape. A paragraph opens
 with a bold verdict. An opener announces how many items follow. A claim reads as a
-proverb with its reason missing. The gate's three rules are the exception,
-because each names its defect exactly and asks for no guess.
+proverb with its reason missing. The gate's three exact rules are the
+exception, because each names its defect exactly and asks for no guess, and
+its judged rules are held by a model whose finding a program confirms.
 
 `prettier` and a Markdown linter stay. They read syntax, which settles nothing
 the standard is about.
@@ -214,14 +253,16 @@ thresholds, the judge, and what counts as a regression.
 
 ## Failure paths
 
-| Condition                                        | What happens                                                                                       |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| The reviewer is unavailable                      | The harness reports the review as unrun, and a person decides whether to publish                   |
-| The gate's binary is missing for the machine     | The launcher reports nothing checked and lets the publish through, and the reviewer still runs     |
-| The gate blocks a text that carries no defect    | The program's reading is the defect, and it is fixed with a fixture rather than the text rewritten |
-| The reviewer's finding is disputed               | The author decides, because the reviewer reports and never edits                                   |
-| The reviewer reports a preference                | The reviewer's own prompt is the defect, and the text it flagged is not rewritten to satisfy it    |
-| A repository declares a replacement standard     | The shipped standard is not loaded, and the replacement's own reviewer runs                        |
-| A unit exceeds its stated budget                 | The overrun is reported as a defect, and the unit is not left over budget                          |
-| A text is published with no review               | The omission is reported, because a silent skip is the substitution this harness exists to prevent |
-| The reviewer passes a text a reader later faults | The finding goes against the reviewer's own prompt, which is the thing that changes                |
+| Condition                                        | What happens                                                                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| The reviewer is unavailable                      | The harness reports the review as unrun, and a person decides whether to publish                              |
+| The gate's binary is missing for the machine     | The launcher reports nothing checked and lets the publish through, and the reviewer still runs                |
+| The gate blocks a text that carries no defect    | The program's reading is the defect, and it is fixed with a fixture rather than the text rewritten            |
+| The gate's judge can't run or answer             | The gate checks only P1 to P3, lets the publish through and tells the person the judged rules weren't checked |
+| Both judgements agree on a finding that is wrong | The judge's prompt is the defect, and a defect record names the text and the finding                          |
+| The reviewer's finding is disputed               | The author decides, because the reviewer reports and never edits                                              |
+| The reviewer reports a preference                | The reviewer's own prompt is the defect, and the text it flagged is not rewritten to satisfy it               |
+| A repository declares a replacement standard     | The shipped standard is not loaded, and the replacement's own reviewer runs                                   |
+| A unit exceeds its stated budget                 | The overrun is reported as a defect, and the unit is not left over budget                                     |
+| A text is published with no review               | The omission is reported, because a silent skip is the substitution this harness exists to prevent            |
+| The reviewer passes a text a reader later faults | The finding goes against the reviewer's own prompt, which is the thing that changes                           |
