@@ -1,8 +1,8 @@
 ---
 id: ADR-2010
 artifact: adr
-status: approved
-revised: 2026-09-29
+status: superseded
+revised: 2026-10-03
 addresses:
   [
     REQ-0870,
@@ -19,6 +19,8 @@ supersedes: []
 ---
 
 # 2010. A runner outside the model repeats one frozen prompt in fresh sessions, and holds its bounds in its own process
+
+**Superseded by ADR-2380.**
 
 ## Decision
 
