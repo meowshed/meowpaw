@@ -26,7 +26,8 @@ const USAGE: u8 = 2;
 const UNDECLARED: u8 = 3;
 
 // A trailer whose value is `Name <address>` names a person (REQ-2208).
-const PERSON: &str = r"^(?P<key>[A-Za-z][A-Za-z0-9-]*): (?P<value>[^<>]*\S\s*<[^<>\s]+>)\s*$";
+const PERSON: &str =
+    r"^(?P<key>[A-Za-z][A-Za-z0-9-]*): (?P<value>[^<>]*\S\s*<[^<>\s@]+@[^<>\s]+>)\s*$";
 // Two of the three trailers that record where something came from; the third,
 // the author's own sign-off, is the first one, which `sign_off` compares.
 const PROVENANCE: [&str; 2] = ["fixes", "cherry-picked-from"];
@@ -292,7 +293,12 @@ fn problems_by(
     }
     let person = Regex::new(PERSON).expect("the person pattern compiles");
     let mut first_sign_off = true;
-    for (index, line) in lines.iter().enumerate().skip(1) {
+    // Git reads trailers from the last paragraph alone, so a body line names nobody.
+    let block = lines
+        .iter()
+        .rposition(|line| line.trim().is_empty())
+        .map_or(lines.len(), |blank| blank + 1);
+    for (index, line) in lines.iter().enumerate().skip(block) {
         let Some(parts) = person.captures(line) else {
             continue;
         };
@@ -337,6 +343,13 @@ fn author(root: &Path) -> Option<String> {
     Some(ident[..=end].to_string())
 }
 
+/// The person a `Signed-off-by` line names, whatever the key's case, as git reads it.
+fn signed_by(line: &str) -> Option<&str> {
+    let (key, value) = line.split_once(": ")?;
+    key.eq_ignore_ascii_case("Signed-off-by")
+        .then_some(value.trim())
+}
+
 /// The sign-off chain records the route a change took, so its first entry
 /// names the author and each later one someone it passed through (REQ-1312,
 /// REQ-2206).
@@ -344,7 +357,7 @@ fn sign_off(message: &str, author: &str) -> Vec<(usize, String, String)> {
     message
         .lines()
         .enumerate()
-        .filter_map(|(i, line)| line.strip_prefix("Signed-off-by: ").map(|v| (i + 1, v.trim())))
+        .filter_map(|(i, line)| signed_by(line).map(|v| (i + 1, v)))
         .take(1)
         .filter(|(_, named)| *named != author)
         .map(|(number, named)| {
@@ -369,10 +382,7 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
         },
     };
     let found = convention(root);
-    let signed = found.state == "declared"
-        && message
-            .lines()
-            .any(|line| line.starts_with("Signed-off-by: "));
+    let signed = found.state == "declared" && message.lines().any(|line| signed_by(line).is_some());
     let author = if signed { author(root) } else { None };
     let mut listed = problems_by(&message, &found, author.as_deref());
     let mut notes = Vec::new();
@@ -380,7 +390,7 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
         match &author {
             Some(author) => listed.extend(sign_off(&message, author)),
             None => notes.push(
-                "sign-off: not compared with the author, because git reports no author identity"
+                "sign-off route: not compared with the author, because git reports no author identity"
                     .to_string(),
             ),
         }

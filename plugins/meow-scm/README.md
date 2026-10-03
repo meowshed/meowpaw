@@ -88,7 +88,8 @@ lists. Where git reports no author, the check says the sign-off wasn't
 compared.
 
 A trailer names a person when its value has the form `Name <address>`, such as
-`Co-authored-by`, `Reviewed-by` or `Acked-by`. Three trailers record where
+`Co-authored-by`, `Reviewed-by` or `Acked-by`. The check reads trailers from
+the message's last paragraph, as git does, and a key in any case. Three trailers record where
 something came from and are exempt: `Signed-off-by` naming the author,
 `Cherry-picked-from` and `Fixes`.
 
