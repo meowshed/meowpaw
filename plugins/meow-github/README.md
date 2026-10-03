@@ -100,8 +100,8 @@ meow-github project BUG-1210
 ```
 
 Each issue is titled with the task's identifier and title, and its body cites
-the epic, the requirements the task closes and its dependencies, and ends with
-a marker naming the task and a fingerprint. The task gains `issue:` with the
+the authorising epic, defect or decision, the requirements the task closes and
+its dependencies, and ends with a marker naming the task and a fingerprint. The task gains `issue:` with the
 issue's number and `projected:` with the fingerprint, so the mapping lives in
 the repository. After its last create, the run reads the issues it created
 back in one listing of the issues written since the `updated_at` GitHub gave
@@ -109,8 +109,8 @@ the earliest of them, and matches each by number. Where no create's answer
 states that time, the listing starts at the `Date` of the run's first
 response. The listing can lag a create by seconds, so the run reads each
 issue it left out on its own, by number, before it reports that issue as not
-read back. Run it again and nothing changes. It refuses an epic that isn't
-approved.
+read back. Run it again and nothing changes. It refuses an authorising record
+that isn't approved.
 
 Where a run stops before it has projected every task, or neither the listing
 nor a read by number shows a created issue as it was written, the report says which tasks are in which state and
@@ -124,7 +124,7 @@ partial: projected TSK-1930; created, not read back TSK-1940 (issue #512, reads 
 | ------------------------ | ------------------------------------------------------------------------- |
 | `projected`              | Was updated, was found unchanged, or was created and read back as written |
 | `created, not read back` | Was created and not confirmed, with the issue's number and the reason     |
-| `not projected`          | Is any other task of the epic, visited or not                             |
+| `not projected`          | Is any other task of the authorising record, visited or not               |
 
 A group with no task reads `none`. The reason is `couldn't be read`,
 `reads differently from what was written`, `the listing couldn't be read`,
@@ -148,8 +148,9 @@ meow-github project ADR-2300
 The record owns each issue's title and body, and GitHub owns whether it is
 open or closed, which the pack never writes. A task you changed updates its
 issue on the next run. An issue someone edited on GitHub is reported and left
-as it is, and an issue closed on GitHub while the epic leaves its task
-unmarked is reported, because the epic decides what the tasks are. Add
+as it is, and an issue closed on GitHub while its task remains open in the
+record is reported. An epic or defect decides that state with its task marks;
+a task directly realising a decision decides it with Evidence. Add
 `--check` to see each task's state without writing anything:
 
 ```bash

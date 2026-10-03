@@ -459,7 +459,7 @@ issue:
 """,
             encoding="utf-8")
         (root / "project" / "tasks" / "TSK-0003-defect.md").write_text(TASK.format(
-            id="TSK-0003", closes="", title="Restore the behaviour", depends="Nothing.").replace(
+            id="TSK-0003", closes="    REQ-0004,", title="Restore the behaviour", depends="Nothing.").replace(
             "epic: EPC-0001", "bug: BUG-0001"), encoding="utf-8")
 
     def test_an_approved_defect_projects_its_task_and_replays_nothing(self):
@@ -470,7 +470,8 @@ issue:
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         issue = self.state(root)["issues"]["1"]
         self.assertEqual(issue["title"], "TSK-0003: Restore the behaviour")
-        self.assertIn("TSK-0003 of BUG-0001.", issue["body"])
+        body = issue["body"].rsplit("\n\n<!-- meow-github:", 1)[0]
+        self.assertEqual(body, "TSK-0003 of BUG-0001.\n\nCloses REQ-0004.\n\nDepends on: Nothing.")
         self.assertIn("\nissue: 1\n", self.task(root, "TSK-0003-defect.md"))
         calls = len(self.state(root)["calls"])
         replay = self.run_on(root, "BUG-0001")
@@ -485,14 +486,18 @@ issue:
         state = self.state(root)
         state["issues"]["1"]["state"] = "closed"
         (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        calls = len(state["calls"])
         open_task = self.run_on(root, "BUG-0001", "--check")
         self.assertEqual(open_task.returncode, 1, open_task.stdout)
         self.assertIn("BUG-0001 leaves the task unmarked", open_task.stdout)
+        self.assertFalse(self.writes(root, calls))
+        calls = len(self.state(root)["calls"])
         bug = root / "project" / "bugs" / "BUG-0001-a-defect.md"
         bug.write_text(bug.read_text(encoding="utf-8").replace("- [ ]", "- [x]"), encoding="utf-8")
         done_task = self.run_on(root, "BUG-0001", "--check")
         self.assertEqual(done_task.returncode, 0, done_task.stdout)
         self.assertNotIn("leaves the task unmarked", done_task.stdout)
+        self.assertFalse(self.writes(root, calls))
 
 
 # ADR-1810: the stand-in `gh` the request layer's checks run against. It prints a status line and a header block
