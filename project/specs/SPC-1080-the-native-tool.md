@@ -187,7 +187,29 @@ The table of keys is one list in `crates/meow/src/profile.rs`. Each entry names
 a key, such as `verbs.test` or `commits.types`, and the reason nothing else
 answers it: the ecosystem doesn't declare it, the platform doesn't own it, it
 isn't prose, and detection can't produce it (REQ-2950). A pull request that
-adds a key adds its entry, and a test fails on an entry with no reason.
+adds a key adds its entry, and a test fails on an entry with no reason. A key
+is known when an entry names its path or a path below it, so `[verbs.test]`
+is known through `verbs.test.command`. The keys below an entry with nothing
+listed below it, such as each type under `commits.types`, are the
+repository's own names, and the tool doesn't check them.
+
+The report is these lines, each kind opening with its own first word:
+
+```text
+profile: unparseable
+profile error: line 3: unclosed table, expected `]`
+```
+
+```text
+profile: parsed
+unknown key: verbs.tset
+```
+
+A unit whose output already prefixes each line with its command, such as
+`meow-git push-guard:`, prefixes these lines the same way. `paw` and
+`meow-markdown bind` print them on standard error, because their standard
+output is what a step reads or a person pastes, such as a template, an
+identifier or a table for the profile.
 
 A personal profile, `.meowpaw/profile.local.toml`, sits beside the shared one
 and holds `[verbs]` only, in the forms the shared one takes. The tool reads it after

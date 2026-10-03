@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what meow-unattended plans, what it writes and what its deny rules don't stop
 kind: reference
-describes: [meow-unattended@0.2.2]
+describes: [meow-unattended@0.3.0]
 ---
 
 # meow-unattended
@@ -127,6 +127,11 @@ it.
   retires it without editing its file, so no deny rule stops it.
 
 ## What it reports instead of a plan
+
+`plan` first prints the profile's state, `profile: absent`,
+`profile: unparseable` or `profile: parsed`, and `unknown key: <path>` for
+each key no unit reads, such as a mistyped `[unattended]` key. An unknown key
+is no refusal.
 
 `plan` reports every refusal it finds, each on its own line, exits 3 and
 writes no snapshot:

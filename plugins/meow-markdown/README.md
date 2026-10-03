@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-markdown@0.5.0]
+describes: [meow-markdown@0.6.0]
 ---
 
 # meow-markdown
@@ -166,6 +166,12 @@ and never makes a pass either.
 run that exits 3 as failed, and the lines it quotes say `unreachable`.
 
 ## What it reports instead of a table
+
+Every command that reads the profile first prints its state, `profile: absent`,
+`profile: unparseable` or `profile: parsed`, and `unknown key: <path>` for
+each key no unit reads. `bind` prints them on standard error, so what it
+prints on standard output stays ready to paste. None of them changes the exit
+status.
 
 Every command exits 0 when it reports what it was asked, `check` and `links`
 exit 1 on a finding, and every command exits 3 when it can't:

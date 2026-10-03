@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.46.4]
+describes: [meow-flow@0.47.0]
 ---
 
 # meow-flow
@@ -63,6 +63,13 @@ root = "project"
 `root` is relative to the repository's root, and it may lead outside it, to a
 folder or to another repository's checkout. Where you declare none, the record
 is at `project/`.
+
+Each `paw` command that reads the record prints the profile's state on
+standard error, `profile: absent`, `profile: unparseable` or
+`profile: parsed`, and then `unknown key: <path>` for each key no unit reads.
+It goes to standard error because standard output is what a step reads, such
+as a template or an identifier. An unparseable profile stops the command with
+the parser's message, and an unknown key changes no exit status.
 
 ## Run the method
 

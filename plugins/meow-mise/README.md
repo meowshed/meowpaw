@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-mise
 answers: what meow-mise does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-mise@0.1.0]
+describes: [meow-mise@0.2.0]
 ---
 
 # meow-mise
@@ -94,6 +94,11 @@ finding and 3 when it can't read the profile or mise, so you can run it in
 your own gate.
 
 ## What it reports instead of a list
+
+`check` reads the profile, so it prints the profile's state,
+`profile: absent`, `profile: unparseable` or `profile: parsed`, and
+`unknown key: <path>` for each key no unit reads, which changes no exit
+status.
 
 `status` exits 0 when it reports the tasks and 3 when it can't, and no command
 ever reports a state it couldn't read as an empty list:

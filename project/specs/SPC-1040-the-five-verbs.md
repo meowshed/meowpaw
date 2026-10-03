@@ -86,7 +86,7 @@ sixth verb is a command with no agreed meaning across repositories.
 
 From 0.4.0, under its earlier name, the program no longer reads the names the verbs had
 before ADR-1410, `fmt` for `format` and `typecheck` for `check`: a profile key
-under an old name is listed as ignored, and an old name on the command line
+under an old name is named as an unknown key, and an old name on the command line
 isn't a verb.
 
 ### Where a verb resolves from

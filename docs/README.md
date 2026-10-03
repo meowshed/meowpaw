@@ -5,13 +5,13 @@ kind: introduction
 describes:
   [
     meow-core@0.6.1,
-    meow-git@0.2.3,
-    meow-github@0.13.0,
-    meow-flow@0.46.4,
+    meow-git@0.3.0,
+    meow-github@0.14.0,
+    meow-flow@0.47.0,
     meow-prose-gate@0.3.0,
     meow-prose@0.5.1,
-    meow-scm@0.4.2,
-    meow-checks@0.9.0,
+    meow-scm@0.5.0,
+    meow-checks@0.10.0,
   ]
 ---
 

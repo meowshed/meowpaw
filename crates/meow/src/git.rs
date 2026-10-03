@@ -17,7 +17,6 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-const KEYS: [&str; 2] = ["trunk", "require_signatures"];
 const BLOCK: u8 = 2;
 const ALLOW: u8 = 0;
 
@@ -107,12 +106,15 @@ struct Policy {
     trunk: Option<String>,
     signatures: bool,
     declared: bool,
-    ignored: Vec<String>,
+    /// The lines naming the profile's state and its unknown keys (SPC-1080).
+    profile: Vec<String>,
 }
 
 fn policy(root: &Path) -> Policy {
-    let data = match profile::read(root) {
-        Profile::Parsed(data) => data,
+    let read = profile::read(root);
+    let lines = profile::report(&read);
+    let data = match read {
+        Profile::Parsed(data, _) => data,
         _ => toml::Table::new(),
     };
     let empty = toml::Table::new();
@@ -130,11 +132,7 @@ fn policy(root: &Path) -> Policy {
             .and_then(|value| value.as_bool())
             == Some(true),
         declared: !table.is_empty(),
-        ignored: table
-            .keys()
-            .filter(|key| !KEYS.contains(&key.as_str()))
-            .map(|key| format!("git.{key}"))
-            .collect(),
+        profile: lines,
     }
 }
 
@@ -184,7 +182,11 @@ fn find_meow_scm() -> Option<PathBuf> {
 }
 
 fn commit_guard(root: &Path) -> u8 {
-    let trunk = match policy(root).trunk {
+    let policy = policy(root);
+    for line in &policy.profile {
+        println!("meow-git commit-guard: {line}");
+    }
+    let trunk = match policy.trunk {
         Some(trunk) => trunk,
         None => {
             println!("meow-git commit-guard: no trunk declared under [git]; nothing refused");
@@ -288,15 +290,9 @@ fn push_guard(root: &Path) -> u8 {
     } else {
         Vec::new()
     };
-    let mut notes: Vec<String> = Vec::new();
+    let mut notes: Vec<String> = policy.profile.clone();
     if !policy.declared {
         notes.push("no [git] table: the trunk and the signing policy are undeclared".to_string());
-    }
-    if !policy.ignored.is_empty() {
-        notes.push(format!(
-            "not read by meow-git: {}",
-            policy.ignored.join(", ")
-        ));
     }
     if commits.is_empty() {
         println!("meow-git push-guard: no commit to publish was found; checked nothing");
