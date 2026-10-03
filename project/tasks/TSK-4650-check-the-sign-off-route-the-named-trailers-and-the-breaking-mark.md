@@ -74,7 +74,9 @@ Each criterion is closed by the checks it names:
 
 1. `scm::tests::the_first_sign_off_names_the_author`,
    `a_lower_case_sign_off_is_still_a_sign_off` and
-   `a_sign_off_in_the_body_is_not_the_first` (REQ-2206)
+   `a_sign_off_in_the_body_is_not_the_first`, with
+   `a_comment_before_the_trailers_does_not_change_the_reported_line`
+   pinning its diagnostic (REQ-2206)
 2. `scm::tests::a_trailer_naming_a_person_needs_them_listed`,
    `a_later_sign_off_names_a_person`, `the_provenance_trailers_need_no_list`,
    `a_body_line_names_nobody` and `a_malformed_list_names_nobody`, with
@@ -101,6 +103,12 @@ implementation: the provenance check now carries an unlisted reviewer, and
 `TrunkGate` refuses a condition, a forgiven failure, a `needs`, a `types`
 filter, an inline trigger and a filter leaving out the trunk. The three new
 crate checks failed in those commits, before the fixes.
+
+The final review found that the breaking-mark rule still read every body line
+and that removing comment lines changed a sign-off diagnostic's line number.
+`a_break_says_what_breaks` now refuses a breaking mark outside the trailer
+block, and `a_comment_before_the_trailers_does_not_change_the_reported_line`
+pins the original message line.
 
 Criterion 5 names the profile's table of keys, which isn't on `main` yet:
 TSK-4300 adds it. Until it lands, `meow-scm` is the only reader of

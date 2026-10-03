@@ -233,7 +233,9 @@ fn problems_by(
                 .any(|(name, meaning)| name == kind && meaning == "major");
             let said = Regex::new(BREAKING).expect("the breaking pattern compiles");
             if (parts.name("bang").is_some() || major)
-                && !lines[1..].iter().any(|line| said.is_match(line))
+                && !trailer_block(message)
+                    .iter()
+                    .any(|(_, line)| said.is_match(line))
             {
                 found_problems.push((
                     1,
@@ -347,17 +349,20 @@ fn message_lines(message: &str) -> Vec<&str> {
 /// The trailer block, as (line number, line): git reads trailers from the
 /// last paragraph after the subject alone, so a body line is never one.
 fn trailer_block(message: &str) -> Vec<(usize, &str)> {
-    let lines = message_lines(message);
+    let mut lines: Vec<(usize, &str)> = message
+        .lines()
+        .enumerate()
+        .filter(|(_, line)| !line.starts_with('#'))
+        .map(|(index, line)| (index + 1, line))
+        .collect();
+    while lines.last().is_some_and(|(_, line)| line.trim().is_empty()) {
+        lines.pop();
+    }
     let start = lines
         .iter()
-        .rposition(|line| line.trim().is_empty())
+        .rposition(|(_, line)| line.trim().is_empty())
         .map_or(lines.len(), |blank| blank + 1);
-    lines
-        .into_iter()
-        .enumerate()
-        .skip(start)
-        .map(|(i, line)| (i + 1, line))
-        .collect()
+    lines.into_iter().skip(start).collect()
 }
 
 /// The person a `Signed-off-by` line names, whatever the key's case, as git reads it.
@@ -577,6 +582,17 @@ mod tests {
     }
 
     #[test]
+    fn a_comment_before_the_trailers_does_not_change_the_reported_line() {
+        // REQ-2206: diagnostics name the message line even though git ignores comments.
+        let message = format!(
+            "fix: a change\n\nA body.\n# an editor comment\n\nSigned-off-by: {ADA}\nSigned-off-by: {AUTHOR}\n"
+        );
+        let found = sign_off(&message, AUTHOR);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!((found[0].0, found[0].1.as_str()), (6, "sign-off route"));
+    }
+
+    #[test]
     fn a_body_line_names_nobody() {
         // REQ-2208: only the trailer block names a person, and only with an address.
         let message = format!(
@@ -615,6 +631,14 @@ mod tests {
                 "{subject}\n\nBREAKING CHANGE: the --old flag is gone.\nSigned-off-by: {AUTHOR}\n"
             );
             assert_eq!(rules(&said, &found), Vec::<String>::new(), "{subject}");
+
+            let body_only = format!(
+                "{subject}\n\nBREAKING CHANGE: the --old flag is gone.\n\nSigned-off-by: {AUTHOR}\n"
+            );
+            assert!(
+                rules(&body_only, &found).contains(&"breaking mark".to_string()),
+                "{subject}"
+            );
         }
         let minor = format!("feat: add a flag\n\nSigned-off-by: {AUTHOR}\n");
         assert_eq!(rules(&minor, &found), Vec::<String>::new());
