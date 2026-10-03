@@ -41,6 +41,14 @@ states:
     REQ-2942,
     REQ-2946,
     REQ-2948,
+    REQ-0078,
+    REQ-3042,
+    REQ-3043,
+    REQ-3044,
+    REQ-3080,
+    REQ-3084,
+    REQ-3086,
+    REQ-3090,
   ]
 ---
 
@@ -55,24 +63,28 @@ marketplace one release as a stub and is gone from it now (REQ-3634,
 REQ-3636, ADR-2360). It states where a verb resolves from, what an unresolved
 verb reports, and what a run records.
 
-It leaves binding a verb to a runner's tasks and language packs to later
-decisions, which ADR-1070 names. How the
+It also states how a verb resolves for each part of a repository, the
+revision counter beside the ledger, and `doctor`, which answers whether the
+repository can be worked on here. Binding a verb to a runner's tasks is the
+runner pack's, and binding it from a language's tools is the language pack's. How the
 unit's skill is written is SPC-1030's.
 
 ADR-1070, ADR-1480, ADR-1520, ADR-1530, ADR-1550 and ADR-1560 decide it,
 EPC-1040, EPC-1460, EPC-1500, EPC-1510, EPC-1520 and EPC-1530 realise them,
 and
-`meow-checks` implements it, checked at #115.
+`meow-checks` implements it, checked at #115. ADR-2650 adds the parts,
+ADR-2450 and ADR-2700 the revision counter, and ADR-2680 `doctor`.
 
 ## Boundary
 
-| Surface                               | What it is                                                      |
-| ------------------------------------- | --------------------------------------------------------------- |
-| `.meowpaw/profile.toml`, `[verbs]`    | The repository's declaration: one command per verb it declares  |
-| `plugins/meow-checks/bin/meow-checks` | The program: `status`, `run <verb>...` and `evidence [verb...]` |
-| `<state>/meowpaw/evidence/`           | The ledger of recorded results, outside the repository          |
-| `plugins/meow-checks/skills/verify/`  | The skill that tells the model to use the program, not a guess  |
-| `plugins/meow-checks/README.md`       | The unit's documentation page                                   |
+| Surface                                | What it is                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `.meowpaw/profile.toml`, `[verbs]`     | The repository's declaration: one command per verb it declares            |
+| `plugins/meow-checks/bin/meow-checks`  | The program: `status`, `run <verb>...`, `evidence [verb...]` and `doctor` |
+| `plugins/meow-checks/hooks/hooks.json` | The `PostToolUse` and `PostToolUseFailure` hooks running `revision`       |
+| `<state>/meowpaw/evidence/`            | The ledger of recorded results, outside the repository                    |
+| `plugins/meow-checks/skills/verify/`   | The skill that tells the model to use the program, not a guess            |
+| `plugins/meow-checks/README.md`        | The unit's documentation page                                             |
 
 ## Behaviour
 
@@ -128,6 +140,23 @@ answer to what a verb means. A personal profile beside it,
 `.meowpaw/profile.local.toml`, replaces a verb on one machine, and
 `meow-checks local <verb> <command>` writes it; SPC-1080 states how both files
 are read, the profile's three states and the table of keys.
+
+### A verb in each part
+
+A verb resolves per part: in a repository whose profile declares `[parts]`,
+each part's verbs come from that part's profile, read over the root's as
+SPC-1080 states, so one repository can bind `test` to a different command in
+each part (REQ-0078, REQ-3042). `run` and `status` take `--part <name>`, and
+with none they work on the part whose directory holds the current directory,
+or the root where none does. A gate run for a part runs the verbs of that
+part and covers its directory only (REQ-3042). A repository that declares no
+`[parts]` is one part, its root.
+
+Every report names the scope it ran in, on a line of its own,
+`scope: <part> <directory>`, or `scope: repository` where no part applies
+(REQ-3043). Each ledger record carries the directory the run started in
+beside its scope, because that directory decides which files the run can
+reach, which instructions load and which settings apply (REQ-3044).
 
 ### What `status` reports
 
@@ -224,6 +253,18 @@ submodule and exiting 3 (ADR-1560). `evidence` reports, for each verb the
 work claims, the result behind the claim and whether it holds for the tree as
 it is (REQ-0456).
 
+### The revision counter
+
+The run state holds a revision counter per work tree beside the ledger.
+`meow-checks revision`, run by the unit's `PostToolUse` and
+`PostToolUseFailure` hooks on Bash, Edit, Write and NotebookEdit, adds one to
+it, after a failed tool use as well as a successful one, because a command
+that failed can still have changed the tree (REQ-2728). Each record carries
+the counter's value when its run started, and `evidence` prints it beside the
+current value. The tree id alone decides whether a record is current, because
+an edit made outside the session advances no counter. SPC-1240 states the
+rules the hooks keep.
+
 ### The ledger as run state
 
 The ledger is run state, kept outside the repository (REQ-3072). Each record
@@ -247,6 +288,24 @@ process lives and `interrupted` otherwise, and a verb ended by a signal is
 failed or went stale, else 4 where one was interrupted or is running, else 3
 where one was unresolved, else 0. `evidence --all` adds every work tree whose
 records name the same repository (REQ-2970).
+
+### Whether the repository can be worked on
+
+`meow-checks doctor` answers one question: whether this repository can be
+worked on here. `paw status` answers where the work stands, and neither
+command answers the other (REQ-3080). `doctor` reports the profile's state,
+each verb's resolution in each part, and each installed pack's detection,
+naming the pack, the marker file it matched and the directory it is in, so a
+wrong detection shows before a wrong command runs (REQ-3090). It runs no
+verb.
+
+A finding that depends on this machine, such as a tool not on `PATH`, a
+binary missing for the machine's target or a platform older than a unit
+needs, is marked `machine`, so "this machine can't run this" isn't read as
+"this repository is broken" (REQ-3084). `doctor` repairs nothing and writes
+nothing, in the repository or outside it, a cache and the ledger included
+(REQ-3086). It exits 0 where nothing is a finding, 1 where a finding concerns
+the repository, and 3 where every finding is marked `machine`.
 
 ### The skill
 
@@ -281,3 +340,6 @@ can't run on this machine.
 | The declared command isn't found by the shell | The verb failed, with the shell's own message, because the repository named it   |
 | No binary for the machine's target            | Every verb is unresolved, of kind "no interpreter"                               |
 | `run` with no verb                            | An error naming the five verbs, and nothing runs                                 |
+| `--part` names no declared part               | An error naming the parts the profile declares, and nothing runs                 |
+| A part's profile leaves out a verb            | That verb is unresolved in that part, of kind "undeclared"                       |
+| `doctor` finds a tool missing on this machine | The finding is marked `machine`, and the repository isn't reported broken        |

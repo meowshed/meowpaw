@@ -2,7 +2,7 @@
 id: SPC-1070
 artifact: spec
 status: live
-revised: 2026-09-30
+revised: 2026-10-03
 states:
   [
     REQ-0137,
@@ -98,6 +98,16 @@ states:
     REQ-0628,
     REQ-0632,
     REQ-2897,
+    REQ-0660,
+    REQ-0662,
+    REQ-0664,
+    REQ-0666,
+    REQ-0667,
+    REQ-0668,
+    REQ-0670,
+    REQ-2662,
+    REQ-1662,
+    REQ-3046,
   ]
 ---
 
@@ -109,9 +119,8 @@ This covers `paw check`, the program that checks a repository's
 record: where it finds the record, the layout it reads it by, what each check
 reports, and how it exits.
 
-It leaves declared kinds of a repository's own, transitive coverage, suspect
-citations, orphaned artifacts and records that contradict the tree to later
-decisions, which ADR-1100 names. The documentation index and links outside the
+It leaves transitive coverage, suspect citations, orphaned artifacts and
+records that contradict the tree to later decisions, which ADR-1100 names. The documentation index and links outside the
 record are this repository's, and `tools/` keeps checking them.
 
 ADR-1100 decides it and EPC-1070 realised it, verified under issue 168.
@@ -120,6 +129,10 @@ issue 206. ADR-1800 adds the grouping fields and `dependency-declared`, and
 EPC-1710 realised them, verified under issue 625. ADR-2590 adds the rules
 that hold the living kinds apart from the records, and EPC-2460 realises them;
 it amends ADR-2300, which derived a task's state from its epic's marks.
+ADR-2600 adds the kinds a repository declares and the document a task
+produces, ADR-2610 pins an approved insight as frozen, ADR-2630 adds the
+concern check, ADR-2650 keeps the record at the root of a repository with
+parts, and ADR-2690 pins the layout and the four kinds of check.
 
 ## Boundary
 
@@ -235,6 +248,40 @@ structured data as structured data, and splits a migration into reviewable
 parts with the mechanical apart from the editorial (REQ-3008, REQ-3009,
 REQ-3012, REQ-3014, REQ-3016, REQ-3018, REQ-3019) (ADR-1240).
 
+### Kinds a repository declares
+
+A repository declares a kind of its own in `.meowpaw/profile.toml`, without
+changing the harness (REQ-0666):
+
+```toml
+[record.kinds.narrative]
+prefix = "NAR"
+lifetime = "record"
+template = ".meowpaw/templates/narrative.md"
+outranks = ["research"]
+```
+
+`prefix` is the identifier's prefix, `lifetime` is `record` or `living`, and
+`template` is a path under `.meowpaw/templates/`; a declaration that lacks
+any of the three, or whose template doesn't exist, is a finding (REQ-0668).
+Files of a declared kind sit in a directory named for the kind under the
+record's root. A declared kind inherits every general obligation: its front
+matter, its identifiers, its relations and, as a record, its freezing on
+approval, and the declaration carries no key that turns one off (REQ-0670).
+`outranks` is optional, and lists the kinds the declared kind wins over.
+Where two artifacts of kinds in that order cite each other and state
+different values for one front matter field, `paw check` reports the
+conflict, naming both and the order, and doesn't choose (REQ-0667).
+`paw index` writes no index for a declared kind.
+
+### A document a task produces
+
+A task's output may be a document and not code (REQ-0660). Where it is, the
+task names the artifact in `produces:` and the artifact names the task in
+`prompted-by:`, and `paw check` fails either side without the other
+(REQ-0662). A produced document meets every obligation of its kind, the same
+as one a step wrote (REQ-0664).
+
 ### The checks
 
 | Check        | Reports                                                                                                                                                                                                                       | Replaces                       |
@@ -273,6 +320,10 @@ one its kind allows:
 | every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic                 |
 | living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                                             |
 
+An insight is a record like any other, so its whole file is frozen once
+approved, and a later lesson on the same subject is a new insight that cites
+it (REQ-2662). A test pins that a change to an approved insight is reported.
+
 Without `--base`, the check compares with `HEAD`. It isn't among the checks
 `paw check` runs with no name, because it needs a base and git.
 
@@ -282,6 +333,13 @@ Without `--base`, the check compares with `HEAD`. It isn't among the checks
 `paw check` in place of the four scripts it replaces, which are
 deleted (REQ-1673). `tools/check_index.py`, `tools/check_links.py` and the
 checks over the harness's own units stay.
+
+Every requirement is checkable by one of the four kinds of check its
+`verification` field names, as the layout states, and a test pins that the
+front matter check fails any other value (REQ-1662). The record stays at the repository's
+root in a repository with parts, and only the specification divides by part,
+because one record answers what the project decided for every part
+(REQ-3046).
 
 ### The program
 
@@ -310,5 +368,9 @@ of requirements in the record and in the repository's other Markdown, as
 | No profile, or no `[record]` table   | The record is looked for at `project/`                |
 | `root` doesn't exist                 | Nothing is checked; the missing path is named, exit 1 |
 | A file of no known kind under `root` | Reported as an artifact of no known kind              |
+| A declared kind without its template | A finding naming the kind and the missing key or file |
+| `produces:` without `prompted-by:`   | A finding naming both artifacts                       |
+| Two ranked kinds disagree            | A conflict naming both artifacts and the order        |
+| A decision's concern framed nowhere  | A finding naming the decision and the concern         |
 | An unknown check named               | An error naming the seven checks, exit 2              |
 | No binary for the machine            | The record is reported as not checked, exit 3         |

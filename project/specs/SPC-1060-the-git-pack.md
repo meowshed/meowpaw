@@ -40,6 +40,10 @@ states:
     REQ-1824,
     REQ-1826,
     REQ-1828,
+    REQ-2364,
+    REQ-3052,
+    REQ-3054,
+    REQ-3056,
   ]
 ---
 
@@ -58,6 +62,9 @@ worktree manager or any other tool that runs source control operations.
 
 ADR-1090 decides it, EPC-1060 realises it, and `meow-git` implements it,
 verified under issue 138. ADR-2550 adds the restack, which EPC-2430 realises.
+ADR-2710 decides what the hooks do when the binary is missing, and SPC-1240
+states the rules every hook keeps. ADR-2650 adds the rules for sparse working
+trees, and ADR-2660 names worktrunk as the worktree manager.
 
 ## Boundary
 
@@ -134,9 +141,9 @@ newest version of `meow-scm` in the platform's plugin cache.
 
 The program is the `git` subcommand of the native tool SPC-1080 states,
 shipped as a binary inside the pack. Where the pack carries no binary for the
-machine, the launcher reports each check as unrun and lets the command
-through, because a pack that blocked every commit for a missing binary would
-punish the person for something the pack can't check.
+machine, the launcher denies the commit or the push with exit 2, and its
+reason names `meow-git`, the machine's target and the command that installs
+the pack again, as SPC-1240 states for every hook (REQ-1426).
 
 ### Source-control discipline
 
@@ -202,12 +209,27 @@ workflow that rebases on its own, and a rebase after signing is a change the
 harness signs again (REQ-2614). A summary a model wrote is never cited as
 evidence, and appears only where a person reads a list (REQ-2616).
 
+The worktree manager the harness works with is worktrunk, which runs several
+branches at once in working trees of one repository, each its own checkout,
+and the harness uses it only through the operations above (REQ-2364).
+
 The harness removes a working tree only in the foreground, when the person or
 the step that made it asks, and never from a background job (REQ-2618). Where
 working trees share files, they share only ignored build output and never
 tracked source, and the harness reports a filesystem that can't share it
 (REQ-2620). The `commit` skill carries these rules beside its rules for one
 branch in one working tree.
+
+Where agents work in parallel in sparse working trees, the sparse paths list
+every directory any of them reads, `.meowpaw/` and `.claude/` included, so a
+step in one tree finds the profile and the settings (REQ-3052). Settings that
+have to apply inside a working tree live in the repository root's
+`.claude/settings.json`, which every tree checks out, because a session
+started in a tree loads the settings at that tree's root (REQ-3054). A read
+denial in settings is a strong default and never a boundary: a shell search
+in a directory holding denied files still returns them, so no step relies on
+a denial to keep a file out of an agent's reach (REQ-3056). The `commit`
+skill and the implement step carry these rules.
 
 ## Failure paths
 
@@ -222,4 +244,4 @@ branch in one working tree.
 | Nothing to publish                      | The push goes through, and the hook says it checked no commits                      |
 | A conflict during `restack`             | The rebase is aborted, the branch and its files named, the rest not updated, exit 1 |
 | A `restack` branch with local changes   | Nothing is rewritten; the branch is named, exit 1                                   |
-| No binary for the machine's target      | Every check reported unrun, and nothing blocked                                     |
+| No binary for the machine's target      | The commit or push is denied, exit 2, naming `meow-git` and its install command     |

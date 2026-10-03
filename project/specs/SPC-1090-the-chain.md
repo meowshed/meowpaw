@@ -2,7 +2,7 @@
 id: SPC-1090
 artifact: spec
 status: live
-revised: 2026-09-30
+revised: 2026-10-03
 states:
   [
     REQ-3600,
@@ -332,6 +332,20 @@ states:
     REQ-1840,
     REQ-1842,
     REQ-1844,
+    REQ-0810,
+    REQ-0812,
+    REQ-0814,
+    REQ-0824,
+    REQ-1764,
+    REQ-2142,
+    REQ-2250,
+    REQ-2252,
+    REQ-2254,
+    REQ-0080,
+    REQ-1660,
+    REQ-1666,
+    REQ-1668,
+    REQ-1670,
   ]
 ---
 
@@ -370,6 +384,11 @@ dependency's branch, as the section on stacked tasks states. ADR-2550 decides
 it, and EPC-2430 realises it. ADR-2590 decides that an epic carries no status
 per task, which amends how ADR-2300 derives a task's state, and EPC-2460
 realises it.
+
+ADR-2560, as ADR-2730 amends it, decides the brief a delegated agent gets and
+what its pull request names. ADR-2610 lets the model write an insight.
+ADR-2630 adds the questions every specification answers and the concerns a
+decision names. ADR-2690 holds this repository to its own method.
 
 A person repeats one prompt in fresh sessions until the verbs pass or a bound
 ends the run, with the loop runner SPC-1201 states. The verbs are the five
@@ -539,7 +558,9 @@ changed files and each user-facing page at its own path.
 | review       | nothing in the record; its fixes land in the task's pull request (REQ-0544, REQ-3626)                                    |
 
 No step requires a command from a practice-layer unit to be installed
-(REQ-2130). A step asks at most three clarifying questions, and chooses and
+(REQ-2130). Work that isn't code, a specification, a document, a decision or
+a configuration, goes through the same steps and the same gates as code
+(REQ-0080). A step asks at most three clarifying questions, and chooses and
 records a default for the rest (REQ-2630). A step that reviews its own output
 stops after two rounds and reports what is still open (REQ-2632).
 
@@ -836,6 +857,68 @@ fixed in that pull request (REQ-3626, REQ-0544).
 A fresh agent reviews the fixes, for at most two rounds of fixes. A finding
 still open after the second round goes to the person in the pull request,
 because a bound is what makes repair end (REQ-0822, REQ-0823).
+
+### Delegated work
+
+A step that delegates a task gives the agent a brief built from the task's
+records and never from the conversation (REQ-0810). `paw brief <task>` prints
+it from the task, its epic or the decision it realises, and the requirements
+it closes. The brief stands alone: what to build, the constraints that bind
+it, the interfaces it touches and what to report back, each written out
+(REQ-0812), with each constraint copied word for word from the record it comes
+from (REQ-0814). It opens with the `<unit>:<agent>` name of the agent
+definition it is written for, so the harness can say which agent produced an
+artifact and under which brief by reading the task again (REQ-1764).
+
+A separate agent reviews delegated work, dispatched fresh and never forked
+from the conversation that produced it, as the review section states
+(REQ-0818). Where the implementer and the reviewer disagree, a third agent
+resolves it in a fresh context, given both positions and the brief
+(REQ-0824). SPC-1030 states when a step delegates and what a dispatch
+declares.
+
+A delegated artifact's pull request names the task that produced it and the
+command that prints its brief, `paw brief <task>`, and names no agent, model
+or vendor, because CLAUDE.md's `no_ai_attribution` and REQ-1294 forbid it
+(ADR-2730).
+
+### Insights
+
+The model writes an insight as a draft, with no person's prompt, when the
+work taught something that holds past its case, and a person approves it as
+any record (REQ-2142). The method skill's rule M11 carries this. An approved
+insight is frozen, as SPC-1070 states.
+
+### The questions a specification answers
+
+The `spec` template carries a section of seven fixed questions, each answered
+or marked `unanswered`: what the part is for, what it depends on, what
+depends on it, where its data lives, what crosses a trust boundary, how it
+fails and how it is deployed (REQ-2252). The specification, divided by the
+parts the repository declared, is the architecture description, and no
+second document describes the architecture beside it (REQ-2250).
+
+The design step names each concern a decision raises, such as performance,
+security or upgrade, in the decision's `concerns:` front matter, and the spec
+step frames each in a section of a specification whose heading names it.
+`paw check` reports a concern a decision names that no specification section
+frames (REQ-2254).
+
+### This repository's own work
+
+The harness is developed by its own method in this repository, from the
+first artifact: its record sits in the layout `paw template` gives its users,
+written by the same steps and held by the same checks (REQ-1660, REQ-1668). A
+test in the crate fails where a file under the record's root sits outside
+that layout. Where the harness's own work needs a capability it doesn't have
+yet, the step writes a defect or a postponement, and never works round the
+gap unrecorded (REQ-1670).
+
+The six private harnesses this one was built from migrate onto the harness one at a
+time, from the smallest repository to the largest. Each migration is an
+evaluation run by hand: the repository's own gate runs before and after, and
+a behaviour it relied on that stops working is a defect against this harness
+(REQ-1666).
 
 ### The driver
 
