@@ -44,11 +44,14 @@ procedure states where it stops.
   directory, because loading it everywhere costs every other session.
 - A5. Run material whose work is a long read ending in a short answer in a
   forked context, so the reading stays out of the context that continues.
-- A6. Keep anything the material injects when it loads cheap and certain: it
-  finishes inside the platform's short timeout, and it never exits non-zero,
-  because a non-zero exit aborts the load. Run no verification verb (format,
-  lint, check, test or build) in the injection, and never let the material
-  depend on it, because a failing injection fails every load.
+- A6. Keep anything the material injects at invocation cheap and certain.
+  Cheap means it finishes inside the platform's two-minute timeout. Certain
+  means it exits zero wherever the skill runs, because the platform aborts the
+  invocation on a non-zero exit. Run no verification verb (format, lint,
+  check, test or build) in the injection, because a verb belongs in the body as
+  an instruction. A verb can exit non-zero, and a test run can exceed the
+  timeout. Never let the material depend on the injection, because a setting
+  can turn injection off, and a failing injection aborts every invocation.
 - A7. Rely on the platform's namespacing of a plugin's skills for every
   command, and claim no bare name, because a bare name lasts only until
   something else claims it.
