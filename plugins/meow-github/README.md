@@ -161,8 +161,11 @@ meow-github project EPC-1310 --check
 
 You can file a task's issue without the pack and get the same issue and the
 same mapping, so installing the pack later continues your record instead of
-duplicating it. Write the body as the pack does: the task and its epic, the
-requirements it closes, and its dependencies. Then:
+duplicating it. Write the body as the pack does: the task and its authorising
+record, the requirements it closes, and its dependencies. Its first sentence
+is `<task> of <epic>, which realises <decision>.` for an epic, `<task> of
+<defect>.` for a defect, or `<task>, which realises <decision>.` for a direct
+decision task. Then:
 
 ```bash
 title="TSK-1930: Project an approved epic's tasks onto issues"
