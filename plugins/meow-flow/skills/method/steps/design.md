@@ -72,7 +72,9 @@ picks it up is spec.
   imposed on you, because they behave differently when exceeded.
 - D20. Where the design has a security-relevant boundary, state what is
   protected and who it is defended against, ordered by the likelihood of
-  damage.
+  damage, and update the threat model the repository's specification keeps,
+  ranking the new threats among those it lists, because threats recorded one
+  decision at a time never meet in one ranking.
 - D21. Make every surface the design adds answer one question someone actually
   asked, name the data behind it before choosing its shape, report a surface
   named after an entity rather than a question as a finding, and report a

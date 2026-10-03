@@ -277,8 +277,9 @@ check that `project` groups an issue nowhere, which ADR-1800 adds, was
 verified with EPC-1710 under issue 625. The GitHub request layer, which
 ADR-1810 adds and EPC-1720 realises, isn't built yet. It also states how the profile is
 read, which EPC-2320 realises, the rules each subcommand keeps, which
-EPC-2330 realises, each unit's plugin contract, which EPC-2340 realises, and
-the threat model, which TSK-4380 holds; none of that work has started. It
+EPC-2330 realises, and each unit's plugin contract, which EPC-2340 realises;
+none of that work has started. It states the threat model, which TSK-4380
+holds and which is done. It
 states the unattended install, which TSK-4600 realises, and the release's
 attestation and the report of the trunk's protections, which EPC-2420
 realises; that work hasn't started either. It also states where the harness
@@ -654,8 +655,8 @@ and each of the fifteen requirements ADR-2480 addresses lands in one of them.
 TSK-4360 realises ADR-2410 directly: `paw find` states its mode and counts
 artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill bounds a
 tool that runs source control operations. TSK-4380 realises ADR-2470
-directly: the design step points at the threat model SPC-1080 keeps. None of
-the three is started.
+directly: the design step points at the threat model SPC-1080 keeps, and it's
+done. Neither of the other two is started.
 
 [EPC-2420](epics/EPC-2420-workflows-start-read-only-and-a-release-carries-an-attestation.md)
 realises ADR-2520 in three tasks, TSK-4620 to TSK-4640, none of them started,

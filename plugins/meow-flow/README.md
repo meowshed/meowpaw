@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.46.4]
+describes: [meow-flow@0.47.0]
 ---
 
 # meow-flow
@@ -91,6 +91,10 @@ To run one step yourself, ask for it by name, such as "run the design step for
 | `epic`         | an approved decision or defect | an epic and its tasks       |
 | `implement`    | an approved task               | the change and its evidence |
 | `review`       | the task's pull request        | findings, fixed in it       |
+
+Where a decision adds a security-relevant boundary, the design step also
+updates the threat model your specification keeps, so the new threats are
+ranked among those it already lists.
 
 A task's pull request carries the whole task: its tests first, in a commit of
 their own where they fail, then the implementation, the documentation it
