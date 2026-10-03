@@ -138,6 +138,20 @@ class Convention(unittest.TestCase):
         self.assertEqual(done.returncode, 1)
         self.assertIn("empty message", done.stdout)
 
+    def test_convention_lists_who_may_be_named(self):
+        """REQ-2208: `convention` prints the people `may_name` lists."""
+        profile = CONVENTION.replace("[commits.types]", 'may_name = ["Ada Lovelace <ada@example.org>"]\n\n[commits.types]')
+        done = self.repo(profile=profile).run("convention")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("Ada Lovelace <ada@example.org>", done.stdout)
+        self.assertNotIn("Not read by meow-scm", done.stdout)
+
+    def test_a_co_author_nobody_listed_is_refused(self):
+        """REQ-2208: the check fails a trailer naming a person the profile doesn't list."""
+        done = self.repo().check(GOOD.replace(SIGNED, f"Co-authored-by: Ada Lovelace <ada@example.org>\n{SIGNED}"))
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("line 5: named person:", done.stdout)
+
     def test_convention_reports_what_is_declared(self):
         done = self.repo().run("convention")
         self.assertEqual(done.returncode, 0)

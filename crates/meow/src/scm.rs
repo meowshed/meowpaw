@@ -355,4 +355,123 @@ mod tests {
         );
         assert!(attribution.is_match(&format!("Co-Authored-{}", "By: Claude <x@example.org>")));
     }
+
+    const AUTHOR: &str = "A Person <a@example.org>";
+    const ADA: &str = "Ada Lovelace <ada@example.org>";
+
+    /// The convention a profile with `extra` under `[commits]` declares.
+    fn declared(extra: &str) -> Convention {
+        static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let dir = std::env::temp_dir().join(format!("meow-scm-test-{}-{n}", std::process::id()));
+        std::fs::create_dir_all(dir.join(".meowpaw")).unwrap();
+        std::fs::write(
+            dir.join(PROFILE),
+            format!("[commits]\ntrailers = [\"Signed-off-by\"]\n{extra}\n[commits.types]\nfeat = \"minor\"\nfix = \"patch\"\nbreak = \"major\"\n"),
+        )
+        .unwrap();
+        let found = convention(&dir);
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert_eq!(found.state, "declared", "{}", found.detail);
+        found
+    }
+
+    fn rules(message: &str, found: &Convention) -> Vec<String> {
+        problems(message, found)
+            .into_iter()
+            .map(|(_, rule, _)| rule)
+            .collect()
+    }
+
+    #[test]
+    fn the_first_sign_off_names_the_author() {
+        // REQ-2206: the first entry names the author, and later entries are the route.
+        let other = format!("fix: a change\n\nSigned-off-by: {ADA}\nSigned-off-by: {AUTHOR}\n");
+        let found = sign_off(&other, AUTHOR);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].0, 3);
+        assert_eq!(found[0].1, "sign-off route");
+        let route = format!("fix: a change\n\nSigned-off-by: {AUTHOR}\nSigned-off-by: {ADA}\n");
+        assert_eq!(sign_off(&route, AUTHOR), Vec::new());
+    }
+
+    #[test]
+    fn a_trailer_naming_a_person_needs_them_listed() {
+        // REQ-2208: a trailer naming a person passes only where may_name lists them.
+        let message = format!("fix: a change\n\nCo-authored-by: {ADA}\nSigned-off-by: {AUTHOR}\n");
+        let unlisted = problems(&message, &declared(""));
+        let named: Vec<_> = unlisted
+            .iter()
+            .filter(|(_, rule, _)| rule == "named person")
+            .collect();
+        assert_eq!(named.len(), 1, "{unlisted:?}");
+        assert_eq!(named[0].0, 3);
+        assert!(named[0].2.contains("Co-authored-by"), "{}", named[0].2);
+        assert!(named[0].2.contains(ADA), "{}", named[0].2);
+        let listed = declared(&format!("may_name = [\"{ADA}\"]"));
+        assert_eq!(rules(&message, &listed), Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_later_sign_off_names_a_person() {
+        // REQ-2208: only the author's own sign-off records provenance.
+        let message = format!("fix: a change\n\nSigned-off-by: {AUTHOR}\nSigned-off-by: {ADA}\n");
+        assert_eq!(rules(&message, &declared("")), vec!["named person"]);
+    }
+
+    #[test]
+    fn the_provenance_trailers_need_no_list() {
+        // REQ-2208: Fixes and Cherry-picked-from record where something came from.
+        // Each carries a person's form here, so the exemption, not the form, passes it.
+        let message = format!(
+            "fix: a change\n\nFixes: {ADA}\nCherry-picked-from: {ADA}\nSigned-off-by: {AUTHOR}\n"
+        );
+        assert_eq!(rules(&message, &declared("")), Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_malformed_list_names_nobody() {
+        // REQ-2208: a list that isn't one can't say who agreed.
+        let found = declared("may_name = \"Ada Lovelace <ada@example.org>\"");
+        assert!(
+            found.malformed.iter().any(|m| m.contains("may_name")),
+            "{:?}",
+            found.malformed
+        );
+        let message = format!("fix: a change\n\nReviewed-by: {ADA}\nSigned-off-by: {AUTHOR}\n");
+        assert_eq!(rules(&message, &found), vec!["named person"]);
+    }
+
+    #[test]
+    fn a_break_says_what_breaks() {
+        // REQ-2212: a `!` or a type meaning major needs a BREAKING CHANGE trailer.
+        let found = declared("");
+        for subject in ["feat!: drop the old flag", "break: drop the old flag"] {
+            let bare = format!("{subject}\n\nSigned-off-by: {AUTHOR}\n");
+            let listed = problems(&bare, &found);
+            let marks: Vec<_> = listed
+                .iter()
+                .filter(|(_, rule, _)| rule == "breaking mark")
+                .collect();
+            assert_eq!(marks.len(), 1, "{subject}: {listed:?}");
+            assert_eq!(marks[0].0, 1);
+            let said = format!(
+                "{subject}\n\nBREAKING CHANGE: the --old flag is gone.\nSigned-off-by: {AUTHOR}\n"
+            );
+            assert_eq!(rules(&said, &found), Vec::<String>::new(), "{subject}");
+        }
+        let minor = format!("feat: add a flag\n\nSigned-off-by: {AUTHOR}\n");
+        assert_eq!(rules(&minor, &found), Vec::<String>::new());
+    }
+
+    #[test]
+    fn may_name_is_a_key_the_unit_reads() {
+        // TSK-4650 criterion 5: a profile declaring may_name isn't told the key is unknown.
+        let found = declared(&format!("may_name = [\"{ADA}\"]"));
+        assert!(
+            !found.ignored.iter().any(|key| key == "commits.may_name"),
+            "{:?}",
+            found.ignored
+        );
+    }
 }
