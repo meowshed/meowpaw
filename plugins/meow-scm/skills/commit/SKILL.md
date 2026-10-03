@@ -54,6 +54,16 @@ project gained and when, so every message is written for that question.
   detail belongs in the pull request and the reasoning in the decision.
 - M6. Write every trailer the convention declares, after a blank line, where
   the check looks for it.
+- M7. Where the subject carries `!` or a type the convention means `major`,
+  say what breaks in a `BREAKING CHANGE:` trailer, because whoever cuts the
+  release won't remember it.
+- M8. Write a trailer naming a person, such as `Co-authored-by` or
+  `Reviewed-by`, only for someone listed under `[commits] may_name`, because
+  naming a person needs their agreement and the list is where the repository
+  records it. Three trailers record where something came from and are exempt:
+  `Signed-off-by` naming the author, `Cherry-picked-from` and `Fixes`. The
+  first `Signed-off-by` names the author, because the chain records the route
+  the change took and approves nothing.
 </rules>
 
 <rules name="branches">

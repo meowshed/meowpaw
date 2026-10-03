@@ -62,7 +62,7 @@ class Convention(unittest.TestCase):
     def test_a_sign_off_naming_someone_else_is_refused(self):
         done = self.repo().check(GOOD.replace("A Person <a@example.org>", "Another Person <b@example.org>"))
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("sign-off: the sign-off names Another Person <b@example.org>, and the commit's author is A Person <a@example.org>", done.stdout)
+        self.assertIn("sign-off route: the first sign-off names Another Person <b@example.org>, and the commit's author is A Person <a@example.org>", done.stdout)
 
     def test_a_message_in_the_convention_passes(self):
         done = self.repo().check(GOOD)
@@ -82,7 +82,7 @@ class Convention(unittest.TestCase):
         self.assertIn("line 1: subject form", done.stdout)
 
     def test_a_scope_and_a_breaking_marker_are_accepted(self):
-        done = self.repo().check(f"feat(verbs)!: drop the old table\n\n{SIGNED}\n")
+        done = self.repo().check(f"feat(verbs)!: drop the old table\n\nBREAKING CHANGE: the old table is gone.\n{SIGNED}\n")
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("meets the declared convention", done.stdout)
 
@@ -137,6 +137,20 @@ class Convention(unittest.TestCase):
         done = self.repo().check("\n# a comment only\n")
         self.assertEqual(done.returncode, 1)
         self.assertIn("empty message", done.stdout)
+
+    def test_convention_lists_who_may_be_named(self):
+        """REQ-2208: `convention` prints the people `may_name` lists."""
+        profile = CONVENTION.replace("[commits.types]", 'may_name = ["Ada Lovelace <ada@example.org>"]\n\n[commits.types]')
+        done = self.repo(profile=profile).run("convention")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("Ada Lovelace <ada@example.org>", done.stdout)
+        self.assertNotIn("Not read by meow-scm", done.stdout)
+
+    def test_a_co_author_nobody_listed_is_refused(self):
+        """REQ-2208: the check fails a trailer naming a person the profile doesn't list."""
+        done = self.repo().check(GOOD.replace(SIGNED, f"Co-authored-by: Ada Lovelace <ada@example.org>\n{SIGNED}"))
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("line 5: named person:", done.stdout)
 
     def test_convention_reports_what_is_declared(self):
         done = self.repo().run("convention")
