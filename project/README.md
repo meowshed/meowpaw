@@ -244,6 +244,11 @@ Every decision below is approved and in force, as amended by the ones after it.
   every shipped agent ends its report with one of four outcomes on a line of
   its own, its dispatcher acts on that word, and a denied tool ends the agent
   as `BLOCKED` with nothing retried, worked round or left waiting.
+- [ADR-2740](adrs/ADR-2740-an-active-obligation-keeps-a-decision-and-each-decision-keeps-a-plan.md):
+  every active requirement keeps an approved provider, and every addressing
+  decision keeps an approved plan.
+- [ADR-2750](adrs/ADR-2750-an-attended-irreversible-action-asks-each-time.md):
+  an attended irreversible action asks for confirmation on every invocation.
 
 ## Specifications
 
@@ -739,6 +744,22 @@ and each of the eighteen requirements ADR-2670 addresses lands in one of them.
 realises ADR-2690 in three tasks, TSK-5035 to TSK-5045, none of them started,
 and each of the five requirements ADR-2690 addresses lands in one of them.
 TSK-5045 waits on the owner to name the first repository to migrate.
+
+[EPC-2580](epics/EPC-2580-the-record-keeps-every-requirement-decision-and-plan-connected.md)
+realises ADR-2740 in TSK-5140 and TSK-5145, neither started. The first carries
+forward the requirements whose provider was superseded and checks both graph
+gaps; the second pins comments in profiles.
+
+[EPC-2590](epics/EPC-2590-an-attended-irreversible-action-asks-each-time.md)
+realises ADR-2750 in TSK-5150, not started, which closes REQ-1420 and REQ-1422.
+
+[EPC-2600](epics/EPC-2600-project-an-epic-onto-a-tracker-group.md),
+[EPC-2605](epics/EPC-2605-bound-the-prose-gates-network-judge.md),
+[EPC-2610](epics/EPC-2610-a-missing-hook-program-denies.md),
+[EPC-2615](epics/EPC-2615-generate-the-interface-reference.md) and
+[EPC-2620](epics/EPC-2620-a-delegated-pull-request-names-its-brief-and-record.md)
+realise ADR-2540 and ADR-2700 to ADR-2730 respectively. Each has one approved,
+not-started task, TSK-5155 to TSK-5175.
 
 TSK-4940 realises ADR-2490 directly, as ADR-2720 amends it: the interface page
 is generated from the tool's documentation comments. TSK-4960 realises

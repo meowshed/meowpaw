@@ -6,11 +6,15 @@ revised: 2026-10-03
 states:
   [
     REQ-2370,
+    REQ-2372,
+    REQ-2376,
     REQ-2380,
     REQ-2382,
     REQ-2384,
     REQ-2386,
     REQ-2388,
+    REQ-2390,
+    REQ-2406,
     REQ-2402,
     REQ-3714,
     REQ-3716,
