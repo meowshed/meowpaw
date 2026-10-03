@@ -19,9 +19,10 @@ procedure states where it stops.
    `maxTurns`, `tools`, `model`, `effort`, `omitClaudeMd` and `skills`, as D3
    to D8 set out.
 3. Write the body in the five tags, `<role>`, `<rules>`, `<steps>`,
-   `<example>` and `<input>`, using each where the content mixes kinds (B2),
-   with every obligation a numbered list item under `<rules>` and every file
-   the material relies on named in the body of its own file.
+   `<example>` and `<input>`, using `<steps>`, `<example>` and `<input>` only
+   where the content mixes kinds (B2), with every obligation a numbered list
+   item under `<rules>` and every file the material relies on named in the
+   body of its own file.
 4. Where the material adds to what loads on every turn, run
    `${CLAUDE_SKILL_DIR}/../../bin/meow-author cost`. Before cutting or keeping
    material, run `/skill-doctor` and read how often the material was used.
@@ -128,8 +129,8 @@ procedure states where it stops.
   `*` both grant every tool, the delegation tool among them. In an agent a
   plugin ships, list no `*`, `Agent` or `Task`, alone or restricted such as
   `Agent(worker)`, because each reaches the delegation tool. The platform still
-  takes `Task` as the earlier name of `Agent`, which is why `Task` is on that
-  list.
+  takes `Task` as the earlier name of `Agent`, which is why `Task` is among the
+  tools to avoid.
 - D5. Name `model` as `sonnet`, `opus`, `haiku`, `fable` or a full identifier
   containing `claude-`, never `inherit`, because `inherit` leaves the model,
   and so the cost, to whichever session dispatches the agent.
@@ -145,27 +146,27 @@ procedure states where it stops.
   where it needs none, because the list decides what the agent loads at
   startup and grants nothing. An empty list states that nothing is needed.
 - D9. Where you dispatch an agent, treat output marked partial (the agent
-  stopped at its ceiling) as unfinished work, because a partial list of
-  findings reads as a complete one. Until a run has shown that marking, treat
-  the output of any run that reached its ceiling the same way, because without
-  the marking nothing else says the list is partial.
+  reached its ceiling) as unfinished work, because a partial list of findings
+  reads as a complete one. Until a run has shown that marking, treat the output
+  of any run that reached its ceiling the same way, because without the marking
+  nothing else says the list is partial.
 - D10. In an agent a plugin ships, name the four outcomes `DONE`,
   `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT` and `BLOCKED`, and say when the agent
   reports each. Have it write `outcome:`, a space and the word on a line of its
   own, with one sentence naming the cause where the outcome isn't `DONE`. The
   skill that dispatched it acts on the word without reading the rest, so the
-  check fails an agent that leaves one out. Have it carry the denial rule too.
-  Where a tool call is denied, it issues no second call in another form, uses
-  no other tool to reach the same result and asks nobody for the permission.
-  It ends as `BLOCKED`, naming the tool and what it was called on. The rule
+  check fails an agent that leaves one out. Have it carry the denial rule too:
+  where a tool call is denied, it issues no second call in another form, uses
+  no other tool to reach the same result, asks nobody for the permission and
+  ends as `BLOCKED`, naming the tool and what it was called on. The denial rule
   exists because a question asked where nobody answers waits for nothing, and
   a way round the denial reaches what the permission withheld.
 </rules>
 
 <example>
-Judge a rule in always-loaded material against C5. In the failing case the
-reason repeats what the model's default already honours, and every turn pays
-for it. This line is an example, not a rule:
+This example shows C5 applied to a rule in always-loaded material. The lines
+below are examples, not rules. In the failing case the reason repeats what the
+model's default already honours, and every turn pays for it:
 
 `- R1. Write every file as UTF-8, because UTF-8 is the usual encoding.`
 
