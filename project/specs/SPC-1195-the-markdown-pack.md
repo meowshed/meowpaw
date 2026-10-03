@@ -2,8 +2,23 @@
 id: SPC-1195
 artifact: spec
 status: live
-revised: 2026-09-29
-states: [REQ-0083, REQ-2352, REQ-2434, REQ-2438, REQ-2452, REQ-2454]
+revised: 2026-10-03
+states:
+  [
+    REQ-0083,
+    REQ-2352,
+    REQ-2434,
+    REQ-2438,
+    REQ-2452,
+    REQ-2454,
+    REQ-2290,
+    REQ-2292,
+    REQ-2294,
+    REQ-2296,
+    REQ-2300,
+    REQ-2302,
+    REQ-2304,
+  ]
 ---
 
 # The Markdown pack
@@ -15,17 +30,20 @@ This covers `meow-markdown`, the language pack for Markdown. It states what
 `links` classifies a link check, and what the skill and `reviewing.md` carry.
 
 Every rule SPC-1190 states for a language pack holds here, and this document
-states only what is Markdown's. It leaves spelling, prose linting, diagram
-parsing and site builds unbound. Running a verb is SPC-1040's, and the writing
+states only what is Markdown's. It leaves spelling, prose linting and site
+builds unbound. Running a verb is SPC-1040's, and the writing
 standard is SPC-1010's.
 
 ADR-1900 decides this part and EPC-1800 realised it, verified under issue 624.
+ADR-2620 adds the diagrams: their notation, the check that parses them and
+the rules a diagram keeps.
 
 ## Boundary
 
 | Surface                                              | What it is                                                     |
 | ---------------------------------------------------- | -------------------------------------------------------------- |
-| `plugins/meow-markdown/bin/meow-markdown`            | The program: `status`, `bind`, `check` and `links`             |
+| `plugins/meow-markdown/bin/meow-markdown`            | The program: `status`, `bind`, `check`, `links` and `diagrams` |
+| `.meowpaw/profile.toml`, `[docs] diagrams`           | The diagram notation the repository declares                   |
 | `plugins/meow-markdown/skills/markdown/SKILL.md`     | The skill                                                      |
 | `plugins/meow-markdown/skills/markdown/reviewing.md` | What a reviewer of Markdown needs beyond the commands          |
 | `plugins/meow-markdown/README.md`                    | The unit's page                                                |
@@ -178,6 +196,35 @@ under a heading each, then the number of skipped addresses. A skipped address
 counts towards no exit status. `links` exits 1 where any result is a finding, 3 where
 none is and any result is unreachable, unresolved, absent or broken, and 0
 where every checked link resolved.
+
+### Diagrams
+
+A diagram is text in a fenced block in the document that carries it, and
+never an embedded image (REQ-2290). A repository declares its notation in
+`[docs] diagrams`, and `mermaid` is the default where it declares none,
+because GitHub renders a `mermaid` block in Markdown with no build step, no
+plugin and no generated file (REQ-2292, REQ-2296). A notation that needs a
+build step, such as `plantuml`, is refused for the record: `check` reports
+`[docs] diagrams = <notation> needs a build step; the record can't use it`.
+Outside the record, a document using such a notation states its cost in
+that document, which review holds (REQ-2294).
+
+`meow-markdown diagrams [<input>...]` parses each `mermaid` block in the
+tracked Markdown, or in the inputs given, with the Mermaid command-line tool,
+`mmdc`, writing its output outside the working tree, and prints one line per
+block that fails, naming the file, the line and the parser's words
+(REQ-2304). It also prints a finding for each image link to a `.png` or
+`.svg` file in a document under the record's root. It exits 1 on any
+finding, 3 where `mmdc` is absent or broken, and 0 otherwise. Where the
+corpus holds a `mermaid` block, `bind` prints
+`check = "meow-markdown diagrams"` in place of the line saying Markdown has
+no types, so a block that fails to parse fails the `check` verb.
+
+Everything a diagram asserts is also stated in the prose beside it, because a
+reader who gets the source and not the picture still needs the fact
+(REQ-2300). A diagram carries no obligation, which belongs in a requirement,
+and no reason, which belongs in a decision (REQ-2302). `reviewing.md`
+carries both rules, because no parser tells what a diagram claims.
 
 ### What the skill carries
 

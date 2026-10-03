@@ -2,8 +2,45 @@
 id: SPC-1190
 artifact: spec
 status: live
-revised: 2026-09-29
-states: [REQ-0083, REQ-2434, REQ-2438]
+revised: 2026-10-03
+states:
+  [
+    REQ-0083,
+    REQ-2434,
+    REQ-2438,
+    REQ-0082,
+    REQ-0085,
+    REQ-0133,
+    REQ-3048,
+    REQ-2332,
+    REQ-2334,
+    REQ-2336,
+    REQ-2338,
+    REQ-2340,
+    REQ-2342,
+    REQ-2344,
+    REQ-2346,
+    REQ-2348,
+    REQ-2350,
+    REQ-2410,
+    REQ-2412,
+    REQ-2414,
+    REQ-2416,
+    REQ-2418,
+    REQ-2420,
+    REQ-2422,
+    REQ-2426,
+    REQ-2428,
+    REQ-2430,
+    REQ-2432,
+    REQ-2436,
+    REQ-2440,
+    REQ-2442,
+    REQ-2444,
+    REQ-2446,
+    REQ-2448,
+    REQ-2450,
+  ]
 ---
 
 # The language packs
@@ -21,6 +58,10 @@ runner packs, SPC-1140 and SPC-1150, keep the same boundary for a runner and
 aren't restated here. Running a bound verb is SPC-1040's.
 
 ADR-1900 decides this part and EPC-1800 realised it, verified under issue 624.
+ADR-2640 adds the versions a pack states and the configuration it writes,
+ADR-2650 makes a pack activate where its marker is, ADR-2660 orders the
+packs, and ADR-2670 adds the rules every pack keeps on what it runs, what it
+reports, what it changes and what it keeps.
 
 ## Boundary
 
@@ -58,10 +99,36 @@ Exit status, for every command:
 
 ### Detection
 
-A pack detects its language from the files git tracks, by name and by the
-presence of a configuration file, and starts none of the language's tools to
-decide. A work tree the pack doesn't detect makes every command print
-`unresolved: not a <language> repository` and exit 3.
+A pack identifies the toolchain it serves by a marker file git tracks, such as
+a manifest or a lockfile, and starts none of the language's tools to decide
+(REQ-0133). It activates for each directory that holds a marker, and not once
+for the repository, so a repository holding two languages has each pack
+report for the directories its marker is in, and each report names the
+directory it ran for (REQ-3048). A work tree the pack doesn't detect makes
+every command print `unresolved: not a <language> repository` and exit 3.
+
+### The supported packs
+
+The harness gives each language a pack that follows this document, detected
+from its marker, and ships them one at a time in this order:
+
+| Order | Language                  | Marker                                                                  | Requirement        |
+| ----- | ------------------------- | ----------------------------------------------------------------------- | ------------------ |
+| 1     | Rust                      | `Cargo.toml`                                                            | REQ-2332           |
+| 2     | TypeScript and JavaScript | `package.json`                                                          | REQ-2338           |
+| 3     | Python                    | `pyproject.toml`                                                        | REQ-2336           |
+| 4     | Go                        | `go.mod`                                                                | REQ-2334           |
+| 5     | C#                        | a `.sln` or `.csproj` file                                              | REQ-2340           |
+| 6     | Lua, and Neovim plugins   | a rockspec or `.luarc.json`; a `lua/` tree beside a `plugin/` directory | REQ-2342, REQ-2344 |
+| 7     | Godot and GDScript        | `project.godot`                                                         | REQ-2346           |
+| 8     | Starlark                  | a Bazel or Buck workspace file                                          | REQ-2348           |
+| 9     | Scheme                    | a Scheme project file                                                   | REQ-2350           |
+
+Each pack resolves the five verbs for its language, bound from what the
+repository commits or unresolved with a reason, and has its own document
+beside this one once it ships. Lua and Neovim plugins share one pack, because
+Neovim is the host that evaluates the plugin's Lua. `docs/README.md` lists
+each pack with its state, as SPC-1110 states.
 
 ### `bind`
 
@@ -94,6 +161,68 @@ A command exits 1 where any result is a finding, and lists what was
 unreachable apart from the findings; it exits 3 where nothing is a finding and
 anything is unreachable, unresolved, absent or broken.
 
+### What a pack runs
+
+A pack runs what the repository configured, and nothing it chose:
+
+- Where several tools serve one verb in the ecosystem, it binds the verb to
+  the one the repository configured, and never picks between them (REQ-2420).
+- It turns on no lint group, strictness setting or analysis level the
+  repository didn't ask for (REQ-2422).
+- Where the project declares an environment or a package manager, it runs
+  each tool through it, and never through whatever the shell finds first
+  (REQ-2426).
+- Where the repository pins a toolchain version, it runs the verbs under that
+  version, and reports a difference between it and the installed one
+  (REQ-2428).
+- Where a host evaluates the language or the language has several
+  implementations, it detects which one applies before it binds, and reports
+  every verb unresolved until it has (REQ-2446).
+- Where a build step has a prerequisite another form of the step performs
+  implicitly, it performs the prerequisite explicitly (REQ-2448).
+
+### What a pack reports it didn't check
+
+- Where the bound tool covers less than the ecosystem's default, the pack
+  runs the rest as well, or names what is no longer checked (REQ-2410).
+- Where the language runs the examples in its documentation as tests, `test`
+  runs them, and never resolves to a runner that leaves them out (REQ-2412).
+- Where the language ships a detector for the defect class its programs most
+  often have, such as a race detector, `test` turns it on, and a repository
+  that turns it off has that recorded in the profile's table for the language
+  (REQ-2414).
+- A report of a clean verb names the rule groups or analyses enabled
+  (REQ-2432), and where the tool hides findings below a level by default, the
+  level it ran at (REQ-2444).
+- A supply-chain check states whether it covers transitive dependencies and
+  whether it reports a dependency's presence or its reachability (REQ-2436).
+
+### What a pack never changes
+
+- It never applies a fix its tool marks unsafe (REQ-2430).
+- It reports a suggestion to use a newer language feature, and applies none
+  during a check (REQ-2440).
+- A verb leaves no file in the working tree, and where the tool writes output
+  there by default, the pack points it outside the tree (REQ-2442).
+
+### What a pack keeps
+
+- Where the ecosystem has a machine-readable report format for a verb, the
+  pack collects the result in it, and where none exists it says the evidence
+  is captured output (REQ-2416).
+- Where a verb's tool deletes files unless the run asks for them, the pack
+  asks for them and names where it kept them (REQ-2418).
+- Its document states which of the ecosystem's generated files are project
+  state to commit and which are cache to ignore (REQ-2450).
+
+### Its tool's configuration and its versions
+
+A pack writes its tool's configuration to the project's conventions by
+printing it for the repository to commit, as `bind` prints a `[verbs]`
+table, and amends an existing configuration the same way (REQ-0082). Its
+README states the versions of its toolchain it is current as of, because a
+tool's defaults change under the same command name (REQ-0085).
+
 ### The skill
 
 The skill tells the model to run the program and never to guess a command. A
@@ -104,11 +233,13 @@ observed against.
 
 ## Failure paths
 
-| State                                   | Reported as                                  | Exit |
-| --------------------------------------- | -------------------------------------------- | ---- |
-| The language isn't detected             | `unresolved: not a <language> repository`    | 3    |
-| The profile is missing or doesn't parse | `unresolved: <what is wrong with the file>`  | 3    |
-| A tool the command runs isn't on `PATH` | `tool absent: <tool>`                        | 3    |
-| A tool exits on its own configuration   | `tool broken: <tool> exited <n>: <its line>` | 3    |
-| A tool prints output of another shape   | `tool broken: <tool> printed <first line>`   | 3    |
-| An unknown argument                     | the usage line                               | 2    |
+| State                                   | Reported as                                                 | Exit |
+| --------------------------------------- | ----------------------------------------------------------- | ---- |
+| The language isn't detected             | `unresolved: not a <language> repository`                   | 3    |
+| The profile is missing or doesn't parse | `unresolved: <what is wrong with the file>`                 | 3    |
+| A tool the command runs isn't on `PATH` | `tool absent: <tool>`                                       | 3    |
+| A tool exits on its own configuration   | `tool broken: <tool> exited <n>: <its line>`                | 3    |
+| A tool prints output of another shape   | `tool broken: <tool> printed <first line>`                  | 3    |
+| The language's host isn't detected yet  | `unresolved: <host> not detected`                           | 3    |
+| The pinned toolchain isn't installed    | `unresolved: <tool> <pinned> pinned, <installed> installed` | 3    |
+| An unknown argument                     | the usage line                                              | 2    |
