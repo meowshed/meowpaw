@@ -11,7 +11,6 @@ describes:
     meow-prose-gate@0.3.0,
     meow-scm@0.4.2,
     meow-checks@0.9.0,
-    meow-verbs@0.9.0,
   ]
 ---
 
@@ -138,7 +137,9 @@ isn't read, because it may be a fork.
 
 `meow-verbs is now meow-checks` means the unit you installed as `meow-verbs`
 was renamed, and the copy under the old name is a stub with no skill and no
-program. Move the install:
+program. The marketplace no longer lists the stub, so an install made before
+the removal keeps its cached copy and goes on printing this notice. Move the
+install:
 
 ```bash
 claude plugin install meow-checks@meowpaw
