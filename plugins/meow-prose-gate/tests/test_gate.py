@@ -20,6 +20,7 @@ import stat
 import subprocess
 import tempfile
 import textwrap
+import time
 import unittest
 from pathlib import Path
 
@@ -29,18 +30,20 @@ FINDING = re.compile(r'^(P[123]|J[123]) \| "(.*)" \| (.+)$')
 SCRATCH = tempfile.TemporaryDirectory()
 
 
-def judge(first=(), second=None, record=None, status=0, sleep=0, raw=None):
+def judge(first=(), second=None, record=None, status=0, sleep=0, raw=None, fork=0, error=None):
     """A stub judge: an executable answering the gate's two calls the way
     `claude -p --output-format json` does, from `first` and `second` (the same
     findings for both when `second` is None). It appends each call's standard
-    input to `record` where one is given."""
+    input to `record` where one is given, prints `error` on standard error,
+    and with `fork` leaves a child holding its output open that many seconds
+    after it exits."""
     answers = {"1": list(first), "2": list(first if second is None else second)}
     handle, name = tempfile.mkstemp(dir=SCRATCH.name, prefix="judge-")
     os.close(handle)
     path = Path(name)
     path.write_text(textwrap.dedent(f"""\
         #!/usr/bin/env python3
-        import json, os, sys, time
+        import json, os, subprocess, sys, time
         prompt = sys.stdin.read()
         if {str(record)!r} != "None":
             with open({str(record)!r}, "a", encoding="utf-8") as out:
@@ -51,6 +54,12 @@ def judge(first=(), second=None, record=None, status=0, sleep=0, raw=None):
         else:
             findings = {answers!r}[os.environ["MEOW_PROSE_GATE_CALL"]]
             print(json.dumps({{"type": "result", "structured_output": {{"findings": findings}}}}))
+        if {error!r} is not None:
+            print("starting the judge", file=sys.stderr)
+            print({error!r}, file=sys.stderr)
+        sys.stdout.flush()
+        if {fork}:
+            subprocess.Popen(["sleep", "{fork}"])
         sys.exit({status})
         """), encoding="utf-8")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
@@ -106,7 +115,7 @@ class FalseBlocksFromBug1230(unittest.TestCase):
 
 
 class TruePositives(unittest.TestCase):
-    """REQ-3183 and REQ-3187: one block per rule, each quoting a span found verbatim."""
+    """REQ-3183: one block per rule, each quoting a span found verbatim."""
 
     def assert_blocks(self, command, rule, span):
         done = gate(command)
@@ -283,15 +292,33 @@ class TheJudgedRules(unittest.TestCase):
     """ADR-2390: a judged finding blocks only where two judgements agree on a span the text holds."""
 
     def test_a_finding_both_judgements_report_blocks(self):
-        # REQ-3744
-        done = gate(COMMIT, judge([finding("J1", "circling back", "say you return to it")]))
+        # REQ-3744: the first judgement's fix is the one printed.
+        done = gate(COMMIT, judge([finding("J1", "circling back", "say you return to it")],
+                                  second=[finding("J1", "circling back", "write returning")]))
         self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
         self.assertEqual(done.stderr.splitlines(), ['J1 | "circling back" | say you return to it'])
 
     def test_a_finding_one_judgement_reports_passes(self):
-        # REQ-3744
-        done = gate(COMMIT, judge([finding("J1", "circling back")], second=[]))
-        self.assertEqual((done.returncode, done.stderr, done.stdout), (0, "", ""))
+        # REQ-3744, whichever of the two calls reports it.
+        for first, second in (([finding("J1", "circling back")], []), ([], [finding("J1", "circling back")])):
+            done = gate(COMMIT, judge(first, second=second))
+            self.assertEqual((done.returncode, done.stderr, done.stdout), (0, "", ""), (first, second))
+
+    def test_a_judged_span_inside_code_passes(self):
+        # REQ-3746: code font, URLs and identifiers name things, so no judged rule reads them.
+        for command, rule, span in (
+            ("git commit -m 'Name the `circling back` flag'", "J1", "circling back"),
+            ("git commit -m 'See https://example.com/perfect-storm now'", "J1", "perfect-storm"),
+            ("git commit -m 'Read the TTL_SECONDS setting'", "J2", "TTL"),
+            ("git commit -m 'Quote it\n\n```text\n**Why.** Because\n```'", "J3", "**Why.**"),
+        ):
+            done = gate(command, judge([finding(rule, span)]))
+            self.assertEqual((done.returncode, done.stderr, done.stdout), (0, "", ""), command)
+
+    def test_a_judged_span_outside_code_still_blocks_where_it_also_appears_inside(self):
+        # REQ-3744: one occurrence in prose is enough.
+        done = gate("git commit -m 'Name the `TTL` flag, the TTL of a page'", judge([finding("J2", "TTL")]))
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
 
     def test_a_finding_on_a_span_the_text_lacks_passes(self):
         # REQ-3746
@@ -329,8 +356,17 @@ class TheJudgedRules(unittest.TestCase):
     def test_a_failing_judge_is_reported_not_checked(self):
         self.assert_not_checked(judge(status=1), "exited 1")
 
+    def test_a_failing_judge_names_its_last_error_line(self):
+        self.assert_not_checked(judge(status=1, error="Not logged in"), "exited 1: Not logged in")
+
     def test_a_slow_judge_is_reported_not_checked(self):
         self.assert_not_checked(judge(sleep=50), "45 seconds")
+
+    def test_a_judge_whose_child_holds_its_output_is_stopped_at_the_limit(self):
+        # REQ-3748: the limit bounds the judge and everything it started.
+        started = time.monotonic()
+        self.assert_not_checked(judge(fork=70), "45 seconds")
+        self.assertLess(time.monotonic() - started, 55)
 
     def test_an_answer_outside_the_schema_is_reported_not_checked(self):
         self.assert_not_checked(judge([finding("J9", "server")]), "outside the schema")
