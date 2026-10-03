@@ -1,13 +1,15 @@
 ---
 id: ADR-2020
 artifact: adr
-status: approved
-revised: 2026-09-29
+status: superseded
+revised: 2026-10-03
 addresses: [REQ-0884, REQ-0888]
 supersedes: []
 ---
 
 # 2020. A run is bound to one step, finishes when the runner sees that step's work done at the current tree, and ends when it crosses a gate
+
+**Superseded by ADR-2380.**
 
 ## Decision
 

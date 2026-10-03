@@ -1,14 +1,16 @@
 ---
 id: ADR-2000
 artifact: adr
-status: approved
-revised: 2026-09-28
+status: superseded
+revised: 2026-10-03
 addresses: [REQ-2388, REQ-2392]
 postpones: [REQ-2372, REQ-2376, REQ-2390, REQ-2406]
 supersedes: []
 ---
 
 # 2000. An unattended run is planned from an authority the repository declares, and the plan starts nothing
+
+**Superseded by ADR-2380.**
 
 ## Decision
 
