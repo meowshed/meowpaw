@@ -3,6 +3,7 @@
 
 # What this unit may load on every turn, in characters (REQ-1056). The gate is
 # a command hook running the unit's program only when a publishing command
-# fires it, so nothing of it sits in context on a turn. Measured at 0 by
-# the budget check on 2026-09-28.
+# fires it, and the judge's prompt goes to a separate `claude -p` call, never
+# into the session, so nothing of it sits in context on a turn. Measured at 0
+# by the budget check on 2026-10-03.
 permanent_characters = 0

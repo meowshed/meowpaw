@@ -1,21 +1,51 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! Block a publish whose text breaks one of three exact rules.
+//! Block a publish whose text breaks one of three exact rules, or one of three
+//! judged rules that two judgements agree on.
 //!
-//! SPC-1010 states the behaviour and ADR-1600 decides it. The hook passes the
-//! tool call as JSON on standard input. `check` finds each `git commit` and
-//! `gh` command that publishes text, reads the text from its arguments and
-//! from the heredoc it reads as standard input, and blocks by exiting 2 with
-//! one line per finding on standard error, `P1 | "span" | fix`. Every span is
-//! a slice of the command itself, so it occurs there verbatim (REQ-3183), and
-//! each rule names its defect exactly (REQ-3187).
+//! SPC-1010 states the behaviour, and ADR-1600 and ADR-2390 decide it. The hook
+//! passes the tool call as JSON on standard input. `check` finds each `git
+//! commit` and `gh` command that publishes text, reads the text from its
+//! arguments and from the heredoc it reads as standard input, and blocks by
+//! exiting 2 with one line per finding on standard error, `P1 | "span" | fix`.
+//! Every span is a slice of the command itself, so it occurs there verbatim
+//! (REQ-3183). Where no exact rule fires, a judge reads the text twice, and a
+//! judged finding blocks only where both judgements report it (REQ-3744).
 
 use regex::Regex;
-use std::io::Read;
+use std::io::{Read, Write};
+use std::process::{Command, Stdio};
+use std::time::{Duration, Instant};
 
 const BLOCK: u8 = 2;
 const ALLOW: u8 = 0;
+
+/// The judge's instructions and the shape its answer must take, in the unit's
+/// `fragments/`, where SPC-1030 holds the prompt.
+const JUDGE_PROMPT: &str = "judge.md";
+const JUDGE_SCHEMA: &str = "judge.schema.json";
+/// The rules a judge may report, a closed list (REQ-3742).
+const JUDGED: [&str; 3] = ["J1", "J2", "J3"];
+/// A judge with no tool, plugin, hook or project instruction loaded (REQ-3750),
+/// followed by the schema.
+const JUDGE_ARGS: [&str; 12] = [
+    "-p",
+    "--safe-mode",
+    "--tools",
+    "",
+    "--no-session-persistence",
+    "--max-turns",
+    "1",
+    "--model",
+    "sonnet",
+    "--output-format",
+    "json",
+    "--json-schema",
+];
+/// Under the hook's 120-second timeout, so the gate reports a slow judge
+/// before the platform kills the hook.
+const JUDGE_LIMIT: Duration = Duration::from_secs(45);
 
 /// The closed list P1 holds, as ADR-1600 states it.
 pub const IDIOMS: [&str; 15] = [
@@ -91,13 +121,31 @@ pub fn main(args: &[String]) -> u8 {
                 return ALLOW;
             };
             let found = findings(command);
-            if found.is_empty() {
+            if !found.is_empty() {
+                for finding in &found {
+                    eprintln!("{} | \"{}\" | {}", finding.rule, finding.span, finding.fix);
+                }
+                return BLOCK;
+            }
+            let text = published_text(command);
+            if text.trim().is_empty() {
                 return ALLOW;
             }
-            for finding in &found {
-                eprintln!("{} | \"{}\" | {}", finding.rule, finding.span, finding.fix);
+            match judged(command, &text) {
+                Ok(agreed) if agreed.is_empty() => ALLOW,
+                Ok(agreed) => {
+                    for (rule, span, fix) in &agreed {
+                        eprintln!("{rule} | \"{span}\" | {fix}");
+                    }
+                    BLOCK
+                }
+                Err(cause) => {
+                    let message =
+                        format!("meow-prose-gate: the judged rules were not checked: {cause}");
+                    println!("{}", serde_json::json!({ "systemMessage": message }));
+                    ALLOW
+                }
             }
-            BLOCK
         }
         _ => {
             eprintln!("usage: meow-prose-gate check, with the hook's JSON on standard input");
@@ -136,6 +184,158 @@ pub fn findings(command: &str) -> Vec<Finding> {
         }
     }
     unique
+}
+
+/// The text a shell command publishes, each piece as the command holds it, one
+/// blank line between pieces.
+fn published_text(command: &str) -> String {
+    let mut pieces: Vec<String> = Vec::new();
+    for simple in parse(command) {
+        if let Some(published) = publishing(&simple) {
+            pieces.extend(published.texts.into_iter().map(|piece| piece.raw));
+        }
+    }
+    pieces.join("\n\n")
+}
+
+/// Each finding both judgements report on a span the text and the command
+/// hold, as rule, span and the first judgement's fix (REQ-3744, REQ-3746), or
+/// why the text couldn't be judged (REQ-3748).
+fn judged(command: &str, text: &str) -> Result<Vec<(String, String, String)>, String> {
+    let program = std::env::var("MEOW_PROSE_GATE_JUDGE").unwrap_or_else(|_| "claude".into());
+    let prompt = format!(
+        "{}\n<input>\n{}\n</input>\n",
+        fragment(JUDGE_PROMPT)?,
+        text.replace("</input>", "&lt;/input>")
+    );
+    let schema = fragment(JUDGE_SCHEMA)?;
+    let calls: Vec<_> = ["1", "2"]
+        .into_iter()
+        .map(|call| {
+            let (program, prompt, schema) = (program.clone(), prompt.clone(), schema.clone());
+            std::thread::spawn(move || judgement(&program, call, &prompt, &schema))
+        })
+        .collect();
+    // Both calls end before either result is read, so no judge outlives the gate.
+    let results: Vec<_> = calls
+        .into_iter()
+        .map(|call| {
+            call.join()
+                .unwrap_or_else(|_| Err("the judge's call panicked".into()))
+        })
+        .collect();
+    let mut answers = Vec::new();
+    for result in results {
+        answers.push(result?);
+    }
+    let mut agreed: Vec<(String, String, String)> = Vec::new();
+    for (rule, span, fix) in &answers[0] {
+        let both = answers[1].iter().any(|(r, s, _)| r == rule && s == span);
+        let held = text.contains(span.as_str()) && command.contains(span.as_str());
+        if both && held && !agreed.iter().any(|(r, s, _)| r == rule && s == span) {
+            agreed.push((rule.clone(), span.clone(), fix.clone()));
+        }
+    }
+    Ok(agreed)
+}
+
+/// A file in the unit's `fragments/`. The binary sits in the unit at
+/// `bin/<target>/meow`, so the unit is three directories above it.
+fn fragment(name: &str) -> Result<String, String> {
+    let exe = std::env::current_exe()
+        .and_then(std::fs::canonicalize)
+        .map_err(|error| format!("the gate could not find its own unit: {error}"))?;
+    let path = exe
+        .ancestors()
+        .nth(3)
+        .map(|unit| unit.join("fragments").join(name))
+        .ok_or_else(|| {
+            format!(
+                "the gate could not find its own unit from {}",
+                exe.display()
+            )
+        })?;
+    std::fs::read_to_string(&path)
+        .map_err(|error| format!("the judge's {} could not be read: {error}", path.display()))
+}
+
+/// One run of the judge, read as the findings its answer holds.
+fn judgement(
+    program: &str,
+    call: &str,
+    prompt: &str,
+    schema: &str,
+) -> Result<Vec<(String, String, String)>, String> {
+    let mut child = Command::new(program)
+        .args(JUDGE_ARGS)
+        .arg(schema)
+        .env("MEOW_PROSE_GATE_CALL", call)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|error| format!("the judge could not be started: {program}: {error}"))?;
+    if let Some(mut input) = child.stdin.take() {
+        let _ = input.write_all(prompt.as_bytes());
+    }
+    let mut stdout = child.stdout.take().expect("the judge's output is piped");
+    let reader = std::thread::spawn(move || {
+        let mut out = String::new();
+        let _ = stdout.read_to_string(&mut out);
+        out
+    });
+    let started = Instant::now();
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break status,
+            Ok(None) if started.elapsed() >= JUDGE_LIMIT => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(format!(
+                    "the judge ran past {} seconds",
+                    JUDGE_LIMIT.as_secs()
+                ));
+            }
+            Ok(None) => std::thread::sleep(Duration::from_millis(50)),
+            Err(error) => return Err(format!("the judge could not be waited for: {error}")),
+        }
+    };
+    let out = reader.join().unwrap_or_default();
+    if !status.success() {
+        return Err(match status.code() {
+            Some(code) => format!("the judge exited {code}"),
+            None => "the judge was stopped by a signal".into(),
+        });
+    }
+    answer(&out).ok_or_else(|| "the judge answered outside the schema".into())
+}
+
+/// The findings in a reply from `claude -p --output-format json`, or None where
+/// the reply doesn't match the schema the unit ships.
+fn answer(out: &str) -> Option<Vec<(String, String, String)>> {
+    let reply: serde_json::Value = serde_json::from_str(out.trim()).ok()?;
+    let structured = match reply.get("structured_output") {
+        Some(value) => value.clone(),
+        None => serde_json::from_str(reply.get("result")?.as_str()?).ok()?,
+    };
+    let object = structured.as_object()?;
+    if object.len() != 1 {
+        return None;
+    }
+    let mut found = Vec::new();
+    for item in object.get("findings")?.as_array()? {
+        let item = item.as_object()?;
+        if item.len() != 3 {
+            return None;
+        }
+        let field = |key: &str| item.get(key)?.as_str().map(str::to_string);
+        let (rule, span, fix) = (field("rule")?, field("span")?, field("fix")?);
+        if !JUDGED.contains(&rule.as_str()) || span.is_empty() || fix.is_empty() {
+            return None;
+        }
+        found.push((rule, span, fix));
+    }
+    Some(found)
 }
 
 struct Published {
@@ -818,6 +1018,46 @@ mod tests {
             rules("gh issue create --title x --body-file=body.md"),
             vec![("P3", "body.md".to_string())]
         );
+    }
+
+    #[test]
+    fn an_answer_is_read_from_the_structured_output_or_the_result() {
+        let finding =
+            r#"{"findings": [{"rule": "J2", "span": "CI", "fix": "say continuous integration"}]}"#;
+        let wanted = vec![(
+            "J2".into(),
+            "CI".into(),
+            "say continuous integration".into(),
+        )];
+        assert_eq!(
+            answer(&format!(r#"{{"structured_output": {finding}}}"#)),
+            Some(wanted.clone())
+        );
+        let quoted = serde_json::to_string(finding).unwrap();
+        assert_eq!(answer(&format!(r#"{{"result": {quoted}}}"#)), Some(wanted));
+    }
+
+    #[test]
+    fn an_answer_outside_the_schema_is_refused() {
+        for reply in [
+            "not json",
+            r#"{"structured_output": {"findings": [{"rule": "J4", "span": "x", "fix": "y"}]}}"#,
+            r#"{"structured_output": {"findings": [{"rule": "J1", "span": "", "fix": "y"}]}}"#,
+            r#"{"structured_output": {"findings": [{"rule": "J1", "span": "x"}]}}"#,
+            r#"{"structured_output": {"findings": [], "verdict": "ok"}}"#,
+            r#"{"structured_output": {}}"#,
+        ] {
+            assert_eq!(answer(reply), None, "{reply}");
+        }
+    }
+
+    #[test]
+    fn the_published_text_leaves_out_what_no_command_publishes() {
+        assert_eq!(
+            published_text("echo \"a\" && git commit -m \"Cache pages\" -m \"Skip the template\""),
+            "Cache pages\n\nSkip the template"
+        );
+        assert_eq!(published_text("git push"), "");
     }
 
     #[test]

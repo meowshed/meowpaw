@@ -76,7 +76,38 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Closed in the pull request from `feat/prose-gate-judge`, which closes
+REQ-3740, REQ-3742, REQ-3744, REQ-3746, REQ-3748, REQ-3750 and REQ-3752. The
+fixtures in `plugins/meow-prose-gate/tests/test_gate.py`, class
+`TheJudgedRules`, close the criteria a program can check, each committed
+first in a commit of its own:
+
+1. `test_a_finding_both_judgements_report_blocks` (REQ-3744), seen failing
+   first.
+2. `test_a_finding_one_judgement_reports_passes` (REQ-3744). It passed before
+   the judge existed, so it guards against a judge that blocks too eagerly.
+3. `test_a_finding_on_a_span_the_text_lacks_passes` (REQ-3746), which passed
+   first for the same reason.
+4. `test_an_exact_finding_calls_no_judge` (REQ-3740), which passed first for
+   the same reason.
+5. `test_a_missing_judge_is_reported_not_checked`,
+   `test_a_failing_judge_is_reported_not_checked`,
+   `test_a_slow_judge_is_reported_not_checked` and
+   `test_an_answer_outside_the_schema_is_reported_not_checked` (REQ-3748),
+   each seen failing first.
+6. `test_the_judge_loads_nothing` (REQ-3750), seen failing first.
+7. `test_the_schema_allows_exactly_the_judged_rules` (REQ-3742), seen failing
+   first.
+8. `test_every_hook_waits_long_enough_for_the_judge` (ADR-2390), seen failing
+   first.
+
+`meow-checks run format lint check test build` passed all five verbs on the
+branch. Criterion 9 was run once by hand on 2026-10-03 with Claude Code
+2.1.284, as `python3 plugins/meow-prose-gate/evals/hand_run.py 3`: the four
+BUG-1230 texts passed in three runs of three, and the J1, J2 and J3 texts each
+blocked in three runs of three, each call pair taking 3 to 6 seconds. The
+agent implementing the task ran it, not the owner, and an earlier run before
+the prompt named J3's span blocked the J3 text in one run of three only.
 
 Criterion 9 rests on a hand run judged by the owner, never on CI, because a
 run in CI would call a model on every change. It is a smoke check, and three

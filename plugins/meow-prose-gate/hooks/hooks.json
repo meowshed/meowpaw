@@ -8,85 +8,85 @@
             "type": "command",
             "if": "Bash(git commit *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh pr create *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh pr edit *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh pr comment *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh pr review *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh issue create *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh issue edit *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh issue comment *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh release create *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh release edit *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh -R *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(gh --repo *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(git -C *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           },
           {
             "type": "command",
             "if": "Bash(git -c *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-prose-gate check",
-            "timeout": 30
+            "timeout": 120
           }
         ]
       }
