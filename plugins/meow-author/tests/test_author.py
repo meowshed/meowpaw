@@ -489,11 +489,19 @@ class WriteSkill(unittest.TestCase):
         return found[0]
 
     def test_the_injection_rule_says_what_cheap_and_certain_mean(self):
-        """TSK-2701 criterion 1, REQ-2686: A6 says what makes injected material cheap and certain, the platform's
-        short timeout and a non-zero exit aborting the load, so a reader can tell whether a command meets it."""
+        """TSK-2701 criterion 1, REQ-2686: A6 says what makes injected material cheap and certain, as RES-0201
+        records it: a two-minute timeout, a non-zero exit aborting the invocation, and a test run that can exceed the
+        timeout, so a reader can tell whether a command meets it. Each clause must sit beside its own reason, so a
+        rule that permits what the research forbids fails."""
         body = self.body("A6")
-        self.assertIn("timeout", body)
-        self.assertIn("non-zero exit", body)
+        for clause in (r"cheap means it finishes inside the platform's two-minute timeout",
+                       r"a test run can exceed that",
+                       r"certain means it never exits non-zero, because a non-zero exit aborts the invocation",
+                       r"a setting can turn injection off"):
+            with self.subTest(clause=clause):
+                self.assertRegex(body, clause)
+        for wrong in ("ignore the timeout", "a non-zero exit is fine", "exit non-zero"):
+            self.assertNotIn(wrong, body)
 
     def test_only_d3_gives_the_turn_ceiling(self):
         """TSK-2701 criterion 1, REQ-2974: the rule for `maxTurns` is D3 alone, so D9's mention of a ceiling can't
