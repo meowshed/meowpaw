@@ -1033,6 +1033,9 @@ fn start(args: &[String]) -> u8 {
     let Some(unit) = own_unit() else {
         return refuse("meow-loop's own directory can't be found from its program's path");
     };
+    for line in profile::report(&profile::read(&root)) {
+        println!("{line}");
+    }
     let mut commands = Vec::new();
     let mut unresolved = false;
     for verb in &terms.verbs {

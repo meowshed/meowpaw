@@ -253,13 +253,21 @@ Listed in reading order: each specification after every one it cites.
 at #27. It records that REQ-0930 is unmet: the style applies when a person
 selects it, and not on its own.
 
+[SPC-1240](specs/SPC-1240-the-hooks-the-harness-ships.md) states the rules
+every hook the harness ships keeps: how it answers, how much it does, the
+prose gate's judge as the one call to the network, what a hook does when its
+program is missing, and the revision counter. EPC-2520 and EPC-2525 realise
+it, and none of that work has started.
+
 [SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to what
 the harness says is measured,
 [SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
 prompt the harness ships is written, what an agent declares, which EPC-1650
 realises, and what an agent reports, which EPC-1651 realises, and
 [SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
-which follows both. The work realising them has landed.
+which follows both. The work realising them has landed, except what EPC-2525,
+EPC-2530 and EPC-2550 realise: the tools a unit requests traced to a step,
+when a step delegates, and the check that the method names no language.
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
 launchers, its release, the marketplace address and the checks the crate
@@ -273,11 +281,17 @@ EPC-2330 realises, each unit's plugin contract, which EPC-2340 realises, and
 the threat model, which TSK-4380 holds; none of that work has started. It
 states the unattended install, which TSK-4600 realises, and the release's
 attestation and the report of the trunk's protections, which EPC-2420
-realises; that work hasn't started either.
+realises; that work hasn't started either. It also states where the harness
+writes and that it never touches a secret, which EPC-2525 realises, the
+interface page generated from the tool, which TSK-4940 realises, the parts a
+repository declares, which EPC-2555 realises, and the packs that stay
+optional, which EPC-2550 realises; none of that is built yet.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-checks` implements it, checked under
-issue 115.
+issue 115. A verb resolved per part, which EPC-2555 realises, the revision
+counter, which EPC-2520 realises, and `doctor`, which TSK-4965 realises,
+aren't built yet.
 
 [SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
 convention and its check, and `meow-scm` implements it, verified under issue 130.
@@ -286,23 +300,27 @@ breaking mark.
 
 [SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, and
 `meow-git` implements it, verified under issue 392. The restack, which
-EPC-2430 realises, isn't built yet.
+EPC-2430 realises, the denial on a missing binary, which EPC-2525 realises,
+and the rules for sparse working trees, which EPC-2555 realises, aren't built
+yet.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
 checked, and `meow-flow` implements it, verified under issue 404, and the
 grouping fields and `dependency-declared` ADR-1800 adds, which EPC-1710
-realised, were verified under issue 625.
+realised, were verified under issue 625. The kinds a repository declares and
+the document a task produces, which EPC-2535 realises, the frozen insight,
+which TSK-4960 pins, and the record's layout, which EPC-2570 pins, aren't
+built yet.
 
 [SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
-run's plan: the authority a repository declares, the command `plan` prints,
-and the snapshot it writes. `meow-unattended` implements it, verified under
-issue 626.
+run's posture: the table a repository declares, the deny rules it yields, how
+a run decides a gate, lands and releases its work, and its report. EPC-2300
+realises it, and none of that work has started.
 
-[SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: the
-terms a person starts a run with, the step it's bound to and that step's
-test, the files a run keeps, each call, the order of its checks, its eight
-endings and the guards that stop the model starting a run or deciding a
-status.
+[SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: a run
+inside the session a person starts it in, the three hooks that start it,
+repeat it and guard it, the files it keeps and its six endings. EPC-2300
+realises it, and none of that work has started.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -313,7 +331,9 @@ which EPC-2000 realises, and the outcome each dispatched agent reports, which
 ADR-1710 adds and EPC-1651 realises. The blocking dependency ADR-1800 adds, which EPC-1710
 realised, was verified under issue 625. Stacked tasks, which EPC-2430
 realises, and a task's state read from the task, which EPC-2460 realises,
-aren't built yet.
+aren't built yet. Neither are the brief a delegated agent gets, which EPC-2530
+realises, the questions every specification answers, which EPC-2545 realises,
+and this repository held to its own method, which EPC-2570 realises.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
@@ -322,7 +342,9 @@ the record contradicts itself, and each requirement's derived state.
 
 [SPC-1110](specs/SPC-1110-the-documentation.md) states the documentation the
 harness writes for its users: each unit's page, the introduction, the route
-file for agents, the catalogue fields and the check that holds them.
+file for agents, the catalogue fields and the check that holds them. The
+interface page, which TSK-4940 generates, and the supported set, which
+EPC-2560 lists, aren't written yet.
 
 [SPC-1120](specs/SPC-1120-the-licensing-unit.md) states the licensing unit:
 where a repository declares its licensing, the skill that applies a header and
@@ -343,12 +365,14 @@ how it reports remote includes and secret variables.
 pack keeps: detection from tracked files, what it runs and writes, its exit
 statuses and its skill. [SPC-1195](specs/SPC-1195-the-markdown-pack.md) states
 the Markdown pack within it. `meow-markdown` implements both, which EPC-1800
-realised, verified under issue 624.
+realised, verified under issue 624. The supported packs in their order, which
+EPC-2560 realises, the rules every pack keeps, which EPC-2565 realises, and
+the diagram check, which EPC-2540 realises, aren't built yet.
 
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
 what this repository keeps under `.github/`: the community files, which
 TSK-4610 realises, and the rules every workflow holds, which EPC-2420
-realises. None of it is built yet.
+realises. The community files are built, and the workflow rules aren't yet.
 
 [SPC-1230](specs/SPC-1230-the-vision.md) states the vision's sections, what
 `paw check` reports in it and what the design step asks of it, which EPC-2450
@@ -575,6 +599,11 @@ ADR-2010 addresses lands in one of them.
 four tasks, TSK-3410 to TSK-3440, all of them done, and each of the two
 requirements ADR-2020 addresses lands in one of them.
 
+[EPC-2300](epics/EPC-2300-a-run-lives-in-the-session-and-decides-merges-and-releases-itself.md)
+realises ADR-2380 in four tasks, TSK-4100 to TSK-4130, which move the run
+into the session and let it decide, merge and release on its own. None has
+started.
+
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
 evidence, and was verified against every acceptance criterion under issue 625.
@@ -626,11 +655,11 @@ and each of the nine requirements ADR-2400 addresses lands in one of them.
 realises ADR-2480 in four tasks, TSK-4390 to TSK-4420, none of them started,
 and each of the fifteen requirements ADR-2480 addresses lands in one of them.
 
-TSK-4360 realises ADR-2410 directly: `paw find` states its mode and counts
-artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill bounds a
-tool that runs source control operations. TSK-4380 realises ADR-2470
-directly: the design step points at the threat model SPC-1080 keeps. None of
-the three is started.
+TSK-4360 realises ADR-2410 directly, and is done: `paw find` states its mode
+and counts artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill
+bounds a tool that runs source control operations. TSK-4380 realises ADR-2470
+directly: the design step points at the threat model SPC-1080 keeps. Neither
+of the last two is started.
 
 [EPC-2420](epics/EPC-2420-workflows-start-read-only-and-a-release-carries-an-attestation.md)
 realises ADR-2520 in three tasks, TSK-4620 to TSK-4640, none of them started,
@@ -655,9 +684,66 @@ one of them.
 
 TSK-4600 realises ADR-2500 directly: every unit installs with no person, and
 agent-neutral material is written once. TSK-4610 realises ADR-2510 directly:
-the community files sit under `.github/`. Neither is started. TSK-4650
-realises ADR-2530 directly, and is closed with evidence: the commit check
-holds the sign-off route, the named trailers and the breaking mark.
+the community files sit under `.github/`, and it's done. TSK-4650 realises
+ADR-2530 directly, and is closed with evidence: the commit check holds the
+sign-off route, the named trailers and the breaking mark. TSK-4600 is not
+started.
+
+[EPC-2520](epics/EPC-2520-every-shipped-hook-is-held-to-one-set-of-answers.md)
+realises ADR-2450, which ADR-2700 amends, in four tasks, TSK-4900 to TSK-4915,
+none of them started, and each of the twelve requirements ADR-2450 addresses
+lands in one of them.
+
+[EPC-2525](epics/EPC-2525-each-unit-requests-only-what-a-step-names-and-a-missing-program-denies.md)
+realises ADR-2460, which ADR-2710 amends, in four tasks, TSK-4920 to TSK-4935,
+none of them started, and each of the five requirements ADR-2460 addresses
+lands in one of them.
+
+[EPC-2530](epics/EPC-2530-a-delegated-agent-gets-a-brief-built-from-the-record.md)
+realises ADR-2560, which ADR-2730 amends, in three tasks, TSK-4945 to
+TSK-4955, none of them started, and each of the ten requirements ADR-2560
+addresses lands in one of them.
+
+[EPC-2535](epics/EPC-2535-a-repository-declares-its-own-kinds-and-each-inherits-every-obligation.md)
+realises ADR-2600 in three tasks, TSK-4970 to TSK-4980, none of them started,
+and each of the seven requirements ADR-2600 addresses lands in one of them.
+
+[EPC-2540](epics/EPC-2540-a-diagram-is-mermaid-in-the-document-and-checked-with-it.md)
+realises ADR-2620 in three tasks, TSK-4985 to TSK-4995, none of them started,
+and each of the seven requirements ADR-2620 addresses lands in one of them.
+
+[EPC-2545](epics/EPC-2545-every-specification-answers-a-fixed-question-list.md)
+realises ADR-2630 in three tasks, TSK-5000 to TSK-5010, none of them started,
+and each of the three requirements ADR-2630 addresses lands in one of them.
+
+[EPC-2550](epics/EPC-2550-a-check-holds-the-method-to-naming-no-language-and-every-pack-stays-optional.md)
+realises ADR-2640 in four tasks, TSK-5015 to TSK-5030, none of them started,
+and each of the nine requirements ADR-2640 addresses lands in one of them.
+
+[EPC-2555](epics/EPC-2555-a-repository-declares-its-parts-and-each-verb-resolves-per-part.md)
+realises ADR-2650 in four tasks, TSK-5050 to TSK-5065, none of them started,
+and each of the twelve requirements ADR-2650 addresses lands in one of them.
+
+[EPC-2560](epics/EPC-2560-the-supported-set-is-declared-and-each-language-gets-a-pack.md)
+realises ADR-2660 in ten tasks, TSK-5070 to TSK-5115, none of them started:
+the supported set, then one pack for each language in the order ADR-2660
+states. Each of the fourteen requirements ADR-2660 addresses lands in one of
+them, and REQ-2356 stays postponed.
+
+[EPC-2565](epics/EPC-2565-every-language-pack-keeps-one-set-of-rules.md)
+realises ADR-2670 in four tasks, TSK-5120 to TSK-5135, none of them started,
+and each of the eighteen requirements ADR-2670 addresses lands in one of them.
+
+[EPC-2570](epics/EPC-2570-the-harness-is-held-to-its-own-method-and-the-source-repositories-test-it.md)
+realises ADR-2690 in three tasks, TSK-5035 to TSK-5045, none of them started,
+and each of the five requirements ADR-2690 addresses lands in one of them.
+TSK-5045 waits on the owner to name the first repository to migrate.
+
+TSK-4940 realises ADR-2490 directly, as ADR-2720 amends it: the interface page
+is generated from the tool's documentation comments. TSK-4960 realises
+ADR-2610 directly: an approved insight is pinned as frozen, and the model may
+write one. TSK-4965 realises ADR-2680 directly: `meow-checks doctor` answers
+whether the repository can be worked on. None of the three is started.
 
 ## Defects
 

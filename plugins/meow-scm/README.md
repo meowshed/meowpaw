@@ -50,6 +50,7 @@ request title, the `meow-scm:commit` skill has it read your convention, write
 the message, and check the exact text it will use:
 
 ```text
+profile: parsed
 line 1: subject length: 78 characters, over the limit of 72
 line 6: trailer: the `Signed-off-by` trailer is missing
 meow-scm check-message: 2 problems; don't use this message until they are fixed
@@ -63,6 +64,8 @@ with no `BREAKING CHANGE:` trailer, and any line that credits a tool, an agent
 or a vendor. A break is a subject carrying `!` or a type you declared as
 `major`. It exits 0 when the message meets your convention and 1 when it
 doesn't.
+`convention` and `check-message` both open with the profile's state and name
+each key no unit reads as `unknown key: <path>`, which changes no exit status.
 
 The ban on crediting a tool holds whatever your profile says. Where you
 declare no convention, the check applies the ban alone and exits 3, so a

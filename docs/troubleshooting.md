@@ -5,12 +5,12 @@ kind: troubleshooting
 describes:
   [
     meow-core@0.6.1,
-    meow-git@0.2.3,
-    meow-github@0.13.0,
-    meow-flow@0.46.4,
+    meow-git@0.3.0,
+    meow-github@0.14.0,
+    meow-flow@0.47.0,
     meow-prose-gate@0.4.0,
     meow-scm@0.5.0,
-    meow-checks@0.9.0,
+    meow-checks@0.10.0,
   ]
 ---
 
@@ -54,7 +54,18 @@ as passed. The words after it say why:
 - `malformed declaration: the value isn't one command`: the verb's value is
   a list or a table. Write one command as a string, joining several with `&&`.
 - `profile unparseable`: the file isn't valid TOML, and the words after it
-  say what the parser found, such as `invalid table header`. Fix the file.
+  say on which line and what the parser found, such as
+  ``line 3: unclosed table, expected `]` ``. Fix the file.
+
+## A setting has no effect
+
+`unknown key: verbs.tset` means `.meowpaw/profile.toml` holds a key that no
+unit of the harness reads, so the setting did nothing. Every command that
+reads the profile names such a key and goes on with the exit status it would
+have had, because a profile written for a newer unit must still work with an
+older one. Correct the key's spelling, here `test`, or remove it. If the
+documentation of a unit names the key, update that unit, because the
+installed version predates the key.
 
 ## A commit on the trunk was refused
 

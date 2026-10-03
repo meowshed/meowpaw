@@ -19,7 +19,6 @@ use std::path::Path;
 
 const DEFAULT_LIMIT: i64 = 72;
 const MEANINGS: [&str; 4] = ["major", "minor", "patch", "none"];
-const KEYS: [&str; 4] = ["types", "subject_limit", "trailers", "may_name"];
 const MET: u8 = 0;
 const VIOLATED: u8 = 1;
 const USAGE: u8 = 2;
@@ -50,7 +49,8 @@ struct Convention {
     limit: i64,
     trailers: Vec<String>,
     may_name: Vec<String>,
-    ignored: Vec<String>,
+    /// The lines naming the profile's state and its unknown keys (SPC-1080).
+    profile: Vec<String>,
     malformed: Vec<String>,
 }
 
@@ -62,10 +62,12 @@ fn convention(root: &Path) -> Convention {
         limit: DEFAULT_LIMIT,
         trailers: Vec::new(),
         may_name: Vec::new(),
-        ignored: Vec::new(),
+        profile: Vec::new(),
         malformed: Vec::new(),
     };
-    let data = match profile::read(root) {
+    let read = profile::read(root);
+    found.profile = profile::report(&read);
+    let data = match read {
         Profile::Absent => {
             found.state = "undeclared";
             found.detail = format!("{PROFILE} doesn't exist");
@@ -76,7 +78,7 @@ fn convention(root: &Path) -> Convention {
             found.detail = error;
             return found;
         }
-        Profile::Parsed(data) => data,
+        Profile::Parsed(data, _) => data,
     };
     let table = match data.get("commits") {
         Some(toml::Value::Table(table)) => table,
@@ -87,11 +89,6 @@ fn convention(root: &Path) -> Convention {
         }
     };
 
-    found.ignored = table
-        .keys()
-        .filter(|key| !KEYS.contains(&key.as_str()))
-        .map(|key| format!("commits.{key}"))
-        .collect();
     match table.get("types") {
         None => {}
         Some(toml::Value::Table(types)) => {
@@ -149,6 +146,9 @@ fn convention(root: &Path) -> Convention {
 
 fn report_convention(root: &Path) -> u8 {
     let found = convention(root);
+    for line in &found.profile {
+        println!("{line}");
+    }
     if found.state != "declared" {
         println!("meow-scm convention: {} ({})", found.state, found.detail);
         return UNDECLARED;
@@ -172,9 +172,6 @@ fn report_convention(root: &Path) -> u8 {
     println!("may name       {named}");
     for problem in &found.malformed {
         println!("malformed      {problem}");
-    }
-    if !found.ignored.is_empty() {
-        println!("\nNot read by meow-scm: {}", found.ignored.join(", "));
     }
     MET
 }
@@ -409,6 +406,9 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
             .any(|(_, line)| signed_by(line).is_some());
     let author = if signed { author(root) } else { None };
     let mut listed = problems_by(&message, &found, author.as_deref());
+    for line in &found.profile {
+        println!("{line}");
+    }
     let mut notes = Vec::new();
     if signed {
         match &author {
@@ -649,9 +649,12 @@ mod tests {
         // TSK-4650 criterion 5: a profile declaring may_name isn't told the key is unknown.
         let found = declared(&format!("may_name = [\"{ADA}\"]"));
         assert!(
-            !found.ignored.iter().any(|key| key == "commits.may_name"),
+            !found
+                .profile
+                .iter()
+                .any(|line| line == "unknown key: commits.may_name"),
             "{:?}",
-            found.ignored
+            found.profile
         );
     }
 }

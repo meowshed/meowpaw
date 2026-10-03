@@ -159,8 +159,19 @@ pub fn main(args: &[String]) -> u8 {
     }
 }
 
+/// Prints the profile's state and its unknown keys on standard error, because
+/// standard output is what a step reads, such as a template or an identifier
+/// (SPC-1080).
+fn report_profile(repository: &Path) {
+    for line in profile::report(&profile::read(repository)) {
+        eprintln!("{line}");
+    }
+}
+
 /// The record at the declared root, or the exit code and why it can't be read.
 fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
+    let repository = profile::repository_root();
+    report_profile(&repository);
     let layout = match load_layout() {
         Ok(layout) => layout,
         Err(reason) => {
@@ -168,7 +179,6 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
             return Err(UNCHECKED);
         }
     };
-    let repository = profile::repository_root();
     let root = match record_root(&repository) {
         Ok(root) => root,
         Err(reason) => {
@@ -810,7 +820,7 @@ fn record_root(repository: &Path) -> Result<PathBuf, String> {
 /// `project`.
 pub(crate) fn declared_root(repository: &Path) -> Result<String, String> {
     let declared = match profile::read(repository) {
-        Profile::Parsed(data) => data
+        Profile::Parsed(data, _) => data
             .get("record")
             .and_then(|r| r.as_table())
             .and_then(|r| r.get("root"))
@@ -3214,7 +3224,7 @@ enum Trunk {
 
 fn trunk_of(repository: &Path, root: &Path) -> Trunk {
     let table = match profile::read(repository) {
-        Profile::Parsed(table) => table,
+        Profile::Parsed(table, _) => table,
         _ => toml::Table::new(),
     };
     let Some(name) = table
@@ -4408,7 +4418,8 @@ fn count_record(rest: &[String]) -> u8 {
 
 /// Artifacts whose identifier, title or conclusion carry the words, ranked by
 /// how many they carry: identifiers and headings first, never a body
-/// (ADR-1180).
+/// (ADR-1180). It reads every artifact, so it says `exhaustive`, and it
+/// counts artifacts, never matching lines (ADR-2410).
 fn find(rest: &[String]) -> u8 {
     if rest.is_empty() {
         eprintln!("usage: paw find <word>...");
@@ -4420,12 +4431,23 @@ fn find(rest: &[String]) -> u8 {
     };
     let words: Vec<String> = rest.iter().map(|w| w.to_lowercase()).collect();
     let mut hits: Vec<(usize, String, String)> = Vec::new();
+    let mut read = 0;
     for doc in &record.docs {
         let id = bare(doc.id());
         if id.is_empty() || doc.is_index {
             continue;
         }
+        read += 1;
+        let kind = kind_of(&record, doc);
         let concluded = conclusion(&record, doc);
+        // A research record's conclusion is its Summary's first sentence;
+        // every other conclusion is a title or a statement.
+        let named = format!("{id} {}", title(doc)).to_lowercase();
+        let section = if kind == "research" && !words.iter().any(|w| named.contains(w.as_str())) {
+            "Summary"
+        } else {
+            "front matter"
+        };
         // A requirement's heading is its identifier, so its statement heads it.
         let heading = if title(doc) == id {
             concluded.clone()
@@ -4439,14 +4461,15 @@ fn find(rest: &[String]) -> u8 {
             .count();
         if score > 0 {
             let line = format!(
-                "{id} {}, {}: {heading}",
-                kind_of(&record, doc),
-                bare(doc.value("status"))
+                "{id} {kind}, {}: {heading} ({}, {section})",
+                bare(doc.value("status")),
+                doc.shown
             );
             hits.push((score, id.to_string(), line));
         }
     }
     hits.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    say!("exhaustive: read {read} artifacts");
     if hits.is_empty() {
         say!("paw find: nothing in the record carries {}", rest.join(" "));
         return FOUND;
@@ -4454,9 +4477,7 @@ fn find(rest: &[String]) -> u8 {
     for (_, _, line) in hits.iter().take(20) {
         say!("{line}");
     }
-    if hits.len() > 20 {
-        say!("... and {} more; narrow the words", hits.len() - 20);
-    }
+    say!("artifacts matched: {}", hits.len());
     CLEAN
 }
 
