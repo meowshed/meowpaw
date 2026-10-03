@@ -2411,9 +2411,8 @@ const STEPS: [&str; 7] = [
     "review",
 ];
 
-/// The steps ADR-2300 retired. Only the `enters` rule reads them: an approved
-/// defect triaged while they were steps keeps its `enters`, and `paw ready`
-/// refuses them as any step it doesn't know (ADR-2350).
+/// The steps ADR-2300 retired. The `enters` rule reads them: an approved defect
+/// triaged while they were steps keeps its `enters` (ADR-2350).
 const RETIRED_STEPS: [&str; 3] = ["cover", "document", "verify"];
 const TEMPLATES: [&str; 12] = [
     "research",

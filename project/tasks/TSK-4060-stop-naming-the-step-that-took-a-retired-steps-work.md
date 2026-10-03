@@ -53,21 +53,30 @@ Nothing.
 ## Evidence
 
 `python3 -m unittest discover -s plugins/meow-flow/tests` exits 0 on this
-change, reporting `Ran 271 tests` and `OK`. `test_a_retired_step_is_an_unknown_step`
-in `plugins/meow-flow/tests/test_record.py` closes criterion 1 and replaces
-`test_a_retired_step_names_what_replaced_it`. It failed first in the checks'
-own commit, where `paw ready cover` printed `cover is part of implement
-(ADR-2300)`. `test_a_defect_may_enter_at_cover` closes criterion 2 and passes
-unchanged. Criterion 3 rests on judgement, because the README is prose a person
-reads. A search of `plugins/meow-flow/README.md` for "for one release" finds
-nothing now, and `paw ready cover TSK-0001` prints the unknown step line and
-exits 2. Criterion 4 is closed by the five verbs' outcomes in this task's pull
-request, since no run output is kept.
+change, reporting `Ran 271 tests` and `OK`, and `meow-checks run format lint
+check test build` exits 0 on it, as this task's pull request, #808, shows.
+`test_a_retired_step_is_an_unknown_step` in
+`plugins/meow-flow/tests/test_record.py` closes criterion 1 and replaces
+`test_a_retired_step_names_what_replaced_it`. It compares the standard error
+with the unknown step line exactly, for the three names and for `bogus`, and
+it failed against the commit before the change, where `paw ready cover`
+printed `cover is part of implement (ADR-2300)`. `test_a_defect_may_enter_at_cover`
+closes criterion 2 and passes unchanged. Criterion 3 rests on judgement,
+because the README is prose a person reads. A search of
+`plugins/meow-flow/README.md` for "for one release" finds nothing now, and
+`paw ready cover TSK-0001` prints the unknown step line and exits 2.
 
 `ready` in `crates/meow/src/record.rs` no longer tests for a retired step, and
-`RETIRED_STEPS` keeps the three names alone, which only the `enters` rule
-reads. Its comment said the names were read "for one release", which was no
-longer true, and now says what the names are for. `meow-flow` goes to 0.46.4.
+`RETIRED_STEPS` keeps the three names alone, which the `enters` rule reads. Its
+comment said the names were read "for one release", which was no longer true,
+and now says what the names are for. `meow-flow` goes to 0.46.4, and the
+`describes` marker of two documentation pages moves with it.
+
+ADR-2350's "Why" says the three names appear only in the refusal, one test of
+it, the unit's README and the grandfathering of approved defects. Two more
+tests name them: `test_a_retired_step_is_refused_in_a_draft_defect_only` and
+`test_a_defect_may_enter_at_cover`. The decision doesn't depend on the count.
+An approved decision can't be reworded, so the correction is recorded here.
 
 ## Left alone
 
