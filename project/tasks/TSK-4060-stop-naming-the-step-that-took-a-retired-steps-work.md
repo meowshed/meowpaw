@@ -52,7 +52,22 @@ Nothing.
 
 ## Evidence
 
-Not yet. This line stays first until every verb has passed.
+`python3 -m unittest discover -s plugins/meow-flow/tests` exits 0 on this
+change, reporting `Ran 271 tests` and `OK`. `test_a_retired_step_is_an_unknown_step`
+in `plugins/meow-flow/tests/test_record.py` closes criterion 1 and replaces
+`test_a_retired_step_names_what_replaced_it`. It failed first in the checks'
+own commit, where `paw ready cover` printed `cover is part of implement
+(ADR-2300)`. `test_a_defect_may_enter_at_cover` closes criterion 2 and passes
+unchanged. Criterion 3 rests on judgement, because the README is prose a person
+reads. A search of `plugins/meow-flow/README.md` for "for one release" finds
+nothing now, and `paw ready cover TSK-0001` prints the unknown step line and
+exits 2. Criterion 4 is closed by the five verbs' outcomes in this task's pull
+request, since no run output is kept.
+
+`ready` in `crates/meow/src/record.rs` no longer tests for a retired step, and
+`RETIRED_STEPS` keeps the three names alone, which only the `enters` rule
+reads. Its comment said the names were read "for one release", which was no
+longer true, and now says what the names are for. `meow-flow` goes to 0.46.4.
 
 ## Left alone
 

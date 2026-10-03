@@ -2213,7 +2213,7 @@ fn rules(record: &Record) -> Vec<Finding> {
                     let line = doc.field("enters").map(|f| f.line);
                     // A defect approved while cover was a step keeps the step it
                     // was triaged to (ADR-2300); a draft names a step in force.
-                    let retired = RETIRED_STEPS.iter().any(|(name, _)| *name == enters);
+                    let retired = RETIRED_STEPS.contains(&enters);
                     if !enters.is_empty()
                         && !STEPS.contains(&enters)
                         && !(retired && !is_draft(doc))
@@ -2411,16 +2411,10 @@ const STEPS: [&str; 7] = [
     "review",
 ];
 
-/// The steps ADR-2300 retired, each with what took its work, read for one
-/// release so an old prompt is told where to go (REQ-3638).
-const RETIRED_STEPS: [(&str, &str); 3] = [
-    ("cover", "cover is part of implement"),
-    ("document", "document is part of implement"),
-    (
-        "verify",
-        "verify is gone: a requirement closes with the tasks that name it",
-    ),
-];
+/// The steps ADR-2300 retired. Only the `enters` rule reads them: an approved
+/// defect triaged while they were steps keeps its `enters`, and `paw ready`
+/// refuses them as any step it doesn't know (ADR-2350).
+const RETIRED_STEPS: [&str; 3] = ["cover", "document", "verify"];
 const TEMPLATES: [&str; 12] = [
     "research",
     "requirement",
@@ -2629,10 +2623,6 @@ fn ready(rest: &[String]) -> u8 {
         return USAGE;
     };
     let step = step.as_str();
-    if let Some((_, said)) = RETIRED_STEPS.iter().find(|(name, _)| *name == step) {
-        eprintln!("paw ready: {said} (ADR-2300)");
-        return USAGE;
-    }
     if !STEPS.contains(&step) {
         eprintln!(
             "paw ready: no step is named {step}; the steps are {}",

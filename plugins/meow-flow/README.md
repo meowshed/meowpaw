@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.46.3]
+describes: [meow-flow@0.46.4]
 ---
 
 # meow-flow
@@ -94,8 +94,7 @@ To run one step yourself, ask for it by name, such as "run the design step for
 
 A task's pull request carries the whole task: its tests first, in a commit of
 their own where they fail, then the implementation, the documentation it
-changes and its record marks. `paw ready cover`, `document` and `verify` name
-the step that took their work and exit 2, for one release.
+changes and its record marks.
 
 The implement step writes to the documentation style you declare in
 `.meowpaw/profile.toml`, as a path to your style guide or the name of an
