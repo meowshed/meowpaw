@@ -210,6 +210,9 @@ A unit whose output already prefixes each line with its command, such as
 `meow-markdown bind` print them on standard error, because their standard
 output is what a step reads or a person pastes, such as a template, an
 identifier or a table for the profile.
+`meow-loop`'s guard, a hook that judges each tool call during a run, prints
+nothing about the profile, because a line on every call would bury the
+refusals it exists to make.
 
 A personal profile, `.meowpaw/profile.local.toml`, sits beside the shared one
 and holds `[verbs]` only, in the forms the shared one takes. The tool reads it after

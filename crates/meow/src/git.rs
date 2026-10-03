@@ -290,7 +290,10 @@ fn push_guard(root: &Path) -> u8 {
     } else {
         Vec::new()
     };
-    let mut notes: Vec<String> = policy.profile.clone();
+    for line in &policy.profile {
+        println!("meow-git push-guard: {line}");
+    }
+    let mut notes: Vec<String> = Vec::new();
     if !policy.declared {
         notes.push("no [git] table: the trunk and the signing policy are undeclared".to_string());
     }

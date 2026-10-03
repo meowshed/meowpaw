@@ -96,12 +96,12 @@ find, and a task that can skip run without `--force`. It also reports each
 remote include in your Taskfiles, whether or not a verb uses it. It exits 0 on
 no finding, 1 on a finding and 3 when it can't read the profile or Task.
 
-## What it reports instead of a list
-
 `check` reads the profile, so it prints the profile's state,
 `profile: absent`, `profile: unparseable` or `profile: parsed`, and
 `unknown key: <path>` for each key no unit reads, which changes no exit
 status.
+
+## What it reports instead of a list
 
 No command ever reports a state it couldn't read as an empty list; each exits
 3 with one of these:

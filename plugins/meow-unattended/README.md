@@ -88,6 +88,11 @@ From your own shell, run the same launcher by its path in the installed unit.
 `meow-unattended plan --purge` removes every snapshot of the work tree and
 prints how many it removed.
 
+`plan` first prints the profile's state, `profile: absent`,
+`profile: unparseable` or `profile: parsed`, and `unknown key: <path>` for
+each key no unit reads, such as a mistyped `[unattended]` key. An unknown key
+is no refusal.
+
 ## The snapshot
 
 `plan` writes the snapshot as JSON to
@@ -127,11 +132,6 @@ it.
   retires it without editing its file, so no deny rule stops it.
 
 ## What it reports instead of a plan
-
-`plan` first prints the profile's state, `profile: absent`,
-`profile: unparseable` or `profile: parsed`, and `unknown key: <path>` for
-each key no unit reads, such as a mistyped `[unattended]` key. An unknown key
-is no refusal.
 
 `plan` reports every refusal it finds, each on its own line, exits 3 and
 writes no snapshot:

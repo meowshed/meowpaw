@@ -93,12 +93,12 @@ that can skip as fresh run without `--force`. It exits 0 on no finding, 1 on a
 finding and 3 when it can't read the profile or mise, so you can run it in
 your own gate.
 
-## What it reports instead of a list
-
 `check` reads the profile, so it prints the profile's state,
 `profile: absent`, `profile: unparseable` or `profile: parsed`, and
 `unknown key: <path>` for each key no unit reads, which changes no exit
 status.
+
+## What it reports instead of a list
 
 `status` exits 0 when it reports the tasks and 3 when it can't, and no command
 ever reports a state it couldn't read as an empty list:

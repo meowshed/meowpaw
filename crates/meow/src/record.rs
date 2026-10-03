@@ -159,8 +159,19 @@ pub fn main(args: &[String]) -> u8 {
     }
 }
 
+/// Prints the profile's state and its unknown keys on standard error, because
+/// standard output is what a step reads, such as a template or an identifier
+/// (SPC-1080).
+fn report_profile(repository: &Path) {
+    for line in profile::report(&profile::read(repository)) {
+        eprintln!("{line}");
+    }
+}
+
 /// The record at the declared root, or the exit code and why it can't be read.
 fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
+    let repository = profile::repository_root();
+    report_profile(&repository);
     let layout = match load_layout() {
         Ok(layout) => layout,
         Err(reason) => {
@@ -168,12 +179,6 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
             return Err(UNCHECKED);
         }
     };
-    let repository = profile::repository_root();
-    // Standard output is what a step reads, such as a template or an
-    // identifier, so the profile's state goes to standard error (SPC-1080).
-    for line in profile::report(&profile::read(&repository)) {
-        eprintln!("{line}");
-    }
     let root = match record_root(&repository) {
         Ok(root) => root,
         Err(reason) => {
@@ -3566,6 +3571,7 @@ fn status(rest: &[String]) -> u8 {
         // Run at the start of every session, so it says nothing unless
         // something waits: a repository with no record pays nothing.
         let repository = profile::repository_root();
+        report_profile(&repository);
         let (Ok(layout), Ok(root)) = (load_layout(), record_root(&repository)) else {
             return CLEAN;
         };
