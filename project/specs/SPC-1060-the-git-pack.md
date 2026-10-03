@@ -36,6 +36,10 @@ states:
     REQ-2616,
     REQ-2618,
     REQ-2620,
+    REQ-2210,
+    REQ-1824,
+    REQ-1826,
+    REQ-1828,
   ]
 ---
 
@@ -48,12 +52,12 @@ every commit on a branch before it is pushed. It states the `[git]` table, what
 each hook checks, how it finds `meow-scm`, and how it reports.
 
 It leaves the message convention to SPC-1050, which the pack uses through
-`meow-scm`, and stacked branches and the squash merge to later decisions,
-which ADR-1090 names. It states the bounds ADR-2420 sets on a worktree
-manager or any other tool that runs source control operations.
+`meow-scm`, and when a task stacks on another to the method's chain. It states the
+restack that rebuilds a stack's branches, and the bounds ADR-2420 sets on a
+worktree manager or any other tool that runs source control operations.
 
 ADR-1090 decides it, EPC-1060 realises it, and `meow-git` implements it,
-verified under issue 138.
+verified under issue 138. ADR-2550 adds the restack, which EPC-2430 realises.
 
 ## Boundary
 
@@ -61,7 +65,7 @@ verified under issue 138.
 | ----------------------------------- | --------------------------------------------------------------- |
 | `.meowpaw/profile.toml`, `[git]`    | The repository's trunk and whether every commit must be signed  |
 | `plugins/meow-git/hooks/hooks.json` | Two `PreToolUse` command hooks, one for commit and one for push |
-| `plugins/meow-git/bin/meow-git`     | The program the hooks run: `commit-guard` and `push-guard`      |
+| `plugins/meow-git/bin/meow-git`     | The program: `commit-guard`, `push-guard` and `restack`         |
 | `plugins/meow-git/README.md`        | The pack's documentation page                                   |
 
 ## Behaviour
@@ -144,8 +148,8 @@ configuration only inside the repository, and a unit test fails where the
 native tool, a shipped prompt or a workflow names `git config` with `--global`
 or `--system` (REQ-2540) (ADR-1570).
 
-A sign-off names the commit's author, which `meow-scm check-message` holds
-where the trailer is required (REQ-1312); a branch name carries no date and no
+The first sign-off names the commit's author, which `meow-scm check-message`
+holds where the trailer is required (REQ-1312); a branch name carries no date and no
 author, which the push guard holds (REQ-2818); a line added to the record
 cites a pull request, never a commit hash, which `paw check frozen`
 holds (REQ-3176); and every read of source control runs with prompting,
@@ -157,6 +161,32 @@ working tree, a locked tree with its reason; a grown branch split; a force
 push over a reviewed branch disclosed; and every commit signed and signed off
 where the repository asks (REQ-1296, REQ-1298, REQ-1306, REQ-1320, REQ-1322,
 REQ-1324, REQ-1328, REQ-2534, REQ-2536, REQ-2538, REQ-2820, REQ-2822) (ADR-1320).
+
+Every commit reaching the trunk leaves it building with its checks passing
+(REQ-2210): a task lands only as one squashed commit of a pull request whose
+gate passed on its branch, the commit guard refuses a commit on the trunk, and
+in this repository CI's `gate` job runs `mise run all` on every pull request
+and on every push to the trunk.
+
+### Restacking
+
+`meow-git restack <branch>...` rebuilds a stack, given its branches from the
+bottom layer up. It rebases each branch onto the one below it, the first onto
+the trunk, in that order, and a branch whose base hasn't moved is left as it
+is. Where `require_signatures` is true, the rebase signs every commit it writes
+again (REQ-2614). It pushes nothing. For each branch it updated, it prints
+`updated: <branch>` and the push that publishes it,
+`git push --force-with-lease=<branch>:<revision> origin <branch>`, where
+`<revision>` is the remote-tracking revision it read before rewriting, so a
+force push replaces only the revision last seen (REQ-1828).
+
+A conflict stops the restack at that branch: it aborts the rebase, so neither
+side is discarded, prints `conflict: <branch>` with the files in conflict, and
+exits 1 (REQ-1826). Wherever it stops, it prints `updated:` for each branch it
+rewrote and `not updated:` for each it didn't reach, and it never runs again on
+its own to cover the gap (REQ-1824). A branch with uncommitted changes in its
+working tree, or checked out in another one, stops it before it rewrites
+anything (REQ-2534).
 
 ### Tools that run operations
 
@@ -181,13 +211,15 @@ branch in one working tree.
 
 ## Failure paths
 
-| Condition                               | What happens                                                                       |
-| --------------------------------------- | ---------------------------------------------------------------------------------- |
-| No profile or no `[git]` table          | Commit: nothing blocked. Push: messages checked; trunk and signing undeclared      |
-| A commit on the declared trunk          | Blocked, exit 2, naming the trunk                                                  |
-| A message `meow-scm` fails              | The push is blocked, naming the commit and each failure                            |
-| `meow-scm` not found                    | The message check is reported unrun for every commit; the push isn't blocked on it |
-| An unsigned commit, signatures required | The push is blocked, naming the commit as unsigned                                 |
-| Key material missing locally            | The push is blocked, naming the commit as unverifiable                             |
-| Nothing to publish                      | The push goes through, and the hook says it checked no commits                     |
-| No binary for the machine's target      | Every check reported unrun, and nothing blocked                                    |
+| Condition                               | What happens                                                                        |
+| --------------------------------------- | ----------------------------------------------------------------------------------- |
+| No profile or no `[git]` table          | Commit: nothing blocked. Push: messages checked; trunk and signing undeclared       |
+| A commit on the declared trunk          | Blocked, exit 2, naming the trunk                                                   |
+| A message `meow-scm` fails              | The push is blocked, naming the commit and each failure                             |
+| `meow-scm` not found                    | The message check is reported unrun for every commit; the push isn't blocked on it  |
+| An unsigned commit, signatures required | The push is blocked, naming the commit as unsigned                                  |
+| Key material missing locally            | The push is blocked, naming the commit as unverifiable                              |
+| Nothing to publish                      | The push goes through, and the hook says it checked no commits                      |
+| A conflict during `restack`             | The rebase is aborted, the branch and its files named, the rest not updated, exit 1 |
+| A `restack` branch with local changes   | Nothing is rewritten; the branch is named, exit 1                                   |
+| No binary for the machine's target      | Every check reported unrun, and nothing blocked                                     |
