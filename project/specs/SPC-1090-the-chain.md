@@ -316,6 +316,22 @@ states:
     REQ-3174,
     REQ-3180,
     REQ-3202,
+    REQ-1810,
+    REQ-1812,
+    REQ-1814,
+    REQ-1816,
+    REQ-1818,
+    REQ-1820,
+    REQ-1822,
+    REQ-1830,
+    REQ-1832,
+    REQ-1834,
+    REQ-1835,
+    REQ-1836,
+    REQ-1838,
+    REQ-1840,
+    REQ-1842,
+    REQ-1844,
   ]
 ---
 
@@ -348,6 +364,12 @@ SPC-1030 states. The router and the prose reviewer both do.
 
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
+
+A task whose blocking dependency hasn't merged opens its pull request on that
+dependency's branch, as the section on stacked tasks states. ADR-2550 decides
+it, and EPC-2430 realises it. ADR-2590 decides that an epic carries no status
+per task, which amends how ADR-2300 derives a task's state, and EPC-2460
+realises it.
 
 A person repeats one prompt in fresh sessions until the verbs pass or a bound
 ends the run, with the loop runner SPC-1201 states. The verbs are the five
@@ -618,12 +640,16 @@ when one isn't, naming each missing or unapproved input on its own line
 | implement    | the named task and its epic, defect or decision are approved, each task it depends on is done, and the task is approved on the declared trunk (REQ-3660) |
 | review       | nothing: the review reads the task's pull request                                                                                                        |
 
-A task is done when its epic or defect marks it `[x]`, and dropped when it is
-marked `[~]`. A task realising a decision directly is done once its Evidence is
-written, and dropped once its status is withdrawn, rejected or superseded
-(REQ-3630). A task entry may carry `[P]` between its number and its
-identifier, marking it as able to run in parallel (REQ-0265). The mark changes
-nothing else: `[x]` and `[~]` still decide done and dropped.
+A task is done once its Evidence is written, opening with anything but "Not
+yet.", in a change whose gate passed (REQ-3606), and dropped once its status
+is withdrawn, rejected or superseded. That holds for a task under an epic and
+for one realising a decision directly (REQ-3630), because an epic carries no
+status per task (REQ-2897). An approved epic written with a mark per task keeps
+it, and there `[x]` and `[~]` still decide done and dropped, because a frozen
+record keeps the form it was approved in. A task under a defect is done when
+the defect marks it `[x]`, and dropped when it is marked `[~]`. A task entry
+may carry `[P]` between its number and its identifier, marking it as able to
+run in parallel (REQ-0265), which is an order and not a status.
 
 Each line under a task's `## Depends on` names one task and says whether it
 blocks, so a dependency that exists only for convenience is declared and never
@@ -649,6 +675,50 @@ its failing tests (REQ-3616, REQ-3642), and the task doesn't record them. No
 record carries `## Cover`, `## Verified`, `## Open review findings` or
 `checked-at`: the layout retires them, and `paw check` reports one still
 carried (REQ-3652).
+
+### Stacked tasks
+
+A task opens its pull request against the trunk, unless one of its blocking
+dependencies has a pull request that hasn't merged. Such a task opens its pull
+request against that dependency's branch, and starts from it, so the work it
+builds on is in its tree (REQ-1810, REQ-1812). `ready implement` reads the
+dependency's Evidence on that branch, where its gate passed. A stack's order is
+the order of the blocking dependencies the epic and its tasks declare, and no
+other (REQ-1814). An epic whose tasks block none of each other is never
+stacked, and the implement step says it declined to stack it and why
+(REQ-1840). A `(not blocking)` dependency never stacks a task.
+
+Where a blocking dependency lives in another repository, the implement step
+reports the stack as impossible, naming both tasks and both repositories, and
+opens nothing, because a chain across repositories can't merge (REQ-1836).
+
+The implement step builds a stack with `git` and `gh` alone, so no stack tool
+is needed: `gh pr create --base <dependency's branch>` opens a layer, and each
+layer's body names the layer below it and the one above it by number, the
+bases and links a stack tool would make (REQ-1838). Every task's branch carries
+its task identifier in lower case, as `feat/tsk-4660-open-a-stack`, and a
+task's pull request is found by that identifier in its head branch's name,
+never by a commit, because git has no stable change identifier and a rebase
+replaces every commit it touches (REQ-1834, REQ-1835). A rebase, a split or a
+reorder of the change behind a task keeps its branch and so its pull request,
+with its reviews and discussion (REQ-1832).
+
+After it changes a pull request's base, the step reads the base back with
+`gh pr view <n> --json baseRefName` and reports a base that didn't change as
+not changed (REQ-1818). It reports each required check as not run on the new
+base until a run of it that started after the change has completed, and never
+cites a check that passed on the old base as evidence for the new one
+(REQ-1820, REQ-1822). Where a layer's pull request is closed or ejected from a
+merge queue, the step reports every task above it as blocked, naming that
+layer (REQ-1830).
+
+Layers merge from the bottom. A stacked task's pull request merges into the
+branch it targets: when the layer below has merged, the step changes the
+layer's base to the trunk and reads it back, restacks it with `meow-git
+restack` as SPC-1060 states, and the layer reaches the trunk as its own
+squashed commit once every layer below it has merged (REQ-1844, REQ-1306). The
+person merges each layer, because the harness merges nothing without an
+instruction (REQ-1298).
 
 ### The state
 
@@ -681,6 +751,13 @@ and a requirement may be named by any number of tasks and epics (REQ-3646,
 REQ-3648). `status` lists every postponed requirement, one its decision
 postpones, under Postponed with the first entry of the decision's What would
 reverse it (REQ-3622).
+
+For each stack, the blocking chain among an epic's tasks that aren't done,
+`paw status` prints `stack: <task> <- <task> ...` from the bottom, then
+`next to merge: <task>` for the lowest layer, and for each layer above it
+`<task> waits on <task>, not merged` (REQ-1816). A layer whose task is dropped
+blocks every task above it, and `status` prints each as
+`<task> blocked by <dropped task>` (REQ-1830).
 
 Run twice with nothing changed, `paw status` prints the same text (REQ-0210).
 
@@ -734,7 +811,8 @@ reads it, and the method skill reports a record it wrote as unreviewed by a
 person.
 
 The review step reads a task's pull request against the base it was opened on
-(REQ-0311). Where the session produced the change, the review step dispatches
+(REQ-0311). For a layer of a stack, that base is the layer below, and the
+review reads that layer's own diff and never the whole stack's (REQ-1842). Where the session produced the change, the review step dispatches
 the review to an agent with read-only tools. It names what the task asks and
 not who wrote it, and reads the return as a verdict, named as an agent's
 (REQ-0149, REQ-0151, REQ-0157, REQ-0818, REQ-0819). Where the session didn't
@@ -782,6 +860,12 @@ A step writes each artifact from the template `paw template <kind>` names:
 `research`, `requirement`, `adr`, `spec`, `epic`, `task`, `bug`, `insight`,
 `vision`, `constitution`, `profile` and `onboarding`. The `profile` template is
 `profile.toml` and not Markdown.
+
+The `epic` template lists each task as an entry with no mark of its state, as
+`- T-001 [P] TSK-NNNN <what>`, with its `closes:` and `depends:` lines, and an
+`added:` line with the reason where the entry joined after approval (REQ-0700).
+A dropped task keeps its entry, and its own record, withdrawn, says why
+(REQ-0702).
 
 ### Bringing a repository in
 
@@ -839,6 +923,9 @@ names `meow-github` (REQ-3128) (ADR-1300).
 | `ready` names an input that doesn't exist                                                                                                   | Exit 1, the input named as missing                                                                                      |
 | `ready` for a step it doesn't know                                                                                                          | Exit 2, naming the seven steps in order, for `cover`, `document` and `verify` as for any other name                     |
 | `ready implement` on a task absent from the trunk, or a draft there                                                                         | Exit 1, naming the task and the trunk                                                                                   |
+| A blocking dependency lives in another repository                                                                                           | The stack is reported as impossible, naming both tasks and repositories, and nothing opens                              |
+| A pull request's base reads back unchanged                                                                                                  | The step reports the base as not changed and cites no check for it                                                      |
+| A layer's pull request is closed or ejected from a merge queue                                                                              | Every task above it is reported blocked, naming the layer                                                               |
 | No trunk declared, no git work tree, a trunk naming no branch, a record outside the repository, or a task reached through a link leaving it | `ready` refuses nothing for it, and `status` says an approval can't be told from one waiting on a merge                 |
 | `template` for a kind it doesn't know                                                                                                       | Exit 2, naming the kinds                                                                                                |
 | The record's root doesn't exist                                                                                                             | `status` and `ready` say so and exit 1, as `check` does                                                                 |
