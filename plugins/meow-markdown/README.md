@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-markdown@0.5.0]
+describes: [meow-markdown@0.6.0]
 ---
 
 # meow-markdown
@@ -55,6 +55,12 @@ every repository has one.
    lychee and a site generator's configuration.
 5. Where `lychee.toml` sets `cache = true`, a line saying lychee writes
    `.lycheecache` at the root.
+
+Every command that reads the profile first prints its state, `profile: absent`,
+`profile: unparseable` or `profile: parsed`, and `unknown key: <path>` for
+each key no unit reads. `bind` prints them on standard error, so what it
+prints on standard output stays ready to paste. None of them changes the exit
+status.
 
 ## Bind your verbs
 

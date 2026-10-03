@@ -1,6 +1,6 @@
 {
   "name": "meow-unattended",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Plans an unattended run from the [unattended] table a repository declares: prints the command that would start it with its posture and budget, and writes the snapshot of deny rules that holds its authority. It starts nothing and keeps nothing in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",

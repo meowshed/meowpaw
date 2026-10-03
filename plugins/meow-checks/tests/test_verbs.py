@@ -120,8 +120,9 @@ class Verbs(unittest.TestCase):
     def test_an_unknown_key_is_reported_and_the_rest_still_resolve(self):
         report = self.repo('[verbs]\nlint = "true"\ndeploy = "true"\n[prose]\n'
                            'language = "en-US"\n').status()
-        self.assertIn("verbs.deploy", report["ignored"])
-        self.assertIn("[prose]", report["ignored"])
+        # ADR-2370: a key the table of keys lists, such as [prose] language,
+        # is known to every unit and never named as unknown.
+        self.assertEqual(report["unknown"], ["verbs.deploy"])
         self.assertEqual(report["verbs"]["lint"]["state"], "resolved")
 
     def test_a_failing_verb_reports_its_command_status_and_whole_output(self):
@@ -164,10 +165,10 @@ class Verbs(unittest.TestCase):
         self.assertIn("formatted", done.stdout)
 
     def test_an_old_key_is_ignored_from_0_4_0(self):
-        """REQ-2908, ADR-1410: from 0.4.0 a profile key under an old name resolves nothing and is listed as ignored."""
+        """REQ-2908, ADR-1410: from 0.4.0 a profile key under an old name resolves nothing and is named as unknown."""
         report = self.repo('[verbs]\nfmt = "true"\n').status()
         self.assertEqual(report["verbs"]["format"]["state"], "unresolved")
-        self.assertIn("verbs.fmt", report["ignored"])
+        self.assertIn("verbs.fmt", report["unknown"])
 
     def test_an_old_name_on_the_command_line_is_refused(self):
         """REQ-2908, ADR-1410: from 0.4.0 typecheck isn't a verb."""
@@ -409,11 +410,11 @@ class NoKeptEvidence(unittest.TestCase):
         self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
 
     def test_a_declared_evidence_directory_is_an_unread_key(self):
-        """REQ-3614: `evidence_dir` means nothing now, so status lists it as ignored and its files are part of the tree."""
+        """REQ-3614: `evidence_dir` means nothing now, so status names it as unknown and its files are part of the tree."""
         repository = Repository(self.PROFILE.replace("[verbs]\n", '[verbs]\nevidence_dir = "proof"\n'))
         self.addCleanup(repository.close)
         repository.git("init", "-q", "-b", "work")
-        self.assertIn("verbs.evidence_dir", repository.status()["ignored"])
+        self.assertIn("verbs.evidence_dir", repository.status()["unknown"])
         self.assertEqual(repository.run("run", "test").returncode, 0)
         (repository.root / "proof").mkdir()
         (repository.root / "proof" / "a.txt").write_text("x", encoding="utf-8")

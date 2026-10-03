@@ -274,7 +274,11 @@ fn read_header(path: &Path) -> Header {
 /// Whether the profile declares a header, and a finding where the declared
 /// header states half of what a licensing declaration must (REQ-1022).
 fn declared_header(root: &Path, out: &mut Vec<String>) -> bool {
-    let Profile::Parsed(table) = profile::read(root) else {
+    let read = profile::read(root);
+    for line in profile::report(&read) {
+        println!("meow-licence check: {line}");
+    }
+    let Profile::Parsed(table, _) = read else {
         return false;
     };
     let Some(lines) = table

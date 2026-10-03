@@ -1,6 +1,6 @@
 {
   "name": "meow-gotask",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Reports the tasks Task (go-task) resolves in a repository, with where each came from and what stops a verb running it unattended, binds the verbs to them, and never trusts a remote Taskfile, answers a prompt or writes into the repository. It keeps up to 380 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",

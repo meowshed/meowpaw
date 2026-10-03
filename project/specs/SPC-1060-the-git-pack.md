@@ -87,7 +87,8 @@ require_signatures = true
 
 `trunk` names the branch nobody commits to directly (REQ-1292).
 `require_signatures` says every commit pushed must carry a good signature from
-a trusted key (REQ-1326). A key the pack doesn't read is reported as ignored.
+a trusted key (REQ-1326). A key no unit reads is named as an unknown key, from the table of keys
+SPC-1080 states.
 
 ### The hooks
 

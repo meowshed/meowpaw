@@ -2,7 +2,7 @@
 reader: someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work
 answers: how to get from an empty repository to a first check that Claude Code runs and reports honestly
 kind: tutorial
-describes: [meow-checks@0.9.0]
+describes: [meow-checks@0.10.0]
 ---
 
 # Your first verified change
@@ -69,6 +69,8 @@ Claude Code loads the `meow-checks:verify` skill before it runs anything, and
 shows you what each verb resolves to:
 
 ```text
+profile: parsed
+
 format     unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
 lint       unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
 check      unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
@@ -81,6 +83,8 @@ your script through `meow-checks` and reports the result with the command, its
 exit status and its output:
 
 ```text
+profile: parsed
+
 == test: `./scripts/test`
 passed, exit status 0 after 0.1s
 
@@ -104,6 +108,8 @@ Claude Code shows the same table of what each verb resolves to, then reports
 `lint` as unresolved and runs nothing in its place:
 
 ```text
+profile: parsed
+
 == lint: unresolved (undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml), not run
 
 summary: lint unresolved

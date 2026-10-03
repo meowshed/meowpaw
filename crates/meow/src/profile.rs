@@ -5,7 +5,9 @@
 //!
 //! A profile is absent, unparseable or parsed, and the three are reported
 //! differently, because falling back on a profile that didn't parse would
-//! ignore what the repository tried to say (RES-0261).
+//! ignore what the repository tried to say (RES-0261). A parsed profile comes
+//! with each key the table of keys doesn't list, which every command that
+//! reads the profile names and then ignores (ADR-2370).
 
 #![allow(dead_code)]
 
@@ -16,8 +18,209 @@ pub const PROFILE: &str = ".meowpaw/profile.toml";
 
 pub enum Profile {
     Absent,
+    /// The parser's message, after the line it gives where it gives one.
     Unparseable(String),
-    Parsed(toml::Table),
+    /// The table, and each key in it the table of keys doesn't list.
+    Parsed(toml::Table, Vec<String>),
+}
+
+/// One key a unit reads from the profile, and why the profile has to carry
+/// it: the ecosystem doesn't declare it, the platform doesn't own it, it isn't
+/// prose and detection can't produce it (REQ-2950).
+#[derive(Clone)]
+pub struct Key {
+    pub path: &'static str,
+    pub reason: &'static str,
+}
+
+const VERB: &str = "Only the repository knows the command its verb runs, and guessing one reports a pass nothing ran (REQ-0134)";
+const WHOLE: &str = "The command a verb declared as a table runs over the whole work, and only the repository knows it (ADR-1520)";
+const SUBSET: &str = "How the repository's tool takes a part of the work differs per tool, and no detection can tell it (ADR-1520)";
+
+/// The table of keys: every key path a unit reads, with its reason. A key
+/// whose path isn't here, and isn't a table on the way to one, is unknown. The
+/// keys under a listed key with no entry below it, such as each type in
+/// `commits.types`, are the repository's own names and aren't checked.
+pub const KEYS: &[Key] = &[
+    Key {
+        path: "verbs.format",
+        reason: VERB,
+    },
+    Key {
+        path: "verbs.format.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "verbs.format.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "verbs.lint",
+        reason: VERB,
+    },
+    Key {
+        path: "verbs.lint.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "verbs.lint.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "verbs.check",
+        reason: VERB,
+    },
+    Key {
+        path: "verbs.check.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "verbs.check.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "verbs.test",
+        reason: VERB,
+    },
+    Key {
+        path: "verbs.test.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "verbs.test.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "verbs.build",
+        reason: VERB,
+    },
+    Key {
+        path: "verbs.build.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "verbs.build.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "commits.types",
+        reason: "Which commit types a repository uses and what each means for a release is its own convention, and no ecosystem file declares it (REQ-1318)",
+    },
+    Key {
+        path: "commits.subject_limit",
+        reason: "The subject's length is the repository's choice, and the history shows only the subjects already written (REQ-1302)",
+    },
+    Key {
+        path: "commits.trailers",
+        reason: "The trailers every commit carries are the repository's rule, and a history that lacks them can't show it (REQ-1308)",
+    },
+    Key {
+        path: "commits.may_name",
+        reason: "Who agreed to be named in a trailer is a person's consent, which no file outside the repository records (REQ-2208)",
+    },
+    Key {
+        path: "git.trunk",
+        reason: "The branch nobody commits to is a decision, and the code host's default branch is a setting outside the repository (REQ-1292)",
+    },
+    Key {
+        path: "git.require_signatures",
+        reason: "Whether every pushed commit must be signed is the repository's policy, and no file git reads declares it (REQ-1326)",
+    },
+    Key {
+        path: "tracker.kind",
+        reason: "Which tracker the record is projected onto is a choice, and a code host with issues doesn't make it one (REQ-1351)",
+    },
+    Key {
+        path: "record.root",
+        reason: "Where the record lives is the repository's layout, and a directory of Markdown doesn't say it is the record (SPC-1070)",
+    },
+    Key {
+        path: "docs.style",
+        reason: "The documentation style is the repository's decision, and the pages already written can't name it (SPC-1090)",
+    },
+    Key {
+        path: "markdown.target",
+        reason: "The renderer a document is written for is outside the repository, and the Markdown alone doesn't name it (REQ-2452)",
+    },
+    Key {
+        path: "licence.header",
+        reason: "The header each new file carries is the project's legal choice, and a tool never picks a licence for it (REQ-1022)",
+    },
+    Key {
+        path: "unattended.permission_mode",
+        reason: "The permission an unattended run gets is a person's grant, and nothing in the repository can infer one",
+    },
+    Key {
+        path: "unattended.budget_usd",
+        reason: "The most an unattended run may spend is a person's limit, and no tool can work it out",
+    },
+    Key {
+        path: "unattended.gates",
+        reason: "Which gates a run passes alone is a person's grant of authority, and no detection can produce it",
+    },
+    Key {
+        path: "unattended.units",
+        reason: "Which units a run loads is a person's grant, and the units installed on a machine aren't that grant",
+    },
+    Key {
+        path: "unattended.merge_protected",
+        reason: "Whether a run may push to the trunk is a person's grant, and the code host's protection is outside the repository",
+    },
+    Key {
+        path: "unattended.amend_approved",
+        reason: "Whether a run may edit an approved record is a person's grant, and the record can't grant it to itself",
+    },
+    Key {
+        path: "prose.language",
+        reason: "The language the repository's prose is written in is its choice, and the files already written may mix several",
+    },
+    Key {
+        path: "method.principles",
+        reason: "Which files hold the repository's principles is its choice, and no file name says a document is one",
+    },
+];
+
+/// Each entry in `keys` whose reason is empty.
+fn unreasoned(keys: &[Key]) -> Vec<&'static str> {
+    keys.iter()
+        .filter(|key| key.reason.trim().is_empty())
+        .map(|key| key.path)
+        .collect()
+}
+
+/// Each key path in `table`, under `prefix`, that the table of keys doesn't
+/// list, in the order the profile gives them.
+fn unknown(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
+    for (name, value) in table {
+        let path = if prefix.is_empty() {
+            name.clone()
+        } else {
+            format!("{prefix}.{name}")
+        };
+        let below = format!("{path}.");
+        let listed = KEYS.iter().any(|key| key.path == path);
+        let leads = KEYS.iter().any(|key| key.path.starts_with(&below));
+        if !listed && !leads {
+            out.push(path);
+        } else if leads && let toml::Value::Table(inner) = value {
+            unknown(inner, &path, out);
+        }
+    }
+}
+
+/// The lines every command that reads the profile prints: its state, then
+/// the parser's message or each unknown key, one line a key (SPC-1080).
+pub fn report(profile: &Profile) -> Vec<String> {
+    match profile {
+        Profile::Absent => vec!["profile: absent".to_string()],
+        Profile::Unparseable(message) => vec![
+            "profile: unparseable".to_string(),
+            format!("profile error: {message}"),
+        ],
+        Profile::Parsed(_, unknown) => std::iter::once("profile: parsed".to_string())
+            .chain(unknown.iter().map(|key| format!("unknown key: {key}")))
+            .collect(),
+    }
 }
 
 /// Source control run to read it, never to record authorship: nothing
@@ -63,8 +266,27 @@ pub fn read(root: &Path) -> Profile {
         Err(error) => return Profile::Unparseable(error.to_string()),
     };
     match text.parse::<toml::Table>() {
-        Ok(table) => Profile::Parsed(table),
-        Err(error) => Profile::Unparseable(error.message().to_string()),
+        Ok(table) => {
+            let mut found = Vec::new();
+            unknown(&table, "", &mut found);
+            Profile::Parsed(table, found)
+        }
+        Err(error) => {
+            let message = error
+                .message()
+                .lines()
+                .map(str::trim)
+                .filter(|line| !line.is_empty())
+                .collect::<Vec<_>>()
+                .join("; ");
+            match error.span() {
+                Some(span) => {
+                    let line = text[..span.start.min(text.len())].matches('\n').count() + 1;
+                    Profile::Unparseable(format!("line {line}: {message}"))
+                }
+                None => Profile::Unparseable(message),
+            }
+        }
     }
 }
 
@@ -191,8 +413,35 @@ mod tests {
     #[test]
     fn a_profile_parses_into_its_tables() {
         match with_profile(Some("[verbs]\nlint = \"true\"\n")).1 {
-            Profile::Parsed(table) => assert!(table.contains_key("verbs")),
+            Profile::Parsed(table, _) => assert!(table.contains_key("verbs")),
             _ => panic!("expected parsed"),
+        }
+    }
+
+    #[test]
+    fn every_key_in_the_table_carries_a_reason() {
+        // TSK-4300 criterion 4, REQ-2950: a key without its reason is one
+        // nobody showed the profile has to carry.
+        assert!(KEYS.len() > 20, "the table holds only {} keys", KEYS.len());
+        assert_eq!(unreasoned(KEYS), Vec::<&str>::new());
+        let added = [
+            KEYS,
+            &[Key {
+                path: "verbs.added",
+                reason: " ",
+            }],
+        ]
+        .concat();
+        assert_eq!(unreasoned(&added), ["verbs.added"]);
+    }
+
+    #[test]
+    fn this_repositorys_profile_names_no_unknown_key() {
+        // TSK-4300 criterion 5: every key this repository declares is one a unit reads.
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
+        match read(&root) {
+            Profile::Parsed(_, unknown) => assert_eq!(unknown, Vec::<String>::new()),
+            _ => panic!("this repository's profile doesn't parse"),
         }
     }
 
