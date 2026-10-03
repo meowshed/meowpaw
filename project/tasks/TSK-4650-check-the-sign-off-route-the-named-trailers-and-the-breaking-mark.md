@@ -61,7 +61,46 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+`check-message` in `crates/meow/src/scm.rs` compares the first
+`Signed-off-by` alone with the author, as the `sign-off route`. It fails a
+trailer whose value is `Name <address>` as a `named person` unless
+`[commits] may_name` lists that person, exempting `Fixes`,
+`Cherry-picked-from`, the first sign-off and any sign-off naming the author.
+It fails a subject carrying `!`, or a type meaning `major`, with no
+`BREAKING CHANGE:` trailer as a `breaking mark`. `convention` prints the
+`may_name` list.
+
+Each criterion is closed by the checks it names:
+
+1. `scm::tests::the_first_sign_off_names_the_author` (REQ-2206)
+2. `scm::tests::a_trailer_naming_a_person_needs_them_listed`,
+   `a_later_sign_off_names_a_person`, `the_provenance_trailers_need_no_list`
+   and `a_malformed_list_names_nobody`, with `test_a_co_author_nobody_listed_is_refused`
+   and `test_convention_lists_who_may_be_named` in
+   `plugins/meow-scm/tests/test_scm.py` (REQ-2208)
+3. `scm::tests::a_break_says_what_breaks` (REQ-2212)
+4. `TrunkGate` in `tools/test_trunk_gate.py` (REQ-2210)
+5. `scm::tests::may_name_is_a_key_the_unit_reads`
+
+No criterion rests on judgement. Every crate check but
+`the_provenance_trailers_need_no_list` failed first, in the commit that holds
+the checks alone, as did both new fixtures; that one passed there because no
+rule named a person yet, and it pins the exemption once one does. The
+`TrunkGate` checks passed from the start, because CI's `gate` job already ran
+`mise run all` on every pull request and every push to `main`.
+
+Criterion 5 names the profile's table of keys, which isn't on `main` yet:
+TSK-4300 adds it. Until it lands, `meow-scm` is the only reader of
+`[commits]`, so its own list of keys holds `may_name`, and TSK-4300's table
+gains `commits.may_name` when the two meet.
+
+Two fixtures asserted what SPC-1050 no longer states, a bare `!` passing and
+the rule named `sign-off`, and a commit of their own corrected them. `format`,
+`lint`, `check`, `test` and `build` each pass on the change's tree, as the
+pull request cites. `meow-scm` goes to 0.5.0.
+
+The profile template in `meow-flow` doesn't show `may_name`, because this
+task names only `meow-scm`'s pages.
 
 ## Left alone
 

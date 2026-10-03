@@ -8,7 +8,9 @@
 //! subject limit (REQ-1302) and the trailers every message carries (REQ-1308,
 //! REQ-1310). The attribution check runs whatever the profile says, because
 //! the ban admits no exception (REQ-1294, REQ-1295). A message is never
-//! reported as meeting a convention nobody declared (REQ-1314).
+//! reported as meeting a convention nobody declared (REQ-1314). The first
+//! sign-off names the author (REQ-2206), a trailer naming a person needs them
+//! under `may_name` (REQ-2208), and a break says what breaks (REQ-2212).
 
 use crate::profile::{self, PROFILE, Profile};
 use regex::Regex;
@@ -17,11 +19,18 @@ use std::path::Path;
 
 const DEFAULT_LIMIT: i64 = 72;
 const MEANINGS: [&str; 4] = ["major", "minor", "patch", "none"];
-const KEYS: [&str; 3] = ["types", "subject_limit", "trailers"];
+const KEYS: [&str; 4] = ["types", "subject_limit", "trailers", "may_name"];
 const MET: u8 = 0;
 const VIOLATED: u8 = 1;
 const USAGE: u8 = 2;
 const UNDECLARED: u8 = 3;
+
+// A trailer whose value is `Name <address>` names a person (REQ-2208).
+const PERSON: &str = r"^(?P<key>[A-Za-z][A-Za-z0-9-]*): (?P<value>[^<>]*\S\s*<[^<>\s]+>)\s*$";
+// Two of the three trailers that record where something came from; the third,
+// the author's own sign-off, is the first one, which `sign_off` compares.
+const PROVENANCE: [&str; 2] = ["fixes", "cherry-picked-from"];
+const BREAKING: &str = r"^BREAKING[ -]CHANGE: \S";
 
 const SUBJECT: &str =
     r"^(?P<type>[a-z][a-z0-9-]*)(?:\((?P<scope>[^()\s]+)\))?(?P<bang>!)?: (?P<text>\S.*)$";
@@ -39,6 +48,7 @@ struct Convention {
     types: Vec<(String, String)>,
     limit: i64,
     trailers: Vec<String>,
+    may_name: Vec<String>,
     ignored: Vec<String>,
     malformed: Vec<String>,
 }
@@ -50,6 +60,7 @@ fn convention(root: &Path) -> Convention {
         types: Vec::new(),
         limit: DEFAULT_LIMIT,
         trailers: Vec::new(),
+        may_name: Vec::new(),
         ignored: Vec::new(),
         malformed: Vec::new(),
     };
@@ -120,6 +131,18 @@ fn convention(root: &Path) -> Convention {
             .malformed
             .push("`trailers` isn't a list of names".to_string()),
     }
+    match table.get("may_name") {
+        None => {}
+        Some(toml::Value::Array(items)) if items.iter().all(|item| item.is_str()) => {
+            found.may_name = items
+                .iter()
+                .filter_map(|item| item.as_str().map(|name| name.trim().to_string()))
+                .collect();
+        }
+        Some(_) => found
+            .malformed
+            .push("`may_name` isn't a list of people".to_string()),
+    }
     found
 }
 
@@ -140,6 +163,12 @@ fn report_convention(root: &Path) -> u8 {
         found.trailers.join(", ")
     };
     println!("trailers       {trailers}");
+    let named = if found.may_name.is_empty() {
+        "nobody listed".to_string()
+    } else {
+        found.may_name.join(", ")
+    };
+    println!("may name       {named}");
     for problem in &found.malformed {
         println!("malformed      {problem}");
     }
@@ -149,8 +178,18 @@ fn report_convention(root: &Path) -> u8 {
     MET
 }
 
-/// Every violation, as (line number, rule, detail).
+/// Every violation, as (line number, rule, detail), with no author known.
+#[cfg(test)]
 fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
+    problems_by(message, found, None)
+}
+
+/// Every violation, where a sign-off naming `author` names nobody new.
+fn problems_by(
+    message: &str,
+    found: &Convention,
+    author: Option<&str>,
+) -> Vec<(usize, String, String)> {
     let mut lines: Vec<&str> = message
         .lines()
         .filter(|line| !line.starts_with('#'))
@@ -193,6 +232,20 @@ fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
         )),
         Some(parts) => {
             let kind = &parts["type"];
+            let major = found
+                .types
+                .iter()
+                .any(|(name, meaning)| name == kind && meaning == "major");
+            let said = Regex::new(BREAKING).expect("the breaking pattern compiles");
+            if (parts.name("bang").is_some() || major)
+                && !lines[1..].iter().any(|line| said.is_match(line))
+            {
+                found_problems.push((
+                    1,
+                    "breaking mark".into(),
+                    "the change breaks an interface and no `BREAKING CHANGE:` trailer says what breaks".into(),
+                ));
+            }
             if !found.types.is_empty() && !found.types.iter().any(|(name, _)| name == kind) {
                 let declared: Vec<&str> =
                     found.types.iter().map(|(name, _)| name.as_str()).collect();
@@ -237,6 +290,33 @@ fn problems(message: &str, found: &Convention) -> Vec<(usize, String, String)> {
             ));
         }
     }
+    let person = Regex::new(PERSON).expect("the person pattern compiles");
+    let mut first_sign_off = true;
+    for (index, line) in lines.iter().enumerate().skip(1) {
+        let Some(parts) = person.captures(line) else {
+            continue;
+        };
+        let key = parts["key"].to_ascii_lowercase();
+        if PROVENANCE.contains(&key.as_str()) {
+            continue;
+        }
+        let named = parts["value"].trim();
+        // The first sign-off is the author's own, which `sign_off` holds.
+        if key == "signed-off-by" && (std::mem::take(&mut first_sign_off) || author == Some(named))
+        {
+            continue;
+        }
+        if !found.may_name.iter().any(|listed| listed == named) {
+            found_problems.push((
+                index + 1,
+                "named person".into(),
+                format!(
+                    "`{}` names {named}, whom [commits] may_name doesn't list; a trailer naming a person needs their agreement",
+                    &parts["key"]
+                ),
+            ));
+        }
+    }
     found_problems
 }
 
@@ -257,16 +337,18 @@ fn author(root: &Path) -> Option<String> {
     Some(ident[..=end].to_string())
 }
 
-/// A sign-off is the author's own statement, so one naming anybody else is a
-/// problem (REQ-1312).
+/// The sign-off chain records the route a change took, so its first entry
+/// names the author and each later one someone it passed through (REQ-1312,
+/// REQ-2206).
 fn sign_off(message: &str, author: &str) -> Vec<(usize, String, String)> {
     message
         .lines()
         .enumerate()
         .filter_map(|(i, line)| line.strip_prefix("Signed-off-by: ").map(|v| (i + 1, v.trim())))
+        .take(1)
         .filter(|(_, named)| *named != author)
         .map(|(number, named)| {
-            (number, "sign-off".to_string(), format!("the sign-off names {named}, and the commit's author is {author}; the certificate is the author's own statement"))
+            (number, "sign-off route".to_string(), format!("the first sign-off names {named}, and the commit's author is {author}; the chain starts with the author's own statement"))
         })
         .collect()
 }
@@ -287,11 +369,16 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
         },
     };
     let found = convention(root);
-    let mut listed = problems(&message, &found);
+    let signed = found.state == "declared"
+        && message
+            .lines()
+            .any(|line| line.starts_with("Signed-off-by: "));
+    let author = if signed { author(root) } else { None };
+    let mut listed = problems_by(&message, &found, author.as_deref());
     let mut notes = Vec::new();
-    if found.trailers.iter().any(|t| t == "Signed-off-by") {
-        match author(root) {
-            Some(author) => listed.extend(sign_off(&message, &author)),
+    if signed {
+        match &author {
+            Some(author) => listed.extend(sign_off(&message, author)),
             None => notes.push(
                 "sign-off: not compared with the author, because git reports no author identity"
                     .to_string(),

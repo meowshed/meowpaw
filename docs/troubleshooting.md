@@ -9,7 +9,7 @@ describes:
     meow-github@0.13.0,
     meow-flow@0.46.4,
     meow-prose-gate@0.4.0,
-    meow-scm@0.4.2,
+    meow-scm@0.5.0,
     meow-checks@0.9.0,
   ]
 ---
