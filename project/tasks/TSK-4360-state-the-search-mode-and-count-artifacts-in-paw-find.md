@@ -86,6 +86,12 @@ conclusion `find` reads is a title or a statement, which SPC-1100 calls
 `front matter`. The line `... and <n> more; narrow the words` goes, because
 the count line now says how many hits the limit left out.
 
+Review found that the README and M7 let an `exhaustive` miss stand for the
+whole record, though `find` never reads a body. Both now limit the claim to
+identifiers, titles and conclusions. Review also found that no check pinned
+`front matter` on a research hit, and criterion 3's check now does, in
+53691d1f.
+
 `meow-flow` goes to 0.47.0, and its README describes the new lines.
 
 ## Left alone

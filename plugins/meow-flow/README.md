@@ -177,7 +177,10 @@ identifiers, which a migration runs before and after to show it lost nothing.
 `paw find <word>...` lists the artifacts whose identifier, title or conclusion
 carry the words, headings only and at most twenty. Its first line,
 `exhaustive: read <n> artifacts`, says it read every artifact, so a miss
-means the record has none. Each hit ends with its file and `front matter`
+means no artifact's identifier, title or conclusion carries the words. A
+conclusion is a requirement's statement, the first sentence of a research
+record's Summary, and otherwise the title, so a word elsewhere in a document
+needs a search of the files. Each hit ends with its file and `front matter`
 or the section it matched in, and the last line, `artifacts matched: <n>`,
 counts the artifacts past the twentieth too. `paw new <kind> [--topic
 <topic>]` prints the next identifier to allocate, never one any file already

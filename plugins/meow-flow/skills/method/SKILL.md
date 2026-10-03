@@ -58,7 +58,9 @@ don't overrule it.
   search after writing is a consistency check and one before changes the
   answer. Write that the record has no X only from a search whose first line
   says `exhaustive`, and from a `ranked` one only that the search found X,
-  because a ranked miss is a fact about the ranking and not the record. Read a
+  because a ranked miss is a fact about the ranking and not the record. Claim
+  an absence only for what the search reads, because `paw find` reads each
+  artifact's identifier, title and conclusion and no other text. Read a
   hit with `paw show` before you quote it, because a hit line holds a heading
   and not the qualification beside it. Where a search reads through an index,
   refresh the index before you rely on a miss, resolve each hit to its file
