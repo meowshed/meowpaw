@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.13.0]
+describes: [meow-github@0.14.0]
 ---
 
 # meow-github
@@ -81,6 +81,10 @@ says so and does nothing, and nothing in the method needs a tracker:
 [tracker]
 kind = "github"
 ```
+
+The command opens by naming the profile's state, as
+`meow-github project: profile: parsed`, and each key no unit reads, as
+`meow-github project: unknown key: <path>`, which changes no exit status.
 
 Once an epic is approved, file one issue per task:
 

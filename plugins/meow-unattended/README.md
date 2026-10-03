@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what meow-unattended plans, what it writes and what its deny rules don't stop
 kind: reference
-describes: [meow-unattended@0.2.2]
+describes: [meow-unattended@0.3.0]
 ---
 
 # meow-unattended
@@ -87,6 +87,11 @@ From your own shell, run the same launcher by its path in the installed unit.
 
 `meow-unattended plan --purge` removes every snapshot of the work tree and
 prints how many it removed.
+
+`plan` first prints the profile's state, `profile: absent`,
+`profile: unparseable` or `profile: parsed`, and `unknown key: <path>` for
+each key no unit reads, such as a mistyped `[unattended]` key. An unknown key
+is no refusal.
 
 ## The snapshot
 
