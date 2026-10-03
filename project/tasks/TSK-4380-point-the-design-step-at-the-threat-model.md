@@ -57,7 +57,20 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Closes REQ-2784, REQ-2786, REQ-2788, REQ-2790 and REQ-2792. `ThreatModel` in
+`tools/test_threat_model.py` closes criteria 1 to 3 in five checks, reading
+SPC-1080's "The threat model" by its heading. They failed against copies of
+the section with a category removed, a placeholder control, a boundary
+dropped or left unnamed, an attacker's threat ranked above an insider's and a
+digit in a rank, and one check holds that a removed category and a
+placeholder control are found. `ThreatModelPointer` in
+`plugins/meow-flow/tests/test_record.py` closes criterion 4 in two checks,
+and the first failed at the pull request's first commit, before D20 named
+the threat model. Two reviewing agents found checks that would pass a wrong
+model or a wrong D20, and the pull request rewrote them in commits of their
+own. `meow-checks run format lint check test build` passed all five verbs,
+`mise run all` exited 0 and `paw check` reported 0 findings, each on the tree
+before this Evidence was last edited. The pull request is #825.
 
 ## Left alone
 
