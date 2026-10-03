@@ -87,8 +87,8 @@ conclusion `find` reads is a title or a statement, which SPC-1100 calls
 the count line now says how many hits the limit left out.
 
 Review found that the README and M7 let an `exhaustive` miss stand for the
-whole record, though `find` never reads a body. Both now limit the claim to
-identifiers, titles and conclusions. Review also found that no check pinned
+whole record, though `find` reads only identifiers, titles and conclusions.
+Both now limit the claim to those three. Review also found that no check pinned
 `front matter` on a research hit, and criterion 3's check now does, in
 53691d1f.
 
