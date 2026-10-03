@@ -2,8 +2,8 @@
 
 Every rule a contributor follows is in [`CLAUDE.md`](../CLAUDE.md), the
 repository's constitution, and this page repeats none of them. Read it before
-your first change: it says how work is ordered, how a
-change is written, committed and reviewed, and which gate it has to pass.
+your first change: it says how work is ordered, how a change is written,
+committed and reviewed, and which gate it has to pass.
 
 ## Where to start
 
