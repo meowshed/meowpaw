@@ -72,7 +72,7 @@ rejected approach, and `null` for an issue. `credential` and `budget` are the
 credential line and the budget lines that
 [Credential and budgets](#credential-and-budgets) describes.
 
-## Project an epic's tasks onto issues
+## Project an authorising record's tasks onto issues
 
 Declare the tracker in `.meowpaw/profile.toml` first. Without it the command
 says so and does nothing, and nothing in the method needs a tracker:
@@ -90,6 +90,13 @@ Once an epic is approved, file one issue per task:
 
 ```bash
 meow-github project EPC-1310
+```
+
+An approved defect that carries tasks directly uses the same projection and
+derives completion from its own task marks:
+
+```bash
+meow-github project BUG-1210
 ```
 
 Each issue is titled with the task's identifier and title, and its body cites
