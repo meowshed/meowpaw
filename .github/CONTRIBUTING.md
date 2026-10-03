@@ -1,9 +1,8 @@
 # Contributing to meowpaw
 
 Every rule a contributor follows is in [`CLAUDE.md`](../CLAUDE.md), the
-repository's constitution, and this page repeats none of them, because
-`CLAUDE.md` is the only instruction file and a second copy would drift from
-it. Read it before your first change: it says how work is ordered, how a
+repository's constitution, and this page repeats none of them. Read it before
+your first change: it says how work is ordered, how a
 change is written, committed and reviewed, and which gate it has to pass.
 
 ## Where to start

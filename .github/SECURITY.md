@@ -18,7 +18,7 @@ do, and the smallest steps that reproduce it.
 
 ## What happens next
 
-I read each report, confirm it or say why it isn't a vulnerability, and fix a
-confirmed one in a release. This policy promises no response time, because
+I read each report and either confirm it or say why it isn't a vulnerability.
+A confirmed one is fixed in a release. This policy promises no response time, because
 one person maintains the project and a promise nobody can keep is worse than
 none.
