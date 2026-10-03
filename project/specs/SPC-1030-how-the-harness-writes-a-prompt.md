@@ -273,12 +273,13 @@ load it (REQ-1110). A unit also follows these rules:
 - A skill for one language or directory declares its `paths` (REQ-2682).
 - A skill whose work is a long read ending in a short answer runs in a forked
   context (REQ-2684).
-- Material injected when a skill loads must be cheap and certain (REQ-2686).
-  Cheap means it finishes inside the platform's two-minute timeout. Certain
-  means it never exits non-zero, because a non-zero exit aborts the invocation.
-  It runs no verification verb such as `lint` or `test`, because a test run can
-  exceed the timeout, and nothing depends on it, because a setting can turn
-  injection off (RES-0201).
+- Material injected when a skill is invoked must be cheap and certain
+  (REQ-2686, RES-0201). Cheap means it finishes inside the platform's
+  two-minute timeout. Certain means it exits zero wherever the skill runs,
+  because the platform aborts the invocation on a non-zero exit. It runs no
+  verification verb such as `lint` or `test`, because a verb belongs in the
+  body as an instruction. Nothing depends on it, because a setting can turn
+  injection off.
 - Every command is namespaced, because the platform prefixes a unit's skills
   with the unit's name (REQ-2690).
 - A unit proposes the permissions it needs in its `README.md` and leaves the
