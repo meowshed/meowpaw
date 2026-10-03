@@ -34,6 +34,23 @@ def blocks(lines, indent):
     return found
 
 
+def steps(lines, indent):
+    """Each step at `indent` spaces, as the keys it declares."""
+    found = []
+    for line in lines:
+        depth = len(line) - len(line.lstrip(" "))
+        text = line.strip()
+        if depth == indent and text.startswith("- "):
+            found.append({})
+            text = text[2:]
+        elif depth != indent + 2 or not found:
+            continue
+        if re.match(r"[\w-]+:", text):
+            key, value = text.split(":", 1)
+            found[-1][key] = value.strip()
+    return found
+
+
 class TrunkGate(unittest.TestCase):
     def setUp(self):
         self.lines = WORKFLOW.read_text(encoding="utf-8").splitlines()
@@ -41,26 +58,43 @@ class TrunkGate(unittest.TestCase):
         profile = tomllib.loads((ROOT / ".meowpaw" / "profile.toml").read_text(encoding="utf-8"))
         self.trunk = profile["git"]["trunk"]
 
+    def assert_reaches_the_trunk(self, event, body, required):
+        """A trigger whose filters leave the trunk out never runs the gate there."""
+        filters = blocks(body[1:], 4)
+        for key in ("branches-ignore", "paths", "paths-ignore", "tags"):
+            self.assertNotIn(key, filters, f"`{event}` is filtered by `{key}`")
+        if "branches" not in filters:
+            self.assertFalse(required, f"`{event}` names no branch")
+            return
+        branches = re.search(r"branches:\s*\[([^\]]*)\]", "\n".join(filters["branches"]))
+        self.assertIsNotNone(branches, f"`{event}` lists its branches in a form this test can't read")
+        self.assertIn(self.trunk, [b.strip().strip("'\"") for b in branches.group(1).split(",")])
+
     def test_the_workflow_runs_on_a_pull_request_and_a_push_to_the_trunk(self):
         """TSK-4650 criterion 4, REQ-2210: the gate runs before a merge and again on the trunk."""
         triggers = blocks(self.top["on"][1:], 2)
         self.assertIn("pull_request", triggers)
         self.assertIn("push", triggers)
-        push = "\n".join(triggers["push"])
-        branches = re.search(r"branches:\s*\[([^\]]*)\]", push)
-        self.assertIsNotNone(branches, push)
-        self.assertIn(self.trunk, [b.strip().strip("'\"") for b in branches.group(1).split(",")])
+        self.assert_reaches_the_trunk("pull_request", triggers["pull_request"], required=False)
+        self.assert_reaches_the_trunk("push", triggers["push"], required=True)
 
     def test_a_job_runs_the_whole_gate_unconditionally(self):
-        """TSK-4650 criterion 4, REQ-2210: a job runs `mise run all`, and no condition skips it."""
+        """TSK-4650 criterion 4, REQ-2210: a job runs `mise run all`, and nothing skips it or forgives its failure."""
         jobs = blocks(self.top["jobs"][1:], 2)
         self.assertTrue(jobs, "the workflow declares no jobs")
-        gates = [name for name, body in jobs.items()
-                 if any(re.fullmatch(r"\s*(- )?run: mise run all\s*", line) for line in body)]
+        gates = []
+        for name, body in jobs.items():
+            keys = blocks(body[1:], 4)
+            found = [s for s in steps(keys.get("steps", [])[1:], 6) if s.get("run") == "mise run all"]
+            if not found:
+                continue
+            gates.append(name)
+            for key in ("if", "continue-on-error", "needs"):
+                self.assertNotIn(key, keys, f"job `{name}` declares `{key}`, so the gate may not run or count")
+            for step in found:
+                for key in ("if", "continue-on-error"):
+                    self.assertNotIn(key, step, f"the gate step in `{name}` declares `{key}`")
         self.assertTrue(gates, f"no job runs `mise run all` among {sorted(jobs)}")
-        for name in gates:
-            conditions = [line for line in blocks(jobs[name][1:], 4) if line == "if"]
-            self.assertEqual(conditions, [], f"job `{name}` runs the gate only on a condition")
 
 
 if __name__ == "__main__":

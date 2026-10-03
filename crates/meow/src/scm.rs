@@ -509,9 +509,35 @@ mod tests {
     #[test]
     fn the_provenance_trailers_need_no_list() {
         // REQ-2208: Fixes and Cherry-picked-from record where something came from.
-        // Each carries a person's form here, so the exemption, not the form, passes it.
+        // Each carries a person's form here, so the exemption, not the form, passes
+        // it, and the unlisted reviewer beside them shows the rule is running.
         let message = format!(
-            "fix: a change\n\nFixes: {ADA}\nCherry-picked-from: {ADA}\nSigned-off-by: {AUTHOR}\n"
+            "fix: a change\n\nFixes: {ADA}\nCherry-picked-from: {ADA}\nReviewed-by: {ADA}\nSigned-off-by: {AUTHOR}\n"
+        );
+        let listed = problems(&message, &declared(""));
+        let lines: Vec<usize> = listed.iter().map(|(line, _, _)| *line).collect();
+        assert_eq!(
+            rules(&message, &declared("")),
+            vec!["named person"],
+            "{listed:?}"
+        );
+        assert_eq!(lines, vec![5], "{listed:?}");
+    }
+
+    #[test]
+    fn a_lower_case_sign_off_is_still_a_sign_off() {
+        // REQ-2206: git reads a trailer's key in any case, so the chain does too.
+        let message = format!("fix: a change\n\nsigned-off-by: {ADA}\nSigned-off-by: {AUTHOR}\n");
+        let found = sign_off(&message, AUTHOR);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!((found[0].0, found[0].1.as_str()), (3, "sign-off route"));
+    }
+
+    #[test]
+    fn a_body_line_names_nobody() {
+        // REQ-2208: only the trailer block names a person, and only with an address.
+        let message = format!(
+            "fix: a change\n\nUsage: meow-scm check-message <file>\nAsked: Ada Lovelace <ada@example.org>\n\nSee: the guide <https://example.org>\nSigned-off-by: {AUTHOR}\n"
         );
         assert_eq!(rules(&message, &declared("")), Vec::<String>::new());
     }
