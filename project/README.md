@@ -295,8 +295,8 @@ aren't built yet.
 
 [SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
 convention and its check, and `meow-scm` implements it, verified under issue 130.
-The sign-off route, the trailers that name a person and the breaking mark,
-which TSK-4650 realises, aren't built yet.
+TSK-4650 built the sign-off route, the trailers that name a person and the
+breaking mark.
 
 [SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, and
 `meow-git` implements it, verified under issue 392. The restack, which
@@ -685,8 +685,9 @@ one of them.
 TSK-4600 realises ADR-2500 directly: every unit installs with no person, and
 agent-neutral material is written once. TSK-4610 realises ADR-2510 directly:
 the community files sit under `.github/`, and it's done. TSK-4650 realises
-ADR-2530 directly: the commit check holds the sign-off route, the named
-trailers and the breaking mark. Neither TSK-4600 nor TSK-4650 is started.
+ADR-2530 directly, and is closed with evidence: the commit check holds the
+sign-off route, the named trailers and the breaking mark. TSK-4600 is not
+started.
 
 [EPC-2520](epics/EPC-2520-every-shipped-hook-is-held-to-one-set-of-answers.md)
 realises ADR-2450, which ADR-2700 amends, in four tasks, TSK-4900 to TSK-4915,

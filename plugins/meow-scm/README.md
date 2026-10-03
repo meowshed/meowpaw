@@ -29,6 +29,7 @@ Put it under `[commits]` in `.meowpaw/profile.toml` at the repository's root:
 [commits]
 subject_limit = 72
 trailers = ["Signed-off-by"]
+may_name = ["Ada Lovelace <ada@example.org>"]
 
 [commits.types]
 feat = "minor"
@@ -38,7 +39,9 @@ docs = "none"
 
 Each type says what it means for a release: `major`, `minor`, `patch` or
 `none`. The subject limit is 72 where you don't declare one, and every trailer
-you name must appear on every message.
+you name must appear on every message. `may_name` lists each person, as
+`Name <address>`, who agreed to be named in a trailer, and
+`meow-scm convention` prints the list.
 
 ## What Claude Code does with it
 
@@ -56,8 +59,11 @@ meow-scm check-message: 2 problems; don't use this message until they are fixed
 The check names every break with its line: a subject not in the form
 `type(scope)!: description`, a type you didn't declare, a subject over the
 limit or ending in a full stop, a missing blank line after the subject, a
-missing trailer, and any line that credits a tool, an agent or a vendor. It
-exits 0 when the message meets your convention and 1 when it doesn't.
+missing trailer, a trailer naming a person `may_name` doesn't list, a break
+with no `BREAKING CHANGE:` trailer, and any line that credits a tool, an agent
+or a vendor. A break is a subject carrying `!` or a type you declared as
+`major`. It exits 0 when the message meets your convention and 1 when it
+doesn't.
 `convention` and `check-message` both open with the profile's state and name
 each key no unit reads as `unknown key: <path>`, which changes no exit status.
 
@@ -74,12 +80,25 @@ program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, the
 check reports the message as unchecked and exits 3.
 
-## The sign-off is the author's
+## The sign-off records the route
 
-Where the convention requires a `Signed-off-by` trailer, the check compares
-its value with the commit's author as git reports it, and refuses a sign-off
-naming anybody else, because the certificate is a statement the author makes.
-Where git reports no author, it says the sign-off wasn't compared.
+Where a message carries `Signed-off-by` trailers, the check compares the first
+with the commit's author as git reports it, and refuses one naming anybody
+else, because the chain starts with the author's own statement. Each later
+sign-off names someone the change passed through, so it is a trailer naming a
+person, and passes only where it names the author or someone `may_name`
+lists. Where git reports no author, the check says the sign-off wasn't
+compared.
+
+A trailer names a person when its value has the form `Name <address>`, such as
+`Co-authored-by`, `Reviewed-by` or `Acked-by`. Three trailers record where
+something came from and are exempt: `Signed-off-by` naming the author,
+`Cherry-picked-from` and `Fixes`.
+
+The sign-off route and the person rule read only the message's last
+paragraph, because git reads trailers from there, and they match a key in any
+case. The check for a trailer the convention requires still reads every line
+after the subject, with the key as you declared it.
 
 ## What it needs
 
