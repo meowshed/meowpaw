@@ -939,20 +939,19 @@ class Step(Case):
         self.assertEqual(len(f.calls()), 1)
 
     def test_spec_run_over_no_requirement_never_finishes(self):
-        """TSK-3410 criterion 7: a `spec` run over a decision that addresses nothing, or over an input that is no
-        decision, never finishes, though a call writes a specification and the verb passes."""
+        """TSK-3410 criterion 7: a `spec` run over a decision that addresses nothing never finishes, though a call
+        writes a specification and the verb passes. An input that is no decision is refused at start since
+        TSK-4050, which `test_wrong_kind_input_is_refused` checks."""
         decision = front(id="ADR-0002", artifact="adr", status="approved", revised="2026-01-01", addresses="[]",
                          supersedes="[]") + "\n# 0002. Another choice\n"
         spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
                      states="[REQ-0001]") + "\n# Another part\n"
-        for input in ("ADR-0002", "REQ-0001"):
-            with self.subTest(input=input):
-                f = self.fixture({"done.flag": "x", "project/adrs/ADR-0002-another.md": decision})
-                f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
-                done = f.start(step_terms("spec", input, iterations="2"))
-                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-                self.assertEqual(f.ending(), "ceiling")
-                self.assertEqual(len(f.calls()), 2)
+        f = self.fixture({"done.flag": "x", "project/adrs/ADR-0002-another.md": decision})
+        f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
+        done = f.start(step_terms("spec", "ADR-0002", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual(len(f.calls()), 2)
 
     def test_amending_design_run_finishes(self):
         """TSK-3410 criterion 8, REQ-0884: a `design` run over a requirement an approved decision already addresses
