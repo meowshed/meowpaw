@@ -92,7 +92,7 @@ silence at every session start, so SPC-1080 states that hook and
 
 Run locally on the completing commit's tree, `mise run all` exits 0,
 `meow-checks run format lint check test build` reports all five verbs passed
-and `paw check` reports 0 findings. CI runs the same gate on pull request #818.
+and `paw check` reports 0 findings. CI runs `mise run all` on pull request #818.
 
 ## Left alone
 
