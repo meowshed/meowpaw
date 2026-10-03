@@ -2,7 +2,7 @@
 id: SPC-1030
 artifact: spec
 status: live
-revised: 2026-09-29
+revised: 2026-10-03
 states:
   [
     REQ-0077,
@@ -73,6 +73,13 @@ states:
     REQ-1490,
     REQ-1492,
     REQ-2742,
+    REQ-0070,
+    REQ-1430,
+    REQ-1432,
+    REQ-0826,
+    REQ-0828,
+    REQ-2980,
+    REQ-2986,
   ]
 ---
 
@@ -97,7 +104,11 @@ ADR-1020, ADR-1030 and ADR-1050 decide the form. ADR-1040 decides how the reply
 shape reaches a subordinate agent, and ADR-1450 how the capability ships and is
 checked. ADR-1700 decides what an agent declares, and ADR-1710 what an agent
 reports and what it does when a tool is denied. The specification of the
-method's chain covers what a dispatcher does with each outcome.
+method's chain covers what a dispatcher does with each outcome. ADR-2460
+decides that each tool a unit requests traces to a step, ADR-2560 when a step
+delegates and how a repository replaces a shipped agent, and ADR-2640 the
+check that the method names no language. SPC-1240 states the rules every
+hook keeps.
 
 ## Boundary
 
@@ -110,6 +121,7 @@ method's chain covers what a dispatcher does with each outcome.
 | `meow-author check`              | The check over every prompt it is given, run by the `prompts` task in the `lint` verb (one of the five verification verbs) |
 | `plugins/meow-author/`           | The unit that ships the authoring skill and the check                                                                      |
 | `tools/check_kernel.py`          | The check that the kernel (the `meow-core` unit) names no unit outside it                                                  |
+| `tools/check_language.py`        | The check that no prompt, template or page of the method names a language or a tool, run by the `test` verb                |
 | `meow-author cost`               | The report of each unit's cost against its budget, and its use, run by the `budget` task                                   |
 
 ## Behaviour
@@ -193,6 +205,19 @@ the kernel has to behave the same whether or not that unit is installed
 (REQ-0077). `tools/check_kernel.py` fails in the gate when a file in
 `meow-core` names another unit. The reviewer checks that a pointer uses no
 name, such as "the writing skill".
+
+### What the method names
+
+No prompt, template or page in the kernel, method and practice units names a
+programming language, a framework, a build tool, a package manager, a file
+extension or a problem domain, because what the harness tells a repository has
+to hold in every language (REQ-0070). `tools/check_language.py` reads every
+such file and fails, naming the file, the line and the word, on a word from
+its list. The units it reads are listed in the check beside the kernel list
+`tools/check_kernel.py` keeps, because no manifest field names a unit's layer
+the check could trust. A pack is never read, a unit's own program is exempt,
+and a fenced block whose info string names the pack whose output it shows is
+exempt (ADR-2640).
 
 ### Size
 
@@ -303,6 +328,9 @@ load it (REQ-1110). A unit also follows these rules:
   with the unit's name (REQ-2690).
 - A unit proposes the permissions it needs in its `README.md` and leaves the
   repository to declare them (REQ-2692).
+- Each tool an agent definition or a skill's `allowed-tools` grants traces to
+  a step that uses it, and the unit's README names that step beside the tool,
+  so a tool no step needs is visible and removed (REQ-1430, REQ-1432).
 - A script says whether it is run or read, and a script that is run is never
   also summarised in prose (REQ-2706).
 - Instructions use the vocabulary of the work they govern (REQ-2708).
@@ -406,6 +434,17 @@ wording from a near miss.
 
 ### Delegation
 
+A step delegates for one of two reasons: to keep a context clean, or to run
+independent tracks at once (REQ-0826). It never delegates because a task is
+large, because a large task split across agents shares a context nobody
+isolated (REQ-0828). An agent dispatched to implement in parallel declares
+`isolation: worktree` in its dispatch and arranges no working directory for
+itself (REQ-2980). A repository replaces any agent a unit ships by defining
+one of the same name in its own `.claude/agents/`, which the platform loads in
+place of the unit's, so a shipped definition is a starting point (REQ-2986).
+The specification of the method's chain states the brief a delegated agent
+gets and who reviews its work.
+
 Knowledge, such as a design lens or a language's idioms, ships as a skill
 loaded into the working context and never as an agent (REQ-2972). A
 delegated agent runs in the parent's process and under the parent's sandbox
@@ -444,7 +483,14 @@ it is given, such as `.claude/`, and fails, naming the file and the line, on:
 - a file in a skill's directory that its `SKILL.md` never names;
 - a path into the unit written without the directory variable;
 - a skill's core or an agent with a procedure and no step naming where it
-  stops.
+  stops;
+- an agent's tool, or a tool in a skill's `allowed-tools`, whose unit's README
+  names no step beside it;
+- a description whose first sentence carries none of the verbs its unit's
+  `when_to_use` names, because a request reaches a unit through those words
+  (REQ-3050).
+
+`meow-author check` also holds every hook to the rules SPC-1240 states.
 
 One check audits every unit, because the format is uniform across them
 (REQ-1128).
@@ -461,6 +507,9 @@ One check audits every unit, because the format is uniform across them
 | The model does not load a unit that MUST be loaded                  | The routing measurement shows it, and the description is the thing that changes        |
 | A description loads its unit on a near miss                         | The routing measurement shows it, and the wording is narrowed before it ships          |
 | An agent leaves out a declared field                                | The check fails in the gate, naming the file and the field                             |
+| A unit grants a tool no step is named for                           | The check fails, naming the unit, the tool and the agent or skill granting it          |
+| A method prompt names a language or a tool                          | `tools/check_language.py` fails in the `test` verb, naming the file, line and word     |
+| A language name the list lacks                                      | The check passes it, and review holds it until the word joins the list                 |
 | An agent's front matter doesn't parse                               | The check fails, naming the file and the reason, and runs no field rule on it          |
 | A shipped agent lists `Agent`, `Task` or `*`                        | The check fails, naming the file and the `tools` field                                 |
 | A shipped agent names a model the account lacks                     | The dispatch fails to start, and a repository replaces the agent with its own          |

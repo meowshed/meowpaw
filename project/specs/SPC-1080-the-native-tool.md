@@ -124,6 +124,17 @@ states:
     REQ-1486,
     REQ-2194,
     REQ-2218,
+    REQ-0072,
+    REQ-0084,
+    REQ-0086,
+    REQ-0088,
+    REQ-0343,
+    REQ-3040,
+    REQ-1424,
+    REQ-1429,
+    REQ-2992,
+    REQ-2358,
+    REQ-2360,
   ]
 ---
 
@@ -146,7 +157,13 @@ an issue nowhere, and EPC-1710 realised it, verified under issue 625. ADR-1810
 sends every GitHub request through one layer, and EPC-1720 realises it.
 ADR-2500 decides the unattended install, and TSK-4600 realises it. ADR-2520
 adds the release's attestation and the report of the trunk's protections, and
-EPC-2420 realises them.
+EPC-2420 realises them. ADR-2710 decides what a hook's launcher does with no
+binary. ADR-2460 decides where the harness writes and that it never touches a
+secret. ADR-2490, as ADR-2720 amends it, decides the interface page and its
+generator. ADR-2650 adds the parts a repository declares and the profile
+layered for each, ADR-2600 and ADR-2620 add keys to the table of keys,
+ADR-2640 keeps every pack optional, and ADR-2660 names the code host and the
+tracker the harness serves.
 
 ## Boundary
 
@@ -193,7 +210,51 @@ The table of keys is one list in `crates/meow/src/profile.rs`. Each entry names
 a key, such as `verbs.test` or `commits.types`, and the reason nothing else
 answers it: the ecosystem doesn't declare it, the platform doesn't own it, it
 isn't prose, and detection can't produce it (REQ-2950). A pull request that
-adds a key adds its entry, and a test fails on an entry with no reason.
+adds a key adds its entry, and a test fails on an entry with no reason. A key
+is known when an entry names its path or a path below it, so `[verbs.test]`
+is known through `verbs.test.command`. The keys below an entry with nothing
+listed below it, such as each type under `commits.types`, are the
+repository's own names, and the tool doesn't check them.
+
+The report is these lines, each kind opening with its own first word:
+
+```text
+profile: unparseable
+profile error: line 3: unclosed table, expected `]`
+```
+
+```text
+profile: parsed
+unknown key: verbs.tset
+```
+
+A unit whose output already prefixes each line with its command, such as
+`meow-git push-guard:`, prefixes these lines the same way. `paw` and
+`meow-markdown bind` print them on standard error, because their standard
+output is what a step reads or a person pastes, such as a template, an
+identifier or a table for the profile.
+Two hooks print nothing about the profile. `meow-loop`'s guard judges each tool
+call during a run, and a line on every call would bury the refusals it exists
+to make. `paw status --waiting` runs at the start of every session and says
+nothing unless something waits, so a repository with no record
+pays nothing for it.
+
+A repository declares its parts in the root profile under `[parts]`, one
+entry a part, naming the part and its directory, because only the project
+knows what it is built from (REQ-0343). A part is a directory and never
+assumed to be a unit of installation. Where a part's directory holds its own
+`.meowpaw/profile.toml`, the tool reads it over the root's: a key the part
+declares replaces the root's for that part, and the part's `[verbs]` declares
+every verb the part needs, because a verb the part leaves out is unresolved
+there and never taken from the root (REQ-3040). A part's profile carries no
+`[record]` or `[parts]` table, because the record stays at the root, and the
+tool reports either as an unknown key. A repository that declares no
+`[parts]` is one part, its root. The tool layers the profiles itself and
+relies on no setting the platform inherits from a parent directory.
+
+The table of keys lists `parts` for the parts, `record.kinds` for a kind a
+repository declares, and `docs.diagrams` for the diagram notation, each with
+its reason.
 
 A personal profile, `.meowpaw/profile.local.toml`, sits beside the shared one
 and holds `[verbs]` only, in the forms the shared one takes. The tool reads it after
@@ -218,7 +279,8 @@ the machine's target from the operating system and the processor, looks for
 and runs it with the unit's subcommand and the arguments it was given. Where no
 binary exists for the target, it reports every check as unrun and exits as the
 unit's specification says a missing program does, never with success on a
-check.
+check. A launcher that a blocking hook runs denies instead, with exit 2 and
+the command that installs the unit again, as SPC-1240 states (REQ-1426).
 
 ### Each subcommand makes one determination
 
@@ -241,6 +303,22 @@ tree, the step reports both and doesn't defer to the tool (REQ-1180). Where a
 hook can run a subcommand before the model reads, the unit runs it from the
 hook, as `meow-flow`'s `SessionStart` hook runs `paw status --waiting`
 (REQ-1190).
+
+### The public interface
+
+The harness declares its public interface on one page,
+`docs/interface.md`, which names the five verbs and their outcomes,
+the artifact kinds and their front matter, the record's paths and identifier
+formats, the profile's keys, every subcommand of the tool, and the form of a
+piece of evidence (REQ-2992). The tool generates the page from the
+documentation comments on what it parses and reads: each subcommand, each
+verb's outcomes, each kind and its fields, the layout's paths and identifier
+formats, each entry in the table of keys and the ledger's record. Each entry
+on the page carries its item's comment as its reason. `meow interface`
+prints the page, and a crate test runs it and fails where the committed page
+differs, or where an item carries no documentation comment. A change that
+removes or renames an entry is a change to the interface, and its commit is
+marked breaking (ADR-2490, ADR-2720).
 
 ### The checks the crate passes
 
@@ -441,6 +519,26 @@ The features of the tool that read the record and project it onto a tracker,
 which later decisions add, are features no step of the method depends on
 (REQ-0032). A unit is complete with the record kept by hand and no tracker.
 
+Knowledge of a language, a platform, a domain or an external tool lives in a
+pack, a unit a repository may leave out, and the tools the harness itself
+uses, such as `git`, `gh` and `mise`, live in packs of the same kind:
+`meow-git`, `meow-github` and `meow-mise` (REQ-0072, REQ-0084). The method
+assumes no external tool is present, no step, gate or obligation needs a
+pack, and the method completes with none installed, each capability a missing
+pack would supply reported as unresolved (REQ-0086, REQ-0088) (ADR-2640).
+
+### What the harness writes and reads
+
+The harness writes outside the repository only to its own run state under
+`<state>/meowpaw/` and to the record at the location the profile declares,
+and a unit test in the crate fails where a subcommand writes anywhere else
+(REQ-1429). It never reads, prints or sends a repository's secret material,
+and never puts it in an artifact (REQ-1424). `meow-core`'s output style
+states that rule for every repository, because a constitution is one of
+several documents loaded and a repository's own may not carry it, and
+CLAUDE.md's `never_touch_secrets` states it for this one. No program can
+show the rule holds, so the instruction and review hold it (ADR-2460).
+
 ### Adopted in part
 
 A repository adopts any subset of the units, and each is a working harness on
@@ -605,7 +703,11 @@ other command it prints nothing and exits 0.
 ### Projecting the record onto a tracker
 
 The record is the system of record and a tracker a projection of it, and the
-method completes with none (REQ-1372, REQ-1376, REQ-1380). A repository
+method completes with none (REQ-1372, REQ-1376, REQ-1380). `meow-github`
+serves the code host GitHub, creating, linking and reading back the issues an
+epic projects onto (REQ-2358), and GitHub Issues as the tracker, projected as
+a mapping from each task to its issue and never as an integration that keeps
+state of its own (REQ-2360) (ADR-2660). A repository
 declares its tracker as `[tracker] kind` in its profile (REQ-1351).
 `meow-github project <epic>` projects an approved epic's tasks through the
 request layer, one issue each, citing the requirements and dependencies and
@@ -691,8 +793,8 @@ and carries no numeric score (REQ-2790). The insiders come first:
 | The harness runs a destructive command on a repository it misread     | likely     | severe | `meow-flow:route` before any edit, `meow-git`'s trunk and push guards, and the governance guard above                 |
 | The harness reports a check as passed with nothing behind it          | likely     | severe | `meow-checks` never reports an unresolved verb as passed, and every report separates verified from assumed (REQ-1734) |
 | The harness rewords an approved record to match what was built        | likely     | minor  | `paw check frozen`                                                                                                    |
-| The harness changes configuration outside the repository              | unlikely   | severe | The crate's unit test on `git config --global` and `--system`                                                         |
-| The person's own session reads or prints a secret from the repository | unlikely   | severe | The instruction alone: `CLAUDE.md`'s `never_touch_secrets`; no program checks it                                      |
+| The harness changes configuration outside the repository              | unlikely   | severe | The crate's unit tests on `git config --global` and `--system`, and on a write outside the run state and the record   |
+| The person's own session reads or prints a secret from the repository | unlikely   | severe | The instruction alone: `meow-core`'s output style and `CLAUDE.md`'s `never_touch_secrets`; no program checks it       |
 | Text across a boundary instructs the model to act                     | likely     | severe | None by program; a shipped agent ends `BLOCKED` on a denied call, which limits what it reaches                        |
 | A commit claims an author who didn't make it                          | unlikely   | severe | `meow-git`'s push guard accepts only a good signature from a trusted key                                              |
 | A released archive is replaced                                        | unlikely   | severe | `marketplace.json` names each archive's SHA-256 (the release above)                                                   |
@@ -715,7 +817,10 @@ process uses, and maps each to the control that answers it, or says none does
 
 | Condition                                        | What happens                                                                                                 |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| No binary for the machine's target               | The launcher reports every check as unrun, never passed                                                      |
+| No binary for the machine's target               | The launcher reports every check as unrun, never passed; a blocking hook's launcher denies, naming the fix   |
+| A part's profile carries `[record]` or `[parts]` | The table is reported as an unknown key, and the root's record and parts stand                               |
+| A part's profile leaves out a verb               | That verb is unresolved in that part, and never taken from the root's profile                                |
+| The committed interface page differs             | The crate's test fails, naming the entry that differs; regenerating the page fixes it                        |
 | The profile doesn't parse                        | `profile: unparseable` with the parser's message and line; every verb unresolved, nothing falls back         |
 | The profile carries a key the table doesn't list | The key is named on a line of its own, and the exit status stays what it would have been                     |
 | A personal verb names a path on this machine     | The verb is unresolved, of the kind `machine path`, naming the path                                          |

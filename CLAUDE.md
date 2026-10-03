@@ -73,7 +73,7 @@ a file. A decision record is `approved` when someone accepted it and
 | `plugins/<name>/`                         | One directory per plugin                                                                                           |
 | `.claude-plugin/marketplace.json`         | The marketplace index                                                                                              |
 | `mise.toml`                               | The gate, as tasks                                                                                                 |
-| `.github/`                                | CI                                                                                                                 |
+| `.github/`                                | CI, and the community files a newcomer reads before contributing                                                   |
 | `.meowpaw/profile.toml`                   | What this repository declares about itself: how its verbs resolve, where its artifacts live, which tracker it uses |
 | `.meowpaw/templates/`                     | Any template this repository overrides. Empty or absent means the plugin's own                                     |
 
@@ -237,6 +237,13 @@ One exception moves the stop and doesn't remove it. Where a person asks for a
 decision to land in one pull request, its records are written through to the
 tasks and the turn ends at that pull request, whose merge is the approval.
 Nothing is implemented before that merge.
+
+A run `meow-loop` holds is the one place no person stands at the gate. There
+the run decides each gate itself against these principles, critiques what it
+approves in a separate agent first, and lists every approval, merge and
+release in its report, because the owner chose that unattended mode works
+fully without a person (ADR-2380). Every prohibition in this file still holds
+inside a run.
 </principle>
 
 <principle name="report_the_next_action_first">
@@ -418,10 +425,10 @@ shape, where `.meowpaw/profile.toml` declares the record:
 plugins/meow-flow/bin/paw check
 ```
 
-Four checks stay in `tools/` as Python scripts, because they read this
+Five checks stay in `tools/` as Python scripts, because they read this
 repository and not the record: the documentation, the documentation index,
-links, and the shape a subordinate agent carries. The `test` verb runs all
-five, and so does `meow-checks run test`.
+links, the shape a subordinate agent carries, and the community files under
+`.github/`. The `test` verb runs all six, and so does `meow-checks run test`.
 
 A check that reports a false positive is a defect in the check, and never a
 reason to reword the text around it. A check that trips on what it shouldn't

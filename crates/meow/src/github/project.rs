@@ -451,8 +451,12 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
 
 pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
     let root = profile::repository_root();
-    let table = match profile::read(&root) {
-        Profile::Parsed(table) => table,
+    let read = profile::read(&root);
+    for line in profile::report(&read) {
+        println!("meow-github project: {line}");
+    }
+    let table = match read {
+        Profile::Parsed(table, _) => table,
         _ => toml::Table::new(),
     };
     // A repository declares its tracker, and one that declares none is fully
