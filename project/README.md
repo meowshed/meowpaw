@@ -270,7 +270,10 @@ verified with EPC-1710 under issue 625. The GitHub request layer, which
 ADR-1810 adds and EPC-1720 realises, isn't built yet. It also states how the profile is
 read, which EPC-2320 realises, the rules each subcommand keeps, which
 EPC-2330 realises, each unit's plugin contract, which EPC-2340 realises, and
-the threat model, which TSK-4380 holds; none of that work has started.
+the threat model, which TSK-4380 holds; none of that work has started. It
+states the unattended install, which TSK-4600 realises, and the release's
+attestation and the report of the trunk's protections, which EPC-2420
+realises; that work hasn't started either.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
 from the repository's profile. `meow-checks` implements it, checked under
@@ -278,9 +281,12 @@ issue 115.
 
 [SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
 convention and its check, and `meow-scm` implements it, verified under issue 130.
+The sign-off route, the trailers that name a person and the breaking mark,
+which TSK-4650 realises, aren't built yet.
 
 [SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, and
-`meow-git` implements it, verified under issue 392.
+`meow-git` implements it, verified under issue 392. The restack, which
+EPC-2430 realises, isn't built yet.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
 checked, and `meow-flow` implements it, verified under issue 404, and the
@@ -305,7 +311,9 @@ verified under issue 368, except the cover step ADR-1620 adds, which EPC-1580
 realises, the seven-step chain ADR-2300 decides, which EPC-2200 realises, and the route ADR-2100 adds,
 which EPC-2000 realises, and the outcome each dispatched agent reports, which
 ADR-1710 adds and EPC-1651 realises. The blocking dependency ADR-1800 adds, which EPC-1710
-realised, was verified under issue 625.
+realised, was verified under issue 625. Stacked tasks, which EPC-2430
+realises, and a task's state read from the task, which EPC-2460 realises,
+aren't built yet.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
@@ -336,6 +344,17 @@ pack keeps: detection from tracked files, what it runs and writes, its exit
 statuses and its skill. [SPC-1195](specs/SPC-1195-the-markdown-pack.md) states
 the Markdown pack within it. `meow-markdown` implements both, which EPC-1800
 realised, verified under issue 624.
+
+[SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
+what this repository keeps under `.github/`: the community files, which
+TSK-4610 realises, and the rules every workflow holds, which EPC-2420
+realises. None of it is built yet.
+
+[SPC-1230](specs/SPC-1230-the-vision.md) states the vision's sections, what
+`paw check` reports in it and what the design step asks of it, which EPC-2450
+realises, and [SPC-1220](specs/SPC-1220-the-constitution.md) states what a
+constitution carries and the length `paw check` reports, which EPC-2440
+realises. Neither is built yet.
 
 ## Epics and tasks
 
@@ -612,6 +631,33 @@ artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill bounds a
 tool that runs source control operations. TSK-4380 realises ADR-2470
 directly: the design step points at the threat model SPC-1080 keeps. None of
 the three is started.
+
+[EPC-2420](epics/EPC-2420-workflows-start-read-only-and-a-release-carries-an-attestation.md)
+realises ADR-2520 in three tasks, TSK-4620 to TSK-4640, none of them started,
+and each of the five requirements ADR-2520 addresses lands in one of them.
+
+[EPC-2430](epics/EPC-2430-a-task-whose-blocking-dependency-is-unmerged-stacks-on-its-branch.md)
+realises ADR-2550 in four tasks, TSK-4660 to TSK-4690, none of them started,
+and each of the nineteen requirements ADR-2550 addresses lands in one of them.
+
+[EPC-2440](epics/EPC-2440-a-constitution-carries-only-what-is-always-relevant.md)
+realises ADR-2570 in four tasks, TSK-4700 to TSK-4730, none of them started,
+and each of the nine requirements ADR-2570 addresses lands in one of them.
+
+[EPC-2450](epics/EPC-2450-the-vision-carries-its-sections-and-a-check-reads-them.md)
+realises ADR-2580 in three tasks, TSK-4740 to TSK-4760, none of them started,
+and each of the eleven requirements ADR-2580 addresses lands in one of them.
+
+[EPC-2460](epics/EPC-2460-three-documents-are-living-and-the-check-holds-the-rest-to-a-record-s-rules.md)
+realises ADR-2590, which amends ADR-2300, in two tasks, TSK-4770 and TSK-4780,
+neither started, and each of the five requirements ADR-2590 addresses lands in
+one of them.
+
+TSK-4600 realises ADR-2500 directly: every unit installs with no person, and
+agent-neutral material is written once. TSK-4610 realises ADR-2510 directly:
+the community files sit under `.github/`. TSK-4650 realises ADR-2530
+directly: the commit check holds the sign-off route, the named trailers and
+the breaking mark. None of the three is started.
 
 ## Defects
 

@@ -70,6 +70,9 @@ states:
     REQ-2988,
     REQ-3050,
     REQ-3270,
+    REQ-1490,
+    REQ-1492,
+    REQ-2742,
   ]
 ---
 
@@ -150,6 +153,12 @@ reason beside it only in the cases the section on when material loads names.
 An instruction stays while the loop in SPC-1020 shows it changes the result on
 Sonnet 5 or Opus 5.5, and goes when it does not (REQ-1138).
 
+No rule a unit ships depends on being read last, because the platform loads
+several instruction files and a repository's constitution in an order the unit
+doesn't control (REQ-2742). `meow-author:write` carries the rule, and the
+reviewer checks it, because no pattern tells a rule that leans on its place
+from one that doesn't.
+
 ### How a unit divides its material
 
 A unit divides its material into a core and supporting files (REQ-1142). The
@@ -166,6 +175,16 @@ language, and one file per document type. A short text needs only the core.
 
 An output style loads whole on every turn it is in force and cannot be divided,
 so it holds only what every reply needs (REQ-1050).
+
+Material that holds for any agent, such as the writing standard, the method's
+steps and the templates, is written once, as Markdown, and no unit keeps a copy
+of it for a second agent (REQ-1492). What is specific to Claude Code, the hook
+declarations, an agent definition's front matter and the plugin manifest, stays
+in the files the platform reads, so a port to another agent with equivalent
+primitives rewrites those files and reuses the rest (REQ-1490). No port exists,
+so REQ-1490 holds as a property of the layout that nothing has exercised. The
+reviewer checks that a change keeps the split, and a test under `tools/` fails
+where a unit carries a directory or a file named for another agent (ADR-2500).
 
 ### What a kernel prompt names
 

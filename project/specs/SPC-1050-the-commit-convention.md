@@ -16,6 +16,9 @@ states:
     REQ-1318,
     REQ-2816,
     REQ-2952,
+    REQ-2206,
+    REQ-2208,
+    REQ-2212,
   ]
 ---
 
@@ -31,7 +34,8 @@ It leaves the commands that make a commit, signing, branches and working trees
 to a pack, which ADR-1080 names, and how the skill is written to SPC-1030.
 
 ADR-1080 decides it, EPC-1050 realises it, and `meow-scm` implements it,
-verified under issue 130.
+verified under issue 130. ADR-2530 adds the sign-off route, the trailers that
+name a person and the breaking mark, and TSK-4650 realises them.
 
 ## Boundary
 
@@ -52,6 +56,7 @@ A repository declares its convention under `[commits]` (REQ-1290):
 [commits]
 subject_limit = 72
 trailers = ["Signed-off-by"]
+may_name = ["Ada Lovelace <ada@example.org>"]
 
 [commits.types]
 feat = "minor"
@@ -62,13 +67,16 @@ docs = "none"
 `types` names each type a subject may carry and what it means for a release,
 one of `major`, `minor`, `patch` or `none` (REQ-1318). `subject_limit` is the
 subject's length in characters, 72 where it isn't declared (REQ-1302).
-`trailers` names each trailer every message carries (REQ-1308). A key the unit
-doesn't read is reported as ignored, as `meow-checks` reports one.
+`trailers` names each trailer every message carries (REQ-1308). `may_name`
+lists each person, as `Name <address>`, who agreed to be named in a trailer, so
+a trailer naming them passes (REQ-2208). The key joins the profile's table of
+keys SPC-1080 states. A key the unit doesn't read is reported as ignored, as
+`meow-checks` reports one.
 
 ### What `convention` reports
 
 `meow-scm convention` prints the declared types with their release meaning,
-the limit, and the trailers. Where the profile has no `[commits]` table, or no
+the limit, the trailers and the people `may_name` lists. Where the profile has no `[commits]` table, or no
 profile exists, it says the convention is undeclared.
 
 ### What `check-message` checks
@@ -86,12 +94,25 @@ naming the rule and the line:
 | blank line     | A body follows the subject without an empty line between them                                                        |
 | trailer        | A trailer the convention declares is missing                                                                         |
 | attribution    | Any line credits a tool, an agent or a vendor (REQ-1294, REQ-1295)                                                   |
+| sign-off route | The first `Signed-off-by` doesn't name the commit's author (REQ-2206)                                                |
+| named person   | A trailer naming a person `may_name` doesn't list, other than the exempt trailers below (REQ-2208)                   |
+| breaking mark  | The subject carries `!`, or its type means `major`, and no `BREAKING CHANGE:` trailer says what breaks (REQ-2212)    |
 
 The attribution check matches a co-author trailer naming a model or its
 vendor, a "Generated with" footer, and a vendor's no-reply address. It holds
 whatever the profile says and can't be turned off. It matches the attribution
 pattern and not a bare name, so a path such as `plugins/meow-core/` or the
 name of the product a harness targets doesn't trip it.
+
+The sign-off chain records the route a change took and approves nothing: its
+first entry names the commit's author, as git reports it, and each later entry
+names someone the change passed through, so the check compares the first entry
+alone with the author (REQ-2206). A trailer names a person when its value has
+the form `Name <address>`, such as `Co-authored-by`, `Reviewed-by` or
+`Acked-by`. Three trailers record where something came from and are exempt:
+`Signed-off-by` naming the author, `Cherry-picked-from` and `Fixes` (REQ-2208).
+The check can't know whether a person agreed, so `may_name` is the
+repository's own statement of it.
 
 Where no convention is declared, only the attribution check runs, and the
 report says the convention is undeclared: a message is never reported as
@@ -107,8 +128,10 @@ states. It holds the two rules a program can't decide, as judgements: the
 subject is in the imperative and names the change, never the process that
 produced it (REQ-2816), and a body is written only where the reason isn't
 evident from the change, says why, and is never a transcript (REQ-1304). It
-runs `check-message` on the message before the message is used, and carries
-the attribution ban as a rule on its first screen.
+runs `check-message` on the message before the message is used, carries
+the attribution ban as a rule on its first screen, and names the three exempt
+trailers beside the rule that a trailer naming a person needs that person's
+agreement.
 
 ### The program
 
@@ -125,4 +148,6 @@ never reports a pass.
 | The profile doesn't parse                      | Nothing is checked against a convention; the parser's error is shown, exit 3    |
 | `types` isn't a table, or a meaning is unknown | The declaration is reported as malformed, and the type check doesn't run        |
 | The message is empty                           | Reported as an empty message, exit 1                                            |
+| git reports no author identity                 | The sign-off route is reported as not compared, and nothing else changes        |
+| `may_name` isn't a list of strings             | The declaration is reported as malformed, and every named trailer fails         |
 | No binary for the machine's target             | Reported as unchecked, exit 3                                                   |

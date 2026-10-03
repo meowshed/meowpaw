@@ -183,10 +183,11 @@ REQ-1606, REQ-1608).
 
 ### Where the record contradicts itself
 
-`check coverage` reports a task marked done with no evidence, a task whose
-Evidence section says it's done, opening with anything but "Not yet.", while
-its epic leaves it unmarked, and a task closing a withdrawn requirement in an
-epic not yet verified (REQ-0704). `check relations` reports an identifier that
+In an approved epic written with a mark per task, `check coverage` reports a
+task marked done with no evidence and a task whose Evidence section says it's
+done, opening with anything but "Not yet.", while its epic leaves it unmarked.
+It reports a task closing a withdrawn requirement in an epic not yet verified
+(REQ-0704). `check relations` reports an identifier that
 resolves to no artifact in a relation, or in a draft's prose outside code
 spans and fences, and
 `status` counts the requirements nothing checks, which covers both directions
@@ -220,7 +221,8 @@ naming none counted, and states the share resting on evaluation or judgement
 A requirement stores only a decided status, from the one vocabulary
 `lib/layout.toml` declares, and the program derives the observed one (REQ-0582,
 REQ-0584, REQ-0586, REQ-0591). `show` prints each task that names a
-requirement with its mark and its epic, or "open, named by no task". Under ADR-2300 a requirement is closed when a closed
+requirement with its derived state and its epic, or "open, named by no task",
+the state derived as SPC-1090 states. Under ADR-2300 a requirement is closed when a closed
 task or epic names it and no open one does, open while an open defect names it
 in `violates`, and has no state after closed (REQ-3600, REQ-3602, REQ-3608,
 REQ-3610). `status` says the

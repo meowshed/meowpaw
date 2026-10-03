@@ -93,6 +93,11 @@ states:
     REQ-3168,
     REQ-3190,
     REQ-3654,
+    REQ-0610,
+    REQ-0612,
+    REQ-0628,
+    REQ-0632,
+    REQ-2897,
   ]
 ---
 
@@ -112,7 +117,9 @@ record are this repository's, and `tools/` keeps checking them.
 ADR-1100 decides it and EPC-1070 realised it, verified under issue 168.
 ADR-1140 adds the content rules, and EPC-1110 realised them, verified under
 issue 206. ADR-1800 adds the grouping fields and `dependency-declared`, and
-EPC-1710 realised them, verified under issue 625.
+EPC-1710 realised them, verified under issue 625. ADR-2590 adds the rules
+that hold the living kinds apart from the records, and EPC-2460 realises them;
+it amends ADR-2300, which derived a task's state from its epic's marks.
 
 ## Boundary
 
@@ -160,7 +167,7 @@ report how much rests on judgement (ADR-1510).
 | research    | sections Summary, Method, Conclusions and Sources, opening with Summary (REQ-0216, REQ-0219, REQ-2864, REQ-2866); the kind's own index is exempt from its sections                                                                                                                                                                                                     | each source line carries a date (REQ-2868); the body cites no requirement (REQ-0223)                                                                                                                                                               |
 | requirement | no `priority`, `owner` or `difficulty` field (REQ-2878); `verification` holds one of `static`, `behavioural`, `evaluation` and `judgement` (REQ-1664) (ADR-1510)                                                                                                                                                                                                       | one verified by judgement carries `verifier` (REQ-2882); its statement carries one keyword, leans on no neighbour and prohibits with `MUST NOT` (REQ-2880)                                                                                         |
 | decision    | `addresses` names a requirement (REQ-0234); sections Decision, Why, Alternatives, What it costs, What would reverse it and Consequences (REQ-0247, REQ-0556, REQ-0560, REQ-0562); the alternatives table has a column saying why each lost (REQ-0558)                                                                                                                  | sections How I will know it was realised and What this does not settle (REQ-2884, REQ-2886)                                                                                                                                                        |
-| epic        | `realises` names exactly one decision or defect (REQ-0262); sections Acceptance criteria, Tasks, Coverage and Not covered (REQ-0309, REQ-2898); a task marked `[x]` has evidence past "Not yet." (REQ-0692), one marked `[+]` an `added:` line and one marked `[~]` a `dropped:` line (REQ-0698, REQ-0700, REQ-0702); no grouping field and no `epic` field (REQ-3320) |                                                                                                                                                                                                                                                    |
+| epic        | `realises` names exactly one decision or defect (REQ-0262); sections Acceptance criteria, Tasks, Coverage and Not covered (REQ-0309, REQ-2898); a task marked `[x]` has evidence past "Not yet." (REQ-0692), one marked `[+]` an `added:` line and one marked `[~]` a `dropped:` line (REQ-0698, REQ-0700, REQ-0702); no grouping field and no `epic` field (REQ-3320) | no status per task: no checkbox on a task's entry and no status column in a table of tasks (REQ-2897)                                                                                                                                              |
 | task        | no grouping field (REQ-3320)                                                                                                                                                                                                                                                                                                                                           | names exactly one of `epic`, `bug` and `realises`, where `realises` names a decision (`one-authority`); each `## Depends on` line naming a `TSK-` identifier names one and says `(blocking)` or `(not blocking)` (`dependency-declared`, REQ-1358) |
 | defect      | sections Reproduction, What the system does, What it should do and why, Triage and Closed by (REQ-2912, REQ-2914, REQ-2924); no `priority` field (REQ-2923); no grouping field (REQ-3320)                                                                                                                                                                              |                                                                                                                                                                                                                                                    |
 | insight     | sections Evidence, What looked right and The pattern (REQ-0576); a title stating the claim, with no date and at least four words (REQ-0569); evidence holding a digit or a fenced block (REQ-0574); The pattern as the last section (REQ-0571)                                                                                                                         |                                                                                                                                                                                                                                                    |
@@ -188,8 +195,9 @@ REQ-0577, REQ-0578, REQ-0580) (ADR-1220).
 
 The specifications' index lists each specification after every specification
 it cites, so reading it in order never needs a forward reference (REQ-0525).
-A living document collects any withdrawn requirement it cites under a section
-headed Withdrawn, and no directory under the root is named for an archive,
+A living document cites no withdrawn requirement: the withdrawn statement
+stays in its own record, which names what replaced it, so it never interrupts
+the living document, and no directory under the root is named for an archive,
 because a superseded record carries its status and names its replacement
 (REQ-0552, REQ-0554, REQ-0555). A draft requirement's statement carries one
 keyword, leans on no neighbour, and prohibits with `MUST NOT` (REQ-2880). The
@@ -203,6 +211,18 @@ the defect that carries it, and nothing else groups it (REQ-3320). The epic
 kind also forbids `epic`, because only an epic would place one epic under
 another. A grouping written under a field name outside that list isn't
 reported (ADR-1800).
+
+Three kinds are living, the vision, the specification and the constitution,
+and the check fails a record of any other kind that declares `status: live`
+(REQ-0610). An index file in a kind's directory is generated from the tree and
+is no kind of its own, so it keeps `status: live`. A specification carries no
+history (REQ-0612, REQ-0632): the check fails one that carries `~~struck~~`
+text, a heading naming a tombstone or a withdrawal, or a sentence naming an
+earlier version, which a list of phrases in the layout matches. A phrase
+outside the list passes until it joins the list. A withdrawn record opens its body with a line naming the
+record that withdrew it, as `**Withdrawn by ADR-1800. Replaced by
+REQ-3320.**`, and the check fails a withdrawn record whose first line under
+its title names no identifier (REQ-0628).
 
 The layout records every retired front matter field, status value and section with what
 replaced it, and the check refuses a record or a kind carrying one, so a
@@ -247,7 +267,7 @@ one its kind allows:
 | Kind            | May change after approval                                                                                                                                                  |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | task            | its `## Evidence` and `## Left alone` sections and its `issue` and `projected` fields, because the implement step and the tracker projection write them after approval     |
-| epic            | its first `## Tasks` section, where the marks and their evidence are written (REQ-0634)                                                                                    |
+| epic            | its first `## Tasks` section, where an entry added after approval and its `added:` line are written, and the marks of an epic approved with them (REQ-0634)                |
 | defect          | its first `## Tasks` and `## Closed by` sections and its `issue` (ADR-1440)                                                                                                |
 | every record    | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652); a record still carrying one is compared whole |
 | every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic                 |
