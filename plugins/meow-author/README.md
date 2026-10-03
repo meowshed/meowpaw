@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.6.0]
+describes: [meow-author@0.6.1]
 ---
 
 # meow-author
