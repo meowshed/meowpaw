@@ -47,10 +47,10 @@ states:
 
 This covers the five verification verbs a repository declares and the unit
 that resolves, reports and runs them, `meow-checks`. ADR-2300 named the unit
-for what it does for the reader: it was `meow-verbs`, which stays in the
-marketplace one release as a stub whose `SessionStart` hook says the unit is
-now `meow-checks` and how to move an install (REQ-3634, REQ-3636). It states where a verb
-resolves from, what an unresolved verb reports, and what a run records.
+for what it does for the reader: it was `meow-verbs`, which stayed in the
+marketplace one release as a stub and is gone from it now (REQ-3634,
+REQ-3636, ADR-2360). It states where a verb resolves from, what an unresolved
+verb reports, and what a run records.
 
 It leaves binding a verb to a runner's tasks and language packs to later
 decisions, which ADR-1070 names. How the
