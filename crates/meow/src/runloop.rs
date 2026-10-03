@@ -1156,8 +1156,29 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
             )]);
         }
     }
+    // A file the reader can't read counts as empty text, which no later check
+    // would show, so the start refuses it.
+    let unreadable = record::unreadable_files(&record_root);
+    if !unreadable.is_empty() {
+        return Err(unreadable
+            .into_iter()
+            .map(|(path, error)| {
+                format!(
+                    "record file {} can't be read: {error}",
+                    path.strip_prefix(&tree).unwrap_or(&path).display()
+                )
+            })
+            .collect());
+    }
     let read = record::read_for_run(root, &record_root).map_err(|reason| vec![reason])?;
-    let missing = record::unready(&read, root, &record_root, &terms.step, &terms.inputs);
+    let mut missing = record::wrong_kind(&read, &terms.step, &terms.inputs);
+    missing.extend(record::unready(
+        &read,
+        root,
+        &record_root,
+        &terms.step,
+        &terms.inputs,
+    ));
     if missing.is_empty() {
         Ok(record_root)
     } else {

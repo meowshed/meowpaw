@@ -651,6 +651,5 @@ addresses lands in one of them.
 Forty are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1005 was written
-after its fix, and says so. BUG-1390 is approved and open: SPC-1201 now states the
-failure states that `meow-loop` reaches, and TSK-4050 carries the one code
-change, two refusals at start.
+after its fix, and says so. BUG-1390 is closed: SPC-1201 states the failure states that
+`meow-loop` reaches, and TSK-4050 added the two refusals at start.

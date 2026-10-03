@@ -2827,6 +2827,59 @@ fn run_may_change(kind: &str, step: &str, before: &str, after: &str) -> bool {
     }
 }
 
+/// Each Markdown file under `root` that can't be read, with the error. The
+/// record reader takes such a file as empty text, so a run that started over
+/// one could never guard it or tell a change to it.
+#[cfg(feature = "loop")]
+pub(crate) fn unreadable_files(root: &Path) -> Vec<(PathBuf, String)> {
+    let mut paths = Vec::new();
+    markdown_under(root, None, &mut paths);
+    paths
+        .into_iter()
+        .filter_map(|path| {
+            std::fs::read_to_string(&path)
+                .err()
+                .map(|error| (path, error.to_string()))
+        })
+        .collect()
+}
+
+/// A line for each input that is the wrong kind for `step`: a `requirements`
+/// run reads research records, a `design` run requirements, a `spec` and an
+/// `epic` run decisions, and an `implement` run tasks. An input with no file
+/// is `unready`'s to report.
+#[cfg(feature = "loop")]
+pub(crate) fn wrong_kind(record: &Record, step: &str, ids: &[String]) -> Vec<String> {
+    let expected = match step {
+        "requirements" => "research",
+        "design" => "requirement",
+        "spec" | "epic" => "decision",
+        "implement" => "task",
+        _ => return Vec::new(),
+    };
+    let article = |word: &str| {
+        if word.starts_with(['a', 'e', 'i', 'o', 'u']) {
+            "an"
+        } else {
+            "a"
+        }
+    };
+    let known = known(record);
+    ids.iter()
+        .filter_map(|id| {
+            let kind = kind_of(record, known.get(id.as_str())?);
+            (kind != expected).then(|| {
+                format!(
+                    "{id}, {} {kind}, is not {} {expected}, which {} {step} run reads",
+                    article(kind),
+                    article(expected),
+                    article(step)
+                )
+            })
+        })
+        .collect()
+}
+
 /// The work tree's path of a record under the record root `root`, as git
 /// lists it. It is built from the path under the root and not from the
 /// canonical path, because a link whose target lies elsewhere has the path git
