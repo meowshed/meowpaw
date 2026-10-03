@@ -64,8 +64,8 @@ root = "project"
 folder or to another repository's checkout. Where you declare none, the record
 is at `project/`.
 
-Each `paw` command that reads the record prints the profile's state on
-standard error, `profile: absent`, `profile: unparseable` or
+Each `paw` command that reads the record, except the session-start
+`paw status --waiting`, prints the profile's state on standard error, `profile: absent`, `profile: unparseable` or
 `profile: parsed`, and then `unknown key: <path>` for each key no unit reads.
 It goes to standard error because standard output is what a step reads, such
 as a template or an identifier. An unparseable profile stops the command with

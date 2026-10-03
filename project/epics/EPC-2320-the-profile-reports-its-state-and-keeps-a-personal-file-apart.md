@@ -54,7 +54,7 @@ number.
 
 - [x] T-001 TSK-4300 print the profile's state and name each unknown key, from one table of keys, in `crates/meow/src/profile.rs`
       closes: REQ-2940, REQ-2942, REQ-2948, REQ-2950
-      evidence: `crates/meow/tests/profile_states.rs` and the table's tests pass in `mise run all` and `meow-checks run test`, #818
+      evidence: `crates/meow/tests/profile_states.rs` and the table's tests pass in local runs of `mise run all` and `meow-checks run test`, #818
 
 - [ ] T-002 TSK-4310 read a personal profile, write it with `meow-checks local`, and refuse a machine path in it
       closes: REQ-2944, REQ-2946

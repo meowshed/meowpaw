@@ -83,13 +83,16 @@ The review agent found that the first tests matched the parser's message by
 its first line and pinned the state lines for `meow-checks` alone. A commit of
 its own rewrote both tests, and the second one then failed on `meow-git
 push-guard`, which returned before it printed the state when nothing was
-left to publish, and on `paw check`, which printed nothing when its layout was
-missing. Both now print the state first. `paw status --waiting` prints it on
-standard error, and SPC-1080 states why `meow-loop`'s guard prints none.
+left to publish, and on `paw check`, which printed no state when its layout was missing. Both now
+print the state first. A second review found the test still matched loosely,
+so a commit of its own pinned the stream and the prefix of each report. It
+also found that a state line from `paw status --waiting` would break SPC-1090's
+silence at every session start, so SPC-1080 states that hook and
+`meow-loop`'s guard as the two that print none.
 
-`mise run all` exits 0, `meow-checks run format lint check test build`
-reports all five verbs passed and `paw check` reports 0 findings, on pull
-request #818.
+Run locally on the completing commit's tree, `mise run all` exits 0,
+`meow-checks run format lint check test build` reports all five verbs passed
+and `paw check` reports 0 findings. CI runs the same gate on pull request #818.
 
 ## Left alone
 

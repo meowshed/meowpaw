@@ -3571,7 +3571,6 @@ fn status(rest: &[String]) -> u8 {
         // Run at the start of every session, so it says nothing unless
         // something waits: a repository with no record pays nothing.
         let repository = profile::repository_root();
-        report_profile(&repository);
         let (Ok(layout), Ok(root)) = (load_layout(), record_root(&repository)) else {
             return CLEAN;
         };
