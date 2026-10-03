@@ -60,9 +60,33 @@ files, and the gate's list of checks in `tools/` gains this one.
 
 ## Evidence
 
-Not yet.
+`.github/` carries `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
+`CODEOWNERS`, `ISSUE_TEMPLATE/defect.md` and `pull_request_template.md`, and
+`tools/check_community.py` fails, naming each one missing, closing REQ-2214
+and REQ-2216. Each criterion is closed by the check it names, in
+`tools/test_check_community.py`:
 
-Criterion 4 rests on judgement, for the reason it gives.
+1. `Community.test_all_six_files_pass` and
+   `Community.test_each_missing_file_fails_naming_it`, which removes each of
+   the six in turn and compares the line naming it exactly.
+2. `Community.test_a_file_at_the_root_counts_as_missing`.
+3. The `test` verb runs `tools/test_check_community.py` and
+   `python3 tools/check_community.py`, which prints
+   `6 community files, 0 missing from .github/` on this repository.
+
+The checks failed first, in the commit that holds them alone, where the module
+they import didn't exist yet. Criterion 4 rests on judgement, for the reason
+it gives, and the review in the pull request judged it. `format`, `lint`,
+`check` and `test` each pass on the change's tree, and `mise run all` and
+`paw check` exit 0, as the pull request cites.
+
+I made one choice the task leaves open. An issue template counts as present
+when `.github/ISSUE_TEMPLATE/` holds at least one file, because GitHub reads
+any template in that directory, and
+`Community.test_an_empty_issue_template_directory_counts_as_missing` holds it.
+The three defaults stay as the task records them: `gh api` lists `retran` as
+an admin of `meowshed/meowpaw`, so `@retran` can own the code. ADR-2510's
+second sign, GitHub's community profile, can be read only after the merge.
 
 ## Left alone
 

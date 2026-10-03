@@ -348,7 +348,7 @@ realised, verified under issue 624.
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
 what this repository keeps under `.github/`: the community files, which
 TSK-4610 realises, and the rules every workflow holds, which EPC-2420
-realises. None of it is built yet.
+realises. The community files are built, and the workflow rules aren't yet.
 
 [SPC-1230](specs/SPC-1230-the-vision.md) states the vision's sections, what
 `paw check` reports in it and what the design step asks of it, which EPC-2450
@@ -655,9 +655,9 @@ one of them.
 
 TSK-4600 realises ADR-2500 directly: every unit installs with no person, and
 agent-neutral material is written once. TSK-4610 realises ADR-2510 directly:
-the community files sit under `.github/`. TSK-4650 realises ADR-2530
-directly: the commit check holds the sign-off route, the named trailers and
-the breaking mark. None of the three is started.
+the community files sit under `.github/`, and it's done. TSK-4650 realises
+ADR-2530 directly: the commit check holds the sign-off route, the named
+trailers and the breaking mark. Neither TSK-4600 nor TSK-4650 is started.
 
 ## Defects
 
