@@ -76,6 +76,13 @@ class Community(unittest.TestCase):
         self.assertEqual(status, 1, out)
         self.assertEqual(out, ["missing: .github/ISSUE_TEMPLATE/", "6 community files, 1 missing from .github/"])
 
+    def test_a_file_that_is_no_template_counts_as_missing(self):
+        """REQ-2214: a .gitkeep keeping the directory in git is no issue template."""
+        files = [f for f in FILES if "ISSUE_TEMPLATE" not in f] + [".github/ISSUE_TEMPLATE/.gitkeep"]
+        status, out = self.run_check(self.tree(files))
+        self.assertEqual(status, 1, out)
+        self.assertEqual(out, ["missing: .github/ISSUE_TEMPLATE/", "6 community files, 1 missing from .github/"])
+
 
 if __name__ == "__main__":
     unittest.main()
