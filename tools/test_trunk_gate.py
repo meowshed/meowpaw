@@ -60,8 +60,10 @@ class TrunkGate(unittest.TestCase):
 
     def assert_reaches_the_trunk(self, event, body, required):
         """A trigger whose filters leave the trunk out never runs the gate there."""
+        inline = body[0].split(":", 1)[1].strip()
+        self.assertEqual(inline, "", f"`{event}` carries its filters inline, in a form this test can't read")
         filters = blocks(body[1:], 4)
-        for key in ("branches-ignore", "paths", "paths-ignore", "tags"):
+        for key in ("branches-ignore", "paths", "paths-ignore", "tags", "types"):
             self.assertNotIn(key, filters, f"`{event}` is filtered by `{key}`")
         if "branches" not in filters:
             self.assertFalse(required, f"`{event}` names no branch")

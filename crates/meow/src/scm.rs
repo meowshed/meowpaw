@@ -544,6 +544,20 @@ mod tests {
     }
 
     #[test]
+    fn a_sign_off_in_the_body_is_not_the_first() {
+        // REQ-2206: git reads the chain from the trailer block, so a body line starts nothing.
+        let message = format!(
+            "fix: a change\n\nSigned-off-by: {AUTHOR}\n\nSigned-off-by: {ADA}\nSigned-off-by: {AUTHOR}\n"
+        );
+        let found = sign_off(&message, AUTHOR);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!((found[0].0, found[0].1.as_str()), (5, "sign-off route"));
+        let squashed =
+            format!("fix: a change\n\nSigned-off-by: {ADA}\n\nSigned-off-by: {AUTHOR}\n");
+        assert_eq!(sign_off(&squashed, AUTHOR), Vec::new());
+    }
+
+    #[test]
     fn a_body_line_names_nobody() {
         // REQ-2208: only the trailer block names a person, and only with an address.
         let message = format!(
