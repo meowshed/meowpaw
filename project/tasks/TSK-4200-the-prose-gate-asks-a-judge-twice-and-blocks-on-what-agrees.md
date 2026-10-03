@@ -1,0 +1,89 @@
+---
+id: TSK-4200
+artifact: task
+status: approved
+revised: 2026-10-03
+realises: ADR-2390
+closes: [REQ-3740, REQ-3742, REQ-3744, REQ-3746, REQ-3748, REQ-3750, REQ-3752]
+issue:
+---
+
+<!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
+
+# Make the prose gate ask a judge twice and block only on what both judgements report
+
+`meow-prose-gate check` gains the judged rules J1, J2 and J3. It asks a judge
+twice, keeps a finding only where its span is in the text and both judgements
+report it, and says so when it couldn't judge, as ADR-2390 and SPC-1010
+state. One task, one branch, one pull request, one review.
+
+## Acceptance criteria
+
+1. Given a stub judge, set through `MEOW_PROSE_GATE_JUDGE`, that returns
+   `J1` on `circling back` in both calls, when the gate checks
+   `git commit -m "Stop circling back to the cache"`, then it exits 2 and
+   prints `J1 | "circling back" | ...` (REQ-3744). Closed by: a fixture naming
+   REQ-3744, seen failing first.
+2. Given a stub judge that returns that finding in the first call and none in
+   the second, when the gate checks the same command, then it exits 0 and
+   prints nothing (REQ-3744). Closed by: a fixture naming REQ-3744.
+3. Given a stub judge that returns `J3` on a span the command doesn't hold, in
+   both calls, when the gate checks a plain body, then it exits 0 (REQ-3746).
+   Closed by: a fixture naming REQ-3746.
+4. Given a body holding `deep dive` and a stub judge that records each call to
+   a file, when the gate checks it, then it exits 2 on P1 and the file records
+   no call (REQ-3740). Closed by: a fixture naming REQ-3740.
+5. Given each failure cause in turn, a judge command that doesn't exist, one
+   that exits 1, one that sleeps 50 seconds and one that prints JSON outside
+   the schema, when the gate checks a plain body, then it exits 0 and prints a
+   `systemMessage` that names that cause (REQ-3748). Closed by: four fixtures
+   naming REQ-3748.
+6. Given the program's source, when a fixture reads the judge's command line,
+   then it holds `--safe-mode`, `--tools ""`, `--no-session-persistence`,
+   `--max-turns 1` and `--json-schema` (REQ-3750). Closed by: a fixture naming
+   REQ-3750.
+7. Given the schema the unit ships, when a fixture reads its `rule` field,
+   then the field allows exactly `J1`, `J2` and `J3` (REQ-3742). Closed by: a
+   fixture naming REQ-3742.
+8. Given each hook in `hooks/hooks.json`, when a fixture reads it, then its
+   `timeout` is 120 (ADR-2390). Closed by: a fixture naming ADR-2390.
+9. Given `plugins/meow-prose-gate/evals/` with BUG-1230's four texts and one
+   text per judged rule that breaks it, when the owner's hand run sends each
+   through the installed gate three times, then the four texts pass in every
+   run and each breaking text blocks in every run (REQ-3752). Closed by: the
+   run's output in this task's pull request, as a smoke check.
+
+## What to do
+
+Add the judge to the `prose` feature in `crates/meow/`, behind the exact
+rules: two `claude -p` calls started side by side with the flags ADR-2390
+names, a 45-second limit on each, and the text passed as data inside a tag.
+Ship the prompt and the schema inside `plugins/meow-prose-gate/`, and hold the
+prompt to SPC-1030. Keep `MEOW_PROSE_GATE_JUDGE` for the fixtures alone, and
+say so in the unit's README.
+
+Raise each hook's `timeout` in `hooks/hooks.json` to 120. Update the unit's
+README to state J1, J2 and J3, the two calls, their cost in time and usage,
+and the not-checked message, and update `budget.toml`'s reasoning. The
+permanent budget stays 0, because nothing loads on a turn.
+
+Time the two calls on one ordinary publish, and put the wait in the pull
+request, because ADR-2390 leaves it unmeasured.
+
+## Depends on
+
+Nothing.
+
+## Evidence
+
+Not yet.
+
+Criterion 9 rests on a hand run judged by the owner, never on CI, because a
+run in CI would call a model on every change. It is a smoke check, and three
+runs show only a frequent false block.
+
+## Left alone
+
+P1, P2 and P3, the commands the hook fires on, and how the program reads the
+text from a command, because ADR-2390 keeps ADR-1600's decision on all of
+them. `gh pr merge` stays outside the gate, as both decisions leave it.
