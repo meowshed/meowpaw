@@ -288,15 +288,14 @@ grouping fields and `dependency-declared` ADR-1800 adds, which EPC-1710
 realised, were verified under issue 625.
 
 [SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
-run's plan: the authority a repository declares, the command `plan` prints,
-and the snapshot it writes. `meow-unattended` implements it, verified under
-issue 626.
+run's posture: the table a repository declares, the deny rules it yields, how
+a run decides a gate, lands and releases its work, and its report. EPC-2300
+realises it, and none of that work has started.
 
-[SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: the
-terms a person starts a run with, the step it's bound to and that step's
-test, the files a run keeps, each call, the order of its checks, its eight
-endings and the guards that stop the model starting a run or deciding a
-status.
+[SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: a run
+inside the session a person starts it in, the three hooks that start it,
+repeat it and guard it, the files it keeps and its six endings. EPC-2300
+realises it, and none of that work has started.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -555,6 +554,11 @@ ADR-2010 addresses lands in one of them.
 [EPC-1920](epics/EPC-1920-a-run-bound-to-one-step.md) realises ADR-2020 in
 four tasks, TSK-3410 to TSK-3440, all of them done, and each of the two
 requirements ADR-2020 addresses lands in one of them.
+
+[EPC-2300](epics/EPC-2300-a-run-lives-in-the-session-and-decides-merges-and-releases-itself.md)
+realises ADR-2380 in four tasks, TSK-4100 to TSK-4130, which move the run
+into the session and let it decide, merge and release on its own. None has
+started.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with

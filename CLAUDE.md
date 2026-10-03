@@ -237,6 +237,13 @@ One exception moves the stop and doesn't remove it. Where a person asks for a
 decision to land in one pull request, its records are written through to the
 tasks and the turn ends at that pull request, whose merge is the approval.
 Nothing is implemented before that merge.
+
+A run `meow-loop` holds is the one place no person stands at the gate. There
+the run decides each gate itself against these principles, critiques what it
+approves in a separate agent first, and lists every approval, merge and
+release in its report, because the owner chose that unattended mode works
+fully without a person (ADR-2380). Every prohibition in this file still holds
+inside a run.
 </principle>
 
 <principle name="report_the_next_action_first">
