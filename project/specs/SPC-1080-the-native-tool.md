@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-09-30
+revised: 2026-10-03
 states:
   [
     REQ-0010,
@@ -80,12 +80,47 @@ states:
     REQ-2826,
     REQ-2832,
     REQ-2906,
+    REQ-2940,
+    REQ-2942,
+    REQ-2944,
+    REQ-2946,
+    REQ-2948,
+    REQ-2950,
     REQ-3178,
     REQ-3192,
     REQ-3320,
     REQ-3322,
     REQ-3324,
     REQ-3326,
+    REQ-1170,
+    REQ-1172,
+    REQ-1174,
+    REQ-1176,
+    REQ-1178,
+    REQ-1180,
+    REQ-1182,
+    REQ-1184,
+    REQ-1190,
+    REQ-2784,
+    REQ-2786,
+    REQ-2788,
+    REQ-2790,
+    REQ-2792,
+    REQ-1480,
+    REQ-1481,
+    REQ-1482,
+    REQ-1483,
+    REQ-1484,
+    REQ-1488,
+    REQ-1494,
+    REQ-1738,
+    REQ-2990,
+    REQ-2994,
+    REQ-2996,
+    REQ-2998,
+    REQ-3000,
+    REQ-3002,
+    REQ-3006,
   ]
 ---
 
@@ -112,6 +147,8 @@ sends every GitHub request through one layer, and EPC-1720 realises it.
 | Surface                         | What it is                                                                 |
 | ------------------------------- | -------------------------------------------------------------------------- |
 | `crates/meow/`                  | The tool's source: one crate, with a feature per unit and its own tests    |
+| `.meowpaw/profile.toml`         | The shared profile, read at the repository root and committed              |
+| `.meowpaw/profile.local.toml`   | The personal profile, `[verbs]` only, excluded through `.git/info/exclude` |
 | `mise.toml`                     | The tasks that format, lint, check, test and build the crate and its shell |
 | `plugins/<unit>/bin/<unit>`     | The unit's launcher, which picks the binary for the machine                |
 | `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed             |
@@ -132,6 +169,41 @@ built with that unit's feature alone, so it carries its own code and nothing of
 another unit's (REQ-0076). The profile reading, the report shapes and the exit
 codes the units share are one module every feature uses.
 
+### The profile
+
+The tool reads `.meowpaw/profile.toml` at the repository root, which is the top
+of the version control working tree it runs in, or the current directory where
+there is none, and never from a directory above the root (REQ-2940). Every
+command that reads the profile prints its state on a line of its own,
+`profile: <state>`, as one of three (REQ-2948):
+
+| State         | Means                             | What follows                                                                                                                                        |
+| ------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `absent`      | No file at the root               | Each unit does what its specification states for no profile, and `meow-checks` reports every verb unresolved as `no profile`                        |
+| `unparseable` | The file exists and doesn't parse | The report carries the parser's message and the line it gives, every verb is unresolved, and no verb falls back to anything                         |
+| `parsed`      | The file parses                   | The report names each key the table of keys doesn't list, one line a key, and the command goes on with the exit status it would have had (REQ-2942) |
+
+The table of keys is one list in `crates/meow/src/profile.rs`. Each entry names
+a key, such as `verbs.test` or `commits.types`, and the reason nothing else
+answers it: the ecosystem doesn't declare it, the platform doesn't own it, it
+isn't prose, and detection can't produce it (REQ-2950). A pull request that
+adds a key adds its entry, and a test fails on an entry with no reason.
+
+A personal profile, `.meowpaw/profile.local.toml`, sits beside the shared one
+and holds `[verbs]` only, in the forms the shared one takes. The tool reads it after
+the shared profile, and a verb it sets replaces the shared one on that machine.
+Any other table in it is an unknown key. `meow-checks local <verb> <command>`
+writes a verb to it, creating the file where there is none, and in the same
+step adds `/.meowpaw/profile.local.toml` to `.git/info/exclude` unless a line
+there already excludes it, so no file the repository keeps changes (REQ-2944).
+Every report that names a resolved verb names the file it came from.
+
+A verb in the personal profile whose command starts with `~` or with an
+absolute path outside the repository stays unresolved, of the kind
+`machine path`, and the report names the path and says to find the tool
+through the repository's toolchain declaration (REQ-2946). The same command in
+the shared profile is not refused by this rule.
+
 ### The launcher
 
 `plugins/<unit>/bin/<unit>` stays the command a skill or hook runs. It names
@@ -141,6 +213,28 @@ and runs it with the unit's subcommand and the arguments it was given. Where no
 binary exists for the target, it reports every check as unrun and exits as the
 unit's specification says a missing program does, never with success on a
 check.
+
+### Each subcommand makes one determination
+
+`meow` is the helper the harness ships, and no unit ships a second one beside
+it (REQ-1170). Each subcommand makes one determination, such as
+`paw check coverage` or `paw ready <step>`, and reports it without choosing
+what happens next (REQ-1174, REQ-1182). Its output is lines of text, each kind
+of line opening with a first word the subcommand's help states, and the lines
+stay the same from one release to the next unless the commit that changes one
+is marked breaking. A test per subcommand pins its lines (REQ-1184).
+
+Each subcommand's help names what a person reads to reach the same answer by
+hand, so the method still runs where the tool is missing (REQ-1176). A step of
+the method calls the subcommand that computes a count, a set difference,
+coverage, staleness, a resolution or a match, and never computes one by
+reading files itself (REQ-1172). A step that cites a subcommand's output as
+evidence cites the command, its exit status, its output and the tree revision
+it ran at (REQ-1178). Where the output contradicts what the step sees in the
+tree, the step reports both and doesn't defer to the tool (REQ-1180). Where a
+hook can run a subcommand before the model reads, the unit runs it from the
+hook, as `meow-flow`'s `SessionStart` hook runs `paw status --waiting`
+(REQ-1190).
 
 ### The checks the crate passes
 
@@ -274,6 +368,47 @@ it at `meowpaw/marketplace.json`. It runs on a `repository_dispatch` of type
 `meowpaw-release`, which the release workflow sends after publishing with the
 secret `MARKETPLACE_DISPATCH_TOKEN`, a fine-grained token that can write to
 that repository alone, and it runs when someone starts it by hand.
+
+### Each unit is a plugin
+
+Each unit installs through the platform's plugin mechanism from
+`.claude-plugin/marketplace.json`, and no unit ships an installer of its own
+(REQ-1480). Each carries a version in its `.claude-plugin/plugin.json`
+(REQ-2990), and every version's major number stays zero while the public
+interface still moves (REQ-2994). A released version never changes: the
+release exits 1 before it packs anything, naming each unit whose tracked files
+differ from its last release tag while its version still equals that tag's,
+so a change ships only as a new version (REQ-2996).
+
+Units reach each other only through files and commands (REQ-1481), and no
+unit's behaviour depends on the order in which the platform runs hooks from
+several units (REQ-1483). Each unit's `requires.toml` states:
+
+| Key           | What it states                                                             |
+| ------------- | -------------------------------------------------------------------------- |
+| `claude_code` | The platform version the unit was tested on                                |
+| `layer`       | `kernel`, `method`, `practice` or `pack`                                   |
+| `units`       | The units it needs, as a list, empty where it needs none (REQ-1482)        |
+| `kernel`      | In a pack only, the range of `meow-core` versions it works with (REQ-2998) |
+
+`meow-author check` fails a unit with no version, no `requires.toml`, no
+`layer` or `units`, or a pack with no `kernel` range. Where a unit names
+another in `units`, the platform enables the one required and won't disable it
+while the first is on, and the unit's README says so where it recommends the
+install (REQ-3006). A unit's launcher run on a platform older than its
+`claude_code` prints both versions and exits 3 without running the binary
+(REQ-1738).
+
+A repository's configuration and record live in the repository, so an
+upgrade keeps both, and no unit stores anything that must survive an upgrade
+under its own installed root (REQ-1484, REQ-3000). Machine-specific or secret
+configuration lives in the user's own settings, never in a file the
+repository keeps or in a unit's files (REQ-1488). Every file of configuration
+the harness owns is TOML (REQ-1494). A unit's release carries the notes its
+author wrote for the person whose repository changes, from the section for
+that version in the unit's `CHANGELOG.md`, and never notes generated from
+commits; the release refuses a new version whose changelog has no section for
+it (REQ-3002).
 
 ### What stays optional
 
@@ -483,11 +618,64 @@ syntax of its own (REQ-1752), every check runs locally by the command CI runs
 spend happens without a person (REQ-1766), and every report separates what was
 verified from what was assumed (REQ-1734) (ADR-1200).
 
+### The threat model
+
+The harness keeps one threat model, here, and it changes in the pull request
+that adds or removes a trust boundary. It considers accidents by a legitimate
+insider before attackers (REQ-2784), and the first insider it names is the
+harness itself, acting on a repository it has just met (REQ-2792).
+
+Data changes trust level at four boundaries, and every threat below crosses
+one of them (REQ-2788):
+
+| Boundary              | What crosses it                                                                  |
+| --------------------- | -------------------------------------------------------------------------------- |
+| The repository's text | A file the harness reads into a prompt, written by whoever committed it          |
+| The tracker           | An issue's title and body, which anyone with access to the tracker can write     |
+| The code host's talk  | A pull request comment or review comment, read back by `meow-github history`     |
+| A tool's output       | What a command prints, read by the model as a result and never as an instruction |
+
+Each threat is ranked in words, as likely or unlikely and as severe or minor,
+and carries no numeric score (REQ-2790). The insiders come first:
+
+| Threat                                                                | Likelihood | Impact | Control                                                                                                               |
+| --------------------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| The harness runs a destructive command on a repository it misread     | likely     | severe | `meow-flow:route` before any edit, `meow-git`'s trunk and push guards, and the governance guard above                 |
+| The harness reports a check as passed with nothing behind it          | likely     | severe | `meow-checks` never reports an unresolved verb as passed, and every report separates verified from assumed (REQ-1734) |
+| The harness rewords an approved record to match what was built        | likely     | minor  | `paw check frozen`                                                                                                    |
+| The harness changes configuration outside the repository              | unlikely   | severe | The crate's unit test on `git config --global` and `--system`                                                         |
+| The person's own session reads or prints a secret from the repository | unlikely   | severe | The instruction alone: `CLAUDE.md`'s `never_touch_secrets`; no program checks it                                      |
+| Text across a boundary instructs the model to act                     | likely     | severe | None by program; a shipped agent ends `BLOCKED` on a denied call, which limits what it reaches                        |
+| A commit claims an author who didn't make it                          | unlikely   | severe | `meow-git`'s push guard accepts only a good signature from a trusted key                                              |
+| A released archive is replaced                                        | unlikely   | severe | `marketplace.json` names each archive's SHA-256 (the release above)                                                   |
+| A run spends a code host's request budget                             | unlikely   | minor  | The request layer's counts and ceilings (the request layer above)                                                     |
+
+The model works through STRIDE, the six categories OWASP's threat-modelling
+process uses, and maps each to the control that answers it, or says none does
+(REQ-2786):
+
+| Category               | Control                                                                                                                                  |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Spoofing               | The push guard's signature check, and the credential's form named by `meow-github`                                                       |
+| Tampering              | `paw check frozen` on approved records, and the SHA-256 of each released archive                                                         |
+| Repudiation            | Signed and signed-off commits, and one squashed pull request per task                                                                    |
+| Information disclosure | None by program; the instruction in `CLAUDE.md` alone                                                                                    |
+| Denial of service      | The request layer's ceilings for the code host; none for a slow hook                                                                     |
+| Elevation of privilege | The governance guard's `ask`, the write allow list, and `meow-author check` refusing `Agent`, `Task` or `*` in a shipped agent's `tools` |
+
 ## Failure paths
 
 | Condition                                        | What happens                                                                                                 |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | No binary for the machine's target               | The launcher reports every check as unrun, never passed                                                      |
+| The profile doesn't parse                        | `profile: unparseable` with the parser's message and line; every verb unresolved, nothing falls back         |
+| The profile carries a key the table doesn't list | The key is named on a line of its own, and the exit status stays what it would have been                     |
+| A personal verb names a path on this machine     | The verb is unresolved, of the kind `machine path`, naming the path                                          |
+| `local` outside a git working tree               | Refused, exit 1, because nothing can exclude the personal file there                                         |
+| A unit changed since its release, same version   | The release exits 1 before packing, naming the unit                                                          |
+| A new version with no changelog section          | The release exits 1 before packing, naming the unit and the version                                          |
+| The platform is older than `claude_code`         | The launcher prints both versions and exits 3, running nothing                                               |
+| The platform's version can't be read             | The launcher says so and runs the binary, because an unknown version isn't an older one                      |
 | The binary has lost its executable bit           | The launcher sets it and runs the binary                                                                     |
 | A unit's feature fails to build                  | The gate fails, naming the unit                                                                              |
 | The crate isn't in the formatter's form          | `format` and the gate fail, naming each file                                                                 |
