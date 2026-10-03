@@ -4,18 +4,7 @@
 //! The profile's three states and its unknown keys, as `meow-checks` prints
 //! them from a fixture repository (TSK-4300, SPC-1080 "The profile").
 
-#![cfg(all(
-    feature = "verbs",
-    feature = "scm",
-    feature = "git",
-    feature = "record",
-    feature = "github",
-    feature = "licence",
-    feature = "markdown",
-    feature = "mise",
-    feature = "gotask",
-    feature = "unattended"
-))]
+#![cfg(feature = "verbs")]
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -225,6 +214,17 @@ fn an_unknown_key_is_named_once_and_changes_no_exit_status() {
 }
 
 #[test]
+#[cfg(all(
+    feature = "scm",
+    feature = "git",
+    feature = "record",
+    feature = "github",
+    feature = "licence",
+    feature = "markdown",
+    feature = "mise",
+    feature = "gotask",
+    feature = "unattended"
+))]
 fn every_subcommand_that_reads_the_profile_names_each_unknown_key_once() {
     // TSK-4300 criterion 3, REQ-2942 and SPC-1080: every command that reads
     // the profile names each unknown key, a key in a verb's table included,
@@ -261,24 +261,34 @@ fn every_subcommand_that_reads_the_profile_names_each_unknown_key_once() {
             dir.0.display().to_string()
         )
     };
-    let subcommands: [&[&str]; 15] = [
-        &["verbs", "status"],
-        &["verbs", "run", "test"],
-        &["scm", "convention"],
-        &["scm", "check-message"],
-        &["git", "commit-guard"],
-        &["git", "push-guard"],
-        &["record", "check"],
-        &["github", "project", "EPC-0001"],
-        &["licence", "check"],
-        &["markdown", "status"],
-        &["markdown", "check"],
-        &["markdown", "bind"],
-        &["mise", "check"],
-        &["gotask", "check"],
-        &["unattended", "plan"],
+    // Each subcommand, the stream it reports the profile on, and the prefix
+    // its other lines carry (SPC-1080).
+    let subcommands: [(&[&str], &str, &str); 15] = [
+        (&["verbs", "status"], "stdout", ""),
+        (&["verbs", "run", "test"], "stdout", ""),
+        (&["scm", "convention"], "stdout", ""),
+        (&["scm", "check-message"], "stdout", ""),
+        (
+            &["git", "commit-guard"],
+            "stdout",
+            "meow-git commit-guard: ",
+        ),
+        (&["git", "push-guard"], "stdout", "meow-git push-guard: "),
+        (&["record", "check"], "stderr", ""),
+        (
+            &["github", "project", "EPC-0001"],
+            "stdout",
+            "meow-github project: ",
+        ),
+        (&["licence", "check"], "stdout", "meow-licence check: "),
+        (&["markdown", "status"], "stdout", ""),
+        (&["markdown", "check"], "stdout", ""),
+        (&["markdown", "bind"], "stderr", ""),
+        (&["mise", "check"], "stdout", ""),
+        (&["gotask", "check"], "stdout", ""),
+        (&["unattended", "plan"], "stdout", ""),
     ];
-    for args in subcommands {
+    for (args, stream, prefix) in subcommands {
         let name = args.join(" ");
         let (given, plain) = match args {
             ["git", "commit-guard"] => (event(&with, "commit"), event(&without, "commit")),
@@ -288,28 +298,39 @@ fn every_subcommand_that_reads_the_profile_names_each_unknown_key_once() {
         };
         let done = meow(&with.0, &state.0, args, &given);
         let known = meow(&without.0, &state.0, args, &plain);
-        let printed = format!(
-            "{}{}",
-            String::from_utf8_lossy(&done.stdout),
-            String::from_utf8_lossy(&done.stderr)
-        );
-        for key in ["verbs.tset", "verbs.test.cmd"] {
-            let named: Vec<&str> = printed.lines().filter(|line| line.contains(key)).collect();
-            assert!(
-                named.len() == 1 && named[0].ends_with(&format!("unknown key: {key}")),
-                "{name} doesn't name {key} once as unknown:\n{printed}"
+        let stdout = String::from_utf8_lossy(&done.stdout).into_owned();
+        let stderr = String::from_utf8_lossy(&done.stderr).into_owned();
+        let (reported, other) = if stream == "stdout" {
+            (&stdout, &stderr)
+        } else {
+            (&stderr, &stdout)
+        };
+        for line in [
+            "profile: parsed",
+            "unknown key: verbs.tset",
+            "unknown key: verbs.test.cmd",
+        ] {
+            let expected = format!("{prefix}{line}");
+            let found = reported.lines().filter(|l| *l == expected).count();
+            assert_eq!(
+                found, 1,
+                "{name} doesn't print {expected:?} once on {stream}:\n{reported}"
             );
         }
+        for key in ["verbs.tset", "verbs.test.cmd"] {
+            let named = reported.lines().filter(|l| l.contains(key)).count();
+            assert_eq!(named, 1, "{name} names {key} more than once:\n{reported}");
+        }
         assert!(
-            printed
+            !other
                 .lines()
-                .any(|line| line.ends_with("profile: parsed")),
-            "{name} prints no `profile: parsed` line:\n{printed}"
+                .any(|l| l.contains("profile: ") || l.contains("unknown key:")),
+            "{name} reports the profile on the wrong stream as well:\n{other}"
         );
         assert_eq!(
             done.status.code(),
             known.status.code(),
-            "{name} exits differently with the unknown keys:\n{printed}"
+            "{name} exits differently with the unknown keys:\n{stdout}{stderr}"
         );
     }
 }
