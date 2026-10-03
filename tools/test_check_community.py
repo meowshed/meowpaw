@@ -44,7 +44,7 @@ class Community(unittest.TestCase):
         """REQ-2214, REQ-2216: a tree carrying all six under .github/ passes."""
         status, out = self.run_check(self.tree(FILES))
         self.assertEqual(status, 0, out)
-        self.assertNotIn("missing", " ".join(out[:-1]))
+        self.assertEqual(out, ["6 community files, 0 missing from .github/"])
 
     def test_each_missing_file_fails_naming_it(self):
         """REQ-2214, REQ-2216: removing any one of the six fails, naming that file."""
@@ -52,14 +52,14 @@ class Community(unittest.TestCase):
             with self.subTest(removed=removed):
                 status, out = self.run_check(self.tree(f for f in FILES if f != removed))
                 self.assertEqual(status, 1, out)
-                self.assertEqual([line for line in out if line.startswith("missing")], [f"missing: {named}"])
+                self.assertEqual(out, [f"missing: {named}", "6 community files, 1 missing from .github/"])
 
     def test_a_file_at_the_root_counts_as_missing(self):
         """REQ-2216: CONTRIBUTING.md at the root is not where the code host looks."""
         files = [f for f in FILES if f != ".github/CONTRIBUTING.md"] + ["CONTRIBUTING.md"]
         status, out = self.run_check(self.tree(files))
         self.assertEqual(status, 1, out)
-        self.assertEqual([line for line in out if line.startswith("missing")], ["missing: .github/CONTRIBUTING.md"])
+        self.assertEqual(out, ["missing: .github/CONTRIBUTING.md", "6 community files, 1 missing from .github/"])
 
     def test_an_empty_issue_template_directory_counts_as_missing(self):
         """REQ-2214: a directory holding no template is no issue template."""
@@ -67,7 +67,14 @@ class Community(unittest.TestCase):
         (root / ".github/ISSUE_TEMPLATE").mkdir()
         status, out = self.run_check(root)
         self.assertEqual(status, 1, out)
-        self.assertIn("missing: .github/ISSUE_TEMPLATE/", out)
+        self.assertEqual(out, ["missing: .github/ISSUE_TEMPLATE/", "6 community files, 1 missing from .github/"])
+
+    def test_a_chooser_configuration_alone_is_no_issue_template(self):
+        """REQ-2214: ISSUE_TEMPLATE/config.yml configures GitHub's chooser and is no template."""
+        files = [f for f in FILES if "ISSUE_TEMPLATE" not in f] + [".github/ISSUE_TEMPLATE/config.yml"]
+        status, out = self.run_check(self.tree(files))
+        self.assertEqual(status, 1, out)
+        self.assertEqual(out, ["missing: .github/ISSUE_TEMPLATE/", "6 community files, 1 missing from .github/"])
 
 
 if __name__ == "__main__":
