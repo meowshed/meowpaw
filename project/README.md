@@ -626,11 +626,11 @@ and each of the nine requirements ADR-2400 addresses lands in one of them.
 realises ADR-2480 in four tasks, TSK-4390 to TSK-4420, none of them started,
 and each of the fifteen requirements ADR-2480 addresses lands in one of them.
 
-TSK-4360 realises ADR-2410 directly: `paw find` states its mode and counts
-artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill bounds a
-tool that runs source control operations. TSK-4380 realises ADR-2470
-directly: the design step points at the threat model SPC-1080 keeps. None of
-the three is started.
+TSK-4360 realises ADR-2410 directly, and is done: `paw find` states its mode
+and counts artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill
+bounds a tool that runs source control operations. TSK-4380 realises ADR-2470
+directly: the design step points at the threat model SPC-1080 keeps. Neither
+of the last two is started.
 
 [EPC-2420](epics/EPC-2420-workflows-start-read-only-and-a-release-carries-an-attestation.md)
 realises ADR-2520 in three tasks, TSK-4620 to TSK-4640, none of them started,

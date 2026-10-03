@@ -58,7 +58,35 @@ unit's `budget.toml`. Update `plugins/meow-flow/README.md` where it shows
 
 ## Evidence
 
-Not yet.
+`find` in `crates/meow/src/record.rs` prints `exhaustive: read <n>
+artifacts` first, ends each hit with the file and `front matter` or
+`Summary`, and prints `artifacts matched: <n>` last, so it closes REQ-2590,
+REQ-2594 and REQ-2595. Rule M7 in `plugins/meow-flow/skills/method/SKILL.md`
+now carries REQ-2592, REQ-2594, REQ-2596 and REQ-2597.
+
+Each criterion is closed by the check it names, in `Find` in
+`plugins/meow-flow/tests/test_record.py`:
+
+1. `test_find_states_its_mode_first_and_its_artifact_count_last`
+2. `test_three_matches_in_one_requirement_count_as_one_artifact`
+3. `test_each_hit_ends_with_its_file_and_its_section`
+4. `test_twenty_five_matches_print_twenty_hits_and_count_twenty_five`
+5. `test_rule_m7_says_what_each_search_supports`
+
+No criterion rests on judgement. Every check failed first in 4ce47af5, the
+commit that holds the checks alone. That commit also moves the two earlier
+pins in `Find` one line down, because the mode line now opens the output.
+TSK-4330 hasn't landed, so these pins are this task's own. `format`, `lint`,
+`check`, `test` and `build` each pass on the change's tree, as the pull
+request cites.
+
+I made two choices the task leaves open. A hit names `Summary` only for a
+research record whose match sits in its summary alone, because every other
+conclusion `find` reads is a title or a statement, which SPC-1100 calls
+`front matter`. The line `... and <n> more; narrow the words` goes, because
+the count line now says how many hits the limit left out.
+
+`meow-flow` goes to 0.47.0, and its README describes the new lines.
 
 ## Left alone
 
