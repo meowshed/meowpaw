@@ -1171,8 +1171,9 @@ class Find(unittest.TestCase):
         done = repository.run("find", "approval", "gate")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         lines = done.stdout.strip().splitlines()
-        self.assertEqual(lines[0], "ADR-0001 decision, approved: An approval gate for the plan")
-        self.assertEqual(lines[1], "EPC-0001 epic, approved: The gate")
+        self.assertEqual(lines[1], "ADR-0001 decision, approved: An approval gate for the plan"
+                                   " (project/adrs/ADR-0001-a-choice.md, front matter)")
+        self.assertEqual(lines[2], "EPC-0001 epic, approved: The gate (project/epics/EPC-0001-a-plan.md, front matter)")
         self.assertNotIn("Text.", done.stdout)
 
     def test_find_with_no_match_says_so(self):
@@ -1181,6 +1182,81 @@ class Find(unittest.TestCase):
         done = repository.run("find", "zebra")
         self.assertEqual(done.returncode, 1)
         self.assertIn("nothing in the record carries zebra", done.stdout)
+        self.assertEqual(done.stdout.splitlines()[0], f"exhaustive: read {self.READ} artifacts")
+
+    # Every fixture file but an index is an artifact `find` reads.
+    READ = sum(1 for text in CLEAN.values() if "artifact: index" not in text)
+
+    def zebra(self, repository):
+        repository.write("requirements/REQ-0201-zebra.md", record(
+            "requirement", "REQ-0201", {"topic": "a", "class": "functional", "verification": "static"}, [],
+            "\nThe harness MUST stripe the zebra.\n\n## Summary\n\nA zebra, and the zebra again.\n").replace(
+                "# REQ-0201", "# Zebra crossing"))
+
+    def test_find_states_its_mode_first_and_its_artifact_count_last(self):
+        """TSK-4360 criterion 1, REQ-2590, REQ-2595: the mode line opens the output and the count closes it."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        self.zebra(repository)
+        done = repository.run("find", "zebra")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[0], f"exhaustive: read {self.READ + 1} artifacts")
+        self.assertEqual(lines[-1], "artifacts matched: 1")
+
+    def test_three_matches_in_one_requirement_count_as_one_artifact(self):
+        """TSK-4360 criterion 2, REQ-2595: a word in a title, a statement and a summary is one place."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        self.zebra(repository)
+        done = repository.run("find", "zebra")
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[-1], "artifacts matched: 1")
+        self.assertEqual(len(lines), 3, lines)
+
+    def test_each_hit_ends_with_its_file_and_its_section(self):
+        """TSK-4360 criterion 3, REQ-2594: a hit names its file, and the heading or `front matter` it matched in."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        self.zebra(repository)
+        repository.edit("research/RES-0002-a-finding.md", "## Summary\n\nText.", "## Summary\n\nZebras cross here.")
+        done = repository.run("find", "zebra")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[1:-1], [
+            "REQ-0201 requirement, approved: Zebra crossing (project/requirements/REQ-0201-zebra.md, front matter)",
+            "RES-0002 research, approved: Zebras cross here. (project/research/RES-0002-a-finding.md, Summary)",
+        ])
+
+    def test_twenty_five_matches_print_twenty_hits_and_count_twenty_five(self):
+        """TSK-4360 criterion 4, REQ-2595: the limit cuts the hits and never the count."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        for n in range(301, 326):
+            repository.write(f"requirements/REQ-0{n}-zebra.md", record(
+                "requirement", f"REQ-0{n}", {"topic": "a", "class": "functional", "verification": "static"}, [],
+                "\nThe harness MUST stripe the zebra.\n"))
+        done = repository.run("find", "zebra")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[0], f"exhaustive: read {self.READ + 25} artifacts")
+        self.assertEqual(len([line for line in lines if line.startswith("REQ-0")]), 20, lines)
+        self.assertEqual(len(lines), 22, lines)
+        self.assertEqual(lines[-1], "artifacts matched: 25")
+
+    def test_rule_m7_says_what_each_search_supports(self):
+        """TSK-4360 criterion 5, REQ-2592, REQ-2594, REQ-2596, REQ-2597: M7 limits an absence to an exhaustive
+        search, reads a hit before quoting it, and treats an index as a local cache."""
+        text = (UNIT / "skills" / "method" / "SKILL.md").read_text(encoding="utf-8")
+        rule = re.search(r"^- M7\.\s(.*?)(?=^- M8\.\s)", text, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(rule)
+        m7 = re.sub(r"\s+", " ", rule.group(1))
+        self.assertRegex(m7, r"has no X only from a search whose first line says `exhaustive`")  # REQ-2592
+        self.assertRegex(m7, r"from a `ranked` one only that the search found X")  # REQ-2592
+        self.assertRegex(m7, r"[Rr]ead a hit with `paw show` before you quote it")  # REQ-2594
+        self.assertRegex(m7, r"refresh the index before you rely on a miss")  # REQ-2596
+        self.assertRegex(m7, r"resolve each hit to its file before you cite it")  # REQ-2596
+        self.assertRegex(m7, r"report the result as local to this machine")  # REQ-2597
 
     def test_find_needs_a_word(self):
         repository = Repository()
