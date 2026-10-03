@@ -488,6 +488,13 @@ class WriteSkill(unittest.TestCase):
         assert found, f"the write skill has no rule {ident}"
         return found[0]
 
+    def test_the_injection_rule_says_what_cheap_and_certain_mean(self):
+        """TSK-2701 criterion 1, REQ-2686: A6 says what makes injected material cheap and certain, the platform's
+        short timeout and a non-zero exit aborting the load, so a reader can tell whether a command meets it."""
+        body = self.body("A6")
+        self.assertIn("timeout", body)
+        self.assertIn("non-zero exit", body)
+
     def test_only_d3_gives_the_turn_ceiling(self):
         """TSK-2701 criterion 1, REQ-2974: the rule for `maxTurns` is D3 alone, so D9's mention of a ceiling can't
         satisfy the check for D3 if D3 loses its reason."""

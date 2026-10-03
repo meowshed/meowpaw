@@ -273,9 +273,10 @@ load it (REQ-1110). A unit also follows these rules:
 - A skill for one language or directory declares its `paths` (REQ-2682).
 - A skill whose work is a long read ending in a short answer runs in a forked
   context (REQ-2684).
-- Material injected when a skill loads must be cheap and certain, so it runs no
-  verification verb such as `lint` or `test`, and nothing depends on it
-  (REQ-2686).
+- Material injected when a skill loads must be cheap and certain: it finishes
+  inside the platform's short timeout and never exits non-zero, because a
+  non-zero exit aborts the load. It runs no verification verb such as `lint` or
+  `test`, and nothing depends on it (REQ-2686).
 - Every command is namespaced, because the platform prefixes a unit's skills
   with the unit's name (REQ-2690).
 - A unit proposes the permissions it needs in its `README.md` and leaves the
