@@ -279,7 +279,7 @@ ADR-1810 adds and EPC-1720 realises, isn't built yet. It also states how the pro
 read, which EPC-2320 realises, the rules each subcommand keeps, which
 EPC-2330 realises, and each unit's plugin contract, which EPC-2340 realises;
 none of that work has started. It states the threat model, which TSK-4380
-holds and which is done. It
+holds to its form and points the design step at, and that work is done. It
 states the unattended install, which TSK-4600 realises, and the release's
 attestation and the report of the trunk's protections, which EPC-2420
 realises; that work hasn't started either. It also states where the harness

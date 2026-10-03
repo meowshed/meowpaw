@@ -94,7 +94,8 @@ To run one step yourself, ask for it by name, such as "run the design step for
 
 Where a decision adds a security-relevant boundary, the design step also
 updates the threat model your specification keeps, so the new threats are
-ranked among those it already lists.
+ranked among those it already lists. Where your specification keeps none, the
+decision says so.
 
 A task's pull request carries the whole task: its tests first, in a commit of
 their own where they fail, then the implementation, the documentation it
