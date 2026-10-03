@@ -4418,7 +4418,8 @@ fn count_record(rest: &[String]) -> u8 {
 
 /// Artifacts whose identifier, title or conclusion carry the words, ranked by
 /// how many they carry: identifiers and headings first, never a body
-/// (ADR-1180).
+/// (ADR-1180). It reads every artifact, so it says `exhaustive`, and it
+/// counts artifacts, never matching lines (ADR-2410).
 fn find(rest: &[String]) -> u8 {
     if rest.is_empty() {
         eprintln!("usage: paw find <word>...");
@@ -4430,12 +4431,23 @@ fn find(rest: &[String]) -> u8 {
     };
     let words: Vec<String> = rest.iter().map(|w| w.to_lowercase()).collect();
     let mut hits: Vec<(usize, String, String)> = Vec::new();
+    let mut read = 0;
     for doc in &record.docs {
         let id = bare(doc.id());
         if id.is_empty() || doc.is_index {
             continue;
         }
+        read += 1;
+        let kind = kind_of(&record, doc);
         let concluded = conclusion(&record, doc);
+        // A research record's conclusion is its Summary's first sentence;
+        // every other conclusion is a title or a statement.
+        let named = format!("{id} {}", title(doc)).to_lowercase();
+        let section = if kind == "research" && !words.iter().any(|w| named.contains(w.as_str())) {
+            "Summary"
+        } else {
+            "front matter"
+        };
         // A requirement's heading is its identifier, so its statement heads it.
         let heading = if title(doc) == id {
             concluded.clone()
@@ -4449,14 +4461,15 @@ fn find(rest: &[String]) -> u8 {
             .count();
         if score > 0 {
             let line = format!(
-                "{id} {}, {}: {heading}",
-                kind_of(&record, doc),
-                bare(doc.value("status"))
+                "{id} {kind}, {}: {heading} ({}, {section})",
+                bare(doc.value("status")),
+                doc.shown
             );
             hits.push((score, id.to_string(), line));
         }
     }
     hits.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    say!("exhaustive: read {read} artifacts");
     if hits.is_empty() {
         say!("paw find: nothing in the record carries {}", rest.join(" "));
         return FOUND;
@@ -4464,9 +4477,7 @@ fn find(rest: &[String]) -> u8 {
     for (_, _, line) in hits.iter().take(20) {
         say!("{line}");
     }
-    if hits.len() > 20 {
-        say!("... and {} more; narrow the words", hits.len() - 20);
-    }
+    say!("artifacts matched: {}", hits.len());
     CLEAN
 }
 

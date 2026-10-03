@@ -56,7 +56,16 @@ don't overrule it.
   specific words, several independent searches at once, and read a whole
   artifact with `paw show` only when its heading is relevant, because a
   search after writing is a consistency check and one before changes the
-  answer.
+  answer. Write that the record has no X only from a search whose first line
+  says `exhaustive`, and from a `ranked` one only that the search found X,
+  because a ranked miss is a fact about the ranking and not the record. Claim
+  an absence only for what the search reads, because `paw find` reads each
+  artifact's identifier, title and conclusion and no other text. Read a
+  hit with `paw show` before you quote it, because a hit line holds a heading
+  and not the qualification beside it. Where a search reads through an index,
+  refresh the index before you rely on a miss, resolve each hit to its file
+  before you cite it, and report the result as local to this machine, because
+  the index is a cache that doesn't travel with the repository.
 - M8. Follow a decision the search finds, or amend it through its own record,
   and never ignore it, because an ignored decision is one the record says holds
   and the work says doesn't.
