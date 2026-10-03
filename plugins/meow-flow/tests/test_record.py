@@ -1205,7 +1205,8 @@ class Find(unittest.TestCase):
         self.assertEqual(lines[-1], "artifacts matched: 1")
 
     def test_three_matches_in_one_requirement_count_as_one_artifact(self):
-        """TSK-4360 criterion 2, REQ-2595: a word in a title, a statement and a summary is one place."""
+        """TSK-4360 criterion 2, REQ-2595: a word in a title, a statement and a Summary section is one artifact,
+        though `find` reads only the first two."""
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         self.zebra(repository)
@@ -1220,11 +1221,13 @@ class Find(unittest.TestCase):
         self.addCleanup(repository.tmp.cleanup)
         self.zebra(repository)
         repository.edit("research/RES-0002-a-finding.md", "## Summary\n\nText.", "## Summary\n\nZebras cross here.")
+        repository.edit("research/RES-0001-synthesis.md", "# RES-0001", "# Zebra synthesis")
         done = repository.run("find", "zebra")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         lines = done.stdout.strip().splitlines()
         self.assertEqual(lines[1:-1], [
             "REQ-0201 requirement, approved: Zebra crossing (project/requirements/REQ-0201-zebra.md, front matter)",
+            "RES-0001 research, approved: Zebra synthesis (project/research/RES-0001-synthesis.md, front matter)",
             "RES-0002 research, approved: Zebras cross here. (project/research/RES-0002-a-finding.md, Summary)",
         ])
 
