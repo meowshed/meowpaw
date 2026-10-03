@@ -845,6 +845,56 @@ class Step(Case):
         self.assertIn(f"unresolved: record root {elsewhere} is outside the work tree", done.stdout)
         self.assertEqual(len(f.run_dirs()), 1)
 
+    def test_wrong_kind_input_is_refused(self):
+        """TSK-4050 criterion 1, REQ-1240: an input of the wrong kind for each step that takes inputs ends `start`
+        with exit 3, the line naming the input, its kind and what the step reads, and no run directory."""
+        cases = (("requirements", "REQ-0001", "REQ-0001, a requirement, is not a research, which a requirements run reads"),
+                 ("design", "RES-0001", "RES-0001, a research, is not a requirement, which a design run reads"),
+                 ("spec", "REQ-0001", "REQ-0001, a requirement, is not a decision, which a spec run reads"),
+                 ("epic", "REQ-0001", "REQ-0001, a requirement, is not a decision, which an epic run reads"),
+                 ("implement", "ADR-0001", "ADR-0001, a decision, is not a task, which an implement run reads"))
+        matched = 0
+        for step, input, line in cases:
+            with self.subTest(step=step):
+                f = self.fixture()
+                done = f.start(step_terms(step, input))
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertIn(f"unresolved: {line}", done.stdout)
+                self.assertEqual(f.run_dirs(), [])
+                self.assertEqual(f.calls(), [])
+                matched += 1
+        self.assertEqual(matched, 5)
+
+    def test_right_kind_input_is_not_refused(self):
+        """TSK-4050 criterion 2, REQ-1240: an input of the right kind for each of the five steps that take inputs
+        is refused on no account of its kind, so `start` makes its call."""
+        matched = 0
+        for step, input in (("requirements", "RES-0001"), ("design", "REQ-0001"), ("spec", "ADR-0001"),
+                            ("epic", "ADR-0001"), ("implement", "TSK-0001")):
+            with self.subTest(step=step):
+                f = self.fixture()
+                done = f.start(step_terms(step, input, iterations="1"))
+                self.assertNotIn("unresolved", done.stdout, done.stdout + done.stderr)
+                self.assertEqual(len(f.calls()), 1)
+                matched += 1
+        self.assertEqual(matched, 5)
+
+    @unittest.skipIf(os.geteuid() == 0, "a file's mode doesn't stop the superuser reading it")
+    def test_unreadable_record_file_is_refused(self):
+        """TSK-4050 criterion 3, REQ-1240: a Markdown file under the record root that can't be read ends `start`
+        with exit 3, the line naming the file, and no run directory."""
+        f = self.fixture()
+        path = f.root / "project/requirements/REQ-0002-a-draft.md"
+        path.chmod(0)
+        try:
+            done = f.start(step_terms("implement", "TSK-0001"))
+        finally:
+            path.chmod(0o644)
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: record file project/requirements/REQ-0002-a-draft.md can't be read:", done.stdout)
+        self.assertEqual(f.run_dirs(), [])
+        self.assertEqual(f.calls(), [])
+
     def test_run_toml_holds_the_step(self):
         """TSK-3410 criterion 6: `run.toml` holds the step as a string and the inputs as a list."""
         f = self.fixture({"done.flag": "x"})
