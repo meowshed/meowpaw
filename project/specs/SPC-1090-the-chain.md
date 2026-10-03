@@ -477,8 +477,8 @@ requirement nothing open still names (REQ-3604). An acceptance criterion is
 decidable from the work of the task or epic that states it (REQ-3628).
 
 `paw ready` refuses `cover`, `document` and `verify` with exit 2 and names the
-step that took their work. The refusal lasts one release, the window REQ-3004
-gives a deprecation.
+step that took their work. The refusal shipped in `meow-flow` 0.45.0, and
+REQ-3004 lets any later release remove it.
 
 A task may realise a decision with no epic, naming `realises: ADR-NNNN` in
 place of `epic:` (REQ-3630).

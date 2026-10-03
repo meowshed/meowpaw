@@ -44,10 +44,11 @@ procedure states where it stops.
   directory, because loading it everywhere costs every other session.
 - A5. Run material whose work is a long read ending in a short answer in a
   forked context, so the reading stays out of the context that continues.
-- A6. Keep anything the material injects when it loads cheap and certain, run
-  no verification verb (format, lint, check, test or build) in the injection,
-  and never let the material depend on it, because a failing injection fails
-  every load.
+- A6. Keep anything the material injects when it loads cheap and certain: it
+  finishes inside the platform's short timeout, and it never exits non-zero,
+  because a non-zero exit aborts the load. Run no verification verb (format,
+  lint, check, test or build) in the injection, and never let the material
+  depend on it, because a failing injection fails every load.
 - A7. Rely on the platform's namespacing of a plugin's skills for every
   command, and claim no bare name, because a bare name lasts only until
   something else claims it.
