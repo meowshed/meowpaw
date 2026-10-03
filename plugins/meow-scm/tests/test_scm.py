@@ -62,7 +62,7 @@ class Convention(unittest.TestCase):
     def test_a_sign_off_naming_someone_else_is_refused(self):
         done = self.repo().check(GOOD.replace("A Person <a@example.org>", "Another Person <b@example.org>"))
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("sign-off: the sign-off names Another Person <b@example.org>, and the commit's author is A Person <a@example.org>", done.stdout)
+        self.assertIn("sign-off route: the first sign-off names Another Person <b@example.org>, and the commit's author is A Person <a@example.org>", done.stdout)
 
     def test_a_message_in_the_convention_passes(self):
         done = self.repo().check(GOOD)
@@ -82,7 +82,7 @@ class Convention(unittest.TestCase):
         self.assertIn("line 1: subject form", done.stdout)
 
     def test_a_scope_and_a_breaking_marker_are_accepted(self):
-        done = self.repo().check(f"feat(verbs)!: drop the old table\n\n{SIGNED}\n")
+        done = self.repo().check(f"feat(verbs)!: drop the old table\n\nBREAKING CHANGE: the old table is gone.\n{SIGNED}\n")
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("meets the declared convention", done.stdout)
 
