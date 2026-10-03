@@ -75,15 +75,19 @@ and REQ-2216. Each criterion is closed by the check it names, in
    `6 community files, 0 missing from .github/` on this repository.
 
 The checks failed first, in the commit that holds them alone, where the module
-they import didn't exist yet. Criterion 4 rests on judgement, for the reason
-it gives, and the review in the pull request judged it. `format`, `lint`,
-`check` and `test` each pass on the change's tree, and `mise run all` and
-`paw check` exit 0, as the pull request cites.
+they import didn't exist yet. The review asked for the tests to compare the
+whole output and to refuse a lone `config.yml`, and that rewrite also landed
+in a commit of its own, where the `config.yml` test failed. Criterion 4 rests
+on judgement, for the reason it gives, and the review in the pull request
+judged it. `format`, `lint`, `check` and `test` each pass on the change's
+tree, and `mise run all` and `paw check` exit 0, as the pull request cites.
 
 I made one choice the task leaves open. An issue template counts as present
-when `.github/ISSUE_TEMPLATE/` holds at least one file, because GitHub reads
-any template in that directory, and
-`Community.test_an_empty_issue_template_directory_counts_as_missing` holds it.
+when `.github/ISSUE_TEMPLATE/` holds a Markdown or YAML file other than
+`config.yml`, because GitHub reads any template in that directory and reads
+`config.yml` as the chooser's settings.
+`Community.test_an_empty_issue_template_directory_counts_as_missing` and
+`Community.test_a_chooser_configuration_alone_is_no_issue_template` hold it.
 The three defaults stay as the task records them: `gh api` lists `retran` as
 an admin of `meowshed/meowpaw`, so `@retran` can own the code. ADR-2510's
 second sign, GitHub's community profile, can be read only after the merge.

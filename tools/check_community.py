@@ -23,13 +23,20 @@ FILES = (
     "pull_request_template.md",
 )
 ISSUE_TEMPLATES = "ISSUE_TEMPLATE"
+TEMPLATE_SUFFIXES = (".md", ".yml", ".yaml")
+# GitHub reads this file as the template chooser's settings, not as a template.
+CHOOSER = "config.yml"
+
+
+def is_template(path: Path) -> bool:
+    return path.is_file() and path.suffix in TEMPLATE_SUFFIXES and path.name != CHOOSER
 
 
 def missing(root: Path) -> list[str]:
     github = root / ".github"
     absent = [f".github/{name}" for name in FILES if not (github / name).is_file()]
     templates = github / ISSUE_TEMPLATES
-    if not (templates.is_dir() and any(p.is_file() for p in templates.iterdir())):
+    if not (templates.is_dir() and any(is_template(p) for p in templates.iterdir())):
         absent.append(f".github/{ISSUE_TEMPLATES}/")
     return absent
 
