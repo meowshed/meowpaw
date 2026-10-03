@@ -34,7 +34,27 @@ Nothing.
 
 ## Evidence
 
-Not yet. Criterion 4's sentence rests on judgement: the page is prose a person reads, and the reviewer reads the section.
+`python3 -m unittest tools/test_marketplace.py` reports `Ran 7 tests` and `OK`
+on this change, and `meow-checks run format lint check test build` passes all
+five verbs, as this task's pull request, #810, shows. The checks came first, in
+the pull request's first commit, where three of them failed:
+`test_the_marketplace_lists_no_meow_verbs` closes criterion 1,
+`test_git_tracks_nothing_under_meow_verbs` closes criterion 2, and
+`test_only_the_stub_names_the_old_unit`, narrowed to the troubleshooting page
+and the check file, closes criterion 3. `python3 tools/check_docs.py` closes the
+first half of criterion 4: it reports `19 pages, 0 documentation failures` with
+`meow-verbs@0.9.0` gone from the `describes` list.
+
+The second half of criterion 4 rests on judgement, because the page is prose a
+person reads. The reviewing agent read the section and found it states the
+cached-copy consequence with its reason in one sentence.
+
+The same review found two low items in `tools/test_marketplace.py`, a module
+docstring that named only TSK-3870 and a `named` entry that read as a fourth
+file naming the unit. Both are fixed by a docstring and a comment. The test
+that stood for the removed stub check, `test_meow_verbs_is_a_stub_that_names_its_replacement`,
+is deleted, because the stub it described is gone, and criterion 2's check holds
+the tracked-files half of it.
 
 ## Left alone
 
