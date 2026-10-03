@@ -43,6 +43,8 @@ states:
     REQ-0149,
     REQ-0151,
     REQ-0157,
+    REQ-1420,
+    REQ-1422,
     REQ-3203,
     REQ-3216,
     REQ-1358,
@@ -998,6 +1000,14 @@ decision with its rejected alternative that a document, an issue or a pull
 request states, and cites its address. It recovers nothing from code alone
 (REQ-3110, REQ-3112). Without the pack it reports the history as unread and
 names `meow-github` (REQ-3128) (ADR-1300).
+
+### Attended irreversible actions
+
+An attended push, merge, release, issue write or governance change requires a
+fresh platform confirmation for that invocation (REQ-1420). An approval is
+never requested as a reusable prefix and never carries to the next action
+(REQ-1422). Reads, repository-local writes and ADR-2380's unattended path do
+not gain this prompt.
 
 ## Failure paths
 
