@@ -845,6 +845,89 @@ class Step(Case):
         self.assertIn(f"unresolved: record root {elsewhere} is outside the work tree", done.stdout)
         self.assertEqual(len(f.run_dirs()), 1)
 
+    def test_wrong_kind_input_is_refused(self):
+        """TSK-4050 criterion 1, REQ-1240: an input of the wrong kind for each step that takes inputs ends `start`
+        with exit 3, the line naming the input, its kind and what the step reads, and no run directory."""
+        cases = (("requirements", "REQ-0001", "REQ-0001, a requirement, is not a research, which a requirements run reads"),
+                 ("design", "RES-0001", "RES-0001, a research, is not a requirement, which a design run reads"),
+                 ("spec", "REQ-0001", "REQ-0001, a requirement, is not a decision, which a spec run reads"),
+                 ("epic", "REQ-0001", "REQ-0001, a requirement, is not a decision, which an epic run reads"),
+                 ("implement", "ADR-0001", "ADR-0001, a decision, is not a task, which an implement run reads"),
+                 # A draft input of the wrong kind gets the kind line alone, because the reader fixes the kind.
+                 ("spec", "REQ-0002", "REQ-0002, a requirement, is not a decision, which a spec run reads"))
+        matched = 0
+        for step, input, line in cases:
+            with self.subTest(step=step):
+                f = self.fixture()
+                done = f.start(step_terms(step, input))
+                self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+                self.assertIn(f"unresolved: {line}", done.stdout)
+                self.assertEqual(done.stdout.count("unresolved:"), 1, done.stdout)
+                # The refusal comes before the lock, so not even the lock file's directory exists.
+                self.assertFalse(f.runs_dir().exists())
+                self.assertEqual(f.run_dirs(), [])
+                self.assertEqual(f.calls(), [])
+                matched += 1
+        self.assertEqual(matched, 6)
+
+    def test_an_input_with_no_file_keeps_its_own_line(self):
+        """TSK-4050 criterion 1, REQ-1240: an input with no file is `paw ready`'s report and not a wrong kind, and in
+        a list the wrong-kind line and the missing-file line each appear once."""
+        f = self.fixture()
+        done = f.start(step_terms("spec", "ADR-9999"))
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: ADR-9999 has no file", done.stdout)
+        self.assertNotIn("is not a", done.stdout)
+        g = self.fixture()
+        done = g.start(step_terms("design", "REQ-0001,RES-0001,REQ-7777"))
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertEqual(done.stdout.count("RES-0001, a research, is not a requirement, which a design run reads"), 1)
+        self.assertEqual(done.stdout.count("unresolved: REQ-7777 has no file"), 1)
+        self.assertNotIn("REQ-0001,", done.stdout)
+
+    def test_a_repeated_input_is_read_once(self):
+        """SPC-1201 "The terms", REQ-1240: an input named twice is one input, so `run.toml` lists it once and a
+        refusal prints its line once."""
+        f = self.fixture({"done.flag": "x"})
+        done = f.start(step_terms("implement", "TSK-0001,TSK-0001"))
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        table = tomllib.loads((f.run_dirs()[0] / "run.toml").read_text())
+        self.assertEqual(table["inputs"], ["TSK-0001"])
+        g = self.fixture()
+        done = g.start(step_terms("design", "RES-0001,RES-0001"))
+        self.assertEqual(done.stdout.count("RES-0001, a research, is not a requirement"), 1, done.stdout)
+
+    def test_right_kind_input_is_not_refused(self):
+        """TSK-4050 criterion 2, REQ-1240: an input of the right kind for each of the five steps that take inputs
+        is refused on no account of its kind, so `start` makes its call."""
+        matched = 0
+        for step, input in (("requirements", "RES-0001"), ("design", "REQ-0001"), ("spec", "ADR-0001"),
+                            ("epic", "ADR-0001"), ("implement", "TSK-0001")):
+            with self.subTest(step=step):
+                f = self.fixture()
+                done = f.start(step_terms(step, input, iterations="1"))
+                self.assertNotIn("unresolved", done.stdout, done.stdout + done.stderr)
+                self.assertEqual(len(f.calls()), 1)
+                matched += 1
+        self.assertEqual(matched, 5)
+
+    @unittest.skipIf(os.geteuid() == 0, "a file's mode doesn't stop the superuser reading it")
+    def test_unreadable_record_file_is_refused(self):
+        """TSK-4050 criterion 3, REQ-1240: a Markdown file under the record root that can't be read ends `start`
+        with exit 3, the line naming the file, and no run directory."""
+        f = self.fixture()
+        path = f.root / "project/requirements/REQ-0002-a-draft.md"
+        path.chmod(0)
+        try:
+            done = f.start(step_terms("implement", "TSK-0001"))
+        finally:
+            path.chmod(0o644)
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("unresolved: record file project/requirements/REQ-0002-a-draft.md can't be read:", done.stdout)
+        self.assertFalse(f.runs_dir().exists())
+        self.assertEqual(f.run_dirs(), [])
+        self.assertEqual(f.calls(), [])
+
     def test_run_toml_holds_the_step(self):
         """TSK-3410 criterion 6: `run.toml` holds the step as a string and the inputs as a list."""
         f = self.fixture({"done.flag": "x"})
@@ -889,20 +972,19 @@ class Step(Case):
         self.assertEqual(len(f.calls()), 1)
 
     def test_spec_run_over_no_requirement_never_finishes(self):
-        """TSK-3410 criterion 7: a `spec` run over a decision that addresses nothing, or over an input that is no
-        decision, never finishes, though a call writes a specification and the verb passes."""
+        """TSK-3410 criterion 7: a `spec` run over a decision that addresses nothing never finishes, though a call
+        writes a specification and the verb passes. An input that is no decision is refused at start since
+        TSK-4050, which `test_wrong_kind_input_is_refused` checks."""
         decision = front(id="ADR-0002", artifact="adr", status="approved", revised="2026-01-01", addresses="[]",
                          supersedes="[]") + "\n# 0002. Another choice\n"
         spec = front(id="SPC-0002", artifact="spec", status="live", revised="2026-01-01",
                      states="[REQ-0001]") + "\n# Another part\n"
-        for input in ("ADR-0002", "REQ-0001"):
-            with self.subTest(input=input):
-                f = self.fixture({"done.flag": "x", "project/adrs/ADR-0002-another.md": decision})
-                f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
-                done = f.start(step_terms("spec", input, iterations="2"))
-                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-                self.assertEqual(f.ending(), "ceiling")
-                self.assertEqual(len(f.calls()), 2)
+        f = self.fixture({"done.flag": "x", "project/adrs/ADR-0002-another.md": decision})
+        f.configure(write={"1": {"project/specs/SPC-0002-another.md": spec}})
+        done = f.start(step_terms("spec", "ADR-0002", iterations="2"))
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(f.ending(), "ceiling")
+        self.assertEqual(len(f.calls()), 2)
 
     def test_amending_design_run_finishes(self):
         """TSK-3410 criterion 8, REQ-0884: a `design` run over a requirement an approved decision already addresses

@@ -93,6 +93,9 @@ an unreadable profile and an unreadable layout, need no code.
 
 ## Tasks
 
-- [ ] T-001 TSK-4050 refuse an input of the wrong kind and an unreadable record
+- [x] T-001 TSK-4050 refuse an input of the wrong kind and an unreadable record
       file at start, in `plugins/meow-loop/` and the `loop` feature of
       `crates/meow`
+      evidence: `Step.test_wrong_kind_input_is_refused` and
+      `Step.test_unreadable_record_file_is_refused` failed first in their own
+      commit, and the five verbs pass.

@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: what meow-loop start repeats, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.10.0]
+describes: [meow-loop@0.11.0]
 ---
 
 # meow-loop
@@ -47,28 +47,34 @@ The run holds the terminal until it ends. Its last line is the ending. For
 `crossed` and `off-step` it also names each record or path that caused it and,
 for an evaluation, the verb that ran.
 
-| Term                | Holds                                                                                       | Required                                      |
-| ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `--step`            | The step the run takes: `research`, `requirements`, `design`, `spec`, `epic` or `implement` | yes                                           |
-| `--inputs`          | The identifiers the step reads, separated by commas. `research` takes none                  | yes, except with `research`, which refuses it |
-| `--prompt`          | The file whose bytes every call gets on its standard input                                  | yes                                           |
-| `--until`           | `verbs=` and one or more of `format`, `lint`, `check`, `test` and `build`                   | yes                                           |
-| `--iterations`      | The ceiling: the most calls the run makes, an integer of 1 or more                          | yes                                           |
-| `--budget-usd`      | The budget in US dollars, a decimal number above 0, such as `2.50`                          | yes                                           |
-| `--permission-mode` | `dontAsk`, the only mode accepted                                                           | yes                                           |
-| `--allowed-tools`   | One permission rule each call may use without asking. Repeat it for each rule               | no                                            |
-| `--plugin-dir`      | One unit's directory each call loads. Repeat it for each unit                               | no                                            |
+| Term                | Holds                                                                                         | Required                                      |
+| ------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `--step`            | The step the run takes: `research`, `requirements`, `design`, `spec`, `epic` or `implement`   | yes                                           |
+| `--inputs`          | The identifiers the step reads, separated by commas, each counted once. `research` takes none | yes, except with `research`, which refuses it |
+| `--prompt`          | The file whose bytes every call gets on its standard input                                    | yes                                           |
+| `--until`           | `verbs=` and one or more of `format`, `lint`, `check`, `test` and `build`                     | yes                                           |
+| `--iterations`      | The ceiling: the most calls the run makes, an integer of 1 or more                            | yes                                           |
+| `--budget-usd`      | The budget in US dollars, a decimal number above 0, such as `2.50`                            | yes                                           |
+| `--permission-mode` | `dontAsk`, the only mode accepted                                                             | yes                                           |
+| `--allowed-tools`   | One permission rule each call may use without asking. Repeat it for each rule                 | no                                            |
+| `--plugin-dir`      | One unit's directory each call loads. Repeat it for each unit                                 | no                                            |
 
 `start` refuses a run whose inputs aren't ready for the step, printing each
 line `paw ready` would print, because a step run over unapproved inputs builds
-on work nobody accepted. It refuses a run whose record root is missing,
-ignored by git or outside the work tree, because the tree id would then leave
-the record out. `review` is no step a run takes, because a person reviews.
-`start` refuses a run with no step, no condition, no ceiling or no budget, because a
-loop with a bound missing stops only when you notice it. It refuses
-`bypassPermissions` and every other mode, because `dontAsk` denies what you
-didn't allow where another mode would ask a person who isn't there, or allow
-everything.
+on work nobody accepted. It refuses an input of the wrong kind with one line
+of its own, because the step's test could never hold and the run would spend
+its whole ceiling and budget. A `requirements` run reads research records, a
+`design` run requirements, a `spec` and an `epic` run decisions, and an
+`implement` run tasks. It refuses a run whose record root is missing, ignored
+by git or outside the work tree, because the tree id would then leave the
+record out. It refuses a run over a Markdown file under the record root that
+the runner can't read, because the runner reads such a file as empty text and
+could never tell a change to it. `review` is no step a run takes, because a
+person reviews. `start` refuses a run with no step, no condition, no ceiling
+or no budget, because a loop with a bound missing stops only when you notice
+it. It refuses `bypassPermissions` and every other mode, because `dontAsk`
+denies what you didn't allow where another mode would ask a person who isn't
+there, or allow everything.
 
 ## What a run does
 
@@ -342,24 +348,26 @@ command, so one attempt names every flag to fix:
 A state the runner can't read past exits 3, prints `unresolved: <what>` and
 creates no run directory:
 
-| Line                                                                            | Means                                                                                                |
-| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `unresolved: a run starts from a terminal outside Claude Code`                  | `CLAUDECODE` is set, so the command ran inside a Claude Code session                                 |
-| `unresolved: not a git work tree`                                               | The current directory isn't inside one                                                               |
-| `unresolved: state writing is off, and a run needs state`                       | `MEOWPAW_STATE=off` is set                                                                           |
-| `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME` | None of the three variables names where state goes                                                   |
-| `unresolved: claude is not on the path`                                         | No `claude` that can be run is on `PATH`                                                             |
-| `unresolved: verb <verb> resolves to no command`                                | The profile declares no command for a named verb                                                     |
-| `unresolved: record root <path> is missing`                                     | The record root, `[record] root` or `project`, doesn't exist                                         |
-| `unresolved: record root <path> is ignored by git`                              | Git ignores the record root, so the tree id leaves the record out                                    |
-| `unresolved: record root <path> is outside the work tree`                       | The record root resolves to a path outside the work tree                                             |
-| `unresolved: can't check whether record root <path> is ignored by git: <error>` | `git check-ignore` failed, so nothing shows that the tree id covers the record                       |
-| `unresolved: <line>`                                                            | An input isn't ready for the step: one line for each line `paw ready <step> <inputs>` would print    |
-| `unresolved: a run already holds this work tree`                                | Another run's process holds the lock                                                                 |
-| `unresolved: can't take the lock <path>: <error>`                               | The runner can't create or lock the work tree's lock file                                            |
-| `unresolved: can't create a run in <directory>: <error>`                        | The runner can't create the run's directory                                                          |
-| `unresolved: meow-loop's own directory can't be found from its program's path`  | The program doesn't sit in a unit whose manifest names `meow-loop`, so a call couldn't load its hook |
-| `unresolved: can't resolve <directory>: <error>`                                | The runner can't resolve the run's progress directory                                                |
+| Line                                                                             | Means                                                                                                                                  |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `unresolved: a run starts from a terminal outside Claude Code`                   | `CLAUDECODE` is set, so the command ran inside a Claude Code session                                                                   |
+| `unresolved: not a git work tree`                                                | The current directory isn't inside one                                                                                                 |
+| `unresolved: state writing is off, and a run needs state`                        | `MEOWPAW_STATE=off` is set                                                                                                             |
+| `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME`  | None of the three variables names where state goes                                                                                     |
+| `unresolved: claude is not on the path`                                          | No `claude` that can be run is on `PATH`                                                                                               |
+| `unresolved: verb <verb> resolves to no command`                                 | The profile declares no command for a named verb                                                                                       |
+| `unresolved: record root <path> is missing`                                      | The record root, `[record] root` or `project`, doesn't exist                                                                           |
+| `unresolved: record root <path> is ignored by git`                               | Git ignores the record root, so the tree id leaves the record out                                                                      |
+| `unresolved: record root <path> is outside the work tree`                        | The record root resolves to a path outside the work tree                                                                               |
+| `unresolved: can't check whether record root <path> is ignored by git: <error>`  | `git check-ignore` failed, so nothing shows that the tree id covers the record                                                         |
+| `unresolved: <id>, a <kind>, is not a <expected kind>, which a <step> run reads` | An input is the wrong kind for the step, such as a requirement given to `epic`, and `a` reads `an` before a vowel, as in `an epic run` |
+| `unresolved: record file <path> can't be read: <error>`                          | A Markdown file under the record root can't be read, so the runner would take it as empty text                                         |
+| `unresolved: <line>`                                                             | An input isn't ready for the step: one line for each line `paw ready <step> <inputs>` would print                                      |
+| `unresolved: a run already holds this work tree`                                 | Another run's process holds the lock                                                                                                   |
+| `unresolved: can't take the lock <path>: <error>`                                | The runner can't create or lock the work tree's lock file                                                                              |
+| `unresolved: can't create a run in <directory>: <error>`                         | The runner can't create the run's directory                                                                                            |
+| `unresolved: meow-loop's own directory can't be found from its program's path`   | The program doesn't sit in a unit whose manifest names `meow-loop`, so a call couldn't load its hook                                   |
+| `unresolved: can't resolve <directory>: <error>`                                 | The runner can't resolve the run's progress directory                                                                                  |
 
 During a run, a file the runner can't write, or a `claude` or a verb's
 command it can't start, stops the run with the same
