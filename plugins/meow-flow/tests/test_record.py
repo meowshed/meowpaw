@@ -2253,14 +2253,18 @@ class SevenSteps(unittest.TestCase):
         self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
         self.assertIn("the steps are research, requirements, design, spec, epic, implement, review\n", done.stderr)
 
-    def test_a_retired_step_names_what_replaced_it(self):
-        """REQ-3638: cover, document and verify are refused, each naming what took its work."""
+    def test_a_retired_step_is_an_unknown_step(self):
+        """TSK-4060 criterion 1, REQ-3004, ADR-2350: cover, document and verify are refused as any step `paw ready`
+        doesn't know, with exit 2 and the seven steps in order and nothing else, so `bogus` gets the same line with
+        its own name and no pointer follows any of them."""
         repository = self.repo()
-        for step, said in (("cover", "cover is part of implement"), ("document", "document is part of implement"),
-                           ("verify", "verify is gone: a requirement closes with the tasks that name it")):
-            done = repository.run("ready", step, "TSK-0001")
-            self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
-            self.assertIn(f"paw ready: {said} (ADR-2300)", done.stderr)
+        for step in ("cover", "document", "verify", "bogus"):
+            with self.subTest(step=step):
+                done = repository.run("ready", step, "TSK-0001")
+                self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+                self.assertEqual(done.stdout, "")
+                self.assertEqual(done.stderr, f"paw ready: no step is named {step}; the steps are research, "
+                                              "requirements, design, spec, epic, implement, review\n")
 
     def test_implement_reads_no_cover(self):
         """REQ-3616: an approved task with no Cover section is ready to implement."""
