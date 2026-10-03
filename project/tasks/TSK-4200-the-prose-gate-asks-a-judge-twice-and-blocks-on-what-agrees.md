@@ -101,17 +101,24 @@ first in a commit of its own:
 8. `test_every_hook_waits_long_enough_for_the_judge` (ADR-2390), seen failing
    first.
 
-`meow-checks run format lint check test build` passed all five verbs on the
-branch. Criterion 9 was run once by hand on 2026-10-03 with Claude Code
-2.1.284, as `python3 plugins/meow-prose-gate/evals/hand_run.py 3`: the four
-BUG-1230 texts passed in three runs of three, and the J1, J2 and J3 texts each
-blocked in three runs of three, each call pair taking 3 to 6 seconds. The
-agent implementing the task ran it, not the owner, and an earlier run before
-the prompt named J3's span blocked the J3 text in one run of three only.
+The review inside the pull request added
+`test_a_judged_span_inside_code_passes` (REQ-3746),
+`test_a_judged_span_outside_code_still_blocks_where_it_also_appears_inside`
+(REQ-3744), `test_a_failing_judge_names_its_last_error_line` and
+`test_a_judge_whose_child_holds_its_output_is_stopped_at_the_limit`
+(REQ-3748), each seen failing first, and rewrote criteria 1 and 2's fixtures
+to give the second call another fix and to run both orders.
 
-Criterion 9 rests on a hand run judged by the owner, never on CI, because a
-run in CI would call a model on every change. It is a smoke check, and three
-runs show only a frequent false block.
+`meow-checks run format lint check test build` passed all five verbs on the
+branch. Criterion 9 was run by hand, never in CI, on 2026-10-03 with Claude
+Code 2.1.284, as `python3 plugins/meow-prose-gate/evals/hand_run.py 3`, after
+the review's fixes: it exited 0 with 21 of 21 runs as wanted. The four
+BUG-1230 texts passed in three runs of three, the J1, J2 and J3 texts each
+blocked in three runs of three, and each pair of calls took 3 to 7 seconds. It
+is a smoke check, and three runs show only a frequent false block. The agent
+implementing the task made the run, and the owner didn't. The main session
+accepted that run in place of the owner's, under the owner's standing
+approval of 2026-10-03.
 
 ## Left alone
 

@@ -109,8 +109,10 @@ written and the gate catches what the skill missed.
 ## Measure it
 
 `plugins/meow-prose-gate/evals/hand_run.py` sends the four texts an earlier gate blocked wrongly and
-one text breaking each judged rule through the installed gate, three times
-each, and prints each exit status, the gate's output and the wait. Every run
+one text breaking each judged rule through the unit's gate, three times each,
+and prints each exit status, the gate's output and the wait. It ends with a
+tally and exits 1 if any run blocked a text it should pass, passed a text it
+should block, or couldn't judge. Every run
 calls a model, so you run it by hand, and no gate or workflow runs it. It is a
 smoke check: three runs show a false block that happens often, never one that
 happens rarely.

@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """The hand run REQ-3752 asks for: each case, three times by default, through
-the unit's own launcher with the real judge, printing the exit status, the
-output and the wait. Every run calls a model, so no gate or workflow runs this:
+the unit's gate with the real judge, printing the exit status, the output and
+the wait, then a tally. It exits 1 on any run that went other than the case
+wants. Every run calls a model, so no gate or workflow runs this:
 
     python3 plugins/meow-prose-gate/evals/hand_run.py 3
 """
@@ -40,12 +41,19 @@ CASES = [
 ]
 runs = int(sys.argv[1]) if len(sys.argv) > 1 else 3
 env = {k: v for k, v in os.environ.items() if k != "MEOW_PROSE_GATE_JUDGE"}
+misses = 0
 for name, want, command in CASES:
     for run in range(runs):
         start = time.time()
         done = subprocess.run([GATE, "check"], input=json.dumps({"tool_input": {"command": command}}),
                               capture_output=True, text=True, env=env, timeout=200)
-        got = "block" if done.returncode == 2 else "pass"
+        # A run the judge couldn't make is a miss, never a pass, whatever the case wants.
+        got = ("block" if done.returncode == 2 else "not checked" if "systemMessage" in done.stdout
+               else "pass" if done.returncode == 0 else "error")
+        misses += got != want
         out = (done.stderr + done.stdout).strip().replace("\n", " / ")
         print(f"{name} run {run + 1}: want {want}, exit {done.returncode} ({got}), "
               f"{time.time() - start:.1f}s, {out[:200]}", flush=True)
+total = len(CASES) * runs
+print(f"\n{total - misses} of {total} runs as wanted, {misses} missed")
+sys.exit(1 if misses else 0)

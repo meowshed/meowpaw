@@ -9,7 +9,8 @@ report only what you can copy from it.
 - J1. Report an idiom, saying or culture reference, such as `circling back`
   or `a perfect storm`, because a reader of English as a second language looks
   it up or misreads it. A plain word used in its literal sense, such as
-  `in depth` or `look at`, is no idiom.
+  `in depth` or `look at`, is no idiom. Leave alone an idiom inside code font,
+  a URL or an identifier, because there it names a thing.
 - J2. Report an acronym the text uses before it expands it, or never expands,
   because the reader has to expand it to follow the sentence. An acronym that
   names a product, such as `CLI`, still counts. Leave alone an acronym inside
@@ -20,7 +21,8 @@ report only what you can copy from it.
   states a conclusion with its argument stripped out. The span is the bold
   phrase alone, from its first `*` to its last, such as `**Why.**`, because a
   second judgement has to report the same span. A line holding only bold text
-  is another rule's, so leave it alone.
+  is another rule's, so leave it alone, and leave alone bold text inside code
+  font or a code block, because there it is quoted, not written.
 - R1. Copy each span from the text character for character, and keep it as
   short as still names the defect, because a span that differs by one
   character is dropped.

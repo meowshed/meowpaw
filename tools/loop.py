@@ -448,8 +448,18 @@ def main():
         if not (unit / "evals").is_dir():
             print(f"{unit.name}: no evals, nothing to measure\n")
             continue
+        if not has_cases(unit):
+            print(f"{unit.name}: no eval case, nothing to measure\n")
+            continue
         loop(unit, args, entries)
     return 0
+
+
+def has_cases(unit):
+    """Whether the unit's `evals/` holds a case, as a `prompt.md` one directory
+    down or a `case.yaml` at any depth, and not only a hand run (REQ-3752)."""
+    evals = unit / "evals"
+    return any(evals.glob("*/prompt.md")) or any(evals.glob("**/case.yaml"))
 
 
 if __name__ == "__main__":

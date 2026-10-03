@@ -216,7 +216,8 @@ fn judged(command: &str, text: &str) -> Result<Vec<(String, String, String)>, St
             std::thread::spawn(move || judgement(&program, call, &prompt, &schema))
         })
         .collect();
-    // Both calls end before either result is read, so no judge outlives the gate.
+    // Wait for both calls, each bounded by JUDGE_LIMIT, before reading either
+    // result, so one call's failure never returns while the other still runs.
     let results: Vec<_> = calls
         .into_iter()
         .map(|call| {
@@ -231,12 +232,22 @@ fn judged(command: &str, text: &str) -> Result<Vec<(String, String, String)>, St
     let mut agreed: Vec<(String, String, String)> = Vec::new();
     for (rule, span, fix) in &answers[0] {
         let both = answers[1].iter().any(|(r, s, _)| r == rule && s == span);
-        let held = text.contains(span.as_str()) && command.contains(span.as_str());
+        let held = in_prose(text, rule, span) && command.contains(span.as_str());
         if both && held && !agreed.iter().any(|(r, s, _)| r == rule && s == span) {
             agreed.push((rule.clone(), span.clone(), fix.clone()));
         }
     }
     Ok(agreed)
+}
+
+/// Whether the span occurs at least once outside fenced code, code spans and
+/// URLs, which name things and break no judged rule (REQ-3746). J1 and J2 also
+/// skip a token holding a path, a file name or an `_`, as P1 does, and J3
+/// doesn't, because `__Why.__` is bold.
+fn in_prose(text: &str, rule: &str, span: &str) -> bool {
+    let masked = mask(text, rule != "J3");
+    text.match_indices(span)
+        .any(|(at, _)| masked.get(at..at + span.len()) == Some(span))
 }
 
 /// A file in the unit's `fragments/`. The binary sits in the unit at
@@ -259,55 +270,96 @@ fn fragment(name: &str) -> Result<String, String> {
         .map_err(|error| format!("the judge's {} could not be read: {error}", path.display()))
 }
 
-/// One run of the judge, read as the findings its answer holds.
+/// One run of the judge, read as the findings its answer holds. Everything,
+/// writing the prompt included, happens before one deadline, and on the
+/// deadline the judge's whole process group is killed, so a child it left
+/// holding its output can't keep the gate waiting.
 fn judgement(
     program: &str,
     call: &str,
     prompt: &str,
     schema: &str,
 ) -> Result<Vec<(String, String, String)>, String> {
-    let mut child = Command::new(program)
+    let deadline = Instant::now() + JUDGE_LIMIT;
+    let mut command = Command::new(program);
+    command
         .args(JUDGE_ARGS)
         .arg(schema)
         .env("MEOW_PROSE_GATE_CALL", call)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::null())
+        .stderr(Stdio::piped());
+    #[cfg(unix)]
+    std::os::unix::process::CommandExt::process_group(&mut command, 0);
+    let mut child = command
         .spawn()
         .map_err(|error| format!("the judge could not be started: {program}: {error}"))?;
     if let Some(mut input) = child.stdin.take() {
-        let _ = input.write_all(prompt.as_bytes());
+        let prompt = prompt.to_string();
+        std::thread::spawn(move || {
+            let _ = input.write_all(prompt.as_bytes());
+        });
     }
-    let mut stdout = child.stdout.take().expect("the judge's output is piped");
-    let reader = std::thread::spawn(move || {
-        let mut out = String::new();
-        let _ = stdout.read_to_string(&mut out);
-        out
-    });
-    let started = Instant::now();
+    let stdout = drain(child.stdout.take());
+    let stderr = drain(child.stderr.take());
+    let late = |child: &mut std::process::Child| {
+        stop(child);
+        format!("the judge ran past {} seconds", JUDGE_LIMIT.as_secs())
+    };
+    let left = || deadline.saturating_duration_since(Instant::now());
+    let Ok(out) = stdout.recv_timeout(left()) else {
+        return Err(late(&mut child));
+    };
+    let Ok(err) = stderr.recv_timeout(left()) else {
+        return Err(late(&mut child));
+    };
     let status = loop {
         match child.try_wait() {
             Ok(Some(status)) => break status,
-            Ok(None) if started.elapsed() >= JUDGE_LIMIT => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err(format!(
-                    "the judge ran past {} seconds",
-                    JUDGE_LIMIT.as_secs()
-                ));
-            }
-            Ok(None) => std::thread::sleep(Duration::from_millis(50)),
+            Ok(None) if left().is_zero() => return Err(late(&mut child)),
+            Ok(None) => std::thread::sleep(Duration::from_millis(20)),
             Err(error) => return Err(format!("the judge could not be waited for: {error}")),
         }
     };
-    let out = reader.join().unwrap_or_default();
     if !status.success() {
-        return Err(match status.code() {
+        let cause = match status.code() {
             Some(code) => format!("the judge exited {code}"),
             None => "the judge was stopped by a signal".into(),
-        });
+        };
+        return Err(
+            match err.lines().rev().find(|line| !line.trim().is_empty()) {
+                Some(line) => format!("{cause}: {}", line.trim()),
+                None => cause,
+            },
+        );
     }
     answer(&out).ok_or_else(|| "the judge answered outside the schema".into())
+}
+
+/// A pipe read to its end on a thread of its own, its text sent once it closes.
+fn drain(pipe: Option<impl Read + Send + 'static>) -> std::sync::mpsc::Receiver<String> {
+    let (send, receive) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut text = String::new();
+        if let Some(mut pipe) = pipe {
+            let _ = pipe.read_to_string(&mut text);
+        }
+        let _ = send.send(text);
+    });
+    receive
+}
+
+/// Kill the judge and every process in its group, which closes the pipes a
+/// child of it still holds.
+fn stop(child: &mut std::process::Child) {
+    #[cfg(unix)]
+    let _ = Command::new("kill")
+        .args(["-KILL", &format!("-{}", child.id())])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status();
+    let _ = child.kill();
+    let _ = child.wait();
 }
 
 /// The findings in a reply from `claude -p --output-format json`, or None where
