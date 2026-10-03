@@ -476,9 +476,9 @@ merge closes the task, its epic where the task was the last open one, and each
 requirement nothing open still names (REQ-3604). An acceptance criterion is
 decidable from the work of the task or epic that states it (REQ-3628).
 
-`paw ready` refuses `cover`, `document` and `verify` with exit 2 and names the
-step that took their work. The refusal shipped in `meow-flow` 0.45.0, and
-REQ-3004 lets any later release remove it.
+`paw ready` knows the seven steps and no others. It refuses any other name,
+`cover`, `document` and `verify` among them, with exit 2 and the seven steps in
+order (ADR-2350).
 
 A task may realise a decision with no epic, naming `realises: ADR-NNNN` in
 place of `epic:` (REQ-3630).
@@ -837,8 +837,7 @@ names `meow-github` (REQ-3128) (ADR-1300).
 | Condition                                                                                                                                   | What happens                                                                                                            |
 | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `ready` names an input that doesn't exist                                                                                                   | Exit 1, the input named as missing                                                                                      |
-| `ready` for a step it doesn't know                                                                                                          | Exit 2, naming the seven steps in order                                                                                 |
-| `ready` for `cover`, `document` or `verify`                                                                                                 | Exit 2, naming the step that took its work (ADR-2300)                                                                   |
+| `ready` for a step it doesn't know                                                                                                          | Exit 2, naming the seven steps in order, for `cover`, `document` and `verify` as for any other name                     |
 | `ready implement` on a task absent from the trunk, or a draft there                                                                         | Exit 1, naming the task and the trunk                                                                                   |
 | No trunk declared, no git work tree, a trunk naming no branch, a record outside the repository, or a task reached through a link leaving it | `ready` refuses nothing for it, and `status` says an approval can't be told from one waiting on a merge                 |
 | `template` for a kind it doesn't know                                                                                                       | Exit 2, naming the kinds                                                                                                |
