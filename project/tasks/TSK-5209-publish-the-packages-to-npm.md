@@ -1,7 +1,7 @@
 ---
 id: TSK-5209
 artifact: task
-status: approved
+status: done
 revised: 2026-10-04
 epic: EPC-2720
 closes: [] # the obligation this task closed was withdrawn by ADR-2810 and restated in the epic that realises it
@@ -51,7 +51,15 @@ local path as the development install.
 
 ## Evidence
 
-Not yet. This line stays first until every verb has passed.
+Run 37207912952 published all six packages with provenance (`+ @meowshed/<unit>`
+for each), the core tarball carrying `bin/<triple>/meow` for all six
+platforms and the other five carrying none. `pi install
+npm:@meowshed/meow-core` in a directory with no meowpaw checkout placed
+the package at `~/.pi/agent/npm/node_modules/@meowshed/meow-core` with the
+binary present, and a session from it quotes rule R1 and runs
+`paw ready research` through the core binary. The failed dispatch before
+it, 37206982184, stopped at the artifact guard, which is criterion 3's
+cousin: the publish never runs on a machine where the fetch fails.
 
 ## Left alone
 
