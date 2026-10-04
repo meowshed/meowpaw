@@ -21,6 +21,7 @@ on:
 permissions:
   contents: read
 
+jobs:
   full:
     name: build-full ${{ matrix.target }}
     strategy:
