@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-git",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Refuses a git commit on the trunk the repository declares, and checks every commit a push would publish for the declared commit convention and for a good signature, before the push runs. It keeps nothing in context on every turn. Distributed as a Pi package.",
   "keywords": [
     "pi-package",

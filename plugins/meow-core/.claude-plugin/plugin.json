@@ -1,6 +1,6 @@
 {
   "name": "meow-core",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Shapes every reply Claude Code makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It replaces your own output style while it is enabled, and keeps up to 4,200 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
