@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What this unit may load on every turn, in characters (REQ-4120): the
+# writing skill's description. The reply shape is injected by the extension
+# into guidelines, not listed as a skill description, so it is not counted
+# here. Measured at 700 by the budget check on 2026-10-04.
+permanent_characters = 700
