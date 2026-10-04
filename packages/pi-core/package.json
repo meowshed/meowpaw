@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/pi-core",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "The meowpaw kernel for Pi: the reply shape, the writing standard and the prose gate.",
   "keywords": ["pi-package", "meowpaw", "prose", "reply-shape"],
   "license": "Apache-2.0",
@@ -15,6 +15,9 @@
   "pi": {
     "extensions": ["extensions/kernel.ts"],
     "skills": ["skills"]
+  },
+  "scripts": {
+    "postinstall": "node install-meow.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
