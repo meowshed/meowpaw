@@ -5,7 +5,8 @@ status: approved
 revised: 2026-10-04
 realises: ADR-2770
 closes: [REQ-0583, REQ-0585, REQ-0594, REQ-0595, REQ-0596]
-issue:
+issue: 832
+projected: bdb0c889f343
 ---
 
 # Store and check completed records
