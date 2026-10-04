@@ -88,8 +88,9 @@ jobs:
 
       - name: Publish each package to npm
         if: inputs.publish || env.publish == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # Trusted publishing: npm >= 11.5 exchanges the workflow's OIDC
+        # token for the registry's, so no auth token is stored here. Every
+        # package must name this workflow as its trusted publisher.
         run: |
           for pkg in packages/meow-*/; do
             short=$(basename "$pkg")
