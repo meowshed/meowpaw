@@ -4,7 +4,7 @@ artifact: task
 status: approved
 revised: 2026-10-04
 epic: EPC-2720
-closes: [REQ-4140]
+closes: [] # the obligation this task closed was withdrawn by ADR-2810 and restated in the epic that realises it
 issue: 851
 ---
 
