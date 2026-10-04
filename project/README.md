@@ -395,6 +395,11 @@ EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
 
 ## Epics and tasks
 
+[EPC-2730](epics/EPC-2730-the-rust-build-splits-from-the-plugin-releases.md)
+realises ADR-2810 in two tasks, TSK-5211 and TSK-5212: the Rust build
+runs in its own workflow, the releases fetch its artifacts, and the meow
+binary ships with the core package alone.
+
 [EPC-2720](epics/EPC-2720-the-packages-publish-to-npm.md) realises ADR-2800
 in two tasks, TSK-5209 and TSK-5210: the packages publish to npm with every
 platform's binary in each tarball, and the build workflow produces all six

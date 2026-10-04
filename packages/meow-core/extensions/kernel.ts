@@ -63,9 +63,15 @@ function commandOf(event: { input?: { command?: unknown } }): string {
 }
 
 export default async function (pi: ExtensionAPI) {
-  // The skills call the bundled wrappers by name, so put them on PATH for
-  // the Bash tool the way Claude Code does natively for a plugin's bin/.
-  process.env.PATH = `${binDir}:${process.env.PATH ?? ""}`;
+  // The skills call the bundled wrappers by name, and every other meowpaw
+  // package's wrapper falls back to the meow binary itself (REQ-4144), so
+  // put both the wrappers' directory and the platform binary's on PATH.
+  const triple = `${process.arch === "arm64" || process.arch === "aarch64" ? "aarch64" : "x86_64"}-${
+    process.platform === "darwin" ? "apple-darwin"
+    : process.platform === "linux" ? "unknown-linux-musl"
+    : process.platform === "win32" ? "pc-windows-msvc"
+    : "unknown"}`;
+  process.env.PATH = `${join(binDir, triple)}:${binDir}:${process.env.PATH ?? ""}`;
 
   // Load the bundled reply shape in the factory, so the first request
   // already holds it: print mode fires no session_start before its request.

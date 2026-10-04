@@ -1,17 +1,18 @@
-# Builds the native tool for six targets, packs every unit whose version has
-# no release yet, and publishes each as its own release beside a marketplace
-# file that installs every unit from its archive (SPC-1080). A person runs
-# it by hand; a tag named `<unit>-v<version>` pushed from the trunk releases
-# that unit alone. Without `publish` it builds and packs only, and leaves
-# the result as a workflow artifact.
+# Packs every Claude Code unit whose version has no release yet, and
+# publishes each as its own release beside a marketplace file that installs
+# every unit from its archive (SPC-1080). The binaries come from the last
+# successful Rust Tool run, so a plugin change starts no build (ADR-2810).
+# A person runs it by hand; a tag named `<unit>-v<version>` pushed from the
+# trunk releases that unit alone. Without `publish` it packs only, and
+# leaves the result as a workflow artifact.
 
-name: Release
+name: Claude Release
 
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the releases; leave it off to build and pack only
+        description: Publish the releases; leave it off to pack only
         type: boolean
         default: false
   push:
@@ -22,15 +23,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: release
+  group: claude-release
 
 jobs:
-  build:
-    uses: ./.github/workflows/build.yml
-
   release:
-    needs: build
-    # The Pi packages' tags name no Claude Code unit, so they run the pi
+    # The Pi packages' tags name no Claude Code unit, so they run the Pi
     # release and not this one.
     if: ${{ !(startsWith(github.ref, 'refs/tags/') && (startsWith(github.ref_name, 'meow-full-v') || contains(github.ref_name, '-pi-v'))) }}
     runs-on: ubuntu-26.04
@@ -50,13 +47,27 @@ jobs:
             echo "publish=true" >> "$GITHUB_ENV"
             echo "unit=${GITHUB_REF_NAME%-v*}" >> "$GITHUB_ENV"
           fi
-      - name: Refuse a breaking change the version doesn't show
-        run: python3 tools/check_release.py
+      - name: Find the latest Rust Tool run on the trunk
+        run: |
+          run_id=$(gh run list --workflow rust-tool.yml --status success --limit 30 \
+            --json databaseId,headBranch \
+            --jq '[.[] | select(.headBranch == "main")][0].databaseId')
+          if [ -z "$run_id" ]; then
+            echo "::error::no successful Rust Tool run on main; run the Rust Tool workflow first"
+            exit 1
+          fi
+          echo "rust_run_id=$run_id" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: actions/download-artifact@v8
         with:
           pattern: bin-*
           path: plugins
           merge-multiple: true
+          run-id: ${{ env.rust_run_id }}
+          github-token: ${{ github.token }}
+      - name: Refuse a breaking change the version doesn't show
+        run: python3 tools/check_release.py
       - name: Pack the units without a release
         run: |
           mkdir dist

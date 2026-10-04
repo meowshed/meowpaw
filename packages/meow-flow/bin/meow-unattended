@@ -26,6 +26,12 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   exec "$binary" unattended "$@"
 fi
 
+# The core package carries the meow binary (ADR-2810); where it
+# sits on PATH, this wrapper runs its subcommand through it.
+if command -v meow >/dev/null 2>&1; then
+  exec meow unattended "$@"
+fi
+
 reason="no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"
 case "$1" in
 plan)
