@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule": { "type": "string", "enum": ["J1", "J2", "J3"] },
+          "span": { "type": "string", "minLength": 1 },
+          "fix": { "type": "string", "minLength": 1 }
+        },
+        "required": ["rule", "span", "fix"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["findings"],
+  "additionalProperties": false
+}

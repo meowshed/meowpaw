@@ -1,0 +1,33 @@
+{
+  "name": "@meowshed/meow-checks",
+  "version": "0.10.0",
+  "description": "Runs a repository's five verification verbs, format, lint, check, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a verb with no command as unresolved, never as passed. It keeps up to 450 characters in context on every turn. Distributed as a Pi package.",
+  "keywords": [
+    "pi-package",
+    "meowpaw"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meowshed/meowpaw"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": [
+      "extensions/bin.ts"
+    ],
+    "skills": [
+      "skills"
+    ]
+  }
+}
