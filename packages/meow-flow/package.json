@@ -2,7 +2,13 @@
   "name": "@meowshed/meow-flow",
   "version": "0.47.0",
   "description": "The meowpaw method: the seven-step chain, record checking, commit convention, git guards, loop runner, unattended planning and GitHub governance guard.",
-  "keywords": ["pi-package", "meowpaw", "method", "record", "chain"],
+  "keywords": [
+    "pi-package",
+    "meowpaw",
+    "method",
+    "record",
+    "chain"
+  ],
   "license": "Apache-2.0",
   "author": {
     "name": "Andrew Vasilyev",
@@ -13,8 +19,12 @@
     "url": "https://github.com/meowshed/meowpaw"
   },
   "pi": {
-    "extensions": ["extensions/method.ts"],
-    "skills": ["skills"]
+    "extensions": [
+      "extensions/method.ts"
+    ],
+    "skills": [
+      "skills"
+    ]
   },
   "scripts": {
     "postinstall": "node install-meow.mjs"
@@ -25,5 +35,8 @@
     "@earendil-works/pi-agent-core": "*",
     "@earendil-works/pi-tui": "*",
     "typebox": "*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

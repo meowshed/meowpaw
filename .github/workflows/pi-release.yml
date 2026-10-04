@@ -1,7 +1,8 @@
 # Publishes the Pi packages. The meow binary is built once with every
-# feature by the build workflow's full job and published as the meow-full
-# release; each Pi package's installer downloads it at install time, so no
-# package archive carries a binary (ADR-2790).
+# feature by the build workflow's full job. The npm tarball carries all six
+# platforms' binaries and publishes to npm; the GitHub release archives
+# stay as the record of what shipped and as the download source the
+# installer names for a git install (ADR-2790, ADR-2800).
 
 name: Pi Release
 
@@ -9,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the releases; leave it off to build and pack only
+        description: Publish the releases and the npm packages
         type: boolean
         default: false
 
@@ -28,6 +29,7 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       contents: write
+      id-token: write
     env:
       GH_TOKEN: ${{ github.token }}
       MEOW_FULL_VERSION: 0.1.0
@@ -35,7 +37,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
-          pattern: bin-full-*
+          pattern: full-*
           path: bin-full
           merge-multiple: false
 
@@ -43,13 +45,6 @@ jobs:
         run: |
           tag="meow-full-v$MEOW_FULL_VERSION"
           mkdir -p dist-full
-          for d in bin-full/*/; do
-            triple=$(basename "$d")
-            # download-artifact keeps one directory per target under it
-            find "$d" -name 'meow*' -exec cp {} dist-full/ \; 2>/dev/null || true
-          done
-          # Each artifact directory holds dist/<triple>/meow; walk that shape.
-          rm -rf dist-full && mkdir dist-full
           find bin-full -type f -name 'meow*' | while read -r f; do
             triple=$(dirname "$f" | sed 's|.*/dist/||; s|/[^/]*$||')
             cp "$f" "dist-full/meow-$triple$(case $f in *.exe) echo .exe;; esac)"
@@ -67,12 +62,52 @@ jobs:
               --notes "$notes"
           fi
 
-      - name: Pack each Pi package
+      - name: Place the platform binaries in each package
+        run: |
+          for pkg in packages/meow-*/; do
+            for triple in aarch64-apple-darwin x86_64-apple-darwin \
+                          aarch64-unknown-linux-musl x86_64-unknown-linux-musl \
+                          aarch64-pc-windows-msvc x86_64-pc-windows-msvc; do
+              mkdir -p "$pkg/bin/$triple"
+              ext=""
+              case $triple in *-windows-*) ext=.exe ;; esac
+              src=$(find bin-full -path "*dist/$triple/meow$ext" | head -1)
+              if [ -n "$src" ]; then
+                cp "$src" "$pkg/bin/$triple/meow$ext"
+                chmod +x "$pkg/bin/$triple/meow$ext"
+              else
+                echo "::error::no $triple binary among the build artifacts"
+                exit 1
+              fi
+            done
+          done
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish each package to npm
+        if: inputs.publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for pkg in packages/meow-*/; do
+            name=$(jq -r .name "$pkg/package.json")
+            version=$(jq -r .version "$pkg/package.json")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already published"
+              continue
+            fi
+            (cd "$pkg" && npm publish --provenance --access public)
+          done
+
+      - name: Pack the GitHub release archives
         run: |
           mkdir dist
-          printf '| Package | Version | Archive | Bytes | SHA-256 |\n' > dist/notes.md
-          printf '| ------- | ------- | ------- | ----- | ------- |\n' >> dist/notes.md
-          for pkg in packages/meow-*; do
+          printf '| Package | Version | npm | Archive | Bytes | SHA-256 |\n' > dist/notes.md
+          printf '| ------- | ------- | --- | ------- | ----- | ------- |\n' >> dist/notes.md
+          for pkg in packages/meow-*/; do
             name=$(jq -r .name "$pkg/package.json")
             version=$(jq -r .version "$pkg/package.json")
             short=$(basename "$pkg")
@@ -85,13 +120,13 @@ jobs:
 
             sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
             bytes=$(wc -c < "dist/$zip")
-            state="new"
-            if gh release view "$tag" >/dev/null 2>&1; then
-              state="released"
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              state="published"
             else
-              echo "$tag" >> dist/tags
+              state="unpublished"
             fi
-            printf '| %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$bytes" "$sha" >> dist/notes.md
+            printf '| %s | %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$zip" "$bytes" "$sha" >> dist/notes.md
+            echo "$tag" >> dist/tags
           done
           cat dist/notes.md >> "$GITHUB_STEP_SUMMARY"
 
@@ -100,7 +135,7 @@ jobs:
           name: pi-release
           path: dist/
 
-      - name: Publish the package releases
+      - name: Publish the GitHub release archives
         if: inputs.publish
         run: |
           touch dist/tags
@@ -108,6 +143,10 @@ jobs:
             short=${tag%-pi-v*}
             version=${tag##*-v}
             zip="${short}-pi-${version}.zip"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              continue
+            fi
             gh release create "$tag" "dist/$zip" --target "$GITHUB_SHA" \
-              --title "$short-pi $version" --notes "$(grep "^| @meowshed/$short |" dist/notes.md)" --latest=false
+              --title "$short-pi $version" \
+              --notes "$(grep "^| @meowshed/$short |" dist/notes.md)" --latest=false
           done < dist/tags
