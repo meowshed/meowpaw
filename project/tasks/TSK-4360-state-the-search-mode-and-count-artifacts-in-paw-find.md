@@ -1,7 +1,7 @@
 ---
 id: TSK-4360
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2410
 closes: [REQ-2590, REQ-2592, REQ-2594, REQ-2595, REQ-2596, REQ-2597]

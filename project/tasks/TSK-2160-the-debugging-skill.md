@@ -1,7 +1,7 @@
 ---
 id: TSK-2160
 artifact: task
-status: approved
+status: done
 revised: 2026-09-27
 epic: EPC-1410
 closes: [REQ-1890, REQ-1892, REQ-1894, REQ-1896, REQ-1898, REQ-1900, REQ-1902]

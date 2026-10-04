@@ -1,7 +1,7 @@
 ---
 id: TSK-3300
 artifact: task
-status: approved
+status: done
 revised: 2026-09-28
 epic: EPC-1900
 closes: [REQ-2388]

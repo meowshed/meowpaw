@@ -1,7 +1,7 @@
 ---
 id: ADR-2760
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses: [REQ-4000]
 supersedes: []

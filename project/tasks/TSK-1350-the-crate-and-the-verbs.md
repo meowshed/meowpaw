@@ -1,7 +1,7 @@
 ---
 id: TSK-1350
 artifact: task
-status: approved
+status: done
 revised: 2026-09-26
 epic: EPC-1080
 closes: [REQ-0032, REQ-0076]

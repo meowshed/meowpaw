@@ -1,7 +1,7 @@
 ---
 id: TSK-2470
 artifact: task
-status: approved
+status: done
 revised: 2026-09-28
 bug: BUG-1230
 closes: [REQ-1756, REQ-3183, REQ-3187]

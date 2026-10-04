@@ -1,7 +1,7 @@
 ---
 id: EPC-1720
 artifact: epic
-status: approved
+status: done
 revised: 2026-09-29
 realises: ADR-1810
 ---
