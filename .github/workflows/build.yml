@@ -21,7 +21,42 @@ on:
 permissions:
   contents: read
 
-jobs:
+  full:
+    name: build-full ${{ matrix.target }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { target: aarch64-apple-darwin, os: macos-15 }
+          - { target: x86_64-apple-darwin, os: macos-15 }
+          - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm }
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-24.04 }
+          - { target: aarch64-pc-windows-msvc, os: windows-11-arm }
+          - { target: x86_64-pc-windows-msvc, os: windows-2025 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: runner.os == 'Linux'
+        run: sudo apt-get install -y musl-tools
+      # The Pi packages bundle several units in one package, so they need one
+      # binary carrying every subcommand (ADR-2790). Built once, reused in
+      # all harnesses.
+      - run: cargo build --quiet --release --manifest-path crates/meow/Cargo.toml --all-features --target ${{ matrix.target }}
+        shell: bash
+      - run: |
+          mkdir -p dist/${{ matrix.target }}
+          ext=""
+          case ${{ matrix.target }} in *-windows-*) ext=.exe ;; esac
+          cp "target/${{ matrix.target }}/release/meow$ext" "dist/${{ matrix.target }}/meow$ext"
+        shell: bash
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bin-full-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
   build:
     name: build ${{ matrix.target }}
     strategy:

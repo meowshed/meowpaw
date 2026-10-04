@@ -386,7 +386,18 @@ realises, and [SPC-1220](specs/SPC-1220-the-constitution.md) states what a
 constitution carries and the length `paw check` reports, which EPC-2440
 realises. Neither is built yet.
 
+[SPC-1300](specs/SPC-1300-the-pi-packages.md) states the Pi packages: how
+each meowpaw layer ships as a Pi package, what each extension registers,
+how the skills name their binaries, what the installer downloads and what
+fails open, which ADR-2780 decides and ADR-2790 adds to at install time,
+and which EPC-2700 realises. The packages are built; the four defects
+EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
+
 ## Epics and tasks
+
+[EPC-2710](epics/EPC-2710-a-package-installs-standalone.md) realises
+ADR-2790 in three tasks, TSK-5206 to TSK-5208, fixing BUG-1400 to BUG-1403:
+the bundled prompts, the plain command names, and the meow-full installer.
 
 [EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) realises ADR-1000
 in five tasks, TSK-1010 to TSK-1050, each closed with evidence. The epic closed
@@ -822,6 +833,10 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1370](bugs/BUG-1370-the-trunk-guard-misreads-a-trunk-outside-the-plain-case.md)         | `paw` misjudged a task's approval on the trunk with CRLF endings, a remote not named `origin`, or a link leaving the repository |
 | [BUG-1380](bugs/BUG-1380-the-method-skill-names-nobody-to-open-the-one-pull-request.md)      | The method skill named nobody to open the pull request on the one-pull-request path                                             |
 | [BUG-1390](bugs/BUG-1390-spc-1201-leaves-states-of-a-run-unstated.md)                        | SPC-1201 leaves states of a run unstated                                                                                        |
+| [BUG-1400](bugs/BUG-1400-the-extensions-read-the-monorepo-s-plugins.md)                      | The Pi extensions read the monorepo's plugins directory, which holds nowhere a package installs                                 |
+| [BUG-1401](bugs/BUG-1401-the-skills-name-a-platform-the-harness-does-not-run-on.md)          | The Pi skills name `${CLAUDE_SKILL_DIR}`, a variable Pi never sets                                                              |
+| [BUG-1402](bugs/BUG-1402-every-package-injects-the-reply-shape.md)                           | Every Pi package injects the reply shape, so two installed layers inject it twice                                               |
+| [BUG-1403](bugs/BUG-1403-the-installer-script-cannot-run-on-esm.md)                          | The installer calls `require` in ESM and four packages name another unit's release                                              |
 
 Forty-one are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement

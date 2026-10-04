@@ -20,13 +20,13 @@ project gained and when, so every message is written for that question.
 </rules>
 
 <steps name="write a message">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-scm convention` to see the types the
+1. Run `meow-scm convention` to see the types the
    repository declares, what each means for a release, the subject limit and
    the trailers. Where it says the convention is undeclared, say so to the
    person, and follow only the rules below.
 2. Write the message by the rules below.
 3. Run the check on the exact text you will use, passed on standard input:
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-scm check-message`. Fix every line it
+   `meow-scm check-message`. Fix every line it
    names and run it again.
 4. Use the message only when the check exits 0. Where it exits 3 because the
    convention is undeclared, tell the person the message was checked for

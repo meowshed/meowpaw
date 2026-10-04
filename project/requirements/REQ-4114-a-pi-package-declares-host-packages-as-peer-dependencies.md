@@ -1,11 +1,15 @@
 ---
 id: REQ-4114
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: static
+elaborates: RES-0340
 ---
 
-# A Pi package declares host packages as peer dependencies
+# REQ-4114
 
 Each meowpaw Pi package declares `@earendil-works/pi-coding-agent` and the
 other host packages Pi supplies (`@earendil-works/pi-ai`,

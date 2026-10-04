@@ -3,8 +3,25 @@ id: TSK-5200
 artifact: task
 status: done
 revised: 2026-10-04
-realises: ADR-2780
-closes: [REQ-4100, REQ-4102, REQ-4104, REQ-4106, REQ-4108, REQ-4110, REQ-4112, REQ-4114, REQ-4116, REQ-4118, REQ-4120, REQ-4122, REQ-4124, REQ-4126, REQ-4128]
+epic: EPC-2700
+closes:
+  [
+    REQ-4100,
+    REQ-4102,
+    REQ-4104,
+    REQ-4106,
+    REQ-4108,
+    REQ-4110,
+    REQ-4112,
+    REQ-4114,
+    REQ-4116,
+    REQ-4118,
+    REQ-4120,
+    REQ-4122,
+    REQ-4124,
+    REQ-4126,
+    REQ-4128,
+  ]
 issue: 835
 ---
 
@@ -36,3 +53,26 @@ extensions, event handlers, commands, tools and the dual-platform contract.
 6. EPC-2700 names the tasks that close the requirements and carries
    acceptance criteria from the ADR. Closed by: the epic exists and its task
    marks cover the work.
+
+## What to do
+
+Write RES-0340 and RES-0341, REQ-4100 through REQ-4128, ADR-2780,
+SPC-1300 and EPC-2700 with its tasks, each from its template, each citing
+its research source.
+
+## Depends on
+
+Nothing.
+
+## Evidence
+
+PR #834: RES-0340 and RES-0341 carry their sources and dates; REQ-4100
+through REQ-4128 each state one obligation citing the research; ADR-2780
+addresses every requirement with its alternatives and reversal conditions;
+SPC-1300 lists every stated requirement; EPC-2700 carries acceptance
+criteria from the ADR and its task marks.
+
+## Left alone
+
+The implementation of the packages, which the following tasks carry;
+SPC-1300's install-time behaviour, which ADR-2790 later added.

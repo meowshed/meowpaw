@@ -1,11 +1,15 @@
 ---
 id: REQ-4124
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: static
+elaborates: RES-0340
 ---
 
-# Evals have no Pi equivalent and are deferred
+# REQ-4124
 
 The eval suites that Claude Code plugins carry (`meow-core/evals/`,
 `meow-prose/evals/`, `meow-author/evals/`, `meow-flow/evals/`,

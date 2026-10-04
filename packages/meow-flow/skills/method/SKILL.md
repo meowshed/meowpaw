@@ -17,13 +17,13 @@ don't overrule it.
    first of them and names the step a request enters at.
 2. Read the repository's principles before producing anything: `CLAUDE.md`,
    and each file `.meowpaw/profile.toml` names under `[method] principles`.
-3. Run `${CLAUDE_SKILL_DIR}/../../bin/paw ready <step> <id>...`. On exit 1, stop and report each line it
+3. Run `paw ready <step> <id>...`. On exit 1, stop and report each line it
    printed as what is missing, and never write the artifact anyway. On exit 3,
    report the record as not checked and stop.
-4. Read `${CLAUDE_SKILL_DIR}/steps/<step>.md` and follow it.
-5. Write each artifact from the template `${CLAUDE_SKILL_DIR}/../../bin/paw template <kind>` prints, as a
+4. Read `steps/<step>.md` and follow it.
+5. Write each artifact from the template `paw template <kind>` prints, as a
    draft, because approval is a person's act and not yours.
-6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
+6. Run `paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
 7. Where M20 applies and the check reported nothing, set each artifact the
    step wrote to `approved`, and where a step up to epic remains, go to step 1 for it.

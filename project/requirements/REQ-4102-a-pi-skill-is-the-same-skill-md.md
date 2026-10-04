@@ -1,18 +1,25 @@
 ---
 id: REQ-4102
 artifact: requirement
-status: approved
-cites: RES-0340
+topic: pi-packages
+class: functional
+status: withdrawn
+revised: 2026-10-04
+elaborates: RES-0340
+verification: behavioural
 ---
 
-# A Pi skill is the same SKILL.md the Claude Code plugin carries
+# REQ-4102
 
-Every skill that a meowpaw plugin provides as `skills/<name>/SKILL.md` is
-carried unchanged in the Pi package's `skills/` directory. Pi's skill discovery
-loads the same file by the same progressive-disclosure mechanism: the
-description appears in the system prompt, and the full instructions load on
-invocation.
+**Withdrawn by ADR-2790. Replaced by REQ-4132.**
 
-Rationale: The Agent Skills specification that Pi implements is the same format
-Claude Code uses. The content is portable. Rewriting would gain nothing and
-would drift from the tested prompt.
+It read: every skill a Claude Code plugin provides as `SKILL.md` is carried
+unchanged in the Pi package, because the same format loads on both
+platforms.
+
+BUG-1401 found the copies naming `${CLAUDE_SKILL_DIR}` in forty places, a
+variable Pi never sets, so the method's very first command answered not
+found. REQ-4132 states what holds in its place: the skill is carried with
+one phrasing alone adapted — its binary named by its plain command and its
+files relative to the skill's own directory — which serves both platforms,
+because Claude Code puts a plugin's `bin/` on PATH natively.

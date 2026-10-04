@@ -56,6 +56,10 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-4100, REQ-4102, REQ-4106, REQ-4114, REQ-4118, REQ-4120
 - [x] T-006 TSK-5205 verify the dual-platform contract
       closes: REQ-4102
+      The four defects found after this epic closed — the extensions reading
+      the monorepo's plugins directory, the skills naming a platform variable,
+      every package injecting the reply shape, and the installer's ESM defect
+      (BUG-1400 to BUG-1403) — are fixed by EPC-2710, which realises ADR-2790.
 
 ## Coverage
 
