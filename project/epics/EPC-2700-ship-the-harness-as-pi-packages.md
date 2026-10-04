@@ -1,7 +1,7 @@
 ---
 id: EPC-2700
 artifact: epic
-status: done
+status: approved
 revised: 2026-10-04
 realises: ADR-2780
 ---
@@ -56,6 +56,20 @@ A task is marked in the commit that advances it, never in a later pass.
       closes: REQ-4100, REQ-4102, REQ-4106, REQ-4114, REQ-4118, REQ-4120
 - [x] T-006 TSK-5205 verify the dual-platform contract
       closes: REQ-4102
+- [+] T-007 TSK-5206 make the kernel package install standalone
+      added: the shipped packages were marked done from a monorepo checkout,
+      where every accidental path holds; four defects (BUG-1400 to
+      BUG-1403) record what only shows once a package is installed
+      closes: REQ-4130, REQ-4134, REQ-4108
+- [+] T-008 TSK-5207 name each binary without a platform variable
+      added: the skills were copied with Claude Code's variables in them,
+      which no Pi session resolves (BUG-1401)
+      closes: REQ-4132, REQ-4102, REQ-4110, REQ-4112
+- [+] T-009 TSK-5208 hold the installer and the downloads
+      added: the installer scripts shipped with an ESM defect and four
+      wrong release references (BUG-1403), and nothing ignored the
+      downloads
+      closes: REQ-4136, REQ-4138, REQ-4118
 
 ## Coverage
 

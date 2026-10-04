@@ -20,6 +20,11 @@ states:
     REQ-4124,
     REQ-4126,
     REQ-4128,
+    REQ-4130,
+    REQ-4132,
+    REQ-4134,
+    REQ-4136,
+    REQ-4138,
   ]
 ---
 
@@ -40,7 +45,10 @@ decision. A Pi package that exploits dynamic tool registration, virtual models
 or structured output has no specification yet, because no decision asks for
 one.
 
-ADR-2780 decides this part.
+ADR-2780 decides this part, and ADR-2790 decides what a package does at
+install time and how it finds its own files, added after four defects
+(BUG-1400 to BUG-1403) showed the packages working only beside a checkout of
+this repository.
 
 ## Boundary
 
@@ -53,6 +61,8 @@ ADR-2780 decides this part.
 | `packages/meow-core/extensions/kernel.ts` | The kernel extension |
 | `packages/meow-flow/extensions/method.ts` | The method extension |
 | `packages/meow-code/extensions/practice.ts` | The practice extension |
+| `packages/<name>/prompts/` | The prompt files each extension loads, bundled (REQ-4130) |
+| `packages/<name>/install-meow.mjs` | The installer that downloads the meow binary (REQ-4136) |
 | `plugins/<name>/` | The existing Claude Code plugins, unchanged |
 | `project/research/RES-0340-pi-as-a-platform.md` | The platform research |
 | `project/research/RES-0341-mapping-each-plugin-to-pi.md` | The per-plugin mapping |
@@ -115,10 +125,19 @@ Pi supplies at runtime (REQ-4114).
 
 ### Skills
 
-Each `plugins/<name>/skills/<skill>/SKILL.md` is the same file the Pi package
-carries in `skills/<skill>/SKILL.md` (REQ-4102). Pi discovers it by the same
-progressive-disclosure mechanism: the description appears in the system prompt,
-and the full instructions load on invocation.
+Each `plugins/<name>/skills/<skill>/SKILL.md` is carried in the Pi package
+as `skills/<skill>/SKILL.md`, adapted in one phrasing alone: a binary is
+named by its plain command and a supporting file by its path relative to
+the skill's own directory, never through `${CLAUDE_SKILL_DIR}` or
+`${CLAUDE_PLUGIN_ROOT}`, which Pi never sets (REQ-4102, REQ-4132). The
+package's extension puts its `bin/` directory on the session's PATH at
+load, so the plain command resolves the wrapper, which resolves the
+platform meow binary. Claude Code puts a plugin's `bin/` on PATH natively,
+so the same phrasing serves both platforms once the plugins adopt it.
+
+Pi discovers each skill by the same progressive-disclosure mechanism: the
+description appears in the system prompt, and the full instructions load on
+invocation.
 
 Where a skill uses Claude Code–specific frontmatter (`model`, `effort`,
 `arguments`, `argument-hint`, `user-invocable`), the Pi extension provides the
@@ -217,13 +236,33 @@ The method extension registers a command for each step and driver
 
 ### Binaries and templates
 
-The native binaries ship in the package's `bin/` directory as
-platform-specific executables (REQ-4118). The extension resolves each binary's
-path relative to the package root at `session_start`.
+The shell wrappers ship in the package's `bin/` directory as committed
+source; the platform meow binary is not committed. Each package's
+`install-meow.mjs` runs after install, downloads the package's own unit's
+release archive from the meowpaw releases, extracts the binary for the
+machine it runs on into `bin/<cpu>-<system>/meow`, removes the archive and
+exits 0 on any failure (REQ-4116, REQ-4136). A failed download breaks no
+install, because the wrappers report each check as unrun, which is the
+designed behaviour for a missing binary. The repository ignores
+`packages/*/bin/*-*/`, so no download is ever committed (REQ-4138).
+
+Every prompt, fragment and supporting file an extension or skill loads is
+bundled inside the package that loads it, and no resolved path walks above
+the package root (REQ-4130). Where a file is missing, the extension
+reports it and carries on with the behaviour it can hold.
 
 The record templates ship in the package alongside `paw` (REQ-4128). The
 command `paw template <kind>` reads them from the same relative path it uses
 in the Claude Code plugin.
+
+### The reply shape
+
+The `@meowshed/meow-core` extension alone injects the reply shape into the
+system prompt guidelines on `before_agent_start` (REQ-4108, REQ-4134). No
+other package's extension injects it. A package that makes a nested model
+call — the method's router, the prose gate's judge — carries its own
+bundled copy of the reply shape into that call's messages, because a nested
+call runs its own prompt and never sees the session's.
 
 ### Budgets
 

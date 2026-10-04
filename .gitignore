@@ -19,3 +19,7 @@ plugins/*/evals/*/00000000-0000-4000-8000-000000000001.jsonl
 crates/meow/target/
 plugins/*/bin/*-*-*/
 /dist/
+
+# The Pi packages download the native tool at install time, so their
+# platform directories are never committed (SPC-1080, SPC-1300).
+packages/*/bin/*-*-*/
