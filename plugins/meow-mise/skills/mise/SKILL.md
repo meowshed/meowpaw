@@ -1,5 +1,5 @@
 ---
-name: tasks
+name: mise
 description: The tasks mise resolves in this repository and what each can safely do. It MUST be loaded before running, listing or binding a mise task or a verb to one in a repository with a mise.toml or a mise task directory. It MUST NOT be used to trust a configuration.
 ---
 
@@ -12,7 +12,7 @@ and never yours.
 </role>
 
 <steps name="read the tasks">
-1. Run `meow-mise status` and show its output.
+1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-mise status` and show its output.
 2. If it exits 3, report the line starting `unresolved:` as it stands, and
    stop. For `untrusted`, give the person the command it names and let them
    run it after reading the configuration.
@@ -22,13 +22,13 @@ and never yours.
 </steps>
 
 <steps name="bind the verbs">
-1. Run `meow-mise bind` and show the table it
+1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-mise bind` and show the table it
    prints, each unbound verb's reason included.
 2. Give the table to the person to put in `.meowpaw/profile.toml`, and write
    the profile yourself only when they ask, because the profile is the
    repository's declaration.
 3. After a profile's verbs change, run
-   `meow-mise check` and report every finding it
+   `${CLAUDE_SKILL_DIR}/../../bin/meow-mise check` and report every finding it
    prints, with its exit status.
 </steps>
 
