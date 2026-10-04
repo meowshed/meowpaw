@@ -25,12 +25,12 @@ it, checked at #587.
 
 ## Boundary
 
-| Surface                                     | What it is                                                     |
-| ------------------------------------------- | -------------------------------------------------------------- |
-| `plugins/meow-gotask/bin/meow-gotask`       | The program: `status`, `bind` and `check`                      |
-| `plugins/meow-gotask/skills/tasks/SKILL.md` | The skill that tells the model to use the program, never guess |
-| `plugins/meow-gotask/README.md`             | The unit's page                                                |
-| `.meowpaw/profile.toml`, `[verbs]`          | What `check` reads; the pack never writes it                   |
+| Surface                                      | What it is                                                     |
+| -------------------------------------------- | -------------------------------------------------------------- |
+| `plugins/meow-gotask/bin/meow-gotask`        | The program: `status`, `bind` and `check`                      |
+| `plugins/meow-gotask/skills/gotask/SKILL.md` | The skill that tells the model to use the program, never guess |
+| `plugins/meow-gotask/README.md`              | The unit's page                                                |
+| `.meowpaw/profile.toml`, `[verbs]`           | What `check` reads; the pack never writes it                   |
 
 The program writes nothing into the repository. It runs `task --version` and
 `task --list-all --json`, the second with `TASK_TEMP_DIR` set to a directory it

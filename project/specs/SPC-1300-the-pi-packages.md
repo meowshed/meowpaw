@@ -136,6 +136,12 @@ load, so the plain command resolves the wrapper, which resolves the
 platform meow binary. Claude Code puts a plugin's `bin/` on PATH natively,
 so the same phrasing serves both platforms once the plugins adopt it.
 
+A skill's name is unique across the units, and it names the tool or the
+capability it teaches, never a kind of record the method already claims:
+Pi loads every unit's skills into one flat namespace, where two units
+claiming one name silently keep the first and drop the rest, and a name
+the record tree already uses misnames the skill against it (BUG-1412).
+
 Pi discovers each skill by the same progressive-disclosure mechanism: the
 description appears in the system prompt, and the full instructions load on
 invocation.
