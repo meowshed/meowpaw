@@ -1,7 +1,7 @@
 ---
 id: TSK-5205
 artifact: task
-status: draft
+status: done
 revised: 2026-10-04
 realises: ADR-2780
 closes: [REQ-4102]

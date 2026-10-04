@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What this unit may load on every turn, in characters (REQ-4120): the
+# change skill, the debug skill, the write skill and the header skill.
+# Measured at 1380 by the budget check on 2026-10-04.
+permanent_characters = 1380

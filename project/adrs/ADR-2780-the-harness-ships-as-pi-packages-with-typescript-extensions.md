@@ -49,9 +49,9 @@ packages is:
    `user_bash` handler runs the judge twice with
    `ctx.modelRegistry.streamSimple()` and blocks only where both agree.
 
-8. **Each layer is one Pi package.** The kernel is `@meowshed/pi-core`,
-   the method is `@meowshed/pi-method`, the practice is
-   `@meowshed/pi-practice`, and each pack is its own package. Host packages
+8. **Each layer is one Pi package.** The kernel is `@meowshed/meow-core`,
+   the method is `@meowshed/meow-flow`, the practice is
+   `@meowshed/meow-code`, and each pack is its own package. Host packages
    are `peerDependencies` with `"*"` ranges.
 
 9. **Native binaries ship alongside the package.** The compiled Rust binaries
@@ -77,7 +77,7 @@ packages is:
     but the cost is real and recording it prevents unnoticed growth.
 
 The packages are distributed through npm or a git repository, installed with
-`pi install npm:@meowshed/pi-method` or
+`pi install npm:@meowshed/meow-flow` or
 `pi install git:github.com/meowshed/meowpaw-pi`.
 
 ## Why
@@ -162,9 +162,9 @@ of skill descriptions could grow unnoticed without the check.
 
 ## How I will know it was realised
 
-1. `pi install npm:@meowshed/pi-core` loads the kernel package, and a Pi
+1. `pi install npm:@meowshed/meow-core` loads the kernel package, and a Pi
    session shows the reply shape in the system prompt.
-2. `pi install npm:@meowshed/pi-method` loads the method package, and
+2. `pi install npm:@meowshed/meow-flow` loads the method package, and
    `/meow-flow:run` drives the seven-step chain.
 3. A `git commit` with a prose defect is blocked by the prose gate extension.
 4. A `git commit` on the declared trunk is blocked by the git guard
