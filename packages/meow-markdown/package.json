@@ -23,9 +23,6 @@
       "skills"
     ]
   },
-  "scripts": {
-    "postinstall": "node install-meow.mjs"
-  },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-ai": "*",

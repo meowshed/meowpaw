@@ -1,27 +1,32 @@
-# Builds each unit's binary of the native tool for all six targets (SPC-1080).
-# Every target builds under Linux: the musl targets natively, the darwin
-# targets through osxcross in a container, and the windows targets through
-# cargo-xwin. CI runs it whenever the crate, a launcher or the build changes,
-# and the release calls it for the binaries it packs.
+# Builds the native tool and publishes its meow-full release. This is the
+# one workflow that compiles Rust: the plugin releases fetch its artifacts
+# instead of rebuilding, so a plugin change starts no build (ADR-2810). The
+# six targets build under Linux: the musl targets natively, the darwin
+# targets through osxcross, and the windows targets through cargo-xwin.
 
-name: Build
+name: Rust Tool
 
 on:
-  workflow_call:
-  pull_request:
-    paths:
-      - crates/**
-      - plugins/*/bin/**
-      - .github/workflows/build.yml
   push:
     branches: [main]
     paths:
       - crates/**
-      - plugins/*/bin/**
-      - .github/workflows/build.yml
+      - .github/workflows/rust-tool.yml
+    tags:
+      - "meow-full-v*"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the meow-full release
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+
+concurrency:
+  group: rust-tool
+  cancel-in-progress: false
 
 jobs:
   linux:
@@ -41,9 +46,6 @@ jobs:
       - run: sudo apt-get install -y musl-tools
       - run: crates/meow/build-units ${{ matrix.target }}
         shell: bash
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
       - name: Build the full binary for every subcommand
         run: |
           cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
@@ -84,17 +86,9 @@ jobs:
       # licence covers the SDK on Apple hardware, which is the trade-off
       # ADR-2800 names.
       image: joseluisq/rust-linux-darwin-builder@sha256:a3e69706ba273c08a23ab76be5c2d98a9075c33c2504e4fb17d36a64ae713ff2
-    env:
-      CC: ${{ matrix.cc }}
-      CXX: ${{ matrix.cxx }}
-      AR: llvm-ar
     steps:
       - uses: actions/checkout@v7
       - run: rustup default stable && rustup target add ${{ matrix.target }}
-      # A darwin binary built here carries no signature, and macOS kills an
-      # unsigned arm64 binary on sight, so the build signs it with ldid. The
-      # static binary is fetched from a pinned release and checked against
-      # its checksum, because a signing tool is part of the supply chain.
       - name: Install ldid
         run: |
           case "$(uname -m)" in
@@ -119,9 +113,6 @@ jobs:
         shell: bash
         env:
           RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
-      # A binary built under Linux carries no signature, and macOS kills an
-      # unsigned arm64 binary on sight; ldid writes the ad-hoc signature the
-      # macOS linker writes on a Mac.
       - run: find plugins/*/bin/${{ matrix.target }} -name 'meow*' -exec ldid -S {} +
       - name: Build the full binary for every subcommand
         run: |
@@ -158,8 +149,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      # cargo-xwin fetches the Windows SDK from Microsoft's own servers and
-      # links the MSVC target from Linux.
       - run: cargo install --locked cargo-xwin
       - run: crates/meow/build-units ${{ matrix.target }}
         shell: bash
@@ -182,3 +171,52 @@ jobs:
           name: full-${{ matrix.target }}
           path: dist/
           if-no-files-found: error
+
+  release:
+    needs: [linux, darwin, windows]
+    if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish }}
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve the version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/meow-full-v* ]]; then
+            echo "full_version=${GITHUB_REF_NAME#meow-full-v}" >> "$GITHUB_ENV"
+          else
+            echo "full_version=0.1.0" >> "$GITHUB_ENV"
+          fi
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: full-*
+          path: bin-full
+          merge-multiple: false
+      - name: Publish the meow-full release, one binary for every platform
+        run: |
+          tag="meow-full-v$full_version"
+          mkdir -p dist-full
+          # The full artifacts hold their meow under a directory named for
+          # the triple, whatever depth the artifact layout adds above it.
+          find bin-full -type f -name 'meow*' | while read -r f; do
+            triple=$(basename "$(dirname "$f")")
+            case $triple in full-*) triple=${triple#full-} ;; esac
+            ext=""
+            case $triple in *-windows-*) ext=.exe ;; esac
+            cp "$f" "dist-full/meow-$triple$ext"
+          done
+          ls dist-full
+          (cd dist-full && zip -q -X "../meow-full-$full_version.zip" ./*)
+          sha=$(sha256sum "meow-full-$full_version.zip" | cut -d' ' -f1)
+          notes="The one meow binary with every subcommand, built for six platforms. The core Pi package carries it; the core installer downloads it for a git-source install. SHA-256: \`$sha\`"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "meow-full-$full_version.zip" --clobber
+            gh release edit "$tag" --notes "$notes"
+          else
+            gh release create "$tag" "meow-full-$full_version.zip" \
+              --target "$GITHUB_SHA" \
+              --title "meow-full $full_version" \
+              --notes "$notes"
+          fi

@@ -26,6 +26,12 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   exec "$binary" record "$@"
 fi
 
+# The core package carries the meow binary (ADR-2810); where it
+# sits on PATH, this wrapper runs its subcommand through it.
+if command -v meow >/dev/null 2>&1; then
+  exec meow record "$@"
+fi
+
 # At the start of a session, say nothing rather than a failure nobody asked about.
 if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
   exit 0

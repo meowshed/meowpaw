@@ -1,8 +1,9 @@
-# Publishes the Pi packages. The meow binary is built once with every
-# feature by the build workflow's full job. The npm tarball carries all six
-# platforms' binaries and publishes to npm; the GitHub release archives
-# stay as the record of what shipped and as the download source the
-# installer names for a git install (ADR-2790, ADR-2800).
+# Publishes the Pi packages. The binaries come from the last successful
+# Rust Tool run, so a plugin change starts no build (ADR-2810). The core
+# package alone carries the meow binary: its tarball holds every platform,
+# and the other packages' launchers fall back to `meow` on PATH (REQ-4144).
+# The npm tarball publishes to npm; the GitHub release archives stay as the
+# record of what shipped.
 
 name: Pi Release
 
@@ -15,7 +16,6 @@ on:
         default: false
   push:
     tags:
-      - "meow-full-v*"
       - "*-pi-v*"
 
 permissions:
@@ -25,13 +25,7 @@ concurrency:
   group: pi-release
 
 jobs:
-  build:
-    uses: ./.github/workflows/build.yml
-
   release:
-    needs: build
-    # The Claude Code units' tags run the marketplace release, not this one.
-    if: ${{ !(startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref_name, 'meow-full-v') && !contains(github.ref_name, '-pi-v')) }}
     runs-on: ubuntu-26.04
     permissions:
       contents: write
@@ -44,76 +38,44 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             echo "publish=true" >> "$GITHUB_ENV"
-            case "$GITHUB_REF_NAME" in
-            meow-full-v*)
-              echo "target=full" >> "$GITHUB_ENV"
-              echo "full_version=${GITHUB_REF_NAME#meow-full-v}" >> "$GITHUB_ENV"
-              ;;
-            *-pi-v*)
-              echo "target=package" >> "$GITHUB_ENV"
-              echo "unit=${GITHUB_REF_NAME%-pi-v*}" >> "$GITHUB_ENV"
-              ;;
-            esac
-          else
-            echo "target=all" >> "$GITHUB_ENV"
-            echo "full_version=0.1.0" >> "$GITHUB_ENV"
+            echo "unit=${GITHUB_REF_NAME%-pi-v*}" >> "$GITHUB_ENV"
           fi
+      - name: Find the latest Rust Tool run on the trunk
+        run: |
+          run_id=$(gh run list --workflow rust-tool.yml --status success --limit 30 \
+            --json databaseId,headBranch \
+            --jq '[.[] | select(.headBranch == "main")][0].databaseId')
+          if [ -z "$run_id" ]; then
+            echo "::error::no successful Rust Tool run on main; run the Rust Tool workflow first"
+            exit 1
+          fi
+          echo "rust_run_id=$run_id" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: actions/download-artifact@v8
         with:
           pattern: full-*
           path: bin-full
           merge-multiple: false
+          run-id: ${{ env.rust_run_id }}
+          github-token: ${{ github.token }}
 
-      - name: Publish the meow-full release, one binary for every platform
-        if: env.target == 'full' || env.target == 'all'
+      - name: Place the platform binaries in the core package
         run: |
-          tag="meow-full-v$full_version"
-          mkdir -p dist-full
-          # The full artifacts hold their meow under a directory named for
-          # the triple, whatever depth the artifact layout adds above it.
-          find bin-full -type f -name 'meow*' | while read -r f; do
-            triple=$(basename "$(dirname "$f")")
-            case $triple in full-*) triple=${triple#full-} ;; esac
+          for triple in aarch64-apple-darwin x86_64-apple-darwin \
+                        aarch64-unknown-linux-musl x86_64-unknown-linux-musl \
+                        aarch64-pc-windows-msvc x86_64-pc-windows-msvc; do
+            mkdir -p "packages/meow-core/bin/$triple"
             ext=""
             case $triple in *-windows-*) ext=.exe ;; esac
-            cp "$f" "dist-full/meow-$triple$ext"
-          done
-          ls dist-full
-          (cd dist-full && zip -q -X ../meow-full-$MEOW_FULL_VERSION.zip ./*)
-          sha=$(sha256sum "meow-full-$MEOW_FULL_VERSION.zip" | cut -d' ' -f1)
-          notes="The one meow binary with every subcommand, built for six platforms. The Pi packages' installers download this archive. SHA-256: \`$sha\`"
-          if [ "${publish:-false}" != true ]; then
-            echo "meow-full packed as an artifact only"
-            exit 0
-          fi
-          if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" "meow-full-$full_version.zip" --clobber
-            gh release edit "$tag" --notes "$notes"
-          else
-            gh release create "$tag" "meow-full-$full_version.zip" \
-              --target "$GITHUB_SHA" \
-              --title "meow-full $full_version" \
-              --notes "$notes"
-          fi
-
-      - name: Place the platform binaries in each package
-        run: |
-          for pkg in packages/meow-*/; do
-            for triple in aarch64-apple-darwin x86_64-apple-darwin \
-                          aarch64-unknown-linux-musl x86_64-unknown-linux-musl \
-                          aarch64-pc-windows-msvc x86_64-pc-windows-msvc; do
-              mkdir -p "$pkg/bin/$triple"
-              ext=""
-              case $triple in *-windows-*) ext=.exe ;; esac
-              src=$(find bin-full -path "*/$triple/meow$ext" | head -1)
-              if [ -n "$src" ]; then
-                cp "$src" "$pkg/bin/$triple/meow$ext"
-                chmod +x "$pkg/bin/$triple/meow$ext"
-              else
-                echo "::error::no $triple binary among the build artifacts"
-                exit 1
-              fi
-            done
+            src=$(find bin-full -path "*/$triple/meow$ext" | head -1)
+            if [ -n "$src" ]; then
+              cp "$src" "packages/meow-core/bin/$triple/meow$ext"
+              chmod +x "packages/meow-core/bin/$triple/meow$ext"
+            else
+              echo "::error::no $triple binary among the Rust Tool artifacts"
+              exit 1
+            fi
           done
 
       - uses: actions/setup-node@v7
@@ -156,8 +118,8 @@ jobs:
             (cd "$pkg" && zip -q -X "$dist/$zip" -r . \
               -x "bin/*-*/" -x "node_modules/*" -x ".git/*")
 
-            sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
-            bytes=$(wc -c < "dist/$zip")
+            sha=$(sha256sum "$dist/$zip" | cut -d' ' -f1)
+            bytes=$(wc -c < "$dist/$zip")
             if npm view "$name@$version" version >/dev/null 2>&1; then
               state="published"
             else
