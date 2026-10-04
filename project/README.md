@@ -395,6 +395,11 @@ EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
 
 ## Epics and tasks
 
+[EPC-2750](epics/EPC-2750-a-unit-tag-is-cut-from-the-marketplace-release-tree.md)
+realises ADR-2830 in one task, TSK-5215: the unit tags are cut from the
+marketplace release's tree, and a unit's version is one number on every
+agent platform.
+
 [EPC-2740](epics/EPC-2740-a-pi-package-mirrors-each-unit.md) realises
 ADR-2820 in two tasks, TSK-5213 and TSK-5214: the sixteen Pi packages
 mirror the sixteen units one to one, and one unit tag releases both
