@@ -86,7 +86,9 @@ jobs:
       AR: llvm-ar
     steps:
       - uses: actions/checkout@v7
-      - run: rustup target add ${{ matrix.target }}
+      - run: rustup default stable && rustup target add ${{ matrix.target }}
+      - run: sudo apt-get update && sudo apt-get install -y ldid
+        if: runner.os == 'Linux'
       - run: sudo apt-get update && sudo apt-get install -y ldid
         if: runner.os == 'Linux'
       - run: crates/meow/build-units ${{ matrix.target }}
