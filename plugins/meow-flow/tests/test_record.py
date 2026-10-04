@@ -1379,7 +1379,8 @@ class Where(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
         done = repository.run("check", "front-matter")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(f"{elsewhere.resolve()}/tasks/TSK-0001-a-task.md:4: status done", done.stdout)
+        self.assertIn(f"{elsewhere.resolve()}/tasks/TSK-0001-a-task.md:4: stores done, but its work is not complete",
+                      done.stdout)
         self.assertFalse((repository.path / "project").exists())
 
     def test_a_relative_root_leading_outside_is_read_there(self):
