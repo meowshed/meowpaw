@@ -46,13 +46,13 @@ ADR-2780 decides this part.
 
 | Surface | What it is |
 |---|---|
-| `packages/pi-core/` | The kernel Pi package |
-| `packages/pi-method/` | The method Pi package |
-| `packages/pi-practice/` | The practice Pi package |
-| `packages/pi-mise/`, `packages/pi-gotask/`, `packages/pi-markdown/` | The pack Pi packages |
-| `packages/pi-core/extensions/kernel.ts` | The kernel extension |
-| `packages/pi-method/extensions/method.ts` | The method extension |
-| `packages/pi-practice/extensions/practice.ts` | The practice extension |
+| `packages/meow-core/` | The kernel Pi package |
+| `packages/meow-flow/` | The method Pi package |
+| `packages/meow-code/` | The practice Pi package |
+| `packages/meow-mise/`, `packages/meow-gotask/`, `packages/meow-markdown/` | The pack Pi packages |
+| `packages/meow-core/extensions/kernel.ts` | The kernel extension |
+| `packages/meow-flow/extensions/method.ts` | The method extension |
+| `packages/meow-code/extensions/practice.ts` | The practice extension |
 | `plugins/<name>/` | The existing Claude Code plugins, unchanged |
 | `project/research/RES-0340-pi-as-a-platform.md` | The platform research |
 | `project/research/RES-0341-mapping-each-plugin-to-pi.md` | The per-plugin mapping |
@@ -240,7 +240,7 @@ that runs them.
 
 ## The layer packages
 
-### `@meowshed/pi-core`
+### `@meowshed/meow-core`
 
 Kernel extension registers:
 
@@ -253,7 +253,7 @@ Skills: `writing` (from meow-prose).
 
 Binaries: `meow-prose-gate`.
 
-### `@meowshed/pi-method`
+### `@meowshed/meow-flow`
 
 Method extension registers:
 
@@ -270,7 +270,7 @@ step skills (from meow-flow, meow-checks, meow-scm, meow-loop).
 Binaries: `paw`, `meow-git`, `meow-github`, `meow-loop`, `meow-scm`,
 `meow-checks`, `meow-unattended`.
 
-### `@meowshed/pi-practice`
+### `@meowshed/meow-code`
 
 Practice extension registers:
 
@@ -285,9 +285,9 @@ Binaries: `meow-author`, `meow-licence`.
 Each pack is its own package with a thin extension that resolves its binary
 and carries its skill:
 
-- `@meowshed/pi-mise`: skill `tasks`, binary `meow-mise`.
-- `@meowshed/pi-gotask`: skill `tasks`, binary `meow-gotask`.
-- `@meowshed/pi-markdown`: skill `markdown`, binary `meow-markdown`.
+- `@meowshed/meow-mise`: skill `tasks`, binary `meow-mise`.
+- `@meowshed/meow-gotask`: skill `tasks`, binary `meow-gotask`.
+- `@meowshed/meow-markdown`: skill `markdown`, binary `meow-markdown`.
 
 ## What this does not cover
 
