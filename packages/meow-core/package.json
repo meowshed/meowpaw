@@ -1,12 +1,10 @@
 {
   "name": "@meowshed/meow-core",
-  "version": "0.4.0",
-  "description": "The meowpaw kernel: the reply shape, the writing standard and the prose gate. Distributed as a Pi package.",
+  "version": "0.6.1",
+  "description": "Shapes every reply Claude Code makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It replaces your own output style while it is enabled, and keeps up to 4,200 characters in context on every turn. Distributed as a Pi package.",
   "keywords": [
     "pi-package",
-    "meowpaw",
-    "prose",
-    "reply-shape"
+    "meowpaw"
   ],
   "license": "Apache-2.0",
   "author": {
@@ -17,17 +15,6 @@
     "type": "git",
     "url": "https://github.com/meowshed/meowpaw"
   },
-  "pi": {
-    "extensions": [
-      "extensions/kernel.ts"
-    ],
-    "skills": [
-      "skills"
-    ]
-  },
-  "scripts": {
-    "postinstall": "node install-meow.mjs"
-  },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-ai": "*",
@@ -35,7 +22,12 @@
     "@earendil-works/pi-tui": "*",
     "typebox": "*"
   },
-  "publishConfig": {
-    "access": "public"
+  "pi": {
+    "extensions": [
+      "extensions/kernel.ts"
+    ]
+  },
+  "scripts": {
+    "postinstall": "node install-meow.mjs"
   }
 }

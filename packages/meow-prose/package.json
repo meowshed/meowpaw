@@ -1,0 +1,30 @@
+{
+  "name": "@meowshed/meow-prose",
+  "version": "0.5.1",
+  "description": "Holds everything Claude Code writes for you to one writing standard: the answer first, a reason for every rule, one term for one thing, and plain English for a reader who learned it as a second language. It keeps up to 700 characters in context on every turn, and loads a skill of about 5,000 tokens each time you write. Distributed as a Pi package.",
+  "keywords": [
+    "pi-package",
+    "meowpaw"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meowshed/meowpaw"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "skills": [
+      "skills"
+    ]
+  }
+}

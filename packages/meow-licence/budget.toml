@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What the unit keeps in context on every turn: the header skill's
+# description, which routes it. Measured at 281 by the budget check on
+# 2026-09-27; the budget adds about one sentence.
+permanent_characters = 380

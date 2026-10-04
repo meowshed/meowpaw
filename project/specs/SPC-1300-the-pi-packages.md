@@ -23,6 +23,7 @@ states:
     REQ-4136,
     REQ-4138,
     REQ-4144,
+    REQ-4146,
   ]
 ---
 
@@ -303,56 +304,22 @@ by hand, because the checkout ignores the platform directories it fills.
 The GitHub release archives stay as the record of what shipped and as the
 download source the core installer names (RES-0342).
 
-### The layer packages
+### The packages
 
-### `@meowshed/meow-core`
+Each Pi package mirrors one unit (REQ-4146): `@meowshed/<unit>` carries
+that unit's skills, launcher, extension and budget, and its manifest
+states the version the unit's `.claude-plugin/plugin.json` states. A tag
+named `<unit>-v<version>` releases the unit to both registries, and each
+side skips what it already holds. The guards live in the units that own
+them: the prose gate's handlers in `meow-prose-gate`, the git guards in
+`meow-git`, the governance guard in `meow-github`, the loop guard in
+`meow-loop`. The reply-shape injection stays in `meow-core`, and the
+router and the step commands in `meow-flow`.
 
-Kernel extension registers:
-
-- `before_agent_start` handler: injects the reply shape into guidelines.
-- `session_start` handler: resolves binary paths.
-- `user_bash` handler: prose gate check on commit, PR, issue and release
-  commands; two-judge nested model call for idioms.
-
-Skills: `writing` (from meow-prose).
-
-Binaries: `meow-prose-gate`.
-
-### `@meowshed/meow-flow`
-
-Method extension registers:
-
-- `session_start` handler: `paw status --waiting`.
-- `user_bash` handler: git commit guard, git push guard, governance guard.
-- `tool_call` handler: loop guard on Bash, Edit, Write.
-- `meow-router` tool: nested model call with Read, Grep, Glob.
-- Commands: research, requirements, design, spec, epic, implement, review,
-  run, init, onboard.
-
-Skills: method, route, init, onboard, run, verify, commit, loop and the seven
-step skills (from meow-flow, meow-checks, meow-scm, meow-loop).
-
-Binaries: `paw`, `meow-git`, `meow-github`, `meow-loop`, `meow-scm`,
-`meow-checks`, `meow-unattended`.
-
-### `@meowshed/meow-code`
-
-Practice extension registers:
-
-- `session_start` handler: resolves binary paths.
-
-Skills: change, debug (meow-code), write (meow-author), header (meow-licence).
-
-Binaries: `meow-author`, `meow-licence`.
-
-### Pack packages
-
-Each pack is its own package with a thin extension that resolves its binary
-and carries its skill:
-
-- `@meowshed/meow-mise`: skill `tasks`, binary `meow-mise`.
-- `@meowshed/meow-gotask`: skill `tasks`, binary `meow-gotask`.
-- `@meowshed/meow-markdown`: skill `markdown`, binary `meow-markdown`.
+The meow binary still ships with `meow-core` alone (REQ-4144), and every
+other package's launcher falls back to `meow` on PATH. The prose gate's
+fragments sit in its package at `fragments/`, where the binary resolves
+them from its own unit root.
 
 ## Failure paths
 

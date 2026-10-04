@@ -1,14 +1,10 @@
 {
   "name": "@meowshed/meow-code",
-  "version": "0.6.2",
-  "description": "The meowpaw practice layer: how code is changed, checked and debugged; how skills and agents are authored; and how licence headers are applied and checked. Distributed as a Pi package.",
+  "version": "0.2.1",
+  "description": "Holds how Claude Code changes code, writes a check and debugs a defect: the smallest correct change, the most precise edit, checks seen failing, and a defect reproduced before any cause is offered. It keeps up to 600 characters in context on every turn. Distributed as a Pi package.",
   "keywords": [
     "pi-package",
-    "meowpaw",
-    "practice",
-    "authoring",
-    "editing",
-    "licencing"
+    "meowpaw"
   ],
   "license": "Apache-2.0",
   "author": {
@@ -19,14 +15,6 @@
     "type": "git",
     "url": "https://github.com/meowshed/meowpaw"
   },
-  "pi": {
-    "extensions": [
-      "extensions/practice.ts"
-    ],
-    "skills": [
-      "skills"
-    ]
-  },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-ai": "*",
@@ -34,7 +22,9 @@
     "@earendil-works/pi-tui": "*",
     "typebox": "*"
   },
-  "publishConfig": {
-    "access": "public"
+  "pi": {
+    "skills": [
+      "skills"
+    ]
   }
 }

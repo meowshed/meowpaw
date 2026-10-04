@@ -1,0 +1,30 @@
+{
+  "name": "@meowshed/meow-github",
+  "version": "0.14.0",
+  "description": "Reads a GitHub repository's issues, pull requests and comments through gh as one JSON document, projects an approved epic's tasks onto issues and writes nothing else, and asks before a Bash command's gh changes how the repository is governed. It keeps nothing in context on every turn. Distributed as a Pi package.",
+  "keywords": [
+    "pi-package",
+    "meowpaw"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meowshed/meowpaw"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": [
+      "extensions/github.ts"
+    ]
+  }
+}
