@@ -395,6 +395,11 @@ EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
 
 ## Epics and tasks
 
+[EPC-2740](epics/EPC-2740-a-pi-package-mirrors-each-unit.md) realises
+ADR-2820 in two tasks, TSK-5213 and TSK-5214: the sixteen Pi packages
+mirror the sixteen units one to one, and one unit tag releases both
+registries.
+
 [EPC-2730](epics/EPC-2730-the-rust-build-splits-from-the-plugin-releases.md)
 realises ADR-2810 in two tasks, TSK-5211 and TSK-5212: the Rust build
 runs in its own workflow, the releases fetch its artifacts, and the meow
