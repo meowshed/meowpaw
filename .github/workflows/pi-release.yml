@@ -153,7 +153,7 @@ jobs:
         run: |
           touch dist/tags
           while read -r tag; do
-            short=${tag%-v*}
+            short=${tag%-pi-v*}
             if [ -n "$unit" ] && [ "$short" != "$unit" ]; then continue; fi
             version=${tag##*-v}
             zip="${short}-pi-${version}.zip"
