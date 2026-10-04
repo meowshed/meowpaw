@@ -2,6 +2,7 @@
 id: RES-0340
 artifact: research
 status: approved
+revised: 2026-10-04
 ---
 
 # Pi as a platform
@@ -43,32 +44,32 @@ run inside the Pi process with the same operating-system permissions.
 
 Capabilities registered through `ExtensionAPI`:
 
-| Capability | API | Claude Code analogue |
-|---|---|---|
-| Observe or modify lifecycle | `pi.on()` | `hooks/hooks.json` |
-| Add a model-callable tool | `pi.registerTool()` | `skills/<name>/SKILL.md` with `allowed-tools` |
-| Add a `/` command | `pi.registerCommand()` | `commands/<name>.md` / skills |
-| Add a shortcut or CLI flag | `pi.registerShortcut()`, `pi.registerFlag()` | no equivalent |
-| Send messages | `pi.sendUserMessage()`, `pi.sendMessage()` | no equivalent |
-| Persist session data | `pi.appendEntry()` | `${CLAUDE_PLUGIN_DATA}` |
-| Change tools, model, thinking | session control methods | no equivalent |
-| Add a model provider | `pi.registerProvider()` | no equivalent |
-| Add an MCP server | `pi.registerMcpServer()` | `.mcp.json` |
-| Add a virtual model | `pi.registerVirtualModel()` | no equivalent |
-| Terminal rendering | renderer registration, `ctx.ui` | `output-styles/` |
-| Extension communication | `pi.events` | no equivalent |
+| Capability                    | API                                          | Claude Code analogue                          |
+| ----------------------------- | -------------------------------------------- | --------------------------------------------- |
+| Observe or modify lifecycle   | `pi.on()`                                    | `hooks/hooks.json`                            |
+| Add a model-callable tool     | `pi.registerTool()`                          | `skills/<name>/SKILL.md` with `allowed-tools` |
+| Add a `/` command             | `pi.registerCommand()`                       | `commands/<name>.md` / skills                 |
+| Add a shortcut or CLI flag    | `pi.registerShortcut()`, `pi.registerFlag()` | no equivalent                                 |
+| Send messages                 | `pi.sendUserMessage()`, `pi.sendMessage()`   | no equivalent                                 |
+| Persist session data          | `pi.appendEntry()`                           | `${CLAUDE_PLUGIN_DATA}`                       |
+| Change tools, model, thinking | session control methods                      | no equivalent                                 |
+| Add a model provider          | `pi.registerProvider()`                      | no equivalent                                 |
+| Add an MCP server             | `pi.registerMcpServer()`                     | `.mcp.json`                                   |
+| Add a virtual model           | `pi.registerVirtualModel()`                  | no equivalent                                 |
+| Terminal rendering            | renderer registration, `ctx.ui`              | `output-styles/`                              |
+| Extension communication       | `pi.events`                                  | no equivalent                                 |
 
 Events cover resource discovery, sessions, agent and message lifecycle,
 providers, tools and raw input. The events most relevant to meowpaw:
 
-| Pi event | Triggers | Claude Code analogue |
-|---|---|---|
-| `session_start` | Session begins | `SessionStart` hook |
-| `before_agent_start` | Before a model call | `Setup` hook |
-| `tool_call` | Before a tool executes | `PreToolUse` hook |
-| `tool_result` | After a tool completes | `PostToolUse` hook |
-| `user_bash` | Before a Bash command | `PreToolUse` matcher `Bash` |
-| `turn_end` | After a turn | no equivalent |
+| Pi event             | Triggers               | Claude Code analogue        |
+| -------------------- | ---------------------- | --------------------------- |
+| `session_start`      | Session begins         | `SessionStart` hook         |
+| `before_agent_start` | Before a model call    | `Setup` hook                |
+| `tool_call`          | Before a tool executes | `PreToolUse` hook           |
+| `tool_result`        | After a tool completes | `PostToolUse` hook          |
+| `user_bash`          | Before a Bash command  | `PreToolUse` matcher `Bash` |
+| `turn_end`           | After a turn           | no equivalent               |
 
 A `tool_call` handler can mutate input or block execution, which is what
 meowpaw's `PreToolUse` hooks do. A `tool_result` handler can replace a result,
@@ -90,15 +91,15 @@ prompt, and loads full instructions only when invoked.
 This is the same progressive-disclosure pattern Claude Code uses. The
 frontmatter fields overlap:
 
-| Field | Pi | Claude Code |
-|---|---|---|
-| `name` | required | directory name |
-| `description` | required, max 1024 | required |
-| `allowed-tools` | experimental | supported |
-| `disable-model-invocation` | supported | supported |
-| `model`, `effort` | not in spec | supported |
-| `argument-hint`, `arguments` | not in spec | supported |
-| `user-invocable` | not in spec | supported |
+| Field                        | Pi                 | Claude Code    |
+| ---------------------------- | ------------------ | -------------- |
+| `name`                       | required           | directory name |
+| `description`                | required, max 1024 | required       |
+| `allowed-tools`              | experimental       | supported      |
+| `disable-model-invocation`   | supported          | supported      |
+| `model`, `effort`            | not in spec        | supported      |
+| `argument-hint`, `arguments` | not in spec        | supported      |
+| `user-invocable`             | not in spec        | supported      |
 
 Claude Code skills can declare `model`, `effort`, `argument-hint`, `arguments`
 and `user-invocable`. Pi skills cannot. Pi skills are instruction-only; the
@@ -175,14 +176,14 @@ does not support (`model`, `effort`, `arguments`, `argument-hint`,
 Claude Code hooks map to Pi event handlers registered with `pi.on()`. The
 mapping:
 
-| Claude Code hook | Pi event |
-|---|---|
-| `SessionStart` | `session_start` |
-| `Setup` | `before_agent_start` |
-| `PreToolUse` (matcher, `if`) | `tool_call` or `user_bash` |
-| `PostToolUse` | `tool_result` |
-| `UserPromptSubmit` | `before_agent_start` (prompt section) |
-| `PermissionRequest` | no direct equivalent |
+| Claude Code hook             | Pi event                              |
+| ---------------------------- | ------------------------------------- |
+| `SessionStart`               | `session_start`                       |
+| `Setup`                      | `before_agent_start`                  |
+| `PreToolUse` (matcher, `if`) | `tool_call` or `user_bash`            |
+| `PostToolUse`                | `tool_result`                         |
+| `UserPromptSubmit`           | `before_agent_start` (prompt section) |
+| `PermissionRequest`          | no direct equivalent                  |
 
 Claude Code hooks run external commands (`type: "command"`) with exit codes.
 Pi event handlers are async TypeScript functions that return structured results.
@@ -358,12 +359,12 @@ All read 2026-10-04 from Pi release 1.0.2 installed at
 Every page is living documentation that changes under the same address, so each
 finding is something to re-check.
 
-- [extensions.md](docs/extensions.md) — ExtensionAPI, events, tools, commands,
-  state, UI, MCP, rendering, lifecycle, error handling.
-- [skills.md](docs/skills.md) — SKILL.md format, frontmatter, progressive
-  disclosure, loading, validation.
-- [packages.md](docs/packages.md) — Package structure, installation, sources,
+- `docs/extensions.md` — ExtensionAPI, events, tools, commands, state, UI,
+  MCP, rendering, lifecycle, error handling.
+- `docs/skills.md` — SKILL.md format, frontmatter, progressive disclosure,
+  loading, validation.
+- `docs/packages.md` — Package structure, installation, sources,
   dependencies, resource selection.
-- [examples/extensions/](examples/extensions/) — Concrete extension examples
-  covering tools, events, commands, flags, shortcuts, state, rendering,
-  providers, OAuth, remote execution, terminal components.
+- `examples/extensions/` — Concrete extension examples covering tools,
+  events, commands, flags, shortcuts, state, rendering, providers, OAuth,
+  remote execution, terminal components.

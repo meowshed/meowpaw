@@ -1,11 +1,15 @@
 ---
 id: REQ-4126
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# Hook ordering between extensions is coordinated by load order
+# REQ-4126
 
 Where two or more extensions register handlers for the same event (for example,
 both the prose gate and the git guard intercept `user_bash` for `git commit`),

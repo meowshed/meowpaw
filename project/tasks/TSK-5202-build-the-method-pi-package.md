@@ -3,8 +3,22 @@ id: TSK-5202
 artifact: task
 status: done
 revised: 2026-10-04
-realises: ADR-2780
-closes: [REQ-4100, REQ-4102, REQ-4104, REQ-4106, REQ-4110, REQ-4112, REQ-4114, REQ-4118, REQ-4120, REQ-4122, REQ-4126, REQ-4128]
+epic: EPC-2700
+closes:
+  [
+    REQ-4100,
+    REQ-4102,
+    REQ-4104,
+    REQ-4106,
+    REQ-4110,
+    REQ-4112,
+    REQ-4114,
+    REQ-4118,
+    REQ-4120,
+    REQ-4122,
+    REQ-4126,
+    REQ-4128,
+  ]
 issue: 837
 ---
 
@@ -31,3 +45,28 @@ skills, the native binaries and the templates.
    Closed by: comparing check output on the same repository.
 8. `/meow-flow:init` writes a profile and a constitution. Closed by: session
    test on a bare repository.
+
+## What to do
+
+Create `packages/meow-flow/` with the method extension, the twelve skills,
+the seven step files, the templates and the binary wrappers, from the
+spec's method section.
+
+## Depends on
+
+- TSK-5200 (blocking): the authorising records and the spec's method
+  section, which this task implements.
+
+## Evidence
+
+PR #842: the package builds with the method extension, every skill, the
+step files, the templates and the seven binary wrappers; the session tests
+the acceptance criteria named were recorded against in BUG-1400 and
+BUG-1401 as never run outside the monorepo, and TSK-5206 and TSK-5207
+close them for real.
+
+## Left alone
+
+The router's nested call and the guards' hook-JSON protocol, which the
+shipped extension got wrong and TSK-5206 and TSK-5207 hold; the release
+workflow, which TSK-5208 holds.

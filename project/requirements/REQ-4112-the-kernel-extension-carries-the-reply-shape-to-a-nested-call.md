@@ -1,11 +1,15 @@
 ---
 id: REQ-4112
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# The kernel extension carries the reply shape to a nested model call
+# REQ-4112
 
 Where the output style's rule R10 says to include the reply shape in any prompt
 that dispatches a subordinate agent, the kernel extension's tool (or any tool

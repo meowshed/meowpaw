@@ -24,9 +24,9 @@ procedure states where it stops.
    item under `<rules>` and every file the material relies on named in the
    body of its own file.
 4. Where the material adds to what loads on every turn, run
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-author cost`. Before cutting or keeping
+   `meow-author cost`. Before cutting or keeping
    material, run `/skill-doctor` and read how often the material was used.
-5. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-author check` on the directory you
+5. Run `meow-author check` on the directory you
    wrote in, fix each line it names, and stop when it passes.
 </steps>
 
@@ -76,8 +76,8 @@ procedure states where it stops.
   teaches a judgement, because a judgement shown only right is learnt as a
   rule of thumb.
 - B6. Name every supporting file in the body of the material's own file with
-  when to read it, and reach it through `${CLAUDE_SKILL_DIR}` or
-  `${CLAUDE_PLUGIN_ROOT}`, because a file nothing names is never loaded and a
+  when to read it, and reach it through this skill's own directory, because
+  a file nothing names is never loaded and a
   fixed path breaks wherever the material is installed.
 - B7. Say whether a script is run or read, and never summarise in prose a
   script that is run, because a summary drifts from the script it describes.

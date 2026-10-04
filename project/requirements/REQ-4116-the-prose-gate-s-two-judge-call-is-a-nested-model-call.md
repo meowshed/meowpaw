@@ -1,20 +1,26 @@
 ---
 id: REQ-4116
 artifact: requirement
-status: approved
-cites: RES-0340
+topic: pi-packages
+class: functional
+status: withdrawn
+revised: 2026-10-04
+elaborates: RES-0340
+verification: behavioural
 ---
 
-# The prose gate's two-judge call is a nested model call
+# REQ-4116
 
-Where the prose gate's Claude Code hook invokes a model to judge a span of
-text, the Pi extension's `user_bash` handler makes a nested model call with
-`ctx.modelRegistry.streamSimple()`, passing the judge prompt from
-`fragments/judge.md` and the text to judge. The handler runs the judge twice
-and blocks only where both judgements agree, preserving the two-judge
-semantics.
+**Withdrawn by ADR-2790. Replaced by REQ-4106.**
 
-Rationale: The two-judge pattern is load-bearing: it is what distinguishes a
-programmatic block (fixed list, exit code) from a model judgement (idioms,
-acronyms, bold-open). A nested model call preserves the pattern while giving
-the extension access to structured output and session usage.
+It read: the prose gate's Pi `user_bash` handler makes the two-judge model
+call itself, with `ctx.modelRegistry.streamSimple()`, blocking only where
+both judgements agree.
+
+Reading the gate's program (`crates/meow/src/prose.rs`, RES-0330) showed
+the binary holds the judge itself: it spawns the judge twice with a bounded
+deadline, keeps only what both judgements agree on, and exits 2 with the
+agreed findings, exactly as it does for the Claude Code hook. An extension
+re-implementing the judge would duplicate a program that already holds its
+own verdict. REQ-4106 already states what holds: the handler shells out to
+the binary and interprets its exit code.

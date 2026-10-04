@@ -1,11 +1,15 @@
 ---
 id: REQ-4104
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# A Claude Code hook maps to a Pi event handler
+# REQ-4104
 
 Each `hooks.json` entry maps to a TypeScript event handler registered with
 `pi.on()`. The mapping is: `SessionStart` to `session_start`, `PreToolUse`

@@ -24,7 +24,7 @@ Claude Code, because a run the model started is one nobody chose to pay for
 3. Ask for the ceiling, the number of iterations, and the budget in US
    dollars, and choose neither yourself.
 4. Print the command, filled in, and stop:
-   `${CLAUDE_PLUGIN_ROOT}/bin/meow-loop start --step <step> --inputs <ids> --prompt <file> --until verbs=<verbs> --iterations <n> --budget-usd <amount> --permission-mode dontAsk`,
+   `meow-loop start --step <step> --inputs <ids> --prompt <file> --until verbs=<verbs> --iterations <n> --budget-usd <amount> --permission-mode dontAsk`,
    with any `--allowed-tools` rules the person names. For `research`, leave
    out `--inputs`.
 </steps>

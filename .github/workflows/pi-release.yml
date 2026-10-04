@@ -1,7 +1,7 @@
-# Builds and publishes the Pi packages. The meow binary is built once by the
-# existing build workflow and reused here. Each Pi package is packed with the
-# shell wrappers, the TypeScript extensions, the skills and the meow binary
-# for all six targets, then published as a GitHub release.
+# Publishes the Pi packages. The meow binary is built once with every
+# feature by the build workflow's full job and published as the meow-full
+# release; each Pi package's installer downloads it at install time, so no
+# package archive carries a binary (ADR-2790).
 
 name: Pi Release
 
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: meow-pi-release
+  group: pi-release
 
 jobs:
   build:
@@ -28,92 +28,84 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       contents: write
-      registry-packages: write
     env:
       GH_TOKEN: ${{ github.token }}
-      BASE: https://github.com/${{ github.repository }}/releases/download
+      MEOW_FULL_VERSION: 0.1.0
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
       - uses: actions/download-artifact@v8
         with:
-          pattern: bin-*
-          path: bin-artifacts
-          merge-multiple: true
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "22"
-      - name: Pack and publish each Pi package
+          pattern: bin-full-*
+          path: bin-full
+          merge-multiple: false
+
+      - name: Publish the meow-full release, one binary for every platform
+        run: |
+          tag="meow-full-v$MEOW_FULL_VERSION"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "meow-full $MEOW_FULL_VERSION is already released"
+            exit 0
+          fi
+          mkdir -p dist-full
+          for d in bin-full/*/; do
+            triple=$(basename "$d")
+            # download-artifact keeps one directory per target under it
+            find "$d" -name 'meow*' -exec cp {} dist-full/ \; 2>/dev/null || true
+          done
+          # Each artifact directory holds dist/<triple>/meow; walk that shape.
+          rm -rf dist-full && mkdir dist-full
+          find bin-full -type f -name 'meow*' | while read -r f; do
+            triple=$(dirname "$f" | sed 's|.*/dist/||; s|/[^/]*$||')
+            cp "$f" "dist-full/meow-$triple$(case $f in *.exe) echo .exe;; esac)"
+          done
+          (cd dist-full && zip -q -X ../meow-full-$MEOW_FULL_VERSION.zip ./*)
+          sha=$(sha256sum "meow-full-$MEOW_FULL_VERSION.zip" | cut -d' ' -f1)
+          gh release create "$tag" "meow-full-$MEOW_FULL_VERSION.zip" \
+            --target "$GITHUB_SHA" \
+            --title "meow-full $MEOW_FULL_VERSION" \
+            --notes "The one meow binary with every subcommand, built for six platforms. The Pi packages' installers download this archive. SHA-256: \`$sha\`"
+
+      - name: Pack each Pi package
         run: |
           mkdir dist
           printf '| Package | Version | Archive | Bytes | SHA-256 |\n' > dist/notes.md
           printf '| ------- | ------- | ------- | ----- | ------- |\n' >> dist/notes.md
-
           for pkg in packages/meow-*; do
             name=$(jq -r .name "$pkg/package.json")
             version=$(jq -r .version "$pkg/package.json")
-            tag="$(basename $pkg)-pi-v$version"
-            zip="$(basename $pkg)-pi-$version.zip"
-            short=$(basename $pkg)
+            short=$(basename "$pkg")
+            tag="$short-pi-v$version"
+            zip="$short-pi-$version.zip"
 
-            # Copy the meow binary for each platform into the package's bin/ dir.
-            # The build artifacts are in bin-artifacts/<triple>/meow
-            for triple in aarch64-apple-darwin x86_64-apple-darwin aarch64-unknown-linux-musl x86_64-unknown-linux-musl aarch64-pc-windows-msvc x86_64-pc-windows-msvc; do
-              mkdir -p "$pkg/bin/$triple"
-              ext=""
-              [[ "$triple" == *"-windows-"* ]] && ext=".exe"
-              if [ -f "bin-artifacts/$triple/meow$ext" ]; then
-                cp "bin-artifacts/$triple/meow$ext" "$pkg/bin/$triple/meow$ext"
-                chmod +x "$pkg/bin/$triple/meow$ext"
-              fi
-            done
-
-            # Build the TypeScript extension (jiti handles TS at runtime,
-            # but compiling catches errors early).
-            if [ -f "$pkg/tsconfig.json" ]; then
-              (cd "$pkg" && npx tsc --noEmit)
-            fi
-
-            # Pack the archive.
             chmod +x "$pkg"/bin/* 2>/dev/null || true
             (cd "$pkg" && zip -q -X "../dist/$zip" -r . \
-              -x "*.ts" -x "tsconfig.json" -x "node_modules/*" -x ".git/*")
+              -x "bin/*-*/" -x "node_modules/*" -x ".git/*")
 
             sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
             bytes=$(wc -c < "dist/$zip")
             state="new"
-
-            # Check if this version was already released.
             if gh release view "$tag" >/dev/null 2>&1; then
               state="released"
             else
               echo "$tag" >> dist/tags
             fi
-
             printf '| %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$bytes" "$sha" >> dist/notes.md
-
-            # Clean up the binaries so they don't get committed.
-            for triple in aarch64-apple-darwin x86_64-apple-darwin aarch64-unknown-linux-musl x86_64-unknown-linux-musl aarch64-pc-windows-msvc x86_64-pc-windows-msvc; do
-              rm -rf "$pkg/bin/$triple"
-            done
           done
-
           cat dist/notes.md >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: meow-pi-release
+          name: pi-release
           path: dist/
 
-      - name: Publish
+      - name: Publish the package releases
         if: inputs.publish
         run: |
           touch dist/tags
           while read -r tag; do
-            short=${tag%-v*}
+            short=${tag%-pi-v*}
             version=${tag##*-v}
-            zip="${short}-${version}.zip"
+            zip="${short}-pi-${version}.zip"
             gh release create "$tag" "dist/$zip" --target "$GITHUB_SHA" \
-              --title "$short $version" --notes "$(head -2 dist/notes.md; grep "^| .*${short}.* |" dist/notes.md)" --latest=false
+              --title "$short-pi $version" --notes "$(grep "^| @meowshed/$short |" dist/notes.md)" --latest=false
           done < dist/tags

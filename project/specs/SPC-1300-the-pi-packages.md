@@ -6,20 +6,22 @@ revised: 2026-10-04
 states:
   [
     REQ-4100,
-    REQ-4102,
     REQ-4104,
     REQ-4106,
     REQ-4108,
     REQ-4110,
     REQ-4112,
     REQ-4114,
-    REQ-4116,
-    REQ-4118,
     REQ-4120,
     REQ-4122,
     REQ-4124,
     REQ-4126,
     REQ-4128,
+    REQ-4130,
+    REQ-4132,
+    REQ-4134,
+    REQ-4136,
+    REQ-4138,
   ]
 ---
 
@@ -40,24 +42,31 @@ decision. A Pi package that exploits dynamic tool registration, virtual models
 or structured output has no specification yet, because no decision asks for
 one.
 
-ADR-2780 decides this part.
+ADR-2780 decides this part, and ADR-2790 decides what a package does at
+install time and how it finds its own files, added after four defects
+(BUG-1400 to BUG-1403) showed the packages working only beside a checkout of
+this repository.
 
 ## Boundary
 
-| Surface | What it is |
-|---|---|
-| `packages/meow-core/` | The kernel Pi package |
-| `packages/meow-flow/` | The method Pi package |
-| `packages/meow-code/` | The practice Pi package |
-| `packages/meow-mise/`, `packages/meow-gotask/`, `packages/meow-markdown/` | The pack Pi packages |
-| `packages/meow-core/extensions/kernel.ts` | The kernel extension |
-| `packages/meow-flow/extensions/method.ts` | The method extension |
-| `packages/meow-code/extensions/practice.ts` | The practice extension |
-| `plugins/<name>/` | The existing Claude Code plugins, unchanged |
-| `project/research/RES-0340-pi-as-a-platform.md` | The platform research |
-| `project/research/RES-0341-mapping-each-plugin-to-pi.md` | The per-plugin mapping |
+| Surface                                                                   | What it is                                                |
+| ------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `packages/meow-core/`                                                     | The kernel Pi package                                     |
+| `packages/meow-flow/`                                                     | The method Pi package                                     |
+| `packages/meow-code/`                                                     | The practice Pi package                                   |
+| `packages/meow-mise/`, `packages/meow-gotask/`, `packages/meow-markdown/` | The pack Pi packages                                      |
+| `packages/meow-core/extensions/kernel.ts`                                 | The kernel extension                                      |
+| `packages/meow-flow/extensions/method.ts`                                 | The method extension                                      |
+| `packages/meow-code/extensions/practice.ts`                               | The practice extension                                    |
+| `packages/<name>/prompts/`                                                | The prompt files each extension loads, bundled (REQ-4130) |
+| `packages/<name>/install-meow.mjs`                                        | The installer that downloads the meow binary (REQ-4136)   |
+| `plugins/<name>/`                                                         | The existing Claude Code plugins, unchanged               |
+| `project/research/RES-0340-pi-as-a-platform.md`                           | The platform research                                     |
+| `project/research/RES-0341-mapping-each-plugin-to-pi.md`                  | The per-plugin mapping                                    |
 
-## The dual-platform contract
+## Behaviour
+
+### The dual-platform contract
 
 Every new plugin is developed for both Claude Code and Pi. A plugin that
 introduces a skill carries the same `SKILL.md` on both platforms. A plugin
@@ -73,7 +82,7 @@ replace them. The `plugins/` directory remains the source of truth for skills,
 agents and output styles. The `packages/` directory adds the Pi-specific
 extensions and package plumbing.
 
-## The package structure
+### The package structure
 
 Each Pi package has this layout:
 
@@ -111,36 +120,45 @@ packages/<name>/
 No host package appears in `dependencies`. The `"*"` range accepts whatever
 Pi supplies at runtime (REQ-4114).
 
-## The mapping
+### The mapping
 
 ### Skills
 
-Each `plugins/<name>/skills/<skill>/SKILL.md` is the same file the Pi package
-carries in `skills/<skill>/SKILL.md` (REQ-4102). Pi discovers it by the same
-progressive-disclosure mechanism: the description appears in the system prompt,
-and the full instructions load on invocation.
+Each `plugins/<name>/skills/<skill>/SKILL.md` is carried in the Pi package
+as `skills/<skill>/SKILL.md`, adapted in one phrasing alone: a binary is
+named by its plain command and a supporting file by its path relative to
+the skill's own directory, never through `${CLAUDE_SKILL_DIR}` or
+`${CLAUDE_PLUGIN_ROOT}`, which Pi never sets (REQ-4132). The
+package's extension puts its `bin/` directory on the session's PATH at
+load, so the plain command resolves the wrapper, which resolves the
+platform meow binary. Claude Code puts a plugin's `bin/` on PATH natively,
+so the same phrasing serves both platforms once the plugins adopt it.
+
+Pi discovers each skill by the same progressive-disclosure mechanism: the
+description appears in the system prompt, and the full instructions load on
+invocation.
 
 Where a skill uses Claude Code–specific frontmatter (`model`, `effort`,
 `arguments`, `argument-hint`, `user-invocable`), the Pi extension provides the
 equivalent at runtime:
 
-| Claude Code field | Pi equivalent |
-|---|---|
-| `model`, `effort` | Session control before invocation |
+| Claude Code field            | Pi equivalent                                  |
+| ---------------------------- | ---------------------------------------------- |
+| `model`, `effort`            | Session control before invocation              |
 | `arguments`, `argument-hint` | A `pi.registerCommand()` that parses arguments |
-| `user-invocable: false` | The command is not registered |
+| `user-invocable: false`      | The command is not registered                  |
 
 ### Hooks
 
 Each `hooks.json` entry maps to an event handler registered with `pi.on()`
 (REQ-4104):
 
-| Claude Code event | Pi event | Handler returns |
-|---|---|---|
-| `SessionStart` | `session_start` | nothing (side effect only) |
-| `PreToolUse` on Bash | `user_bash` | `{ block: true, reason }` or `undefined` |
-| `PreToolUse` on tools | `tool_call` | `{ block: true, reason }` or `undefined` |
-| `PostToolUse` | `tool_result` | modified result or `undefined` |
+| Claude Code event     | Pi event        | Handler returns                          |
+| --------------------- | --------------- | ---------------------------------------- |
+| `SessionStart`        | `session_start` | nothing (side effect only)               |
+| `PreToolUse` on Bash  | `user_bash`     | `{ block: true, reason }` or `undefined` |
+| `PreToolUse` on tools | `tool_call`     | `{ block: true, reason }` or `undefined` |
+| `PostToolUse`         | `tool_result`   | modified result or `undefined`           |
 
 The handler shells out to the same native binary the Claude Code hook runs
 (REQ-4106). It invokes the binary with `child_process.execFile`, interprets
@@ -191,39 +209,62 @@ The skeptic agent follows the same pattern.
 
 ### The two-judge prose gate
 
-The prose gate's `user_bash` handler runs the judge twice with
-`ctx.modelRegistry.streamSimple()` (REQ-4116). It passes the judge prompt
-from `plugins/meow-prose-gate/fragments/judge.md` and the text to judge. It
-blocks only where both judgements agree on a span the text holds, preserving
-the two-judge semantics.
+The gate binary holds the judge itself, as it does for the Claude Code
+hook: it spawns the judge twice with a bounded deadline, keeps only what
+both judgements agree on, and exits 2 with the agreed findings (REQ-4106).
+The extension never re-implements the judge; it pipes the hook JSON to the
+binary and relays the verdict, so an extension cannot weaken what the
+program holds.
 
 ### Commands
 
 The method extension registers a command for each step and driver
 (REQ-4122):
 
-| Command | Loads skill |
-|---|---|
-| `/meow-flow:research` | `skills/research/SKILL.md` |
+| Command                   | Loads skill                    |
+| ------------------------- | ------------------------------ |
+| `/meow-flow:research`     | `skills/research/SKILL.md`     |
 | `/meow-flow:requirements` | `skills/requirements/SKILL.md` |
-| `/meow-flow:design` | `skills/design/SKILL.md` |
-| `/meow-flow:spec` | `skills/spec/SKILL.md` |
-| `/meow-flow:epic` | `skills/epic/SKILL.md` |
-| `/meow-flow:implement` | `skills/implement/SKILL.md` |
-| `/meow-flow:review` | `skills/review/SKILL.md` |
-| `/meow-flow:run` | `skills/method/SKILL.md` |
-| `/meow-flow:init` | `skills/init/SKILL.md` |
-| `/meow-flow:onboard` | `skills/onboard/SKILL.md` |
+| `/meow-flow:design`       | `skills/design/SKILL.md`       |
+| `/meow-flow:spec`         | `skills/spec/SKILL.md`         |
+| `/meow-flow:epic`         | `skills/epic/SKILL.md`         |
+| `/meow-flow:implement`    | `skills/implement/SKILL.md`    |
+| `/meow-flow:review`       | `skills/review/SKILL.md`       |
+| `/meow-flow:run`          | `skills/method/SKILL.md`       |
+| `/meow-flow:init`         | `skills/init/SKILL.md`         |
+| `/meow-flow:onboard`      | `skills/onboard/SKILL.md`      |
 
 ### Binaries and templates
 
-The native binaries ship in the package's `bin/` directory as
-platform-specific executables (REQ-4118). The extension resolves each binary's
-path relative to the package root at `session_start`.
+The shell wrappers ship in the package's `bin/` directory as committed
+source; the platform meow binary is not committed. Each package's
+`install-meow.mjs` runs after install, downloads the meow-full release
+archive — the one meow binary built once with every unit's feature, because
+a unit's own release carries only its unit's feature and a package bundles
+several — extracts the binary for the machine it runs on into
+`bin/<cpu>-<system>/meow`, removes the archive and exits 0 on any failure
+(REQ-4136). A failed download breaks no install, because the
+wrappers report each check as unrun, which is the designed behaviour for a
+missing binary. The repository ignores `packages/*/bin/*-*/`, so no
+download is ever committed (REQ-4138).
+
+Every prompt, fragment and supporting file an extension or skill loads is
+bundled inside the package that loads it, and no resolved path walks above
+the package root (REQ-4130). Where a file is missing, the extension
+reports it and carries on with the behaviour it can hold.
 
 The record templates ship in the package alongside `paw` (REQ-4128). The
 command `paw template <kind>` reads them from the same relative path it uses
 in the Claude Code plugin.
+
+### The reply shape
+
+The `@meowshed/meow-core` extension alone injects the reply shape into the
+system prompt guidelines on `before_agent_start` (REQ-4108, REQ-4134). No
+other package's extension injects it. A package that makes a nested model
+call — the method's router, the prose gate's judge — carries its own
+bundled copy of the reply shape into that call's messages, because a nested
+call runs its own prompt and never sees the session's.
 
 ### Budgets
 
@@ -238,7 +279,7 @@ Eval suites remain in the `plugins/` directory and are not carried in the Pi
 packages (REQ-4124). A future extension may register a `paw eval` command
 that runs them.
 
-## The layer packages
+### The layer packages
 
 ### `@meowshed/meow-core`
 
@@ -289,14 +330,28 @@ and carries its skill:
 - `@meowshed/meow-gotask`: skill `tasks`, binary `meow-gotask`.
 - `@meowshed/meow-markdown`: skill `markdown`, binary `meow-markdown`.
 
-## What this does not cover
+## Failure paths
 
-- Whether to port any native binary to TypeScript or WASM.
-- The eval runner design.
-- Whether the Pi packages are published to npm or distributed as a git
-  repository.
-- How per-user configuration is handled on Pi.
-- Exploiting Pi's dynamic tool registration, virtual models or structured
-  output.
-- Language packs beyond Rust, TypeScript, Python, Go, C#, Lua, Neovim,
-  Godot, Starlark and Scheme.
+Where the meow binary is missing, the shell wrappers report each check as
+unrun and let the command through, because blocking every command for a
+missing binary would punish the person for something the package cannot
+check (ADR-1600). Where a download fails, the installer exits 0 and the
+wrappers answer the same way.
+
+Where a bundled prompt file is missing, the extension reports it through a
+session notification and carries on with the behaviour it can hold, and
+never reads a neighbouring package's or a checkout's files (REQ-4130).
+
+Where the governance guard asks and no person can answer — print mode, JSON
+mode, a session with no UI — the command is denied, because a governance
+change nobody approved is the outcome the guard exists to prevent.
+
+Where the router tool is invoked with no model available, it answers that
+the router is unavailable rather than raising, because a tool that fails
+loudly on a machine with no credentials blocks the method it serves.
+
+What this specification does not cover: porting a native binary to
+TypeScript or WASM; the eval runner design; npm publication versus a git
+source; per-user configuration on Pi; Pi's dynamic tool registration,
+virtual models or structured output; language packs beyond the ten the
+marketplace ships.

@@ -1,11 +1,15 @@
 ---
 id: REQ-4108
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# The output style is injected by a before_agent_start handler
+# REQ-4108
 
 The reply shape that `meow-core` provides as `output-styles/meow.md` is
 injected into the system prompt by an extension's `before_agent_start` event

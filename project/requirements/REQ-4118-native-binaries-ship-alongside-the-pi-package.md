@@ -1,21 +1,25 @@
 ---
 id: REQ-4118
 artifact: requirement
-status: approved
-cites: RES-0340
+topic: pi-packages
+class: functional
+status: withdrawn
+revised: 2026-10-04
+elaborates: RES-0340
+verification: behavioural
 ---
 
-# Native binaries ship alongside the Pi package
+# REQ-4118
 
-The compiled native binaries (`paw`, `meow-git`, `meow-prose-gate`,
-`meow-loop`, `meow-github`, `meow-scm`, `meow-checks`, `meow-licence`,
-`meow-author`, `meow-markdown`, `meow-mise`, `meow-gotask`,
-`meow-unattended`) ship as platform-specific executables in the Pi package or
-as a separate npm package that the Pi package depends on. The extension
-resolves each binary's path relative to the package root.
+**Withdrawn by ADR-2790. Replaced by REQ-4136.**
 
-Rationale: REQ-4106 requires shelling out to the existing binaries. They must
-be findable at runtime. Pi packages can carry arbitrary files; platform-specific
-executables go in `bin/` with the platform triple, as they do in the Claude
-Code plugin. A separate package avoids duplicating the binaries when several
-meowpaw Pi packages share them.
+It read: the native binaries ship as platform-specific executables in the
+Pi package or a dependency package, and the extension resolves each
+binary's path relative to the package root.
+
+No binary ships at all, and the reason is SPC-1080's own build: each unit's
+release binary is compiled with only its own feature, so a package that
+bundles several units cannot be served by any one unit's archive. REQ-4136
+states what holds in its place: one meow binary built with every feature,
+published once as the meow-full release and downloaded by each package's
+installer at install time.

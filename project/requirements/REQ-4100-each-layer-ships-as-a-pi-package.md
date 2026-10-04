@@ -1,11 +1,15 @@
 ---
 id: REQ-4100
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# Each meowpaw layer ships as a Pi package
+# REQ-4100
 
 The kernel, method, practice and pack layers each ship as a Pi package
 containing the extensions, skills and supporting files for that layer. A Pi
