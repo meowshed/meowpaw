@@ -1,7 +1,7 @@
 ---
 id: EPC-2740
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-04
 realises: ADR-2820
 ---
@@ -37,9 +37,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-5213 mirror the sixteen units as Pi packages
+- [x] T-001 TSK-5213 mirror the sixteen units as Pi packages
       closes: REQ-4146
-- [ ] T-002 TSK-5214 release both registries from one unit tag
+- [x] T-002 TSK-5214 release both registries from one unit tag
       closes: REQ-4146
 
 ## Coverage
