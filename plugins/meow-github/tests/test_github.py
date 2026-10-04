@@ -499,6 +499,14 @@ issue:
         self.assertNotIn("leaves the task unmarked", done_task.stdout)
         self.assertFalse(self.writes(root, calls))
 
+    def test_the_shipped_surfaces_name_a_defect_projection_target(self):
+        """TSK-5180 criterion 4, REQ-4000: launcher and reference expose BUG targets."""
+        launcher = (UNIT / "bin" / "meow-github").read_text(encoding="utf-8")
+        page = (UNIT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("project <epic|decision|defect>", launcher)
+        self.assertIn("meow-github project BUG-1210", page)
+        self.assertRegex(page, r"`<task> of\s+<defect>\.`")
+
 
 # ADR-1810: the stand-in `gh` the request layer's checks run against. It prints a status line and a header block
 # before the body under `--include`, as RES-0290 saw gh 2.101.0 do, and prints a refused call's block too. Its `Date`
