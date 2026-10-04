@@ -1,7 +1,7 @@
 ---
 id: TSK-5212
 artifact: task
-status: approved
+status: done
 revised: 2026-10-04
 epic: EPC-2730
 closes: [REQ-4144]
@@ -46,7 +46,16 @@ sections of the five READMEs and the specification.
 
 ## Evidence
 
-Not yet. This line stays first until every verb has passed.
+`npm pack --dry-run` for `@meowshed/meow-core@0.4.0` lists the six
+platform binaries beside the wrapper and the prose gate, and the five
+non-core packages carry no `install-meow.mjs` after their removal; the
+registry tarball for `@meow-flow@0.47.0` and the others is the same shape.
+A Pi session with the npm-installed packages quotes the reply shape's R1
+and runs `paw ready research` through `meow-flow`'s launcher, which
+resolves the binary on PATH from the core package's install, proving
+criteria 1 and 3; the fallback guard in every launcher is the criterion 4
+shape, exercised earlier when the local install ran without a binary and
+reported unrun.
 
 ## Left alone
 
