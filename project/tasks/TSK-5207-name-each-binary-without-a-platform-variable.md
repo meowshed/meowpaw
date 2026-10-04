@@ -5,7 +5,7 @@ status: done
 revised: 2026-10-04
 epic: EPC-2710
 closes: [REQ-4110, REQ-4112, REQ-4132]
-issue:
+issue: 849
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
