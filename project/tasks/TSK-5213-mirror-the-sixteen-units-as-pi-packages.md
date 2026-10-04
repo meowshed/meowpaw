@@ -1,7 +1,7 @@
 ---
 id: TSK-5213
 artifact: task
-status: approved
+status: done
 revised: 2026-10-04
 epic: EPC-2740
 closes: [REQ-4146]
@@ -50,7 +50,15 @@ Nothing.
 
 ## Evidence
 
-Not yet. This line stays first until every verb has passed.
+`ls packages/` names sixteen directories, one per unit, and no bundle
+remains; every package manifest's version equals its unit's
+`.claude-plugin/plugin.json` version, checked unit by unit after the four
+bumps. The prose gate's extension sits in `packages/meow-prose-gate` and
+blocked a commit carrying `circle back` from its own package through the
+core binary on PATH; `meow-git`'s extension refused a commit on the trunk
+a fixture repository declares; `npm view @meowshed/meow-core` reports
+0.6.1 while the other fifteen carry no binary — the core tarball's
+contents list the six platform binaries alone.
 
 ## Left alone
 
