@@ -1,11 +1,11 @@
 ---
 id: TSK-5210
 artifact: task
-status: approved
+status: done
 revised: 2026-10-04
 epic: EPC-2720
 closes: [REQ-4142]
-issue:
+issue: 852
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
@@ -49,7 +49,15 @@ Nothing.
 
 ## Evidence
 
-Not yet. This line stays first until every verb has passed.
+Run 37203557611: the six build jobs named `linux`, `darwin` and `windows`
+all succeeded, and no job ran on a macOS or Windows runner; the full
+artifacts fed `meow-full-v0.1.0.zip`, which `file` reads as Mach-O arm64,
+Mach-O x86_64, PE32+ Windows arm64 and x64, and ELF musl arm64 and x64.
+`codesign -dv` on the Linux-built `meow-aarch64-apple-darwin` shows its
+ad-hoc signature, and the binary runs on this machine printing all thirteen
+subcommands. The `bin-<target>` artifacts keep the `plugins/*/bin/<target>`
+layout the marketplace release packs, so its archives carry six platforms
+when it next runs.
 
 ## Left alone
 

@@ -47,7 +47,7 @@ A task is marked in the commit that advances it, never in a later pass.
 
 - [ ] T-001 TSK-5209 publish the packages to npm and verify the install
       closes: REQ-4140
-- [ ] T-002 TSK-5210 build every target under Linux
+- [x] T-002 TSK-5210 build every target under Linux
       closes: REQ-4142
 
 ## Coverage
