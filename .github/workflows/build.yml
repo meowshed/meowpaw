@@ -104,7 +104,7 @@ jobs:
       - run: crates/meow/build-units ${{ matrix.target }}
         shell: bash
         env:
-          RUSTFLAGS: -C link-arg=-undefined dynamic_lookup
+          RUSTFLAGS: "-C link-arg=-undefined -C link-arg=dynamic_lookup"
       # A binary built under Linux carries no signature, and macOS kills an
       # unsigned arm64 binary on sight; ldid writes the ad-hoc signature the
       # macOS linker writes on a Mac.
@@ -118,7 +118,7 @@ jobs:
           ldid -S "dist/${{ matrix.target }}/meow"
         shell: bash
         env:
-          RUSTFLAGS: -C link-arg=-undefined dynamic_lookup
+          RUSTFLAGS: "-C link-arg=-undefined -C link-arg=dynamic_lookup"
       - uses: actions/upload-artifact@v7
         with:
           name: bin-${{ matrix.target }}
