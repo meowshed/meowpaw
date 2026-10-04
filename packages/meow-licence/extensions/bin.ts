@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * meowpaw practice extension for Pi.
+ * Pi extension for this unit.
  *
- * Puts the package's bin wrappers on PATH so the skills can call
- * meow-author and meow-licence by name, the way Claude Code does natively
- * for a plugin's bin/. The practice layer's behaviour is carried by its
- * skills; the kernel carries the reply shape.
+ * Puts the package's launcher on PATH so the skills call it by name, the
+ * way Claude Code does natively for a plugin's bin/. The meow binary comes
+ * from the core package's install (REQ-4144).
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";

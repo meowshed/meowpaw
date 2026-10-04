@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What this unit may load on every turn, in characters (REQ-1056). The pack is
+# a program on the Bash tool's PATH, which loads nothing into context.
+permanent_characters = 0

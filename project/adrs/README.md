@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-124 decisions in all: 39 approved, 77 done, 8 superseded.
+125 decisions in all: 38 approved, 79 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -140,8 +140,9 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2770](ADR-2770-done-is-a-checked-post-approval-status.md)                                                                                            | Done is a checked post-approval status                                                                                                     | done       |
 | [ADR-2780](ADR-2780-the-harness-ships-as-pi-packages-with-typescript-extensions.md)                                                                       | The harness ships as Pi packages with TypeScript extensions                                                                                | done       |
 | [ADR-2790](ADR-2790-a-package-installs-standalone-and-exposes-its-bin-on-path.md)                                                                         | A package installs standalone and exposes its bin on PATH                                                                                  | done       |
-| [ADR-2800](ADR-2800-the-packages-publish-to-npm-and-every-target-builds-under-linux.md)                                                                   | The packages publish to npm, and every target builds under Linux                                                                           | approved   |
-| [ADR-2810](ADR-2810-the-rust-tool-builds-in-its-own-workflow.md)                                                                                          | The Rust tool builds in its own workflow, and the meow binary ships with the core package alone                                            | approved   |
+| [ADR-2800](ADR-2800-the-packages-publish-to-npm-and-every-target-builds-under-linux.md)                                                                   | The packages publish to npm, and every target builds under Linux                                                                           | done       |
+| [ADR-2810](ADR-2810-the-rust-tool-builds-in-its-own-workflow.md)                                                                                          | The Rust tool builds in its own workflow, and the meow binary ships with the core package alone                                            | done       |
+| [ADR-2820](ADR-2820-a-pi-package-mirrors-each-unit-one-to-one.md)                                                                                         | A Pi package mirrors each unit one to one, and one tag releases both                                                                       | approved   |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1140 by ADR-2770; ADR-1170 by ADR-2770; ADR-1210 by ADR-2770; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310.
 <!-- /meow-flow index -->

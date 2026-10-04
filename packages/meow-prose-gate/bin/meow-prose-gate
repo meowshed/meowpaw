@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Runs this unit's binary of the native tool for this machine (SPC-1080).
-# Where there is none, it reports the check as unrun and lets the publish
-# through, because blocking every publish for a missing binary would teach
-# people to uninstall the gate (ADR-1600).
+# Where there is none, it falls back to the meow binary the core package
+# carries (ADR-2810), and where neither exists, it reports the check as
+# unrun and lets the publish through, because blocking every publish for a
+# missing binary would teach people to uninstall the gate (ADR-1600).
 
 case $0 in
 */*) here=${0%/*} ;;
@@ -27,6 +28,12 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   exec "$binary" prose "$@"
 fi
 
+# The meow binary ships with the core package (ADR-2810); where it sits
+# on PATH, this wrapper runs the gate through it.
+if command -v meow >/dev/null 2>&1; then
+  exec meow prose "$@"
+fi
+
 cat >/dev/null 2>&1
-echo "meow-prose-gate $1: unrun (no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64); nothing was checked"
+echo "meow-prose-gate $1: unrun (no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install @meowshed/meow-core, which carries one for macOS, Linux and Windows on arm64 and x86_64); nothing was checked"
 exit 0
