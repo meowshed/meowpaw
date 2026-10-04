@@ -45,7 +45,7 @@ jobs:
       # The Pi packages bundle several units in one package, so they need one
       # binary carrying every subcommand (ADR-2790). Built once, reused in
       # all harnesses.
-      - run: cargo build --quiet --release --manifest-path crates/meow/Cargo.toml --all-features --target ${{ matrix.target }}
+      - run: cargo build --quiet --release --manifest-path crates/meow/Cargo.toml --all-features --target ${{ matrix.target }} --target-dir target
         shell: bash
       - run: |
           mkdir -p dist/${{ matrix.target }}
