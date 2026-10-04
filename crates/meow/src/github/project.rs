@@ -229,7 +229,11 @@ fn done_in(epic: &Record) -> Vec<String> {
     epic.text
         .lines()
         .filter_map(|l| l.strip_prefix("- [x] "))
-        .filter_map(|l| l.split_whitespace().nth(1).map(str::to_string))
+        .filter_map(|l| {
+            l.split_whitespace()
+                .find(|word| word.starts_with("TSK-"))
+                .map(str::to_string)
+        })
         .collect()
 }
 
