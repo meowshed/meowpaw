@@ -2,7 +2,7 @@
 id: SPC-1100
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-04
 states:
   [
     REQ-0139,
@@ -22,8 +22,9 @@ states:
     REQ-0550,
     REQ-0575,
     REQ-0582,
+    REQ-0583,
     REQ-0584,
-    REQ-0586,
+    REQ-0585,
     REQ-0591,
     REQ-0636,
     REQ-0638,
@@ -220,7 +221,9 @@ naming none counted, and states the share resting on evaluation or judgement
 
 A requirement stores only a decided status, from the one vocabulary
 `lib/layout.toml` declares, and the program derives the observed one (REQ-0582,
-REQ-0584, REQ-0586, REQ-0591). `show` prints each task that names a
+REQ-0584, REQ-0591). A decision, epic or task additionally stores the checked
+post-approval claim `done`, which must agree with its derived completion
+(REQ-0583, REQ-0585). `show` prints each task that names a
 requirement with its derived state and its epic, or "open, named by no task",
 the state derived as SPC-1090 states. Under ADR-2300 a requirement is closed when a closed
 task or epic names it and no open one does, open while an open defect names it
