@@ -25,6 +25,9 @@ supersedes: []
 
 ## Decision
 
+**Amended by ADR-2770.** The frozen check permits the status-only transition
+from `approved` to checked `done`; the record remains frozen after it.
+
 An approval stays what it is today: a record's stored `status` moving from
 `draft` to `approved`, in a commit of its own, so it is durable, it survives
 every session, and git ties it to the version it approved. What this decision

@@ -31,6 +31,9 @@ supersedes: []
 
 ## Decision
 
+**Amended by ADR-2770.** A decision, epic or task stores `done` as a checked
+post-approval claim; its observed closure remains derived from the tree.
+
 `meow record check` reports each place the record contradicts itself, and the
 program derives each requirement's state from the tree instead of reading it
 from a field:

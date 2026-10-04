@@ -2,7 +2,7 @@
 id: SPC-1070
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-04
 states:
   [
     REQ-0137,
@@ -46,12 +46,15 @@ states:
     REQ-0577,
     REQ-0578,
     REQ-0580,
+    REQ-0583,
+    REQ-0585,
     REQ-0587,
     REQ-0588,
     REQ-0589,
     REQ-0590,
     REQ-0592,
     REQ-0593,
+    REQ-0594,
     REQ-0622,
     REQ-0626,
     REQ-0630,
@@ -189,11 +192,13 @@ One file holds one artifact named for its identifier, in the directory of its
 kind, with its kind, status and revision in its front matter (REQ-0512,
 REQ-0514, REQ-0546). Six kinds carry numbers, research, requirement, decision,
 epic, task and defect, and the vision is named (REQ-0538, REQ-0540). The
-stored statuses come from one vocabulary, `draft`, `approved`, `withdrawn`,
-`rejected`, `superseded` and `live`, each kind declares which it stores, and
-the observed statuses, `implemented`, `verified`, `in-progress` and `done`,
-are never stored (REQ-0587, REQ-0588, REQ-0589, REQ-0592, REQ-0593,
-REQ-2668).
+stored statuses come from one vocabulary, `draft`, `approved`, `done`,
+`withdrawn`, `rejected`, `superseded` and `live`, and each kind declares which
+it stores. Only decisions, epics and tasks declare `done`; the front matter
+check reports one of those records when its value disagrees in either
+direction with completion derived from task marks and Evidence (REQ-0583,
+REQ-0585). Observed statuses such as `open`, `in-progress` and `closed` are
+never stored (REQ-0587, REQ-0588, REQ-0589, REQ-0592, REQ-0593, REQ-2668).
 
 An insight, `INS-NNNN` in `insights/`, holds one generalisable lesson apart
 from decisions, requirements and history (REQ-0568). Its title states the
@@ -318,6 +323,7 @@ one its kind allows:
 | defect          | its first `## Tasks` and `## Closed by` sections and its `issue` (ADR-1440)                                                                                                |
 | every record    | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652); a record still carrying one is compared whole |
 | every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic                 |
+| decision, epic or task | only its status from `approved` to `done`; it remains frozen and any other change is checked independently (REQ-0594)                                                |
 | living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                                             |
 
 An insight is a record like any other, so its whole file is frozen once
