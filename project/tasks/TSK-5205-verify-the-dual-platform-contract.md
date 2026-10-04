@@ -5,6 +5,7 @@ status: draft
 revised: 2026-10-04
 realises: ADR-2780
 closes: [REQ-4102]
+issue: 840
 ---
 
 # Verify the dual-platform contract

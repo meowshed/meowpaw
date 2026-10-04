@@ -5,6 +5,7 @@ status: draft
 revised: 2026-10-04
 realises: ADR-2780
 closes: [REQ-4100, REQ-4102, REQ-4106, REQ-4114, REQ-4118, REQ-4120]
+issue: 839
 ---
 
 # Build the pack Pi packages
