@@ -1,11 +1,15 @@
 ---
 id: REQ-4138
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340, BUG-1403
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340, BUG-1403
 ---
 
-# A downloaded platform binary is never committed
+# REQ-4138
 
 The platform binaries an install script downloads into a package's `bin/`
 directory are ignored by the repository's source control, so no commit

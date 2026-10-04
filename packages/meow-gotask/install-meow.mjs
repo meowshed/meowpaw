@@ -89,9 +89,11 @@ async function main() {
       rmSync(inner, { recursive: true, force: true });
     } else {
       execFileSync("unzip", ["-jo", tmp, `meow-${triple}`, "-d", binDir], { stdio: "pipe" });
-      if (existsSync(join(binDir, "meow"))) {
-        await chmod(join(binDir, "meow"), 0o755);
-      }
+      // The archive names each binary with its target triple; the wrappers
+      // look for a plain meow.
+      const { renameSync } = await import("node:fs");
+      renameSync(join(binDir, `meow-${triple}`), dest);
+      await chmod(dest, 0o755);
     }
   } finally {
     try { unlinkSync(tmp); } catch { /* the download may have failed */ }

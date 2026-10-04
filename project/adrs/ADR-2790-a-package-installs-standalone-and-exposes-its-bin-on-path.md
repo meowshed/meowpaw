@@ -1,9 +1,19 @@
 ---
 id: ADR-2790
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-04
-addresses: [REQ-4130, REQ-4132, REQ-4134, REQ-4136, REQ-4138]
+addresses:
+  [
+    REQ-4108,
+    REQ-4110,
+    REQ-4112,
+    REQ-4130,
+    REQ-4132,
+    REQ-4134,
+    REQ-4136,
+    REQ-4138,
+  ]
 supersedes: []
 ---
 
@@ -32,12 +42,17 @@ checkout of the meowpaw repository beside it. Five rules hold that:
    router — carries its own bundled copy into that call's messages, because
    a nested call runs its own prompt.
 
-4. **The install script names its own unit's release.** Each package's
-   `install-meow.mjs` downloads its own unit's release archive, extracts
-   the platform binary for the machine it runs on (unzip on POSIX,
-   PowerShell on Windows), removes the archive, and exits 0 on any
-   failure, leaving the wrappers to report unrun (REQ-4136). The script is
-   ESM throughout.
+4. **The install script names the one meow-full release.** Each package's
+   `install-meow.mjs` downloads the meow-full release archive — the one meow
+   binary built once with every unit's feature for six platforms — extracts
+   the binary for the machine it runs on (unzip on POSIX, PowerShell on
+   Windows), names it `meow` where the wrappers look for it, removes the
+   archive, and exits 0 on any failure, leaving the wrappers to report unrun
+   (REQ-4136). The script is ESM throughout. A unit's own release archive
+   cannot serve a package, because each unit's binary is compiled with only
+   its own feature (SPC-1080) and a package bundles several units: one
+   all-features binary, built once and reused by every package and both
+   harnesses, is the one download that serves them all.
 
 5. **Downloaded binaries are never committed.** The repository ignores
    `packages/*/bin/*-*/`, so the platform directory an install fills is
@@ -66,13 +81,13 @@ before marking anything done.
 
 ## Alternatives
 
-| Option | Better at | Why it lost |
-|---|---|---|
-| Bundle prompts and expose bin on PATH, kernel-only injection | Works wherever Pi puts the package | Chosen |
-| Keep reading the monorepo's plugins and require a checkout | Zero duplication of prompt files | The package then installs nowhere but beside a checkout, which is no distribution at all |
-| Env-var indirection per package (`${MEOW_BIN_DIR}/paw`) | Explicit, no PATH mutation | A second variable to document and set, where PATH already is the platform's own mechanism and Claude Code resolves the same phrasing |
+| Option                                                          | Better at                           | Why it lost                                                                                                                                 |
+| --------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bundle prompts and expose bin on PATH, kernel-only injection    | Works wherever Pi puts the package  | Chosen                                                                                                                                      |
+| Keep reading the monorepo's plugins and require a checkout      | Zero duplication of prompt files    | The package then installs nowhere but beside a checkout, which is no distribution at all                                                    |
+| Env-var indirection per package (`${MEOW_BIN_DIR}/paw`)         | Explicit, no PATH mutation          | A second variable to document and set, where PATH already is the platform's own mechanism and Claude Code resolves the same phrasing        |
 | One shared `@meowshed/meow-core` dependency for the reply shape | No bundled copies in other packages | A nested call cannot read another package's files reliably, and version skew between packages would break the very text a nested call needs |
-| Ship the meow binary in each npm tarball | No postinstall, no download | Six platforms × six packages of 1.3 MB each, and a release workflow change for no gain the download doesn't already give |
+| Ship the meow binary in each npm tarball                        | No postinstall, no download         | Six platforms × six packages of 1.3 MB each, and a release workflow change for no gain the download doesn't already give                    |
 
 ## What it costs
 

@@ -1,11 +1,15 @@
 ---
 id: REQ-4132
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340, BUG-1401
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340, BUG-1401
 ---
 
-# A skill names its binary without a platform variable
+# REQ-4132
 
 A skill in a Pi package names its unit's binary by its plain command name,
 `paw check` and not `${CLAUDE_SKILL_DIR}/../../bin/paw check`, and names a

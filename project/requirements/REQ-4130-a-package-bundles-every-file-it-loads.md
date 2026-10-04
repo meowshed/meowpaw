@@ -1,11 +1,15 @@
 ---
 id: REQ-4130
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340, BUG-1400
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340, BUG-1400
 ---
 
-# A Pi package bundles every file it loads
+# REQ-4130
 
 A Pi package carries inside its own directory every prompt, fragment,
 template and supporting file its extension or skills load at runtime. No

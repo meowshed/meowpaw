@@ -1,11 +1,15 @@
 ---
 id: REQ-4134
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340, BUG-1402
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340, BUG-1402
 ---
 
-# Only the kernel injects the reply shape into the system prompt
+# REQ-4134
 
 The `@meowshed/meow-core` extension alone pushes the reply shape into the
 system prompt guidelines. No other package's extension injects it. A package
