@@ -1,7 +1,7 @@
 ---
 id: RES-0340
 artifact: research
-status: draft
+status: approved
 ---
 
 # Pi as a platform

@@ -1,7 +1,7 @@
 ---
 id: RES-0341
 artifact: research
-status: draft
+status: approved
 elaborates: RES-0340
 ---
 

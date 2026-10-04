@@ -1,7 +1,7 @@
 ---
 id: REQ-4126
 artifact: requirement
-status: draft
+status: approved
 cites: RES-0340
 ---
 
