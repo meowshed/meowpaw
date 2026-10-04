@@ -17,10 +17,14 @@ blocks a publish whose text breaks a rule any reader can point to.
 pi install npm:@meowshed/meow-core
 ```
 
-Or from the repository:
+The npm tarball carries the meow binary for every platform, so the install
+makes no request and needs no checkout. Installing from this repository's
+checkout is the development install: it loads the package in place, runs no
+lifecycle script, and the person installing it runs `node install-meow.mjs`
+by hand to fetch the binary for their machine.
 
 ```bash
-pi install git:github.com/meowshed/meowpaw --subdir packages/meow-core
+pi install packages/meow-core   # development install, from the checkout
 ```
 
 ## What it does
