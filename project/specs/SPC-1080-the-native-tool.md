@@ -151,6 +151,8 @@ states:
     REQ-2358,
     REQ-2360,
     REQ-4142,
+    REQ-4146,
+    REQ-4148,
   ]
 ---
 
@@ -431,7 +433,13 @@ runs the release workflow by hand, and
 it calls that same build. It packs
 each unit whose version has no release yet as a zip of the unit's tracked files
 and its binaries, and publishes it as a release tagged `<unit>-v<version>`, so
-each unit carries its own version (REQ-0074). A unit whose version already has
+each unit carries its own version (REQ-0074). A person also releases by
+pushing the unit's tag from the trunk, which releases that unit alone and,
+for a unit the Pi registry mirrors, publishes its npm package from the
+tag (REQ-4146). A unit tag is cut from the marketplace release's tree at
+most once per release, and a unit's version is one number on every agent
+platform: the npm registry's versions are immutable and never moved
+(REQ-4148). A unit whose version already has
 a release keeps its archive. A release named `marketplace` holds one
 `marketplace.json` whose entries point at every unit's archive by `url` and
 `sha256`. A person adds it by the address the next section gives. Claude Code
