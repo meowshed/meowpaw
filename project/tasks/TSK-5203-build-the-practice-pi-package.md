@@ -1,7 +1,7 @@
 ---
 id: TSK-5203
 artifact: task
-status: draft
+status: done
 revised: 2026-10-04
 realises: ADR-2780
 closes: [REQ-4100, REQ-4102, REQ-4106, REQ-4114, REQ-4118, REQ-4120]

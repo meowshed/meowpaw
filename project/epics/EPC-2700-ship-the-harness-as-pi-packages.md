@@ -17,9 +17,9 @@ closed.
 
 Taken from ADR-2780's list of how it will be known realised:
 
-1. `pi install npm:@meowshed/pi-core` loads the kernel package, and a Pi
+1. `pi install npm:@meowshed/meow-core` loads the kernel package, and a Pi
    session shows the reply shape in the system prompt.
-2. `pi install npm:@meowshed/pi-method` loads the method package, and
+2. `pi install npm:@meowshed/meow-flow` loads the method package, and
    `/meow-flow:run` drives the seven-step chain.
 3. A `git commit` with a prose defect is blocked by the prose gate extension.
 4. A `git commit` on the declared trunk is blocked by the git guard
