@@ -1,7 +1,7 @@
 ---
 id: TSK-3100
 artifact: task
-status: approved
+status: done
 revised: 2026-09-28
 epic: EPC-1800
 closes: [REQ-2352]

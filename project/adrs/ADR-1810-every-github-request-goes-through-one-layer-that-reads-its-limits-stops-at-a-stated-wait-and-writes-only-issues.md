@@ -1,7 +1,7 @@
 ---
 id: ADR-1810
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-29
 addresses:
   [REQ-2566, REQ-2568, REQ-2572, REQ-2574, REQ-2576, REQ-2578, REQ-2582]

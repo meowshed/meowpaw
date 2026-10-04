@@ -1,7 +1,7 @@
 ---
 id: ADR-1710
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-29
 addresses: [REQ-0816, REQ-2978]
 postpones: []

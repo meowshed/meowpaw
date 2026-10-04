@@ -1,7 +1,7 @@
 ---
 id: TSK-NNNN
 artifact: task
-status: draft # draft, then approved; done is derived from the authorising record's mark, or from Evidence for a task naming realises
+status: draft # draft, approved, then done when the authorising mark or Evidence derives completion
 revised: YYYY-MM-DD
 epic: EPC-NNNN # or bug: BUG-NNNN where a defect carries this task, or realises: ADR-NNNN where one task realises the decision; name one
 closes: [REQ-NNNN] # the requirements it closes, any number; a defect's task restores one and may close none

@@ -1,7 +1,7 @@
 ---
 id: EPC-NNNN
 artifact: epic
-status: draft # draft, then approved; in-progress and closed are derived
+status: draft # draft, approved, then done when every task is done or dropped
 revised: YYYY-MM-DD
 realises: ADR-NNNN # exactly one authorising record: a decision or a defect
 ---

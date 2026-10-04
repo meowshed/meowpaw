@@ -1,7 +1,7 @@
 ---
 id: TSK-2440
 artifact: task
-status: approved
+status: done
 revised: 2026-09-27
 epic: EPC-1550
 closes: [REQ-1316, REQ-2354, REQ-2468, REQ-2474, REQ-2492, REQ-2504]

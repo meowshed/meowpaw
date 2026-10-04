@@ -496,7 +496,18 @@ fn check_frozen(rest: &[String]) -> u8 {
             }
             pair
         };
+        let done_transition = bare(doc.value("status")) == "done"
+            && matches!(kind.name.as_str(), "decision" | "epic" | "task");
+        let (before, after) = if done_transition {
+            (
+                frozen_text(&before, &[], &["status"]),
+                frozen_text(&after, &[], &["status"]),
+            )
+        } else {
+            (before, after)
+        };
         let allowed = match kind.name.as_str() {
+            "decision" if done_transition => before == after,
             "epic" => epic_frozen_part(&before) == epic_frozen_part(&after),
             "task" => frozen_part(&before) == frozen_part(&after),
             "defect" => defect_frozen_part(&before) == defect_frozen_part(&after),
@@ -1102,6 +1113,29 @@ fn front_matter(record: &Record) -> Vec<Finding> {
                     format!("revised is in the future: {revised}"),
                 ));
             }
+        }
+    }
+    let known = known(record);
+    for doc in record.docs.iter().filter(|d| !d.is_index) {
+        let kind = kind_of(record, doc);
+        if !matches!(kind, "decision" | "epic" | "task")
+            || !matches!(bare(doc.value("status")), "approved" | "done")
+        {
+            continue;
+        }
+        let derived = derived_done(record, &known, doc);
+        let stored = bare(doc.value("status")) == "done";
+        if stored != derived {
+            let message = if stored {
+                "stores done, but its work is not complete"
+            } else {
+                "is complete, but stores approved instead of done"
+            };
+            out.push(Finding::at(
+                doc,
+                doc.field("status").map(|f| f.line),
+                message.into(),
+            ));
         }
     }
     out
@@ -2440,7 +2474,7 @@ const TEMPLATES: [&str; 12] = [
 ];
 
 fn approved(doc: &Doc) -> bool {
-    bare(doc.value("status")) == "approved"
+    matches!(bare(doc.value("status")), "approved" | "done")
 }
 
 fn kind_of<'a>(record: &'a Record, doc: &Doc) -> &'a str {
@@ -2479,7 +2513,7 @@ fn authority_of(task: &Doc) -> &str {
 /// is written (REQ-3630).
 fn mark_of(known: &BTreeMap<String, &Doc>, task: &Doc) -> char {
     let id = bare(task.id());
-    if is_direct(task) {
+    if is_direct(task) || authority_of(task).is_empty() {
         // A withdrawn, rejected or superseded task is dropped, since there is
         // no epic to mark it `[~]`.
         return if matches!(
@@ -2497,6 +2531,32 @@ fn mark_of(known: &BTreeMap<String, &Doc>, task: &Doc) -> char {
         .get(authority_of(task))
         .and_then(|e| marks(e).into_iter().find(|(t, _)| t == id).map(|(_, m)| m))
         .unwrap_or(' ')
+}
+
+/// Whether the record's existing marks and Evidence derive completed work.
+fn derived_done(record: &Record, known: &BTreeMap<String, &Doc>, doc: &Doc) -> bool {
+    match kind_of(record, doc) {
+        "task" => mark_of(known, doc) == 'x',
+        "epic" => {
+            let tasks = marks(doc);
+            !tasks.is_empty() && tasks.iter().all(|(_, mark)| finished(*mark))
+        }
+        "decision" => {
+            let id = bare(doc.id());
+            let mut tasks: Vec<(String, char)> = of_kind(record, "task")
+                .into_iter()
+                .filter(|task| is_direct(task) && bare(task.value("realises")) == id)
+                .map(|task| (bare(task.id()).to_string(), mark_of(known, task)))
+                .collect();
+            for epic in of_kind(record, "epic") {
+                if bare(epic.value("realises")) == id {
+                    tasks.extend(marks(epic));
+                }
+            }
+            !tasks.is_empty() && tasks.iter().all(|(_, mark)| finished(*mark))
+        }
+        _ => false,
+    }
 }
 
 /// Whether a task realises a decision directly, naming no epic and no defect
@@ -3376,9 +3436,9 @@ fn off_trunk<'a>(repository: &Path, trunk: &'a Trunk, task: &Doc) -> Option<&'a 
                 git(&["show", &format!("{reference}:{path}")])
                     .and_then(|text| parse_front_matter(&text.replace("\r\n", "\n")))
                     .is_some_and(|fields| {
-                        fields
-                            .iter()
-                            .any(|f| f.key == "status" && bare(&f.value) == "approved")
+                        fields.iter().any(|f| {
+                            f.key == "status" && matches!(bare(&f.value), "approved" | "done")
+                        })
                     })
             })
     };

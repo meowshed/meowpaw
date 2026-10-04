@@ -1,7 +1,7 @@
 ---
 id: ADR-1590
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-27
 addresses: [REQ-2480, REQ-2486, REQ-2487, REQ-2508, REQ-2510]
 postpones: [REQ-2488]

@@ -1,7 +1,7 @@
 ---
 id: TSK-2578
 artifact: task
-status: approved
+status: done
 revised: 2026-09-29
 bug: BUG-1268
 closes: []

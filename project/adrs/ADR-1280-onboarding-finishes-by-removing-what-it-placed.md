@@ -1,7 +1,7 @@
 ---
 id: ADR-1280
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-26
 addresses:
   [REQ-3114, REQ-3116, REQ-3118, REQ-3120, REQ-3122, REQ-3124, REQ-3126]

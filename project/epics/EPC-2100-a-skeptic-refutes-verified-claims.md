@@ -1,7 +1,7 @@
 ---
 id: EPC-2100
 artifact: epic
-status: approved
+status: done
 revised: 2026-09-28
 realises: ADR-2200
 ---

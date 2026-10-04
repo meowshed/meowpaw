@@ -1,7 +1,7 @@
 ---
 id: TSK-1280
 artifact: task
-status: approved
+status: done
 revised: 2026-09-24
 epic: EPC-1040
 closes:

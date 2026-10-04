@@ -1,7 +1,7 @@
 ---
 id: TSK-3880
 artifact: task
-status: approved
+status: done
 revised: 2026-09-30
 realises: ADR-2310
 closes: [REQ-3656, REQ-3658, REQ-3660, REQ-3662, REQ-3664]

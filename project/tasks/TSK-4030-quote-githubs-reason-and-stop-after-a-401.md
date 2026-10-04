@@ -1,7 +1,7 @@
 ---
 id: TSK-4030
 artifact: task
-status: approved
+status: done
 revised: 2026-09-30
 realises: ADR-2330
 closes: [REQ-3324, REQ-3326]

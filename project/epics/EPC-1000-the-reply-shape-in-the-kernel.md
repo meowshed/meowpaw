@@ -1,7 +1,7 @@
 ---
 id: EPC-1000
 artifact: epic
-status: approved
+status: done
 revised: 2026-09-21
 realises: ADR-1000
 ---

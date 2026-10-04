@@ -1,7 +1,7 @@
 ---
 id: TSK-2570
 artifact: task
-status: approved
+status: done
 revised: 2026-09-28
 bug: BUG-1260
 closes: []

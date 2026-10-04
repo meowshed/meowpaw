@@ -1,7 +1,7 @@
 ---
 id: TSK-1430
 artifact: task
-status: approved
+status: done
 revised: 2026-09-26
 epic: EPC-1100
 closes: [REQ-0526, REQ-0528]

@@ -1,7 +1,7 @@
 ---
 id: ADR-1390
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-27
 addresses: [REQ-3004, REQ-3168, REQ-3190]
 supersedes: []

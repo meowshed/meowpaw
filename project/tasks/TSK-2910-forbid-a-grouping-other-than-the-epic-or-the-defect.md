@@ -1,7 +1,7 @@
 ---
 id: TSK-2910
 artifact: task
-status: approved
+status: done
 revised: 2026-09-29
 epic: EPC-1710
 closes: [REQ-3320]

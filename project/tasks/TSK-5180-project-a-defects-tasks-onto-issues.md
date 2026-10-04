@@ -1,7 +1,7 @@
 ---
 id: TSK-5180
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2760
 closes: [REQ-4000]

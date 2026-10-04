@@ -1,7 +1,7 @@
 ---
 id: TSK-2390
 artifact: task
-status: approved
+status: done
 revised: 2026-09-27
 bug: BUG-1220
 closes: [REQ-1292]

@@ -1,7 +1,7 @@
 ---
 id: TSK-1120
 artifact: task
-status: approved
+status: done
 revised: 2026-09-22
 epic: EPC-1010
 closes: [REQ-3184, REQ-0999, REQ-1012, REQ-1013, REQ-1014, REQ-1024, REQ-1026]
