@@ -1,11 +1,11 @@
 ---
 reader: someone installing or running the meowpaw kernel on Pi
-answers: what pi-core provides, what it adds to a session and how to install it
+answers: what meow-core provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/pi-core@0.1.0]
+describes: [@meowshed/meow-core@0.1.0]
 ---
 
-# @meowshed/pi-core
+# @meowshed/meow-core
 
 The meowpaw kernel for Pi: the reply shape, the writing standard and the prose
 gate. It shapes every reply, holds all prose to one writing standard, and
@@ -14,13 +14,13 @@ blocks a publish whose text breaks a rule any reader can point to.
 ## Install it
 
 ```bash
-pi install npm:@meowshed/pi-core
+pi install npm:@meowshed/meow-core
 ```
 
 Or from the repository:
 
 ```bash
-pi install git:github.com/meowshed/meowpaw --subdir packages/pi-core
+pi install git:github.com/meowshed/meowpaw --subdir packages/meow-core
 ```
 
 ## What it does
