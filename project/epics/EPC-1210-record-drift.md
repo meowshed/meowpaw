@@ -1,7 +1,7 @@
 ---
 id: EPC-1210
 artifact: epic
-status: approved
+status: done
 revised: 2026-09-26
 realises: ADR-1210
 ---

@@ -37,14 +37,15 @@ approval.
 One vocabulary, shared by every kind that has these statuses, so one act is
 named by one word wherever it's recorded:
 
-| Decided, and stored | Means                                                               |
-| ------------------- | ------------------------------------------------------------------- |
-| `draft`             | Being written. Editable                                             |
-| `approved`          | Someone agreed. The record freezes                                  |
-| `withdrawn`         | Retired, naming the decision that withdrew it                       |
-| `rejected`          | Considered and not taken                                            |
-| `superseded`        | Replaced by a named later record                                    |
-| `live`              | A living document. The value never changes, and that's what it says |
+| Decided, and stored | Means                                                                |
+| ------------------- | -------------------------------------------------------------------- |
+| `draft`             | Being written. Editable                                              |
+| `approved`          | Someone agreed. The record freezes                                   |
+| `done`              | The approved decision, epic or task claims its derived work complete |
+| `withdrawn`         | Retired, naming the decision that withdrew it                        |
+| `rejected`          | Considered and not taken                                             |
+| `superseded`        | Replaced by a named later record                                     |
+| `live`              | A living document. The value never changes, and that's what it says  |
 
 | Observed, and derived | Means                                          |
 | --------------------- | ---------------------------------------------- |
@@ -53,8 +54,10 @@ named by one word wherever it's recorded:
 | `open`                | No task closes it yet, or a defect reopened it |
 
 The harness computes an observed status from the tree and never writes one into
-a file. A decision record is `approved` when someone accepted it and
-`closed` when its tasks are done, and only the first of those is stored.
+a file. A decision record is `approved` when someone accepted it and `closed`
+when its tasks are done. Decisions, epics and tasks then store `done` as a
+post-approval claim, and the gate rejects it unless the derived closure agrees,
+or rejects a derived-complete record that still stores `approved`.
 
 | Path                                      | Holds                                                                                                              |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |

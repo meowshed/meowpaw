@@ -516,7 +516,7 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
         );
         return FOUND;
     };
-    if authoriser.field("status") != "approved" {
+    if !matches!(authoriser.field("status").as_str(), "approved" | "done") {
         println!(
             "meow-github project: {target_id} is {}, and its tasks are projected only once it is approved",
             authoriser.field("status")

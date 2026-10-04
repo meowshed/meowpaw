@@ -1,7 +1,7 @@
 ---
 id: ADR-1900
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-28
 addresses: [REQ-0083, REQ-2352, REQ-2434, REQ-2438, REQ-2452, REQ-2454]
 postpones: [REQ-2424, REQ-2484]

@@ -423,6 +423,14 @@ class Project(unittest.TestCase):
         self.assertEqual(done.returncode, 1, done.stdout)
         self.assertIn("ADR-0002 is draft", done.stdout)
 
+    def test_a_done_decision_projects_like_an_approved_one(self):
+        """TSK-5190 criterion 2, REQ-0595: done remains a post-approval projection input."""
+        root = self.repository()
+        self.direct(root, adr_status="done")
+        done = self.run_on(root, "ADR-0002")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("issue: 1", self.task(root, "TSK-0003-direct.md"))
+
     def test_a_task_under_an_epic_is_not_projected_under_its_decision(self):
         """REQ-3630: a task naming an epic belongs to the epic, even where it also names the decision."""
         root = self.repository()

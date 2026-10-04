@@ -118,9 +118,21 @@ class Checks(unittest.TestCase):
 
     def test_front_matter_reports_a_status_outside_the_vocabulary(self):
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
         self.found(repository.run("check"), "front-matter",
-                   "project/tasks/TSK-0001-a-task.md:4: status done is not one a task stores")
+                   "project/bugs/BUG-0001-a-defect.md:4: status done is not one a defect stores")
+
+    def test_done_status_and_derived_completion_must_agree(self):
+        """TSK-5190 criterion 1, REQ-0583/REQ-0585: both disagreement directions are findings."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        false_claim = repository.run("check", "front-matter")
+        self.assertIn("stores done, but its work is not complete", false_claim.stdout)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: done", "status: approved")
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
+                        "## Tasks\n\n- [x] T-001 TSK-0001 the task")
+        missing_claim = repository.run("check", "front-matter")
+        self.assertIn("is complete, but stores approved instead of done", missing_claim.stdout)
 
     def test_two_findings_are_counted_in_the_plural(self):
         repository = self.repo()
@@ -1030,6 +1042,14 @@ class Frozen(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
 
+    def test_done_is_a_status_only_frozen_transition(self):
+        """TSK-5190 criterion 2, REQ-0594: approved to done passes, but substantive edits still fail."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        self.assertEqual(self.frozen(repository).returncode, 0)
+        repository.edit("tasks/TSK-0001-a-task.md", "## What to do\n\nText.", "## What to do\n\nChanged.")
+        self.assertEqual(self.frozen(repository).returncode, 1)
+
 
 class Waiting(unittest.TestCase):
     """ADR-1170: a session opens with what waits for approval, and says nothing otherwise."""
@@ -1359,7 +1379,8 @@ class Where(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
         done = repository.run("check", "front-matter")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(f"{elsewhere.resolve()}/tasks/TSK-0001-a-task.md:4: status done", done.stdout)
+        self.assertIn(f"{elsewhere.resolve()}/tasks/TSK-0001-a-task.md:4: stores done, but its work is not complete",
+                      done.stdout)
         self.assertFalse((repository.path / "project").exists())
 
     def test_a_relative_root_leading_outside_is_read_there(self):
@@ -2371,6 +2392,14 @@ class SevenSteps(unittest.TestCase):
         self.assertIn("next: implement TSK-0001 (ADR-0001, 0 of 1 task done)", repository.run("status").stdout)
         self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
 
+    def test_ready_accepts_done_as_post_approval(self):
+        """TSK-5190 criterion 2, REQ-0595: done task and decision remain ready inputs."""
+        repository = self.repo()
+        self.direct(repository, evidence="In #1.")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+
     def test_a_draft_task_may_realise_a_decision(self):
         """REQ-3630: `realises` counts as the one authority a draft names."""
         repository = self.repo()
@@ -2421,12 +2450,13 @@ class SevenSteps(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
         self.assertIn("realises BUG-0001, where a task realises only a decision", repository.run("check", "rules").stdout)
 
-    def test_a_task_naming_no_authority_closes_nothing_from_its_evidence(self):
-        """REQ-3630: only a task naming `realises` is done by its Evidence; one naming nothing stays open."""
+    def test_a_task_naming_no_authority_closes_from_its_evidence(self):
+        """TSK-5190 criterion 3, REQ-0596: a grandfathered unowned task closes from Evidence."""
         repository = self.repo()
         self.second_direct(repository, evidence="In #1.")
         repository.edit("tasks/TSK-0002-direct.md", "realises: ADR-0001\n", "")
-        self.assertIn("TSK-0002 open in \n", repository.run("show", "REQ-0001").stdout)
+        repository.edit("tasks/TSK-0002-direct.md", "status: approved", "status: done")
+        self.assertIn("TSK-0002 done in \n", repository.run("show", "REQ-0001").stdout)
 
     def test_a_direct_task_waits_on_its_dependency(self):
         """REQ-1358, REQ-3630: a direct task's blocking dependency is done once that task's Evidence is written."""

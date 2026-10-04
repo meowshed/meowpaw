@@ -1,7 +1,7 @@
 ---
 id: TSK-4380
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2470
 closes: [REQ-2784, REQ-2786, REQ-2788, REQ-2790, REQ-2792]

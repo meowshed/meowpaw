@@ -1,7 +1,7 @@
 ---
 id: TSK-3840
 artifact: task
-status: approved
+status: done
 revised: 2026-09-29
 epic: EPC-2200
 closes: [REQ-3632]

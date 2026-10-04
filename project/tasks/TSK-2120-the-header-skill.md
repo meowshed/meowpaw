@@ -1,7 +1,7 @@
 ---
 id: TSK-2120
 artifact: task
-status: approved
+status: done
 revised: 2026-09-27
 epic: EPC-1380
 closes: [REQ-1008, REQ-1016, REQ-1018, REQ-1020, REQ-3066, REQ-3068]

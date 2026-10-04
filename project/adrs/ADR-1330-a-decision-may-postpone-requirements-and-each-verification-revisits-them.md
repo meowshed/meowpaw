@@ -1,7 +1,7 @@
 ---
 id: ADR-1330
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-26
 addresses: [REQ-0325]
 supersedes: []
