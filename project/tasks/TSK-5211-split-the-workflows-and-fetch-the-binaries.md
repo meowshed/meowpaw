@@ -1,7 +1,7 @@
 ---
 id: TSK-5211
 artifact: task
-status: approved
+status: done
 revised: 2026-10-04
 epic: EPC-2730
 closes: [REQ-4142]
@@ -43,7 +43,13 @@ Nothing.
 
 ## Evidence
 
-Not yet. This line stays first until every verb has passed.
+Run 37206994135 of `rust-tool.yml` on main completed with all six build
+jobs succeeding and no macOS or Windows runner; the crates-push path
+filter and the three workflow files are on the trunk. `pi-release` on
+37207568449 fetched the `full-*` artifacts by that run's id, placed them
+into the core package and published, proving the fetch chain. The guard
+that fails a release without a successful Rust Tool run fired in the
+cancelled run 37206982184, which stopped at the artifact-fetch guard.
 
 ## Left alone
 
