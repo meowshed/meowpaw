@@ -22,7 +22,7 @@ states:
     REQ-4134,
     REQ-4136,
     REQ-4138,
-    REQ-4140,
+    REQ-4144,
   ]
 ---
 
@@ -283,19 +283,25 @@ that runs them.
 ### The install sources
 
 A package installs from npm, which is the distribution install:
-`pi install npm:@meowshed/<unit>`. The npm tarball carries the meow-full
-binary for every platform the build workflow builds, placed in the
-package's `bin/` before packing, so an npm install copies the whole
-package and makes no request at install or load time (REQ-4140). The
-`postinstall` runs for a git-source install, where the clone obeys
-`.gitignore` and the platform directories are absent, and is a no-op
-under npm, where it finds the binary already present.
+`pi install npm:@meowshed/<unit>`. The core tarball carries the
+all-features meow binary for every platform the build workflow builds,
+placed in the package's `bin/` before packing, so an npm install copies
+the whole package and makes no request at install or load time. The other
+five tarballs carry no binary: their launchers fall back to `meow` on
+PATH, which the core extension resolves, so the core package is the
+install every other layer sits beside (REQ-4144). A tag named
+`<unit>-pi-v<version>` publishes that one package; the workflow run by
+hand publishes every one whose version npm does not hold yet. The
+`postinstall` runs for a git-source install of the core package, where
+the clone obeys `.gitignore` and the platform directories are absent, and
+is absent from the other packages, which download nothing.
 
 A local path is the development install: it loads the package in place
 from a checkout, runs no lifecycle script, and tracks that checkout. The
-person installing that way runs `node install-meow.mjs` by hand. The
-GitHub release archives stay as the record of what shipped and as the
-download source the installer names (RES-0342).
+person installing the core package that way runs `node install-meow.mjs`
+by hand, because the checkout ignores the platform directories it fills.
+The GitHub release archives stay as the record of what shipped and as the
+download source the core installer names (RES-0342).
 
 ### The layer packages
 
@@ -367,6 +373,12 @@ change nobody approved is the outcome the guard exists to prevent.
 Where the router tool is invoked with no model available, it answers that
 the router is unavailable rather than raising, because a tool that fails
 loudly on a machine with no credentials blocks the method it serves.
+
+The build runs in the Rust Tool workflow alone, started by a change to
+`crates/**`, by hand or by a `meow-full-v<version>` tag; the release
+workflows fetch its artifacts and never build (ADR-2810). A plugin
+release without a successful Rust Tool run on the trunk fails and names
+that workflow.
 
 What this specification does not cover: porting a native binary to
 TypeScript or WASM; the eval runner design; npm publication versus a git
