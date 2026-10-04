@@ -1,7 +1,7 @@
 ---
 id: TSK-5190
 artifact: task
-status: approved
+status: done
 revised: 2026-10-04
 realises: ADR-2770
 closes: [REQ-0583, REQ-0585, REQ-0594, REQ-0595, REQ-0596]
@@ -55,7 +55,14 @@ Nothing.
 
 ## Evidence
 
-Not yet. This line stays first until every verb has passed.
+PR #833 implements and migrates the checked completion status. On 2026-10-04,
+the repository's five declared verification verbs all exited 0:
+`mise run fmt-check && mise run shell-fmt && mise run crate-fmt`,
+`mise run crate-check`, the complete `.meowpaw/profile.toml` lint command, the
+complete profile test command under Python 3.13, and `mise run build`. The test
+verb included 281 meow-flow tests, 58 meow-github tests, 103 meow-loop tests,
+`paw check`, and the repository integrity tools. `paw count` retained 1,954
+identifiers while classifying 74 decisions, 70 epics and 225 tasks as `done`.
 
 ## Left alone
 
