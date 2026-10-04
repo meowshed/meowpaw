@@ -1,7 +1,7 @@
 ---
 id: TSK-5214
 artifact: task
-status: approved
+status: done
 revised: 2026-10-04
 epic: EPC-2740
 closes: [REQ-4146]
@@ -42,7 +42,13 @@ the `meow-full-v*` tag.
 
 ## Evidence
 
-Not yet. This line stays first until every verb has passed.
+The tag `meow-flow-v0.47.1` pushed from the trunk started both releases
+and both succeeded: the Claude Release run packed the unit's marketplace
+archive and the Pi Release run published `@meowshed/meow-flow@0.47.1`,
+each from the same tag; the `meow-full-v*` guard sits in both release
+workflows and skipped nothing else. A side whose registry holds the
+version skips it: the npm already-published check and the marketplace's
+released-archive path, exercised in the dispatch runs that followed.
 
 ## Left alone
 
