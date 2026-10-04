@@ -1,8 +1,8 @@
 {
-  "name": "@meowshed/pi-method",
-  "version": "0.47.0",
-  "description": "The meowpaw method for Pi: the seven-step chain, record checking, commit convention, git guards, loop runner, unattended planning and GitHub governance guard.",
-  "keywords": ["pi-package", "meowpaw", "method", "record", "chain"],
+  "name": "@meowshed/meow-code",
+  "version": "0.6.2",
+  "description": "The meowpaw practice layer: how code is changed, checked and debugged; how skills and agents are authored; and how licence headers are applied and checked. Distributed as a Pi package.",
+  "keywords": ["pi-package", "meowpaw", "practice", "authoring", "editing", "licencing"],
   "license": "Apache-2.0",
   "author": {
     "name": "Andrew Vasilyev",
@@ -13,7 +13,7 @@
     "url": "https://github.com/meowshed/meowpaw"
   },
   "pi": {
-    "extensions": ["extensions/method.ts"],
+    "extensions": ["extensions/practice.ts"],
     "skills": ["skills"]
   },
   "scripts": {

@@ -212,10 +212,10 @@ dependency direction and lets a repository install only what it needs.
 
 | Layer | Plugins | Pi package |
 |---|---|---|
-| Kernel | meow-core, meow-prose, meow-prose-gate | `@meowshed/pi-core` |
-| Method | meow-checks, meow-flow, meow-scm, meow-git, meow-github, meow-loop, meow-unattended | `@meowshed/pi-method` |
-| Practice | meow-code, meow-author, meow-licence | `@meowshed/pi-practice` |
-| Packs | meow-mise, meow-gotask, meow-markdown | `@meowshed/pi-markdown`, `@meowshed/pi-mise`, `@meowshed/pi-gotask` |
+| Kernel | meow-core, meow-prose, meow-prose-gate | `@meowshed/meow-core` |
+| Method | meow-checks, meow-flow, meow-scm, meow-git, meow-github, meow-loop, meow-unattended | `@meowshed/meow-flow` |
+| Practice | meow-code, meow-author, meow-licence | `@meowshed/meow-code` |
+| Packs | meow-mise, meow-gotask, meow-markdown | `@meowshed/meow-markdown`, `@meowshed/meow-mise`, `@meowshed/meow-gotask` |
 
 Packs stay as separate packages because a repository installs only the packs
 its toolchain needs. The kernel, method and practice layers could be one

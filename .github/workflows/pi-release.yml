@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pi-release
+  group: meow-pi-release
 
 jobs:
   build:
@@ -50,11 +50,11 @@ jobs:
           printf '| Package | Version | Archive | Bytes | SHA-256 |\n' > dist/notes.md
           printf '| ------- | ------- | ------- | ----- | ------- |\n' >> dist/notes.md
 
-          for pkg in packages/pi-*; do
+          for pkg in packages/meow-*; do
             name=$(jq -r .name "$pkg/package.json")
             version=$(jq -r .version "$pkg/package.json")
-            tag="pi-$(basename $pkg)-v$version"
-            zip="pi-$(basename $pkg)-$version.zip"
+            tag="$(basename $pkg)-pi-v$version"
+            zip="$(basename $pkg)-pi-$version.zip"
             short=$(basename $pkg)
 
             # Copy the meow binary for each platform into the package's bin/ dir.
@@ -103,7 +103,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: pi-release
+          name: meow-pi-release
           path: dist/
 
       - name: Publish

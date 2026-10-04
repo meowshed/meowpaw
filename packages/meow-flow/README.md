@@ -1,26 +1,26 @@
 ---
 reader: someone installing or running the meowpaw method on Pi
-answers: what pi-method provides, what it adds to a session and how to install it
+answers: what meow-flow provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/pi-method@0.47.0]
+describes: [@meowshed/meow-flow@0.47.0]
 ---
 
-# @meowshed/pi-method
+# @meowshed/meow-flow
 
-The meowpaw method for Pi: the seven-step chain, record checking, commit
+The meowpaw method: the seven-step chain, record checking, commit
 convention, git guards, loop runner, unattended planning and GitHub governance
 guard. It drives the method, checks the record and protects the repository.
 
 ## Install it
 
 ```bash
-pi install npm:@meowshed/pi-method
+pi install npm:@meowshed/meow-flow
 ```
 
 Or from the repository:
 
 ```bash
-pi install git:github.com/meowshed/meowpaw --subdir packages/pi-method
+pi install git:github.com/meowshed/meowpaw --subdir packages/meow-flow
 ```
 
 The `postinstall` script downloads the `meow` binary for the current platform

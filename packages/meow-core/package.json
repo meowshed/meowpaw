@@ -1,7 +1,7 @@
 {
-  "name": "@meowshed/pi-core",
+  "name": "@meowshed/meow-core",
   "version": "0.4.0",
-  "description": "The meowpaw kernel for Pi: the reply shape, the writing standard and the prose gate.",
+  "description": "The meowpaw kernel: the reply shape, the writing standard and the prose gate. Distributed as a Pi package.",
   "keywords": ["pi-package", "meowpaw", "prose", "reply-shape"],
   "license": "Apache-2.0",
   "author": {
