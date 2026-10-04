@@ -1,7 +1,7 @@
 ---
 id: EPC-2700
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-04
 realises: ADR-2780
 ---
@@ -44,17 +44,17 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-5200 write the research, requirements, decision and specification
+- [x] T-001 TSK-5200 write the research, requirements, decision and specification
       closes: REQ-4100, REQ-4102, REQ-4104, REQ-4106, REQ-4108, REQ-4110, REQ-4112, REQ-4114, REQ-4116, REQ-4118, REQ-4120, REQ-4122, REQ-4124, REQ-4126, REQ-4128
-- [ ] T-002 TSK-5201 build the kernel Pi package
+- [x] T-002 TSK-5201 build the kernel Pi package
       closes: REQ-4100, REQ-4102, REQ-4106, REQ-4108, REQ-4112, REQ-4114, REQ-4116, REQ-4118, REQ-4120
-- [ ] T-003 TSK-5202 build the method Pi package
+- [x] T-003 TSK-5202 build the method Pi package
       closes: REQ-4100, REQ-4102, REQ-4104, REQ-4106, REQ-4110, REQ-4112, REQ-4114, REQ-4118, REQ-4120, REQ-4122, REQ-4126, REQ-4128
-- [ ] T-004 TSK-5203 build the practice Pi package
+- [x] T-004 TSK-5203 build the practice Pi package
       closes: REQ-4100, REQ-4102, REQ-4106, REQ-4114, REQ-4118, REQ-4120
-- [ ] T-005 TSK-5204 build the pack Pi packages
+- [x] T-005 TSK-5204 build the pack Pi packages
       closes: REQ-4100, REQ-4102, REQ-4106, REQ-4114, REQ-4118, REQ-4120
-- [ ] T-006 TSK-5205 verify the dual-platform contract
+- [x] T-006 TSK-5205 verify the dual-platform contract
       closes: REQ-4102
 
 ## Coverage
