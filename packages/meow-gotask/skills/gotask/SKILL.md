@@ -1,5 +1,5 @@
 ---
-name: tasks
+name: gotask
 description: The tasks Task (go-task) resolves in this repository and what each can safely do. It MUST be loaded before running, listing or binding a Task task, or a verb to one, in a repository with a Taskfile. It MUST NOT be used to trust a remote Taskfile.
 ---
 
