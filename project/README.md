@@ -857,9 +857,12 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1401](bugs/BUG-1401-the-skills-name-a-platform-the-harness-does-not-run-on.md)          | The Pi skills name `${CLAUDE_SKILL_DIR}`, a variable Pi never sets                                                              |
 | [BUG-1402](bugs/BUG-1402-every-package-injects-the-reply-shape.md)                           | Every Pi package injects the reply shape, so two installed layers inject it twice                                               |
 | [BUG-1403](bugs/BUG-1403-the-installer-script-cannot-run-on-esm.md)                          | The installer calls `require` in ESM and four packages name another unit's release                                              |
+| [BUG-1410](bugs/BUG-1410-meow-loop-start-refuses-outside-its-own-unit.md)                    | `meow-loop start` resolves the loop unit beside the binary, which ADR-2810's layout never holds                                 |
+| [BUG-1411](bugs/BUG-1411-the-binary-finds-its-data-beside-itself.md)                         | The binary finds its data beside itself, where the npm layout doesn't hold it                                                   |
 
-Forty-one are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
+Forty-three are closed. BUG-1410 is open, and so are BUG-1040, BUG-1100 and BUG-1360. BUG-1410 routes to implement,
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
-asks for the reviewer's cases to cover every rule. BUG-1005 was written
+asks for the reviewer's cases to cover every rule. BUG-1410 routes to implement, because the resolution the git
+guard already does is the pattern its start command follows, and its fix is a crate change. BUG-1005 was written
 after its fix, and says so. BUG-1390 is closed: SPC-1201 names the failure states that
 `meow-loop` reaches, and TSK-4050 added the two refusals at start.
