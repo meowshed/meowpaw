@@ -95,6 +95,16 @@ async function main() {
       renameSync(join(binDir, `meow-${triple}`), dest);
       await chmod(dest, 0o755);
     }
+    if (platform() === "darwin") {
+      // The binary was built under Linux, so it carries no signature, and
+      // macOS kills an unsigned arm64 binary on sight. An ad-hoc signature
+      // is all it needs to run.
+      try {
+        execFileSync("codesign", ["--force", "--sign", "-", dest], { stdio: "pipe" });
+      } catch {
+        console.warn("meowpaw: codesign was not found; the binary may not run");
+      }
+    }
   } finally {
     try { unlinkSync(tmp); } catch { /* the download may have failed */ }
   }

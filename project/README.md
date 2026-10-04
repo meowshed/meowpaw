@@ -395,6 +395,11 @@ EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
 
 ## Epics and tasks
 
+[EPC-2720](epics/EPC-2720-the-packages-publish-to-npm.md) realises ADR-2800
+in two tasks, TSK-5209 and TSK-5210: the packages publish to npm with every
+platform's binary in each tarball, and the build workflow produces all six
+targets under Linux runners, with the darwin binaries signed.
+
 [EPC-2710](epics/EPC-2710-a-package-installs-standalone.md) realises
 ADR-2790 in three tasks, TSK-5206 to TSK-5208, fixing BUG-1400 to BUG-1403:
 the bundled prompts, the plain command names, and the meow-full installer.
