@@ -38,9 +38,9 @@ slice.
 
 ## Evidence
 
-Pull request #59 merged the research, requirements, ADR-1010, specifications,
-EPC-1010 and its tasks; its merge closed issue #46. The current record gate
-reports no coverage or record findings in `plugins/meow-flow/bin/paw check`.
+Not yet. The task closes on the preparatory pull request merging, with
+`tools/check_coverage.py` reporting that every requirement ADR-1010 addresses
+lands in exactly one task, and the other checks over the record passing.
 
 ## Left alone
 

@@ -35,10 +35,9 @@ EPC-1010 approved, because ADR-1020 amends the decision it realises.
 
 ## Evidence
 
-Pull request #63 merged RES-0270, the prompt requirements, ADR-1020,
-specification changes, EPC-1020 and its tasks; its merge closed issue #62. The
-current record gate reports no coverage or record findings in
-`plugins/meow-flow/bin/paw check`.
+Not yet. The task closes on the preparatory pull request merging, with
+`tools/check_coverage.py` reporting every requirement ADR-1020 addresses in
+exactly one task, and the other checks over the record passing.
 
 ## Left alone
 
