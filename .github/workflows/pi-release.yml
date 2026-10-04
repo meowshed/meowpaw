@@ -45,10 +45,14 @@ jobs:
         run: |
           tag="meow-full-v$MEOW_FULL_VERSION"
           mkdir -p dist-full
-          find bin-full -type f -name 'meow*' | while read -r f; do
-            triple=$(dirname "$f" | sed 's|.*/dist/||; s|/[^/]*$||')
-            cp "$f" "dist-full/meow-$triple$(case $f in *.exe) echo .exe;; esac)"
+          # Each full artifact holds <triple>/meow under its own directory.
+          for d in bin-full/full-*/; do
+            triple=$(basename "$d")
+            ext=""
+            case $triple in *-windows-*) ext=.exe ;; esac
+            cp "$d/$triple/meow$ext" "dist-full/meow-$triple$ext"
           done
+          ls dist-full
           (cd dist-full && zip -q -X ../meow-full-$MEOW_FULL_VERSION.zip ./*)
           sha=$(sha256sum "meow-full-$MEOW_FULL_VERSION.zip" | cut -d' ' -f1)
           notes="The one meow binary with every subcommand, built for six platforms. The Pi packages' installers download this archive. SHA-256: \`$sha\`"
