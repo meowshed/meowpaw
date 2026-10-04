@@ -439,7 +439,7 @@ class Project(unittest.TestCase):
         self.assertIn("EPC-0001 is draft, and its tasks are projected only once it is approved", done.stdout)
         self.assertFalse((root / "state.json").exists())
 
-    def defect(self, root, mark=" "):
+    def defect(self, root, mark=" ", parallel=""):
         """TSK-5180 criteria 1-3, REQ-4000: a defect owns its task and completion mark."""
         (root / "project" / "bugs").mkdir()
         (root / "project" / "bugs" / "BUG-0001-a-defect.md").write_text(
@@ -455,7 +455,7 @@ issue:
 
 ## Tasks
 
-- [{mark}] T-001 TSK-0003 restore the behaviour
+- [{mark}] T-001 {parallel}TSK-0003 restore the behaviour
 """,
             encoding="utf-8")
         (root / "project" / "tasks" / "TSK-0003-defect.md").write_text(TASK.format(
@@ -494,6 +494,20 @@ issue:
         calls = len(self.state(root)["calls"])
         bug = root / "project" / "bugs" / "BUG-0001-a-defect.md"
         bug.write_text(bug.read_text(encoding="utf-8").replace("- [ ]", "- [x]"), encoding="utf-8")
+        done_task = self.run_on(root, "BUG-0001", "--check")
+        self.assertEqual(done_task.returncode, 0, done_task.stdout)
+        self.assertNotIn("leaves the task unmarked", done_task.stdout)
+        self.assertFalse(self.writes(root, calls))
+
+    def test_a_parallel_defect_task_keeps_its_done_mark(self):
+        """TSK-5180 criterion 3: the valid [P] marker does not hide a done task."""
+        root = self.repository()
+        self.defect(root, mark="x", parallel="[P] ")
+        self.run_on(root, "BUG-0001")
+        state = self.state(root)
+        state["issues"]["1"]["state"] = "closed"
+        (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        calls = len(state["calls"])
         done_task = self.run_on(root, "BUG-0001", "--check")
         self.assertEqual(done_task.returncode, 0, done_task.stdout)
         self.assertNotIn("leaves the task unmarked", done_task.stdout)
