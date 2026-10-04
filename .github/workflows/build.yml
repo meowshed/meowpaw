@@ -72,14 +72,10 @@ jobs:
             cc: aarch64-apple-darwin22.4-clang
             cxx: aarch64-apple-darwin22.4-clang++
             linker: aarch64-apple-darwin22.4-clang
-            ldid: ldid_linux_aarch64
-            ldid_sha: 08aab047dc27af34627a1ab5a797d89b64579b9e92c61533aaeee5692135c2b9
           - target: x86_64-apple-darwin
             cc: x86_64-apple-darwin22.4-clang
             cxx: x86_64-apple-darwin22.4-clang++
             linker: x86_64-apple-darwin22.4-clang
-            ldid: ldid_linux_x86_64
-            ldid_sha: 6e9ec33f64545b24b10648c8b3d4c5581763b9a09757168813801b81315bff8f
     runs-on: ubuntu-24.04
     container:
       # osxcross with the macOS SDK 22.4, which the darwin targets need to
@@ -101,9 +97,23 @@ jobs:
       # its checksum, because a signing tool is part of the supply chain.
       - name: Install ldid
         run: |
+          case "$(uname -m)" in
+          x86_64)
+            asset=ldid_linux_x86_64
+            sha=6e9ec33f64545b24b10648c8b3d4c5581763b9a09757168813801b81315bff8f
+            ;;
+          aarch64)
+            asset=ldid_linux_aarch64
+            sha=08aab047dc27af34627a1ab5a797d89b64579b9e92c61533aaeee5692135c2b9
+            ;;
+          *)
+            echo "no ldid asset for $(uname -m)" >&2
+            exit 1
+            ;;
+          esac
           curl -sSL --fail -o /usr/local/bin/ldid \
-            "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus2/${{ matrix.ldid }}"
-          echo "${{ matrix.ldid_sha }}  /usr/local/bin/ldid" | sha256sum -c -
+            "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus2/$asset"
+          echo "$sha  /usr/local/bin/ldid" | sha256sum -c -
           chmod +x /usr/local/bin/ldid
       - run: crates/meow/build-units ${{ matrix.target }}
         shell: bash
