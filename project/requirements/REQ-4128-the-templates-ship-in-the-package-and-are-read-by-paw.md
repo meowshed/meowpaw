@@ -1,11 +1,15 @@
 ---
 id: REQ-4128
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# The templates ship in the package and are read by paw
+# REQ-4128
 
 The record templates that `meow-flow` carries in `templates/` (research,
 requirement, decision, specification, epic, task, defect) ship in the Pi

@@ -20,9 +20,9 @@ file costs context.
 2. For a short text, this file is enough. A short text is a commit message, a
    code comment or a review comment, reply or issue of up to about five
    sentences.
-3. For a document, read `${CLAUDE_SKILL_DIR}/documents.md`, which holds the
+3. For a document, read `documents.md`, which holds the
    rules for planning and shaping a document. Then pick the document's type and
-   read its skeleton in `${CLAUDE_SKILL_DIR}/types/`: `tutorial`, `how-to`,
+   read its skeleton in `types/`: `tutorial`, `how-to`,
    `reference`, `explanation`, `design-proposal`, `readme`, `release-notes`,
    `changelog`, `blog-post`, `research-notes`, `meeting-notes` or
    `daily-notes`. For a project record, read `types/record/record.md` and the
@@ -30,7 +30,7 @@ file costs context.
    `specification`, `epic`, `task` or `defect`.
 4. Read the patterns file for the text's language before you check any text
    longer than a short text, whether you wrote it or edit it. The file is
-   `${CLAUDE_SKILL_DIR}/patterns/en.md` or `patterns/ru.md`; for another
+   `patterns/en.md` or `patterns/ru.md`; for another
    language, read `en.md` and apply its patterns by analogy. The patterns are
    the problems that a rule-by-rule reading misses, so a check without them
    finds only part of what is wrong.

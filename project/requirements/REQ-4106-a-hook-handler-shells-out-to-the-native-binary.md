@@ -1,11 +1,15 @@
 ---
 id: REQ-4106
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# A hook handler shells out to the existing native binary
+# REQ-4106
 
 Where a Claude Code hook runs a native binary (`meow-git commit-guard`,
 `meow-prose-gate check`, `meow-loop guard`, `meow-github governance-guard`,

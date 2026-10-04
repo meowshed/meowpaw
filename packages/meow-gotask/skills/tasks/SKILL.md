@@ -10,7 +10,7 @@ trusting one is the person's decision and never yours.
 </role>
 
 <steps name="read the tasks">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-gotask status` and show its output.
+1. Run `meow-gotask status` and show its output.
 2. If it exits 3, report the line starting `unresolved:` as it stands, with
    each remote include it named, and stop.
 3. Otherwise report each task you are about to use with its origin and every
@@ -37,12 +37,12 @@ trusting one is the person's decision and never yours.
 </rules>
 
 <steps name="bind the verbs">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-gotask bind` and show the table it
+1. Run `meow-gotask bind` and show the table it
    prints, each unbound verb's reason included.
 2. Give the table to the person to put in `.meowpaw/profile.toml`, and write
    the profile yourself only when they ask, because the profile is the
    repository's declaration.
 3. After a profile's verbs change, run
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-gotask check` and report every finding
+   `meow-gotask check` and report every finding
    it prints, with its exit status.
 </steps>

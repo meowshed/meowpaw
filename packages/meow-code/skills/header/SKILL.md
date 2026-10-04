@@ -22,7 +22,7 @@ decision, so you copy what it declared and never choose one yourself.
    file that can't carry a comment, write them to `<file>.license` beside it.
 4. If the repository declares nothing in any of the three places, write no
    header and say that its licensing is undeclared.
-5. After creating files, run `${CLAUDE_SKILL_DIR}/../../bin/meow-licence check`
+5. After creating files, run `meow-licence check`
    and report what it printed.
 </steps>
 

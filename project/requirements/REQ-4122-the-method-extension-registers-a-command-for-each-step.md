@@ -1,11 +1,15 @@
 ---
 id: REQ-4122
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# The method extension registers a command for each step
+# REQ-4122
 
 The meow-flow extension registers a Pi command for each method step
 (`research`, `requirements`, `design`, `spec`, `epic`, `implement`, `review`)

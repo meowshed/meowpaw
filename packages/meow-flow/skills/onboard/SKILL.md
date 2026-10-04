@@ -21,15 +21,15 @@ does as though somebody had decided it must.
 3. Write the vision, one specification per part of the system, each
    requirement and decision the documents and the history state, and, where
    the repository has no `CLAUDE.md`, the constitution, from the templates
-   `${CLAUDE_SKILL_DIR}/../../bin/paw template <kind>` names.
+   `paw template <kind>` names.
 4. Write `onboarding.md` at the record's root from
-   `${CLAUDE_SKILL_DIR}/../../bin/paw template onboarding`, as a
+   `paw template onboarding`, as a
    draft.
-5. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it
+5. Run `paw check` and fix what it
    reports in what you wrote.
 6. Report the verbs, the gaps and the disposition of every document, and stop.
    Say that once the report is approved,
-   `${CLAUDE_SKILL_DIR}/../../bin/paw onboarding remove` removes what it
+   `paw onboarding remove` removes what it
    placed.
 </steps>
 

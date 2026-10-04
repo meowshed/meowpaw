@@ -1,11 +1,15 @@
 ---
 id: REQ-4110
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340
+revised: 2026-10-04
+verification: behavioural
+elaborates: RES-0340
 ---
 
-# A Claude Code agent definition maps to a registered tool
+# REQ-4110
 
 The router agent (`agents/router.md`) and the skeptic agent become tools
 registered by the meow-flow extension via `pi.registerTool()`. The tool's

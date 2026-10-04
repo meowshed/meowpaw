@@ -13,7 +13,7 @@ it first.
 </role>
 
 <steps name="read the configuration">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-markdown status` and show its
+1. Run `meow-markdown status` and show its
    output.
 2. If it exits 3, report the line starting `unresolved:` as it stands, and
    stop.
@@ -22,15 +22,15 @@ it first.
 </steps>
 
 <steps name="bind the verbs">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-markdown bind` and show the table
+1. Run `meow-markdown bind` and show the table
    it prints, each comment included.
 2. Give the table to the person to put in `.meowpaw/profile.toml`, and stop.
 </steps>
 
 <steps name="review Markdown">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-markdown status` for the render
+1. Run `meow-markdown status` for the render
    target.
-2. Read `${CLAUDE_SKILL_DIR}/reviewing.md` before you review a Markdown
+2. Read `reviewing.md` before you review a Markdown
    document, and hold the document to each point in it.
 3. Report each finding as the line, what is wrong and what would fix it, and
    stop.

@@ -3,7 +3,24 @@ id: ADR-2780
 artifact: adr
 status: done
 revised: 2026-10-04
-addresses: [REQ-4100, REQ-4102, REQ-4104, REQ-4106, REQ-4108, REQ-4110, REQ-4112, REQ-4114, REQ-4116, REQ-4118, REQ-4120, REQ-4122, REQ-4124, REQ-4126, REQ-4128]
+addresses:
+  [
+    REQ-4100,
+    REQ-4102,
+    REQ-4104,
+    REQ-4106,
+    REQ-4108,
+    REQ-4110,
+    REQ-4112,
+    REQ-4114,
+    REQ-4116,
+    REQ-4118,
+    REQ-4120,
+    REQ-4122,
+    REQ-4124,
+    REQ-4126,
+    REQ-4128,
+  ]
 supersedes: []
 ---
 
@@ -107,13 +124,13 @@ Shelling out is the minimum viable mapping; porting is a later optimisation.
 
 ## Alternatives
 
-| Option | Better at | Why it lost |
-|---|---|---|
-| Pi packages with extensions shelling out to native binaries | Preserves tested binaries, fastest to ship | Chosen |
-| Pi packages with extensions porting all binary logic to TypeScript | In-process, structured output, no child process overhead | Duplicates tested Rust, second implementation to maintain, prose gate and git guard are performance-sensitive |
-| Pi packages with skills only, no extensions | Simplest, no TypeScript at all | Cannot implement hooks, output-style injection, commands or nested model calls; loses the guards and the method driver |
-| One monolithic Pi package instead of one per layer | One install command | Cannot install kernel without method, loses the install-only-what-you-need property, bundle size grows with every pack |
-| Pi packages plus a Claude Code compatibility shim | Runs on both platforms from one source | The shim would need to translate every event handler back to a command hook, which is the inverse problem with the same cost |
+| Option                                                             | Better at                                                | Why it lost                                                                                                                  |
+| ------------------------------------------------------------------ | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Pi packages with extensions shelling out to native binaries        | Preserves tested binaries, fastest to ship               | Chosen                                                                                                                       |
+| Pi packages with extensions porting all binary logic to TypeScript | In-process, structured output, no child process overhead | Duplicates tested Rust, second implementation to maintain, prose gate and git guard are performance-sensitive                |
+| Pi packages with skills only, no extensions                        | Simplest, no TypeScript at all                           | Cannot implement hooks, output-style injection, commands or nested model calls; loses the guards and the method driver       |
+| One monolithic Pi package instead of one per layer                 | One install command                                      | Cannot install kernel without method, loses the install-only-what-you-need property, bundle size grows with every pack       |
+| Pi packages plus a Claude Code compatibility shim                  | Runs on both platforms from one source                   | The shim would need to translate every event handler back to a command hook, which is the inverse problem with the same cost |
 
 ## What it costs
 

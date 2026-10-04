@@ -77,7 +77,7 @@ override. Only the four words R7 names override a route.
   disagrees overrides in one word, and a question on every request is the
   cost that gets the method bypassed:
   - `none`: make the edit, and stop when it is made;
-  - `reduced` or `full`: run `${CLAUDE_SKILL_DIR}/../../bin/paw ready` for
+  - `reduced` or `full`: run `paw ready` for
     the step the route enters at, `research` for `full`, `implement` under an
     approved epic and `epic` under an approved decision for `reduced`, then
     load the `meow-flow:method` skill for that step;
