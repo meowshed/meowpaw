@@ -3,8 +3,19 @@ id: TSK-5201
 artifact: task
 status: done
 revised: 2026-10-04
-realises: ADR-2780
-closes: [REQ-4100, REQ-4102, REQ-4106, REQ-4108, REQ-4112, REQ-4114, REQ-4116, REQ-4118, REQ-4120]
+epic: EPC-2700
+closes:
+  [
+    REQ-4100,
+    REQ-4102,
+    REQ-4106,
+    REQ-4108,
+    REQ-4112,
+    REQ-4114,
+    REQ-4116,
+    REQ-4118,
+    REQ-4120,
+  ]
 issue: 836
 ---
 
@@ -27,3 +38,25 @@ gate. Carry the writing skill and the prose gate binary.
    not.
 5. The writing skill loads by description and produces the same guidance as
    the Claude Code plugin. Closed by: manual comparison.
+
+## What to do
+
+Create `packages/meow-core/` with the kernel extension, the writing skill,
+the prose gate wrapper and its budget, from the spec's kernel section.
+
+## Depends on
+
+- TSK-5200 (blocking): the authorising records and the spec's kernel
+  section, which this task implements.
+
+## Evidence
+
+PR #841: the package builds with the kernel extension, the writing skill
+and the prose gate wrapper; the session tests the acceptance criteria
+named were recorded against in BUG-1400 as never run outside the monorepo,
+and TSK-5206 closes them for real.
+
+## Left alone
+
+The prompt bundling and PATH exposure, which BUG-1400 and BUG-1401 showed
+the shipped form lacked, and which TSK-5206 and TSK-5207 hold.

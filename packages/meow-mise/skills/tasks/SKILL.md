@@ -12,7 +12,7 @@ and never yours.
 </role>
 
 <steps name="read the tasks">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-mise status` and show its output.
+1. Run `meow-mise status` and show its output.
 2. If it exits 3, report the line starting `unresolved:` as it stands, and
    stop. For `untrusted`, give the person the command it names and let them
    run it after reading the configuration.
@@ -22,13 +22,13 @@ and never yours.
 </steps>
 
 <steps name="bind the verbs">
-1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-mise bind` and show the table it
+1. Run `meow-mise bind` and show the table it
    prints, each unbound verb's reason included.
 2. Give the table to the person to put in `.meowpaw/profile.toml`, and write
    the profile yourself only when they ask, because the profile is the
    repository's declaration.
 3. After a profile's verbs change, run
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-mise check` and report every finding it
+   `meow-mise check` and report every finding it
    prints, with its exit status.
 </steps>
 

@@ -1,11 +1,15 @@
 ---
 id: REQ-4120
 artifact: requirement
+topic: pi-packages
+class: functional
 status: approved
-cites: RES-0340, RES-0341
+revised: 2026-10-04
+verification: static
+elaborates: RES-0340, RES-0341
 ---
 
-# A Pi package carries a budget.toml for documentation
+# REQ-4120
 
 Each Pi package carries a `budget.toml` stating the permanent character cost
 its skills and commands add to the system prompt, as the Claude Code plugins
