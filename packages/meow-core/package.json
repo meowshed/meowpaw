@@ -2,7 +2,12 @@
   "name": "@meowshed/meow-core",
   "version": "0.4.0",
   "description": "The meowpaw kernel: the reply shape, the writing standard and the prose gate. Distributed as a Pi package.",
-  "keywords": ["pi-package", "meowpaw", "prose", "reply-shape"],
+  "keywords": [
+    "pi-package",
+    "meowpaw",
+    "prose",
+    "reply-shape"
+  ],
   "license": "Apache-2.0",
   "author": {
     "name": "Andrew Vasilyev",
@@ -13,8 +18,12 @@
     "url": "https://github.com/meowshed/meowpaw"
   },
   "pi": {
-    "extensions": ["extensions/kernel.ts"],
-    "skills": ["skills"]
+    "extensions": [
+      "extensions/kernel.ts"
+    ],
+    "skills": [
+      "skills"
+    ]
   },
   "scripts": {
     "postinstall": "node install-meow.mjs"
@@ -25,5 +34,8 @@
     "@earendil-works/pi-agent-core": "*",
     "@earendil-works/pi-tui": "*",
     "typebox": "*"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -5,7 +5,9 @@
 # Builds each unit's binary into plugins/<unit>/bin/<target>/, named the way
 # the units' launchers look for it (SPC-1080). With no argument it builds for
 # this machine, so a checkout loaded in place runs the native tool without a
-# release; the release names each of the six targets in turn.
+# release; the release names each of the six targets in turn, all built
+# under Linux: the musl targets natively, the darwin targets through
+# osxcross's environment, and the windows targets through cargo-xwin.
 
 set -e
 root=$(cd "$(dirname "$0")/../.." && pwd)
@@ -42,8 +44,19 @@ esac
 for pair in meow-checks:verbs meow-scm:scm meow-git:git meow-flow:record meow-github:github meow-licence:licence meow-author:author meow-mise:mise meow-gotask:gotask meow-prose-gate:prose meow-markdown:markdown meow-unattended:unattended meow-loop:loop; do
   unit=${pair%%:*}
   feature=${pair#*:}
-  cargo build --quiet --release --manifest-path "$root/crates/meow/Cargo.toml" \
-    --no-default-features --features "$feature" --target-dir "$root/target/$feature" "$@"
+  case $target in
+  *-windows-msvc)
+    # The MSVC target links against the Windows SDK, which cargo-xwin
+    # fetches from Microsoft's servers; plain cargo cannot link it from
+    # Linux.
+    cargo xwin build --quiet --release --manifest-path "$root/crates/meow/Cargo.toml" \
+      --no-default-features --features "$feature" --target-dir "$root/target/$feature" --target "$target"
+    ;;
+  *)
+    cargo build --quiet --release --manifest-path "$root/crates/meow/Cargo.toml" \
+      --no-default-features --features "$feature" --target-dir "$root/target/$feature" "$@"
+    ;;
+  esac
   mkdir -p "$root/plugins/$unit/bin/$target"
   # Replace the file rather than overwrite it: macOS caches a binary's code
   # signature per file, and kills a binary rewritten in place when it next runs.

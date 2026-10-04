@@ -17,6 +17,16 @@ and checked. Distributed as a Pi package.
 pi install npm:@meowshed/meow-code
 ```
 
+The npm tarball carries the meow binary for every platform, so the install
+makes no request and needs no checkout. Installing from this repository's
+checkout is the development install: it loads the package in place, runs no
+lifecycle script, and the person installing it runs `node install-meow.mjs`
+by hand to fetch the binary for their machine.
+
+```bash
+pi install packages/meow-code   # development install, from the checkout
+```
+
 ## What it does
 
 ### Changing code

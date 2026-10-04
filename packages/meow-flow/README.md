@@ -17,15 +17,15 @@ guard. It drives the method, checks the record and protects the repository.
 pi install npm:@meowshed/meow-flow
 ```
 
-Or from the repository:
+The npm tarball carries the meow binary for every platform, so the install
+makes no request and needs no checkout. Installing from this repository's
+checkout is the development install: it loads the package in place, runs no
+lifecycle script, and the person installing it runs `node install-meow.mjs`
+by hand to fetch the binary for their machine.
 
 ```bash
-pi install git:github.com/meowshed/meowpaw --subdir packages/meow-flow
+pi install packages/meow-flow   # development install, from the checkout
 ```
-
-The `postinstall` script downloads the `meow` binary for the current platform
-from the meowpaw releases. Where the binary is missing, the shell wrappers
-report the check as unrun and let the command through.
 
 ## What it does
 
