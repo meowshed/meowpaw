@@ -1,0 +1,29 @@
+{
+  "name": "@meowshed/pi-practice",
+  "version": "0.6.2",
+  "description": "The meowpaw practice layer for Pi: how code is changed, checked and debugged; how skills and agents are authored; and how licence headers are applied and checked.",
+  "keywords": ["pi-package", "meowpaw", "practice", "authoring", "editing", "licencing"],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meowshed/meowpaw"
+  },
+  "pi": {
+    "extensions": ["extensions/practice.ts"],
+    "skills": ["skills"]
+  },
+  "scripts": {
+    "postinstall": "node install-meow.mjs"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  }
+}
