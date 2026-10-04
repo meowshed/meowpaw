@@ -25,7 +25,7 @@ const LISTINGS: [(&str, &str); 4] = [
     ("review comments", "pulls/comments?per_page=100"),
 ];
 
-const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic> [--check] [--wait] [<owner>/<name>] | governance-guard";
+const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | governance-guard";
 
 pub fn main(args: &[String]) -> u8 {
     let Some((command, rest)) = args.split_first() else {
@@ -46,8 +46,10 @@ pub fn main(args: &[String]) -> u8 {
     match (command.as_str(), words.as_slice(), check) {
         ("history", [], false) => history(&mut layer, None),
         ("history", [repository], false) => history(&mut layer, Some(repository)),
-        ("project", [epic], _) => project(&mut layer, epic, None, check),
-        ("project", [epic, repository], _) => project(&mut layer, epic, Some(repository), check),
+        ("project", [record], _) => project(&mut layer, record, None, check),
+        ("project", [record, repository], _) => {
+            project(&mut layer, record, Some(repository), check)
+        }
         _ => {
             eprintln!("{USAGE_LINE}");
             USAGE
@@ -55,11 +57,11 @@ pub fn main(args: &[String]) -> u8 {
     }
 }
 
-/// Projects `epic`, with the credential's form as the report's first line and
+/// Projects an authorising record, with the credential's form as the report's first line and
 /// the budget as its last lines (REQ-2568, REQ-2582).
-fn project(layer: &mut Layer, epic: &str, repository: Option<&str>, check: bool) -> u8 {
+fn project(layer: &mut Layer, record: &str, repository: Option<&str>, check: bool) -> u8 {
     println!("credential: {}", credential());
-    let code = project::run(layer, epic, repository, check);
+    let code = project::run(layer, record, repository, check);
     for line in layer.budget() {
         println!("{line}");
     }
