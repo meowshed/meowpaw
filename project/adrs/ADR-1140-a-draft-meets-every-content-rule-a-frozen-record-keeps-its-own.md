@@ -49,6 +49,9 @@ supersedes: []
 
 ## Decision
 
+**Amended by ADR-2770.** `done` remains a frozen phase and keeps the rules that
+applied when its decision, epic or task was approved.
+
 `meow-method check` holds each kind's content rules that a program can settle:
 the sections it carries, the section it opens with, the fields it must fill
 and the fields it must not carry, and five named rules that need more than a
