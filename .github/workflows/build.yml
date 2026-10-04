@@ -71,11 +71,13 @@ jobs:
           - target: aarch64-apple-darwin
             cc: aa64-clang
             cxx: aa64-clang++
+            linker: aa64-clang
             ldid: ldid_linux_aarch64
             ldid_sha: 08aab047dc27af34627a1ab5a797d89b64579b9e92c61533aaeee5692135c2b9
           - target: x86_64-apple-darwin
             cc: o64-clang
             cxx: o64-clang++
+            linker: o64-clang
             ldid: ldid_linux_x86_64
             ldid_sha: 6e9ec33f64545b24b10648c8b3d4c5581763b9a09757168813801b81315bff8f
     runs-on: ubuntu-24.04
@@ -104,7 +106,7 @@ jobs:
       - run: crates/meow/build-units ${{ matrix.target }}
         shell: bash
         env:
-          RUSTFLAGS: "-C link-arg=-undefined -C link-arg=dynamic_lookup"
+          RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
       # A binary built under Linux carries no signature, and macOS kills an
       # unsigned arm64 binary on sight; ldid writes the ad-hoc signature the
       # macOS linker writes on a Mac.
@@ -118,7 +120,7 @@ jobs:
           ldid -S "dist/${{ matrix.target }}/meow"
         shell: bash
         env:
-          RUSTFLAGS: "-C link-arg=-undefined -C link-arg=dynamic_lookup"
+          RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
       - uses: actions/upload-artifact@v7
         with:
           name: bin-${{ matrix.target }}
