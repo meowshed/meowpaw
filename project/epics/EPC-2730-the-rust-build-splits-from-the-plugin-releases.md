@@ -1,7 +1,7 @@
 ---
 id: EPC-2730
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-04
 realises: ADR-2810
 ---
@@ -39,9 +39,9 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-5211 split the workflows and fetch the binaries from the Rust Tool run
+- [x] T-001 TSK-5211 split the workflows and fetch the binaries from the Rust Tool run
       closes: REQ-4142
-- [ ] T-002 TSK-5212 ship the meow binary with the core package alone
+- [x] T-002 TSK-5212 ship the meow binary with the core package alone
       closes: REQ-4144
 
 ## Coverage

@@ -1,7 +1,7 @@
 ---
 id: EPC-2720
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-04
 realises: ADR-2800
 ---
@@ -45,7 +45,7 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [ ] T-001 TSK-5209 publish the packages to npm and verify the install
+- [x] T-001 TSK-5209 publish the packages to npm and verify the install
       closes: none; its original closes was REQ-4140, which ADR-2810 withdrew
       after this epic approved
 - [x] T-002 TSK-5210 build every target under Linux
