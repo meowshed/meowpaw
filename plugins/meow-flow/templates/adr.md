@@ -1,7 +1,7 @@
 ---
 id: ADR-NNNN
 artifact: adr
-status: draft # draft, approved, then withdrawn, rejected or superseded
+status: draft # draft, approved, done when its tasks are complete, then withdrawn, rejected or superseded
 revised: YYYY-MM-DD
 addresses: [REQ-NNNN] # required: a decision that addresses nothing is a preference
 supersedes: []
