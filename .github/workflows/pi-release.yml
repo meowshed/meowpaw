@@ -45,12 +45,14 @@ jobs:
         run: |
           tag="meow-full-v$MEOW_FULL_VERSION"
           mkdir -p dist-full
-          # Each full artifact holds <triple>/meow under its own directory.
-          for d in bin-full/full-*/; do
-            triple=$(basename "$d")
+          # The full artifacts hold their meow under a directory named for
+          # the triple, whatever depth the artifact layout adds above it.
+          find bin-full -type f -name 'meow*' | while read -r f; do
+            triple=$(basename "$(dirname "$f")")
+            case $triple in full-*) triple=${triple#full-} ;; esac
             ext=""
             case $triple in *-windows-*) ext=.exe ;; esac
-            cp "$d/$triple/meow$ext" "dist-full/meow-$triple$ext"
+            cp "$f" "dist-full/meow-$triple$ext"
           done
           ls dist-full
           (cd dist-full && zip -q -X ../meow-full-$MEOW_FULL_VERSION.zip ./*)
@@ -75,7 +77,7 @@ jobs:
               mkdir -p "$pkg/bin/$triple"
               ext=""
               case $triple in *-windows-*) ext=.exe ;; esac
-              src=$(find bin-full -path "*dist/$triple/meow$ext" | head -1)
+              src=$(find bin-full -path "*/$triple/meow$ext" | head -1)
               if [ -n "$src" ]; then
                 cp "$src" "$pkg/bin/$triple/meow$ext"
                 chmod +x "$pkg/bin/$triple/meow$ext"
