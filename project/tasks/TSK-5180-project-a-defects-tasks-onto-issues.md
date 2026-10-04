@@ -45,9 +45,8 @@ Nothing.
 
 `Project.test_an_approved_defect_projects_its_task_and_replays_nothing`
 closes criteria 1 and 2. `Project.test_a_defect_mark_decides_whether_a_closed_issue_agrees`
-closes criterion 3. The launcher fallback and unit page changes close criterion
-4 through `mise run all`'s shell and Markdown checks. All 55 `meow-github`
-fixtures passed, the repository's format, check, lint and test verbs passed in
+closes criterion 3. `Project.test_the_shipped_surfaces_name_a_defect_projection_target`
+closes criterion 4. All 56 `meow-github` fixtures passed, the repository's format, check, lint and test verbs passed in
 `mise run all`, and the build verb passed in `crates/meow/build-units`. Pull
 request: #830.
 
