@@ -100,7 +100,17 @@ jobs:
               echo "$name@$version is already published"
               continue
             fi
-            (cd "$pkg" && npm publish --provenance --access public)
+            # The registry's CDN lags a version it just published, so the
+            # check above can miss it; a 403 naming the published version is
+            # a publish that already happened, not a failure.
+            if ! (cd "$pkg" && npm publish --provenance --access public) 2>&1 | tee /tmp/publish.log; then
+              if grep -q 'cannot publish over the previously published' /tmp/publish.log; then
+                echo "$name@$version was published just now"
+              else
+                cat /tmp/publish.log
+                exit 1
+              fi
+            fi
           done
 
       - name: Pack the GitHub release archives
