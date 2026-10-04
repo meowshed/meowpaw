@@ -1,13 +1,10 @@
 {
   "name": "@meowshed/meow-flow",
-  "version": "0.47.0",
-  "description": "The meowpaw method: the seven-step chain, record checking, commit convention, git guards, loop runner, unattended planning and GitHub governance guard.",
+  "version": "0.47.1",
+  "description": "Runs the method's seven steps from research to review, each refused by a native program until its input is approved, routes each request before work starts, drives the steps to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it. It keeps up to 820 characters in context on every turn. Distributed as a Pi package.",
   "keywords": [
     "pi-package",
-    "meowpaw",
-    "method",
-    "record",
-    "chain"
+    "meowpaw"
   ],
   "license": "Apache-2.0",
   "author": {
@@ -18,14 +15,6 @@
     "type": "git",
     "url": "https://github.com/meowshed/meowpaw"
   },
-  "pi": {
-    "extensions": [
-      "extensions/method.ts"
-    ],
-    "skills": [
-      "skills"
-    ]
-  },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-ai": "*",
@@ -33,7 +22,12 @@
     "@earendil-works/pi-tui": "*",
     "typebox": "*"
   },
-  "publishConfig": {
-    "access": "public"
+  "pi": {
+    "extensions": [
+      "extensions/flow.ts"
+    ],
+    "skills": [
+      "skills"
+    ]
   }
 }

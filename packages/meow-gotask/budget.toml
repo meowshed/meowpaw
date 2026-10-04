@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What the unit keeps in context on every turn: the tasks skill's description,
+# which routes it. The budget adds about one sentence to the measured length.
+permanent_characters = 380
