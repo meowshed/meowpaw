@@ -1,7 +1,7 @@
 ---
 id: EPC-1500
 artifact: epic
-status: approved
+status: done
 revised: 2026-09-27
 realises: ADR-1520
 ---

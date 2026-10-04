@@ -1,7 +1,7 @@
 ---
 id: TSK-1730
 artifact: task
-status: approved
+status: done
 revised: 2026-09-26
 epic: EPC-1220
 closes: [REQ-0568, REQ-0569, REQ-0571, REQ-0574, REQ-0576]

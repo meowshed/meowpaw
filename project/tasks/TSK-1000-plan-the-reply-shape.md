@@ -1,7 +1,7 @@
 ---
 id: TSK-1000
 artifact: task
-status: approved
+status: done
 revised: 2026-09-21
 epic:
 closes: []

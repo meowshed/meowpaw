@@ -1,7 +1,7 @@
 ---
 id: ADR-1200
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-26
 addresses:
   [

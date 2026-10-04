@@ -1,7 +1,7 @@
 ---
 id: ADR-1500
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-27
 addresses:
   [REQ-0153, REQ-0159, REQ-0160, REQ-1759, REQ-3022, REQ-3026, REQ-3028]

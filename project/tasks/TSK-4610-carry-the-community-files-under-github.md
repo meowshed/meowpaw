@@ -1,7 +1,7 @@
 ---
 id: TSK-4610
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2510
 closes: [REQ-2214, REQ-2216]
