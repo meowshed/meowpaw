@@ -6,6 +6,8 @@
  *
  * Injects the reply shape into every model call, intercepts git and gh
  * commands for the prose gate, and resolves binary paths at session start.
+ * Shells out to the meow-prose-gate wrapper, which resolves the
+ * platform-specific meow binary at runtime.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -16,11 +18,44 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageRoot = join(__dirname, "..");
+const binDir = join(packageRoot, "bin");
+
+/** Shell out to a binary and interpret its exit code. */
+function runBinary(
+  binary: string,
+  args: string[],
+  stdinInput?: string,
+  timeout = 30_000,
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  return new Promise((resolve) => {
+    const child = execFile(binary, args, { timeout }, (error, stdout, stderr) => {
+      resolve({
+        exitCode: error ? (error as NodeJS.ErrnoException & { code?: number }).code ?? 1 : 0,
+        stdout: stdout ?? "",
+        stderr: stderr ?? "",
+      });
+    });
+    if (stdinInput !== undefined) {
+      child.stdin?.end(stdinInput);
+    } else {
+      child.stdin?.end();
+    }
+  });
+}
+
+/** Read a file relative to the Claude Code plugins directory. */
+async function readPluginFile(plugin: string, ...segments: string[]): Promise<string> {
+  const path = join(packageRoot, "..", "..", "plugins", plugin, ...segments);
+  try {
+    return await readFile(path, "utf-8");
+  } catch {
+    return "";
+  }
+}
 
 /** Commands whose published text the prose gate checks. */
 const PROSE_GATE_COMMANDS: ReadonlyArray<readonly [string, RegExp]> = [
   ["git commit", /\bgit\s+commit\b/],
-  ["git commit (amend)", /\bgit\s+commit\s+--amend\b/],
   ["git -C", /\bgit\s+-C\b/],
   ["git -c", /\bgit\s+-c\b/],
   ["gh pr create", /\bgh\s+pr\s+create\b/],
@@ -40,58 +75,14 @@ function matchesProseGate(command: string): boolean {
   return PROSE_GATE_COMMANDS.some(([, pattern]) => pattern.test(command));
 }
 
-/** Shell out to a native binary and interpret its exit code. */
-function runBinary(
-  binary: string,
-  args: string[],
-  timeout: number,
-): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-  return new Promise((resolve) => {
-    execFile(binary, args, { timeout }, (error, stdout, stderr) => {
-      resolve({
-        exitCode: error ? (error as NodeJS.ErrnoException & { code?: number }).code ?? 1 : 0,
-        stdout: stdout ?? "",
-        stderr: stderr ?? "",
-      });
-    });
-  });
-}
-
-/** Read the reply shape from the Claude Code plugin's output style. */
-async function readReplyShape(): Promise<string> {
-  const path = join(packageRoot, "..", "..", "plugins", "meow-core", "output-styles", "meow.md");
-  try {
-    return await readFile(path, "utf-8");
-  } catch {
-    return "";
-  }
-}
-
-/** Read the judge prompt fragment. */
-async function readJudgePrompt(): Promise<string> {
-  const path = join(packageRoot, "..", "..", "plugins", "meow-prose-gate", "fragments", "judge.md");
-  try {
-    return await readFile(path, "utf-8");
-  } catch {
-    return "";
-  }
-}
-
 export default function (pi: ExtensionAPI) {
   let replyShape = "";
   let judgePrompt = "";
-  let proseGateBinary = "";
 
-  /** Resolve binary paths and load prompt fragments at session start. */
+  /** Load prompt fragments at session start. */
   pi.on("session_start", async (_event, _ctx) => {
-    const platform = process.arch === "arm64" && process.platform === "darwin"
-      ? "aarch64-apple-darwin"
-      : `${process.arch}-${process.platform}`;
-
-    proseGateBinary = join(packageRoot, "bin", platform, "meow-prose-gate");
-
-    replyShape = await readReplyShape();
-    judgePrompt = await readJudgePrompt();
+    replyShape = await readPluginFile("meow-core", "output-styles", "meow.md");
+    judgePrompt = await readPluginFile("meow-prose-gate", "fragments", "judge.md");
   });
 
   /** Inject the reply shape into every model call. */
@@ -104,37 +95,34 @@ export default function (pi: ExtensionAPI) {
   /**
    * Intercept git and gh commands for the prose gate.
    *
-   * Shells out to meow-prose-gate, which checks the text for stock idioms,
-   * bold-open paragraphs and hidden text. Where the binary finds a span
-   * that might be an idiom, acronym or bold-open, the extension runs the
+   * Shells out to the meow-prose-gate wrapper, which resolves the
+   * platform-specific meow binary and runs `meow prose check`. The wrapper
+   * handles the missing-binary case gracefully (reports unrun, exits 0).
+   * Where the binary finds spans for the judge, the extension runs the
    * two-judge model call and blocks only where both judgements agree.
    */
   pi.on("user_bash", async (event, ctx) => {
     const command = typeof event.command === "string" ? event.command : "";
     if (!matchesProseGate(command)) return undefined;
 
-    // Shell out to the prose gate binary.
-    const { exitCode, stdout, stderr } = await runBinary(proseGateBinary, ["check"], 120_000);
+    const { exitCode, stdout, stderr } = await runBinary(
+      join(binDir, "meow-prose-gate"), ["check"], undefined, 120_000,
+    );
 
-    // Exit 0: the text is clean. Pass through.
+    // Exit 0: the text is clean, or the binary was missing (unrun).
     if (exitCode === 0) return undefined;
 
-    // Exit 2: the binary found a definite defect (stock idiom, hidden text).
-    // Block and feed the reason to the model.
+    // Exit 2: a definite defect (stock idiom, hidden text).
     if (exitCode === 2) {
       const reason = stderr.trim() || stdout.trim() || "Prose gate: text fails a writing rule";
       return { result: { content: reason, details: undefined } };
     }
 
-    // Non-zero with output but not exit 2: the binary found spans for the
-    // judge. Run the two-judge call and block only where both agree.
-    if (exitCode !== 0 && (stdout.trim() || stderr.trim())) {
+    // Non-zero with output: spans for the judge.
+    if (stdout.trim() || stderr.trim()) {
       const spans = stdout.trim() || stderr.trim();
 
-      if (!judgePrompt || !ctx.modelRegistry) {
-        // Cannot judge; report the finding as a warning and pass through.
-        return undefined;
-      }
+      if (!judgePrompt || !ctx.modelRegistry) return undefined;
 
       try {
         const [first, second] = await Promise.all([
@@ -155,7 +143,6 @@ export default function (pi: ExtensionAPI) {
         const firstFindings = first.text.trim();
         const secondFindings = second.text.trim();
 
-        // Both judges report a finding on the same span: block.
         if (firstFindings && secondFindings && firstFindings === secondFindings) {
           return {
             result: {
@@ -165,15 +152,13 @@ export default function (pi: ExtensionAPI) {
           };
         }
 
-        // Judges disagree or one finds nothing: pass through.
         return undefined;
       } catch {
-        // Judge call failed; do not block on a failed check.
         return undefined;
       }
     }
 
-    // Any other non-zero: block with the output as the reason.
+    // Any other non-zero: block.
     if (exitCode !== 0) {
       const reason = stderr.trim() || "Prose gate: check failed";
       return { result: { content: reason, details: undefined } };
