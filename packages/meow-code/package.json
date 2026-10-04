@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-code",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Holds how Claude Code changes code, writes a check and debugs a defect: the smallest correct change, the most precise edit, checks seen failing, and a defect reproduced before any cause is offered. It keeps up to 600 characters in context on every turn. Distributed as a Pi package.",
   "keywords": [
     "pi-package",
