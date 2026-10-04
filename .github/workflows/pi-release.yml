@@ -1,0 +1,119 @@
+# Builds and publishes the Pi packages. The meow binary is built once by the
+# existing build workflow and reused here. Each Pi package is packed with the
+# shell wrappers, the TypeScript extensions, the skills and the meow binary
+# for all six targets, then published as a GitHub release.
+
+name: Pi Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the releases; leave it off to build and pack only
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pi-release
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  release:
+    needs: build
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+      registry-packages: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BASE: https://github.com/${{ github.repository }}/releases/download
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: bin-*
+          path: bin-artifacts
+          merge-multiple: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Pack and publish each Pi package
+        run: |
+          mkdir dist
+          printf '| Package | Version | Archive | Bytes | SHA-256 |\n' > dist/notes.md
+          printf '| ------- | ------- | ------- | ----- | ------- |\n' >> dist/notes.md
+
+          for pkg in packages/pi-*; do
+            name=$(jq -r .name "$pkg/package.json")
+            version=$(jq -r .version "$pkg/package.json")
+            tag="pi-$(basename $pkg)-v$version"
+            zip="pi-$(basename $pkg)-$version.zip"
+            short=$(basename $pkg)
+
+            # Copy the meow binary for each platform into the package's bin/ dir.
+            # The build artifacts are in bin-artifacts/<triple>/meow
+            for triple in aarch64-apple-darwin x86_64-apple-darwin aarch64-unknown-linux-musl x86_64-unknown-linux-musl aarch64-pc-windows-msvc x86_64-pc-windows-msvc; do
+              mkdir -p "$pkg/bin/$triple"
+              ext=""
+              [[ "$triple" == *"-windows-"* ]] && ext=".exe"
+              if [ -f "bin-artifacts/$triple/meow$ext" ]; then
+                cp "bin-artifacts/$triple/meow$ext" "$pkg/bin/$triple/meow$ext"
+                chmod +x "$pkg/bin/$triple/meow$ext"
+              fi
+            done
+
+            # Build the TypeScript extension (jiti handles TS at runtime,
+            # but compiling catches errors early).
+            if [ -f "$pkg/tsconfig.json" ]; then
+              (cd "$pkg" && npx tsc --noEmit)
+            fi
+
+            # Pack the archive.
+            chmod +x "$pkg"/bin/* 2>/dev/null || true
+            (cd "$pkg" && zip -q -X "../dist/$zip" -r . \
+              -x "*.ts" -x "tsconfig.json" -x "node_modules/*" -x ".git/*")
+
+            sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
+            bytes=$(wc -c < "dist/$zip")
+            state="new"
+
+            # Check if this version was already released.
+            if gh release view "$tag" >/dev/null 2>&1; then
+              state="released"
+            else
+              echo "$tag" >> dist/tags
+            fi
+
+            printf '| %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$bytes" "$sha" >> dist/notes.md
+
+            # Clean up the binaries so they don't get committed.
+            for triple in aarch64-apple-darwin x86_64-apple-darwin aarch64-unknown-linux-musl x86_64-unknown-linux-musl aarch64-pc-windows-msvc x86_64-pc-windows-msvc; do
+              rm -rf "$pkg/bin/$triple"
+            done
+          done
+
+          cat dist/notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pi-release
+          path: dist/
+
+      - name: Publish
+        if: inputs.publish
+        run: |
+          touch dist/tags
+          while read -r tag; do
+            short=${tag%-v*}
+            version=${tag##*-v}
+            zip="${short}-${version}.zip"
+            gh release create "$tag" "dist/$zip" --target "$GITHUB_SHA" \
+              --title "$short $version" --notes "$(head -2 dist/notes.md; grep "^| .*${short}.* |" dist/notes.md)" --latest=false
+          done < dist/tags
