@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What this unit may load on every turn, in characters (REQ-4120): the
+# method skill, the route skill and the verify skill. Measured at 820 by
+# the budget check on 2026-10-04.
+permanent_characters = 820
