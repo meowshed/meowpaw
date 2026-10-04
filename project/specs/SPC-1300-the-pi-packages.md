@@ -22,6 +22,7 @@ states:
     REQ-4134,
     REQ-4136,
     REQ-4138,
+    REQ-4140,
   ]
 ---
 
@@ -278,6 +279,23 @@ file documents the cost for the package author and the installer.
 Eval suites remain in the `plugins/` directory and are not carried in the Pi
 packages (REQ-4124). A future extension may register a `paw eval` command
 that runs them.
+
+### The install sources
+
+A package installs from npm, which is the distribution install:
+`pi install npm:@meowshed/<unit>`. The npm tarball carries the meow-full
+binary for every platform the build workflow builds, placed in the
+package's `bin/` before packing, so an npm install copies the whole
+package and makes no request at install or load time (REQ-4140). The
+`postinstall` runs for a git-source install, where the clone obeys
+`.gitignore` and the platform directories are absent, and is a no-op
+under npm, where it finds the binary already present.
+
+A local path is the development install: it loads the package in place
+from a checkout, runs no lifecycle script, and tracks that checkout. The
+person installing that way runs `node install-meow.mjs` by hand. The
+GitHub release archives stay as the record of what shipped and as the
+download source the installer names (RES-0342).
 
 ### The layer packages
 

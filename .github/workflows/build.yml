@@ -1,6 +1,8 @@
 # Builds each unit's binary of the native tool for all six targets (SPC-1080).
-# CI runs it whenever the crate, a launcher or the build changes, and the
-# release calls it for the binaries it packs.
+# Every target builds under Linux: the musl targets natively, the darwin
+# targets through osxcross in a container, and the windows targets through
+# cargo-xwin. CI runs it whenever the crate, a launcher or the build changes,
+# and the release calls it for the binaries it packs.
 
 name: Build
 
@@ -22,32 +24,149 @@ permissions:
   contents: read
 
 jobs:
-  full:
-    name: build-full ${{ matrix.target }}
+  linux:
+    name: linux ${{ matrix.target }}
     strategy:
       fail-fast: true
       matrix:
         include:
-          - { target: aarch64-apple-darwin, os: macos-15 }
-          - { target: x86_64-apple-darwin, os: macos-15 }
           - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm }
           - { target: x86_64-unknown-linux-musl, os: ubuntu-24.04 }
-          - { target: aarch64-pc-windows-msvc, os: windows-11-arm }
-          - { target: x86_64-pc-windows-msvc, os: windows-2025 }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - if: runner.os == 'Linux'
-        run: sudo apt-get install -y musl-tools
-      # The Pi packages bundle several units in one package, so they need one
-      # binary carrying every subcommand (ADR-2790). Built once, reused in
-      # all harnesses.
-      - run: cargo build --quiet --release --manifest-path crates/meow/Cargo.toml --all-features --target ${{ matrix.target }} --target-dir target
+      - run: sudo apt-get install -y musl-tools
+      - run: crates/meow/build-units ${{ matrix.target }}
         shell: bash
-      - run: |
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build the full binary for every subcommand
+        run: |
+          cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
+            --all-features --target ${{ matrix.target }} --target-dir target
+          mkdir -p dist/${{ matrix.target }}
+          cp "target/${{ matrix.target }}/release/meow" "dist/${{ matrix.target }}/meow"
+        shell: bash
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bin-${{ matrix.target }}
+          path: plugins/*/bin/${{ matrix.target }}/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+
+  darwin:
+    name: darwin ${{ matrix.target }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            cc: aarch64-apple-darwin22.4-clang
+            cxx: aarch64-apple-darwin22.4-clang++
+            linker: aarch64-apple-darwin22.4-clang
+          - target: x86_64-apple-darwin
+            cc: x86_64-apple-darwin22.4-clang
+            cxx: x86_64-apple-darwin22.4-clang++
+            linker: x86_64-apple-darwin22.4-clang
+    runs-on: ubuntu-24.04
+    container:
+      # osxcross with the macOS SDK 22.4, which the darwin targets need to
+      # link against; pinned by digest, because the tool names carry the SDK
+      # version and an image update would break them silently. Apple's
+      # licence covers the SDK on Apple hardware, which is the trade-off
+      # ADR-2800 names.
+      image: joseluisq/rust-linux-darwin-builder@sha256:a3e69706ba273c08a23ab76be5c2d98a9075c33c2504e4fb17d36a64ae713ff2
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+      AR: llvm-ar
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup default stable && rustup target add ${{ matrix.target }}
+      # A darwin binary built here carries no signature, and macOS kills an
+      # unsigned arm64 binary on sight, so the build signs it with ldid. The
+      # static binary is fetched from a pinned release and checked against
+      # its checksum, because a signing tool is part of the supply chain.
+      - name: Install ldid
+        run: |
+          case "$(uname -m)" in
+          x86_64)
+            asset=ldid_linux_x86_64
+            sha=6e9ec33f64545b24b10648c8b3d4c5581763b9a09757168813801b81315bff8f
+            ;;
+          aarch64)
+            asset=ldid_linux_aarch64
+            sha=08aab047dc27af34627a1ab5a797d89b64579b9e92c61533aaeee5692135c2b9
+            ;;
+          *)
+            echo "no ldid asset for $(uname -m)" >&2
+            exit 1
+            ;;
+          esac
+          curl -sSL --fail -o /usr/local/bin/ldid \
+            "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus2/$asset"
+          echo "$sha  /usr/local/bin/ldid" | sha256sum -c -
+          chmod +x /usr/local/bin/ldid
+      - run: crates/meow/build-units ${{ matrix.target }}
+        shell: bash
+        env:
+          RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
+      # A binary built under Linux carries no signature, and macOS kills an
+      # unsigned arm64 binary on sight; ldid writes the ad-hoc signature the
+      # macOS linker writes on a Mac.
+      - run: find plugins/*/bin/${{ matrix.target }} -name 'meow*' -exec ldid -S {} +
+      - name: Build the full binary for every subcommand
+        run: |
+          cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
+            --all-features --target ${{ matrix.target }} --target-dir target
+          mkdir -p dist/${{ matrix.target }}
+          cp "target/${{ matrix.target }}/release/meow" "dist/${{ matrix.target }}/meow"
+          ldid -S "dist/${{ matrix.target }}/meow"
+        shell: bash
+        env:
+          RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bin-${{ matrix.target }}
+          path: plugins/*/bin/${{ matrix.target }}/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+
+  windows:
+    name: windows ${{ matrix.target }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { target: aarch64-pc-windows-msvc, os: ubuntu-24.04-arm }
+          - { target: x86_64-pc-windows-msvc, os: ubuntu-24.04 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      # cargo-xwin fetches the Windows SDK from Microsoft's own servers and
+      # links the MSVC target from Linux.
+      - run: cargo install --locked cargo-xwin
+      - run: crates/meow/build-units ${{ matrix.target }}
+        shell: bash
+      - name: Build the full binary for every subcommand
+        run: |
+          cargo xwin build --quiet --release --manifest-path crates/meow/Cargo.toml \
+            --all-features --target ${{ matrix.target }} --target-dir target
           mkdir -p dist/${{ matrix.target }}
           ext=""
           case ${{ matrix.target }} in *-windows-*) ext=.exe ;; esac
@@ -55,33 +174,11 @@ jobs:
         shell: bash
       - uses: actions/upload-artifact@v7
         with:
-          name: bin-full-${{ matrix.target }}
-          path: dist/
-          if-no-files-found: error
-  build:
-    name: build ${{ matrix.target }}
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - { target: aarch64-apple-darwin, os: macos-15 }
-          - { target: x86_64-apple-darwin, os: macos-15 }
-          - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm }
-          - { target: x86_64-unknown-linux-musl, os: ubuntu-24.04 }
-          - { target: aarch64-pc-windows-msvc, os: windows-11-arm }
-          - { target: x86_64-pc-windows-msvc, os: windows-2025 }
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - if: runner.os == 'Linux'
-        run: sudo apt-get install -y musl-tools
-      - run: crates/meow/build-units ${{ matrix.target }}
-        shell: bash
-      - uses: actions/upload-artifact@v7
-        with:
           name: bin-${{ matrix.target }}
           path: plugins/*/bin/${{ matrix.target }}/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-${{ matrix.target }}
+          path: dist/
           if-no-files-found: error

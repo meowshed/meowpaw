@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-04
 states:
   [
     REQ-0010,
@@ -150,6 +150,7 @@ states:
     REQ-2992,
     REQ-2358,
     REQ-2360,
+    REQ-4142,
   ]
 ---
 
@@ -418,7 +419,15 @@ fixtures against the launchers.
 
 CI builds all six targets with `crates/meow/build-units <target>`, the script
 the local build runs, on every pull request and push that changes the crate, a
-unit's launcher or the build. A person runs the release workflow by hand, and
+unit's launcher or the build. Every target builds under Linux: the two musl
+targets natively on their matching runners, the two darwin targets through
+osxcross in a container, and the two windows targets through cargo-xwin,
+which fetches the Windows SDK from Microsoft's servers. A darwin binary
+built this way carries no signature, so CI writes the ad-hoc signature with
+`ldid` before packing, and the installer signs again with `codesign` after
+download, because macOS kills an unsigned arm64 binary on sight and a
+person who places a binary by hand bypasses both. A person
+runs the release workflow by hand, and
 it calls that same build. It packs
 each unit whose version has no release yet as a zip of the unit's tracked files
 and its binaries, and publishes it as a release tagged `<unit>-v<version>`, so
