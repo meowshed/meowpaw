@@ -71,9 +71,13 @@ jobs:
           - target: aarch64-apple-darwin
             cc: aa64-clang
             cxx: aa64-clang++
+            ldid: ldid_linux_aarch64
+            ldid_sha: 0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5
           - target: x86_64-apple-darwin
             cc: o64-clang
             cxx: o64-clang++
+            ldid: ldid_linux_x86_64
+            ldid_sha: 6e9ec33f64545b24b10648c8b3d4c5581763b9a09757168813801b81315bff8f
     runs-on: ubuntu-24.04
     container:
       # osxcross with the macOS SDK, which the darwin targets need to link
@@ -87,10 +91,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: rustup default stable && rustup target add ${{ matrix.target }}
-      - run: apt-get update && apt-get install -y ldid
-        if: runner.os == 'Linux'
-      - run: sudo apt-get update && sudo apt-get install -y ldid
-        if: runner.os == 'Linux'
+      # A darwin binary built here carries no signature, and macOS kills an
+      # unsigned arm64 binary on sight, so the build signs it with ldid. The
+      # static binary is fetched from a pinned release and checked against
+      # its checksum, because a signing tool is part of the supply chain.
+      - name: Install ldid
+        run: |
+          curl -sSL --fail -o /usr/local/bin/ldid \
+            "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus2/${{ matrix.ldid }}"
+          echo "${{ matrix.ldid_sha }}  /usr/local/bin/ldid" | sha256sum -c -
+          chmod +x /usr/local/bin/ldid
       - run: crates/meow/build-units ${{ matrix.target }}
         shell: bash
         env:
