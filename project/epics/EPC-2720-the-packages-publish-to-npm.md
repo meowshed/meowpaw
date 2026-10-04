@@ -46,7 +46,8 @@ A task is marked in the commit that advances it, never in a later pass.
 ## Tasks
 
 - [ ] T-001 TSK-5209 publish the packages to npm and verify the install
-      closes: REQ-4140
+      closes: none; its original closes was REQ-4140, which ADR-2810 withdrew
+      after this epic approved
 - [x] T-002 TSK-5210 build every target under Linux
       closes: REQ-4142
 
@@ -61,6 +62,9 @@ the install they are verified from are one observable result.
 
 ## Not covered
 
-The npm account and the `NPM_TOKEN` secret, which a person holds and sets
-once. Whether the packs ship to npm before the layers do, which the same
-task answers by publishing all six or none.
+REQ-4140, withdrawn by ADR-2810 after this epic approved: the core
+package alone carries the meow binary, and REQ-4144 states what holds in
+its place, closed by TSK-5212 under EPC-2730. The npm account and
+the `NPM_TOKEN` secret, which a person holds and sets once. Whether the
+packs ship to npm before the layers do, which the same task answers by
+publishing all six or none.
