@@ -60,12 +60,12 @@ cost without ensuring completed records ever adopt it.
 
 ## Alternatives
 
-| Option                                | Better at                                      | Why it lost                                                        |
-| ------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------ |
-| Checked `done` claim in both directions | Visible records without an independent truth | Chosen                                                             |
-| Keep completion derived only          | No migration and no possible metadata drift   | The Markdown record still does not state that its work is complete |
-| Make stored `done` authoritative      | A single file answers without loading the tree | A stale field can close work whose marks or Evidence remain open   |
-| Check only a written `done` claim     | Existing records need no migration             | Derived-complete records may omit the field forever                |
+| Option                                  | Better at                                      | Why it lost                                                        |
+| --------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------ |
+| Checked `done` claim in both directions | Visible records without an independent truth   | Chosen                                                             |
+| Keep completion derived only            | No migration and no possible metadata drift    | The Markdown record still does not state that its work is complete |
+| Make stored `done` authoritative        | A single file answers without loading the tree | A stale field can close work whose marks or Evidence remain open   |
+| Check only a written `done` claim       | Existing records need no migration             | Derived-complete records may omit the field forever                |
 
 ## What it costs
 

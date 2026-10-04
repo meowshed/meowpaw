@@ -316,15 +316,15 @@ was `approved` at `<rev>`, through git, and compares it with the current file
 its approval (REQ-0396, REQ-0398, REQ-0626, REQ-0630, REQ-0635), unless it is
 one its kind allows:
 
-| Kind            | May change after approval                                                                                                                                                  |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| task            | its `## Evidence` and `## Left alone` sections and its `issue` and `projected` fields, because the implement step and the tracker projection write them after approval     |
-| epic            | its first `## Tasks` section, where an entry added after approval and its `added:` line are written, and the marks of an epic approved with them (REQ-0634)                |
-| defect          | its first `## Tasks` and `## Closed by` sections and its `issue` (ADR-1440)                                                                                                |
-| every record    | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652); a record still carrying one is compared whole |
-| every record    | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic                 |
-| decision, epic or task | only its status from `approved` to `done`; it remains frozen and any other change is checked independently (REQ-0594)                                                |
-| living document | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                                             |
+| Kind                   | May change after approval                                                                                                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| task                   | its `## Evidence` and `## Left alone` sections and its `issue` and `projected` fields, because the implement step and the tracker projection write them after approval     |
+| epic                   | its first `## Tasks` section, where an entry added after approval and its `added:` line are written, and the marks of an epic approved with them (REQ-0634)                |
+| defect                 | its first `## Tasks` and `## Closed by` sections and its `issue` (ADR-1440)                                                                                                |
+| every record           | the removal of a field or a section the layout retired, which is a change of format and not of what was approved (REQ-3652); a record still carrying one is compared whole |
+| every record           | its status to `withdrawn` or `superseded`, and any change that adds a line naming its authority: `Amended by` or `Corrected by` a decision, defect or epic                 |
+| decision, epic or task | only its status from `approved` to `done`; it remains frozen and any other change is checked independently (REQ-0594)                                                      |
+| living document        | anything: the vision, a specification and an index are never frozen (REQ-0622)                                                                                             |
 
 An insight is a record like any other, so its whole file is frozen once
 approved, and a later lesson on the same subject is a new insight that cites
