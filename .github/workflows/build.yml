@@ -72,7 +72,7 @@ jobs:
             cc: aa64-clang
             cxx: aa64-clang++
             ldid: ldid_linux_aarch64
-            ldid_sha: 0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5
+            ldid_sha: 08aab047dc27af34627a1ab5a797d89b64579b9e92c61533aaeee5692135c2b9
           - target: x86_64-apple-darwin
             cc: o64-clang
             cxx: o64-clang++
