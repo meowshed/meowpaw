@@ -10,11 +10,15 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const binDir = join(__dirname, "..", "bin");
+// The scm launcher lives in the sibling meow-scm package, and the git
+// binary looks for it beside itself or at MEOW_SCM (REQ-4144).
+const scmLauncher = join(__dirname, "..", "..", "meow-scm", "bin", "meow-scm");
 
 function runGuard(
   binary: string,
@@ -39,6 +43,9 @@ const GIT_PUSH_PATTERN = /\bgit\s+push\b/;
 
 export default async function (pi: ExtensionAPI) {
   process.env.PATH = `${binDir}:${process.env.PATH ?? ""}`;
+  if (existsSync(scmLauncher)) {
+    process.env.MEOW_SCM = scmLauncher;
+  }
 
   pi.on("tool_call", async (event, _ctx) => {
     if (event.toolName !== "bash") return undefined;
