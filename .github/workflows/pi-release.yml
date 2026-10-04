@@ -111,6 +111,7 @@ jobs:
       - name: Pack the GitHub release archives
         run: |
           mkdir dist
+          dist=$(pwd)/dist
           printf '| Package | Version | npm | Archive | Bytes | SHA-256 |\n' > dist/notes.md
           printf '| ------- | ------- | --- | ------- | ----- | ------- |\n' >> dist/notes.md
           for pkg in packages/meow-*/; do
@@ -121,7 +122,7 @@ jobs:
             zip="$short-pi-$version.zip"
 
             chmod +x "$pkg"/bin/* 2>/dev/null || true
-            (cd "$pkg" && zip -q -X "../dist/$zip" -r . \
+            (cd "$pkg" && zip -q -X "$dist/$zip" -r . \
               -x "bin/*-*/" -x "node_modules/*" -x ".git/*")
 
             sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
