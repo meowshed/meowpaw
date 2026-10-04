@@ -1,7 +1,7 @@
 ---
 id: TSK-2140
 artifact: task
-status: approved
+status: done
 revised: 2026-09-27
 epic: EPC-1390
 closes: [REQ-2908]

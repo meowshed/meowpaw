@@ -1,7 +1,7 @@
 ---
 id: TSK-2220
 artifact: task
-status: approved
+status: done
 revised: 2026-09-27
 epic: EPC-1440
 closes: [REQ-1072, REQ-1074]

@@ -1,7 +1,7 @@
 ---
 id: ADR-1470
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-27
 addresses: [REQ-0139, REQ-0141, REQ-0143, REQ-0161]
 supersedes: []

@@ -1,7 +1,7 @@
 ---
 id: ADR-1060
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-23
 addresses: [REQ-0077]
 supersedes: []

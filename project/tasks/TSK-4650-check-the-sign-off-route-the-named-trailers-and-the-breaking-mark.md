@@ -1,7 +1,7 @@
 ---
 id: TSK-4650
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2530
 closes: [REQ-2206, REQ-2208, REQ-2210, REQ-2212]

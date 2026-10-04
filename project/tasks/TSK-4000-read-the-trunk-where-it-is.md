@@ -1,7 +1,7 @@
 ---
 id: TSK-4000
 artifact: task
-status: approved
+status: done
 revised: 2026-09-30
 bug: BUG-1370
 closes: []

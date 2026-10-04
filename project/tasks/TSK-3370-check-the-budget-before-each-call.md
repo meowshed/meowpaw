@@ -1,7 +1,7 @@
 ---
 id: TSK-3370
 artifact: task
-status: approved
+status: done
 revised: 2026-09-30
 epic: EPC-1910
 closes: [REQ-0870, REQ-0876, REQ-0878]

@@ -1,7 +1,7 @@
 ---
 id: ADR-1700
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-29
 addresses:
   [REQ-2972, REQ-2974, REQ-2976, REQ-2982, REQ-2984, REQ-2988, REQ-3270]

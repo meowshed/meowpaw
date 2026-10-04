@@ -1,7 +1,7 @@
 ---
 id: EPC-1910
 artifact: epic
-status: approved
+status: done
 revised: 2026-09-30
 realises: ADR-2010
 ---

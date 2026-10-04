@@ -1,7 +1,7 @@
 ---
 id: TSK-4050
 artifact: task
-status: approved
+status: done
 revised: 2026-10-02
 bug: BUG-1390
 closes: []

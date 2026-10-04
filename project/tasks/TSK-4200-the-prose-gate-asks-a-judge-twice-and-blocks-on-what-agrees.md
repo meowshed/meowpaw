@@ -1,7 +1,7 @@
 ---
 id: TSK-4200
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2390
 closes: [REQ-3740, REQ-3742, REQ-3744, REQ-3746, REQ-3748, REQ-3750, REQ-3752]

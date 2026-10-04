@@ -1,7 +1,7 @@
 ---
 id: TSK-1040
 artifact: task
-status: approved
+status: done
 revised: 2026-09-21
 epic: EPC-1000
 closes: [REQ-0931]

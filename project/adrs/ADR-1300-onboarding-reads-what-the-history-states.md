@@ -1,7 +1,7 @@
 ---
 id: ADR-1300
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-26
 addresses: [REQ-3110, REQ-3112, REQ-3128]
 supersedes: []

@@ -1,7 +1,7 @@
 ---
 id: TSK-2010
 artifact: task
-status: approved
+status: done
 revised: 2026-09-26
 epic: EPC-1330
 closes: [REQ-0325]

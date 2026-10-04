@@ -1,7 +1,7 @@
 ---
 id: TSK-1610
 artifact: task
-status: approved
+status: done
 revised: 2026-09-26
 epic: EPC-1170
 closes: [REQ-0390, REQ-0400]

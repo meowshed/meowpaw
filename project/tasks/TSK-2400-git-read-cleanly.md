@@ -1,7 +1,7 @@
 ---
 id: TSK-2400
 artifact: task
-status: approved
+status: done
 revised: 2026-09-27
 epic: EPC-1540
 closes: [REQ-2522, REQ-2524, REQ-2540]
