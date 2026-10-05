@@ -23,8 +23,12 @@ esac
 binary="$here/$cpu-$system/meow$exe"
 if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
-  MEOW_LAYOUT="$here/../lib/layout.toml"
-  export MEOW_LAYOUT
+  # A layout the caller named wins, because a test or a script pointing at
+  # another layout is asking the binary about that layout, not about this one.
+  if [ -z "$MEOW_LAYOUT" ]; then
+    MEOW_LAYOUT="$here/../lib/layout.toml"
+    export MEOW_LAYOUT
+  fi
   exec "$binary" record "$@"
 fi
 

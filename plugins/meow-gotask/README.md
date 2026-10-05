@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-gotask
 answers: what meow-gotask does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-gotask@0.2.0]
+describes: [meow-gotask@0.2.2]
 ---
 
 # meow-gotask

@@ -216,8 +216,21 @@ class Fixture:
         subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True, env=self.env())
 
     def start(self, terms=None, cwd=None, env=None, **more):
-        done = subprocess.run([str(BIN), "start", *(TERMS if terms is None else terms)], cwd=cwd or self.root,
-                              env=env or self.env(**more), capture_output=True, text=True, timeout=120)
+        # The output lands in files, not pipes: a run the timeout kills leaves a
+        # call still running, and a pipe that call inherited never closes, which
+        # hangs the drain in place of a failed assertion.
+        out = tempfile.TemporaryFile()
+        err = tempfile.TemporaryFile()
+        try:
+            done = subprocess.run([str(BIN), "start", *(TERMS if terms is None else terms)], cwd=cwd or self.root,
+                                  env=env or self.env(**more), stdout=out, stderr=err, timeout=600)
+            out.seek(0)
+            err.seek(0)
+            done.stdout = out.read().decode(errors="replace")
+            done.stderr = err.read().decode(errors="replace")
+        finally:
+            out.close()
+            err.close()
         return done
 
     def calls(self):
