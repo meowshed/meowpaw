@@ -272,7 +272,7 @@ class Check(Fixture):
 
     def test_the_skill_forbids_writing_a_remote_include(self):
         """REQ-2487: the harness never authors one."""
-        skill = (UNIT / "skills" / "tasks" / "SKILL.md").read_text(encoding="utf-8")
+        skill = (UNIT / "skills" / "gotask" / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("Never write an include whose `taskfile` names a URL", skill)
 
 

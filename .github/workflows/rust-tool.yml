@@ -35,8 +35,8 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm }
-          - { target: x86_64-unknown-linux-musl, os: ubuntu-24.04 }
+          - { target: aarch64-unknown-linux-musl, os: ubuntu-26.04-arm }
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-26.04 }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -44,15 +44,19 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - run: sudo apt-get install -y musl-tools
-      - run: crates/meow/build-units ${{ matrix.target }}
+      - run: crates/meow/build-units "$BUILD_TARGET"
         shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
       - name: Build the full binary for every subcommand
         run: |
           cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
-            --all-features --target ${{ matrix.target }} --target-dir target
-          mkdir -p dist/${{ matrix.target }}
-          cp "target/${{ matrix.target }}/release/meow" "dist/${{ matrix.target }}/meow"
+            --all-features --target "$BUILD_TARGET" --target-dir target
+          mkdir -p "dist/$BUILD_TARGET"
+          cp "target/$BUILD_TARGET/release/meow" "dist/$BUILD_TARGET/meow"
         shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
       - uses: actions/upload-artifact@v7
         with:
           name: bin-${{ matrix.target }}
@@ -78,7 +82,7 @@ jobs:
             cc: x86_64-apple-darwin22.4-clang
             cxx: x86_64-apple-darwin22.4-clang++
             linker: x86_64-apple-darwin22.4-clang
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       # osxcross with the macOS SDK 22.4, which the darwin targets need to
       # link against; pinned by digest, because the tool names carry the SDK
@@ -88,7 +92,9 @@ jobs:
       image: joseluisq/rust-linux-darwin-builder@sha256:a3e69706ba273c08a23ab76be5c2d98a9075c33c2504e4fb17d36a64ae713ff2
     steps:
       - uses: actions/checkout@v7
-      - run: rustup default stable && rustup target add ${{ matrix.target }}
+      - run: rustup default stable && rustup target add "$BUILD_TARGET"
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
       - name: Install ldid
         run: |
           case "$(uname -m)" in
@@ -109,20 +115,22 @@ jobs:
             "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus2/$asset"
           echo "$sha  /usr/local/bin/ldid" | sha256sum -c -
           chmod +x /usr/local/bin/ldid
-      - run: crates/meow/build-units ${{ matrix.target }}
+      - run: crates/meow/build-units "$BUILD_TARGET"
         shell: bash
         env:
+          BUILD_TARGET: ${{ matrix.target }}
           RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
-      - run: find plugins/*/bin/${{ matrix.target }} -name 'meow*' -exec ldid -S {} +
+      - run: find plugins/*/bin/"$BUILD_TARGET" -name 'meow*' -exec ldid -S {} +
       - name: Build the full binary for every subcommand
         run: |
           cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
-            --all-features --target ${{ matrix.target }} --target-dir target
-          mkdir -p dist/${{ matrix.target }}
-          cp "target/${{ matrix.target }}/release/meow" "dist/${{ matrix.target }}/meow"
-          ldid -S "dist/${{ matrix.target }}/meow"
+            --all-features --target "$BUILD_TARGET" --target-dir target
+          mkdir -p "dist/$BUILD_TARGET"
+          cp "target/$BUILD_TARGET/release/meow" "dist/$BUILD_TARGET/meow"
+          ldid -S "dist/$BUILD_TARGET/meow"
         shell: bash
         env:
+          BUILD_TARGET: ${{ matrix.target }}
           RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
       - uses: actions/upload-artifact@v7
         with:
@@ -141,8 +149,8 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - { target: aarch64-pc-windows-msvc, os: ubuntu-24.04-arm }
-          - { target: x86_64-pc-windows-msvc, os: ubuntu-24.04 }
+          - { target: aarch64-pc-windows-msvc, os: ubuntu-26.04-arm }
+          - { target: x86_64-pc-windows-msvc, os: ubuntu-26.04 }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -150,17 +158,21 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - run: cargo install --locked cargo-xwin
-      - run: crates/meow/build-units ${{ matrix.target }}
+      - run: crates/meow/build-units "$BUILD_TARGET"
         shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
       - name: Build the full binary for every subcommand
         run: |
           cargo xwin build --quiet --release --manifest-path crates/meow/Cargo.toml \
-            --all-features --target ${{ matrix.target }} --target-dir target
-          mkdir -p dist/${{ matrix.target }}
+            --all-features --target "$BUILD_TARGET" --target-dir target
+          mkdir -p "dist/$BUILD_TARGET"
           ext=""
-          case ${{ matrix.target }} in *-windows-*) ext=.exe ;; esac
-          cp "target/${{ matrix.target }}/release/meow$ext" "dist/${{ matrix.target }}/meow$ext"
+          case "$BUILD_TARGET" in *-windows-*) ext=.exe ;; esac
+          cp "target/$BUILD_TARGET/release/meow$ext" "dist/$BUILD_TARGET/meow$ext"
         shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
       - uses: actions/upload-artifact@v7
         with:
           name: bin-${{ matrix.target }}
