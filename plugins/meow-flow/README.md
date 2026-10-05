@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.46.4]
+describes: [meow-flow@0.47.0]
 ---
 
 # meow-flow
@@ -64,6 +64,13 @@ root = "project"
 folder or to another repository's checkout. Where you declare none, the record
 is at `project/`.
 
+Each `paw` command that reads the record, except the session-start
+`paw status --waiting`, prints the profile's state on standard error, `profile: absent`, `profile: unparseable` or
+`profile: parsed`, and then `unknown key: <path>` for each key no unit reads.
+It goes to standard error because standard output is what a step reads, such
+as a template or an identifier. An unparseable profile stops the command with
+the parser's message, and an unknown key changes no exit status.
+
 ## Run the method
 
 Type `/meow-flow:run` to be taken to the next approval gate. It reads where
@@ -91,6 +98,11 @@ To run one step yourself, ask for it by name, such as "run the design step for
 | `epic`         | an approved decision or defect | an epic and its tasks       |
 | `implement`    | an approved task               | the change and its evidence |
 | `review`       | the task's pull request        | findings, fixed in it       |
+
+Where a decision adds a security-relevant boundary, the design step also
+updates the threat model your specification keeps, so the new threats are
+ranked among those it already lists. Where your specification keeps none, the
+decision says so.
 
 A task's pull request carries the whole task: its tests first, in a commit of
 their own where they fail, then the implementation, the documentation it
@@ -138,7 +150,7 @@ paw ready implement: not ready
 ```
 
 `paw ready implement` asks that of a task: the task and its epic, defect or
-decision approved, and each task under its `## Depends on` done. It also
+decision approved or done, and each task under its `## Depends on` done. It also
 refuses a task that isn't approved on the trunk you declare under `[git] trunk`
 yet, on its local branch or its branch on a remote, because an approval on an unmerged branch still waits on its merge, and
 `paw status` shows that task as waiting. Where you declare no trunk, the
@@ -150,7 +162,9 @@ repository. The remotes it reads are the one the trunk's branch tracks,
 `origin`, and the only remote where you have one, and on each it reads the
 branch of the trunk's name. A decision
 one task realises needs no epic: the task names `realises: ADR-NNNN` in place
-of `epic:`, and it is done once its Evidence is written.
+of `epic:`, and it derives completion once its Evidence is written. A decision,
+epic or task stores `status: done` in the same change, and `paw check` rejects
+either a false `done` claim or derived completion left at `approved`.
 
 `paw status` prints where the record stands, leading with whatever waits for
 your approval. For an epic with open tasks it names the first task it can
@@ -175,7 +189,14 @@ artifact, which is how an approved artifact's suspect citations are reported.
 `paw count` prints each kind's number of artifacts by status and the number of
 identifiers, which a migration runs before and after to show it lost nothing.
 `paw find <word>...` lists the artifacts whose identifier, title or conclusion
-carry the words, headings only and at most twenty. `paw new <kind> [--topic
+carry the words, headings only and at most twenty. Its first line,
+`exhaustive: read <n> artifacts`, says it read every artifact, so a miss
+means no artifact's identifier, title or conclusion carries the words. A
+conclusion is a requirement's statement, the first sentence of a research
+record's Summary, and otherwise the title, so a word elsewhere in a document
+needs a search of the files. Each hit ends with its file and `front matter`
+or the section it matched in, and the last line, `artifacts matched: <n>`,
+counts the artifacts past the twentieth too. `paw new <kind> [--topic
 <topic>]` prints the next identifier to allocate, never one any file already
 carries. `paw index <kind> --write` regenerates a kind's index between its
 `<!-- meow-flow index -->` markers, and `check index` reports one that has
@@ -219,7 +240,7 @@ every rule of its kind, and an approved record to the rules it was approved
 under, because an approved record is frozen:
 
 ```text
-project/tasks/TSK-0001-a-task.md:4: status done is not one a task stores: draft, approved, withdrawn, rejected, superseded
+project/bugs/BUG-0001-a-defect.md:4: status done is not one a defect stores: draft, approved, withdrawn, rejected, superseded
 front-matter: 1 finding
 identifiers: 0 findings
 relations: 0 findings
@@ -231,7 +252,7 @@ rules: 0 findings
 
 | Check          | Reports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `front-matter` | A field the kind requires that's missing, a field the kind forbids, a status the kind doesn't store, a bad `revised`; a retired field or status, which `lib/layout.toml` lists with what replaced it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `front-matter` | A field the kind requires that's missing, a field the kind forbids, a status the kind doesn't store, a bad `revised`; a retired field or status, which `lib/layout.toml` lists with what replaced it; a decision, epic or task whose stored `done` disagrees with derived completion                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `identifiers`  | A file whose name and `id` disagree, an identifier used twice, a cited requirement not found                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `relations`    | An identifier in a relation field with no file, one in a draft's prose outside code, and a link in the record to a missing file; a suspect citation in a draft or living artifact, one whose target was revised after it, or an epic or defect it cites that is withdrawn or superseded                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `index`        | A file its kind's index doesn't list, and an index entry with no file; a specification listed before one it cites                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |

@@ -1,0 +1,234 @@
+# Builds the native tool and publishes its meow-full release. This is the
+# one workflow that compiles Rust: the plugin releases fetch its artifacts
+# instead of rebuilding, so a plugin change starts no build (ADR-2810). The
+# six targets build under Linux: the musl targets natively, the darwin
+# targets through osxcross, and the windows targets through cargo-xwin.
+
+name: Rust Tool
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - crates/**
+      - .github/workflows/rust-tool.yml
+    tags:
+      - "meow-full-v*"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the meow-full release
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-tool
+  cancel-in-progress: false
+
+jobs:
+  linux:
+    name: linux ${{ matrix.target }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { target: aarch64-unknown-linux-musl, os: ubuntu-24.04-arm }
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-24.04 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: sudo apt-get install -y musl-tools
+      - run: crates/meow/build-units "$BUILD_TARGET"
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+      - name: Build the full binary for every subcommand
+        run: |
+          cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
+            --all-features --target "$BUILD_TARGET" --target-dir target
+          mkdir -p "dist/$BUILD_TARGET"
+          cp "target/$BUILD_TARGET/release/meow" "dist/$BUILD_TARGET/meow"
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bin-${{ matrix.target }}
+          path: plugins/*/bin/${{ matrix.target }}/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+
+  darwin:
+    name: darwin ${{ matrix.target }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            cc: aarch64-apple-darwin22.4-clang
+            cxx: aarch64-apple-darwin22.4-clang++
+            linker: aarch64-apple-darwin22.4-clang
+          - target: x86_64-apple-darwin
+            cc: x86_64-apple-darwin22.4-clang
+            cxx: x86_64-apple-darwin22.4-clang++
+            linker: x86_64-apple-darwin22.4-clang
+    runs-on: ubuntu-24.04
+    container:
+      # osxcross with the macOS SDK 22.4, which the darwin targets need to
+      # link against; pinned by digest, because the tool names carry the SDK
+      # version and an image update would break them silently. Apple's
+      # licence covers the SDK on Apple hardware, which is the trade-off
+      # ADR-2800 names.
+      image: joseluisq/rust-linux-darwin-builder@sha256:a3e69706ba273c08a23ab76be5c2d98a9075c33c2504e4fb17d36a64ae713ff2
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup default stable && rustup target add "$BUILD_TARGET"
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+      - name: Install ldid
+        run: |
+          case "$(uname -m)" in
+          x86_64)
+            asset=ldid_linux_x86_64
+            sha=6e9ec33f64545b24b10648c8b3d4c5581763b9a09757168813801b81315bff8f
+            ;;
+          aarch64)
+            asset=ldid_linux_aarch64
+            sha=08aab047dc27af34627a1ab5a797d89b64579b9e92c61533aaeee5692135c2b9
+            ;;
+          *)
+            echo "no ldid asset for $(uname -m)" >&2
+            exit 1
+            ;;
+          esac
+          curl -sSL --fail -o /usr/local/bin/ldid \
+            "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus2/$asset"
+          echo "$sha  /usr/local/bin/ldid" | sha256sum -c -
+          chmod +x /usr/local/bin/ldid
+      - run: crates/meow/build-units "$BUILD_TARGET"
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+          RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
+      - run: find plugins/*/bin/"$BUILD_TARGET" -name 'meow*' -exec ldid -S {} +
+      - name: Build the full binary for every subcommand
+        run: |
+          cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
+            --all-features --target "$BUILD_TARGET" --target-dir target
+          mkdir -p "dist/$BUILD_TARGET"
+          cp "target/$BUILD_TARGET/release/meow" "dist/$BUILD_TARGET/meow"
+          ldid -S "dist/$BUILD_TARGET/meow"
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+          RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bin-${{ matrix.target }}
+          path: plugins/*/bin/${{ matrix.target }}/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+
+  windows:
+    name: windows ${{ matrix.target }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { target: aarch64-pc-windows-msvc, os: ubuntu-24.04-arm }
+          - { target: x86_64-pc-windows-msvc, os: ubuntu-24.04 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: cargo install --locked cargo-xwin
+      - run: crates/meow/build-units "$BUILD_TARGET"
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+      - name: Build the full binary for every subcommand
+        run: |
+          cargo xwin build --quiet --release --manifest-path crates/meow/Cargo.toml \
+            --all-features --target "$BUILD_TARGET" --target-dir target
+          mkdir -p "dist/$BUILD_TARGET"
+          ext=""
+          case "$BUILD_TARGET" in *-windows-*) ext=.exe ;; esac
+          cp "target/$BUILD_TARGET/release/meow$ext" "dist/$BUILD_TARGET/meow$ext"
+        shell: bash
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bin-${{ matrix.target }}
+          path: plugins/*/bin/${{ matrix.target }}/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    needs: [linux, darwin, windows]
+    if: ${{ startsWith(github.ref, 'refs/tags/') || inputs.publish }}
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve the version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/meow-full-v* ]]; then
+            echo "full_version=${GITHUB_REF_NAME#meow-full-v}" >> "$GITHUB_ENV"
+          else
+            echo "full_version=0.1.0" >> "$GITHUB_ENV"
+          fi
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: full-*
+          path: bin-full
+          merge-multiple: false
+      - name: Publish the meow-full release, one binary for every platform
+        run: |
+          tag="meow-full-v$full_version"
+          mkdir -p dist-full
+          # The full artifacts hold their meow under a directory named for
+          # the triple, whatever depth the artifact layout adds above it.
+          find bin-full -type f -name 'meow*' | while read -r f; do
+            triple=$(basename "$(dirname "$f")")
+            case $triple in full-*) triple=${triple#full-} ;; esac
+            ext=""
+            case $triple in *-windows-*) ext=.exe ;; esac
+            cp "$f" "dist-full/meow-$triple$ext"
+          done
+          ls dist-full
+          (cd dist-full && zip -q -X "../meow-full-$full_version.zip" ./*)
+          sha=$(sha256sum "meow-full-$full_version.zip" | cut -d' ' -f1)
+          notes="The one meow binary with every subcommand, built for six platforms. The core Pi package carries it; the core installer downloads it for a git-source install. SHA-256: \`$sha\`"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "meow-full-$full_version.zip" --clobber
+            gh release edit "$tag" --notes "$notes"
+          else
+            gh release create "$tag" "meow-full-$full_version.zip" \
+              --target "$GITHUB_SHA" \
+              --title "meow-full $full_version" \
+              --notes "$notes"
+          fi

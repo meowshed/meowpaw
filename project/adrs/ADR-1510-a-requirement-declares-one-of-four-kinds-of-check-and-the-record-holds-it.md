@@ -1,7 +1,7 @@
 ---
 id: ADR-1510
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-27
 addresses: [REQ-1664]
 supersedes: []

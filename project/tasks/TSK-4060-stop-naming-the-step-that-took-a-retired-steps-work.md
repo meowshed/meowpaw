@@ -1,7 +1,7 @@
 ---
 id: TSK-4060
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2350
 closes: [REQ-3004]

@@ -1,7 +1,7 @@
 ---
 id: TSK-2070
 artifact: task
-status: approved
+status: done
 revised: 2026-09-27
 epic: EPC-1360
 closes:

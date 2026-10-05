@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# What this unit may load on every turn, in characters (REQ-1056): the method
+# skill's description, which routes it, the route skill's, which routes each
+# request before work starts, and the router agent's, which the route skill
+# dispatches. The driver is a command only a person invokes, so the platform
+# doesn't list it. Measured at 818 by the budget check on 2026-09-30, once the
+# method skill named seven steps and the record reviewer left.
+permanent_characters = 820

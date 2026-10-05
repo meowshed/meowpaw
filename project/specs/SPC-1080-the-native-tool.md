@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-04
 states:
   [
     REQ-0010,
@@ -20,6 +20,21 @@ states:
     REQ-0036,
     REQ-0038,
     REQ-0040,
+    REQ-1364,
+    REQ-1366,
+    REQ-1370,
+    REQ-1390,
+    REQ-1398,
+    REQ-2562,
+    REQ-2570,
+    REQ-2584,
+    REQ-2586,
+    REQ-2588,
+    REQ-2824,
+    REQ-3800,
+    REQ-3900,
+    REQ-3902,
+    REQ-4000,
     REQ-0074,
     REQ-0076,
     REQ-1186,
@@ -135,6 +150,9 @@ states:
     REQ-2992,
     REQ-2358,
     REQ-2360,
+    REQ-4142,
+    REQ-4146,
+    REQ-4148,
   ]
 ---
 
@@ -194,6 +212,9 @@ codes the units share are one module every feature uses.
 
 ### The profile
 
+The profile is TOML and permits comments before, beside and after its values
+(REQ-3800).
+
 The tool reads `.meowpaw/profile.toml` at the repository root, which is the top
 of the version control working tree it runs in, or the current directory where
 there is none, and never from a directory above the root (REQ-2940). Every
@@ -210,7 +231,34 @@ The table of keys is one list in `crates/meow/src/profile.rs`. Each entry names
 a key, such as `verbs.test` or `commits.types`, and the reason nothing else
 answers it: the ecosystem doesn't declare it, the platform doesn't own it, it
 isn't prose, and detection can't produce it (REQ-2950). A pull request that
-adds a key adds its entry, and a test fails on an entry with no reason.
+adds a key adds its entry, and a test fails on an entry with no reason. A key
+is known when an entry names its path or a path below it, so `[verbs.test]`
+is known through `verbs.test.command`. The keys below an entry with nothing
+listed below it, such as each type under `commits.types`, are the
+repository's own names, and the tool doesn't check them.
+
+The report is these lines, each kind opening with its own first word:
+
+```text
+profile: unparseable
+profile error: line 3: unclosed table, expected `]`
+```
+
+```text
+profile: parsed
+unknown key: verbs.tset
+```
+
+A unit whose output already prefixes each line with its command, such as
+`meow-git push-guard:`, prefixes these lines the same way. `paw` and
+`meow-markdown bind` print them on standard error, because their standard
+output is what a step reads or a person pastes, such as a template, an
+identifier or a table for the profile.
+Two hooks print nothing about the profile. `meow-loop`'s guard judges each tool
+call during a run, and a line on every call would bury the refusals it exists
+to make. `paw status --waiting` runs at the start of every session and says
+nothing unless something waits, so a repository with no record
+pays nothing for it.
 
 A repository declares its parts in the root profile under `[parts]`, one
 entry a part, naming the part and its directory, because only the project
@@ -295,6 +343,11 @@ marked breaking (ADR-2490, ADR-2720).
 
 ### The checks the crate passes
 
+The record check reports an approved requirement that no approved decision
+addresses or postpones, and an approved addressing decision with no approved
+epic or direct task (REQ-3900, REQ-3902). A decision that only postpones work
+needs no implementation plan.
+
 This repository's five verbs check the crate as they check every other file
 it ships, so evidence kept from the verbs covers the code every unit runs
 (REQ-1186). Each verb runs a task in `mise.toml`, and the gate's `all` task
@@ -368,11 +421,25 @@ fixtures against the launchers.
 
 CI builds all six targets with `crates/meow/build-units <target>`, the script
 the local build runs, on every pull request and push that changes the crate, a
-unit's launcher or the build. A person runs the release workflow by hand, and
+unit's launcher or the build. Every target builds under Linux: the two musl
+targets natively on their matching runners, the two darwin targets through
+osxcross in a container, and the two windows targets through cargo-xwin,
+which fetches the Windows SDK from Microsoft's servers. A darwin binary
+built this way carries no signature, so CI writes the ad-hoc signature with
+`ldid` before packing, and the installer signs again with `codesign` after
+download, because macOS kills an unsigned arm64 binary on sight and a
+person who places a binary by hand bypasses both. A person
+runs the release workflow by hand, and
 it calls that same build. It packs
 each unit whose version has no release yet as a zip of the unit's tracked files
 and its binaries, and publishes it as a release tagged `<unit>-v<version>`, so
-each unit carries its own version (REQ-0074). A unit whose version already has
+each unit carries its own version (REQ-0074). A person also releases by
+pushing the unit's tag from the trunk, which releases that unit alone and,
+for a unit the Pi registry mirrors, publishes its npm package from the
+tag (REQ-4146). A unit tag is cut from the marketplace release's tree at
+most once per release, and a unit's version is one number on every agent
+platform: the npm registry's versions are immutable and never moved
+(REQ-4148). A unit whose version already has
 a release keeps its archive. A release named `marketplace` holds one
 `marketplace.json` whose entries point at every unit's archive by `url` and
 `sha256`. A person adds it by the address the next section gives. Claude Code
@@ -682,8 +749,12 @@ epic projects onto (REQ-2358), and GitHub Issues as the tracker, projected as
 a mapping from each task to its issue and never as an integration that keeps
 state of its own (REQ-2360) (ADR-2660). A repository
 declares its tracker as `[tracker] kind` in its profile (REQ-1351).
-`meow-github project <epic>` projects an approved epic's tasks through the
-request layer, one issue each, citing the requirements and dependencies and
+`meow-github project <record>` projects the tasks of an approved epic, an
+approved defect that carries tasks directly, or an approved decision realised
+without an epic. It selects defect tasks by their `bug` field, derives their
+completion from the defect's task marks and otherwise uses the same mapping,
+replay, read-back, disagreement and failure behaviour (REQ-4000). The command
+uses the request layer, one issue for each task, citing the requirements and dependencies and
 marked as a synchronisation's write, and records `issue:` and `projected:` on
 the task (REQ-1350, REQ-1352, REQ-1354, REQ-1356, REQ-1360, REQ-1382,
 REQ-1384, REQ-1386, REQ-1396). After its last create it reads the issues it

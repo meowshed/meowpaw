@@ -129,22 +129,28 @@ pub fn fingerprint(title: &str, body: &str) -> String {
 
 /// What the record says the task's issue holds: its title, and its body
 /// without the marker, which names the fingerprint and so can't be part of it.
-fn projection(task: &Record, epic: &Record) -> (String, String) {
+fn projection(task: &Record, authoriser: &Record) -> (String, String) {
     let id = task.field("id");
     let title = format!("{id}: {}", task.title());
     let closes = task.closes();
     // A task realising a decision with no epic sits under nothing (REQ-3630).
-    let mut body = if epic.field("artifact") == "adr" {
+    let mut body = if authoriser.field("artifact") == "adr" {
         format!(
             "{id}, which realises {}.\n\nCloses {}.",
-            epic.field("id"),
+            authoriser.field("id"),
+            closes.join(", ")
+        )
+    } else if authoriser.field("artifact") == "defect" {
+        format!(
+            "{id} of {}.\n\nCloses {}.",
+            authoriser.field("id"),
             closes.join(", ")
         )
     } else {
         format!(
             "{id} of {}, which realises {}.\n\nCloses {}.",
-            epic.field("id"),
-            epic.field("realises"),
+            authoriser.field("id"),
+            authoriser.field("realises"),
             closes.join(", ")
         )
     };
@@ -223,7 +229,11 @@ fn done_in(epic: &Record) -> Vec<String> {
     epic.text
         .lines()
         .filter_map(|l| l.strip_prefix("- [x] "))
-        .filter_map(|l| l.split_whitespace().nth(1).map(str::to_string))
+        .filter_map(|l| {
+            l.split_whitespace()
+                .find(|word| word.starts_with("TSK-"))
+                .map(str::to_string)
+        })
         .collect()
 }
 
@@ -449,10 +459,14 @@ fn settle(layer: &mut Layer, repository: &str, created: Vec<Created>, outcome: &
     }
 }
 
-pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bool) -> u8 {
+pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: bool) -> u8 {
     let root = profile::repository_root();
-    let table = match profile::read(&root) {
-        Profile::Parsed(table) => table,
+    let read = profile::read(&root);
+    for line in profile::report(&read) {
+        println!("meow-github project: {line}");
+    }
+    let table = match read {
+        Profile::Parsed(table, _) => table,
         _ => toml::Table::new(),
     };
     // A repository declares its tracker, and one that declares none is fully
@@ -481,24 +495,31 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         .unwrap_or("project")
         .to_string();
     let base = root.join(record_root);
-    // A decision groups the tasks that realise it with no epic (REQ-3630).
-    let direct = epic_id.starts_with("ADR-");
-    let dir = if direct { "adrs" } else { "epics" };
-    let Some(epic) = records(&base.join(dir), &format!("{epic_id}-"))
+    // A decision groups its direct tasks, a defect carries its own, and an
+    // epic carries the rest (REQ-3630, REQ-4000).
+    let direct = target_id.starts_with("ADR-");
+    let defect = target_id.starts_with("BUG-");
+    let (dir, kind) = if direct {
+        ("adrs", "decision")
+    } else if defect {
+        ("bugs", "defect")
+    } else {
+        ("epics", "epic")
+    };
+    let Some(authoriser) = records(&base.join(dir), &format!("{target_id}-"))
         .into_iter()
         .next()
     else {
-        let kind = if direct { "decision" } else { "epic" };
         println!(
-            "meow-github project: {epic_id} resolves to no {kind} under {}",
+            "meow-github project: {target_id} resolves to no {kind} under {}",
             base.display()
         );
         return FOUND;
     };
-    if epic.field("status") != "approved" {
+    if !matches!(authoriser.field("status").as_str(), "approved" | "done") {
         println!(
-            "meow-github project: {epic_id} is {}, and its tasks are projected only once it is approved",
-            epic.field("status")
+            "meow-github project: {target_id} is {}, and its tasks are projected only once it is approved",
+            authoriser.field("status")
         );
         return FOUND;
     }
@@ -506,15 +527,21 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
         .into_iter()
         .filter(|t| {
             if direct {
-                t.field("realises") == epic_id
+                t.field("realises") == target_id
                     && t.field("epic").is_empty()
                     && t.field("bug").is_empty()
                     && !matches!(
                         t.field("status").as_str(),
                         "withdrawn" | "rejected" | "superseded"
                     )
+            } else if defect {
+                t.field("bug") == target_id
+                    && !matches!(
+                        t.field("status").as_str(),
+                        "withdrawn" | "rejected" | "superseded"
+                    )
             } else {
-                t.field("epic") == epic_id
+                t.field("epic") == target_id
             }
         })
         .collect();
@@ -529,7 +556,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
             .map(|t| t.field("id"))
             .collect()
     } else {
-        done_in(&epic)
+        done_in(&authoriser)
     };
     let mut outcome = Outcome::default();
     // A run that can't name its repository visits no task, so it is partial too.
@@ -550,7 +577,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
     let mut created: Vec<Created> = Vec::new();
     for task in &tasks {
         let id = task.field("id");
-        let (title, body) = projection(task, &epic);
+        let (title, body) = projection(task, &authoriser);
         let print = fingerprint(&title, &body);
         let issue = task.field("issue");
         if !issue.is_empty() {
@@ -582,7 +609,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
                     );
                 } else {
                     println!(
-                        "{id}: issue #{issue} is closed on GitHub while {epic_id} leaves the task unmarked; the epic decides what the tasks are, so this is reported, not reconciled"
+                        "{id}: issue #{issue} is closed on GitHub while {target_id} leaves the task unmarked; the {kind} decides when the task is done, so this is reported, not reconciled"
                     );
                 }
                 worst = worst.max(FOUND);
@@ -690,7 +717,7 @@ pub fn run(layer: &mut Layer, epic_id: &str, repository: Option<&str>, check: bo
     }
     settle(layer, &repository, created, &mut outcome);
     if tasks.is_empty() {
-        println!("meow-github project: {epic_id} has no tasks");
+        println!("meow-github project: {target_id} has no tasks");
     }
     if outcome.stopped || !outcome.unread.is_empty() {
         println!("{}", outcome.partial(&tasks));

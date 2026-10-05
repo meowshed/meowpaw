@@ -244,6 +244,11 @@ Every decision below is approved and in force, as amended by the ones after it.
   every shipped agent ends its report with one of four outcomes on a line of
   its own, its dispatcher acts on that word, and a denied tool ends the agent
   as `BLOCKED` with nothing retried, worked round or left waiting.
+- [ADR-2740](adrs/ADR-2740-an-active-obligation-keeps-a-decision-and-each-decision-keeps-a-plan.md):
+  every active requirement keeps an approved provider, and every addressing
+  decision keeps an approved plan.
+- [ADR-2750](adrs/ADR-2750-an-attended-irreversible-action-asks-each-time.md):
+  an attended irreversible action asks for confirmation on every invocation.
 
 ## Specifications
 
@@ -277,8 +282,9 @@ check that `project` groups an issue nowhere, which ADR-1800 adds, was
 verified with EPC-1710 under issue 625. The GitHub request layer, which
 ADR-1810 adds and EPC-1720 realises, isn't built yet. It also states how the profile is
 read, which EPC-2320 realises, the rules each subcommand keeps, which
-EPC-2330 realises, each unit's plugin contract, which EPC-2340 realises, and
-the threat model, which TSK-4380 holds; none of that work has started. It
+EPC-2330 realises, and each unit's plugin contract, which EPC-2340 realises;
+none of that work has started. It states the threat model, which TSK-4380
+holds to its form and points the design step at, and that work is done. It
 states the unattended install, which TSK-4600 realises, and the release's
 attestation and the report of the trunk's protections, which EPC-2420
 realises; that work hasn't started either. It also states where the harness
@@ -295,8 +301,8 @@ aren't built yet.
 
 [SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
 convention and its check, and `meow-scm` implements it, verified under issue 130.
-The sign-off route, the trailers that name a person and the breaking mark,
-which TSK-4650 realises, aren't built yet.
+TSK-4650 built the sign-off route, the trailers that name a person and the
+breaking mark.
 
 [SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, and
 `meow-git` implements it, verified under issue 392. The restack, which
@@ -313,15 +319,14 @@ which TSK-4960 pins, and the record's layout, which EPC-2570 pins, aren't
 built yet.
 
 [SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
-run's plan: the authority a repository declares, the command `plan` prints,
-and the snapshot it writes. `meow-unattended` implements it, verified under
-issue 626.
+run's posture: the table a repository declares, the deny rules it yields, how
+a run decides a gate, lands and releases its work, and its report. EPC-2300
+realises it, and none of that work has started.
 
-[SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: the
-terms a person starts a run with, the step it's bound to and that step's
-test, the files a run keeps, each call, the order of its checks, its eight
-endings and the guards that stop the model starting a run or deciding a
-status.
+[SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: a run
+inside the session a person starts it in, the three hooks that start it,
+repeat it and guard it, the files it keeps and its six endings. EPC-2300
+realises it, and none of that work has started.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -381,7 +386,38 @@ realises, and [SPC-1220](specs/SPC-1220-the-constitution.md) states what a
 constitution carries and the length `paw check` reports, which EPC-2440
 realises. Neither is built yet.
 
+[SPC-1300](specs/SPC-1300-the-pi-packages.md) states the Pi packages: how
+each meowpaw layer ships as a Pi package, what each extension registers,
+how the skills name their binaries, what the installer downloads and what
+fails open, which ADR-2780 decides and ADR-2790 adds to at install time,
+and which EPC-2700 realises. The packages are built; the four defects
+EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
+
 ## Epics and tasks
+
+[EPC-2750](epics/EPC-2750-a-unit-tag-is-cut-from-the-marketplace-release-tree.md)
+realises ADR-2830 in one task, TSK-5215: the unit tags are cut from the
+marketplace release's tree, and a unit's version is one number on every
+agent platform.
+
+[EPC-2740](epics/EPC-2740-a-pi-package-mirrors-each-unit.md) realises
+ADR-2820 in two tasks, TSK-5213 and TSK-5214: the sixteen Pi packages
+mirror the sixteen units one to one, and one unit tag releases both
+registries.
+
+[EPC-2730](epics/EPC-2730-the-rust-build-splits-from-the-plugin-releases.md)
+realises ADR-2810 in two tasks, TSK-5211 and TSK-5212: the Rust build
+runs in its own workflow, the releases fetch its artifacts, and the meow
+binary ships with the core package alone.
+
+[EPC-2720](epics/EPC-2720-the-packages-publish-to-npm.md) realises ADR-2800
+in two tasks, TSK-5209 and TSK-5210: the packages publish to npm with every
+platform's binary in each tarball, and the build workflow produces all six
+targets under Linux runners, with the darwin binaries signed.
+
+[EPC-2710](epics/EPC-2710-a-package-installs-standalone.md) realises
+ADR-2790 in three tasks, TSK-5206 to TSK-5208, fixing BUG-1400 to BUG-1403:
+the bundled prompts, the plain command names, and the meow-full installer.
 
 [EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) realises ADR-1000
 in five tasks, TSK-1010 to TSK-1050, each closed with evidence. The epic closed
@@ -600,6 +636,11 @@ ADR-2010 addresses lands in one of them.
 four tasks, TSK-3410 to TSK-3440, all of them done, and each of the two
 requirements ADR-2020 addresses lands in one of them.
 
+[EPC-2300](epics/EPC-2300-a-run-lives-in-the-session-and-decides-merges-and-releases-itself.md)
+realises ADR-2380 in four tasks, TSK-4100 to TSK-4130, which move the run
+into the session and let it decide, merge and release on its own. None has
+started.
+
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
 evidence, and was verified against every acceptance criterion under issue 625.
@@ -651,11 +692,11 @@ and each of the nine requirements ADR-2400 addresses lands in one of them.
 realises ADR-2480 in four tasks, TSK-4390 to TSK-4420, none of them started,
 and each of the fifteen requirements ADR-2480 addresses lands in one of them.
 
-TSK-4360 realises ADR-2410 directly: `paw find` states its mode and counts
-artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill bounds a
-tool that runs source control operations. TSK-4380 realises ADR-2470
-directly: the design step points at the threat model SPC-1080 keeps. None of
-the three is started.
+TSK-4360 realises ADR-2410 directly, and is done: `paw find` states its mode
+and counts artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill
+bounds a tool that runs source control operations. TSK-4380 realises ADR-2470
+directly, and is done: the design step points at the threat model SPC-1080
+keeps. TSK-4370 is not started.
 
 [EPC-2420](epics/EPC-2420-workflows-start-read-only-and-a-release-carries-an-attestation.md)
 realises ADR-2520 in three tasks, TSK-4620 to TSK-4640, and each of the five
@@ -682,8 +723,9 @@ one of them.
 TSK-4600 realises ADR-2500 directly: every unit installs with no person, and
 agent-neutral material is written once. TSK-4610 realises ADR-2510 directly:
 the community files sit under `.github/`, and it's done. TSK-4650 realises
-ADR-2530 directly: the commit check holds the sign-off route, the named
-trailers and the breaking mark. Neither TSK-4600 nor TSK-4650 is started.
+ADR-2530 directly, and is closed with evidence: the commit check holds the
+sign-off route, the named trailers and the breaking mark. TSK-4600 is not
+started.
 
 [EPC-2520](epics/EPC-2520-every-shipped-hook-is-held-to-one-set-of-answers.md)
 realises ADR-2450, which ADR-2700 amends, in four tasks, TSK-4900 to TSK-4915,
@@ -734,6 +776,22 @@ and each of the eighteen requirements ADR-2670 addresses lands in one of them.
 realises ADR-2690 in three tasks, TSK-5035 to TSK-5045, none of them started,
 and each of the five requirements ADR-2690 addresses lands in one of them.
 TSK-5045 waits on the owner to name the first repository to migrate.
+
+[EPC-2580](epics/EPC-2580-the-record-keeps-every-requirement-decision-and-plan-connected.md)
+realises ADR-2740 in TSK-5140 and TSK-5145, neither started. The first carries
+forward the requirements whose provider was superseded and checks both graph
+gaps; the second pins comments in profiles.
+
+[EPC-2590](epics/EPC-2590-an-attended-irreversible-action-asks-each-time.md)
+realises ADR-2750 in TSK-5150, not started, which closes REQ-1420 and REQ-1422.
+
+[EPC-2600](epics/EPC-2600-project-an-epic-onto-a-tracker-group.md),
+[EPC-2605](epics/EPC-2605-bound-the-prose-gates-network-judge.md),
+[EPC-2610](epics/EPC-2610-a-missing-hook-program-denies.md),
+[EPC-2615](epics/EPC-2615-generate-the-interface-reference.md) and
+[EPC-2620](epics/EPC-2620-a-delegated-pull-request-names-its-brief-and-record.md)
+realise ADR-2540 and ADR-2700 to ADR-2730 respectively. Each has one approved,
+not-started task, TSK-5155 to TSK-5175.
 
 TSK-4940 realises ADR-2490 directly, as ADR-2720 amends it: the interface page
 is generated from the tool's documentation comments. TSK-4960 realises
@@ -796,9 +854,17 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1370](bugs/BUG-1370-the-trunk-guard-misreads-a-trunk-outside-the-plain-case.md)         | `paw` misjudged a task's approval on the trunk with CRLF endings, a remote not named `origin`, or a link leaving the repository |
 | [BUG-1380](bugs/BUG-1380-the-method-skill-names-nobody-to-open-the-one-pull-request.md)      | The method skill named nobody to open the pull request on the one-pull-request path                                             |
 | [BUG-1390](bugs/BUG-1390-spc-1201-leaves-states-of-a-run-unstated.md)                        | SPC-1201 leaves states of a run unstated                                                                                        |
+| [BUG-1400](bugs/BUG-1400-the-extensions-read-the-monorepo-s-plugins.md)                      | The Pi extensions read the monorepo's plugins directory, which holds nowhere a package installs                                 |
+| [BUG-1401](bugs/BUG-1401-the-skills-name-a-platform-the-harness-does-not-run-on.md)          | The Pi skills name `${CLAUDE_SKILL_DIR}`, a variable Pi never sets                                                              |
+| [BUG-1402](bugs/BUG-1402-every-package-injects-the-reply-shape.md)                           | Every Pi package injects the reply shape, so two installed layers inject it twice                                               |
+| [BUG-1403](bugs/BUG-1403-the-installer-script-cannot-run-on-esm.md)                          | The installer calls `require` in ESM and four packages name another unit's release                                              |
+| [BUG-1410](bugs/BUG-1410-meow-loop-start-refuses-outside-its-own-unit.md)                    | `meow-loop start` resolves the loop unit beside the binary, which ADR-2810's layout never holds                                 |
+| [BUG-1411](bugs/BUG-1411-the-binary-finds-its-data-beside-itself.md)                         | The binary finds its data beside itself, where the npm layout doesn't hold it                                                   |
+| [BUG-1412](bugs/BUG-1412-both-task-runner-packs-claim-the-skill-name-tasks.md)               | Both task-runner packs claim the skill name tasks, which Pi's flat namespace resolves silently                                  |
 
-Forty-one are closed. BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because the mechanism
+Forty-four are closed. BUG-1410 is open, and so are BUG-1040, BUG-1100 and BUG-1360. BUG-1410 routes to implement,
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
-asks for the reviewer's cases to cover every rule. BUG-1005 was written
+asks for the reviewer's cases to cover every rule. BUG-1410 routes to implement, because the resolution the git
+guard already does is the pattern its start command follows, and its fix is a crate change. BUG-1005 was written
 after its fix, and says so. BUG-1390 is closed: SPC-1201 names the failure states that
 `meow-loop` reaches, and TSK-4050 added the two refusals at start.

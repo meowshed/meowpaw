@@ -411,9 +411,9 @@ class Project(unittest.TestCase):
             id="TSK-0003", closes="    REQ-0004,", title="Do it directly", depends="Nothing.").replace(
             "epic: EPC-0001", "realises: ADR-0002"), encoding="utf-8")
 
-    def run_on(self, root, target):
+    def run_on(self, root, target, *extra):
         env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json")}
-        return subprocess.run([str(BIN), "project", target, "o/r"], cwd=root, capture_output=True, text=True, env=env)
+        return subprocess.run([str(BIN), "project", target, "o/r", *extra], cwd=root, capture_output=True, text=True, env=env)
 
     def test_a_draft_decision_projects_nothing(self):
         """REQ-3630: a draft decision's direct tasks wait for its approval, as an epic's do."""
@@ -422,6 +422,14 @@ class Project(unittest.TestCase):
         done = self.run_on(root, "ADR-0002")
         self.assertEqual(done.returncode, 1, done.stdout)
         self.assertIn("ADR-0002 is draft", done.stdout)
+
+    def test_a_done_decision_projects_like_an_approved_one(self):
+        """TSK-5190 criterion 2, REQ-0595: done remains a post-approval projection input."""
+        root = self.repository()
+        self.direct(root, adr_status="done")
+        done = self.run_on(root, "ADR-0002")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("issue: 1", self.task(root, "TSK-0003-direct.md"))
 
     def test_a_task_under_an_epic_is_not_projected_under_its_decision(self):
         """REQ-3630: a task naming an epic belongs to the epic, even where it also names the decision."""
@@ -438,6 +446,88 @@ class Project(unittest.TestCase):
         self.assertEqual(done.returncode, 1, done.stdout)
         self.assertIn("EPC-0001 is draft, and its tasks are projected only once it is approved", done.stdout)
         self.assertFalse((root / "state.json").exists())
+
+    def defect(self, root, mark=" ", parallel=""):
+        """TSK-5180 criteria 1-3, REQ-4000: a defect owns its task and completion mark."""
+        (root / "project" / "bugs").mkdir()
+        (root / "project" / "bugs" / "BUG-0001-a-defect.md").write_text(
+            f"""---
+id: BUG-0001
+artifact: defect
+status: approved
+revised: 2026-01-01
+issue:
+---
+
+# A defect
+
+## Tasks
+
+- [{mark}] T-001 {parallel}TSK-0003 restore the behaviour
+""",
+            encoding="utf-8")
+        (root / "project" / "tasks" / "TSK-0003-defect.md").write_text(TASK.format(
+            id="TSK-0003", closes="    REQ-0004,", title="Restore the behaviour", depends="Nothing.").replace(
+            "epic: EPC-0001", "bug: BUG-0001"), encoding="utf-8")
+
+    def test_an_approved_defect_projects_its_task_and_replays_nothing(self):
+        """TSK-5180 criteria 1-2, REQ-4000: BUG targets share the durable issue mapping and replay."""
+        root = self.repository()
+        self.defect(root)
+        done = self.run_on(root, "BUG-0001")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        issue = self.state(root)["issues"]["1"]
+        self.assertEqual(issue["title"], "TSK-0003: Restore the behaviour")
+        body = issue["body"].rsplit("\n\n<!-- meow-github:", 1)[0]
+        self.assertEqual(body, "TSK-0003 of BUG-0001.\n\nCloses REQ-0004.\n\nDepends on: Nothing.")
+        self.assertIn("\nissue: 1\n", self.task(root, "TSK-0003-defect.md"))
+        calls = len(self.state(root)["calls"])
+        replay = self.run_on(root, "BUG-0001")
+        self.assertEqual(replay.returncode, 0, replay.stdout)
+        self.assertFalse(self.writes(root, calls))
+
+    def test_a_defect_mark_decides_whether_a_closed_issue_agrees(self):
+        """TSK-5180 criterion 3, REQ-4000: defect marks, not tracker state, decide done."""
+        root = self.repository()
+        self.defect(root)
+        self.run_on(root, "BUG-0001")
+        state = self.state(root)
+        state["issues"]["1"]["state"] = "closed"
+        (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        calls = len(state["calls"])
+        open_task = self.run_on(root, "BUG-0001", "--check")
+        self.assertEqual(open_task.returncode, 1, open_task.stdout)
+        self.assertIn("BUG-0001 leaves the task unmarked", open_task.stdout)
+        self.assertFalse(self.writes(root, calls))
+        calls = len(self.state(root)["calls"])
+        bug = root / "project" / "bugs" / "BUG-0001-a-defect.md"
+        bug.write_text(bug.read_text(encoding="utf-8").replace("- [ ]", "- [x]"), encoding="utf-8")
+        done_task = self.run_on(root, "BUG-0001", "--check")
+        self.assertEqual(done_task.returncode, 0, done_task.stdout)
+        self.assertNotIn("leaves the task unmarked", done_task.stdout)
+        self.assertFalse(self.writes(root, calls))
+
+    def test_a_parallel_defect_task_keeps_its_done_mark(self):
+        """TSK-5180 criterion 3: the valid [P] marker does not hide a done task."""
+        root = self.repository()
+        self.defect(root, mark="x", parallel="[P] ")
+        self.run_on(root, "BUG-0001")
+        state = self.state(root)
+        state["issues"]["1"]["state"] = "closed"
+        (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        calls = len(state["calls"])
+        done_task = self.run_on(root, "BUG-0001", "--check")
+        self.assertEqual(done_task.returncode, 0, done_task.stdout)
+        self.assertNotIn("leaves the task unmarked", done_task.stdout)
+        self.assertFalse(self.writes(root, calls))
+
+    def test_the_shipped_surfaces_name_a_defect_projection_target(self):
+        """TSK-5180 criterion 4, REQ-4000: launcher and reference expose BUG targets."""
+        launcher = (UNIT / "bin" / "meow-github").read_text(encoding="utf-8")
+        page = (UNIT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("project <epic|decision|defect>", launcher)
+        self.assertIn("meow-github project BUG-1210", page)
+        self.assertRegex(page, r"`<task> of\s+<defect>\.`")
 
 
 # ADR-1810: the stand-in `gh` the request layer's checks run against. It prints a status line and a header block

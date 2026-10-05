@@ -1,7 +1,7 @@
 ---
 id: ADR-1170
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-26
 addresses:
   [
@@ -24,6 +24,9 @@ supersedes: []
 # 1170. An approval is a stored status that a check holds frozen, and a session opens with what waits for one
 
 ## Decision
+
+**Amended by ADR-2770.** The frozen check permits the status-only transition
+from `approved` to checked `done`; the record remains frozen after it.
 
 An approval stays what it is today: a record's stored `status` moving from
 `draft` to `approved`, in a commit of its own, so it is durable, it survives

@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-licence
 answers: what meow-licence does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-licence@0.2.0]
+describes: [meow-licence@0.3.0]
 ---
 
 # meow-licence
@@ -71,7 +71,9 @@ or an annotation naming a copyright and no licence identifier or the other way
 round, and a text in `LICENSES/` out of step with the licences you use, where
 you keep that directory. It exits 0 when it finds nothing, 1 on a finding,
 and 3 when your repository declares no licensing or the check can't run. It
-reports licensing alone, and never who wrote a file.
+reports licensing alone, and never who wrote a file. It also names the
+profile's state, as `meow-licence check: profile: parsed`, and each key no
+unit reads, which changes no exit status.
 
 ## What it costs you
 

@@ -1,7 +1,7 @@
 ---
 id: EPC-1190
 artifact: epic
-status: approved
+status: done
 revised: 2026-09-26
 realises: ADR-1190
 ---

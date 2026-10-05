@@ -159,8 +159,19 @@ pub fn main(args: &[String]) -> u8 {
     }
 }
 
+/// Prints the profile's state and its unknown keys on standard error, because
+/// standard output is what a step reads, such as a template or an identifier
+/// (SPC-1080).
+fn report_profile(repository: &Path) {
+    for line in profile::report(&profile::read(repository)) {
+        eprintln!("{line}");
+    }
+}
+
 /// The record at the declared root, or the exit code and why it can't be read.
 fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
+    let repository = profile::repository_root();
+    report_profile(&repository);
     let layout = match load_layout() {
         Ok(layout) => layout,
         Err(reason) => {
@@ -168,7 +179,6 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
             return Err(UNCHECKED);
         }
     };
-    let repository = profile::repository_root();
     let root = match record_root(&repository) {
         Ok(root) => root,
         Err(reason) => {
@@ -486,7 +496,18 @@ fn check_frozen(rest: &[String]) -> u8 {
             }
             pair
         };
+        let done_transition = bare(doc.value("status")) == "done"
+            && matches!(kind.name.as_str(), "decision" | "epic" | "task");
+        let (before, after) = if done_transition {
+            (
+                frozen_text(&before, &[], &["status"]),
+                frozen_text(&after, &[], &["status"]),
+            )
+        } else {
+            (before, after)
+        };
         let allowed = match kind.name.as_str() {
+            "decision" if done_transition => before == after,
             "epic" => epic_frozen_part(&before) == epic_frozen_part(&after),
             "task" => frozen_part(&before) == frozen_part(&after),
             "defect" => defect_frozen_part(&before) == defect_frozen_part(&after),
@@ -810,7 +831,7 @@ fn record_root(repository: &Path) -> Result<PathBuf, String> {
 /// `project`.
 pub(crate) fn declared_root(repository: &Path) -> Result<String, String> {
     let declared = match profile::read(repository) {
-        Profile::Parsed(data) => data
+        Profile::Parsed(data, _) => data
             .get("record")
             .and_then(|r| r.as_table())
             .and_then(|r| r.get("root"))
@@ -1092,6 +1113,29 @@ fn front_matter(record: &Record) -> Vec<Finding> {
                     format!("revised is in the future: {revised}"),
                 ));
             }
+        }
+    }
+    let known = known(record);
+    for doc in record.docs.iter().filter(|d| !d.is_index) {
+        let kind = kind_of(record, doc);
+        if !matches!(kind, "decision" | "epic" | "task")
+            || !matches!(bare(doc.value("status")), "approved" | "done")
+        {
+            continue;
+        }
+        let derived = derived_done(record, &known, doc);
+        let stored = bare(doc.value("status")) == "done";
+        if stored != derived {
+            let message = if stored {
+                "stores done, but its work is not complete"
+            } else {
+                "is complete, but stores approved instead of done"
+            };
+            out.push(Finding::at(
+                doc,
+                doc.field("status").map(|f| f.line),
+                message.into(),
+            ));
         }
     }
     out
@@ -2430,7 +2474,7 @@ const TEMPLATES: [&str; 12] = [
 ];
 
 fn approved(doc: &Doc) -> bool {
-    bare(doc.value("status")) == "approved"
+    matches!(bare(doc.value("status")), "approved" | "done")
 }
 
 fn kind_of<'a>(record: &'a Record, doc: &Doc) -> &'a str {
@@ -2469,7 +2513,7 @@ fn authority_of(task: &Doc) -> &str {
 /// is written (REQ-3630).
 fn mark_of(known: &BTreeMap<String, &Doc>, task: &Doc) -> char {
     let id = bare(task.id());
-    if is_direct(task) {
+    if is_direct(task) || authority_of(task).is_empty() {
         // A withdrawn, rejected or superseded task is dropped, since there is
         // no epic to mark it `[~]`.
         return if matches!(
@@ -2487,6 +2531,32 @@ fn mark_of(known: &BTreeMap<String, &Doc>, task: &Doc) -> char {
         .get(authority_of(task))
         .and_then(|e| marks(e).into_iter().find(|(t, _)| t == id).map(|(_, m)| m))
         .unwrap_or(' ')
+}
+
+/// Whether the record's existing marks and Evidence derive completed work.
+fn derived_done(record: &Record, known: &BTreeMap<String, &Doc>, doc: &Doc) -> bool {
+    match kind_of(record, doc) {
+        "task" => mark_of(known, doc) == 'x',
+        "epic" => {
+            let tasks = marks(doc);
+            !tasks.is_empty() && tasks.iter().all(|(_, mark)| finished(*mark))
+        }
+        "decision" => {
+            let id = bare(doc.id());
+            let mut tasks: Vec<(String, char)> = of_kind(record, "task")
+                .into_iter()
+                .filter(|task| is_direct(task) && bare(task.value("realises")) == id)
+                .map(|task| (bare(task.id()).to_string(), mark_of(known, task)))
+                .collect();
+            for epic in of_kind(record, "epic") {
+                if bare(epic.value("realises")) == id {
+                    tasks.extend(marks(epic));
+                }
+            }
+            !tasks.is_empty() && tasks.iter().all(|(_, mark)| finished(*mark))
+        }
+        _ => false,
+    }
 }
 
 /// Whether a task realises a decision directly, naming no epic and no defect
@@ -3214,7 +3284,7 @@ enum Trunk {
 
 fn trunk_of(repository: &Path, root: &Path) -> Trunk {
     let table = match profile::read(repository) {
-        Profile::Parsed(table) => table,
+        Profile::Parsed(table, _) => table,
         _ => toml::Table::new(),
     };
     let Some(name) = table
@@ -3366,9 +3436,9 @@ fn off_trunk<'a>(repository: &Path, trunk: &'a Trunk, task: &Doc) -> Option<&'a 
                 git(&["show", &format!("{reference}:{path}")])
                     .and_then(|text| parse_front_matter(&text.replace("\r\n", "\n")))
                     .is_some_and(|fields| {
-                        fields
-                            .iter()
-                            .any(|f| f.key == "status" && bare(&f.value) == "approved")
+                        fields.iter().any(|f| {
+                            f.key == "status" && matches!(bare(&f.value), "approved" | "done")
+                        })
                     })
             })
     };
@@ -4408,7 +4478,8 @@ fn count_record(rest: &[String]) -> u8 {
 
 /// Artifacts whose identifier, title or conclusion carry the words, ranked by
 /// how many they carry: identifiers and headings first, never a body
-/// (ADR-1180).
+/// (ADR-1180). It reads every artifact, so it says `exhaustive`, and it
+/// counts artifacts, never matching lines (ADR-2410).
 fn find(rest: &[String]) -> u8 {
     if rest.is_empty() {
         eprintln!("usage: paw find <word>...");
@@ -4420,12 +4491,23 @@ fn find(rest: &[String]) -> u8 {
     };
     let words: Vec<String> = rest.iter().map(|w| w.to_lowercase()).collect();
     let mut hits: Vec<(usize, String, String)> = Vec::new();
+    let mut read = 0;
     for doc in &record.docs {
         let id = bare(doc.id());
         if id.is_empty() || doc.is_index {
             continue;
         }
+        read += 1;
+        let kind = kind_of(&record, doc);
         let concluded = conclusion(&record, doc);
+        // A research record's conclusion is its Summary's first sentence;
+        // every other conclusion is a title or a statement.
+        let named = format!("{id} {}", title(doc)).to_lowercase();
+        let section = if kind == "research" && !words.iter().any(|w| named.contains(w.as_str())) {
+            "Summary"
+        } else {
+            "front matter"
+        };
         // A requirement's heading is its identifier, so its statement heads it.
         let heading = if title(doc) == id {
             concluded.clone()
@@ -4439,14 +4521,15 @@ fn find(rest: &[String]) -> u8 {
             .count();
         if score > 0 {
             let line = format!(
-                "{id} {}, {}: {heading}",
-                kind_of(&record, doc),
-                bare(doc.value("status"))
+                "{id} {kind}, {}: {heading} ({}, {section})",
+                bare(doc.value("status")),
+                doc.shown
             );
             hits.push((score, id.to_string(), line));
         }
     }
     hits.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    say!("exhaustive: read {read} artifacts");
     if hits.is_empty() {
         say!("paw find: nothing in the record carries {}", rest.join(" "));
         return FOUND;
@@ -4454,9 +4537,7 @@ fn find(rest: &[String]) -> u8 {
     for (_, _, line) in hits.iter().take(20) {
         say!("{line}");
     }
-    if hits.len() > 20 {
-        say!("... and {} more; narrow the words", hits.len() - 20);
-    }
+    say!("artifacts matched: {}", hits.len());
     CLEAN
 }
 

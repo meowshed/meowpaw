@@ -1,0 +1,44 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# Runs this unit's binary of the native tool for this machine (SPC-1080).
+# Where there is none, it reports the record as not checked, because a record
+# nobody checked must never read as a clean one.
+
+case $0 in
+*/*) here=${0%/*} ;;
+*) here=$(command -v "$0") && here=${here%/*} ;;
+esac
+system='' cpu='' exe=''
+case $(uname -s 2>/dev/null) in
+Darwin) system=apple-darwin ;;
+Linux) system=unknown-linux-musl ;;
+MINGW* | MSYS* | CYGWIN*) system=pc-windows-msvc exe=.exe ;;
+esac
+case $(uname -m 2>/dev/null) in
+arm64 | aarch64) cpu=aarch64 ;;
+x86_64 | amd64) cpu=x86_64 ;;
+esac
+binary="$here/$cpu-$system/meow$exe"
+if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
+  [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
+  MEOW_LAYOUT="$here/../lib/layout.toml"
+  export MEOW_LAYOUT
+  exec "$binary" record "$@"
+fi
+
+# The core package carries the meow binary (ADR-2810); where it
+# sits on PATH, this wrapper runs its subcommand through it.
+if command -v meow >/dev/null 2>&1; then
+  MEOW_LAYOUT="$here/../lib/layout.toml"
+  export MEOW_LAYOUT
+  exec meow record "$@"
+fi
+
+# At the start of a session, say nothing rather than a failure nobody asked about.
+if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
+  exit 0
+fi
+echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"
+exit 3

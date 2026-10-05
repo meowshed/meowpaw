@@ -1,7 +1,7 @@
 ---
 id: ADR-2340
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-30
 addresses: [REQ-3322]
 supersedes: []

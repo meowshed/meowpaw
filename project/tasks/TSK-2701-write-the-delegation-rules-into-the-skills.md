@@ -1,7 +1,7 @@
 ---
 id: TSK-2701
 artifact: task
-status: approved
+status: done
 revised: 2026-09-30
 epic: EPC-1650
 closes: [REQ-2972, REQ-2976]

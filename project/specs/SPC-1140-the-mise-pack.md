@@ -49,12 +49,12 @@ it, checked at #577.
 
 ## Boundary
 
-| Surface                                   | What it is                                                     |
-| ----------------------------------------- | -------------------------------------------------------------- |
-| `plugins/meow-mise/bin/meow-mise`         | The program: `status`, `bind` and `check`                      |
-| `plugins/meow-mise/skills/tasks/SKILL.md` | The skill that tells the model to use the program, never guess |
-| `plugins/meow-mise/README.md`             | The unit's page                                                |
-| `.meowpaw/profile.toml`, `[verbs]`        | What `check` reads; the pack never writes it                   |
+| Surface                                  | What it is                                                     |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `plugins/meow-mise/bin/meow-mise`        | The program: `status`, `bind` and `check`                      |
+| `plugins/meow-mise/skills/mise/SKILL.md` | The skill that tells the model to use the program, never guess |
+| `plugins/meow-mise/README.md`            | The unit's page                                                |
+| `.meowpaw/profile.toml`, `[verbs]`       | What `check` reads; the pack never writes it                   |
 
 The program writes no file, in the repository or outside it, and
 `mise.local.toml` least of all, because it is the user's and isn't committed

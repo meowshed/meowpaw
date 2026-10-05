@@ -1,0 +1,129 @@
+---
+name: method
+description: The method's seven steps, research, requirements, design, spec, epic, implement and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before its pull request is reviewed. It MUST NOT be skipped, however small the record looks.
+---
+
+<role>
+You run one step of the method at a time, unless a person asks for a whole
+decision in one pull request. Each step writes one artifact from an approved
+input, because an artifact built on an unapproved one inherits a
+decision nobody made. A program settles whether the input is ready, and you
+don't overrule it.
+</role>
+
+<steps name="run a step">
+1. Name the step and the identifiers of its input. The steps, in order, are
+   research, requirements, design, spec, epic, implement and review. The route skill, `meow-flow:route`, runs before the
+   first of them and names the step a request enters at.
+2. Read the repository's principles before producing anything: `CLAUDE.md`,
+   and each file `.meowpaw/profile.toml` names under `[method] principles`.
+3. Run `paw ready <step> <id>...`. On exit 1, stop and report each line it
+   printed as what is missing, and never write the artifact anyway. On exit 3,
+   report the record as not checked and stop.
+4. Read `steps/<step>.md` and follow it.
+5. Write each artifact from the template `paw template <kind>` prints, as a
+   draft, because approval is a person's act and not yours.
+6. Run `paw check` and fix what it reports, for at most two rounds, and
+   report anything still open after the second.
+7. Where M20 applies and the check reported nothing, set each artifact the
+   step wrote to `approved`, and where a step up to epic remains, go to step 1 for it.
+8. End by naming the artifact you wrote, the gate it now waits at, and the
+   step that picks it up, with the command that runs it, and say the record
+   is unreviewed by a person. Where M20 applies, the gate is the pull request,
+   or the branch where no code host is declared, and what you name is every record in it. Where M20 applies and the check
+   still reports a finding, name the draft and the finding, and stop there.
+</steps>
+
+<rules name="every step">
+- M1. Unless M20 applies, do this step's work and no later step's, because a
+  later step run early builds on an input nobody approved.
+- M2. Ask at most three clarifying questions. For anything else unknown,
+  choose a default, and record it in the artifact as a choice you made,
+  because an unrecorded default can't be told from a gap nobody noticed.
+- M3. Name what an artifact came from as bare identifiers in its front matter,
+  never as links, and only in the upward direction, because what cites it is
+  computed.
+- M4. Where the record and the work disagree, report it and fix the artifact,
+  because an artifact that has drifted from the tree gets cited as true.
+- M5. Unless M20 applies, stop after writing an artifact that needs approval,
+  and report the gate it waits at, because the next step built on an
+  unapproved input inherits a decision nobody made.
+- M6. Never take silence, a change of subject or an unrelated instruction as
+  approval: only a person saying so approves, because an inferred approval is
+  one nobody gave. A status written under M20 waits on a merge, and the
+  person's merge is what approves it.
+- M7. Before you write, search the record with `paw find` and a few
+  specific words, several independent searches at once, and read a whole
+  artifact with `paw show` only when its heading is relevant, because a
+  search after writing is a consistency check and one before changes the
+  answer. Write that the record has no X only from a search whose first line
+  says `exhaustive`, and from a `ranked` one only that the search found X,
+  because a ranked miss is a fact about the ranking and not the record. Claim
+  an absence only for what the search reads, because `paw find` reads each
+  artifact's identifier, title and conclusion and no other text. Read a
+  hit with `paw show` before you quote it, because a hit line holds a heading
+  and not the qualification beside it. Where a search reads through an index,
+  refresh the index before you rely on a miss, resolve each hit to its file
+  before you cite it, and report the result as local to this machine, because
+  the index is a cache that doesn't travel with the repository.
+- M8. Follow a decision the search finds, or amend it through its own record,
+  and never ignore it, because an ignored decision is one the record says holds
+  and the work says doesn't.
+- M9. Write a durable finding back into the artifact it belongs to, because the
+  record is the only memory the method keeps, and a finding left in the
+  conversation is lost with it.
+- M10. Separate, in every report, what you verified from what you assumed, and
+  name the command behind each verified claim, because an assumption reported
+  beside a check reads as one.
+- M11. Write an insight only when the work taught something that holds past
+  its case, never because a step ended or a period passed, and report that
+  nothing was learned as an ordinary outcome, because a log written on a
+  schedule fills with activity and buries the few lessons in it.
+- M12. Keep what happened, and when, in the version control history, and put
+  only the lesson and its evidence in an insight, because the history already
+  holds the activity and a second copy drifts from it.
+- M13. Look for an insight with `paw find` when the work in front of
+  you touches its subject, and never read the insights in bulk at the start,
+  because retrieval earns its cost only where the work needs the lesson.
+- M14. Change the record's shape by expand, migrate and contract: accept both
+  forms, move every record, then remove the old form, and name the release
+  that removes it when the new form arrives, because a removal nobody
+  scheduled either never happens or surprises whoever still writes the old
+  form.
+- M15. Give a new obligation on records that already exist a migration in the
+  same change, or add it as a draft rule, which grandfathers the approved
+  records, and say which in the decision, because an approved record can't be
+  changed to meet a rule written after it.
+- M16. Edit front matter as structured data and a link as a link, never by
+  text substitution, and where no parser exists make the migration smaller,
+  not cleverer, because a substitution that matches the wrong text corrupts a
+  record and nothing fails.
+- M17. Split a migration into parts reviewed separately, by kind or by
+  directory, with the mechanical part in a change of its own apart from the
+  editorial part, because a rename can be checked and a rewritten paragraph
+  can only be read.
+- M18. Run `paw count` before and after a migration and put both
+  outputs in its evidence, because a record the migration lost fails no other
+  check.
+- M19. Dispatch no agent to review a record you wrote, because the person
+  approving its pull request is its reader, and an agent's review of a record
+  was a step nobody could act on.
+- M20. Where a person asks for a decision to land in one pull request, write
+  its research, requirements, decision record, specification changes, epic
+  and tasks in turn, withdraw in it the approved records they replace, and
+  stop once, at that pull request, which you open and name in your report,
+  because its merge is the one approval, a pull request for each record adds
+  a merge and no review, and a stop before one exists leaves the person a
+  branch to find. Where the repository declares no code host, name the branch
+  in its place, because no pull request can exist there and the branch is
+  what the person merges. Without that request, M5 holds.
+- M21. Under M20, write each record as a draft, run `paw check`, and set it
+  to `approved` only where the check reports nothing, and go no further than
+  the epic step, because a draft meets rules an approved record is excused
+  from, and `paw ready implement` refuses a task that isn't approved on the
+  trunk yet. The statuses land in that pull request's commits, and no commit
+  of their own.
+- M22. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
+  realises the decision, and write no epic for it, because an epic holding one
+  task is a second record for the same plan.
+</rules>

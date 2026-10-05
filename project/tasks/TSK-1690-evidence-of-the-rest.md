@@ -1,7 +1,7 @@
 ---
 id: TSK-1690
 artifact: task
-status: approved
+status: done
 revised: 2026-09-26
 epic: EPC-1200
 closes:

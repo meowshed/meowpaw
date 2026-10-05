@@ -1,7 +1,7 @@
 ---
 id: TSK-1640
 artifact: task
-status: approved
+status: done
 revised: 2026-09-26
 epic: EPC-1180
 closes: [REQ-0636, REQ-1600, REQ-1601, REQ-1602, REQ-1604, REQ-1606, REQ-1608]

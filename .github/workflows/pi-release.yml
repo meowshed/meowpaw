@@ -1,0 +1,167 @@
+# Publishes the Pi packages. The binaries come from the last successful
+# Rust Tool run, so a plugin change starts no build (ADR-2810). The core
+# package alone carries the meow binary: its tarball holds every platform,
+# and the other packages' launchers fall back to `meow` on PATH (REQ-4144).
+# The npm tarball publishes to npm; the GitHub release archives stay as the
+# record of what shipped.
+
+name: Pi Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the releases and the npm packages
+        type: boolean
+        default: false
+  push:
+    tags:
+      - "meow-*-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pi-release
+
+jobs:
+  release:
+    # The meow-full tag names the crate, not a unit, and runs the Rust
+    # Tool's release; a unit tag runs this one (ADR-2820).
+    if: ${{ !(startsWith(github.ref, 'refs/tags/') && startsWith(github.ref_name, 'meow-full-v')) }}
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve what to release
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "publish=true" >> "$GITHUB_ENV"
+            echo "unit=${GITHUB_REF_NAME%-v*}" >> "$GITHUB_ENV"
+          fi
+      - name: Find the latest Rust Tool run on the trunk
+        run: |
+          run_id=$(gh run list --workflow rust-tool.yml --status success --limit 30 \
+            --json databaseId,headBranch \
+            --jq '[.[] | select(.headBranch == "main")][0].databaseId')
+          if [ -z "$run_id" ]; then
+            echo "::error::no successful Rust Tool run on main; run the Rust Tool workflow first"
+            exit 1
+          fi
+          echo "rust_run_id=$run_id" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: full-*
+          path: bin-full
+          merge-multiple: false
+          run-id: ${{ env.rust_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Place the platform binaries in the core package
+        run: |
+          for triple in aarch64-apple-darwin x86_64-apple-darwin \
+                        aarch64-unknown-linux-musl x86_64-unknown-linux-musl \
+                        aarch64-pc-windows-msvc x86_64-pc-windows-msvc; do
+            mkdir -p "packages/meow-core/bin/$triple"
+            ext=""
+            case $triple in *-windows-*) ext=.exe ;; esac
+            src=$(find bin-full -path "*/$triple/meow$ext" | head -1)
+            if [ -n "$src" ]; then
+              cp "$src" "packages/meow-core/bin/$triple/meow$ext"
+              chmod +x "packages/meow-core/bin/$triple/meow$ext"
+            else
+              echo "::error::no $triple binary among the Rust Tool artifacts"
+              exit 1
+            fi
+          done
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish each package to npm
+        if: inputs.publish || env.publish == 'true'
+        # Trusted publishing: npm >= 11.5 exchanges the workflow's OIDC
+        # token for the registry's, so no auth token is stored here. Every
+        # package must name this workflow as its trusted publisher.
+        run: |
+          for pkg in packages/meow-*/; do
+            short=$(basename "$pkg")
+            if [ -n "$unit" ] && [ "$short" != "$unit" ]; then continue; fi
+            name=$(jq -r .name "$pkg/package.json")
+            version=$(jq -r .version "$pkg/package.json")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already published"
+              continue
+            fi
+            # The registry's CDN lags a version it just published, so the
+            # check above can miss it; a 403 naming the published version is
+            # a publish that already happened, not a failure.
+            if ! (cd "$pkg" && npm publish --provenance --access public) 2>&1 | tee /tmp/publish.log; then
+              if grep -q 'cannot publish over the previously published' /tmp/publish.log; then
+                echo "$name@$version was published just now"
+              else
+                cat /tmp/publish.log
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Pack the GitHub release archives
+        run: |
+          mkdir dist
+          dist=$(pwd)/dist
+          printf '| Package | Version | npm | Archive | Bytes | SHA-256 |\n' > dist/notes.md
+          printf '| ------- | ------- | --- | ------- | ----- | ------- |\n' >> dist/notes.md
+          for pkg in packages/meow-*/; do
+            short=$(basename "$pkg")
+            if [ -n "$unit" ] && [ "$short" != "$unit" ]; then continue; fi
+            name=$(jq -r .name "$pkg/package.json")
+            version=$(jq -r .version "$pkg/package.json")
+            tag="$short-pi-v$version"
+            zip="$short-pi-$version.zip"
+
+            chmod +x "$pkg"/bin/* 2>/dev/null || true
+            (cd "$pkg" && zip -q -X "$dist/$zip" -r . \
+              -x "bin/*-*/" -x "node_modules/*" -x ".git/*")
+
+            sha=$(sha256sum "$dist/$zip" | cut -d' ' -f1)
+            bytes=$(wc -c < "$dist/$zip")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              state="published"
+            else
+              state="unpublished"
+            fi
+            printf '| %s | %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$zip" "$bytes" "$sha" >> dist/notes.md
+            echo "$tag" >> dist/tags
+          done
+          cat dist/notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pi-release
+          path: dist/
+
+      - name: Publish the GitHub release archives
+        if: inputs.publish || env.publish == 'true'
+        run: |
+          touch dist/tags
+          while read -r tag; do
+            short=${tag%-pi-v*}
+            if [ -n "$unit" ] && [ "$short" != "$unit" ]; then continue; fi
+            version=${tag##*-v}
+            zip="${short}-pi-${version}.zip"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              continue
+            fi
+            gh release create "$tag" "dist/$zip" --target "$GITHUB_SHA" \
+              --title "$short-pi $version" \
+              --notes "$(grep "^| @meowshed/$short |" dist/notes.md)" --latest=false
+          done < dist/tags

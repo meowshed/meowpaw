@@ -1,7 +1,7 @@
 ---
 id: ADR-1430
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-27
 addresses:
   [REQ-1890, REQ-1892, REQ-1894, REQ-1896, REQ-1898, REQ-1900, REQ-1902]

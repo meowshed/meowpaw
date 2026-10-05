@@ -118,9 +118,21 @@ class Checks(unittest.TestCase):
 
     def test_front_matter_reports_a_status_outside_the_vocabulary(self):
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
         self.found(repository.run("check"), "front-matter",
-                   "project/tasks/TSK-0001-a-task.md:4: status done is not one a task stores")
+                   "project/bugs/BUG-0001-a-defect.md:4: status done is not one a defect stores")
+
+    def test_done_status_and_derived_completion_must_agree(self):
+        """TSK-5190 criterion 1, REQ-0583/REQ-0585: both disagreement directions are findings."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        false_claim = repository.run("check", "front-matter")
+        self.assertIn("stores done, but its work is not complete", false_claim.stdout)
+        repository.edit("tasks/TSK-0001-a-task.md", "status: done", "status: approved")
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
+                        "## Tasks\n\n- [x] T-001 TSK-0001 the task")
+        missing_claim = repository.run("check", "front-matter")
+        self.assertIn("is complete, but stores approved instead of done", missing_claim.stdout)
 
     def test_two_findings_are_counted_in_the_plural(self):
         repository = self.repo()
@@ -1030,6 +1042,14 @@ class Frozen(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
 
+    def test_done_is_a_status_only_frozen_transition(self):
+        """TSK-5190 criterion 2, REQ-0594: approved to done passes, but substantive edits still fail."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        self.assertEqual(self.frozen(repository).returncode, 0)
+        repository.edit("tasks/TSK-0001-a-task.md", "## What to do\n\nText.", "## What to do\n\nChanged.")
+        self.assertEqual(self.frozen(repository).returncode, 1)
+
 
 class Waiting(unittest.TestCase):
     """ADR-1170: a session opens with what waits for approval, and says nothing otherwise."""
@@ -1046,14 +1066,16 @@ class Waiting(unittest.TestCase):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         done = repository.run("status", "--waiting")
-        self.assertEqual((done.returncode, done.stdout), (0, ""))
+        self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
         self.assertIn("ADR-0001", repository.run("status").stdout)
 
     def test_a_repository_with_no_record_prints_nothing(self):
-        repository = Repository(profile='[record]\nroot = "nowhere"\n')
+        # An unknown key would make the profile report print, and the session's
+        # opening hook must stay silent all the same (SPC-1090).
+        repository = Repository(profile='[record]\nroot = "nowhere"\nunread = 1\n')
         self.addCleanup(repository.tmp.cleanup)
         done = repository.run("status", "--waiting")
-        self.assertEqual((done.returncode, done.stdout), (0, ""))
+        self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
         self.assertIn("nowhere", repository.run("status").stdout)
 
 
@@ -1171,8 +1193,9 @@ class Find(unittest.TestCase):
         done = repository.run("find", "approval", "gate")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         lines = done.stdout.strip().splitlines()
-        self.assertEqual(lines[0], "ADR-0001 decision, approved: An approval gate for the plan")
-        self.assertEqual(lines[1], "EPC-0001 epic, approved: The gate")
+        self.assertEqual(lines[1], "ADR-0001 decision, approved: An approval gate for the plan"
+                                   " (project/adrs/ADR-0001-a-choice.md, front matter)")
+        self.assertEqual(lines[2], "EPC-0001 epic, approved: The gate (project/epics/EPC-0001-a-plan.md, front matter)")
         self.assertNotIn("Text.", done.stdout)
 
     def test_find_with_no_match_says_so(self):
@@ -1181,6 +1204,84 @@ class Find(unittest.TestCase):
         done = repository.run("find", "zebra")
         self.assertEqual(done.returncode, 1)
         self.assertIn("nothing in the record carries zebra", done.stdout)
+        self.assertEqual(done.stdout.splitlines()[0], f"exhaustive: read {self.READ} artifacts")
+
+    # Every fixture file but an index is an artifact `find` reads.
+    READ = sum(1 for text in CLEAN.values() if "artifact: index" not in text)
+
+    def zebra(self, repository):
+        repository.write("requirements/REQ-0201-zebra.md", record(
+            "requirement", "REQ-0201", {"topic": "a", "class": "functional", "verification": "static"}, [],
+            "\nThe harness MUST stripe the zebra.\n\n## Summary\n\nA zebra, and the zebra again.\n").replace(
+                "# REQ-0201", "# Zebra crossing"))
+
+    def test_find_states_its_mode_first_and_its_artifact_count_last(self):
+        """TSK-4360 criterion 1, REQ-2590, REQ-2595: the mode line opens the output and the count closes it."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        self.zebra(repository)
+        done = repository.run("find", "zebra")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[0], f"exhaustive: read {self.READ + 1} artifacts")
+        self.assertEqual(lines[-1], "artifacts matched: 1")
+
+    def test_three_matches_in_one_requirement_count_as_one_artifact(self):
+        """TSK-4360 criterion 2, REQ-2595: a word in a title, a statement and a Summary section is one artifact,
+        though `find` reads only the first two."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        self.zebra(repository)
+        done = repository.run("find", "zebra")
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[-1], "artifacts matched: 1")
+        self.assertEqual(len(lines), 3, lines)
+
+    def test_each_hit_ends_with_its_file_and_its_section(self):
+        """TSK-4360 criterion 3, REQ-2594: a hit names its file, and the heading or `front matter` it matched in."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        self.zebra(repository)
+        repository.edit("research/RES-0002-a-finding.md", "## Summary\n\nText.", "## Summary\n\nZebras cross here.")
+        repository.edit("research/RES-0001-synthesis.md", "# RES-0001", "# Zebra synthesis")
+        done = repository.run("find", "zebra")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[1:-1], [
+            "REQ-0201 requirement, approved: Zebra crossing (project/requirements/REQ-0201-zebra.md, front matter)",
+            "RES-0001 research, approved: Zebra synthesis (project/research/RES-0001-synthesis.md, front matter)",
+            "RES-0002 research, approved: Zebras cross here. (project/research/RES-0002-a-finding.md, Summary)",
+        ])
+
+    def test_twenty_five_matches_print_twenty_hits_and_count_twenty_five(self):
+        """TSK-4360 criterion 4, REQ-2595: the limit cuts the hits and never the count."""
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        for n in range(301, 326):
+            repository.write(f"requirements/REQ-0{n}-zebra.md", record(
+                "requirement", f"REQ-0{n}", {"topic": "a", "class": "functional", "verification": "static"}, [],
+                "\nThe harness MUST stripe the zebra.\n"))
+        done = repository.run("find", "zebra")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        lines = done.stdout.strip().splitlines()
+        self.assertEqual(lines[0], f"exhaustive: read {self.READ + 25} artifacts")
+        self.assertEqual(len([line for line in lines if line.startswith("REQ-0")]), 20, lines)
+        self.assertEqual(len(lines), 22, lines)
+        self.assertEqual(lines[-1], "artifacts matched: 25")
+
+    def test_rule_m7_says_what_each_search_supports(self):
+        """TSK-4360 criterion 5, REQ-2592, REQ-2594, REQ-2596, REQ-2597: M7 limits an absence to an exhaustive
+        search, reads a hit before quoting it, and treats an index as a local cache."""
+        text = (UNIT / "skills" / "method" / "SKILL.md").read_text(encoding="utf-8")
+        rule = re.search(r"^- M7\.\s(.*?)(?=^- M8\.\s)", text, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(rule)
+        m7 = re.sub(r"\s+", " ", rule.group(1))
+        self.assertRegex(m7, r"has no X only from a search whose first line says `exhaustive`")  # REQ-2592
+        self.assertRegex(m7, r"from a `ranked` one only that the search found X")  # REQ-2592
+        self.assertRegex(m7, r"[Rr]ead a hit with `paw show` before you quote it")  # REQ-2594
+        self.assertRegex(m7, r"refresh the index before you rely on a miss")  # REQ-2596
+        self.assertRegex(m7, r"resolve each hit to its file before you cite it")  # REQ-2596
+        self.assertRegex(m7, r"report the result as local to this machine")  # REQ-2597
 
     def test_find_needs_a_word(self):
         repository = Repository()
@@ -1278,7 +1379,8 @@ class Where(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
         done = repository.run("check", "front-matter")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(f"{elsewhere.resolve()}/tasks/TSK-0001-a-task.md:4: status done", done.stdout)
+        self.assertIn(f"{elsewhere.resolve()}/tasks/TSK-0001-a-task.md:4: stores done, but its work is not complete",
+                      done.stdout)
         self.assertFalse((repository.path / "project").exists())
 
     def test_a_relative_root_leading_outside_is_read_there(self):
@@ -2290,6 +2392,14 @@ class SevenSteps(unittest.TestCase):
         self.assertIn("next: implement TSK-0001 (ADR-0001, 0 of 1 task done)", repository.run("status").stdout)
         self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
 
+    def test_ready_accepts_done_as_post_approval(self):
+        """TSK-5190 criterion 2, REQ-0595: done task and decision remain ready inputs."""
+        repository = self.repo()
+        self.direct(repository, evidence="In #1.")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
+
     def test_a_draft_task_may_realise_a_decision(self):
         """REQ-3630: `realises` counts as the one authority a draft names."""
         repository = self.repo()
@@ -2340,12 +2450,13 @@ class SevenSteps(unittest.TestCase):
         repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
         self.assertIn("realises BUG-0001, where a task realises only a decision", repository.run("check", "rules").stdout)
 
-    def test_a_task_naming_no_authority_closes_nothing_from_its_evidence(self):
-        """REQ-3630: only a task naming `realises` is done by its Evidence; one naming nothing stays open."""
+    def test_a_task_naming_no_authority_closes_from_its_evidence(self):
+        """TSK-5190 criterion 3, REQ-0596: a grandfathered unowned task closes from Evidence."""
         repository = self.repo()
         self.second_direct(repository, evidence="In #1.")
         repository.edit("tasks/TSK-0002-direct.md", "realises: ADR-0001\n", "")
-        self.assertIn("TSK-0002 open in \n", repository.run("show", "REQ-0001").stdout)
+        repository.edit("tasks/TSK-0002-direct.md", "status: approved", "status: done")
+        self.assertIn("TSK-0002 done in \n", repository.run("show", "REQ-0001").stdout)
 
     def test_a_direct_task_waits_on_its_dependency(self):
         """REQ-1358, REQ-3630: a direct task's blocking dependency is done once that task's Evidence is written."""
@@ -3096,6 +3207,33 @@ class DeniedDispatch(unittest.TestCase):
         self.assertRegex(steps, r"2\. .*where a tool call is denied it makes no other call for it, asks nobody, and ends with outcome: blocked")
         self.assertRegex(steps, r"8\. .*not run where the first agent reported blocked, the fixes unreviewed where the agent reviewing a round of them did")
         self.assertRegex(flat(text), r"w8\. end in one verdict: finished, not run, or the findings still open")
+
+
+class ThreatModelPointer(unittest.TestCase):
+    """TSK-4380 criterion 4, ADR-2470: design rule D20 sends a decision with a security-relevant boundary to the
+    threat model, named by its subject, because the step file ships to repositories that hold none of ours."""
+
+    def rule(self):
+        text = (METHOD / "steps" / "design.md").read_text(encoding="utf-8")
+        found = re.search(r"^- D20\.\s(.*?)(?=^- D\d+\.\s|^</rules>|\Z)", text, re.MULTILINE | re.DOTALL)
+        self.assertIsNotNone(found, "the design step has no D20")
+        return flat(found.group(1))
+
+    def test_d20_updates_the_threat_model_with_its_reason(self):
+        """ADR-2470: a decision with a security-relevant boundary updates the threat model the repository's
+        specification keeps, and the rule says why."""
+        rule = self.rule()
+        self.assertRegex(rule, r"\bsecurity-relevant boundary\b")
+        self.assertRegex(rule, r"\bupdate the threat model the repository's specification keeps\b")
+        self.assertRegex(rule, r"\bthreat model\b[^.]*\bbecause\b")
+
+    def test_d20_names_no_identifier_of_this_repository(self):
+        """ADR-2470: the rule names the threat model by its subject, never by a record identifier, a path or a name
+        only this repository holds."""
+        rule = self.rule()
+        self.assertNotRegex(rule, r"\b(?:spc|adr|req|res|epc|tsk|bug|ins)-\d+")
+        for name in ("project/", "meowpaw", "paw ", "native tool"):
+            self.assertNotIn(name, rule)
 
 
 if __name__ == "__main__":

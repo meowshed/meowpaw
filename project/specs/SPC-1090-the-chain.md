@@ -2,7 +2,7 @@
 id: SPC-1090
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-04
 states:
   [
     REQ-3600,
@@ -33,6 +33,9 @@ states:
     REQ-3654,
     REQ-3656,
     REQ-3658,
+    REQ-0583,
+    REQ-0595,
+    REQ-0596,
     REQ-3660,
     REQ-3662,
     REQ-3664,
@@ -43,6 +46,8 @@ states:
     REQ-0149,
     REQ-0151,
     REQ-0157,
+    REQ-1420,
+    REQ-1422,
     REQ-3203,
     REQ-3216,
     REQ-1358,
@@ -639,17 +644,19 @@ The implement step writes the following under a task's Evidence: the tests
 that close each criterion, each verb's outcome and the pull request. Where
 `meow-checks` isn't installed it also records each command and its exit
 status, because `meow-flow` works without it (REQ-0146, ADR-1480). It keeps no
-run output, in a file or in the task (REQ-3614), and marks the task done only
-in a change whose verbs all passed (REQ-3606). Before the implementation, it
+run output, in a file or in the task (REQ-3614), and marks the task and its
+completed authorising records `status: done` only in a change whose verbs all
+passed (REQ-0583, REQ-3606). Before the implementation, it
 names each criterion no program can check as resting on judgement (REQ-3216,
 REQ-0147).
 
 ### The gate
 
 Before it writes, a step runs `paw ready <step> <id>...` with the identifiers
-of its input. `ready` exits 0 when every input exists and is approved, and 1
-when one isn't, naming each missing or unapproved input on its own line
-(REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
+of its input. `ready` exits 0 when every input exists and is approved or, for a
+decision, epic or task, done, and 1 when one isn't, naming each missing or
+unapproved input on its own line (REQ-0198, REQ-0200, REQ-0595). The step
+refuses on 1 and says what is missing.
 
 | Step         | Its input is ready when                                                                                                                                  |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -661,16 +668,15 @@ when one isn't, naming each missing or unapproved input on its own line
 | implement    | the named task and its epic, defect or decision are approved, each task it depends on is done, and the task is approved on the declared trunk (REQ-3660) |
 | review       | nothing: the review reads the task's pull request                                                                                                        |
 
-A task is done once its Evidence is written, opening with anything but "Not
-yet.", in a change whose gate passed (REQ-3606), and dropped once its status
-is withdrawn, rejected or superseded. That holds for a task under an epic and
-for one realising a decision directly (REQ-3630), because an epic carries no
-status per task (REQ-2897). An approved epic written with a mark per task keeps
-it, and there `[x]` and `[~]` still decide done and dropped, because a frozen
-record keeps the form it was approved in. A task under a defect is done when
-the defect marks it `[x]`, and dropped when it is marked `[~]`. A task entry
-may carry `[P]` between its number and its identifier, marking it as able to
-run in parallel (REQ-0265), which is an order and not a status.
+A task under an epic or defect is done when its authorising record marks it
+`[x]`, and dropped when marked `[~]` or when its status is withdrawn, rejected
+or superseded. A task realising a decision directly is done once its Evidence
+opens with anything but "Not yet." (REQ-3630). A frozen historical task naming
+no authority uses that same Evidence rule (REQ-0596). A task entry may carry
+`[P]` between its number and its identifier, marking it as able to run in
+parallel (REQ-0265), which is an order and not a status. A completed task,
+epic or decision stores `status: done`, and `paw check` requires that stored
+claim and the derived result to agree (REQ-0583, REQ-0585).
 
 Each line under a task's `## Depends on` names one task and says whether it
 blocks, so a dependency that exists only for convenience is declared and never
@@ -998,6 +1004,14 @@ decision with its rejected alternative that a document, an issue or a pull
 request states, and cites its address. It recovers nothing from code alone
 (REQ-3110, REQ-3112). Without the pack it reports the history as unread and
 names `meow-github` (REQ-3128) (ADR-1300).
+
+### Attended irreversible actions
+
+An attended push, merge, release, issue write or governance change requires a
+fresh platform confirmation for that invocation (REQ-1420). An approval is
+never requested as a reusable prefix and never carries to the next action
+(REQ-1422). Reads, repository-local writes and ADR-2380's unattended path do
+not gain this prompt.
 
 ## Failure paths
 

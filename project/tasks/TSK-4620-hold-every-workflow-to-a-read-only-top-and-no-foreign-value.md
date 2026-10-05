@@ -1,8 +1,8 @@
 ---
 id: TSK-4620
 artifact: task
-status: approved
-revised: 2026-10-03
+status: done
+revised: 2026-10-04
 epic: EPC-2420
 closes: [REQ-2196, REQ-2198, REQ-2200]
 issue:
@@ -43,6 +43,11 @@ Write the check and its tests, and add it to the `test` verb in
 the check fails the gate it joins. Read the workflow files as YAML, and don't
 match the text, because a `run:` value spans several lines.
 
+**Amended while closing.** ADR-2800's build split moved the Rust build from
+`build.yml` to `rust-tool.yml`, and `main` deleted the old file, so the
+`${{ matrix.target }}` lines the brief names now sit in `rust-tool.yml`; the
+same `env:` rule reaches each of its 16 findings as `BUILD_TARGET`.
+
 Add the check to the list of checks in `tools/` that `CLAUDE.md`'s gate
 section gives.
 
@@ -70,7 +75,7 @@ output:
    `Workflows.test_the_same_value_through_env_passes`.
 4. The `test` verb runs `tools/test_check_workflows.py` and
    `python3 tools/check_workflows.py`, which prints
-   `3 workflow files, 0 findings` on this repository, and
+   `4 workflow files, 0 findings` on this repository, and
    `Workflows.test_this_repository_s_workflows_pass` holds the same.
 
 The tests failed first, in the commit that holds them alone, where the module
@@ -78,9 +83,11 @@ they import didn't exist yet. With the check written and the workflows
 unchanged, the last test failed on the three lines the task names:
 `build.yml`'s `${{ matrix.target }}` and `ci.yml`'s base and head commits.
 Each now reaches its script through the step's `env:`, as `BUILD_TARGET`,
-`BASE_SHA` and `HEAD_SHA`. `format`, `lint`, `check`, `test` and `build` each
-pass on the change's tree, and `mise run all` and `paw check` exit 0, as the
-pull request cites.
+`BASE_SHA` and `HEAD_SHA`. After `main` moved the Rust build into
+`rust-tool.yml`, the same fix holds its 16 `${{ matrix.target }}` findings
+the way, and `python3 tools/check_workflows.py` exits 0 again. `format`,
+`lint`, `check`, `test` and `build` each pass on the change's merged tree,
+as the pull request cites.
 
 I made three choices the task leaves open:
 
@@ -88,8 +95,9 @@ I made three choices the task leaves open:
   has none and ADR-2520 rejected adding a tool to the gate. It reads the
   block and flow forms a workflow uses, and reports an anchor, an alias, a
   tag, a tab in the indentation or a quoted scalar spanning lines as a file
-  that doesn't parse. On this repository's three workflows it builds the same
-  tree as PyYAML, compared once by hand outside the gate.
+  that doesn't parse. On the repository's three workflows as they stood when
+  the check was written, it built the same tree as PyYAML, compared once by
+  hand outside the gate.
 - Any top-level entry other than `contents: read` is a finding, `none`
   included, because SPC-1210 allows `contents: read` and nothing else there.
   An empty `permissions: {}` passes, because it grants nothing.
@@ -99,5 +107,5 @@ I made three choices the task leaves open:
 
 ## Left alone
 
-`release.yml`'s publishing job, whose permissions TSK-4630 widens for the
-attestation, and every workflow in another repository.
+`claude-release.yml`'s publishing job, whose permissions TSK-4630 widens for
+the attestation, and every workflow in another repository.
