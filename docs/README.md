@@ -4,10 +4,10 @@ answers: what meowpaw is, which page covers each part and how to install one
 kind: introduction
 describes:
   [
-    meow-core@0.6.1,
-    meow-git@0.3.0,
+    meow-core@0.6.2,
+    meow-git@0.3.1,
     meow-github@0.14.0,
-    meow-flow@0.47.0,
+    meow-flow@0.47.2,
     meow-prose-gate@0.4.0,
     meow-prose@0.5.1,
     meow-scm@0.5.0,

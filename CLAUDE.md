@@ -406,7 +406,7 @@ way somebody breaks this by accident.
 Run the gate before opening a pull request, and report what it actually said:
 
 ```bash
-mise run all          # fmt-check, lint, style, prompts, kernel, standalone and budget
+mise run all          # fmt-check, lint, style, prompts, kernel, standalone, budget and licence
 ```
 
 | Check        | Fails when                                                      |
@@ -418,6 +418,7 @@ mise run all          # fmt-check, lint, style, prompts, kernel, standalone and 
 | `kernel`     | A file in the kernel names a unit outside it                    |
 | `standalone` | A unit's file runs a path outside the unit's own directory      |
 | `budget`     | A unit loads more on every turn than its `budget.toml` states   |
+| `licence`    | A file carries no licensing the corpus declares                 |
 
 The record is checked by `meow-flow`, a unit the harness ships, because a
 harness checked by a mechanism it doesn't ship hasn't been shown to work. It
@@ -428,10 +429,11 @@ shape, where `.meowpaw/profile.toml` declares the record:
 plugins/meow-flow/bin/paw check
 ```
 
-Five checks stay in `tools/` as Python scripts, because they read this
+Six checks stay in `tools/` as Python scripts, because they read this
 repository and not the record: the documentation, the documentation index,
-links, the shape a subordinate agent carries, and the community files under
-`.github/`. The `test` verb runs all six, and so does `meow-checks run test`.
+links, the shape a subordinate agent carries, the community files under
+`.github/` and the rules every workflow under `.github/workflows/` holds. The
+`test` verb runs all seven, and so does `meow-checks run test`.
 
 A check that reports a false positive is a defect in the check, and never a
 reason to reword the text around it. A check that trips on what it shouldn't
