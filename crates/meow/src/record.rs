@@ -3958,7 +3958,14 @@ fn template(rest: &[String]) -> u8 {
         Ok(path) => path
             .parent()
             .and_then(Path::parent)
-            .map(|u| u.join("templates").join(&file)),
+            // The launcher names the layout through `bin/..`, and the path a
+            // person reads should name the unit directly.
+            .map(|u| {
+                u.canonicalize()
+                    .unwrap_or(u.to_path_buf())
+                    .join("templates")
+                    .join(&file)
+            }),
         Err(reason) => {
             say!("paw template: no template was found: {reason}");
             return UNCHECKED;

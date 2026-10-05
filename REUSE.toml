@@ -32,6 +32,7 @@ path = [
   "crates/meow/Cargo.lock",
   "renovate.json",
   "plugins/**",
+  "packages/**",
   ".claude-plugin/**",
 ]
 precedence = "aggregate"

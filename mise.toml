@@ -45,6 +45,11 @@ run = "cargo run --quiet --release --manifest-path crates/meow/Cargo.toml --targ
 description = "Build each unit's binary of the native tool for this machine"
 run = "crates/meow/build-units"
 
+[tasks.licence]
+description = "Check every file carries the licensing the corpus declares"
+depends = ["build"]
+run = "plugins/meow-licence/bin/meow-licence check"
+
 [tasks.shell-fmt]
 description = "Check every shell file the units ship is in shfmt's form"
 run = 'files=$(shfmt -f plugins crates/meow) && test -n "$files" && shfmt -i 2 -d $files'
@@ -75,4 +80,4 @@ run = "python3 tools/loop.py plugins/*/"
 
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "lint", "style", "prompts", "kernel", "standalone", "budget", "shell-fmt", "shell-lint", "crate-fmt", "crate-lint", "crate-check", "crate"]
+depends = ["fmt-check", "lint", "style", "prompts", "kernel", "standalone", "budget", "licence", "shell-fmt", "shell-lint", "crate-fmt", "crate-lint", "crate-check", "crate"]
