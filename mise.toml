@@ -2,13 +2,13 @@
 
 [tools]
 claude = "latest"
-go-task = "3.53.1"
 markdownlint-cli2 = "latest"
 "npm:prettier" = "latest"
 python = "3.14"
 rust = { version = "1.99", components = "rustfmt,clippy" }
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
+task = "3.53.1"
 
 [tasks.fmt]
 description = "Bring Markdown, the native tool's code and the shipped shell to canonical form"
