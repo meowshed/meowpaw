@@ -88,8 +88,10 @@ depends = ["fmt-check", "shell-fmt", "crate-fmt", "lint", "style", "prompts", "k
 
 [tasks.mise-check]
 description = "Check the profile's verbs name the tasks mise declares"
+depends = ["build"]
 run = "plugins/meow-mise/bin/meow-mise check"
 
 [tasks.markdown]
 description = "Check every shipped unit with meow-markdown, the check the unit ships"
+depends = ["build"]
 run = "plugins/meow-markdown/bin/meow-markdown check"
