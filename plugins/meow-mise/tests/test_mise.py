@@ -48,6 +48,40 @@ SHIP = '#!/bin/sh\n#MISE confirm="Ship it?"\necho ship\n'
 PLAIN = "#!/bin/sh\necho plain\n"
 EXEC = '[tasks.t]\nrun = "echo {{exec(command=\'echo x\')}}"\n'
 
+# The environment variables ci_info 0.14, the crate mise reads CI from, checks.
+# Where any is set, mise trusts a configuration by itself, and a fixture that
+# presents a machine a person works at loses the trust decision it tests.
+CI_ENV = {
+    "AC_APPCIRCLE", "AGOLA_GIT_BRANCH", "AGOLA_REPOSITORY_URL", "APPVEYOR",
+    "APPVEYOR_PULL_REQUEST_NUMBER", "APPVEYOR_REPO_BRANCH", "BITBUCKET_BRANCH",
+    "BITBUCKET_COMMIT", "BITBUCKET_PR_ID", "BITRISE_GIT_BRANCH", "BITRISE_IO",
+    "BITRISE_PULL_REQUEST", "BRANCH", "BRANCH_NAME", "BUDDY_EXECUTION_BRANCH",
+    "BUDDY_EXECUTION_PULL_REQUEST_ID", "BUDDY_WORKSPACE_ID", "BUILDER_OUTPUT",
+    "BUILDKITE", "BUILDKITE_PULL_REQUEST", "BUILD_ID", "BUILD_NUMBER",
+    "BUILD_REASON", "BUILD_SOURCEBRANCHNAME", "CF_BRANCH", "CF_BUILD_ID",
+    "CF_PULL_REQUEST_ID", "CHANGE_ID", "CI", "CIRCLECI", "CIRCLE_BRANCH",
+    "CIRCLE_PULL_REQUEST", "CIRRUS_BRANCH", "CIRRUS_CI", "CIRRUS_PR",
+    "CI_BRANCH", "CI_COMMIT_BRANCH", "CI_COMMIT_PULL_REQUEST",
+    "CI_COMMIT_REF_NAME", "CI_MERGE_REQUEST_ID", "CI_NAME",
+    "CI_PULL_REQUEST_NUMBER", "CI_XCODE_PROJECT", "CM_BRANCH", "CM_BUILD_ID",
+    "CM_PULL_REQUEST", "CODEBUILD_BUILD_ARN", "CONTINUOUS_INTEGRATION",
+    "DRONE", "DRONE_BUILD_EVENT", "DSARI", "EARTHLY_CI",
+    "FLOWCI_GIT_BRANCH", "FLOWCI_JOB_BUILD_NUM", "GERRIT_PROJECT",
+    "GITEA_ACTIONS", "GITHUB_ACTIONS", "GITHUB_EVENT_NAME", "GITLAB_CI",
+    "GIT_BRANCH", "GO_PIPELINE_LABEL", "HARNESS_BUILD_ID",
+    "HEROKU_TEST_RUN_BRANCH", "HUDSON_URL", "IS_PULL_REQUEST", "JENKINS_URL",
+    "JOB_URL", "JX_CHART_REPOSITORY", "LAYERCI", "LAYERCI_BRANCH",
+    "LAYERCI_PULL_REQUEST", "MAGNUM", "NETLIFY", "NEVERCODE",
+    "NEVERCODE_BRANCH", "NEVERCODE_PULL_REQUEST", "NODE", "NOW_BUILDER",
+    "PROW_JOB_ID", "PULL_BASE_REF", "PULL_NUMBER", "PULL_REQUEST",
+    "PULL_REQUEST_NUMBER", "RENDER", "RUN_ID", "SAILCI",
+    "SAIL_PULL_REQUEST_NUMBER", "SCREWDRIVER", "SD_PULL_REQUEST", "SEMAPHORE",
+    "SEMAPHORE_GIT_BRANCH", "STRIDER", "TASK_ID", "TEAMCITY_VERSION",
+    "TF_BUILD", "TRAVIS", "TRAVIS_BRANCH", "TRAVIS_PULL_REQUEST",
+    "VELA_BUILD_BRANCH", "VELA_BUILD_NUMBER", "VELA_PULL_REQUEST", "VERCEL",
+    "VERCEL_GIT_PULL_REQUEST_ID", "XCS", "ghprbPullId", "woodpecker",
+}
+
 
 class Repository:
     """A git repository at `<tmp>/parent/repo`, with mise stopped at `<tmp>`."""
@@ -60,7 +94,7 @@ class Repository:
         self.home = base / "home"
         for directory in (self.root, self.home):
             directory.mkdir(parents=True)
-        self.env = {k: v for k, v in os.environ.items() if not k.startswith(("MISE_", "__MISE_"))}
+        self.env = {k: v for k, v in os.environ.items() if not k.startswith(("MISE_", "__MISE_")) and k not in CI_ENV}
         self.env.update(HOME=str(self.home), XDG_CONFIG_HOME=str(self.home / ".config"),
                         XDG_STATE_HOME=str(self.home / ".state"), XDG_CACHE_HOME=str(self.home / ".cache"),
                         XDG_DATA_HOME=str(self.home / ".data"), MISE_CEILING_PATHS=str(base),

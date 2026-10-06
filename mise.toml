@@ -8,6 +8,7 @@ python = "3.14"
 rust = { version = "1.99", components = "rustfmt,clippy" }
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
+task = "3.53.1"
 
 [tasks.fmt]
 description = "Bring Markdown, the native tool's code and the shipped shell to canonical form"
@@ -78,6 +79,21 @@ run = "cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features"
 description = "Measure every unit on real models, by hand: it costs money, so `all` never runs it"
 run = "python3 tools/loop.py plugins/*/"
 
+[tasks.test]
+description = "Run every unit's tests, the record's check and the repository's own checks"
+depends = ["build"]
+run = """mise run crate && python3 -m unittest discover -s plugins/meow-checks/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-prose/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && mise exec lychee@0.24.2 -- python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && python3 -m unittest discover -s plugins/meow-loop/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py tools/test_marketplace.py tools/test_no_kept_evidence.py tools/test_record_shape.py tools/test_check_community.py tools/test_trunk_gate.py tools/test_threat_model.py tools/test_check_workflows.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py && python3 tools/check_community.py && python3 tools/check_workflows.py && python3 tools/check_gate_covers_verbs.py"""
+
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "lint", "style", "prompts", "kernel", "standalone", "budget", "licence", "shell-fmt", "shell-lint", "crate-fmt", "crate-lint", "crate-check", "crate"]
+depends = ["fmt-check", "shell-fmt", "crate-fmt", "lint", "style", "prompts", "kernel", "standalone", "budget", "licence", "mise-check", "markdown", "shell-lint", "crate-lint", "crate-check", "test", "build"]
+
+[tasks.mise-check]
+description = "Check the profile's verbs name the tasks mise declares"
+depends = ["build"]
+run = "plugins/meow-mise/bin/meow-mise check"
+
+[tasks.markdown]
+description = "Check every shipped unit with meow-markdown, the check the unit ships"
+depends = ["build"]
+run = "plugins/meow-markdown/bin/meow-markdown check"
