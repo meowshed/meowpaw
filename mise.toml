@@ -2,6 +2,7 @@
 
 [tools]
 claude = "latest"
+go-task = "3.53.1"
 markdownlint-cli2 = "latest"
 "npm:prettier" = "latest"
 python = "3.14"
