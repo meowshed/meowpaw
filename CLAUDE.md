@@ -406,7 +406,7 @@ way somebody breaks this by accident.
 Run the gate before opening a pull request, and report what it actually said:
 
 ```bash
-mise run all          # fmt-check, lint, style, prompts, kernel, standalone, budget and licence
+mise run all          # every task the profile's verbs name, composed once in mise.toml
 ```
 
 | Check        | Fails when                                                      |
