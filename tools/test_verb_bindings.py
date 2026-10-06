@@ -65,13 +65,14 @@ class VerbBindings(unittest.TestCase):
         self.assertEqual(build.get("state"), "resolved", build)
         self.assertEqual(build.get("command"), "mise run build")
 
-    def test_test_runs_the_crate_after_build_units(self):
-        """Criterion 2 (REQ-1186): `test` names the task that runs `mise run crate` right after `crates/meow/build-units`."""
+    def test_test_builds_the_units_before_the_crate(self):
+        """Criterion 2 (REQ-1186): `test` builds the units, then runs `mise run crate`."""
         test = verbs()["test"]
         self.assertEqual(test.get("state"), "resolved", test)
         self.assertEqual(test.get("command"), "mise run test")
+        self.assertEqual(mise_tasks()["test"].get("depends"), ["build"])
         steps = [step.strip() for step in mise_tasks()["test"].get("run", "").split("&&")]
-        self.assertEqual(steps[:2], ["crates/meow/build-units", "mise run crate"])
+        self.assertEqual(steps[:1], ["mise run crate"])
 
     def test_none_of_the_three_is_unresolved(self):
         """Criterion 2 (REQ-1186): each of check, test and build has a non-empty command."""
