@@ -66,10 +66,11 @@ class VerbBindings(unittest.TestCase):
         self.assertEqual(build.get("command"), "mise run build")
 
     def test_test_runs_the_crate_after_build_units(self):
-        """Criterion 2 (REQ-1186): `test` runs `mise run crate` right after `crates/meow/build-units`."""
+        """Criterion 2 (REQ-1186): `test` names the task that runs `mise run crate` right after `crates/meow/build-units`."""
         test = verbs()["test"]
         self.assertEqual(test.get("state"), "resolved", test)
-        steps = [step.strip() for step in test.get("command", "").split("&&")]
+        self.assertEqual(test.get("command"), "mise run test")
+        steps = [step.strip() for step in mise_tasks()["test"].get("run", "").split("&&")]
         self.assertEqual(steps[:2], ["crates/meow/build-units", "mise run crate"])
 
     def test_none_of_the_three_is_unresolved(self):
@@ -79,6 +80,16 @@ class VerbBindings(unittest.TestCase):
             with self.subTest(verb=verb):
                 self.assertEqual(resolved[verb].get("state"), "resolved", resolved[verb])
                 self.assertTrue(resolved[verb].get("command", "").strip())
+
+
+def named_through_the_verbs():
+    """Each task the verbs name directly or through the task a verb composes."""
+    named = set()
+    for verb in verbs().values():
+        named.update(re.findall(r"\bmise run ([\w-]+)", verb.get("command") or ""))
+    for name in list(named):
+        named.update(re.findall(r"\bmise run ([\w-]+)", mise_tasks().get(name, {}).get("run", "")))
+    return named
 
 
 class MiseCheck(unittest.TestCase):
@@ -96,12 +107,9 @@ class MiseCheck(unittest.TestCase):
         output = run.stdout + run.stderr
         self.assertEqual(run.returncode, 0, output)
         self.assertRegex(output, r"\b0 findings in [1-9]\d* task runs")
-        named = set()
-        for verb in verbs().values():
-            named.update(re.findall(r"\bmise run ([\w-]+)", verb.get("command") or ""))
         for task in ("crate-check", "crate", "build"):
             with self.subTest(task=task):
-                self.assertIn(task, named)
+                self.assertIn(task, named_through_the_verbs())
 
 
 class Gate(unittest.TestCase):
@@ -165,12 +173,15 @@ class MiseCheckWithFormatAndLint(unittest.TestCase):
         output = run.stdout + run.stderr
         self.assertEqual(run.returncode, 0, output)
         self.assertRegex(output, r"\b0 findings in [1-9]\d* task runs")
-        named = set()
-        for verb in verbs().values():
-            named.update(re.findall(r"\bmise run ([\w-]+)", verb.get("command") or ""))
         for task in ("crate-fmt", "crate-lint", "crate-check", "crate", "build"):
             with self.subTest(task=task):
-                self.assertIn(task, named)
+                self.assertIn(task, named_through_the_verbs())
+
+    def test_the_test_task_names_declared_tasks(self):
+        """BUG-1510: every task the test chain names is declared in `mise.toml`."""
+        for name in re.findall(r"\bmise run ([\w-]+)", mise_tasks()["test"].get("run", "")):
+            with self.subTest(task=name):
+                self.assertIn(name, mise_tasks())
 
 
 class FmtFormatsTheCrate(unittest.TestCase):
