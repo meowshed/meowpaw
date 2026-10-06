@@ -862,8 +862,9 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1411](bugs/BUG-1411-the-binary-finds-its-data-beside-itself.md)                                   | The binary finds its data beside itself, where the npm layout doesn't hold it                                                   |
 | [BUG-1412](bugs/BUG-1412-both-task-runner-packs-claim-the-skill-name-tasks.md)                         | Both task-runner packs claim the skill name tasks, which Pi's flat namespace resolves silently                                  |
 | [BUG-1500](bugs/BUG-1500-the-gate-never-runs-the-licence-check-and-packages-carries-no-declaration.md) | The gate never runs the licence check, and the mirrors under `packages/` carry no declaration                                   |
+| [BUG-1510](bugs/BUG-1510-the-gate-runs-a-subset-of-the-checks-the-verbs-run.md)                        | The gate runs a subset of the checks the verbs run, so CI passes trees a local run fails                                        |
 
-Forty-five are closed. BUG-1410 is open, and so are BUG-1040, BUG-1100 and BUG-1360. BUG-1410 routes to implement,
+Forty-six are closed. BUG-1410 is open, and so are BUG-1040, BUG-1100 and BUG-1360. BUG-1410 routes to implement,
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
 asks for the reviewer's cases to cover every rule. BUG-1410 routes to implement, because the resolution the git
 guard already does is the pattern its start command follows, and its fix is a crate change. BUG-1005 was written
