@@ -1,7 +1,7 @@
 ---
 id: TSK-5240
 artifact: task
-status: approved
+status: done
 revised: 2026-10-09
 bug: BUG-1520
 closes: [REQ-1485]
@@ -65,12 +65,16 @@ Nothing.
 
 ## Evidence
 
-Not yet. Criterion 4 isn't closed: it rests on a publishing run after the
-merge, because no program in the repository can read what the address serves
-after a deploy, and this line stays first until that run's output is recorded
-here.
+Pull request 868 and one publishing run of `claude-release.yml`
+(run 37997364757, started by hand with `publish` on). Criterion 4 is closed
+by that run: the `marketplace` release's `marketplace.json` lists 16 entries
+whose `source` is `archive` and none that is a string, and
+`curl -fsS https://meow.retran.me/meowpaw/marketplace.json` lists none that is a
+string, using the filter in BUG-1520's reproduction. The run also released the
+six versions that had no release: `meow-core` 0.6.2, `meow-git` 0.3.1,
+`meow-flow` 0.47.2, `meow-mise` 0.2.2, `meow-gotask` 0.2.2 and `meow-code` 0.2.2.
 
-Pull request 868. Criteria 1 to 3 are closed by the tests in
+Criteria 1 to 3 are closed by the tests in
 `tools/test_marketplace.py`, class `ReleasedFile`:
 
 - Criterion 1: `test_a_single_unit_run_keeps_the_other_units_archives`,
