@@ -99,4 +99,4 @@ first step then prints `archive` on every line.
 
 ## Tasks
 
-- [ ] T-001 TSK-5240 publish a `marketplace.json` whose every entry is an archive, and check it before `Publish` in `.github/workflows/claude-release.yml`
+- [x] T-001 TSK-5240 publish a `marketplace.json` whose every entry is an archive, and check it before `Publish` in `.github/workflows/claude-release.yml` (done: pull request 868, publishing run 37997364757)
