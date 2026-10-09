@@ -148,6 +148,23 @@ class ReleasedFile(unittest.TestCase):
                                  capture_output=True, text=True)
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
+    def test_fill_rewrites_the_file_and_tolerates_no_published_file(self):
+        """Criterion 1: the command the workflow runs fills from a published file, and leaves the file alone
+        where the release has none yet."""
+        tool = str(ROOT / "tools/marketplace_release.py")
+        with tempfile.TemporaryDirectory() as tmp:
+            path, previous = Path(tmp) / "marketplace.json", Path(tmp) / "previous.json"
+            path.write_text(json.dumps(self.doc(**{"meow-a": "./plugins/meow-a"})))
+            previous.write_text(json.dumps(self.doc(**{"meow-a": archive("meow-a")})))
+            run = subprocess.run([sys.executable, tool, "fill", str(path), str(Path(tmp) / "absent.json")],
+                                 capture_output=True, text=True)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertEqual(self.tool.relative_entries(json.loads(path.read_text())), ["meow-a"])
+            run = subprocess.run([sys.executable, tool, "fill", str(path), str(previous)],
+                                 capture_output=True, text=True)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertEqual(self.tool.relative_entries(json.loads(path.read_text())), [])
+
     def test_the_workflow_checks_the_file_before_it_publishes(self):
         """Criterion 3: `claude-release.yml` runs the check between packing and the `Publish` step."""
         text = (ROOT / ".github/workflows/claude-release.yml").read_text()
