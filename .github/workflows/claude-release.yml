@@ -103,6 +103,11 @@ jobs:
               dist/marketplace.json > dist/next.json
             mv dist/next.json dist/marketplace.json
           done
+          # A tag run packs one unit, so the others keep the archive the
+          # published file already names; a unit with none fails the check.
+          gh release download marketplace --pattern marketplace.json --dir "$RUNNER_TEMP/previous" || true
+          python3 tools/marketplace_release.py fill dist/marketplace.json "$RUNNER_TEMP/previous/marketplace.json"
+          python3 tools/marketplace_release.py check dist/marketplace.json
           cat dist/notes.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v7
         with:
