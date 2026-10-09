@@ -65,9 +65,13 @@ Nothing.
 
 ## Evidence
 
-Not yet. Criterion 4 rests on a publishing run, which only the owner starts,
-because publishing is a public act; the task isn't done until that run has
-happened and its output is recorded here.
+Not yet. Criterion 4 rests on a publishing run, because no program in the
+repository can read what the address serves after a deploy; the task isn't
+done until that run has happened and its output is recorded here. Criterion 3
+rests on the workflow's own run, because a test can only read the workflow
+file and not execute it: `test_the_workflow_checks_the_file_before_it_publishes`
+covers the order of the steps, and the job summary of the pull request's run
+covers the result.
 
 ## Left alone
 

@@ -7,6 +7,8 @@ TSK-3870 asks for `meow-method` and TSK-4070 for the `meow-verbs` stub
 
 import json
 import subprocess
+import sys
+import tempfile
 import tomllib
 import unittest
 from pathlib import Path
@@ -92,6 +94,65 @@ class Renamed(unittest.TestCase):
                 if "meow-verbs" in line and named.get(name, "\0") not in line + before:
                     found.append(f"{name}:{number}")
         self.assertEqual(found, [])
+
+
+def archive(name):
+    return {"source": "archive", "url": f"https://example.test/{name}.zip", "sha256": "0" * 64}
+
+
+class ReleasedFile(unittest.TestCase):
+    """TSK-5240, BUG-1520: the released `marketplace.json` holds an archive for every unit (REQ-1485)."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(ROOT / "tools"))
+        import marketplace_release
+        cls.tool = marketplace_release
+
+    def doc(self, **sources):
+        return {"name": "meowpaw", "plugins": [{"name": n, "source": s} for n, s in sources.items()]}
+
+    def test_a_single_unit_run_keeps_the_other_units_archives(self):
+        """Criterion 1: a tag run packs `meow-b` alone, and filling from the published file leaves an archive
+        for each of the three units."""
+        packed = self.doc(**{"meow-a": "./plugins/meow-a", "meow-b": archive("meow-b"), "meow-c": "./plugins/meow-c"})
+        previous = self.doc(**{"meow-a": archive("meow-a"), "meow-b": archive("old-b"), "meow-c": archive("meow-c")})
+        filled = self.tool.fill(packed, previous)
+        self.assertEqual({p["name"]: p["source"] for p in filled["plugins"]},
+                         {"meow-a": archive("meow-a"), "meow-b": archive("meow-b"), "meow-c": archive("meow-c")})
+        self.assertEqual(self.tool.relative_entries(filled), [])
+
+    def test_a_unit_the_previous_file_lacks_stays_relative(self):
+        """Criterion 1: fill invents no archive, so the check still names a unit nobody packed."""
+        packed = self.doc(**{"meow-a": archive("meow-a"), "meow-new": "./plugins/meow-new"})
+        previous = self.doc(**{"meow-a": archive("meow-a")})
+        self.assertEqual(self.tool.relative_entries(self.tool.fill(packed, previous)), ["meow-new"])
+
+    def test_the_check_exits_1_and_names_the_relative_entry(self):
+        """Criterion 2: one string `source` fails the check, and the output names that unit and no other."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "marketplace.json"
+            path.write_text(json.dumps(self.doc(**{"meow-a": archive("meow-a"), "meow-flow": "./plugins/meow-flow"})))
+            run = subprocess.run([sys.executable, str(ROOT / "tools/marketplace_release.py"), "check", str(path)],
+                                 capture_output=True, text=True)
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("meow-flow", run.stdout + run.stderr)
+        self.assertNotIn("meow-a", run.stdout + run.stderr)
+
+    def test_the_check_exits_0_where_every_entry_is_an_archive(self):
+        """Criterion 3: a file with only archives passes the check the workflow runs before it publishes."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "marketplace.json"
+            path.write_text(json.dumps(self.doc(**{"meow-a": archive("meow-a"), "meow-b": archive("meow-b")})))
+            run = subprocess.run([sys.executable, str(ROOT / "tools/marketplace_release.py"), "check", str(path)],
+                                 capture_output=True, text=True)
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_the_workflow_checks_the_file_before_it_publishes(self):
+        """Criterion 3: `claude-release.yml` runs the check between packing and the `Publish` step."""
+        text = (ROOT / ".github/workflows/claude-release.yml").read_text()
+        self.assertIn("tools/marketplace_release.py check dist/marketplace.json", text)
+        self.assertLess(text.index("marketplace_release.py check"), text.index("- name: Publish"))
 
 
 if __name__ == "__main__":
