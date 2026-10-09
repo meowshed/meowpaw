@@ -442,7 +442,9 @@ platform: the npm registry's versions are immutable and never moved
 (REQ-4148). A unit whose version already has
 a release keeps its archive. A release named `marketplace` holds one
 `marketplace.json` whose entries point at every unit's archive by `url` and
-`sha256`. A person adds it by the address the next section gives. Claude Code
+`sha256`. A run for one unit's tag packs that unit alone and takes the other entries
+from the file already published, and it fails before it publishes a file that
+holds a relative `source` (REQ-1485). A person adds it by the address the next section gives. Claude Code
 reads an address on `github.com` as a git repository, so the release's own copy
 is added by downloading it and adding it by its path (RES-0274), which stays as
 a fallback:
