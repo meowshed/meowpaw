@@ -1,7 +1,7 @@
 ---
 id: TSK-5240
 artifact: task
-status: approved
+status: done
 revised: 2026-10-09
 bug: BUG-1520
 closes: [REQ-1485]
