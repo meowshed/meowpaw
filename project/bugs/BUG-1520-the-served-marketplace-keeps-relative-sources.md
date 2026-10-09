@@ -96,3 +96,7 @@ Not yet. The fix is a task under this record, `bug: BUG-1520`. It lands with a
 check that fails when a served `marketplace.json` carries a `source` that is a
 string, so a single-unit run can't publish one again, and the reproduction's
 first step then prints `archive` on every line.
+
+## Tasks
+
+- [ ] T-001 TSK-5240 publish a `marketplace.json` whose every entry is an archive, and check it before `Publish` in `.github/workflows/claude-release.yml`
