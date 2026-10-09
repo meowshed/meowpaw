@@ -65,9 +65,26 @@ Nothing.
 
 ## Evidence
 
-Not yet. Criterion 4 rests on a publishing run, which only the owner starts,
-because publishing is a public act; the task isn't done until that run has
-happened and its output is recorded here.
+Not yet. Criterion 4 isn't closed: it rests on a publishing run after the
+merge, because no program in the repository can read what the address serves
+after a deploy, and this line stays first until that run's output is recorded
+here.
+
+Pull request 868. Criteria 1 to 3 are closed by the tests in
+`tools/test_marketplace.py`, class `ReleasedFile`:
+
+- Criterion 1: `test_a_single_unit_run_keeps_the_other_units_archives`,
+  `test_a_unit_the_previous_file_lacks_stays_relative` and
+  `test_fill_rewrites_the_file_and_tolerates_no_published_file`.
+- Criterion 2: `test_the_check_exits_1_and_names_the_relative_entry`.
+- Criterion 3: `test_the_check_exits_0_where_every_entry_is_an_archive` and
+  `test_the_workflow_checks_the_file_before_it_publishes`. The workflow's own
+  run on the pull request covers the result of the check, because a test can
+  only read the workflow file and not execute it.
+
+`meow-checks run format lint check test build` passed on every verb at one
+tree. The first `lint` run reported `unchecked` because the new worktree had
+no `meow-licence` binary until `build` made it, and the second run passed.
 
 ## Left alone
 
