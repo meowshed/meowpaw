@@ -44,6 +44,9 @@ class `SynchronisationStep`:
 A pattern in the first test stopped at a line break and could match no
 wrapped rule, and a commit of its own corrects it.
 
+`meow-checks run format lint check test` passed on every stage with this
+branch's binary, `test` in 155 seconds.
+
 ## Left alone
 
 The request layer's limits and spacing (ADR-1810), which every write already

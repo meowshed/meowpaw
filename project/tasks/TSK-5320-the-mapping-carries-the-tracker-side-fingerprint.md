@@ -50,6 +50,9 @@ release after 0.15.0 of `meow-github`, which drops that fallback. Two older
 tests asserted that the front matter ends at `projected:`, and a commit of its
 own makes them accept `tracked:` after it.
 
+`meow-checks run format lint check test` passed on every stage with this
+branch's binary, `test` in 155 seconds.
+
 ## Left alone
 
 The request layer's limits and spacing (ADR-1810), which every write already

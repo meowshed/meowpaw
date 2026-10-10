@@ -57,6 +57,9 @@ dependencies, so a body edited on the tracker is not written into the record
 and the record's body goes back to the issue, which the unit's page states.
 The tests run against the stand-in for `gh` and make no network call.
 
+`meow-checks run format lint check test` passed on every stage with this
+branch's binary, `test` in 155 seconds.
+
 ## Left alone
 
 The request layer's limits and spacing (ADR-1810), which every write already
