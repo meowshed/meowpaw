@@ -70,9 +70,9 @@ class VerbBindings(unittest.TestCase):
         test = verbs()["test"]
         self.assertEqual(test.get("state"), "resolved", test)
         self.assertEqual(test.get("command"), "mise run test")
-        self.assertEqual(mise_tasks()["test"].get("depends"), ["build"])
-        steps = [step.strip() for step in mise_tasks()["test"].get("run", "").split("&&")]
-        self.assertEqual(steps[:1], ["mise run crate"])
+        self.assertIn("test-crate", mise_tasks()["test"].get("depends"))
+        self.assertEqual(mise_tasks()["test-crate"].get("depends"), ["build"])
+        self.assertEqual(mise_tasks()["test-crate"].get("run"), "mise run crate")
 
     def test_none_of_the_three_is_unresolved(self):
         """Criterion 2 (REQ-1186): each of check, test and build has a non-empty command."""
@@ -88,8 +88,14 @@ def named_through_the_verbs():
     named = set()
     for verb in verbs().values():
         named.update(re.findall(r"\bmise run ([\w-]+)", verb.get("command") or ""))
-    for name in list(named):
-        named.update(re.findall(r"\bmise run ([\w-]+)", mise_tasks().get(name, {}).get("run", "")))
+    queue = list(named)
+    while queue:
+        task = mise_tasks().get(queue.pop(), {})
+        depends = task.get("depends", [])
+        found = set(re.findall(r"\bmise run ([\w-]+)", task.get("run", ""))) | set(
+            [depends] if isinstance(depends, str) else depends)
+        queue += [name for name in found if name not in named]
+        named |= found
     return named
 
 

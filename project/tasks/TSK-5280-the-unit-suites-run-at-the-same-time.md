@@ -1,7 +1,7 @@
 ---
 id: TSK-5280
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 bug: BUG-1530
 closes: [REQ-4300]
@@ -46,7 +46,27 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 879.
+
+- Criterion 1: `plugins/meow-checks/bin/meow-checks run test` printed
+  `passed, exit status 0 after 115.6s` on the owner's machine with the
+  binaries built, in one run. The six runs of RES-0345 took 319.6 to 962.5
+  seconds. The slowest suite in that run was `meow-loop` at 108.5 seconds,
+  then `meow-prose-gate` at 92.9 and `meow-flow` at 54.6. One run isn't a
+  distribution, so the bound is shown reachable on this machine and not shown
+  to hold on every run.
+- Criterion 2: `test_each_unit_suite_is_run_by_a_task_the_stage_depends_on` and
+  `test_the_stage_itself_runs_no_suite` in `tools/test_test_stage.py`.
+- Criterion 3: `test_the_gate_reads_a_stage_that_is_split_into_tasks` and
+  `test_the_repository_gate_carries_the_stage` in the same file. The gate check
+  needed no change, because `test` stays one named task that `all` carries,
+  so the check reads it as it did.
+
+Two of the tests written first were corrected in commits of their own: one
+expected value in the split-stage fixture was wrong, and the verb-binding tests
+asserted that the stage runs the crate in its own chain, so they now follow the
+stage's dependencies. A task `test-crate` runs `mise run crate` after the build,
+which keeps what those tests held: the units are built before the crate's tests.
 
 ## Left alone
 

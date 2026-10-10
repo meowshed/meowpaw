@@ -79,10 +79,94 @@ run = "cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features"
 description = "Measure every unit on real models, by hand: it costs money, so `all` never runs it"
 run = "python3 tools/loop.py plugins/*/"
 
-[tasks.test]
-description = "Run every unit's tests, the record's check and the repository's own checks"
+[tasks.test-crate]
+description = "Run the native tool's own tests, after the units are built"
 depends = ["build"]
-run = """mise run crate && python3 -m unittest discover -s plugins/meow-checks/tests && python3 -m unittest discover -s plugins/meow-scm/tests && python3 -m unittest discover -s plugins/meow-git/tests && python3 -m unittest discover -s plugins/meow-flow/tests && python3 -m unittest discover -s plugins/meow-github/tests && python3 -m unittest discover -s plugins/meow-licence/tests && python3 -m unittest discover -s plugins/meow-author/tests && python3 -m unittest discover -s plugins/meow-prose/tests && python3 -m unittest discover -s plugins/meow-mise/tests && python3 -m unittest discover -s plugins/meow-gotask/tests && mise exec lychee@0.24.2 -- python3 -m unittest discover -s plugins/meow-markdown/tests && python3 -m unittest discover -s plugins/meow-prose-gate/tests && python3 -m unittest discover -s plugins/meow-unattended/tests && python3 -m unittest discover -s plugins/meow-loop/tests && plugins/meow-flow/bin/paw check && python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py tools/test_marketplace.py tools/test_no_kept_evidence.py tools/test_record_shape.py tools/test_check_community.py tools/test_trunk_gate.py tools/test_threat_model.py tools/test_check_workflows.py tools/test_check_terms.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py && python3 tools/check_community.py && python3 tools/check_workflows.py && python3 tools/check_terms.py && python3 tools/check_gate_covers_verbs.py"""
+run = "mise run crate"
+
+[tasks.test-checks]
+description = "Run the tests of meow-checks"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-checks/tests"
+
+[tasks.test-scm]
+description = "Run the tests of meow-scm"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-scm/tests"
+
+[tasks.test-git]
+description = "Run the tests of meow-git"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-git/tests"
+
+[tasks.test-flow]
+description = "Run the tests of meow-flow"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-flow/tests"
+
+[tasks.test-github]
+description = "Run the tests of meow-github"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-github/tests"
+
+[tasks.test-licence]
+description = "Run the tests of meow-licence"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-licence/tests"
+
+[tasks.test-author]
+description = "Run the tests of meow-author"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-author/tests"
+
+[tasks.test-prose]
+description = "Run the tests of meow-prose"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-prose/tests"
+
+[tasks.test-mise]
+description = "Run the tests of meow-mise"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-mise/tests"
+
+[tasks.test-gotask]
+description = "Run the tests of meow-gotask"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-gotask/tests"
+
+[tasks.test-markdown]
+description = "Run the tests of meow-markdown"
+depends = ["build"]
+run = "mise exec lychee@0.24.2 -- python3 -m unittest discover -s plugins/meow-markdown/tests"
+
+[tasks.test-prose-gate]
+description = "Run the tests of meow-prose-gate"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-prose-gate/tests"
+
+[tasks.test-unattended]
+description = "Run the tests of meow-unattended"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-unattended/tests"
+
+[tasks.test-loop]
+description = "Run the tests of meow-loop"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-loop/tests"
+
+[tasks.test-record]
+description = "Check the record"
+depends = ["build"]
+run = "plugins/meow-flow/bin/paw check"
+
+[tasks.test-tools]
+description = "Run the tests and the checks of tools/"
+depends = ["build"]
+run = """python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py tools/test_marketplace.py tools/test_no_kept_evidence.py tools/test_record_shape.py tools/test_check_community.py tools/test_trunk_gate.py tools/test_threat_model.py tools/test_check_workflows.py tools/test_check_terms.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py && python3 tools/check_community.py && python3 tools/check_workflows.py && python3 tools/check_terms.py && python3 tools/check_gate_covers_verbs.py"""
+
+[tasks.test]
+description = "Run every unit's tests, the record's check and the repository's own checks, each as a task of its own"
+depends = ["test-crate", "test-checks", "test-scm", "test-git", "test-flow", "test-github", "test-licence", "test-author", "test-prose", "test-mise", "test-gotask", "test-markdown", "test-prose-gate", "test-unattended", "test-loop", "test-record", "test-tools"]
 
 [tasks.all]
 description = "The full gate, as CI runs it"
