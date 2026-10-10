@@ -2806,6 +2806,42 @@ class ApprovedOnTheBranch(unittest.TestCase):
         self.assertIn("TSK-0001", done.stdout)
 
 
+class EpicIsOnePullRequest(unittest.TestCase):
+    """TSK-5291, ADR-2860: the constitution and the method unit state the unit of a pull request."""
+
+    ROOT = Path(__file__).resolve().parents[3]
+    FROZEN = ("project/research/", "project/adrs/", "project/tasks/", "project/requirements/",
+              "project/bugs/", "project/epics/", "project/insights/")
+
+    def test_no_living_text_says_a_task_is_a_pull_request(self):
+        """Criterion 1, REQ-4400: the old statement of the unit appears in no living or shipped file."""
+        tracked = subprocess.run(["git", "ls-files"], cwd=self.ROOT, capture_output=True, text=True, check=True)
+        found = []
+        for name in tracked.stdout.splitlines():
+            if name.startswith(self.FROZEN) or "/tests/" in name or name.startswith("project/specs/"):
+                continue
+            try:
+                text = (self.ROOT / name).read_text(encoding="utf-8")
+            except (UnicodeDecodeError, FileNotFoundError):
+                continue
+            for number, line in enumerate(text.splitlines(), 1):
+                if re.search(r"one task, one branch|task is one pull request|one task one branch", line, re.I):
+                    found.append(f"{name}:{number}")
+        self.assertEqual(found, [])
+
+    def test_the_constitution_says_an_epic_is_one_pull_request(self):
+        """Criterion 2, REQ-4400: the layout row and the principle both name the epic as the unit."""
+        text = (self.ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertRegex(text, r"project/epics/EPC-NNNN-<slug>\.md`\s*\|[^\n]*one pull request")
+        self.assertRegex(text, r"An epic is one pull request")
+
+    def test_the_implement_step_works_the_tasks_of_an_epic_on_one_branch(self):
+        """Criterion 3, REQ-4414: the step says the tasks of an epic share one branch, each marked where it lands."""
+        text = (self.ROOT / "plugins/meow-flow/skills/method/steps/implement.md").read_text(encoding="utf-8")
+        self.assertRegex(text, r"tasks of (the|an) epic[^.]{0,200}one branch")
+        self.assertRegex(text, r"marked? (it |each |the task )?in the commit that")
+
+
 class DeniedDispatch(unittest.TestCase):
     """TSK-2703 criteria 1 and 3, REQ-2978, SPC-1030 "What an agent reports" and SPC-1090 "The review": every
     shipped agent carries the denial rule in the same words, and the review step ends a `BLOCKED` dispatch there."""
