@@ -390,7 +390,7 @@ class Launcher(unittest.TestCase):
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
                 self.assertIn(f"meow-author {subcommand}: unchecked: ", done.stdout)
                 self.assertIn(machine, done.stdout)
-                self.assertIn("reinstall the unit", done.stdout)
+                self.assertIn("install meow-core", done.stdout)
 
 
 def rules(text):

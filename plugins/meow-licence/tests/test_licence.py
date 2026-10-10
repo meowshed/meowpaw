@@ -121,7 +121,7 @@ class Launcher(unittest.TestCase):
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
                 self.assertIn(f"meow-licence {subcommand}: unchecked: ", done.stdout)
                 self.assertIn(machine, done.stdout)
-                self.assertIn("reinstall the unit", done.stdout)
+                self.assertIn("install meow-core", done.stdout)
 
 
 if __name__ == "__main__":

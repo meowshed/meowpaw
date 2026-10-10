@@ -1443,7 +1443,7 @@ class Launcher(unittest.TestCase):
             self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
             self.assertIn("not checked", done.stdout)
             self.assertIn(machine, done.stdout)
-            self.assertIn("reinstall the unit", done.stdout)
+            self.assertIn("install meow-core", done.stdout)
 
 
 class Named(unittest.TestCase):
