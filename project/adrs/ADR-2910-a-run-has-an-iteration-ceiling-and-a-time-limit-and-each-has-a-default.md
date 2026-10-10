@@ -1,7 +1,7 @@
 ---
 id: ADR-2910
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-10
 addresses: [REQ-3724, REQ-3726, REQ-3728, REQ-3730, REQ-3732]
 supersedes: []
