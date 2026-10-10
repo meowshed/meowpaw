@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-132 decisions in all: 38 approved, 86 done, 8 superseded.
+132 decisions in all: 37 approved, 87 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -148,7 +148,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2850](ADR-2850-the-five-verification-obligations-are-called-stages.md)                                                                               | The five verification obligations are called stages                                                                                        | done       |
 | [ADR-2860](ADR-2860-an-epic-is-one-pull-request-from-research-to-merge.md)                                                                                | An epic is one pull request, from its research to the merge of its completed work                                                          | done       |
 | [ADR-2870](ADR-2870-the-core-unit-ships-the-one-build-and-the-units-depend-on-it.md)                                                                      | The core unit ships the one build of the tool, and the units depend on it                                                                  | done       |
-| [ADR-2880](ADR-2880-the-record-keeps-its-files-and-gains-commands-for-its-writes.md)                                                                      | The record keeps its files and gains commands for its writes                                                                               | approved   |
+| [ADR-2880](ADR-2880-the-record-keeps-its-files-and-gains-commands-for-its-writes.md)                                                                      | The record keeps its files and gains commands for its writes                                                                               | done       |
 | [ADR-2890](ADR-2890-a-task-and-its-issue-are-synchronised-by-fingerprint.md)                                                                              | A task and its issue are synchronised by a fingerprint of each side                                                                        | approved   |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1140 by ADR-2770; ADR-1170 by ADR-2770; ADR-1210 by ADR-2770; ADR-1310 by ADR-2890; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310; ADR-2310 by ADR-2860.
