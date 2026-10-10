@@ -220,6 +220,13 @@ inside the unit, and needs git on the machine. `links` reaches every remote
 address your documents cite on each run. On a machine the unit carries
 no binary for, it reports the repository as unresolved and exits 3.
 
+## Read a subcommand's help
+
+`meow-markdown --help` lists the subcommands, and `meow-markdown <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.280 or later, declared in

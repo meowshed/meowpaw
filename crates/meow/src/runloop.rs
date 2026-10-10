@@ -2051,7 +2051,50 @@ fn names_the_runner(command: &str) -> bool {
             .any(|pair| pair[0].ends_with("meow") && pair[1] == "loop")
 }
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 5] = [
+    crate::help::Entry {
+        name: "start",
+        determines: "the whole run of a step from a terminal, which the session's `/meow-loop:run` replaces",
+        by_hand: "type `/meow-loop:run` in the session, or run `/meow-flow:run` again until `paw status` names nothing to do",
+        lines: "meow-loop usage: unresolved: run removed step iteration not the two format: lint: check: test: build: <text>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "guard",
+        determines: "whether a tool call of a run is denied by its posture",
+        by_hand: "read the run's `[unattended]` posture and the command the hook is about to run",
+        lines: "<json>",
+        json: "hookSpecificOutput",
+    },
+    crate::help::Entry {
+        name: "prompt",
+        determines: "that `/meow-loop:run` starts a run in the session, or that another prompt cancels the active one",
+        by_hand: "type `/meow-loop:run` in the session, which writes the run's files under the state directory",
+        lines: "<json>",
+        json: "hookSpecificOutput systemMessage",
+    },
+    crate::help::Entry {
+        name: "stop",
+        determines: "whether the run in this session ends now, from its record",
+        by_hand: "read the run's `log.jsonl` against its bounds and the record's open count",
+        lines: "<json>",
+        json: "decision reason systemMessage",
+    },
+    crate::help::Entry {
+        name: "purge",
+        determines: "that the state of every run of this work tree is removed",
+        by_hand: "remove the run directories of this work tree under the state directory",
+        lines: "removed unresolved:",
+        json: "",
+    },
+];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("meow-loop", &HELP, args) {
+        return code;
+    }
     match args.split_first() {
         Some((command, rest)) if command == "start" => start(rest),
         Some((command, rest)) if command == "guard" && rest.is_empty() => guard(),

@@ -121,6 +121,13 @@ happens rarely.
 python3 plugins/meow-prose-gate/evals/hand_run.py 3
 ```
 
+## Read a subcommand's help
+
+`meow-prose-gate --help` lists the subcommands, and `meow-prose-gate <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.284 or later, the version this unit was tested on, declared in

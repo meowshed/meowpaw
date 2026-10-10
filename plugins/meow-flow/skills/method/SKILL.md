@@ -1,6 +1,6 @@
 ---
 name: method
-description: The method's seven steps, research, requirements, design, spec, epic, implement and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before its pull request is reviewed. It MUST NOT be skipped, however small the record looks.
+description: The method's seven steps, research, requirements, design, spec, epic, implement and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before a pull request is reviewed. It MUST NOT be skipped, however small the record looks.
 ---
 
 <role>
@@ -126,4 +126,13 @@ don't overrule it.
 - M22. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
   realises the decision, and write no epic for it, because an epic holding one
   task is a second record for the same plan.
+- M23. Cite a subcommand's output as evidence with the command, its exit
+  status, its output and the tree revision it ran at, in your report or the
+  pull request and never in a file of the repository (I19), because output
+  without its command and its tree can't be told from the output of another
+  state.
+- M24. Where a subcommand's output contradicts what you otherwise see in the
+  tree, report both and never defer to the subcommand, because it reads only
+  the files it reads, and the contradiction is as likely a defect in it as in
+  the tree.
 </rules>

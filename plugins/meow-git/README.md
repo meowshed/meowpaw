@@ -82,6 +82,13 @@ stores both. Name the branch for the change instead, such as
 `fix/1234-read-the-trunk`; an issue number followed by other numbers isn't
 read as a date.
 
+## Read a subcommand's help
+
+`meow-git --help` lists the subcommands, and `meow-git <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared

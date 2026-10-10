@@ -7,8 +7,9 @@ picks it up is spec.
 </role>
 
 <steps name="design">
-1. Write one decision record per decision, addressing the requirements it
-   settles by identifier. A decision that addresses none is refused.
+1. Write one decision record per decision, as the identifier `paw new decision`
+   prints, addressing the requirements it settles by identifier. A decision that
+   addresses none is refused.
 2. Compare at least three alternatives, doing nothing among them, each with
    what it is genuinely better at and why it lost.
 3. Record what it costs, what would reverse it as a condition, what it does
