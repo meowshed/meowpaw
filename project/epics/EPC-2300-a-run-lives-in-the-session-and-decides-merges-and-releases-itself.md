@@ -1,7 +1,7 @@
 ---
 id: EPC-2300
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2380
 ---
@@ -49,18 +49,18 @@ number.
 
 ## Tasks
 
-- [ ] T-001 TSK-4100 start a run from the person's prompt and cancel it on the next one, in `plugins/meow-loop` and `crates/meow`
+- [x] T-001 TSK-4100 start a run from the person's prompt and cancel it on the next one, in `plugins/meow-loop` and `crates/meow` (done: pull request 881)
       closes: REQ-0872, REQ-0874, REQ-0890, REQ-0894, REQ-2660, REQ-2962, REQ-3700, REQ-3712
 
-- [ ] T-002 TSK-4110 decide each iteration in the `Stop` hook, from the record, the bounds and the transcript
+- [x] T-002 TSK-4110 decide each iteration in the `Stop` hook, from the record, the bounds and the transcript (done: pull request 881)
       closes: REQ-0870, REQ-0876, REQ-0878, REQ-0882, REQ-0884, REQ-0886, REQ-0892, REQ-2654, REQ-2656, REQ-2658, REQ-3702, REQ-3704, REQ-3706, REQ-3708, REQ-3710
       depends: TSK-4100 (blocking) - the `Stop` hook reads the run state the start writes
 
-- [ ] T-003 [P] TSK-4120 resolve the posture, check the session's mode at start and deny what the posture forbids
+- [x] T-003 [P] TSK-4120 resolve the posture, check the session's mode at start and deny what the posture forbids (done: pull request 881)
       closes: REQ-2370, REQ-2388, REQ-3722
       depends: TSK-4100 (blocking) - the start hook refuses on an unresolved posture
 
-- [ ] T-004 [P] TSK-4130 make `/meow-flow:run` decide gates, land and release, report, and choose the next block in a run
+- [x] T-004 [P] TSK-4130 make `/meow-flow:run` decide gates, land and release, report, and choose the next block in a run (done: pull request 881)
       closes: REQ-2380, REQ-2382, REQ-2384, REQ-2386, REQ-2402, REQ-3714, REQ-3716, REQ-3718, REQ-3720
       depends: TSK-4110 (not blocking) - the skill reads the run id the frozen prompt names, and works in a fixture without a live run
 

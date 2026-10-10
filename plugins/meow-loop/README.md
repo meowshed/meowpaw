@@ -1,20 +1,24 @@
 ---
 reader: someone choosing or running meow-loop
-answers: what meow-loop start repeats, what bounds a run and what a run keeps
+answers: how a person starts a run in the session, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.12.0]
+describes: [meow-loop@0.13.0]
 ---
 
 # meow-loop
 
-`meow-loop start` repeats one prompt in fresh `claude -p` calls, bound to one
-step of the method. It ends when the step's work is done in the record and the
-verification stages you name pass at one tree. It also ends when the number of
-iterations has run, when the next call could pass the budget you state, or
-when two iterations in a row change nothing. The runner is a program outside
-the model, so nothing a call prints or writes extends the run. The runner
-alone decides whether the work is done, from the record and each stage's exit
-status.
+`meow-loop` runs the method's chain inside the Claude Code session where you
+type its command, so one session holds the whole run and no second terminal is
+involved. `/meow-loop:run` repeats `/meow-flow:run` after every turn until the
+record holds no open requirement and no open defect, the number of iterations
+you gave has run, the hours you gave have passed, the tokens you gave would be
+passed by the next iteration, or two iterations in a row change nothing. A
+program in three hooks holds the run, so nothing the model prints or writes
+extends it, and it decides every ending from the record and the transcript.
+
+The older runner, `meow-loop start`, repeats fresh `claude -p` calls from a
+terminal outside Claude Code. It keeps working for one release and prints a
+line saying it is deprecated, and the release after removes it.
 
 ## Install it
 
@@ -27,10 +31,27 @@ claude plugin install meow-loop@meowpaw
 
 ## Start a run
 
-Only a person starts a run, from a terminal outside Claude Code, such as a
-separate tmux window, because the run holds that terminal until it ends. In a
-Claude Code session, `/meow-loop:loop` helps you write the prompt file and
-prints the command; it runs nothing, and the model can't invoke it.
+Only a person starts a run, by typing the command in the session:
+
+```text
+/meow-loop:run --iterations 5 --hours 2 --tokens 2000000
+```
+
+All three bounds are required, because a loop with a bound missing stops only
+when you notice it. `--iterations` and `--tokens` are integers of 1 or more,
+`--hours` a number above 0, each written in digits. The model can't start a
+run: the skill sets `disable-model-invocation`, a hook reads what you typed,
+and the guard denies any command that names `meow-loop`. Any prompt you submit
+while a run is active cancels it with the ending `cancelled`, because the
+platform runs no `Stop` hook when you press `Esc`.
+
+A run keeps its files under the state directory, outside the work tree:
+`run.toml` with the session id and the bounds, `progress/progress.md` that each
+iteration reads and writes, `log.jsonl` with a line for each iteration and
+`report.md`. The newest 20 runs of a work tree stay, and `meow-loop purge`
+removes them all.
+
+### The deprecated terminal runner
 
 Before you start, declare each stage the run waits for under `[stages]` in your
 repository's `.meowpaw/profile.toml`, and write the prompt to a file. Then run

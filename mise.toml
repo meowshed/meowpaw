@@ -84,6 +84,11 @@ description = "Run the native tool's own tests, after the units are built"
 depends = ["build"]
 run = "mise run crate"
 
+[tasks.test-core]
+description = "Run the tests of meow-core"
+depends = ["build"]
+run = "python3 -m unittest discover -s plugins/meow-core/tests"
+
 [tasks.test-checks]
 description = "Run the tests of meow-checks"
 depends = ["build"]
@@ -162,11 +167,11 @@ run = "plugins/meow-flow/bin/paw check"
 [tasks.test-tools]
 description = "Run the tests and the checks of tools/"
 depends = ["build"]
-run = """python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py tools/test_marketplace.py tools/test_no_kept_evidence.py tools/test_record_shape.py tools/test_check_community.py tools/test_trunk_gate.py tools/test_threat_model.py tools/test_check_workflows.py tools/test_check_terms.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py && python3 tools/check_community.py && python3 tools/check_workflows.py && python3 tools/check_terms.py && python3 tools/check_gate_covers_verbs.py"""
+run = """python3 -m unittest tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py tools/test_marketplace.py tools/test_no_kept_evidence.py tools/test_record_shape.py tools/test_check_community.py tools/test_trunk_gate.py tools/test_threat_model.py tools/test_check_workflows.py tools/test_check_terms.py tools/test_shared_binary.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py && python3 tools/check_community.py && python3 tools/check_workflows.py && python3 tools/check_terms.py && python3 tools/check_gate_covers_verbs.py"""
 
 [tasks.test]
 description = "Run every unit's tests, the record's check and the repository's own checks, each as a task of its own"
-depends = ["test-crate", "test-checks", "test-scm", "test-git", "test-flow", "test-github", "test-licence", "test-author", "test-prose", "test-mise", "test-gotask", "test-markdown", "test-prose-gate", "test-unattended", "test-loop", "test-record", "test-tools"]
+depends = ["test-crate", "test-core", "test-checks", "test-scm", "test-git", "test-flow", "test-github", "test-licence", "test-author", "test-prose", "test-mise", "test-gotask", "test-markdown", "test-prose-gate", "test-unattended", "test-loop", "test-record", "test-tools"]
 
 [tasks.all]
 description = "The full gate, as CI runs it"

@@ -7,8 +7,8 @@ describes:
     meow-core@0.6.2,
     meow-git@0.3.1,
     meow-github@0.14.0,
-    meow-flow@0.47.2,
-    meow-prose-gate@0.4.0,
+    meow-flow@0.48.0,
+    meow-prose-gate@0.4.1,
     meow-prose@0.5.1,
     meow-scm@0.5.0,
     meow-checks@0.10.0,
@@ -57,13 +57,13 @@ Every page, who it is for and what it answers:
 | [meow-github](../plugins/meow-github/README.md)         | someone choosing or running meow-github                                                               | what meow-github does, what it adds to a session and how to run it                              | reference       |
 | [meow-gotask](../plugins/meow-gotask/README.md)         | someone choosing or running meow-gotask                                                               | what meow-gotask does, what it adds to a session and how to run it                              | reference       |
 | [meow-licence](../plugins/meow-licence/README.md)       | someone choosing or running meow-licence                                                              | what meow-licence does, what it adds to a session and how to run it                             | reference       |
-| [meow-loop](../plugins/meow-loop/README.md)             | someone choosing or running meow-loop                                                                 | what meow-loop start repeats, what bounds a run and what a run keeps                            | reference       |
+| [meow-loop](../plugins/meow-loop/README.md)             | someone choosing or running meow-loop                                                                 | how a person starts a run in the session, what bounds a run and what a run keeps                | reference       |
 | [meow-markdown](../plugins/meow-markdown/README.md)     | someone choosing or running meow-markdown                                                             | what meow-markdown does, what it adds to a session and how to run it                            | reference       |
 | [meow-mise](../plugins/meow-mise/README.md)             | someone choosing or running meow-mise                                                                 | what meow-mise does, what it adds to a session and how to run it                                | reference       |
 | [meow-prose](../plugins/meow-prose/README.md)           | someone choosing or running meow-prose                                                                | what meow-prose does, what it adds to a session and how to run it                               | reference       |
 | [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
 | [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
-| [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended                                                           | what meow-unattended plans, what it writes and what its deny rules don't stop                   | reference       |
+| [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended                                                           | what posture meow-unattended prints, what its deny rules stop and what they don't               | reference       |
 | [troubleshooting](troubleshooting.md)                   | someone whose meowpaw unit just refused, blocked or reported something they didn't expect             | what each message a unit prints means, why it appeared and what fixes it                        | troubleshooting |
 | [tutorial](tutorial.md)                                 | someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work | how to get from an empty repository to a first check that Claude Code runs and reports honestly | tutorial        |
 

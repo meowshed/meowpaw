@@ -1384,7 +1384,7 @@ class Launcher(unittest.TestCase):
             self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
             self.assertIn("unread", done.stdout)
             self.assertIn(machine, done.stdout)
-            self.assertIn("reinstall the unit", done.stdout)
+            self.assertIn("install meow-core", done.stdout)
 
     def test_a_missing_binary_lets_every_bash_call_through(self):
         """TSK-2980, REQ-2576: with no binary for the machine, the hook's `governance-guard` reads its input,

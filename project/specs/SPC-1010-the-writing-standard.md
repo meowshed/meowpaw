@@ -2,7 +2,7 @@
 id: SPC-1010
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-10
 states:
   [
     REQ-0990,
@@ -61,7 +61,7 @@ publish.
 
 ## Boundary
 
-Two units ship, and either installs without the other (REQ-0012, REQ-0076).
+Two units ship, and either installs without the other (REQ-0012, REQ-4502).
 
 | Surface                                    | What it is                                                      |
 | ------------------------------------------ | --------------------------------------------------------------- |
@@ -114,7 +114,7 @@ author used survive (REQ-0999).
 
 `meow-prose-gate` is a unit of its own, so a repository takes the standard
 without the gate, the gate without the standard, or both (REQ-0012). It
-requires neither the skill nor the agent, which REQ-0076 forbids a separately
+requires neither the skill nor the agent, which REQ-4502 forbids a separately
 installable unit from doing, so it carries its own criteria in its own
 program.
 

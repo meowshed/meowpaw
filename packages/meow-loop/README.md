@@ -2,7 +2,7 @@
 reader: someone installing or running meow-loop on Pi
 answers: what meow-loop provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-loop@0.12.0]
+describes: [@meowshed/meow-loop@0.13.0]
 ---
 
 # @meowshed/meow-loop

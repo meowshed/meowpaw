@@ -1,7 +1,7 @@
 {
   "name": "@meowshed/meow-unattended",
-  "version": "0.3.0",
-  "description": "Plans an unattended run from the [unattended] table a repository declares: prints the command that would start it with its posture and budget, and writes the snapshot of deny rules that holds its authority. It starts nothing and keeps nothing in context on every turn. Distributed as a Pi package.",
+  "version": "0.4.0",
+  "description": "Prints the posture an unattended run is held to from the [unattended] table a repository declares: the permission mode, the gates the run may decide, its release command and whether it may amend an approved record, with each deny rule and what the rules don't stop. It writes nothing, starts nothing and keeps nothing in context on every turn. Distributed as a Pi package.",
   "keywords": [
     "pi-package",
     "meowpaw"

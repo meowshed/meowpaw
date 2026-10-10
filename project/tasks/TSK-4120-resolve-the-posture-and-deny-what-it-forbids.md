@@ -1,7 +1,7 @@
 ---
 id: TSK-4120
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2300
 closes: [REQ-2370, REQ-2388, REQ-3722]
@@ -55,7 +55,25 @@ program. Update both units' READMEs and this repository's own
 
 ## Evidence
 
-Not yet.
+Pull request 881. The tests are in `plugins/meow-unattended/tests/test_posture.py`,
+class `Posture`, and in `plugins/meow-loop/tests/test_session_run.py`:
+
+- Criterion 1: `test_a_resolved_posture_prints_its_table_its_deny_rules_and_their_limits`.
+- Criterion 2: `test_each_refusal_is_reported_with_its_line_and_exit_status_3`,
+  with one subtest for each line of SPC-1200's failure table, and
+  `test_every_refusal_is_reported_in_one_run`.
+- Criterion 3: `PostureAtStart.test_a_session_in_another_mode_is_refused_naming_both`.
+- Criterion 4: `test_a_release_of_false_is_printed_as_no_release` and
+  `PostureAtStart.test_a_release_of_false_is_recorded_and_other_values_are_refused`.
+- Criterion 5:
+  `PostureGuard.test_the_guard_denies_the_profile_a_push_to_the_trunk_and_an_approved_record`
+  and `PostureGuard.test_amend_approved_lets_the_run_edit_an_approved_record`.
+
+The old tests of the snapshot, the command line and `budget_usd`, `units` and
+`merge_protected` were removed in a commit of their own, because ADR-2380
+withdrew those behaviours. This repository's profile declares an
+`[unattended]` table whose `release` is `false`, because no release command is
+declared and a run never guesses one.
 
 ## Left alone
 

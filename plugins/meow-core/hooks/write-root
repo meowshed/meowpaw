@@ -1,0 +1,14 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# Writes where this unit is installed into its data directory at session start,
+# so another unit's launcher finds the shared binary by a path the platform
+# documents and not by the cache layout (REQ-4504, ADR-2870). It never fails a
+# session: with no data directory it writes nothing and exits 0.
+
+[ -n "$CLAUDE_PLUGIN_DATA" ] && [ -n "$CLAUDE_PLUGIN_ROOT" ] || exit 0
+mkdir -p "$CLAUDE_PLUGIN_DATA" 2>/dev/null || exit 0
+printf '%s\n' "$CLAUDE_PLUGIN_ROOT" >"$CLAUDE_PLUGIN_DATA/meow-root.tmp" 2>/dev/null &&
+  mv -f "$CLAUDE_PLUGIN_DATA/meow-root.tmp" "$CLAUDE_PLUGIN_DATA/meow-root" 2>/dev/null
+exit 0
