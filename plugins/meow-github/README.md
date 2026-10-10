@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.14.0]
+describes: [meow-github@0.15.0]
 ---
 
 # meow-github
@@ -156,6 +156,41 @@ a task directly realising a decision decides it with Evidence. Add
 ```bash
 meow-github project EPC-1310 --check
 ```
+
+## Synchronise a task and its issue
+
+`project` writes the record to the issues. `sync` also takes a change made on
+GitHub back into the record, by a fingerprint of each side taken at the last
+synchronisation and not by a clock, because GitHub keeps one time for a whole
+issue. The mapping carries both: `projected:` for the record side and
+`tracked:` for the tracker side, which an older task gains at its next run.
+
+```bash
+meow-github sync EPC-1310
+meow-github sync EPC-1310 --check
+```
+
+For each task that `project` has mapped, `sync` finds which side changed since
+the last run:
+
+| Changed since the last run | What `sync` does                                                                                          |
+| -------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Neither                    | Reports `unchanged`                                                                                       |
+| The record only            | Updates the issue to what the record says                                                                 |
+| The issue only             | Writes the issue's title into a draft task; reports the difference for an approved one and writes nothing |
+| Both                       | Writes the record's text to the issue, because the record wins a conflict                                 |
+
+The body of an issue is derived from the task's closes and its dependencies, so
+a body edited on GitHub isn't written into the record, and the record's body
+goes back to the issue. An approved task's wording is never written from the
+tracker, which the method forbids for any approved record; the difference is
+reported and `sync` exits 1. An issue closed on GitHub marks the task done in
+its epic or defect where the task's Evidence is written, and is reported
+where it isn't. `--check` prints what each task would get and writes nothing.
+
+The method runs `sync` before the first task of an epic and after the last
+task's Evidence, where a tracker is declared, and nothing runs it in the
+background.
 
 ## Project a task by hand
 

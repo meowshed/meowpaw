@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# The rules of the writing standard that no span of a text can break, each with
+# the reason (REQ-4804). Every other rule has a reviewer case tagged
+# `rule-<ID>`, and tests/test_rule_cases.py fails on a rule with neither.
+
+[exempt]
+D10 = "reading a sentence aloud is the writer's test and leaves nothing in the text to point at"
+E1 = "following the repository's template is a choice made before the text exists"
+E15 = "a cold read tests the order of a whole document and no one span breaks it"
+S3 = "the form of a review comment is tested on the reviewer's report, which SPC-1030 states"
+X1 = "treating the author's facts as outranking style is how an editor works on a text and is not a property of it"
