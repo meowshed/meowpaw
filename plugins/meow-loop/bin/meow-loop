@@ -40,7 +40,7 @@ start)
   exit 3
   ;;
 *)
-  echo "usage: meow-loop start --prompt <file> --until verbs=<verb>[,<verb>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..." >&2
+  echo "usage: meow-loop start --prompt <file> --until verbs=<stage>[,<stage>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..." >&2
   exit 2
   ;;
 esac

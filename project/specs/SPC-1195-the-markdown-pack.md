@@ -31,7 +31,7 @@ This covers `meow-markdown`, the language pack for Markdown. It states what
 
 Every rule SPC-1190 states for a language pack holds here, and this document
 states only what is Markdown's. It leaves spelling, prose linting and site
-builds unbound. Running a verb is SPC-1040's, and the writing
+builds unbound. Running a stage is SPC-1040's, and the writing
 standard is SPC-1010's.
 
 ADR-1900 decides this part and EPC-1800 realised it, verified under issue 624.
@@ -86,9 +86,9 @@ In this order:
 
 ### What `bind` prints
 
-Each verb takes the first row that applies (REQ-2352):
+Each stage takes the first row that applies (REQ-2352):
 
-| Verb     | Printed as                                         | When                                                                              |
+| Stage    | Printed as                                         | When                                                                              |
 | -------- | -------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `format` | `format = "prettier --check '**/*.md'"`            | A `.prettierrc*`, a `prettier.config.*` or a `package.json` with a `prettier` key |
 | `format` | `format = "mdformat --check ."`                    | A `.mdformat.toml`                                                                |
@@ -98,23 +98,23 @@ Each verb takes the first row that applies (REQ-2352):
 | `check`  | `# check: unresolved, Markdown has no types`       | Always                                                                            |
 | `test`   | `test = "meow-markdown links"`                     | A `lychee.toml`                                                                   |
 | `build`  | `# build: unbound, <file> configures a site build` | A `mkdocs.yml`, `book.toml`, `hugo.toml` or `docusaurus.config.*`                 |
-| any      | `# <verb>: unbound, looked for <files>`            | No row above applies                                                              |
+| any      | `# <stage>: unbound, looked for <files>`           | No row above applies                                                              |
 
 `lint` binds `meow-markdown check` where no linter is configured, because the
 settings checks are then the only lint the repository has. A root
 `.markdownlintrc` binds markdownlint-cli, because markdownlint-cli2 ignores
 that file (RES-0295). Where `lint` binds either front end, a comment under it names `meow-markdown check` as the command
-that runs the settings checks. A verb's value is one command run by the shell
+that runs the settings checks. A stage's value is one command run by the shell
 (SPC-1040), so a chain such as `markdownlint-cli2 '**/*.md' && meow-markdown
 check` is allowed, but `bind` doesn't print it: the shell stops at the linter's
 first failure, so the settings checks would go unreported on exactly the run
-where lint fails, and the verb's one exit status couldn't say which of the two
+where lint fails, and the stage's one exit status couldn't say which of the two
 failed. A repository that accepts that loss writes the chain itself, as this one
 does. A `.remarkrc*` or `.textlintrc*` is named in a comment as a configured
-linter the pack binds no command for. A verb the profile already declares is
+linter the pack binds no command for. A stage the profile already declares is
 left out, and a runner's configuration, such as a `mise.toml` or a
 `Taskfile.yml`, is named with a pointer to that runner's pack. `bind` exits 0
-once it prints the table, whatever comments the table holds, because a verb
+once it prints the table, whatever comments the table holds, because a stage
 printed as unresolved or unbound with its reason is settled (ADR-1900).
 
 ### What `check` finds
@@ -128,7 +128,7 @@ printed as unresolved or unbound with its reason is settled (ADR-1900).
 | `markdownlint runs its defaults: no configuration file`                  | The `lint` command runs `markdownlint` or `markdownlint-cli`, names no file with `-c <path>`, `--config <path>` or `--config=<path>`, and git tracks no `.markdownlint.*` or `.markdownlintrc` at the root (REQ-2434) |
 | `markdownlint ignores <file>`                                            | The `lint` command runs `markdownlint` or `markdownlint-cli`, and a `.markdownlint-cli2.*` file is tracked (REQ-2434)                                                                                                 |
 | `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets rules (REQ-2434)                                                                                                             |
-| `link check declares no <setting>`                                       | A verb runs `lychee` or `meow-markdown links`, and neither its settings file nor its flags set `offline`, `max_retries` or `cache` (REQ-2454)                                                                         |
+| `link check declares no <setting>`                                       | A stage runs `lychee` or `meow-markdown links`, and neither its settings file nor its flags set `offline`, `max_retries` or `cache` (REQ-2454)                                                                        |
 | `<file> doesn't parse as TOML: <message>`                                | The link check's settings file doesn't parse                                                                                                                                                                          |
 | `.lycheecache isn't ignored`                                             | The link check's cache is on, and `git check-ignore` finds no ignore file in the repository covering the path                                                                                                         |
 
@@ -147,16 +147,16 @@ or `--config=<path>`, and run from the root it reads no `.markdownlint.*` or
 `.markdownlintrc` below the root, so those count only at the root (RES-0295,
 RES-0296). The finding
 for two configurations in one directory is read from the files, whatever the
-verb runs. A `.markdownlint-cli2.jsonc`, `.json`, `.yaml` or `.yml` sets rules where
+stage runs. A `.markdownlint-cli2.jsonc`, `.json`, `.yaml` or `.yml` sets rules where
 its `config` key holds a value other than null or an empty object, and one
 that doesn't parse sets none, because markdownlint-cli2 then fails on it
 itself. A `.markdownlint-cli2.cjs` or `.mjs` is code `check` doesn't run, so
 it sets rules where its text contains `config`. `check` prints each finding
 on a line of its own, and `no findings` when there is none.
 
-For a verb running `lychee`, the settings file is the one `--config` names,
+For a stage running `lychee`, the settings file is the one `--config` names,
 or `lychee.toml` at the root, and its flags count, among them `--offline`,
-`--max-retries` and `--cache`; for a verb running `meow-markdown links`, the
+`--max-retries` and `--cache`; for a stage running `meow-markdown links`, the
 settings file is `lychee.toml` alone. A global excludes file and
 `.git/info/exclude` don't count as ignoring `.lycheecache`. A command that
 runs a linter or a link checker through a runner's task isn't read.
@@ -218,7 +218,7 @@ block that fails, naming the file, the line and the parser's words
 finding, 3 where `mmdc` is absent or broken, and 0 otherwise. Where the
 corpus holds a `mermaid` block, `bind` prints
 `check = "meow-markdown diagrams"` in place of the line saying Markdown has
-no types, so a block that fails to parse fails the `check` verb.
+no types, so a block that fails to parse fails the `check` stage.
 
 Everything a diagram asserts is also stated in the prose beside it, because a
 reader who gets the source and not the picture still needs the fact
@@ -228,7 +228,7 @@ carries both rules, because no parser tells what a diagram claims.
 
 ### What the skill carries
 
-The skill's body gives, in order: the render target, the verbs with the link
+The skill's body gives, in order: the render target, the stages with the link
 check under `test`, what the structural linter can't tell, where prose linting
 stops, and the prohibitions. It forbids running markdownlint-cli against a
 `.markdownlint-cli2.*` file, failing a check on an unreachable link without

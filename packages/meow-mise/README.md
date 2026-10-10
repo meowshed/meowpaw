@@ -7,7 +7,7 @@ describes: [@meowshed/meow-mise@0.2.1]
 
 # @meowshed/meow-mise
 
-Reports the tasks mise resolves in a repository, with where each came from and what stops a verb running it unattended, binds the verbs to them, and never grants trust, answers a prompt or writes a file. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.
+Reports the tasks mise resolves in a repository, with where each came from and what stops a stage running it unattended, binds the stages to them, and never grants trust, answers a prompt or writes a file. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

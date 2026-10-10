@@ -33,8 +33,8 @@ pub struct Key {
     pub reason: &'static str,
 }
 
-const VERB: &str = "Only the repository knows the command its verb runs, and guessing one reports a pass nothing ran (REQ-0134)";
-const WHOLE: &str = "The command a verb declared as a table runs over the whole work, and only the repository knows it (ADR-1520)";
+const VERB: &str = "Only the repository knows the command its stage runs, and guessing one reports a pass nothing ran (REQ-0134)";
+const WHOLE: &str = "The command a stage declared as a table runs over the whole work, and only the repository knows it (ADR-1520)";
 const SUBSET: &str = "How the repository's tool takes a part of the work differs per tool, and no detection can tell it (ADR-1520)";
 
 /// The table of keys: every key path a unit reads, with its reason. A key
@@ -274,7 +274,7 @@ pub fn stages(table: &toml::Table) -> Option<&toml::Value> {
     table.get("stages").or_else(|| table.get("verbs"))
 }
 
-/// What a profile that still declares `[verbs]` is told, one line a notice.
+/// What a profile that still declares `[stages]` is told, one line a notice.
 fn deprecations(table: &toml::Table) -> Vec<String> {
     match (table.contains_key("verbs"), table.contains_key("stages")) {
         (true, true) => vec![

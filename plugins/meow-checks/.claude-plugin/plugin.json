@@ -1,7 +1,7 @@
 {
   "name": "meow-checks",
   "version": "0.10.0",
-  "description": "Runs a repository's five verification verbs, format, lint, check, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a verb with no command as unresolved, never as passed. It keeps up to 450 characters in context on every turn.",
+  "description": "Runs a repository's five verification stages, format, lint, check, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a stage with no command as unresolved, never as passed. It keeps up to 450 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-checks/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
-  "keywords": ["verification", "verbs", "test", "lint", "meowpaw"]
+  "keywords": ["verification", "stages", "test", "lint", "meowpaw"]
 }

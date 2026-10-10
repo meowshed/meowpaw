@@ -63,7 +63,7 @@ Claude Code runs the check in your repository as:
 meow-licence check
 ```
 
-From your own shell or a verb, run the same launcher by its path in the
+From your own shell or a stage, run the same launcher by its path in the
 installed unit.
 
 It prints one line per finding, then a count: a file nothing covers, a header
