@@ -52,7 +52,7 @@ number.
 - [x] T-001 TSK-4100 start a run from the person's prompt and cancel it on the next one, in `plugins/meow-loop` and `crates/meow` (done: pull request 881)
       closes: REQ-0872, REQ-0874, REQ-0890, REQ-0894, REQ-2660, REQ-2962, REQ-3700, REQ-3712
 
-- [ ] T-002 TSK-4110 decide each iteration in the `Stop` hook, from the record, the bounds and the transcript
+- [x] T-002 TSK-4110 decide each iteration in the `Stop` hook, from the record, the bounds and the transcript (done: pull request 881)
       closes: REQ-0870, REQ-0876, REQ-0878, REQ-0882, REQ-0884, REQ-0886, REQ-0892, REQ-2654, REQ-2656, REQ-2658, REQ-3702, REQ-3704, REQ-3706, REQ-3708, REQ-3710
       depends: TSK-4100 (blocking) - the `Stop` hook reads the run state the start writes
 
