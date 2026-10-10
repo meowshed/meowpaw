@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-licence
 answers: what meow-licence does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-licence@0.3.0]
+describes: [meow-licence@0.4.0]
 ---
 
 # meow-licence

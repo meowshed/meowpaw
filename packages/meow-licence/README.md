@@ -2,7 +2,7 @@
 reader: someone installing or running meow-licence on Pi
 answers: what meow-licence provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-licence@0.3.0]
+describes: [@meowshed/meow-licence@0.4.0]
 ---
 
 # @meowshed/meow-licence
