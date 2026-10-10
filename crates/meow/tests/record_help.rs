@@ -20,10 +20,8 @@ impl Dir {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let path = std::env::temp_dir().join(format!(
-            "meow-help-{name}-{}-{stamp}",
-            std::process::id()
-        ));
+        let path =
+            std::env::temp_dir().join(format!("meow-help-{name}-{}-{stamp}", std::process::id()));
         std::fs::create_dir_all(&path).unwrap();
         Dir(path)
     }
@@ -84,13 +82,21 @@ fn fixture(name: &str) -> Dir {
         .output()
         .unwrap();
     assert!(done.status.success(), "git init failed: {done:?}");
-    write(&dir.0, ".meowpaw/profile.toml", "[record]\nroot = \"project\"\n");
+    write(
+        &dir.0,
+        ".meowpaw/profile.toml",
+        "[record]\nroot = \"project\"\n",
+    );
     write(
         &root,
         "vision.md",
         "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n",
     );
-    write(&root, "README.md", &index(&["SPC-0001", "EPC-0001", "BUG-0001"]));
+    write(
+        &root,
+        "README.md",
+        &index(&["SPC-0001", "EPC-0001", "BUG-0001"]),
+    );
     write(
         &root,
         "specs/SPC-0001-a-part.md",
@@ -178,7 +184,10 @@ fn fixture(name: &str) -> Dir {
         &record(
             "task",
             "TSK-0001",
-            &[("epic", "EPC-0001"), ("closes", "\n  [\n    REQ-0001,\n  ]")],
+            &[
+                ("epic", "EPC-0001"),
+                ("closes", "\n  [\n    REQ-0001,\n  ]"),
+            ],
             &["What to do", "Depends on", "Evidence", "Left alone"],
             "\nSee [the plan](../epics/EPC-0001-a-plan.md).\n",
         ),
@@ -209,8 +218,8 @@ fn fixture(name: &str) -> Dir {
 
 /// `meow record <args>` in `dir`, against this repository's own layout.
 fn paw(dir: &Path, args: &[&str]) -> Output {
-    let layout = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../plugins/meow-flow/lib/layout.toml");
+    let layout =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plugins/meow-flow/lib/layout.toml");
     Command::new(env!("CARGO_BIN_EXE_meow"))
         .arg("record")
         .args(args)
@@ -295,8 +304,19 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
     let dir = fixture("by-hand");
     let verbs = subcommands(&dir.0);
     for expected in [
-        "check", "status", "ready", "template", "show", "index", "new", "find", "count",
-        "approve", "withdraw", "done", "onboarding",
+        "check",
+        "status",
+        "ready",
+        "template",
+        "show",
+        "index",
+        "new",
+        "find",
+        "count",
+        "approve",
+        "withdraw",
+        "done",
+        "onboarding",
     ] {
         assert!(
             verbs.iter().any(|v| v == expected),
@@ -336,7 +356,10 @@ fn read_only_output_opens_with_stated_first_words() {
     assert!(printed.iter().any(|l| l == "Decisions"), "{printed:?}");
     held(d, "count", &["count"]);
     let hit = held(d, "find", &["find", "REQ-0001"]);
-    assert!(hit.iter().any(|l| l.starts_with("artifacts matched:")), "{hit:?}");
+    assert!(
+        hit.iter().any(|l| l.starts_with("artifacts matched:")),
+        "{hit:?}"
+    );
     held(d, "find", &["find", "zzzzqq"]);
     held(d, "show", &["show", "REQ-0001"]);
     held(d, "show", &["show", "TSK-0001"]);
@@ -356,12 +379,18 @@ fn read_only_output_opens_with_stated_first_words() {
 fn findings_drafts_and_refusals_open_with_stated_first_words() {
     let dir = fixture("planted");
     let d = &dir.0;
-    write(&d.join("project"), "research/RES-0003-broken.md", "No front matter.\n");
+    write(
+        &d.join("project"),
+        "research/RES-0003-broken.md",
+        "No front matter.\n",
+    );
     let found = paw(d, &["check"]);
     assert_eq!(found.status.code(), Some(1), "{found:?}");
     let printed = held(d, "check", &["check"]);
     assert!(
-        printed.iter().any(|l| l.starts_with("project/research/RES-0003-broken.md")),
+        printed
+            .iter()
+            .any(|l| l.starts_with("project/research/RES-0003-broken.md")),
         "check named no finding for the planted file: {printed:?}"
     );
     std::fs::remove_file(d.join("project/research/RES-0003-broken.md")).unwrap();
@@ -371,12 +400,25 @@ fn findings_drafts_and_refusals_open_with_stated_first_words() {
     std::fs::write(&decision, text.replace("status: approved", "status: draft")).unwrap();
     let printed = held(d, "status", &["status", "--waiting"]);
     assert!(
-        printed.first().is_some_and(|l| l.starts_with("Waiting for approval")),
+        printed
+            .first()
+            .is_some_and(|l| l.starts_with("Waiting for approval")),
         "status --waiting named no draft: {printed:?}"
     );
     held(d, "approve", &["approve", "ADR-0001"]);
     held(d, "approve", &["approve", "ADR-9999"]);
-    held(d, "withdraw", &["withdraw", "REQ-9999", "--by", "ADR-0001", "--replaced-by", "REQ-0001"]);
+    held(
+        d,
+        "withdraw",
+        &[
+            "withdraw",
+            "REQ-9999",
+            "--by",
+            "ADR-0001",
+            "--replaced-by",
+            "REQ-0001",
+        ],
+    );
     held(d, "done", &["done", "TSK-9999", "--pr", "1"]);
     held(d, "onboarding", &["onboarding", "remove"]);
 }

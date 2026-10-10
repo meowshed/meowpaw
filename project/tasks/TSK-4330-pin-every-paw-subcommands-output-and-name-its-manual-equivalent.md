@@ -60,7 +60,23 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in the pull request's first commit, where three of the
+four in `crates/meow/tests/record_help.rs` failed because `paw --help` named
+nothing. `every_subcommand_names_what_a_person_reads_in_its_place` closes
+criterion 1 (REQ-1176): it reads each subcommand from `paw --help` and fails
+one whose help has no `by hand:` line. Subcommands now dispatch through one
+table that carries the three help fields, so one can't be added without them.
+`read_only_output_opens_with_stated_first_words` and
+`findings_drafts_and_refusals_open_with_stated_first_words` close criterion 2
+(REQ-1184): they run every subcommand on a fixture record, with a finding, a
+draft, a miss and a refusal, and fail a line whose first word the help's
+`lines:` doesn't state. Removing `Decisions` from `paw status`'s `lines:` made
+the test fail, as intended. `the_unit_ships_the_launcher_and_no_other_helper`
+closes criterion 4 (REQ-1170), and held before the change.
+
+`cargo test --all-features`, `cargo clippy --all-features --all-targets
+-- -D warnings`, `cargo fmt --check` and `mise run all` passed, each with exit
+status 0.
 
 Criterion 3 rests on judgement, because the line between reporting the
 record's next step and choosing one is a reading of the output.

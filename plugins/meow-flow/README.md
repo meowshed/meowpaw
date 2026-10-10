@@ -198,6 +198,12 @@ the unit's rename isn't read, and `--write` names the markers it needs.
 `paw template <kind>` prints the template a step writes from: yours at
 `.meowpaw/templates/<kind>.md` where you have one, and the unit's otherwise.
 
+`paw --help` lists every subcommand, and `paw <subcommand> --help` prints what
+it determines, a `by hand:` line naming what you read to reach the same answer
+without the tool, and a `lines:` line stating the first word of each kind of
+line it prints. A test per subcommand holds its output to that line, so a
+script that reads one word can rely on it.
+
 ## Have a change reviewed
 
 The review step reads a task's pull request. Where the session wrote the
