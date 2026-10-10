@@ -44,7 +44,6 @@ states:
     REQ-1350,
     REQ-1351,
     REQ-1352,
-    REQ-1353,
     REQ-1354,
     REQ-1355,
     REQ-1356,
@@ -56,9 +55,11 @@ states:
     REQ-1382,
     REQ-1384,
     REQ-1386,
-    REQ-1388,
     REQ-1392,
-    REQ-1394,
+    REQ-4700,
+    REQ-4702,
+    REQ-4704,
+    REQ-4706,
     REQ-1396,
     REQ-1400,
     REQ-1402,
@@ -784,11 +785,16 @@ the tracker, in this run's listing or through its mapping in the next run
 (REQ-1368). The listing runs after a failed write or a refusal, and not after
 a throttle, a ceiling or a 401 (ADR-1810, ADR-2330).
 
-A replay changes nothing, a changed task updates its issue, an edited issue is
-reported and left, a closed issue on an unmarked task is reported, the issue's
-state is the tracker's and never written, and `--check` computes the state on
-demand and writes nothing (REQ-1353, REQ-1355, REQ-1388, REQ-1392,
-REQ-1394, REQ-1400). The docs give the `gh` commands that project a task by
+A replay changes nothing and a changed task updates its issue. `meow-github
+sync` compares each task with its issue by a fingerprint of each side taken at
+the last synchronisation: the side that changed is applied to the other, the
+record's text is applied where both changed, an approved record is never
+reworded from the tracker and its difference is reported, and the issue's state
+still flows to the record (REQ-4700, REQ-4702, REQ-4704, ADR-2890). A closed
+issue on an unmarked task is reported, and `--check` computes the state on
+demand and writes nothing (REQ-1355, REQ-1392, REQ-1400). The method runs the
+synchronisation at the start and the end of an epic's work and nothing runs it
+in the background (REQ-4706). The docs give the `gh` commands that project a task by
 hand, the headers to read and the one-second spacing between writes
 (REQ-1402) (ADR-1310, ADR-1810).
 
