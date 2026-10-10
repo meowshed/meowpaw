@@ -11,14 +11,14 @@ states: [REQ-2480, REQ-2486, REQ-2487, REQ-2508, REQ-2510]
 ## Scope
 
 This covers `meow-gotask`, the pack that reads what Task resolves in a work
-tree and binds the five verbs to the tasks a repository declares. It states
+tree and binds the five stages to the tasks a repository declares. It states
 what `status` reports, what `bind` prints, what `check` finds, and how each
 unresolved state reads.
 
 Every rule SPC-1140 states for `meow-mise` holds here with Task in mise's
 place, and this document states only where the two differ: detection, the
 listing, where each block comes from, remote includes and secret variables.
-Running a verb is SPC-1040's.
+Running a stage is SPC-1040's.
 
 ADR-1590 decides this part, EPC-1560 realises it, and `meow-gotask` implements
 it, checked at #587.
@@ -30,7 +30,7 @@ it, checked at #587.
 | `plugins/meow-gotask/bin/meow-gotask`        | The program: `status`, `bind` and `check`                      |
 | `plugins/meow-gotask/skills/gotask/SKILL.md` | The skill that tells the model to use the program, never guess |
 | `plugins/meow-gotask/README.md`              | The unit's page                                                |
-| `.meowpaw/profile.toml`, `[verbs]`           | What `check` reads; the pack never writes it                   |
+| `.meowpaw/profile.toml`, `[stages]`          | What `check` reads; the pack never writes it                   |
 
 The program writes nothing into the repository. It runs `task --version` and
 `task --list-all --json`, the second with `TASK_TEMP_DIR` set to a directory it
@@ -86,7 +86,7 @@ Each block also follows the task's `deps` and each `task:` entry of its
 `ignores errors, through lint`. A dependency is looked up in the listing under
 the calling task's namespace first, then as written.
 
-A task that ignores errors also carries `a verb bound to it can't report the
+A task that ignores errors also carries `a stage bound to it can't report the
 failure it ignores` (REQ-2480). A task with `status`, or with `sources` under a
 `method` other than `none`, carries `can skip as up to date`, with what decides it: `decided by its status commands`
 where it sets `status`, and otherwise `decided by the <method> of its
@@ -99,16 +99,16 @@ output, not protected`, and never prints a value (REQ-2510).
 
 ### What `bind` prints
 
-As SPC-1140 states, with each binding as `<verb> = "task --force <name>"`. A
-verb whose task a committed Taskfile declares `internal: true`, which the
-listing leaves out, is printed as `# <verb>: task <name> is internal`.
+As SPC-1140 states, with each binding as `<stage> = "task --force <name>"`. A
+stage whose task a committed Taskfile declares `internal: true`, which the
+listing leaves out, is printed as `# <stage>: task <name> is internal`.
 
 ### What `check` finds
 
-As SPC-1140 states, where a part of a verb's command that starts `task` names
+As SPC-1140 states, where a part of a stage's command that starts `task` names
 the first word after its flags as the task, and `--force` or `-f` among those
 flags forces it. Each remote include in a committed Taskfile is a finding,
-`remote include <namespace>: <source>`, whether or not a verb runs a task from
+`remote include <namespace>: <source>`, whether or not a stage runs a task from
 it (REQ-2487). A task a committed Taskfile declares `internal` is the finding
 `task <name> is internal`.
 

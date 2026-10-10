@@ -23,7 +23,7 @@ says why it happened and what fixes it.
 
 `no meow binary was found for this machine` means a unit's program couldn't
 find its binary for your operating system and processor. `meow-checks` then
-reports every verb unresolved, `meow-git` checks nothing, `meow-scm` reports
+reports every stage unresolved, `meow-git` checks nothing, `meow-scm` reports
 the message unchecked and exits 3, `meow-github` names the machine and exits
 3, and `paw` reports the record as not checked.
 
@@ -40,18 +40,18 @@ claude plugin install <unit>@meowpaw
 If your machine is none of the six, the unit can't run its checks there, and
 it keeps reporting them as unchecked, never as passed.
 
-## A verb is unresolved
+## A stage is unresolved
 
-`unresolved` means `meow-checks` ran nothing for that verb and reports nothing
+`unresolved` means `meow-checks` ran nothing for that stage and reports nothing
 as passed. The words after it say why:
 
 - `undeclared: the profile doesn't name it`: `.meowpaw/profile.toml` has no
-  command for the verb. If your repository has that check, declare it under
-  `[verbs]`, such as `lint = "./scripts/lint"`. If it doesn't, unresolved is
+  command for the stage. If your repository has that check, declare it under
+  `[stages]`, such as `lint = "./scripts/lint"`. If it doesn't, unresolved is
   the right answer, and you can leave it.
 - `no profile`: `.meowpaw/profile.toml` doesn't exist at the repository's
-  root. Create it and declare each verb under `[verbs]`.
-- `malformed declaration: the value isn't one command`: the verb's value is
+  root. Create it and declare each stage under `[stages]`.
+- `malformed declaration: the value isn't one command`: the stage's value is
   a list or a table. Write one command as a string, joining several with `&&`.
 - `profile unparseable`: the file isn't valid TOML, and the words after it
   say on which line and what the parser found, such as
@@ -59,7 +59,7 @@ as passed. The words after it say why:
 
 ## A setting has no effect
 
-`unknown key: verbs.tset` means `.meowpaw/profile.toml` holds a key that no
+`unknown key: stages.tset` means `.meowpaw/profile.toml` holds a key that no
 unit of the harness reads, so the setting did nothing. Every command that
 reads the profile names such a key and goes on with the exit status it would
 have had, because a profile written for a newer unit must still work with an
@@ -167,8 +167,8 @@ claude plugin install meow-checks@meowpaw
 claude plugin uninstall meow-verbs@meowpaw
 ```
 
-Your `.meowpaw/profile.toml` stays as it is: the `[verbs]` table and the five
-verb names didn't change.
+Your `.meowpaw/profile.toml` stays as it is: the `[stages]` table and the five
+stage names didn't change.
 
 ## meow-method is now meow-flow
 

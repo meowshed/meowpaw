@@ -47,7 +47,7 @@ Seven specific versions of that, each one observed here or in the survey:
   what proved it.
 - Documentation describes what was proposed, the project shipped something
   else, and a reader cites the documentation anyway.
-- The work was honest and the report wasn't. The one unresolved verb sits in
+- The work was honest and the report wasn't. The one unresolved stage sits in
   the middle of a paragraph opening with a pleasantry and closing with an offer
   to help further, so the reviewer skims it and approves.
 
@@ -96,10 +96,10 @@ routes through one of the two. The harness derives what sort of work it is,
 because a list of work types somebody maintains is a boundary argument that
 never ends.
 
-Five verbs carry everything mechanical: `format`, `lint`, `check`, `test`,
-`build`. A verb resolves from the repository's own declaration, then from an
+Five stages carry everything mechanical: `format`, `lint`, `check`, `test`,
+`build`. A stage resolves from the repository's own declaration, then from an
 installed language pack, and then it stops. The harness reports an unresolved
-verb as unresolved and never as passed, which no other harness surveyed does.
+stage as unresolved and never as passed, which no other harness surveyed does.
 
 Evidence expires. A claim cites the command, its output and the tree revision
 it ran at, and every edit advances the revision, so evidence gathered before a
@@ -123,7 +123,7 @@ BUG-1040 records, so today somebody selects it by hand.
 
 The rule is the last stage of every honest-failure rule in the harness, and a
 rule that only some replies follow shapes nothing, because the one report that
-hides the unresolved verb is
+hides the unresolved stage is
 the one that gets approved.
 
 ## What it will not do
@@ -201,7 +201,7 @@ looks helpful. Each one produces a confident wrong result, so the harness
 reports what it didn't do.
 
 Completeness outranks brevity. Brevity is the default and a real obligation,
-but it's presentation. The harness drops no verb from a verification report, no
+but it's presentation. The harness drops no stage from a verification report, no
 finding from a review, no question from a gap list, and no hedge that carries
 real uncertainty, because deleting the last of those manufactures confidence.
 Where a rule of shape would delete part of an answer, the answer wins and the

@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! Resolve the five verbs from the repository's profile, report them, and run them.
+//! Resolve the five stages from the repository's profile, report them, and run them.
 //!
-//! SPC-1040 states the behaviour. A verb resolves only from the command the
-//! repository declares under `[verbs]` (REQ-0134), and a verb that resolves to
+//! SPC-1040 states the behaviour. A stage resolves only from the command the
+//! repository declares under `[stages]` (REQ-0134), and a stage that resolves to
 //! nothing is reported as unresolved and of which kind, never as passed
 //! (REQ-0136, REQ-0154). `status` runs nothing (REQ-0150). `run` records each
-//! verb's exact command, exit status and whole output (REQ-0144, REQ-0156), and
-//! leads a failed verb with its last lines (REQ-0135). Each result goes into a
+//! stage's exact command, exit status and whole output (REQ-0144, REQ-0156), and
+//! leads a failed stage with its last lines (REQ-0135). Each result goes into a
 //! ledger bound to the tree it ran on, which `evidence` reads back (ADR-1480).
 
 pub(crate) mod ledger;
@@ -31,7 +31,7 @@ const INTERRUPTED: u8 = 4;
 const SIGINT: i32 = 2;
 const SIGTERM: i32 = 15;
 
-/// Where a verb's subset form puts the part of the work (ADR-1520).
+/// Where a stage's subset form puts the part of the work (ADR-1520).
 const TARGETS: &str = "{targets}";
 
 enum Entry {
@@ -150,7 +150,7 @@ fn resolve(root: &Path) -> Report {
     }
 }
 
-/// The command a verb resolves to, or why it resolves to none, for a runner
+/// The command a stage resolves to, or why it resolves to none, for a runner
 /// that holds the command itself (SPC-1201).
 #[cfg(feature = "loop")]
 pub(crate) fn command_of(root: &Path, verb: &str) -> std::result::Result<String, String> {
@@ -161,11 +161,11 @@ pub(crate) fn command_of(root: &Path, verb: &str) -> std::result::Result<String,
     {
         Some((_, Entry::Resolved { command, .. })) => Ok(command),
         Some((_, Entry::Unresolved { kind, detail })) => Err(format!("{kind}: {detail}")),
-        None => Err(format!("{verb} is not a verb")),
+        None => Err(format!("{verb} is not a stage")),
     }
 }
 
-/// A verb declared as a table: `command` for the whole work, and an optional
+/// A stage declared as a table: `command` for the whole work, and an optional
 /// `subset` with `{targets}` where the part goes (ADR-1520).
 fn from_table(table: &toml::Table) -> Entry {
     let malformed = |detail: &str| Entry::Unresolved {
@@ -326,7 +326,7 @@ fn signal_code(_: std::process::ExitStatus) -> i32 {
     -1
 }
 
-/// What one recorded run of a verb's command left behind.
+/// What one recorded run of a stage's command left behind.
 #[cfg(feature = "loop")]
 pub(crate) struct Ran {
     pub status: i32,
@@ -337,10 +337,10 @@ pub(crate) struct Ran {
     pub recorded: std::result::Result<String, String>,
 }
 
-/// Runs a verb's whole command and records the result in the ledger with the
+/// Runs a stage's whole command and records the result in the ledger with the
 /// tree before and after it, as `run` does, for a runner that decides from the
 /// exit status itself (SPC-1201). A command that never started is an error and
-/// is recorded as unresolved, because an unresolved verb is never a pass.
+/// is recorded as unresolved, because an unresolved stage is never a pass.
 #[cfg(feature = "loop")]
 pub(crate) fn run_recorded(
     root: &Path,
@@ -397,7 +397,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
     }
     if names.is_empty() {
         eprintln!(
-            "meow-checks run: name the verbs to run, from: {}",
+            "meow-checks run: name the stages to run, from: {}",
             VERBS.join(" ")
         );
         return USAGE;
@@ -409,7 +409,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
         .collect();
     if !unknown.is_empty() {
         eprintln!(
-            "meow-checks run: {} isn't a verb; the five are {}",
+            "meow-checks run: {} isn't a stage; the five are {}",
             unknown.join(", "),
             VERBS.join(" ")
         );
@@ -445,7 +445,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
             .verbs
             .iter()
             .find(|(verb, _)| verb == name)
-            .expect("a known verb")
+            .expect("a known stage")
             .1;
         let command = match entry {
             Entry::Unresolved { kind, detail } => {
@@ -479,7 +479,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
                 ),
                 (Some(_), None) => {
                     let detail = format!(
-                        "the profile declares no `subset` for {name}; declare one under [stages.{name}] with {TARGETS}, or run the whole verb"
+                        "the profile declares no `subset` for {name}; declare one under [stages.{name}] with {TARGETS}, or run the whole stage"
                     );
                     println!("== {name}: unresolved (no subset form: {detail}), not run\n");
                     outcomes.push((name.clone(), "unresolved"));
@@ -507,7 +507,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
         let started = Instant::now();
         let (code, output) = execute(root, command);
         let after = ledger::tree_id(root);
-        // A verb ended by an interrupt or a termination signal says the run
+        // A stage ended by an interrupt or a termination signal says the run
         // stopped, and nothing about the work (REQ-2969).
         let outcome = match code {
             0 => "passed",
@@ -575,7 +575,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
     }
 }
 
-/// Whether each verb's latest recorded result holds for the tree as it is
+/// Whether each stage's latest recorded result holds for the tree as it is
 /// now: 0 when every one passed on it, 1 when one failed, went stale or
 /// changed during its run, and 3 when one has no record, was unresolved or is
 /// bound to no tree (REQ-0146, REQ-0148).
@@ -603,7 +603,7 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
         .collect();
     if !unknown.is_empty() {
         eprintln!(
-            "meow-checks evidence: {} isn't a verb; the five are {}",
+            "meow-checks evidence: {} isn't a stage; the five are {}",
             unknown.join(", "),
             VERBS.join(" ")
         );
@@ -627,13 +627,15 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
         names.to_vec()
     };
     if wanted.is_empty() {
-        println!("no verb has a record for this work tree; run one with `meow-checks run <verb>`");
+        println!(
+            "no stage has a record for this work tree; run one with `meow-checks run <stage>`"
+        );
         return UNRESOLVED;
     }
     let now = ledger::tree_id(root);
     let (mut failed, mut unresolved, mut interrupted) = (false, false, false);
     for verb in &wanted {
-        // A subset record never stands for the whole verb (ADR-1520); a record
+        // A subset record never stands for the whole stage (ADR-1520); a record
         // from before targets were kept has none, and was a whole run.
         let whole = |r: &&Value| r.get("targets").is_none_or(Value::is_null);
         if let Some(part) = records
@@ -797,7 +799,7 @@ pub fn main(args: &[String]) -> u8 {
         ),
         _ => {
             eprintln!(
-                "usage: meow-checks status [--json] | meow-checks run <verb>... [-- <target>...] | meow-checks evidence [--all] [verb...] | meow-checks state [--purge] | meow-checks tree <commit>"
+                "usage: meow-checks status [--json] | meow-checks run <stage>... [-- <target>...] | meow-checks evidence [--all] [verb...] | meow-checks state [--purge] | meow-checks tree <commit>"
             );
             USAGE
         }
@@ -841,7 +843,7 @@ mod tests {
 
     #[test]
     fn a_command_that_never_started_is_not_an_exit_status() {
-        // SPC-1201: an unspawned verb counts neither as a pass nor as a fail.
+        // SPC-1201: an unspawned stage counts neither as a pass nor as a fail.
         let nowhere = std::env::temp_dir().join(format!("meow-no-such-{}", std::process::id()));
         let reason = try_execute(&nowhere, "true").expect_err("a shell started in no directory");
         assert!(reason.starts_with("can't start the shell"), "{reason}");

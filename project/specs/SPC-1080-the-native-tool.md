@@ -168,9 +168,9 @@ one, so this one names none of them.
 
 ADR-1110 decides it, EPC-1080 realises it, and the `meow` crate with its
 launchers and release implements it, verified under issue 160. ADR-1610
-decides how this repository's five verbs check the crate, and EPC-1570
+decides how this repository's five stages check the crate, and EPC-1570
 realises that. BUG-1240 and TSK-2520 bring the launchers and the build
-script under the same verbs. ADR-1800 adds the check that `project` groups
+script under the same stages. ADR-1800 adds the check that `project` groups
 an issue nowhere, and EPC-1710 realised it, verified under issue 625. ADR-1810
 sends every GitHub request through one layer, and EPC-1720 realises it.
 ADR-2500 decides the unattended install, and TSK-4600 realises it. ADR-2520
@@ -185,18 +185,18 @@ tracker the harness serves.
 
 ## Boundary
 
-| Surface                         | What it is                                                                 |
-| ------------------------------- | -------------------------------------------------------------------------- |
-| `crates/meow/`                  | The tool's source: one crate, with a feature per unit and its own tests    |
-| `.meowpaw/profile.toml`         | The shared profile, read at the repository root and committed              |
-| `.meowpaw/profile.local.toml`   | The personal profile, `[verbs]` only, excluded through `.git/info/exclude` |
-| `mise.toml`                     | The tasks that format, lint, check, test and build the crate and its shell |
-| `plugins/<unit>/bin/<unit>`     | The unit's launcher, which picks the binary for the machine                |
-| `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed             |
-| `.github/workflows/build.yml`   | The six-target build, run by CI when the crate changes and by the release  |
-| `.github/workflows/release.yml` | The release: one archive per unit, a marketplace file                      |
-| `retran/meow.retran.me`         | The site serving the marketplace file at `meow.retran.me`                  |
-| `plugins/meow-github/hooks/`    | The hook that runs `meow-github governance-guard` before a Bash command    |
+| Surface                         | What it is                                                                  |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `crates/meow/`                  | The tool's source: one crate, with a feature per unit and its own tests     |
+| `.meowpaw/profile.toml`         | The shared profile, read at the repository root and committed               |
+| `.meowpaw/profile.local.toml`   | The personal profile, `[stages]` only, excluded through `.git/info/exclude` |
+| `mise.toml`                     | The tasks that format, lint, check, test and build the crate and its shell  |
+| `plugins/<unit>/bin/<unit>`     | The unit's launcher, which picks the binary for the machine                 |
+| `plugins/<unit>/bin/<target>/`  | The unit's binaries, one per target, built and never committed              |
+| `.github/workflows/build.yml`   | The six-target build, run by CI when the crate changes and by the release   |
+| `.github/workflows/release.yml` | The release: one archive per unit, a marketplace file                       |
+| `retran/meow.retran.me`         | The site serving the marketplace file at `meow.retran.me`                   |
+| `plugins/meow-github/hooks/`    | The hook that runs `meow-github governance-guard` before a Bash command     |
 
 ## Behaviour
 
@@ -223,17 +223,17 @@ command that reads the profile prints its state on a line of its own,
 
 | State         | Means                             | What follows                                                                                                                                        |
 | ------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `absent`      | No file at the root               | Each unit does what its specification states for no profile, and `meow-checks` reports every verb unresolved as `no profile`                        |
-| `unparseable` | The file exists and doesn't parse | The report carries the parser's message and the line it gives, every verb is unresolved, and no verb falls back to anything                         |
+| `absent`      | No file at the root               | Each unit does what its specification states for no profile, and `meow-checks` reports every stage unresolved as `no profile`                       |
+| `unparseable` | The file exists and doesn't parse | The report carries the parser's message and the line it gives, every stage is unresolved, and no stage falls back to anything                       |
 | `parsed`      | The file parses                   | The report names each key the table of keys doesn't list, one line a key, and the command goes on with the exit status it would have had (REQ-2942) |
 
 The table of keys is one list in `crates/meow/src/profile.rs`. Each entry names
-a key, such as `verbs.test` or `commits.types`, and the reason nothing else
+a key, such as `stages.test` or `commits.types`, and the reason nothing else
 answers it: the ecosystem doesn't declare it, the platform doesn't own it, it
 isn't prose, and detection can't produce it (REQ-2950). A pull request that
 adds a key adds its entry, and a test fails on an entry with no reason. A key
-is known when an entry names its path or a path below it, so `[verbs.test]`
-is known through `verbs.test.command`. The keys below an entry with nothing
+is known when an entry names its path or a path below it, so `[stages.test]`
+is known through `stages.test.command`. The keys below an entry with nothing
 listed below it, such as each type under `commits.types`, are the
 repository's own names, and the tool doesn't check them.
 
@@ -246,7 +246,7 @@ profile error: line 3: unclosed table, expected `]`
 
 ```text
 profile: parsed
-unknown key: verbs.tset
+unknown key: stages.tset
 ```
 
 A unit whose output already prefixes each line with its command, such as
@@ -265,8 +265,8 @@ entry a part, naming the part and its directory, because only the project
 knows what it is built from (REQ-0343). A part is a directory and never
 assumed to be a unit of installation. Where a part's directory holds its own
 `.meowpaw/profile.toml`, the tool reads it over the root's: a key the part
-declares replaces the root's for that part, and the part's `[verbs]` declares
-every verb the part needs, because a verb the part leaves out is unresolved
+declares replaces the root's for that part, and the part's `[stages]` declares
+every stage the part needs, because a stage the part leaves out is unresolved
 there and never taken from the root (REQ-3040). A part's profile carries no
 `[record]` or `[parts]` table, because the record stays at the root, and the
 tool reports either as an unknown key. A repository that declares no
@@ -278,15 +278,15 @@ repository declares, and `docs.diagrams` for the diagram notation, each with
 its reason.
 
 A personal profile, `.meowpaw/profile.local.toml`, sits beside the shared one
-and holds `[verbs]` only, in the forms the shared one takes. The tool reads it after
-the shared profile, and a verb it sets replaces the shared one on that machine.
-Any other table in it is an unknown key. `meow-checks local <verb> <command>`
-writes a verb to it, creating the file where there is none, and in the same
+and holds `[stages]` only, in the forms the shared one takes. The tool reads it after
+the shared profile, and a stage it sets replaces the shared one on that machine.
+Any other table in it is an unknown key. `meow-checks local <stage> <command>`
+writes a stage to it, creating the file where there is none, and in the same
 step adds `/.meowpaw/profile.local.toml` to `.git/info/exclude` unless a line
 there already excludes it, so no file the repository keeps changes (REQ-2944).
-Every report that names a resolved verb names the file it came from.
+Every report that names a resolved stage names the file it came from.
 
-A verb in the personal profile whose command starts with `~` or with an
+A stage in the personal profile whose command starts with `~` or with an
 absolute path outside the repository stays unresolved, of the kind
 `machine path`, and the report names the path and says to find the tool
 through the repository's toolchain declaration (REQ-2946). The same command in
@@ -328,12 +328,12 @@ hook, as `meow-flow`'s `SessionStart` hook runs `paw status --waiting`
 ### The public interface
 
 The harness declares its public interface on one page,
-`docs/interface.md`, which names the five verbs and their outcomes,
+`docs/interface.md`, which names the five stages and their outcomes,
 the artifact kinds and their front matter, the record's paths and identifier
 formats, the profile's keys, every subcommand of the tool, and the form of a
 piece of evidence (REQ-2992). The tool generates the page from the
 documentation comments on what it parses and reads: each subcommand, each
-verb's outcomes, each kind and its fields, the layout's paths and identifier
+stage's outcomes, each kind and its fields, the layout's paths and identifier
 formats, each entry in the table of keys and the ledger's record. Each entry
 on the page carries its item's comment as its reason. `meow interface`
 prints the page, and a crate test runs it and fails where the committed page
@@ -348,13 +348,13 @@ addresses or postpones, and an approved addressing decision with no approved
 epic or direct task (REQ-3900, REQ-3902). A decision that only postpones work
 needs no implementation plan.
 
-This repository's five verbs check the crate as they check every other file
-it ships, so evidence kept from the verbs covers the code every unit runs
-(REQ-1186). Each verb runs a task in `mise.toml`, and the gate's `all` task
+This repository's five stages check the crate as they check every other file
+it ships, so evidence kept from the stages covers the code every unit runs
+(REQ-1186). Each stage runs a task in `mise.toml`, and the gate's `all` task
 depends on each of them apart from `build`, whose binaries CI builds in its own
 workflow:
 
-| Verb     | Task          | Runs on `crates/meow`                                                  |
+| Stage    | Task          | Runs on `crates/meow`                                                  |
 | -------- | ------------- | ---------------------------------------------------------------------- |
 | `format` | `crate-fmt`   | `cargo fmt --check`                                                    |
 | `lint`   | `crate-lint`  | `cargo clippy --all-features --all-targets -- -D warnings`             |
@@ -362,7 +362,7 @@ workflow:
 | `test`   | `crate`       | `cargo test --all-features`                                            |
 | `build`  | `build`       | `crates/meow/build-units`, one binary per unit for the machine it's on |
 
-Each verb runs the crate's task after the checks it already runs on the
+Each stage runs the crate's task after the checks it already runs on the
 Markdown, prompts and fixtures, apart from `test`, which runs `crate` right
 after `build-units` so a failing crate test stops the run before the fixtures
 start. `.meowpaw/profile.toml` names each task
@@ -384,7 +384,7 @@ POSIX shell, and `format` and `lint` check them as they check the crate
 (REQ-1186). `mise.toml` pins `shfmt` and `shellcheck`, and the gate's `all`
 task depends on both tasks:
 
-| Verb     | Task         | Runs                                  |
+| Stage    | Task         | Runs                                  |
 | -------- | ------------ | ------------------------------------- |
 | `format` | `shell-fmt`  | `shfmt -i 2 -d` over the shell files  |
 | `lint`   | `shell-lint` | `shellcheck`, at its default severity |
@@ -392,7 +392,7 @@ task depends on both tasks:
 Both tasks take the list from `shfmt -f plugins crates/meow`, which picks a
 file by its shebang, so a launcher added later is checked with no edit to
 either task. Each task fails when the list is empty, because a check over
-nothing is no pass. Each verb runs its shell task before the crate's, so the
+nothing is no pass. Each stage runs its shell task before the crate's, so the
 crate's task stays last. The `fmt` task runs `shfmt -i 2 -w` over the same
 list. Each unit's fixtures run its launcher with no binary beside it and
 assert what it reports, so `test` fails when a launcher's fallback reads as a
@@ -414,7 +414,7 @@ pass.
 `mise run build` builds each unit's binary for the machine it runs on into the
 unit's `bin/<target>/`, which `.gitignore` excludes, so a checkout loaded in
 place by a local-directory marketplace runs the tool without a release. The
-gate runs the crate's tests, and this repository's `test` verb runs the units'
+gate runs the crate's tests, and this repository's `test` stage runs the units'
 fixtures against the launchers.
 
 ### A release
@@ -514,7 +514,7 @@ person and no prompt by running the platform's own commands,
 `claude plugin marketplace add <address>` and
 `claude plugin install <unit>@meowpaw`, which take every argument on the
 command line (REQ-1486). `docs/README.md` gives those commands as the
-unattended form. A test under `tools/`, run by the `test` verb, runs them
+unattended form. A test under `tools/`, run by the `test` stage, runs them
 against a scratch configuration directory and fails on a unit the platform
 doesn't list as enabled afterwards. Where the platform's command-line tool
 isn't installed, the test reports itself as skipped with that reason, and
@@ -592,7 +592,7 @@ text, and a repository overrides a convention with a file of its own that wins
 over the unit's (REQ-0010, REQ-0016, REQ-0018, REQ-0022, REQ-0024, REQ-0026,
 REQ-0028, REQ-0030). A capability that isn't available is reported as
 unresolved or unchecked, never replaced by a weaker one, and the report names
-what would supply it: the profile's `[verbs]` for a verb, a reinstall for a
+what would supply it: the profile's `[stages]` for a stage, a reinstall for a
 missing binary (REQ-0036, REQ-0038, REQ-0040) (ADR-1270).
 
 ### Reading a code host's history
@@ -834,17 +834,17 @@ one of them (REQ-2788):
 Each threat is ranked in words, as likely or unlikely and as severe or minor,
 and carries no numeric score (REQ-2790). The insiders come first:
 
-| Threat                                                                | Likelihood | Impact | Control                                                                                                               |
-| --------------------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------- |
-| The harness runs a destructive command on a repository it misread     | likely     | severe | `meow-flow:route` before any edit, `meow-git`'s trunk and push guards, and the governance guard above                 |
-| The harness reports a check as passed with nothing behind it          | likely     | severe | `meow-checks` never reports an unresolved verb as passed, and every report separates verified from assumed (REQ-1734) |
-| The harness rewords an approved record to match what was built        | likely     | minor  | `paw check frozen`                                                                                                    |
-| The harness changes configuration outside the repository              | unlikely   | severe | The crate's unit tests on `git config --global` and `--system`, and on a write outside the run state and the record   |
-| The person's own session reads or prints a secret from the repository | unlikely   | severe | The instruction alone: `meow-core`'s output style and `CLAUDE.md`'s `never_touch_secrets`; no program checks it       |
-| Text across a boundary instructs the model to act                     | likely     | severe | None by program; a shipped agent ends `BLOCKED` on a denied call, which limits what it reaches                        |
-| A commit claims an author who didn't make it                          | unlikely   | severe | `meow-git`'s push guard accepts only a good signature from a trusted key                                              |
-| A released archive is replaced                                        | unlikely   | severe | `marketplace.json` names each archive's SHA-256 (the release above)                                                   |
-| A run spends a code host's request budget                             | unlikely   | minor  | The request layer's counts and ceilings (the request layer above)                                                     |
+| Threat                                                                | Likelihood | Impact | Control                                                                                                                |
+| --------------------------------------------------------------------- | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------------- |
+| The harness runs a destructive command on a repository it misread     | likely     | severe | `meow-flow:route` before any edit, `meow-git`'s trunk and push guards, and the governance guard above                  |
+| The harness reports a check as passed with nothing behind it          | likely     | severe | `meow-checks` never reports an unresolved stage as passed, and every report separates verified from assumed (REQ-1734) |
+| The harness rewords an approved record to match what was built        | likely     | minor  | `paw check frozen`                                                                                                     |
+| The harness changes configuration outside the repository              | unlikely   | severe | The crate's unit tests on `git config --global` and `--system`, and on a write outside the run state and the record    |
+| The person's own session reads or prints a secret from the repository | unlikely   | severe | The instruction alone: `meow-core`'s output style and `CLAUDE.md`'s `never_touch_secrets`; no program checks it        |
+| Text across a boundary instructs the model to act                     | likely     | severe | None by program; a shipped agent ends `BLOCKED` on a denied call, which limits what it reaches                         |
+| A commit claims an author who didn't make it                          | unlikely   | severe | `meow-git`'s push guard accepts only a good signature from a trusted key                                               |
+| A released archive is replaced                                        | unlikely   | severe | `marketplace.json` names each archive's SHA-256 (the release above)                                                    |
+| A run spends a code host's request budget                             | unlikely   | minor  | The request layer's counts and ceilings (the request layer above)                                                      |
 
 The model works through STRIDE, the six categories OWASP's threat-modelling
 process uses, and maps each to the control that answers it, or says none does
@@ -865,11 +865,11 @@ process uses, and maps each to the control that answers it, or says none does
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
 | No binary for the machine's target               | The launcher reports every check as unrun, never passed; a blocking hook's launcher denies, naming the fix   |
 | A part's profile carries `[record]` or `[parts]` | The table is reported as an unknown key, and the root's record and parts stand                               |
-| A part's profile leaves out a verb               | That verb is unresolved in that part, and never taken from the root's profile                                |
+| A part's profile leaves out a stage              | That stage is unresolved in that part, and never taken from the root's profile                               |
 | The committed interface page differs             | The crate's test fails, naming the entry that differs; regenerating the page fixes it                        |
-| The profile doesn't parse                        | `profile: unparseable` with the parser's message and line; every verb unresolved, nothing falls back         |
+| The profile doesn't parse                        | `profile: unparseable` with the parser's message and line; every stage unresolved, nothing falls back        |
 | The profile carries a key the table doesn't list | The key is named on a line of its own, and the exit status stays what it would have been                     |
-| A personal verb names a path on this machine     | The verb is unresolved, of the kind `machine path`, naming the path                                          |
+| A personal stage names a path on this machine    | The stage is unresolved, of the kind `machine path`, naming the path                                         |
 | `local` outside a git working tree               | Refused, exit 1, because nothing can exclude the personal file there                                         |
 | A unit changed since its release, same version   | The release exits 1 before packing, naming the unit                                                          |
 | A new version with no changelog section          | The release exits 1 before packing, naming the unit and the version                                          |

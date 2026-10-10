@@ -9,11 +9,11 @@ describes: [meow-loop@0.12.0]
 
 `meow-loop start` repeats one prompt in fresh `claude -p` calls, bound to one
 step of the method. It ends when the step's work is done in the record and the
-verification verbs you name pass at one tree. It also ends when the number of
+verification stages you name pass at one tree. It also ends when the number of
 iterations has run, when the next call could pass the budget you state, or
 when two iterations in a row change nothing. The runner is a program outside
 the model, so nothing a call prints or writes extends the run. The runner
-alone decides whether the work is done, from the record and each verb's exit
+alone decides whether the work is done, from the record and each stage's exit
 status.
 
 ## Install it
@@ -32,7 +32,7 @@ separate tmux window, because the run holds that terminal until it ends. In a
 Claude Code session, `/meow-loop:loop` helps you write the prompt file and
 prints the command; it runs nothing, and the model can't invoke it.
 
-Before you start, declare each verb the run waits for under `[verbs]` in your
+Before you start, declare each stage the run waits for under `[stages]` in your
 repository's `.meowpaw/profile.toml`, and write the prompt to a file. Then run
 the launcher by its path in the installed unit, from a terminal in the
 repository, replacing `./scripts/prompt.md` with your prompt file:
@@ -45,7 +45,7 @@ meow-loop start --step implement --inputs TSK-0042 \
 
 The run holds the terminal until it ends. Its last line is the ending. For
 `crossed` and `off-step` it also names each record or path that caused it and,
-for an evaluation, the verb that ran.
+for an evaluation, the stage that ran.
 
 | Term                | Holds                                                                                         | Required                                      |
 | ------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -78,12 +78,12 @@ there, or allow everything.
 
 ## What a run does
 
-The runner resolves each named verb to the command your profile declares,
+The runner resolves each named stage to the command your profile declares,
 holds that command for the whole run and records it in `run.toml`, so a call
 that rewrites `.meowpaw/profile.toml` changes nothing the run checks.
 
 The condition has two terms, and both must hold at one tree: the step's test
-on the record, and every named verb exiting 0. A record counts whatever its
+on the record, and every named stage exiting 0. A record counts whatever its
 status, so a draft counts:
 
 | Step           | Its test holds when                                                                                               |
@@ -96,13 +96,13 @@ status, so a draft counts:
 | `implement`    | Each input task is marked `x` by the record that authorises it, and its `## Evidence` holds text                  |
 
 "Since start" compares with the copy of the record the runner takes just after
-its first evaluation. A verb that rewrote a record in that evaluation then
+its first evaluation. A stage that rewrote a record in that evaluation then
 isn't counted as the first call's change. A task marked `~`, dropped, doesn't pass
 `implement`. The runner reads no pass from the ledger and nothing a call
 printed, so a result saying the work is done changes nothing.
 
 The runner evaluates the condition once before any call. An `implement` run
-whose work is done and whose verbs pass ends `finished` with no call. Every
+whose work is done and whose stages pass ends `finished` with no call. Every
 other step's test counts only a record new or changed since start, so those
 runs always make at least one call. While the condition doesn't hold, each
 iteration makes one call:
@@ -179,7 +179,7 @@ absent, negative or no number, ends the run `unmetered`, because a spend the
 runner can't sum bounds nothing. That call's line in the log holds `null` for
 `sum_usd`. A call whose result has the subtype `error_max_budget_usd` ends the
 run `budget`. Both come before the condition, so a call that reports no cost
-and also makes the verbs pass ends `unmetered`.
+and also makes the stages pass ends `unmetered`.
 
 A call ends the run `crossed` when the record, compared with the copy the
 runner took at start, shows one of four changes:
@@ -196,7 +196,7 @@ The runner makes this comparison after every call, unless it can identify the
 work tree before and after the call and finds it unchanged. A changed term, a
 missing cost and a call's own cap end the run first. The comparison comes
 before the condition, so a call that approves a draft and also makes the
-verbs pass ends `crossed`, not `finished`.
+stages pass ends `crossed`, not `finished`.
 
 A run may change an approved task only in its Evidence, its Left alone
 section, its issue, its projection and its revision date. It may change an
@@ -206,10 +206,10 @@ with them, and only in an `implement` run. The comparison takes none of
 status now `withdrawn` or `superseded` crosses. So does a line naming an
 authority.
 
-The runner makes the same comparison after each verb of its own evaluation
-that changed the tree, so a verb that crosses a gate ends the run `crossed`.
+The runner makes the same comparison after each stage of its own evaluation
+that changed the tree, so a stage that crosses a gate ends the run `crossed`.
 The last line of the output then names each record that crossed and, for an
-evaluation, the verb that ran.
+evaluation, the stage that ran.
 
 When a call writes another step's files or leaves its input unready, the
 runner ends the run `off-step`, after the comparison for `crossed`. A step
@@ -232,7 +232,7 @@ change a path outside the record root. Where the record root is the work tree
 itself, that limit has no effect, because every path is inside it.
 
 The runner lists the paths a call changed with `git diff-tree` between the
-tree id it read just before the call and the one after. A path a verb rewrote
+tree id it read just before the call and the one after. A path a stage rewrote
 in an evaluation is therefore not listed, because the runner read the first
 id after that evaluation. Where the runner can't identify either tree, it
 can't list the paths. It then compares the records with its copy instead, so a
@@ -248,17 +248,17 @@ paths.
 
 If the tree id changed or couldn't be identified, the runner then evaluates
 the condition. The tree id covers every tracked file and every untracked file
-git doesn't ignore. When the step's test holds, every verb exits 0 and the
+git doesn't ignore. When the step's test holds, every stage exits 0 and the
 evaluation left the tree as it found it, the run ends `finished`. An
 unidentified tree, such as one with a dirty submodule, holds no condition. An
 unchanged tree would repeat the last result, so the runner skips the
-evaluation and makes the next call. Where a verb changes the tree, such as a
+evaluation and makes the next call. Where a stage changes the tree, such as a
 formatter that rewrites files, the runner evaluates a second time at once, and
 that second result stands.
 
 | Ending      | When                                                                               | Exit status |
 | ----------- | ---------------------------------------------------------------------------------- | ----------- |
-| `finished`  | The step's test held and every named verb passed at one tree                       | 0           |
+| `finished`  | The step's test held and every named stage passed at one tree                      | 0           |
 | `budget`    | The next call could pass the budget, or a call reached its own cap                 | 1           |
 | `ceiling`   | The stated number of iterations ran                                                | 1           |
 | `unmetered` | A call reported no cost, so the spend can't be summed                              | 1           |
@@ -267,8 +267,8 @@ that second result stands.
 | `crossed`   | A call or an evaluation decided a status, or changed or removed an approved record | 1           |
 | `off-step`  | A call wrote another step's files, or left its input unready                       | 1           |
 
-`meow-loop` runs the verbs itself and needs no other unit. It records each
-verb's result in the ledger `meow-checks` reads, so where that unit is
+`meow-loop` runs the stages itself and needs no other unit. It records each
+stage's result in the ledger `meow-checks` reads, so where that unit is
 installed, `meow-checks evidence` prints the run's last results.
 
 ## What a run keeps
@@ -281,7 +281,7 @@ when the run begins.
 
 | File                   | Holds                                                                                                                                                                                                                                                                                                        |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `run.toml`             | The step, the inputs as a list, the prompt's sha256, the sha256 of `.claude/settings.json` at start or `absent`, the condition with each verb's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                          |
+| `run.toml`             | The step, the inputs as a list, the prompt's sha256, the sha256 of `.claude/settings.json` at start or `absent`, the condition with each stage's command, the ceiling, the budget, the permission mode, each rule and plugin directory, who started the run and when, and the ending                         |
 | `prompt.md`            | A copy of the prompt file as it was at start                                                                                                                                                                                                                                                                 |
 | `progress/progress.md` | What each iteration wrote for the next one. It starts empty                                                                                                                                                                                                                                                  |
 | `log.jsonl`            | One line per call: the iteration, the tree id before and after, the call's `total_cost_usd`, `sum_usd` with the spend up to and including it, the count of `permission_denials`, its exit status, `progress_changed`, `unidentified` where either tree id is `none`, and the condition's result where it ran |
@@ -345,7 +345,7 @@ command, so one attempt names every flag to fix:
 | `usage: <flag> needs a value`                                   | A term is the last word of the command                                         |
 | `usage: <word> is not a term of start`                          | The command holds a word that is no term                                       |
 
-Before it resolves the verbs, `start` prints the profile's state,
+Before it resolves the stages, `start` prints the profile's state,
 `profile: absent`, `profile: unparseable` or `profile: parsed`, and
 `unknown key: <path>` for each key no unit reads. An unknown key stops
 nothing.
@@ -360,7 +360,7 @@ creates no run directory:
 | `unresolved: state writing is off, and a run needs state`                        | `MEOWPAW_STATE=off` is set                                                                                                             |
 | `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME`  | None of the three variables names where state goes                                                                                     |
 | `unresolved: claude is not on the path`                                          | No `claude` that can be run is on `PATH`                                                                                               |
-| `unresolved: verb <verb> resolves to no command`                                 | The profile declares no command for a named verb                                                                                       |
+| `unresolved: stage <stage> resolves to no command`                               | The profile declares no command for a named stage                                                                                      |
 | `unresolved: record root <path> is missing`                                      | The record root, `[record] root` or `project`, doesn't exist                                                                           |
 | `unresolved: record root <path> is ignored by git`                               | Git ignores the record root, so the tree id leaves the record out                                                                      |
 | `unresolved: record root <path> is outside the work tree`                        | The record root resolves to a path outside the work tree                                                                               |
@@ -374,7 +374,7 @@ creates no run directory:
 | `unresolved: meow-loop's own directory can't be found from its program's path`   | The program doesn't sit in a unit whose manifest names `meow-loop`, so a call couldn't load its hook                                   |
 | `unresolved: can't resolve <directory>: <error>`                                 | The runner can't resolve the run's progress directory                                                                                  |
 
-During a run, a file the runner can't write, or a `claude` or a verb's
+During a run, a file the runner can't write, or a `claude` or a stage's
 command it can't start, stops the run with the same
 `unresolved:` line and exit status 3. The run then has no ending, and reads as
 interrupted.

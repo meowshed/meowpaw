@@ -47,9 +47,9 @@ procedure states where it stops.
 - A6. Keep anything the material injects at invocation cheap and certain.
   Cheap means it finishes inside the platform's two-minute timeout. Certain
   means it exits zero wherever the skill runs, because the platform aborts the
-  invocation on a non-zero exit. Run no verification verb (format, lint,
-  check, test or build) in the injection, because a verb belongs in the body as
-  an instruction. A verb can exit non-zero, and a test run can exceed the
+  invocation on a non-zero exit. Run no verification stage (format, lint,
+  check, test or build) in the injection, because a stage belongs in the body as
+  an instruction. A stage can exit non-zero, and a test run can exceed the
   timeout. Never let the material depend on the injection, because a setting
   can turn injection off, and a failing injection aborts every invocation.
 - A7. Rely on the platform's namespacing of a plugin's skills for every

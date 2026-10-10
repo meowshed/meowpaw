@@ -86,7 +86,7 @@ It is British English (REQ-0995), one language per repository and declarable
 there (REQ-0996), and a technical term keeps the spelling its own domain uses
 (REQ-0997). Every rule it states carries its reason (REQ-0994). A draft
 declares the reader it is written for (REQ-0993), and a sentence names the
-actor and uses the verb (REQ-0991).
+actor and uses the stage (REQ-0991).
 
 The standard covers the shape of a document as well as its sentences: which
 sections a document type carries, and in what order (REQ-0998).
@@ -207,7 +207,7 @@ standard outside P1 to P3 and J1 to J3, stay with the skill and the reviewer.
 
 The skill has to be in context before a text is written, and its description
 is what loads it. The description states the obligation in the form SPC-1030
-gives, and names the verbs a writing request uses, so Sonnet 5 loads the skill
+gives, and names the stages a writing request uses, so Sonnet 5 loads the skill
 on a one-line commit message as well as on a document. `meow-prose` ships no
 hook for loading, because a `SessionStart` line naming the skill did not
 change what the model did.

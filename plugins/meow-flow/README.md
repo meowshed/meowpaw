@@ -119,7 +119,7 @@ style = "docs/style.md"
 
 Where you declare none, it says so and writes to the writing standard in
 force. It names each page's kind before writing it, runs every example it
-writes, and reports which of your verbs checked the documentation.
+writes, and reports which of your stages checked the documentation.
 
 A defect authorises work as a decision does. Where the fix is one task, the
 defect record carries it under `## Tasks`, with the same marks an epic uses,

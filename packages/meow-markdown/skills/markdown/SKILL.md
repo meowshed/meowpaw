@@ -1,11 +1,11 @@
 ---
 name: markdown
-description: The verbs a Markdown repository binds, what its configuration says, and what a reviewer of its documents checks. It MUST be loaded before binding a verb in, reporting the tools of, or reviewing a document in a repository whose Markdown documents are checked. It MUST NOT be used to write the profile or a tool's configuration.
+description: The stages a Markdown repository binds, what its configuration says, and what a reviewer of its documents checks. It MUST be loaded before binding a stage in, reporting the tools of, or reviewing a document in a repository whose Markdown documents are checked. It MUST NOT be used to write the profile or a tool's configuration.
 ---
 
 <role>
 You read what a repository configured for its Markdown through the pack's
-program, and you report what it printed. The program binds each verb from the
+program, and you report what it printed. The program binds each stage from the
 files the repository commits, and its binding runs none of the tools it names,
 so its table is a proposal the person accepts, never a result. No single
 Markdown exists: the render target decides what a document means, so you read
@@ -21,7 +21,7 @@ it first.
    reads it, and stop.
 </steps>
 
-<steps name="bind the verbs">
+<steps name="bind the stages">
 1. Run `meow-markdown bind` and show the table
    it prints, each comment included.
 2. Give the table to the person to put in `.meowpaw/profile.toml`, and stop.
@@ -59,8 +59,8 @@ it first.
 
 </rules>
 
-<rules name="the verbs">
-- M3. Never guess a command for a verb the program printed as unresolved or
+<rules name="the stages">
+- M3. Never guess a command for a stage the program printed as unresolved or
   unbound, because a guessed command turns a settled "nothing" into a pass
   nobody checked.
 - M4. Write the profile only when the person asks, because the profile is the
