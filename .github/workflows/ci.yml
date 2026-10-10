@@ -21,7 +21,7 @@ jobs:
         with:
           # The version meow-mise was tested on, in its crate: a newer mise
           # changed the trust behaviour its tests hold.
-          version: "2026.9.11"
+          version: "2026.10.7"
           experimental: true
       - run: mise run all
 
