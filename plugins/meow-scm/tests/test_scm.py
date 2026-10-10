@@ -188,6 +188,58 @@ class CommitSkill(unittest.TestCase):
         self.assertRegex(self.TEXT, r"B6\. Split an epic[^.]{0,200}before its work starts")
 
 
+class ToolOperations(unittest.TestCase):
+    """TSK-4370, ADR-2420: the commit skill bounds a tool that runs source control operations."""
+
+    TEXT = " ".join((UNIT / "skills/commit/SKILL.md").read_text(encoding="utf-8").split())
+    README = " ".join((UNIT / "README.md").read_text(encoding="utf-8").split())
+
+    def test_it_lists_the_composite_commands_it_never_runs_with_a_reason(self):
+        """Criterion 1, REQ-2610: a command that bundles decisions the method reserves is never called."""
+        self.assertRegex(self.TEXT, r"T\d+\. Never run a command that bundles[^.]{0,200}`wt merge`")
+        self.assertRegex(self.TEXT, r"`wt merge`[^.]{0,260}because")
+
+    def test_a_message_a_tool_generated_is_never_used(self):
+        """Criterion 2, REQ-2612: a generated message is never used, and the reason is given."""
+        self.assertRegex(self.TEXT, r"T\d+\. Never use a message a tool generated[^.]{0,200}because")
+        self.assertNotRegex(self.TEXT, r"a message here states why")
+
+    def test_a_tool_with_no_machine_readable_output_runs_operations_only(self):
+        """Criterion 3, REQ-2608: state is read from the documented output of the tool that owns it."""
+        self.assertRegex(
+            self.TEXT,
+            r"documents no machine-readable output, use it to run operations only[^.]{0,120}"
+            r"documented output of the tool that owns it",
+        )
+
+    def test_a_rebase_after_signing_is_signed_again_and_never_automatic(self):
+        """Criterion 3, REQ-2614."""
+        self.assertRegex(self.TEXT, r"Treat a rebase after signing as a change to what was signed[^.]{0,120}signed again")
+        self.assertRegex(self.TEXT, r"never use a workflow that rebases[^.]{0,80}signatures are required")
+
+    def test_a_model_written_summary_is_never_evidence_and_may_be_shown_in_a_list(self):
+        """Criterion 3, REQ-2616: the ban and the one allowance."""
+        self.assertRegex(self.TEXT, r"Never cite a model-written summary as evidence")
+        self.assertRegex(self.TEXT, r"Show one only where a person is reading a list")
+
+    def test_a_working_tree_is_removed_only_in_the_foreground(self):
+        """Criterion 4, REQ-2618: no background removal, and the foreground one only when asked."""
+        self.assertRegex(self.TEXT, r"Never remove a working tree in the background")
+        self.assertRegex(self.TEXT, r"only in the foreground, when the person or the step that made it asks[^.]{0,80}because")
+
+    def test_working_trees_share_only_ignored_build_output(self):
+        """Criterion 4, REQ-2620: never source, and the unsupported filesystem is reported."""
+        self.assertRegex(self.TEXT, r"Never let working trees share tracked source")
+        self.assertRegex(self.TEXT, r"share only ignored build output")
+        self.assertRegex(self.TEXT, r"report where the filesystem can't support the sharing")
+
+    def test_the_readme_names_the_bounds(self):
+        """TSK-4370 'What to do': the README says where it summarises the skill."""
+        self.assertRegex(self.README, r"`wt merge`")
+        self.assertRegex(self.README, r"only in the foreground")
+        self.assertRegex(self.README, r"no message a tool generated|never uses a message a tool generated")
+
+
 class Launcher(unittest.TestCase):
     """ADR-1270: a launcher with no binary for the machine names the machine and the fix."""
 
