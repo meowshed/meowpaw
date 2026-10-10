@@ -73,6 +73,14 @@ message is never reported as meeting a convention nobody stated. The skill
 also keeps a subject to one change in the imperative, and a body to why the
 change was made, which a check can't decide.
 
+The skill also bounds the tools Claude Code runs beside the check. It never
+runs a command that bundles several decisions, such as `wt merge`, which writes
+a message, commits, rebases and removes a working tree together, and it never
+uses a message a tool generated. It reads state from the documented output of
+the tool that owns it, signs again what a rebase changed, cites no
+model-written summary as evidence, and removes a working tree only in the
+foreground, when you or the step that made it asks.
+
 ## What it costs you
 
 The skill's description costs 263 characters in context on every turn. The
