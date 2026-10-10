@@ -197,7 +197,7 @@ class Launcher(unittest.TestCase):
             launcher.parent.mkdir()
             launcher.write_text((UNIT / "bin" / "meow-scm").read_text(encoding="utf-8"), encoding="utf-8")
             launcher.chmod(0o755)
-            done = subprocess.run(["sh", str(launcher), "check-message"], cwd=tmp, capture_output=True, text=True, input="")
+            done = subprocess.run(["sh", str(launcher), "check-message"], cwd=tmp, env={"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}, capture_output=True, text=True, input="")
             machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
             self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
             self.assertIn("unchecked", done.stdout)

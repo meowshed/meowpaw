@@ -406,7 +406,9 @@ class TheHook(unittest.TestCase):
             launcher = Path(tmp) / "meow-prose-gate"
             shutil.copy(UNIT / "bin" / "meow-prose-gate", launcher)
             event = json.dumps({"tool_input": {"command": 'git commit -m "a silver bullet"'}})
-            done = subprocess.run(["sh", str(launcher), "check"], input=event, capture_output=True, text=True, timeout=30)
+            env = {"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}
+            done = subprocess.run(["sh", str(launcher), "check"], input=event, env=env, capture_output=True,
+                                  text=True, timeout=30)
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertIn("nothing was checked", done.stdout)
 
