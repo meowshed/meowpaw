@@ -1,7 +1,7 @@
 ---
 id: TSK-4100
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2300
 closes:
@@ -72,7 +72,22 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 881. The tests are in `plugins/meow-loop/tests/test_session_run.py`:
+
+- Criterion 1: `Starting.test_the_start_command_writes_a_run_with_its_bounds`.
+- Criterion 2: `Starting.test_a_missing_or_bad_bound_writes_nothing_and_names_each`.
+- Criterion 3: `Cancelling.test_the_next_prompt_cancels_an_active_run`.
+- Criterion 4:
+  `Guarding.test_the_guard_denies_the_runs_terms_and_its_own_command_and_allows_its_notes`.
+- Criterion 5: `Skill.test_the_start_command_cannot_be_invoked_by_the_model`.
+- Criterion 6:
+  `Starting.test_twenty_one_runs_leave_twenty_and_purge_removes_them_all`.
+- Criterion 7: `Deprecated.test_the_terminal_runner_says_it_is_deprecated_first`.
+
+The old suite `test_loop.py` passes against the shared binary (103 tests). It
+needed the launcher to name the unit's directory (`MEOW_LOOP_UNIT`) and its
+layout (`MEOW_LAYOUT`), because the shared binary sits in the core unit, and a
+commit of its own for each carries the test that failed first.
 
 ## Left alone
 
