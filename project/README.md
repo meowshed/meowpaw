@@ -869,6 +869,7 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1500](bugs/BUG-1500-the-gate-never-runs-the-licence-check-and-packages-carries-no-declaration.md) | The gate never runs the licence check, and the mirrors under `packages/` carry no declaration                                   |
 | [BUG-1510](bugs/BUG-1510-the-gate-runs-a-subset-of-the-checks-the-verbs-run.md)                        | The gate runs a subset of the checks the verbs run, so CI passes trees a local run fails                                        |
 | [BUG-1520](bugs/BUG-1520-the-served-marketplace-keeps-relative-sources.md)                             | The served marketplace keeps relative sources for every unit but one, so no unit installs from the documented address           |
+| [BUG-1530](bugs/BUG-1530-the-test-stage-takes-five-to-sixteen-minutes.md)                              | The test stage takes five to sixteen minutes where five is the bound                                                            |
 
 Forty-six are closed. BUG-1410 is open, and so are BUG-1040, BUG-1100 and BUG-1360. BUG-1410 routes to implement,
 ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
