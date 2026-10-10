@@ -1,7 +1,7 @@
 ---
 id: TSK-5340
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 bug: BUG-1540
 closes: [REQ-4900, REQ-4902]
@@ -38,7 +38,17 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+1. `grep -q disable-model-invocation plugins/meow-flow/skills/run/SKILL.md`
+   exits 1, so the field is absent.
+2. `mise run budget` exits 0 and reports `meow-flow: 903 of 910 characters on
+every turn`.
+3. The two skill files differ only in the launcher path the mirror leaves out
+   (`${CLAUDE_SKILL_DIR}/../../bin/paw` against `paw`), as before the change.
+   A `diff` with that prefix removed exits 0.
+
+`paw check` reports no finding. The gate's other failures, `test-author` (2),
+`test-flow` (1) and `test-gotask` (3), are missing-binary tests that fail on
+`main` as well. The pull request is #891.
 
 ## Left alone
 

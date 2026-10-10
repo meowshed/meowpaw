@@ -60,4 +60,4 @@ reaches the driver through the `Skill` tool.
 
 ## Tasks
 
-- [ ] T-001 TSK-5340 let the model invoke the driver, and count its description in the budget
+- [x] T-001 TSK-5340 let the model invoke the driver, and count its description in the budget (done: pull request 891)
