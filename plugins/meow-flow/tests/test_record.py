@@ -2984,8 +2984,8 @@ class SynchronisationStep(unittest.TestCase):
                 text = (self.ROOT / where / "meow-flow/skills/method/steps/implement.md").read_text(encoding="utf-8")
                 self.assertGreaterEqual(text.count("meow-github sync"), 2, text[-900:])
                 self.assertRegex(text, r"(?s)\[tracker\] kind.{0,300}meow-github sync")
-                self.assertRegex(text, r"(?i)(before|start).{0,200}meow-github sync|meow-github sync.{0,200}(before|start)")
-                self.assertRegex(text, r"(?i)(after|end).{0,200}meow-github sync|meow-github sync.{0,200}(after|end)")
+                self.assertRegex(text, r"(?is)(before|start).{0,200}meow-github sync|meow-github sync.{0,200}(before|start)")
+                self.assertRegex(text, r"(?is)(after|end).{0,200}meow-github sync|meow-github sync.{0,200}(after|end)")
 
     def test_the_script_the_pack_replaces_is_gone_and_unnamed(self):
         """Criterion 2: `tools/sync_issues.py` doesn't exist, and no living or shipped file names it."""
