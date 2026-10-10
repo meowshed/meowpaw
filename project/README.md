@@ -400,6 +400,10 @@ EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
 tasks, TSK-5300 to TSK-5303: the core unit ships the one build of the tool, the
 units depend on it and find it, and then the units drop their own builds.
 
+[EPC-2800](epics/EPC-2800-the-record-gains-commands-for-its-writes.md) realises ADR-2880
+in two tasks, TSK-5310 and TSK-5311: the record keeps its files, and `paw approve`,
+`paw withdraw` and `paw done` make each write that crosses files one step.
+
 [EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
 tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either
 from its research or from its approved records, and the readiness check reads a
