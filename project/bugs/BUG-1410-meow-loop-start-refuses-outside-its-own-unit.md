@@ -60,7 +60,10 @@ session), and the in-session guard is unaffected.
 
 ## Closed by
 
-Not yet closed.
+The start command resolves its unit from `MEOW_LOOP_UNIT`, then the program's own
+unit, then the `meow-loop` directory beside it, and refuses a candidate whose
+manifest names another unit. Four tests in `crates/meow/src/runloop.rs` hold it
+(TSK-5260, pull request 873).
 
 ## Tasks
 
