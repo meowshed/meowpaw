@@ -1,7 +1,7 @@
 ---
 id: TSK-4350
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2330
 closes: [REQ-1172, REQ-1178, REQ-1180, REQ-1190]
@@ -51,7 +51,24 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where three of the five in
+`plugins/meow-flow/tests/test_determinations.py` failed.
+`test_every_determination_in_a_step_file_names_a_subcommand` closes criterion 1
+(REQ-1172): it reads each paragraph and rule of every step file, fails one
+that asks for a count, a coverage, a staleness, a resolution, a readiness or an
+allocation and names no `paw` subcommand, and exempts four items that ask for
+none, each with its reason in the test. It found two: the implement step's
+"where a task of the epic is ready", which now names `paw status`, and the
+requirements step's identifier block, which now names `paw new requirement`.
+`test_a_step_that_asks_for_a_count_with_no_subcommand_fails` shows the checker
+fails a step that says "count the requirements". Two tests close criterion 2:
+the method skill's new rules M23 and M24 state what a cited output carries
+(REQ-1178) and that a contradiction is reported and not deferred to (REQ-1180).
+`test_the_session_start_hook_runs_the_waiting_report` closes criterion 3
+(REQ-1190) and held before the change.
+
+No determination was found that needs a subcommand `meow` doesn't have, so
+this pull request lists no gap. `mise run all` passed with exit status 0.
 
 ## Left alone
 

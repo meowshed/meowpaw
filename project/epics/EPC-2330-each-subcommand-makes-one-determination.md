@@ -1,7 +1,7 @@
 ---
 id: EPC-2330
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2400
 ---
@@ -49,7 +49,7 @@ number.
       closes: REQ-1176, REQ-1184
       depends: TSK-4330 (not blocking) - both add the same kind of test, and the second can copy the first's form or write its own
 
-- [ ] T-003 [P] TSK-4350 name the subcommand for each mechanical determination in the method's step files, and state how its output is cited
+- [x] T-003 [P] TSK-4350 name the subcommand for each mechanical determination in the method's step files, and state how its output is cited (done: pull request 1044)
       closes: REQ-1172, REQ-1178, REQ-1180, REQ-1190
 
 - [x] T-004 TSK-5360 carry an epic's tasks on its one branch, and merge at its last task (done: pull request 1044)
