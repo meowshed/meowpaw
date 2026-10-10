@@ -43,7 +43,36 @@ fn binding(task: &str) -> String {
     format!("task --force {task}")
 }
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 3] = [
+    crate::help::Entry {
+        name: "status",
+        determines: "which Task tasks resolve in this work tree",
+        by_hand: "run `task --list` in the repository's root and read the `Taskfile.yml` it names",
+        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "bind",
+        determines: "the `[stages]` lines that bind each stage to a Task task",
+        by_hand: "match each stage name with a task of that name in the Taskfile and write the `task` command for it",
+        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "check",
+        determines: "whether each stage's Task task can run and isn't skipped as fresh",
+        by_hand: "read each stage's command in the profile, find the task it runs and read its `sources`, `generates` and `deps`",
+        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        json: "",
+    },
+];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("gotask", &HELP, args) {
+        return code;
+    }
     match args
         .iter()
         .map(String::as_str)

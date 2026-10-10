@@ -100,6 +100,13 @@ paragraph, because git reads trailers from there, and they match a key in any
 case. The check for a trailer the convention requires still reads every line
 after the subject, with the key as you declared it.
 
+## Read a subcommand's help
+
+`meow-scm --help` lists the subcommands, and `meow-scm <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared

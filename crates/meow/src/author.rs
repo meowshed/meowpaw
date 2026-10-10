@@ -30,7 +30,29 @@ const DISPATCHING: [&str; 2] = ["Agent", "Task"];
 /// reports", REQ-0816).
 const OUTCOMES: [&str; 4] = ["DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED"];
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 2] = [
+    crate::help::Entry {
+        name: "check",
+        determines: "whether each skill, agent, output style and prompt hook follows the authoring rules",
+        by_hand: "read each file against the rules of the `write` skill of `meow-author`",
+        lines: "meow-author <path> <count> <text>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "cost",
+        determines: "the characters each unit loads on every turn against the budget it states",
+        by_hand: "count the characters of each skill and agent description and output style a unit loads, and compare with its `budget.toml`",
+        lines: "<unit>: How <count> <text>",
+        json: "",
+    },
+];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("author", &HELP, args) {
+        return code;
+    }
     match args.split_first() {
         Some((command, paths)) if command == "check" => check(paths),
         Some((command, rest)) if command == "cost" => cost(rest),

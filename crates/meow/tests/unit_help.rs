@@ -24,6 +24,38 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
+thread_local! {
+    /// The lines whose first word a help doesn't state, gathered so one run
+    /// names them all.
+    static MISSING: std::cell::RefCell<Vec<String>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
+/// Fails with every line `held` found whose first word a help doesn't state.
+fn none_missing() {
+    let missing = MISSING.with(|m| std::mem::take(&mut *m.borrow_mut()));
+    assert!(
+        missing.is_empty(),
+        "lines opening with a word the help doesn't state:\n{}",
+        missing.join("\n")
+    );
+}
+
+/// `text` without the `<...>` and `[...]` groups of a usage line, whose bars
+/// don't separate subcommands.
+fn without_groups(text: &str) -> String {
+    let mut out = String::new();
+    let mut depth = 0usize;
+    for c in text.chars() {
+        match c {
+            '<' | '[' => depth += 1,
+            '>' | ']' => depth = depth.saturating_sub(1),
+            c if depth == 0 => out.push(c),
+            _ => {}
+        }
+    }
+    out
+}
+
 /// Each unit's subcommand of `meow`, and the name its usage line gives it.
 const UNITS: [(&str, &str); 12] = [
     ("verbs", "meow-checks"),
@@ -186,6 +218,8 @@ fn stated(word: &str, kinds: &[&str]) -> bool {
         }
         "<count>" => !bare.is_empty() && bare.chars().all(|c| c.is_ascii_digit()),
         "<path>" => bare.contains('/') || bare.contains('.'),
+        "<hash>" => bare.len() >= 7 && bare.chars().all(|c| c.is_ascii_hexdigit()),
+        "<unit>:" => word.ends_with(':') && word.starts_with("meow-"),
         "<text>" => !word.is_empty(),
         placeholder if placeholder.starts_with('<') => {
             panic!("the help states a placeholder this test can't check: {placeholder}")
@@ -222,11 +256,14 @@ fn held(dir: &Path, state: &Path, unit: &str, args: &[&str], input: &str) -> (Ou
         let Some(word) = line.split_whitespace().next() else {
             continue;
         };
-        assert!(
-            stated(word, &kinds),
-            "meow {unit} {}: the line {line:?} opens with {word:?}, which the help doesn't state ({kinds:?})",
-            args.join(" ")
-        );
+        if !stated(word, &kinds) {
+            MISSING.with(|m| {
+                m.borrow_mut().push(format!(
+                    "meow {unit} {}: {word:?} in {line:?}",
+                    args.join(" ")
+                ))
+            });
+        }
     }
     (output, printed)
 }
@@ -257,7 +294,7 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
         let usage = meow(&dir.0, &state, &[unit, "no-such-subcommand"], "");
         let text = String::from_utf8_lossy(&usage.stderr).to_string();
         let mut accepted = Vec::new();
-        for part in text.split('|') {
+        for part in without_groups(&text).split('|') {
             let mut words = part
                 .split_whitespace()
                 .map(|w| w.trim_matches(|c| c == ',' || c == ';'))
@@ -271,11 +308,11 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
             "meow {unit}: its usage line names no subcommand ({binary}): {text:?}"
         );
         for word in accepted {
-            if word.starts_with('<') || word.starts_with('[') || word.starts_with("--") {
+            if word.starts_with("--") {
                 continue;
             }
             assert!(
-                names.iter().any(|n| *n == word),
+                names.contains(&word),
                 "meow {unit}: the usage line accepts {word}, and `--help` doesn't list it ({names:?})"
             );
         }
@@ -321,6 +358,7 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "markdown", &["links", "README.md"], "");
     held(d, s, "unattended", &["plan"], "");
     held(d, s, "loop", &["purge"], "");
+    none_missing();
 }
 
 /// REQ-1184: an answer in JSON has the fields the help states.

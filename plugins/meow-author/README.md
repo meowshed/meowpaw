@@ -118,6 +118,13 @@ The skill's description costs 293 characters in context on every turn. The
 check is a native binary shipped inside
 the unit, so it needs nothing installed on the machine.
 
+## Read a subcommand's help
+
+`meow-author --help` lists the subcommands, and `meow-author <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared in

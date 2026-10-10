@@ -450,7 +450,29 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
     MET
 }
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 2] = [
+    crate::help::Entry {
+        name: "convention",
+        determines: "the commit convention the profile declares",
+        by_hand: "read the `[commits]` and `[commits.types]` tables of `.meowpaw/profile.toml`",
+        lines: "profile: meow-scm type subject trailers may malformed convention:",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "check-message",
+        determines: "whether a commit message meets the convention and names no tool",
+        by_hand: "read the message against each type, the subject limit and the trailers `meow-scm convention` lists",
+        lines: "profile: meow-scm line sign-off",
+        json: "",
+    },
+];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("scm", &HELP, args) {
+        return code;
+    }
     let root = profile::repository_root();
     let args: Vec<&str> = args.iter().map(String::as_str).collect();
     match args.as_slice() {

@@ -1,7 +1,7 @@
 ---
 id: TSK-4340
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2330
 closes: [REQ-1176, REQ-1184]
@@ -46,7 +46,24 @@ Update each unit's README where it lists its subcommands.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where all three in
+`crates/meow/tests/unit_help.rs` failed because no unit answered `--help`.
+`every_subcommand_names_what_a_person_reads_in_its_place` closes criterion 1
+(REQ-1176): it reads each unit's subcommands from `meow <unit> --help`, fails
+one whose help has no `by hand:` or `lines:` line, and fails a subcommand the
+unit's usage line accepts and `--help` doesn't list, so the list comes from the
+parser and not from this task. `output_opens_with_stated_first_words` closes
+criterion 2 (REQ-1184): it runs 34 of the 35 subcommand forms on a fixture
+repository, skips the lines a stage's own command printed, and fails a line
+whose first word the help doesn't state; removing `summary:` from
+`meow verbs run`'s `lines:` made it fail. `a_json_answer_has_the_fields_the_help_states`
+holds the one JSON answer, `meow verbs status --json`, to the keys its help
+states. The hook guards answer with an exit status and text on standard error,
+and their standard output is empty on the fixture, so the test pins no JSON
+field there. Placeholders in `lines:` are weaker than a literal word:
+`<text>` accepts any word, and the units that print a tool's text, `author`,
+`licence`, `mise`, `gotask`, `markdown` and `github`, state it.
+`mise run all` passed with exit status 0.
 
 ## Left alone
 

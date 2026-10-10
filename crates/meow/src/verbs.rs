@@ -1071,7 +1071,57 @@ fn local(root: &Path, args: &[&str]) -> u8 {
     }
 }
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 6] = [
+    crate::help::Entry {
+        name: "status",
+        determines: "how each of the five stages resolves from the profile, and from where",
+        by_hand: "read the `[stages]` table of `.meowpaw/profile.toml`, then `.meowpaw/profile.local.toml` for a command it overrides",
+        lines: "meow-checks profile: format lint check test build subset notice:",
+        json: "profile profile_state error notices unknown verbs",
+    },
+    crate::help::Entry {
+        name: "run",
+        determines: "the result of each stage the profile binds, run in order, and records it",
+        by_hand: "run each stage's command from the profile's `[stages]` table from the repository's root and read its exit status",
+        lines: "profile: == passed, failed, interrupted summary: recorded: notice: pruned not",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "evidence",
+        determines: "whether each stage has a record of a whole run that is current at this tree",
+        by_hand: "run each stage again at this tree, because the ledger `meow-checks state` names holds only the earlier records",
+        lines: "format: lint: check: test: build: no",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "state",
+        determines: "where the evidence ledger is and what it holds",
+        by_hand: "read the ledger file `meow-checks state` names, which holds one JSON record on each line, and count them",
+        lines: "ledger: records: oldest: newest: lock: purged",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "tree",
+        determines: "the hash of the working tree a stage ran at",
+        by_hand: "run `git write-tree` over a temporary index of the working tree, which is what the ledger binds a record to",
+        lines: "<hash>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "local",
+        determines: "that the command of a stage is written to the personal profile and excluded from version control",
+        by_hand: "write the command under `[stages]` in `.meowpaw/profile.local.toml` and add the file to `.git/info/exclude`",
+        lines: ".meowpaw/profile.local.toml: excluded",
+        json: "",
+    },
+];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("verbs", &HELP, args) {
+        return code;
+    }
     let root = profile::repository_root();
     let args: Vec<&str> = args.iter().map(String::as_str).collect();
     match args.as_slice() {

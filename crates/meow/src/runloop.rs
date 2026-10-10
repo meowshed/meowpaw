@@ -2051,7 +2051,50 @@ fn names_the_runner(command: &str) -> bool {
             .any(|pair| pair[0].ends_with("meow") && pair[1] == "loop")
 }
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 5] = [
+    crate::help::Entry {
+        name: "start",
+        determines: "that the terms of a run are refused, because a run now starts in the session with `/meow-loop:run`",
+        by_hand: "type `/meow-loop:run` in the session",
+        lines: "meow-loop usage: unresolved:",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "guard",
+        determines: "whether a tool call of a run is allowed, from the posture",
+        by_hand: "read the run's `[unattended]` posture and the command the hook is about to run",
+        lines: "<text>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "prompt",
+        determines: "the prompt a run repeats in its next iteration",
+        by_hand: "read `run.toml` and `progress/progress.md` of the run under the state directory",
+        lines: "<text>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "stop",
+        determines: "whether the run in this session ends now, from its record",
+        by_hand: "read the run's `log.jsonl` against its bounds and the record's open count",
+        lines: "<text>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "purge",
+        determines: "that the state of ended runs is removed",
+        by_hand: "remove the run directories under the state directory whose `run.toml` has an `ending`",
+        lines: "removed",
+        json: "",
+    },
+];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("loop", &HELP, args) {
+        return code;
+    }
     match args.split_first() {
         Some((command, rest)) if command == "start" => start(rest),
         Some((command, rest)) if command == "guard" && rest.is_empty() => guard(),
