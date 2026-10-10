@@ -17,7 +17,9 @@ closes:
     REQ-1840,
     REQ-1844,
   ]
-issue:
+issue: 950
+projected: b03dd5855ba7
+tracked: e5d2be77bbd5
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

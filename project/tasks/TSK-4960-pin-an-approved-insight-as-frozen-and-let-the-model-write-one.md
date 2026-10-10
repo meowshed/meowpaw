@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 realises: ADR-2610
 closes: [REQ-2142, REQ-2662]
-issue:
+issue: 905
+projected: 99b20ef42752
+tracked: 1d1d8d580071
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

@@ -5,7 +5,9 @@ status: done
 revised: 2026-09-26
 epic: EPC-1080
 closes: []
-issue:
+issue: 919
+projected: 91f144299727
+tracked: 9907bd206ac6
 ---
 
 # Port the commit check to the native tool

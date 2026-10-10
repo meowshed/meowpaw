@@ -5,7 +5,9 @@ status: done
 revised: 2026-09-26
 epic: EPC-1080
 closes: []
-issue:
+issue: 922
+projected: c04c0ea5abd7
+tracked: f0ed60cbb5eb
 ---
 
 # Build the crate for all six targets in continuous integration

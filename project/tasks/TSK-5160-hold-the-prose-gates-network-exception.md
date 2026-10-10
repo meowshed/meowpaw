@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2605
 closes: [REQ-2716, REQ-2727, REQ-2728]
-issue:
+issue: 1012
+projected: dda1400fa66e
+tracked: ec6ecb0ff572
 ---
 
 # Hold the prose gate's network exception

@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-10
 epic: EPC-2770
 closes: [REQ-4400, REQ-4402, REQ-4404, REQ-4410, REQ-4414]
-issue:
+issue: 1025
+projected: be7eeecaaa70
+tracked: b54a72b2a765
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

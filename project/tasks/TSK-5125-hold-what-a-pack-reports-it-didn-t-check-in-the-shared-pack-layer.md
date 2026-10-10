@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2565
 closes: [REQ-2410, REQ-2412, REQ-2414, REQ-2432, REQ-2436, REQ-2444]
-issue:
+issue: 1002
+projected: 9a32385b6d54
+tracked: 64b65140789c
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

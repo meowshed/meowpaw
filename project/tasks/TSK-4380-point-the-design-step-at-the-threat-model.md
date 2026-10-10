@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-03
 realises: ADR-2470
 closes: [REQ-2784, REQ-2786, REQ-2788, REQ-2790, REQ-2792]
-issue:
+issue: 900
+projected: 41ce3b3d1b4e
+tracked: 9596120249ef
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

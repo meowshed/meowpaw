@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2590
 closes: [REQ-1420, REQ-1422]
-issue:
+issue: 1010
+projected: 209d29cc2f3e
+tracked: 026393f38749
 ---
 
 # Require a fresh prompt for each attended irreversible action

@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-03
 realises: ADR-2390
 closes: [REQ-3740, REQ-3742, REQ-3744, REQ-3746, REQ-3748, REQ-3750, REQ-3752]
-issue:
+issue: 897
+projected: afc7fb35337f
+tracked: 119f60ce72da
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

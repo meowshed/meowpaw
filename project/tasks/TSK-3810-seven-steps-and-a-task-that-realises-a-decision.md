@@ -5,7 +5,9 @@ status: done
 revised: 2026-09-29
 epic: EPC-2200
 closes: [REQ-3638, REQ-3630]
-issue:
+issue: 926
+projected: 3f754f202346
+tracked: 29b4a06d8dab
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

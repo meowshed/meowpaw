@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 realises: ADR-2680
 closes: [REQ-3080, REQ-3084, REQ-3086, REQ-3090]
-issue:
+issue: 906
+projected: 8046326798d7
+tracked: c7fd553735c2
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
