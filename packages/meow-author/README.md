@@ -2,7 +2,7 @@
 reader: someone installing or running meow-author on Pi
 answers: what meow-author provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-author@0.6.2]
+describes: [@meowshed/meow-author@0.7.0]
 ---
 
 # @meowshed/meow-author

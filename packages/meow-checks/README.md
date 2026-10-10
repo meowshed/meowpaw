@@ -2,7 +2,7 @@
 reader: someone installing or running meow-checks on Pi
 answers: what meow-checks provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-checks@0.10.0]
+describes: [@meowshed/meow-checks@0.11.0]
 ---
 
 # @meowshed/meow-checks

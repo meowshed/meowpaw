@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-licence",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Adds the licence header a repository declares to each file Claude Code creates, never rewrites one, and checks that every tracked file is covered by the licensing declared in REUSE.toml, in .meowpaw/profile.toml or in its files' headers. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.",
   "keywords": [
     "pi-package",
