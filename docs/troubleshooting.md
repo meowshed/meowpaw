@@ -146,14 +146,6 @@ task another one depends on that isn't done. Approve the input or finish the
 task it names, then run the step again. If you run `/meow-flow:run` with
 nothing newly approved, it says what it is waiting on.
 
-`TSK-... is not approved on main yet` means the task is approved on your
-branch and not on the trunk your profile declares, so its approval still
-waits on a merge. Merge the change that approves the task, fetch if the merge
-happened on the code host, then run the step again. `paw` reads the trunk's
-local branch and its branch on the remote that branch tracks, on `origin`,
-and on the only remote where you have one. A remote that is none of those
-isn't read, because it may be a fork.
-
 ## meow-verbs is now meow-checks
 
 `meow-verbs is now meow-checks` means the unit you installed as `meow-verbs`

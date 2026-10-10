@@ -13,8 +13,8 @@ issue: # the tracker's number, where the repository uses one
 # <What this task does>
 
 What this task makes true, in a sentence or two, so a reader who stops here
-knows whether it is theirs. One task, one branch, one pull request, one
-review: the tests first, then the change, its documentation and its marks.
+knows whether it is theirs. One task is a group of commits in its epic's pull
+request: the tests first, then the change, its documentation and its marks.
 
 ## Acceptance criteria
 

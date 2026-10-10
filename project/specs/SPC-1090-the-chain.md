@@ -2,7 +2,7 @@
 id: SPC-1090
 artifact: spec
 status: live
-revised: 2026-10-04
+revised: 2026-10-10
 states:
   [
     REQ-3600,
@@ -31,14 +31,19 @@ states:
     REQ-3650,
     REQ-3652,
     REQ-3654,
+    REQ-4400,
+    REQ-4402,
+    REQ-4404,
+    REQ-4406,
+    REQ-4408,
     REQ-3656,
+    REQ-4410,
+    REQ-4412,
+    REQ-4414,
     REQ-3658,
     REQ-0583,
     REQ-0595,
     REQ-0596,
-    REQ-3660,
-    REQ-3662,
-    REQ-3664,
     REQ-0132,
     REQ-0816,
     REQ-0818,
@@ -658,15 +663,15 @@ decision, epic or task, done, and 1 when one isn't, naming each missing or
 unapproved input on its own line (REQ-0198, REQ-0200, REQ-0595). The step
 refuses on 1 and says what is missing.
 
-| Step         | Its input is ready when                                                                                                                                  |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| research     | always                                                                                                                                                   |
-| requirements | each named research record is approved (REQ-0212)                                                                                                        |
-| design       | each named requirement is approved (REQ-0228)                                                                                                            |
-| spec         | the named decision is approved (REQ-0240)                                                                                                                |
-| epic         | the named decision or defect is approved, and a decision's requirements are all stated by a specification                                                |
-| implement    | the named task and its epic, defect or decision are approved, each task it depends on is done, and the task is approved on the declared trunk (REQ-3660) |
-| review       | nothing: the review reads the task's pull request                                                                                                        |
+| Step         | Its input is ready when                                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| research     | always                                                                                                                                                 |
+| requirements | each named research record is approved (REQ-0212)                                                                                                      |
+| design       | each named requirement is approved (REQ-0228)                                                                                                          |
+| spec         | the named decision is approved (REQ-0240)                                                                                                              |
+| epic         | the named decision or defect is approved, and a decision's requirements are all stated by a specification                                              |
+| implement    | the named task and its epic, defect or decision are approved, each task it depends on is done, and the task is approved in the working tree (REQ-4412) |
+| review       | nothing: the review reads the task's pull request                                                                                                      |
 
 A task under an epic or defect is done when its authorising record marks it
 `[x]`, and dropped when marked `[~]` or when its status is withdrawn, rejected
@@ -796,34 +801,33 @@ step that produces an artifact needing approval stops there, and no step ever
 reads silence, a change of subject or an unrelated instruction as approval
 (REQ-0390, REQ-0400).
 
-Where a person asks for a decision to land in one pull request, the method
-skill writes its research, requirements, decision record, specification
-changes, epic and tasks in turn and stops once, at that pull request, whose
-merge is the approval (REQ-3650, REQ-3656, ADR-2310). The method skill opens
-the pull request and names it in its report, and where the repository declares
-no code host it names the branch in its place. It writes each record as a
-draft, runs `paw check`, and sets the record to `approved` only where the check
-reports nothing, because a record written as approved from the start skips the
-rules that apply to drafts alone (REQ-3658). It implements nothing on that
-path. The statuses land in the pull request's commits, each not in a commit of
-its own, and the merge is the approval.
+Where a person asks for a decision only, the method skill writes its research,
+requirements, decision record, specification changes, epic and tasks in turn
+and stops once, at the pull request, whose merge is the approval (REQ-3650,
+REQ-3656, ADR-2310). Where a person asks for an epic, it goes on and implements
+the tasks on the same branch, and stops once, at the same pull request
+(REQ-4400, REQ-4410, ADR-2860). Where the epic's records are already approved
+on the trunk, it implements the tasks on one branch in one pull request
+(REQ-4414). The
+method skill opens the pull request and names it in its report, and where the
+repository declares no code host it names the branch in its place. It writes
+each record as a draft, runs `paw check`, and sets the record to `approved`
+only where the check reports nothing, because a record written as approved from
+the start skips the rules that apply to drafts alone (REQ-3658). The statuses
+land in the pull request's commits, each not in a commit of its own, and the
+merge is the approval. Work done before the merge is at risk of rejection with
+the decision, and the person's merge is the only gate the path has.
 
-A task that isn't approved on the trunk the profile declares, because its
-record is absent there or is still a draft there, isn't ready. `ready
-implement` refuses it, and `status` prints it as waiting on its merge
-(REQ-3660, REQ-3662). Where no trunk is declared or it can't be read, `status`
-says an approval can't be told from one waiting on a merge (REQ-3664).
+A defect that carries its tasks and a task that realises a decision with no
+epic follow the same path from their record (REQ-4402, REQ-4404). An epic whose
+pull request would not be one reviewable change is split into smaller epics
+before its work starts, and the pull request is never split in its place
+(REQ-4406). An epic or a defect with no unmerged dependency opens its pull
+request against the trunk (REQ-4408).
 
-`ready implement` and `status` look for the task in three places: the local
-branch of the trunk's name, the branch on the remote that the local branch
-tracks, and the branch on `origin`, or on the only remote where there is one.
-A task approved on any of them is on the trunk, so a repository that commits
-straight to its trunk is never refused. They find the task by its identifier
-among the Markdown files of that identifier, whatever line endings the file
-has there, and ask only about an open task. `status` names as next the first
-task that can start and is approved on the trunk. A record kept outside the
-repository is on no branch, and `status` says so. It says the same, naming the
-task, for a task reached through a link that leaves the repository.
+`ready implement` reads a task's approval from the working tree, so a task
+approved on the epic's own branch is ready, and `status` names as next the
+first task that can start (REQ-4412).
 
 `paw status --waiting` prints only what waits for approval, each line naming
 the artifact, its kind and the gate it waits at, and prints nothing when
