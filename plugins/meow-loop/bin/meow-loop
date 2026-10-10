@@ -21,21 +21,50 @@ arm64 | aarch64) cpu=aarch64 ;;
 x86_64 | amd64) cpu=x86_64 ;;
 esac
 binary="$here/$cpu-$system/meow$exe"
+# The shared binary the core unit ships, found through the core unit's data
+# directory, which the platform documents and the core unit's session start
+# writes (REQ-4504). The unit's own build beside it is the fallback.
+data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
+for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
+  [ -f "$core" ] || continue
+  read -r root <"$core" 2>/dev/null
+  if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/meow$exe" ]; then
+    binary="$root/bin/$cpu-$system/meow$exe"
+    break
+  fi
+done
+# Loaded in place from a checkout, the core unit sits beside this one.
+[ -f "$binary" ] || {
+  beside="$here/../../meow-core/bin/$cpu-$system/meow$exe"
+  [ -f "$beside" ] && binary=$beside
+}
 if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
+  # The binary may sit in another unit, so it is told where this unit's
+  # layout is. A layout the caller named wins.
+  if [ -z "$MEOW_LAYOUT" ]; then
+    MEOW_LAYOUT="$here/../lib/layout.toml"
+    export MEOW_LAYOUT
+  fi
+  # The run's hooks load this unit, whose directory the binary can't derive
+  # from its own path where it ships in another unit.
+  if [ -z "$MEOW_LOOP_UNIT" ]; then
+    MEOW_LOOP_UNIT=$(cd "$here/.." 2>/dev/null && pwd -P)
+    export MEOW_LOOP_UNIT
+  fi
   exec "$binary" loop "$@"
 fi
 
-reason="no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"
+reason="no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
 case "$1" in
-guard)
-  # The hook runs on every Bash command, Edit and Write, and a hook that
-  # fails blocks them all, so with no binary it lets each through: a write
-  # to the hash check, and a start to the refusal under CLAUDECODE.
+guard | prompt | stop)
+  # A hook that fails blocks what it was meant to guard, so with no binary
+  # each lets the session go on: the guard lets each Bash command, Edit and
+  # Write through, the prompt hook starts no run and the stop hook ends none.
   cat >/dev/null
   exit 0
   ;;
-start)
+start | purge)
   echo "unresolved: $reason"
   exit 3
   ;;

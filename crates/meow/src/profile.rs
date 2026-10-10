@@ -211,20 +211,12 @@ pub const KEYS: &[Key] = &[
         reason: "The permission an unattended run gets is a person's grant, and nothing in the repository can infer one",
     },
     Key {
-        path: "unattended.budget_usd",
-        reason: "The most an unattended run may spend is a person's limit, and no tool can work it out",
+        path: "unattended.release",
+        reason: "The command that releases a merged change is the repository's, and a run never guesses one (REQ-3722)",
     },
     Key {
         path: "unattended.gates",
         reason: "Which gates a run passes alone is a person's grant of authority, and no detection can produce it",
-    },
-    Key {
-        path: "unattended.units",
-        reason: "Which units a run loads is a person's grant, and the units installed on a machine aren't that grant",
-    },
-    Key {
-        path: "unattended.merge_protected",
-        reason: "Whether a run may push to the trunk is a person's grant, and the code host's protection is outside the repository",
     },
     Key {
         path: "unattended.amend_approved",

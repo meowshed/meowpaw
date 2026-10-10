@@ -405,9 +405,14 @@ class Terms(Case):
         # A copy of the unit, so a directory fixed when the program was built can't pass for the one it runs from.
         copy = f.base / "installed" / "meow-loop"
         shutil.copytree(UNIT, copy, ignore=shutil.ignore_patterns("tests", "__pycache__"))
+        # The copy has no core unit beside it, so it finds the shared binary through the data file (REQ-4504).
+        data = f.base / "data"
+        (data / "meow-core-x").mkdir(parents=True)
+        (data / "meow-core-x" / "meow-root").write_text(str(UNIT.parent / "meow-core") + "\n")
         done = subprocess.run([str(copy / "bin" / "meow-loop"), "start",
                                *replaced("--iterations", "2"), "--plugin-dir", "/a", "--plugin-dir", "/b"],
-                              cwd=f.root, env=f.env(), capture_output=True, text=True, timeout=120)
+                              cwd=f.root, env=f.env(CLAUDE_PLUGIN_DATA=str(data / "meow-loop-x")),
+                              capture_output=True, text=True, timeout=120)
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         calls = f.calls()
         self.assertEqual(len(calls), 2)
@@ -423,7 +428,7 @@ class Terms(Case):
                 unit = f.base / ("bare" if manifest is None else "other")
                 stray = unit / "bin" / "target" / "meow"
                 stray.parent.mkdir(parents=True)
-                shutil.copy2(next((UNIT / "bin").glob("*-*/meow*")), stray)
+                shutil.copy2(next((UNIT.parent / "meow-core" / "bin").glob("*-*/meow*")), stray)
                 if manifest is not None:
                     (unit / ".claude-plugin").mkdir()
                     (unit / ".claude-plugin" / "plugin.json").write_text(manifest)

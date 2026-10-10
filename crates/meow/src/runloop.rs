@@ -20,6 +20,7 @@
 
 use crate::profile;
 use crate::record;
+use crate::unattended;
 use crate::verbs::{self, ledger};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -282,7 +283,7 @@ fn lock(runs: &Path) -> Result<File, String> {
 /// Removes the oldest runs so that `KEPT` remain, counting the new one, which
 /// is never among those removed, and prints each one removed. A run's id sorts
 /// by when it started.
-fn remove_old_runs(runs: &Path, new: &Path) {
+fn remove_old_runs(runs: &Path, new: &Path) -> Vec<String> {
     let mut ids: Vec<String> = std::fs::read_dir(runs)
         .into_iter()
         .flatten()
@@ -292,12 +293,14 @@ fn remove_old_runs(runs: &Path, new: &Path) {
         .collect();
     ids.sort();
     let surplus = (ids.len() + 1).saturating_sub(KEPT);
+    let mut said = Vec::new();
     for id in &ids[..surplus] {
         match std::fs::remove_dir_all(runs.join(id)) {
-            Ok(()) => println!("removed {id}"),
-            Err(error) => println!("can't remove {id}: {error}"),
+            Ok(()) => said.push(format!("removed {id}")),
+            Err(error) => said.push(format!("can't remove {id}: {error}")),
         }
     }
+    said
 }
 
 /// Creates the run's directory, named by the time in nanoseconds so that the
@@ -991,6 +994,8 @@ fn run(
 }
 
 fn start(args: &[String]) -> u8 {
+    // The first line, because a removal is announced a release before it lands (REQ-3004).
+    println!("{DEPRECATION}");
     let terms = match terms(args) {
         Ok(terms) => terms,
         Err(errors) => {
@@ -1086,7 +1091,9 @@ fn start(args: &[String]) -> u8 {
         }
     };
     // Old runs go only once the new one is whole, so a refused start removes none.
-    remove_old_runs(&runs, &dir);
+    for line in remove_old_runs(&runs, &dir) {
+        println!("{line}");
+    }
     println!("run {}", dir.display());
 
     let ended = match run(&root, &terms, &context, &claude, &log) {
@@ -1266,10 +1273,18 @@ fn guard() -> u8 {
     let mut text = String::new();
     let _ = std::io::Read::read_to_string(&mut std::io::stdin(), &mut text);
     let event: Value = serde_json::from_str(&text).unwrap_or(Value::Null);
+    if let Some(reason) = posture_denial(&event) {
+        deny(&reason);
+        return FINISHED;
+    }
     if let Some(command) = event.pointer("/tool_input/command").and_then(Value::as_str) {
         if starts_a_run(command) {
             deny(
-                "meow-loop: a run starts from a terminal outside Claude Code, which only a person opens, so a Bash command that runs `meow-loop start` is denied (REQ-0894)",
+                "meow-loop: a run starts from the start command a person types in the session, so a Bash command that starts one is denied (REQ-0894)",
+            );
+        } else if names_the_runner(command) && run_is_active(&event) {
+            deny(
+                "meow-loop: a Bash command that names the runner is denied while a run is active, so the harness can't start, cancel or extend its own run (REQ-2660)",
             );
         }
         return FINISHED;
@@ -1293,6 +1308,11 @@ fn guard() -> u8 {
     if let [_, _, progress, file] = names.as_slice()
         && *progress == "progress"
         && *file == "progress.md"
+    {
+        return FINISHED;
+    }
+    if let [_, _, file] = names.as_slice()
+        && *file == "report.md"
     {
         return FINISHED;
     }
@@ -1418,10 +1438,634 @@ fn starts_a_run(command: &str) -> bool {
             .any(|three| three[0].ends_with("meow") && three[1] == "loop" && three[2] == "start")
 }
 
+// The run that lives in the session (SPC-1201, EPC-2300).
+
+const START_COMMAND: &str = "/meow-loop:run";
+const DEPRECATION: &str =
+    "meow-loop start is deprecated: a run now lives in the session, so type /meow-loop:run there";
+
+/// The prompt every iteration of a run is given, the same bytes each time
+/// (REQ-3702).
+fn frozen_prompt(id: &str, progress: &Path) -> String {
+    format!(
+        "meow-loop run {id}: run /meow-flow:run once and carry the chain to its next stop. Read {} first and update it before you finish. The record decides when this run ends; you don't.",
+        progress.display()
+    )
+}
+
+/// What a hook reads on standard input, or null where it isn't JSON.
+fn read_event() -> Value {
+    let mut text = String::new();
+    let _ = std::io::Read::read_to_string(&mut std::io::stdin(), &mut text);
+    serde_json::from_str(&text).unwrap_or(Value::Null)
+}
+
+/// A hook that has nothing to inject says one line and lets the session go on.
+fn say_only(message: &str) {
+    println!("{}", json!({ "systemMessage": message }));
+}
+
+/// A run's directory that holds a run of `session` with no ending, newest first.
+fn active_run(runs: &Path, session: &str) -> Option<PathBuf> {
+    let mut ids: Vec<PathBuf> = std::fs::read_dir(runs)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .collect();
+    ids.sort();
+    ids.into_iter().rev().find(|dir| {
+        std::fs::read_to_string(dir.join("run.toml"))
+            .ok()
+            .and_then(|text| text.parse::<toml::Table>().ok())
+            .is_some_and(|table| {
+                table.get("session_id").and_then(toml::Value::as_str) == Some(session)
+                    && !table.contains_key("ending")
+            })
+    })
+}
+
+/// Writes an ending into a run's `run.toml`, once.
+fn end_run(dir: &Path, ending: &str, extra: &[(&str, &str)]) -> Result<(), String> {
+    let file = dir.join("run.toml");
+    let text = std::fs::read_to_string(&file)
+        .map_err(|error| format!("can't read {}: {error}", file.display()))?;
+    let mut table: toml::Table = text
+        .parse()
+        .map_err(|error| format!("can't read {}: {error}", file.display()))?;
+    table.insert("ending".into(), ending.into());
+    table.insert("ended_at".into(), ledger::now().into());
+    for (key, value) in extra {
+        table.insert((*key).into(), (*value).into());
+    }
+    write(&file, table.to_string().as_bytes())
+}
+
+/// The three bounds a start names, or one line for each that is missing or
+/// not a number above 0 written in digits.
+fn bounds(words: &[&str]) -> Result<(i64, f64, i64), Vec<String>> {
+    let mut found: [Option<&str>; 3] = [None; 3];
+    let names = ["--iterations", "--hours", "--tokens"];
+    let mut errors = Vec::new();
+    let mut i = 0;
+    while i < words.len() {
+        let (flag, inline) = match words[i].split_once('=') {
+            Some((flag, value)) => (flag, Some(value)),
+            None => (words[i], None),
+        };
+        match names.iter().position(|name| *name == flag) {
+            Some(at) => {
+                let value = match inline {
+                    Some(value) => Some(value),
+                    None => {
+                        i += 1;
+                        words.get(i).copied()
+                    }
+                };
+                found[at] = value;
+            }
+            None => errors.push(format!("unresolved: /meow-loop:run doesn't take {flag}")),
+        }
+        i += 1;
+    }
+    let mut numbers = (0i64, 0f64, 0i64);
+    for (at, name) in names.iter().enumerate() {
+        let Some(value) = found[at] else {
+            errors.push(format!("unresolved: /meow-loop:run needs {name}"));
+            continue;
+        };
+        let digits = value.chars().all(|c| c.is_ascii_digit())
+            || (at == 1
+                && value.matches('.').count() == 1
+                && value.chars().all(|c| c.is_ascii_digit() || c == '.'));
+        let parsed = if digits {
+            value.parse::<f64>().ok()
+        } else {
+            None
+        };
+        match parsed {
+            Some(number) if number > 0.0 => match at {
+                0 => numbers.0 = number as i64,
+                1 => numbers.1 = number,
+                _ => numbers.2 = number as i64,
+            },
+            _ => errors.push(format!(
+                "unresolved: {name} {value} is not a number above 0"
+            )),
+        }
+    }
+    if errors.is_empty() {
+        Ok(numbers)
+    } else {
+        Err(errors)
+    }
+}
+
+/// The `UserPromptSubmit` hook: it starts a run where the person typed the
+/// start command, and cancels the session's active run on any other prompt
+/// (REQ-3700, REQ-0872, REQ-3712, REQ-0890).
+fn prompt() -> u8 {
+    let event = read_event();
+    if let Some(cwd) = event.get("cwd").and_then(Value::as_str) {
+        let _ = std::env::set_current_dir(cwd);
+    }
+    let text = event
+        .get("prompt")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let session = event
+        .get("session_id")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
+    let words: Vec<&str> = text.split_whitespace().collect();
+    let is_start = words.first() == Some(&START_COMMAND);
+    let root = profile::repository_root();
+    let runs = ledger::runs_dir(&root);
+    if !is_start {
+        if let Some(runs) = &runs
+            && !session.is_empty()
+            && let Some(dir) = active_run(runs, &session)
+        {
+            let id = dir
+                .file_name()
+                .map(|n| n.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            match end_run(&dir, "cancelled", &[("cancelled_by", "person")]) {
+                Ok(()) => say_only(&format!(
+                    "meow-loop run {id} ended: cancelled by the person"
+                )),
+                Err(reason) => say_only(&format!("unresolved: {reason}")),
+            }
+        }
+        return FINISHED;
+    }
+    let refuse = |lines: Vec<String>| {
+        say_only(&lines.join("\n"));
+        FINISHED
+    };
+    let (iterations, hours, tokens) = match bounds(&words[1..]) {
+        Ok(bounds) => bounds,
+        Err(errors) => return refuse(errors),
+    };
+    if session.is_empty() {
+        return refuse(vec!["unresolved: the hook input names no session".into()]);
+    }
+    if !in_work_tree() {
+        return refuse(vec!["unresolved: not a git work tree".into()]);
+    }
+    if ledger::state_off() {
+        return refuse(vec![
+            "unresolved: state writing is off, and a run needs state".into(),
+        ]);
+    }
+    let Some(runs) = runs else {
+        return refuse(vec![format!("unresolved: {}", ledger::no_state_reason())]);
+    };
+    if active_run(&runs, &session).is_some() {
+        return refuse(vec![
+            "unresolved: a run already holds this work tree".into(),
+        ]);
+    }
+    let posture = match unattended::posture(&root) {
+        Ok(posture) => posture,
+        Err(refusals) => return refuse(refusals),
+    };
+    if let Some(mode) = event.get("permission_mode").and_then(Value::as_str)
+        && mode != posture.mode
+    {
+        return refuse(vec![format!(
+            "unresolved: the session is in {mode}, and the posture declares {}",
+            posture.mode
+        )]);
+    }
+    let (requirements, defects) = match record::open_counts(&root) {
+        Ok(counts) => counts,
+        Err(reason) => {
+            return refuse(vec![format!(
+                "unresolved: the record can't be read: {reason}"
+            )]);
+        }
+    };
+    if let Err(error) = std::fs::create_dir_all(&runs) {
+        return refuse(vec![format!(
+            "unresolved: can't create a run in {}: {error}",
+            runs.display()
+        )]);
+    }
+    let dir = match new_run_dir(&runs) {
+        Ok(dir) => dir,
+        Err(error) => {
+            return refuse(vec![format!(
+                "unresolved: can't create a run in {}: {error}",
+                runs.display()
+            )]);
+        }
+    };
+    let id = dir
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let progress = dir.join("progress").join("progress.md");
+    let mut table = toml::Table::new();
+    table.insert("session_id".into(), session.clone().into());
+    table.insert("iterations".into(), iterations.into());
+    table.insert("hours".into(), hours.into());
+    table.insert("tokens".into(), tokens.into());
+    table.insert("started_by".into(), "person".into());
+    table.insert("permission_mode".into(), posture.mode.clone().into());
+    table.insert(
+        "gates".into(),
+        toml::Value::Array(
+            posture
+                .gates
+                .iter()
+                .cloned()
+                .map(toml::Value::String)
+                .collect(),
+        ),
+    );
+    // `false` is a run that releases nothing (REQ-3722).
+    table.insert(
+        "release".into(),
+        match &posture.release {
+            Some(command) => toml::Value::String(command.clone()),
+            None => toml::Value::Boolean(false),
+        },
+    );
+    table.insert("amend_approved".into(), posture.amend_approved.into());
+    table.insert("started_at".into(), ledger::now().into());
+    table.insert("open_requirements".into(), (requirements as i64).into());
+    table.insert("open_defects".into(), (defects as i64).into());
+    table.insert("tree".into(), ledger::tree_id(&root).into());
+    let written = std::fs::create_dir(dir.join("progress"))
+        .map_err(|error| format!("can't create {}/progress: {error}", dir.display()))
+        .and_then(|()| write(&progress, b""))
+        .and_then(|()| write(&dir.join("report.md"), b""))
+        .and_then(|()| write(&dir.join("run.toml"), table.to_string().as_bytes()));
+    if let Err(reason) = written {
+        let _ = std::fs::remove_dir_all(&dir);
+        return refuse(vec![format!(
+            "unresolved: can't create a run in {}: {reason}",
+            runs.display()
+        )]);
+    }
+    // Old runs go only once the new one is whole, so a refused start removes none.
+    let _ = remove_old_runs(&runs, &dir);
+    let context = format!(
+        "A meow-loop run {id} has started in this session: {iterations} iterations, {hours} hours, {tokens} tokens. Its progress file is {}. First iteration: {}",
+        progress.display(),
+        frozen_prompt(&id, &progress)
+    );
+    println!(
+        "{}",
+        json!({
+            "hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": context},
+            "systemMessage": format!("meow-loop run {id} started"),
+        })
+    );
+    FINISHED
+}
+
+/// A UTC time written as `YYYY-MM-DDTHH:MM:SSZ`, in seconds since 1970.
+fn epoch(iso: &str) -> Option<i64> {
+    let (date, time) = iso.trim_end_matches('Z').split_once('T')?;
+    let mut d = date.split('-').map(|p| p.parse::<i64>().ok());
+    let (y, m, day) = (d.next()??, d.next()??, d.next()??);
+    let mut t = time.split(':').map(|p| p.parse::<i64>().ok());
+    let (h, mi, s) = (t.next()??, t.next()??, t.next()??);
+    let y = if m <= 2 { y - 1 } else { y };
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let mp = (m + 9) % 12;
+    let doy = (153 * mp + 2) / 5 + day - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    Some((era * 146_097 + doe - 719_468) * 86_400 + h * 3_600 + mi * 60 + s)
+}
+
+/// The tokens a transcript's usage fields sum to: input, output and both
+/// cache counts of every message that carries them (REQ-0878).
+fn transcript_tokens(path: &Path) -> Result<u64, String> {
+    let text = std::fs::read_to_string(path)
+        .map_err(|error| format!("can't read the transcript {}: {error}", path.display()))?;
+    let mut total = 0u64;
+    for line in text.lines() {
+        let Ok(value) = serde_json::from_str::<Value>(line) else {
+            continue;
+        };
+        let usage = value
+            .pointer("/message/usage")
+            .or_else(|| value.get("usage"));
+        if let Some(usage) = usage {
+            for key in [
+                "input_tokens",
+                "output_tokens",
+                "cache_creation_input_tokens",
+                "cache_read_input_tokens",
+            ] {
+                total += usage.get(key).and_then(Value::as_u64).unwrap_or(0);
+            }
+        }
+    }
+    Ok(total)
+}
+
+/// The `Stop` hook: after every turn it logs the iteration, checks the five
+/// endings in the order SPC-1201 gives, and otherwise blocks the stop with the
+/// frozen prompt. A state it can't read allows the stop and ends nothing, so
+/// the run reads as interrupted and never goes on past a bound it couldn't
+/// check (REQ-3702, REQ-3704, REQ-3706, REQ-3708, REQ-3710).
+fn stop() -> u8 {
+    let event = read_event();
+    if let Some(cwd) = event.get("cwd").and_then(Value::as_str) {
+        let _ = std::env::set_current_dir(cwd);
+    }
+    let session = event
+        .get("session_id")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
+    let root = profile::repository_root();
+    let Some(runs) = ledger::runs_dir(&root) else {
+        return FINISHED;
+    };
+    let Some(dir) = active_run(&runs, &session) else {
+        return FINISHED;
+    };
+    let id = dir
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let unresolved = |what: String| {
+        say_only(&format!("unresolved: {what}"));
+        FINISHED
+    };
+    let file = dir.join("run.toml");
+    let table: toml::Table = match std::fs::read_to_string(&file)
+        .map_err(|error| error.to_string())
+        .and_then(|text| {
+            text.parse()
+                .map_err(|error: toml::de::Error| error.to_string())
+        }) {
+        Ok(table) => table,
+        Err(reason) => return unresolved(format!("can't read {}: {reason}", file.display())),
+    };
+    let number = |key: &str| -> Option<f64> {
+        table
+            .get(key)
+            .and_then(|v| v.as_float().or_else(|| v.as_integer().map(|i| i as f64)))
+    };
+    let (Some(iterations), Some(hours), Some(tokens)) =
+        (number("iterations"), number("hours"), number("tokens"))
+    else {
+        return unresolved(format!("{} holds no bounds", file.display()));
+    };
+    let started = table
+        .get("started_at")
+        .and_then(toml::Value::as_str)
+        .and_then(epoch);
+    let (requirements, defects) = match record::open_counts(&root) {
+        Ok(counts) => counts,
+        Err(reason) => return unresolved(format!("the record can't be read: {reason}")),
+    };
+    let Some(transcript) = event.get("transcript_path").and_then(Value::as_str) else {
+        return unresolved("the hook input names no transcript".into());
+    };
+    let total = match transcript_tokens(Path::new(transcript)) {
+        Ok(total) => total,
+        Err(reason) => return unresolved(reason),
+    };
+    let tree = ledger::tree_id(&root);
+    let progress = dir.join("progress").join("progress.md");
+    let hash = sha256(&std::fs::read(&progress).unwrap_or_default());
+    let log = dir.join("log.jsonl");
+    let earlier: Vec<Value> = std::fs::read_to_string(&log)
+        .unwrap_or_default()
+        .lines()
+        .filter_map(|line| serde_json::from_str(line).ok())
+        .collect();
+    let last = earlier.last();
+    let text_of = |value: Option<&Value>, key: &str| -> Option<String> {
+        value
+            .and_then(|v| v.get(key))
+            .and_then(Value::as_str)
+            .map(str::to_string)
+    };
+    let count_of = |value: Option<&Value>, key: &str| -> Option<u64> {
+        value.and_then(|v| v.get(key)).and_then(Value::as_u64)
+    };
+    let tree_before = text_of(last, "tree_after")
+        .or_else(|| {
+            table
+                .get("tree")
+                .and_then(toml::Value::as_str)
+                .map(str::to_string)
+        })
+        .unwrap_or_default();
+    let requirements_before = count_of(last, "open_requirements").or_else(|| {
+        table
+            .get("open_requirements")
+            .and_then(toml::Value::as_integer)
+            .map(|n| n as u64)
+    });
+    let defects_before = count_of(last, "open_defects").or_else(|| {
+        table
+            .get("open_defects")
+            .and_then(toml::Value::as_integer)
+            .map(|n| n as u64)
+    });
+    let hash_before = text_of(last, "progress_hash").unwrap_or_else(|| sha256(b""));
+    let changed = hash != hash_before;
+    let unchanged = tree == tree_before
+        && Some(requirements as u64) == requirements_before
+        && Some(defects as u64) == defects_before
+        && !changed;
+    let earlier_total = count_of(last, "tokens").unwrap_or(0);
+    let this_iteration = total.saturating_sub(earlier_total);
+    let largest = earlier
+        .iter()
+        .filter_map(|line| line.get("iteration_tokens").and_then(Value::as_u64))
+        .max()
+        .unwrap_or(0)
+        .max(this_iteration);
+    let n = earlier.len() as u64 + 1;
+    let line = json!({
+        "iteration": n,
+        "tree_before": tree_before,
+        "tree_after": tree,
+        "open_requirements": requirements,
+        "open_defects": defects,
+        "progress_changed": changed,
+        "progress_hash": hash,
+        "tokens": total,
+        "iteration_tokens": this_iteration,
+        "unchanged": unchanged,
+    });
+    let written = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log)
+        .and_then(|mut f| writeln!(f, "{line}"));
+    if let Err(error) = written {
+        return unresolved(format!("can't write {}: {error}", log.display()));
+    }
+    let elapsed = started.map(|s| {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_secs() as i64)
+            .unwrap_or(0);
+        (now - s) as f64
+    });
+    let previous_unchanged = last
+        .and_then(|l| l.get("unchanged"))
+        .and_then(Value::as_bool)
+        == Some(true);
+    let ending = if requirements == 0 && defects == 0 {
+        Some("finished")
+    } else if (n as f64) >= iterations {
+        Some("ceiling")
+    } else if elapsed.is_some_and(|e| e >= hours * 3_600.0) {
+        Some("time")
+    } else if (total + largest) as f64 > tokens {
+        Some("tokens")
+    } else if unchanged && previous_unchanged {
+        Some("stuck")
+    } else {
+        None
+    };
+    match ending {
+        Some(ending) => {
+            if let Err(reason) = end_run(&dir, ending, &[]) {
+                return unresolved(reason);
+            }
+            let named = if ending == "stuck" {
+                format!(
+                    ": two iterations in a row changed nothing, with {requirements} requirements and {defects} defects open"
+                )
+            } else {
+                String::new()
+            };
+            say_only(&format!("meow-loop run {id} ended: {ending}{named}"));
+        }
+        None => {
+            println!(
+                "{}",
+                json!({"decision": "block", "reason": frozen_prompt(&id, &progress)})
+            );
+        }
+    }
+    FINISHED
+}
+
+/// `meow-loop purge`: removes every run of this work tree.
+fn purge() -> u8 {
+    let root = profile::repository_root();
+    let Some(runs) = ledger::runs_dir(&root) else {
+        println!("unresolved: {}", ledger::no_state_reason());
+        return UNRESOLVED;
+    };
+    let mut removed = 0;
+    for entry in std::fs::read_dir(&runs).into_iter().flatten().flatten() {
+        if entry.path().is_dir() && std::fs::remove_dir_all(entry.path()).is_ok() {
+            removed += 1;
+        }
+    }
+    println!("removed {removed} runs");
+    FINISHED
+}
+
+/// The words of a command's text, split as the runner check reads them.
+fn command_words(command: &str) -> Vec<&str> {
+    let raw = command
+        .split(|c: char| c.is_whitespace() || "'\"`;|()\\".contains(c))
+        .filter(|w| !w.is_empty());
+    let mut words: Vec<&str> = Vec::new();
+    for word in raw {
+        words.extend(word.split('&').filter(|w| !w.is_empty()));
+    }
+    words
+}
+
+/// The reason the declared posture denies a tool call, while the session has
+/// an active run: a write of the profile or the session's settings, a push
+/// that names the trunk, `HEAD` or no branch, and a write of an approved
+/// requirement or decision where `amend_approved` is false (REQ-3718). The
+/// posture is read on every call, and the profile is itself denied to a run, so
+/// a run can't change what it is held to.
+fn posture_denial(event: &Value) -> Option<String> {
+    let session = event.get("session_id")?.as_str()?;
+    if let Some(cwd) = event.get("cwd").and_then(Value::as_str) {
+        let _ = std::env::set_current_dir(cwd);
+    }
+    let root = profile::repository_root();
+    active_run(&ledger::runs_dir(&root)?, session)?;
+    let posture = unattended::posture(&root).ok()?;
+    if let Some(command) = event.pointer("/tool_input/command").and_then(Value::as_str) {
+        return unattended::push_denied(command, &posture.trunk).then(|| {
+            format!(
+                "meow-loop: a push that names {}, HEAD or no branch is denied while a run is active, so the run lands work through a pull request (REQ-3718)",
+                posture.trunk
+            )
+        });
+    }
+    let path = event.pointer("/tool_input/file_path")?.as_str()?;
+    let target = resolved(Path::new(path));
+    let tree = resolved(&root);
+    for protected in [".meowpaw", ".claude"] {
+        if target.starts_with(tree.join(protected)) {
+            return Some(format!(
+                "meow-loop: a write under {protected}/ is denied while a run is active, so the run can't change its own posture or the session's settings (REQ-3718)"
+            ));
+        }
+    }
+    if !posture.amend_approved {
+        let record_root = resolved(&root.join(record::declared_root(&root).ok()?));
+        if unattended::approved(&record_root)
+            .iter()
+            .any(|approved| resolved(approved) == target)
+        {
+            return Some(format!(
+                "meow-loop: a write of {} is denied, because its status is approved and the posture doesn't let a run amend it; write a new record that amends it (REQ-3718)",
+                target.display()
+            ));
+        }
+    }
+    None
+}
+
+/// Whether the session the hook input names has an active run in the work
+/// tree the hook runs in.
+fn run_is_active(event: &Value) -> bool {
+    let Some(session) = event.get("session_id").and_then(Value::as_str) else {
+        return false;
+    };
+    if let Some(cwd) = event.get("cwd").and_then(Value::as_str) {
+        let _ = std::env::set_current_dir(cwd);
+    }
+    ledger::runs_dir(&profile::repository_root())
+        .is_some_and(|runs| active_run(&runs, session).is_some())
+}
+
+/// Whether a command's text names the runner at all: a word ending in
+/// `meow-loop`, or `meow` followed by `loop` (REQ-2660).
+fn names_the_runner(command: &str) -> bool {
+    let words = command_words(command);
+    words.iter().any(|w| w.ends_with("meow-loop"))
+        || words
+            .windows(2)
+            .any(|pair| pair[0].ends_with("meow") && pair[1] == "loop")
+}
+
 pub fn main(args: &[String]) -> u8 {
     match args.split_first() {
         Some((command, rest)) if command == "start" => start(rest),
         Some((command, rest)) if command == "guard" && rest.is_empty() => guard(),
+        Some((command, rest)) if command == "prompt" && rest.is_empty() => prompt(),
+        Some((command, rest)) if command == "purge" && rest.is_empty() => purge(),
+        Some((command, rest)) if command == "stop" && rest.is_empty() => stop(),
         _ => {
             eprintln!(
                 "usage: meow-loop start --step <step> [--inputs <id>[,<id>...]] --prompt <file> --until verbs=<verb>[,<verb>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..."

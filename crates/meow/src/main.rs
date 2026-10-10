@@ -34,7 +34,7 @@ mod runloop;
 mod runner;
 #[cfg(feature = "scm")]
 mod scm;
-#[cfg(feature = "unattended")]
+#[cfg(any(feature = "unattended", feature = "loop"))]
 mod unattended;
 #[cfg(any(feature = "verbs", feature = "loop"))]
 #[cfg_attr(not(feature = "verbs"), allow(dead_code))]

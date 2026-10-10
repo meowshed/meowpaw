@@ -1,69 +1,61 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! `meow-unattended plan`: the posture an unattended run declares, and the
-//! snapshot that holds its authority (SPC-1200).
+//! `meow-unattended plan`: the posture an unattended run declares and the deny
+//! rules it yields (SPC-1200).
 //!
-//! The run's posture comes from the `[unattended]` table and never from a
-//! session's default (REQ-2388), so a table that is missing or wrong is
-//! unresolved and nothing is written. `plan` starts nothing (ADR-2000).
+//! The posture comes from the `[unattended]` table and never from a session's
+//! default (REQ-2388), so a table that is missing or wrong is unresolved. The
+//! `loop` feature compiles this module in too, so the start hook and the
+//! guard read the posture without running another unit's program. `plan`
+//! writes nothing and starts nothing.
 
 use crate::profile::{self, Profile};
-use serde_json::{Map, Value, json};
-use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
 
-const MODES: [&str; 5] = ["manual", "plan", "dontAsk", "acceptEdits", "auto"];
-const GATES: [&str; 7] = [
+const MODES: [&str; 3] = ["dontAsk", "acceptEdits", "auto"];
+const GATES: [&str; 8] = [
     "research",
     "requirements",
     "design",
+    "spec",
     "epic",
-    "verify",
+    "implement",
     "review",
     "merge",
 ];
-const REQUIRED: [&str; 4] = ["permission_mode", "budget_usd", "gates", "units"];
+const REQUIRED: [&str; 3] = ["permission_mode", "gates", "release"];
 const NO_TABLE: &str = "unresolved: no [unattended] table in .meowpaw/profile.toml";
 const SKIP: [&str; 5] = ["node_modules", "target", "templates", "_archive", "evals"];
 
 const LIMITS: &str = "\
-The deny rules have four limits:
-- A Bash deny rule stops only the forms it matches, so `git -C . push origin main`
-  isn't denied, and neither is `git push origin` or `git push --force-with-lease`
-  while the trunk is checked out.
-- An Edit deny rule reaches the file tools and the file commands Claude Code
-  recognises, and not a script that opens the file itself.
-- A merge through the code host's interface isn't denied.
+The deny rules have three limits:
+- A Bash deny matches the command's text, so a push hidden in a script isn't
+  denied, and neither is a push to a branch that is the trunk under another name.
+- A merge through the code host's interface needs no push, so no deny rule stops
+  it. The checks the run makes before a merge hold it, and the deny rules are a
+  second line.
 - A new record whose front matter supersedes or withdraws an approved one retires
   it without editing its file, so no deny rule stops it.";
 
-/// The table as `plan` resolved it, with each default filled in.
-struct Authority {
-    mode: String,
-    budget: toml::Value,
-    gates: Vec<String>,
-    units: Vec<Unit>,
-    merge_protected: bool,
-    amend_approved: bool,
+/// The table as it resolved, with each default filled in.
+#[cfg_attr(not(feature = "loop"), allow(dead_code))]
+pub(crate) struct Posture {
+    pub mode: String,
+    pub gates: Vec<String>,
+    /// The release command, or none where the table says `false`.
+    pub release: Option<String>,
+    pub amend_approved: bool,
+    pub trunk: String,
 }
 
-/// A declared unit, with its directory's absolute path and the name and
-/// version its `plugin.json` holds.
-struct Unit {
-    entry: String,
-    path: String,
-    name: String,
-    version: String,
-}
-
+#[cfg_attr(not(feature = "unattended"), allow(dead_code))]
 pub fn main(args: &[String]) -> u8 {
     let args: Vec<&str> = args.iter().map(String::as_str).collect();
     match args.as_slice() {
         ["plan"] => plan(&root()),
-        ["plan", "--purge"] => purge(&root()),
         _ => {
-            eprintln!("usage: meow-unattended plan [--purge]");
+            eprintln!("usage: meow-unattended plan");
             2
         }
     }
@@ -74,154 +66,78 @@ fn root() -> PathBuf {
     std::fs::canonicalize(&root).unwrap_or(root)
 }
 
-fn plan(root: &Path) -> u8 {
-    let read = profile::read(root);
-    for line in profile::report(&read) {
-        println!("{line}");
-    }
+/// The posture the repository at `root` declares, or each refusal found in it.
+#[cfg_attr(not(feature = "loop"), allow(dead_code))]
+pub(crate) fn posture(root: &Path) -> Result<Posture, Vec<String>> {
+    from_profile(profile::read(root))
+}
+
+fn from_profile(read: Profile) -> Result<Posture, Vec<String>> {
     let data = match read {
         Profile::Parsed(data, _) => data,
-        Profile::Absent => return unresolved(&[NO_TABLE.to_string()]),
+        Profile::Absent => return Err(vec![NO_TABLE.to_string()]),
         Profile::Unparseable(reason) => {
-            return unresolved(&[format!("unresolved: the profile doesn't parse: {reason}")]);
+            return Err(vec![format!(
+                "unresolved: the profile doesn't parse: {reason}"
+            )]);
         }
     };
     let Some(table) = data.get("unattended").and_then(toml::Value::as_table) else {
-        return unresolved(&[NO_TABLE.to_string()]);
+        return Err(vec![NO_TABLE.to_string()]);
     };
     let trunk = data
         .get("git")
         .and_then(|git| git.get("trunk"))
         .and_then(toml::Value::as_str)
         .map(str::to_string);
-    let env = env_refusals(root);
-    let authority = match resolve(table, trunk.is_some(), root) {
-        Ok(authority) if env.is_empty() => authority,
-        Ok(_) => return unresolved(&env),
-        Err(mut refusals) => {
-            refusals.extend(env);
-            return unresolved(&refusals);
-        }
-    };
-    let record = data
-        .get("record")
-        .and_then(toml::Value::as_table)
-        .map(|record| {
-            root.join(
-                record
-                    .get("root")
-                    .and_then(toml::Value::as_str)
-                    .unwrap_or("project"),
-            )
-        });
+    resolve(table, trunk)
+}
 
-    // The folder is made before the rule naming it is written, so the rule
-    // names it as the file system resolves it, through any symbolic link.
-    let folder = match folder(root).map(|folder| made(&folder)) {
-        Some(Ok(folder)) => Some(folder),
-        Some(Err(reason)) => {
-            return unresolved(&[format!("unresolved: snapshot not written: {reason}")]);
-        }
-        None => None,
+fn plan(root: &Path) -> u8 {
+    let read = profile::read(root);
+    for line in profile::report(&read) {
+        println!("{line}");
+    }
+    let record_root = match &read {
+        Profile::Parsed(data, _) => root.join(
+            data.get("record")
+                .and_then(toml::Value::as_table)
+                .and_then(|r| r.get("root"))
+                .and_then(toml::Value::as_str)
+                .unwrap_or("project"),
+        ),
+        _ => root.join("project"),
     };
-    let tree = slashed(root);
-    let mut deny = vec![
-        format!("Edit(/{tree}/.meowpaw/**)"),
-        format!("Edit(/{tree}/.claude/**)"),
-    ];
-    if let Some(protected) = folder.clone().or_else(|| location(root)) {
-        deny.push(format!("Edit(/{}/**)", slashed(&protected)));
-    }
-    if !authority.merge_protected {
-        let trunk = trunk.as_deref().unwrap_or_default();
-        deny.push(format!("Bash(git push *{trunk}*)"));
-        deny.push("Bash(git push)".to_string());
-        deny.push("Bash(git push *HEAD*)".to_string());
-    }
-    if !authority.amend_approved
-        && let Some(record) = &record
-    {
-        for path in approved(record) {
-            deny.push(format!("Edit(/{})", slashed(&path)));
-        }
-    }
-
-    let content = snapshot(&authority, &deny);
-    let kept = match &folder {
-        Some(folder) => match keep(folder, &content) {
-            Ok(path) => Some(path),
-            Err(reason) => {
-                return unresolved(&[format!("unresolved: snapshot not written: {reason}")]);
-            }
-        },
-        None if state_off() => None,
-        None => {
-            return unresolved(&[format!(
-                "unresolved: snapshot not written: {}",
-                no_state_reason()
-            )]);
-        }
+    let posture = match from_profile(read) {
+        Ok(posture) => posture,
+        Err(refusals) => return unresolved(&refusals),
     };
-
-    println!("{}", table_text(&authority));
-    if authority.units.is_empty() {
-        println!("units: none declared");
-    } else {
-        println!("units, each with the name and version its plugin.json holds:");
-        for unit in &authority.units {
-            println!("  {}  {} {}", unit.entry, unit.name, unit.version);
+    println!("{}", table_text(&posture));
+    match &posture.release {
+        Some(command) => {
+            println!("the run runs `{command}` once, after a merge, from the repository's root")
         }
-    }
-    println!();
-    println!("The command that would start the run, one argument a line:");
-    println!();
-    let settings = kept.as_ref().map_or_else(
-        || "<the snapshot below>".to_string(),
-        |path| quoted(&path.to_string_lossy()),
-    );
-    let mut line: Vec<String> = vec!["claude".into(), "-p".into(), "--bare".into()];
-    for unit in &authority.units {
-        line.push(format!("--plugin-dir {}", quoted(&unit.path)));
-    }
-    line.push(format!("--permission-mode {}", authority.mode));
-    line.push("--permission-prompts none".into());
-    line.push("--disallowed-tools AskUserQuestion".into());
-    line.push("--output-format stream-json".into());
-    line.push("--verbose".into());
-    line.push(format!("--max-budget-usd {}", authority.budget));
-    line.push(format!("--settings {settings}"));
-    let last = line.len() - 1;
-    for (n, argument) in line.iter().enumerate() {
-        let indent = if n == 0 { "" } else { "  " };
-        let tail = if n == last { "" } else { " \\" };
-        println!("  {indent}{argument}{tail}");
-    }
-    println!();
-    match &kept {
-        Some(path) => println!("snapshot: {}", path.display()),
-        None => {
-            println!(
-                "no snapshot kept, since state writing is off (MEOWPAW_STATE=off); its content:"
-            );
-            println!("{content}");
-        }
+        None => println!("the run releases nothing"),
     }
     println!();
     println!("deny rules:");
-    for rule in &deny {
-        println!("  {rule}");
-    }
-    if record.is_none() && !authority.amend_approved {
-        println!("no record to protect: the profile declares no [record]");
+    println!("  Edit or Write of .meowpaw/** and .claude/** in the work tree");
+    println!(
+        "  Bash git push naming {}, HEAD or no branch, so the run lands work through a pull request",
+        posture.trunk
+    );
+    if posture.amend_approved {
+        println!("  none for an approved record: amend_approved is true");
+    } else {
+        println!(
+            "  Edit or Write of an approved requirement or decision ({} files now), so the run amends one by writing a new record",
+            approved(&record_root).len()
+        );
     }
     println!();
-    println!(
-        "A requirement or decision approved after this plan isn't protected until plan runs again."
-    );
+    println!("A requirement or decision approved after this plan is protected as soon as it is.");
     println!();
     println!("{LIMITS}");
-    println!();
-    println!("The command needs ANTHROPIC_API_KEY in its environment.");
     0
 }
 
@@ -233,7 +149,7 @@ fn unresolved(refusals: &[String]) -> u8 {
 }
 
 /// The table's keys, checked, or every refusal found in it.
-fn resolve(table: &toml::Table, has_trunk: bool, root: &Path) -> Result<Authority, Vec<String>> {
+fn resolve(table: &toml::Table, trunk: Option<String>) -> Result<Posture, Vec<String>> {
     let mut refusals = Vec::new();
     for key in REQUIRED {
         if !table.contains_key(key) {
@@ -251,20 +167,6 @@ fn resolve(table: &toml::Table, has_trunk: bool, root: &Path) -> Result<Authorit
         }
         None => String::new(),
     };
-    let budget = table.get("budget_usd").cloned();
-    if let Some(value) = &budget {
-        let positive = match value {
-            toml::Value::Integer(n) => *n > 0,
-            toml::Value::Float(n) => n.is_finite() && *n > 0.0,
-            _ => false,
-        };
-        if !positive {
-            refusals.push(format!(
-                "unresolved: [unattended] budget_usd {} is not a positive number",
-                shown(value)
-            ));
-        }
-    }
     let gates = strings(table, "gates", &mut refusals);
     for gate in &gates {
         if !GATES.contains(&gate.as_str()) {
@@ -273,31 +175,32 @@ fn resolve(table: &toml::Table, has_trunk: bool, root: &Path) -> Result<Authorit
             ));
         }
     }
-    let units: Vec<Unit> = strings(table, "units", &mut refusals)
-        .into_iter()
-        .filter_map(|entry| unit(root, entry, &mut refusals))
-        .collect();
-    let merge_protected = flag(table, "merge_protected", &mut refusals);
+    let release = match table.get("release") {
+        None | Some(toml::Value::Boolean(false)) => None,
+        Some(toml::Value::String(command)) if !command.trim().is_empty() => Some(command.clone()),
+        Some(value) => {
+            refusals.push(format!(
+                "unresolved: [unattended] release {} is not a command or false",
+                shown(value)
+            ));
+            None
+        }
+    };
     let amend_approved = flag(table, "amend_approved", &mut refusals);
-    if merge_protected && table.contains_key("gates") && !gates.iter().any(|g| g == "merge") {
-        refusals.push("unresolved: merge_protected is true and gates lacks merge".to_string());
+    if trunk.is_none() {
+        refusals
+            .push("unresolved: [git] trunk is not declared, so the push rule has no trunk".into());
     }
-    if !merge_protected && !has_trunk {
-        refusals.push(
-            "unresolved: [git] trunk is not declared, so the push rules have no trunk to protect"
-                .to_string(),
-        );
-    }
-    match budget {
-        Some(budget) if refusals.is_empty() => Ok(Authority {
+    if refusals.is_empty() {
+        Ok(Posture {
             mode,
-            budget,
             gates,
-            units,
-            merge_protected,
+            release,
             amend_approved,
-        }),
-        _ => Err(refusals),
+            trunk: trunk.unwrap_or_default(),
+        })
+    } else {
+        Err(refusals)
     }
 }
 
@@ -318,65 +221,6 @@ fn strings(table: &toml::Table, key: &str, refusals: &mut Vec<String>) -> Vec<St
         ));
         Vec::new()
     })
-}
-
-/// A `units` entry, loaded by name: a URL, and a directory that holds no
-/// `.claude-plugin/plugin.json` of its own, such as a folder of units whose
-/// children would load by discovery, are refused (REQ-2392).
-fn unit(root: &Path, entry: String, refusals: &mut Vec<String>) -> Option<Unit> {
-    if entry.contains("://") {
-        refusals.push(format!(
-            "unresolved: unit {entry} is a URL, and a unit loads from a directory"
-        ));
-        return None;
-    }
-    // The command may run anywhere, so it names the directory the check read.
-    let directory = root.join(&entry);
-    let manifest = directory.join(".claude-plugin").join("plugin.json");
-    let Ok(text) = std::fs::read_to_string(&manifest) else {
-        refusals.push(format!(
-            "unresolved: unit {entry} is not a unit's own directory"
-        ));
-        return None;
-    };
-    let fields = serde_json::from_str::<Value>(&text).ok().and_then(|json| {
-        let field = |key: &str| json.get(key)?.as_str().map(str::to_string);
-        Some((field("name")?, field("version")?))
-    });
-    let Some((name, version)) = fields else {
-        refusals.push(format!(
-            "unresolved: unit {entry} has a plugin.json that states no name and version"
-        ));
-        return None;
-    };
-    let path = std::fs::canonicalize(&directory).unwrap_or(directory);
-    Some(Unit {
-        entry,
-        path: path.to_string_lossy().into_owned(),
-        name,
-        version,
-    })
-}
-
-/// Each repository settings file whose `env` block would reach the run
-/// (REQ-2392), naming the keys it sets.
-fn env_refusals(root: &Path) -> Vec<String> {
-    let mut refusals = Vec::new();
-    for name in [".claude/settings.json", ".claude/settings.local.json"] {
-        let Ok(text) = std::fs::read_to_string(root.join(name)) else {
-            continue;
-        };
-        let Ok(json) = serde_json::from_str::<Value>(&text) else {
-            continue;
-        };
-        if let Some(env) = json.get("env").and_then(Value::as_object)
-            && !env.is_empty()
-        {
-            let keys: Vec<&str> = env.keys().map(String::as_str).collect();
-            refusals.push(format!("unresolved: {name} sets env {}", keys.join(", ")));
-        }
-    }
-    refusals
 }
 
 fn flag(table: &toml::Table, key: &str, refusals: &mut Vec<String>) -> bool {
@@ -401,146 +245,69 @@ fn shown(value: &toml::Value) -> String {
     }
 }
 
-fn table_text(authority: &Authority) -> String {
-    let entries: Vec<String> = authority.units.iter().map(|u| u.entry.clone()).collect();
-    let list = |items: &[String]| {
-        let quoted: Vec<String> = items.iter().map(|i| format!("{i:?}")).collect();
-        format!("[{}]", quoted.join(", "))
+fn table_text(posture: &Posture) -> String {
+    let gates: Vec<String> = posture.gates.iter().map(|g| format!("{g:?}")).collect();
+    let release = match &posture.release {
+        Some(command) => format!("{command:?}"),
+        None => "false".to_string(),
     };
     format!(
-        "[unattended]\npermission_mode = {:?}\nbudget_usd = {}\ngates = {}\nunits = {}\nmerge_protected = {}\namend_approved = {}\n",
-        authority.mode,
-        authority.budget,
-        list(&authority.gates),
-        list(&entries),
-        authority.merge_protected,
-        authority.amend_approved
+        "[unattended]\npermission_mode = {:?}\ngates = [{}]\nrelease = {release}\namend_approved = {}\n",
+        posture.mode,
+        gates.join(", "),
+        posture.amend_approved
     )
 }
 
-/// The snapshot's content: the resolved table and the deny rules, as JSON.
-/// It holds no credential and no `apiKeyHelper`.
-fn snapshot(authority: &Authority, deny: &[String]) -> String {
-    let budget = match &authority.budget {
-        toml::Value::Integer(n) => json!(n),
-        toml::Value::Float(n) => json!(n),
-        other => json!(other.to_string()),
-    };
-    let mut table = Map::new();
-    table.insert("permission_mode".into(), json!(authority.mode));
-    table.insert("budget_usd".into(), budget);
-    table.insert("gates".into(), json!(authority.gates));
-    let entries: Vec<&str> = authority.units.iter().map(|u| u.entry.as_str()).collect();
-    table.insert("units".into(), json!(entries));
-    table.insert("merge_protected".into(), json!(authority.merge_protected));
-    table.insert("amend_approved".into(), json!(authority.amend_approved));
-    let units: Vec<Value> = authority
-        .units
-        .iter()
-        .map(|u| json!({ "path": u.path, "name": u.name, "version": u.version }))
+/// Whether a command's text is a `git push` the posture forbids: one that
+/// names the trunk or `HEAD`, pushes every branch, or names no branch, so a
+/// run lands work only through a pull request (REQ-3718). It reads the text
+/// and not what it expands to.
+#[cfg_attr(not(feature = "loop"), allow(dead_code))]
+pub(crate) fn push_denied(command: &str, trunk: &str) -> bool {
+    let words: Vec<&str> = command
+        .split(|c: char| c.is_whitespace() || "'\"`;|()&".contains(c))
+        .filter(|w| !w.is_empty())
         .collect();
-    let content = json!({
-        "meowpaw": { "unattended": Value::Object(table), "units": units },
-        "permissions": { "deny": deny },
-    });
-    let mut text = serde_json::to_string_pretty(&content).unwrap_or_default();
-    text.push('\n');
-    text
-}
-
-/// Writes the snapshot through a temporary file renamed into place, named for
-/// the SHA-256 of its content.
-fn keep(folder: &Path, content: &str) -> Result<PathBuf, String> {
-    let hash = hex(&Sha256::digest(content.as_bytes()));
-    let path = folder.join(format!("{hash}.json"));
-    let partial = folder.join(format!(".{hash}.json.partial"));
-    std::fs::write(&partial, content)
-        .map_err(|e| format!("can't write {}: {e}", partial.display()))?;
-    std::fs::rename(&partial, &path)
-        .map_err(|e| format!("can't move {} into place: {e}", path.display()))?;
-    Ok(path)
-}
-
-fn purge(root: &Path) -> u8 {
-    let Some(folder) = folder(root) else {
-        return unresolved(&[format!(
-            "unresolved: snapshots not purged: {}",
-            no_state_reason()
-        )]);
-    };
-    let mut removed = 0;
-    if let Ok(entries) = std::fs::read_dir(&folder) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.extension().is_some_and(|e| e == "json") {
-                if let Err(error) = std::fs::remove_file(&path) {
-                    return unresolved(&[format!(
-                        "unresolved: snapshots not purged: can't remove {}: {error}",
-                        path.display()
-                    )]);
-                }
-                removed += 1;
+    let mut denied = false;
+    for (i, word) in words.iter().enumerate() {
+        if !(word.ends_with("git") || word.ends_with("git.exe")) {
+            continue;
+        }
+        let Some(offset) = words[i + 1..].iter().take(5).position(|w| *w == "push") else {
+            continue;
+        };
+        let after = &words[i + 1 + offset + 1..];
+        if after.iter().any(|w| *w == "--all" || *w == "--mirror") {
+            denied = true;
+        }
+        let arguments: Vec<&str> = after
+            .iter()
+            .copied()
+            .take_while(|w| !w.ends_with("git") && *w != "git.exe")
+            .filter(|w| !w.starts_with('-'))
+            .collect();
+        if arguments.len() < 2 {
+            denied = true;
+        }
+        for argument in &arguments {
+            let argument = argument.trim_start_matches('+');
+            let destination = argument.rsplit(':').next().unwrap_or(argument);
+            if destination == trunk
+                || destination == "HEAD"
+                || destination.ends_with(&format!("refs/heads/{trunk}"))
+                || argument.starts_with("HEAD:")
+            {
+                denied = true;
             }
         }
     }
-    let _ = std::fs::remove_dir(&folder);
-    println!("purged {removed} snapshots of {}", root.display());
-    0
-}
-
-/// The folder, created where it is missing, with every symbolic link resolved.
-fn made(folder: &Path) -> Result<PathBuf, String> {
-    std::fs::create_dir_all(folder)
-        .and_then(|()| std::fs::canonicalize(folder))
-        .map_err(|e| format!("can't create {}: {e}", folder.display()))
-}
-
-/// The folder the work tree's snapshots are kept in, or none where state
-/// writing is off or there is no state directory.
-fn folder(root: &Path) -> Option<PathBuf> {
-    if state_off() { None } else { location(root) }
-}
-
-/// Where the work tree's snapshots belong, found as the evidence ledger finds
-/// its state directory and keys a work tree (SPC-1040), whether or not state
-/// writing is on, so a printed snapshot still denies the folder.
-fn location(root: &Path) -> Option<PathBuf> {
-    let set = |name: &str| {
-        std::env::var_os(name)
-            .filter(|v| !v.is_empty())
-            .map(PathBuf::from)
-    };
-    let dir = if let Some(moved) = set("MEOWPAW_STATE_DIR") {
-        moved.join("unattended")
-    } else {
-        let base = set("XDG_STATE_HOME").or_else(|| {
-            if cfg!(windows) {
-                set("LOCALAPPDATA")
-            } else {
-                set("HOME").map(|home| home.join(".local").join("state"))
-            }
-        })?;
-        base.join("meowpaw").join("unattended")
-    };
-    let key = hex(&Sha256::digest(root.to_string_lossy().as_bytes()))[..16].to_string();
-    Some(dir.join(key))
-}
-
-fn state_off() -> bool {
-    std::env::var("MEOWPAW_STATE").is_ok_and(|v| v == "off")
-}
-
-fn no_state_reason() -> &'static str {
-    if state_off() {
-        "state writing is off (MEOWPAW_STATE=off)"
-    } else {
-        "no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME"
-    }
+    denied
 }
 
 /// Each requirement and decision under the record whose front matter says
 /// `status: approved`.
-fn approved(record: &Path) -> Vec<PathBuf> {
+pub(crate) fn approved(record: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
     markdown_under(record, &mut files);
     files
@@ -601,29 +368,6 @@ fn bare(value: &str) -> &str {
     value.trim_matches('"').trim_matches('\'')
 }
 
-/// A path with forward slashes, so a deny rule reads the same on every system.
-fn slashed(path: &Path) -> String {
-    path.to_string_lossy().replace('\\', "/")
-}
-
-/// An argument quoted for a POSIX shell where it holds anything but safe
-/// characters.
-fn quoted(text: &str) -> String {
-    let safe = !text.is_empty()
-        && text
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || "-_./+=:@%,".contains(c));
-    if safe {
-        text.to_string()
-    } else {
-        format!("'{}'", text.replace('\'', r"'\''"))
-    }
-}
-
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -634,47 +378,58 @@ mod tests {
 
     #[test]
     fn every_refusal_is_reported_in_one_run() {
-        let refused = resolve(
-            &table("permission_mode = \"bypassPermissions\"\nbudget_usd = -1\n"),
-            true,
-            Path::new("/nonexistent"),
+        let refusals = resolve(
+            &table("permission_mode = \"manual\"\ngates = [\"verify\"]\n"),
+            None,
         )
         .err()
         .unwrap();
-        assert_eq!(refused.len(), 4, "{refused:?}");
-    }
-
-    #[test]
-    fn a_string_budget_is_refused() {
-        let refused = resolve(
-            &table("permission_mode = \"auto\"\nbudget_usd = \"5\"\ngates = []\nunits = []\n"),
-            true,
-            Path::new("/nonexistent"),
-        )
-        .err()
-        .unwrap();
-        assert_eq!(
-            refused,
-            ["unresolved: [unattended] budget_usd 5 is not a positive number"]
+        assert!(
+            refusals
+                .iter()
+                .any(|r| r.contains("permission_mode manual is refused"))
+        );
+        assert!(refusals.iter().any(|r| r.contains("gates names verify")));
+        assert!(
+            refusals
+                .iter()
+                .any(|r| r.contains("release is not declared"))
+        );
+        assert!(
+            refusals
+                .iter()
+                .any(|r| r.contains("[git] trunk is not declared"))
         );
     }
 
     #[test]
+    fn a_release_of_false_resolves_to_none() {
+        let posture = resolve(
+            &table("permission_mode = \"dontAsk\"\ngates = []\nrelease = false\n"),
+            Some("main".into()),
+        )
+        .ok()
+        .unwrap();
+        assert!(posture.release.is_none());
+        assert!(!posture.amend_approved);
+    }
+
+    #[test]
+    fn a_push_is_denied_unless_it_names_a_branch_that_is_not_the_trunk() {
+        assert!(push_denied("git push", "main"));
+        assert!(push_denied("git push origin", "main"));
+        assert!(push_denied("git push origin main", "main"));
+        assert!(push_denied("git push origin HEAD", "main"));
+        assert!(push_denied("git push origin feat/x:main", "main"));
+        assert!(push_denied("git push --all origin", "main"));
+        assert!(!push_denied("git push origin feat/x", "main"));
+        assert!(!push_denied("git push -u origin feat/x", "main"));
+        assert!(!push_denied("git status", "main"));
+    }
+
+    #[test]
     fn front_matter_reads_top_level_keys() {
-        let fields = front_matter("---\nid: X\nstatus: approved\n---\n\n# X\n");
-        assert_eq!(fields[1], ("status".to_string(), "approved".to_string()));
-    }
-
-    #[test]
-    fn front_matter_reads_crlf_and_bare_values() {
-        let fields = front_matter("---\r\nstatus: \"approved\" # frozen\r\n---\r\n");
-        assert_eq!(fields.len(), 1, "{fields:?}");
-        assert_eq!(bare(&fields[0].1), "approved");
-    }
-
-    #[test]
-    fn a_path_with_a_space_is_quoted() {
-        assert_eq!(quoted("a b"), "'a b'");
-        assert_eq!(quoted("units/alpha"), "units/alpha");
+        let fields = front_matter("---\nid: REQ-1\nstatus: approved # frozen\n---\n\n# T\n");
+        assert_eq!(bare(&fields[1].1), "approved");
     }
 }

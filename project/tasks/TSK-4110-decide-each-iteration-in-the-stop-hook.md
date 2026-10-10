@@ -1,7 +1,7 @@
 ---
 id: TSK-4110
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2300
 closes:
@@ -78,7 +78,23 @@ paths state. Bump `meow-loop` as a `feat`.
 
 ## Evidence
 
-Not yet.
+Pull request 881. The tests are in `plugins/meow-loop/tests/test_session_run.py`,
+class `Stopping`:
+
+- Criterion 1:
+  `test_an_open_record_blocks_the_stop_with_the_same_frozen_prompt`.
+- Criterion 2: `test_a_record_with_nothing_open_ends_the_run_finished`.
+- Criterion 3: `test_each_bound_ends_the_run_with_its_own_ending`, with one
+  subtest for each of `ceiling`, `tokens` and `time`.
+- Criterion 4:
+  `test_two_unchanged_iterations_end_the_run_stuck_and_name_the_counts`.
+- Criterion 5: `test_every_iteration_appends_one_log_line`.
+- Criterion 6: `test_an_ending_is_one_of_six_and_reverts_nothing`.
+- Criterion 7: `test_no_active_run_allows_the_stop_and_writes_nothing`.
+
+The tokens a transcript's usage fields sum to are the input, output and both
+cache counts of every message, a choice made here because the specification
+names the usage fields and not which of them.
 
 ## Left alone
 

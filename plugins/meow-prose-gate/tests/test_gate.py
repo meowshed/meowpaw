@@ -439,5 +439,30 @@ class TheHook(unittest.TestCase):
         self.assertEqual(routed, {f"Bash({command} *)" for command in GATED})
 
 
+class TheSharedBinary(unittest.TestCase):
+    """TSK-5301, REQ-4504: the shared binary sits in the core unit, so the judge's fragments are read from the
+    gate's own unit and not from beside the binary."""
+
+    def test_the_judge_reads_the_gate_units_fragments_when_the_binary_is_in_the_core_unit(self):
+        system = {"Darwin": "apple-darwin", "Linux": "unknown-linux-musl"}[os.uname().sysname]
+        target = f"{os.uname().machine.replace('arm64', 'aarch64')}-{system}"
+        core = UNIT.parent / "meow-core" / "bin" / target / "meow"
+        with tempfile.TemporaryDirectory() as tmp:
+            plugins = Path(tmp) / "plugins"
+            gate_unit = plugins / "meow-prose-gate"
+            (gate_unit / "bin").mkdir(parents=True)
+            shutil.copy(UNIT / "bin" / "meow-prose-gate", gate_unit / "bin" / "meow-prose-gate")
+            shutil.copytree(UNIT / "fragments", gate_unit / "fragments")
+            (plugins / "meow-core" / "bin" / target).mkdir(parents=True)
+            shutil.copy(core, plugins / "meow-core" / "bin" / target / "meow")
+            event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": 'git commit -m "Add the parser for the profile"'}}
+            env = dict(os.environ, MEOW_PROSE_GATE_JUDGE=QUIET, CLAUDE_PLUGIN_DATA=str(Path(tmp) / "data" / "x"))
+            env.pop("MEOW_PROSE_GATE_UNIT", None)
+            done = subprocess.run([str(gate_unit / "bin" / "meow-prose-gate"), "check"], input=json.dumps(event),
+                                  capture_output=True, text=True, timeout=30, env=env)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("could not be read", done.stdout + done.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

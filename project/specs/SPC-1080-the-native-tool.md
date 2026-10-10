@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-10-04
+revised: 2026-10-10
 states:
   [
     REQ-0010,
@@ -35,8 +35,11 @@ states:
     REQ-3900,
     REQ-3902,
     REQ-4000,
-    REQ-0074,
-    REQ-0076,
+    REQ-4508,
+    REQ-4500,
+    REQ-4502,
+    REQ-4504,
+    REQ-4506,
     REQ-1186,
     REQ-1350,
     REQ-1351,
@@ -205,10 +208,16 @@ tracker the harness serves.
 The crate `crates/meow/` builds one binary, `meow`, whose subcommands are the
 units' programs: `verbs`, `scm`, `git`, `record`, `github`,
 `licence` and `author`. Each
-subcommand sits behind a feature named for its unit, and a unit's binary is
-built with that unit's feature alone, so it carries its own code and nothing of
-another unit's (REQ-0076). The profile reading, the report shapes and the exit
-codes the units share are one module every feature uses.
+subcommand sits behind a feature named for its unit. The core unit ships the one
+build, with every unit's feature, for every platform the harness supports, and
+a unit that runs a program declares the core unit under `dependencies` and no
+other unit (REQ-4500, REQ-4502, ADR-2870). A unit's launcher reads the path of
+the core unit's installed root from the core unit's data directory, which the
+core unit's session start writes, and it reports each of its checks unresolved,
+naming the core unit, where it finds none (REQ-4504, REQ-4506). Until EPC-2790
+lands, a unit still carries a build of its own beside it. The profile reading,
+the report shapes and the exit codes the units share are one module every
+feature uses.
 
 ### The profile
 
@@ -433,7 +442,7 @@ runs the release workflow by hand, and
 it calls that same build. It packs
 each unit whose version has no release yet as a zip of the unit's tracked files
 and its binaries, and publishes it as a release tagged `<unit>-v<version>`, so
-each unit carries its own version (REQ-0074). A person also releases by
+each unit carries its own version (REQ-4508). A person also releases by
 pushing the unit's tag from the trunk, which releases that unit alone and,
 for a unit the Pi registry mirrors, publishes its npm package from the
 tag (REQ-4146). A unit tag is cut from the marketplace release's tree at
@@ -584,8 +593,10 @@ show the rule holds, so the instruction and review hold it (ADR-2460).
 ### Adopted in part
 
 A repository adopts any subset of the units, and each is a working harness on
-its own: no file a unit ships reaches outside the unit's directory, which
-`tools/check_standalone.py` holds (REQ-0012, REQ-0014, REQ-0034). Installing a
+its own except for the core unit it depends on: no file a unit ships reaches
+outside the unit's directory, and a unit names the core unit and no other under
+`dependencies`, which `tools/check_standalone.py` holds (REQ-0012, REQ-0014,
+REQ-0034, REQ-4502). Installing a
 unit adds nothing to the repository, the record is optional and the other
 units work without it, the harness names no language, its artifacts are plain
 text, and a repository overrides a convention with a file of its own that wins

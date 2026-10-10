@@ -40,6 +40,32 @@ class Standalone(unittest.TestCase):
         out, _ = findings(root)
         self.assertEqual(out, ["plugins/meow-a/bin/meow-a:1: runs a file of meow-b, another unit"])
 
+    def test_the_core_unit_beside_a_unit_that_declares_it_passes(self):
+        """TSK-5303 criterion 1, REQ-4502: a unit that names meow-core under dependencies may climb to it."""
+        root = self.plugins({
+            "meow-a/.claude-plugin/plugin.json": '{"name": "meow-a", "dependencies": ["meow-core"]}',
+            "meow-a/bin/meow-a": 'beside="$here/../../meow-core/bin/x/meow"\n',
+        })
+        self.assertEqual(findings(root), ([], 2))
+
+    def test_the_core_unit_without_the_declaration_is_reported(self):
+        """TSK-5303 criterion 2, REQ-4502: climbing to meow-core without declaring it is a path leaving the unit."""
+        root = self.plugins({
+            "meow-a/.claude-plugin/plugin.json": '{"name": "meow-a"}',
+            "meow-a/bin/meow-a": 'beside="$here/../../meow-core/bin/x/meow"\n',
+        })
+        out, _ = findings(root)
+        self.assertEqual(out, ["plugins/meow-a/bin/meow-a:1: runs a file of meow-core without declaring it under dependencies"])
+
+    def test_another_unit_is_reported_even_where_the_core_unit_is_declared(self):
+        """TSK-5303 criterion 2, REQ-4502: the dependency lets a unit reach meow-core and no other unit."""
+        root = self.plugins({
+            "meow-a/.claude-plugin/plugin.json": '{"name": "meow-a", "dependencies": ["meow-core"]}',
+            "meow-a/bin/meow-a": 'beside="$here/../../meow-b/bin/x/meow"\n',
+        })
+        out, _ = findings(root)
+        self.assertEqual(out, ["plugins/meow-a/bin/meow-a:1: runs a file of meow-b, another unit"])
+
     def test_a_link_to_another_units_page_runs_nothing(self):
         """REQ-0012: a page linking another unit's page by address depends on nothing it runs."""
         root = self.plugins({"meow-a/README.md": "See [its page](https://example.org/blob/main/plugins/meow-b/README.md).\n"})

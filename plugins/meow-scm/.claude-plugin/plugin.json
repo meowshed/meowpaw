@@ -9,5 +9,6 @@
   "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-scm/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
-  "keywords": ["commits", "conventional-commits", "attribution", "meowpaw"]
+  "keywords": ["commits", "conventional-commits", "attribution", "meowpaw"],
+  "dependencies": ["meow-core"]
 }

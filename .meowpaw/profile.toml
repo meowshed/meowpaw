@@ -48,3 +48,11 @@ style = "meow-prose"
 # meow-markdown check requires (REQ-2452, ADR-1900).
 [markdown]
 target = "github"
+
+# The posture an unattended run is held to (SPC-1200). A run decides every
+# gate itself, and releases nothing because no release command is declared.
+[unattended]
+permission_mode = "dontAsk"
+gates = ["research", "requirements", "design", "spec", "epic", "implement", "review", "merge"]
+release = false
+amend_approved = false
