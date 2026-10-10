@@ -168,6 +168,46 @@ fn report_profile(repository: &Path) {
 }
 
 /// The record at the declared root, or the exit code and why it can't be read.
+/// What is open in the record of `repository`: the requirements in force that
+/// are neither closed nor postponed, and the defects that are not closed. It
+/// prints nothing, so a hook's standard output stays its own answer (REQ-3704).
+#[cfg(feature = "loop")]
+pub(crate) fn open_counts(repository: &Path) -> Result<(usize, usize), String> {
+    let layout = load_layout()?;
+    let root = record_root(repository)?;
+    if !root.is_dir() {
+        return Err(format!(
+            "the record's root {} doesn't exist",
+            root.display()
+        ));
+    }
+    let record = read_record(layout, repository, &root);
+    let known = known(&record);
+    let mut requirements = 0;
+    for requirement in of_kind(&record, "requirement")
+        .into_iter()
+        .filter(|r| approved(r))
+    {
+        let id = bare(requirement.id());
+        let state = requirement_state(
+            &closing_tasks(&record, &known, id),
+            postponed_by(&record, id).as_deref(),
+            &violated_by(&record, id),
+        );
+        if matches!(
+            state,
+            "in a task not yet done" | "reopened by a defect" | "named by no task"
+        ) {
+            requirements += 1;
+        }
+    }
+    let defects = of_kind(&record, "defect")
+        .into_iter()
+        .filter(|d| approved(d) && defect_open(&record, d))
+        .count();
+    Ok((requirements, defects))
+}
+
 fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
     let repository = profile::repository_root();
     report_profile(&repository);

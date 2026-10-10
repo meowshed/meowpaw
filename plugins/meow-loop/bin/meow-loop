@@ -46,19 +46,25 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
     MEOW_LAYOUT="$here/../lib/layout.toml"
     export MEOW_LAYOUT
   fi
+  # The run's hooks load this unit, whose directory the binary can't derive
+  # from its own path where it ships in another unit.
+  if [ -z "$MEOW_LOOP_UNIT" ]; then
+    MEOW_LOOP_UNIT=$(cd "$here/.." 2>/dev/null && pwd -P)
+    export MEOW_LOOP_UNIT
+  fi
   exec "$binary" loop "$@"
 fi
 
 reason="no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
 case "$1" in
-guard)
-  # The hook runs on every Bash command, Edit and Write, and a hook that
-  # fails blocks them all, so with no binary it lets each through: a write
-  # to the hash check, and a start to the refusal under CLAUDECODE.
+guard | prompt | stop)
+  # A hook that fails blocks what it was meant to guard, so with no binary
+  # each lets the session go on: the guard lets each Bash command, Edit and
+  # Write through, the prompt hook starts no run and the stop hook ends none.
   cat >/dev/null
   exit 0
   ;;
-start)
+start | purge)
   echo "unresolved: $reason"
   exit 3
   ;;
