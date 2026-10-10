@@ -2,14 +2,12 @@
 id: SPC-1201
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-10
 states:
   [
     REQ-0870,
-    REQ-0872,
     REQ-0874,
     REQ-0876,
-    REQ-0878,
     REQ-0882,
     REQ-0884,
     REQ-0886,
@@ -26,9 +24,13 @@ states:
     REQ-3702,
     REQ-3704,
     REQ-3706,
-    REQ-3708,
     REQ-3710,
     REQ-3712,
+    REQ-3724,
+    REQ-3726,
+    REQ-3728,
+    REQ-3730,
+    REQ-3732,
   ]
 ---
 
@@ -44,7 +46,7 @@ edits and commands that would let the model change or end its own run. Each
 iteration is one `/meow-flow:run`, and the run repeats until the record holds
 no open work, a bound is reached, the run is stuck or the person cancels it.
 This states the start command, the run's files, the order of the checks, the
-six endings, the guards, and each state the unit refuses (REQ-1240).
+five endings, the guards, and each state the unit refuses (REQ-1240).
 
 It doesn't cover what an unattended run may decide, merge and release, which
 SPC-1200 states as the posture, nor the steps an iteration runs, which
@@ -86,14 +88,27 @@ held to its bounds.
 A person starts a run by typing:
 
 ```text
-/meow-loop:run --iterations <n> --hours <h> --tokens <t>
+/meow-loop:run [--iterations <n>] [--hours <h>]
 ```
 
-All three bounds are required, so the run's limits are stated before it starts
-(REQ-0872, REQ-3708). `--iterations` is an integer of 1 or more, `--hours` a
-number above 0 and `--tokens` an integer of 1 or more, each written in digits.
-The completion condition isn't a flag, because it's fixed: no requirement and
-no defect open in the record (REQ-3704).
+A run has two bounds, and a command that omits one runs with its default
+(REQ-3724, REQ-3726):
+
+| Bound          | Means                          | Written as                         | Default |
+| -------------- | ------------------------------ | ---------------------------------- | ------- |
+| `--iterations` | The most iterations it may run | An integer of 1 or more, in digits | 10      |
+| `--hours`      | The longest it may run         | A number above 0, in digits        | 4       |
+
+The start context names the bounds the run runs under, defaults included, so
+no bound is in force that the person wasn't told (REQ-3728). The completion
+condition isn't a flag, because it's fixed: no requirement and no defect open
+in the record (REQ-3704).
+
+A command that names `--tokens` starts the run all the same, and the start
+context says that the token bound no longer exists and that the flag is
+dropped in the release after this one (REQ-3730). The run holds no token bound,
+because the only total the hook can make from the transcript counts each cache
+read again (REQ-3724).
 
 The skill sets `disable-model-invocation: true`, so neither the model nor a
 scheduled task can invoke it (REQ-0894). The `UserPromptSubmit` hook,
@@ -113,16 +128,15 @@ person typed, and the `PreToolUse` hook denies any command that runs
 
 ### A run's files
 
-| File                   | Holds                                                                                                                               |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `run.toml`             | The session id, the three bounds, who started the run and when, the start's open counts and tree id, and the ending once it has one |
-| `progress/progress.md` | The file each iteration reads and writes to carry what it has done, empty at start (REQ-0882)                                       |
-| `log.jsonl`            | One line per iteration                                                                                                              |
-| `report.md`            | What the run decided, merged, released and couldn't do, which SPC-1200 states                                                       |
+| File                   | Holds                                                                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `run.toml`             | The session id, the two bounds, who started the run and when, the start's open counts and tree id, and the ending once it has one |
+| `progress/progress.md` | The file each iteration reads and writes to carry what it has done, empty at start (REQ-0882)                                     |
+| `log.jsonl`            | One line per iteration                                                                                                            |
+| `report.md`            | What the run decided, merged, released and couldn't do, which SPC-1200 states                                                     |
 
 Each line of `log.jsonl` holds the iteration number, the tree id before and
-after it, the open counts after it, whether `progress.md` changed and the
-tokens so far, so every iteration ends in a recorded state (REQ-2654,
+after it, the open counts after it, whether `progress.md` changed, so every iteration ends in a recorded state (REQ-2654,
 REQ-0892). The unit keeps the newest 20 run directories of a work tree and
 removes older ones when a run starts, and `meow-loop purge` removes them all
 (REQ-2962).
@@ -138,10 +152,7 @@ order, and the first check that holds ends the run with its ending:
    requirement doesn't count: `finished` (REQ-3704, REQ-3706, REQ-0884).
 2. The iterations done reached `--iterations`: `ceiling` (REQ-0876).
 3. The time since start reached `--hours`: `time`.
-4. The tokens the transcript's usage fields sum to, plus the largest single
-   iteration's tokens so far, exceed `--tokens`: `tokens`. Adding the largest
-   iteration checks the budget before the next iteration starts (REQ-0878).
-5. This iteration and the one before it both left the tree id, the open counts
+4. This iteration and the one before it both left the tree id, the open counts
    and `progress.md` unchanged: `stuck`, naming the counts (REQ-3710,
    REQ-0886).
 
@@ -191,7 +202,7 @@ hidden command can't make a run finish.
 
 ### Endings
 
-Every run ends in exactly one of six endings, written into `run.toml` and
+Every run ends in exactly one of five endings, written into `run.toml` and
 printed in the hook's `systemMessage` (REQ-2658):
 
 | Ending      | When                                                   |
@@ -199,7 +210,6 @@ printed in the hook's `systemMessage` (REQ-2658):
 | `finished`  | No requirement and no defect is open                   |
 | `ceiling`   | The stated number of iterations ran                    |
 | `time`      | The stated hours passed                                |
-| `tokens`    | The next iteration could pass the stated token budget  |
 | `stuck`     | Two iterations in a row changed nothing                |
 | `cancelled` | The person submitted a prompt while the run was active |
 
@@ -222,7 +232,6 @@ writes no run directory and lets the prompt through as an ordinary prompt:
 
 | State                                          | Reported as                                                                     |
 | ---------------------------------------------- | ------------------------------------------------------------------------------- |
-| A bound is missing                             | `unresolved: /meow-loop:run needs --<bound>`, once for each                     |
 | A bound isn't a number above 0 in digits       | `unresolved: --<bound> <value> is not a number above 0`                         |
 | A run is already active in this work tree      | `unresolved: a run already holds this work tree`                                |
 | The posture is unresolved                      | each line SPC-1200 gives                                                        |
