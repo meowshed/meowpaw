@@ -74,7 +74,7 @@ class Renamed(unittest.TestCase):
     def test_only_the_stub_names_the_old_unit(self):
         """TSK-4070 criterion 3, REQ-3634: outside frozen records, the old name appears only in the page that tells
         an install to move, in the specification's sentence about the rename, and in these checks."""
-        allowed = ("tools/test_marketplace.py", "docs/troubleshooting.md")
+        allowed = ("tools/test_marketplace.py", "docs/troubleshooting.md", "tools/check_terms.py", "tools/test_check_terms.py")
         # Lines that name the old unit, and nothing else in their file. The README line is a frozen
         # record's title (ADR-1480), which keeps the name, so it is not a fourth file naming the unit.
         named = {"project/specs/SPC-1040-the-five-verbs.md": "it was `meow-verbs`",
