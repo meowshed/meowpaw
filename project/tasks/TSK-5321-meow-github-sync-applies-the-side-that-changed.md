@@ -41,7 +41,7 @@ the current text of each side, and write the file as structured data.
 
 ## Evidence
 
-Pull request 885. The tests are in `plugins/meow-github/tests/test_github.py`,
+Pull request 886. The tests are in `plugins/meow-github/tests/test_github.py`,
 class `Sync`:
 
 - Criterion 1: `test_a_draft_takes_a_title_changed_on_github`.

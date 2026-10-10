@@ -33,13 +33,13 @@ it at the start and the end of an epic's work.
 
 ## Tasks
 
-- [x] T-001 TSK-5320 The mapping carries the tracker side's fingerprint (done: pull request 885)
+- [x] T-001 TSK-5320 The mapping carries the tracker side's fingerprint (done: pull request 886)
       closes: REQ-4704
       depends: nothing
-- [x] T-002 TSK-5321 `meow-github sync` applies the side that changed (done: pull request 885)
+- [x] T-002 TSK-5321 `meow-github sync` applies the side that changed (done: pull request 886)
       closes: REQ-4700, REQ-4702
       depends: TSK-5320 (blocking) - the command compares the two fingerprints
-- [x] T-003 TSK-5322 The method runs the synchronisation and the script is retired (done: pull request 885)
+- [x] T-003 TSK-5322 The method runs the synchronisation and the script is retired (done: pull request 886)
       closes: REQ-4706
       depends: TSK-5321 (blocking) - the steps name the command
 

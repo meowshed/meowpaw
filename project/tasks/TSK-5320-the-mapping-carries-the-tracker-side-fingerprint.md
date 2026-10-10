@@ -35,7 +35,7 @@ Nothing.
 
 ## Evidence
 
-Pull request 885. The tests are in `plugins/meow-github/tests/test_github.py`,
+Pull request 886. The tests are in `plugins/meow-github/tests/test_github.py`,
 class `Sync`, and in `plugins/meow-flow/tests/test_record.py`:
 
 - Criterion 1: `test_project_writes_the_tracker_fingerprint_beside_the_record_s`.
