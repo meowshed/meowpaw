@@ -2,7 +2,7 @@
 reader: someone installing or running meow-prose on Pi
 answers: what meow-prose provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-prose@0.5.1]
+describes: [@meowshed/meow-prose@0.5.2]
 ---
 
 # @meowshed/meow-prose

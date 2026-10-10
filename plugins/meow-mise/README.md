@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-mise
 answers: what meow-mise does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-mise@0.2.2]
+describes: [meow-mise@0.3.0]
 ---
 
 # meow-mise

@@ -2,7 +2,7 @@
 reader: someone installing or running meow-scm on Pi
 answers: what meow-scm provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-scm@0.5.0]
+describes: [@meowshed/meow-scm@0.6.0]
 ---
 
 # @meowshed/meow-scm
