@@ -250,22 +250,29 @@ fn in_prose(text: &str, rule: &str, span: &str) -> bool {
         .any(|(at, _)| masked.get(at..at + span.len()) == Some(span))
 }
 
-/// A file in the unit's `fragments/`. The binary sits in the unit at
-/// `bin/<target>/meow`, so the unit is three directories above it.
+/// A file in the unit's `fragments/`. The launcher names the unit in
+/// `MEOW_PROSE_GATE_UNIT`, because the shared binary sits in the core unit and
+/// not in this one. Without it the unit is three directories above the binary,
+/// which sits at `bin/<target>/meow`.
 fn fragment(name: &str) -> Result<String, String> {
-    let exe = std::env::current_exe()
-        .and_then(std::fs::canonicalize)
-        .map_err(|error| format!("the gate could not find its own unit: {error}"))?;
-    let path = exe
-        .ancestors()
-        .nth(3)
-        .map(|unit| unit.join("fragments").join(name))
-        .ok_or_else(|| {
-            format!(
-                "the gate could not find its own unit from {}",
-                exe.display()
-            )
-        })?;
+    let unit = match std::env::var_os("MEOW_PROSE_GATE_UNIT") {
+        Some(named) => std::path::PathBuf::from(named),
+        None => {
+            let exe = std::env::current_exe()
+                .and_then(std::fs::canonicalize)
+                .map_err(|error| format!("the gate could not find its own unit: {error}"))?;
+            exe.ancestors()
+                .nth(3)
+                .map(std::path::Path::to_path_buf)
+                .ok_or_else(|| {
+                    format!(
+                        "the gate could not find its own unit from {}",
+                        exe.display()
+                    )
+                })?
+        }
+    };
+    let path = unit.join("fragments").join(name);
     std::fs::read_to_string(&path)
         .map_err(|error| format!("the judge's {} could not be read: {error}", path.display()))
 }

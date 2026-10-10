@@ -7,11 +7,13 @@
 A unit comes to depend on another by running its files, so the check reads
 every file a unit ships and fails on a path that leaves the unit's directory,
 through `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_SKILL_DIR}` or a climb into a
-sibling, and on a path into another unit's directory. Naming another unit in
+sibling, and on a path into another unit's directory. A unit that lists
+`meow-core` under `dependencies` may reach the core unit and no other (REQ-4502). Naming another unit in
 prose, as something to install, is allowed. Measurement cases and fixtures
 aren't shipped behaviour, so they are skipped.
 """
 
+import json
 import os
 import re
 import sys
@@ -23,6 +25,18 @@ VARIABLE = re.compile(r"\$\{?(CLAUDE_PLUGIN_ROOT|CLAUDE_SKILL_DIR)\}?((?:/[^\s\"
 SIBLING = re.compile(r"plugins/(meow-[a-z-]+)|\.\./(meow-[a-z-]+)/")
 # An address is a link a reader follows, and runs no file of the unit it names.
 ADDRESS = re.compile(r"https?://\S+")
+
+
+CORE = "meow-core"
+
+
+def declared_dependencies(unit: Path) -> list[str]:
+    """The names a unit lists under `dependencies` in its manifest, or none where it has no manifest."""
+    try:
+        manifest = json.loads((unit / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return [e if isinstance(e, str) else str(e.get("name")) for e in manifest.get("dependencies", [])]
 
 
 def findings(plugins: Path) -> tuple[list[str], int]:
@@ -38,6 +52,7 @@ def findings(plugins: Path) -> tuple[list[str], int]:
                 continue
             checked += 1
             shown = path.relative_to(plugins.parent)
+            declared = declared_dependencies(unit)
             for number, line in enumerate(text.splitlines(), start=1):
                 for match in VARIABLE.finditer(line):
                     if match.group(1) == "CLAUDE_PLUGIN_ROOT":
@@ -52,7 +67,13 @@ def findings(plugins: Path) -> tuple[list[str], int]:
                         out.append(f"{shown}:{number}: reaches outside {unit.name}: {match.group(0)}")
                 for match in SIBLING.finditer(ADDRESS.sub("", line)):
                     other = match.group(1) or match.group(2)
-                    if other != unit.name:
+                    if other == unit.name:
+                        continue
+                    if other == CORE and CORE in declared:
+                        continue
+                    if other == CORE:
+                        out.append(f"{shown}:{number}: runs a file of {other} without declaring it under dependencies")
+                    else:
                         out.append(f"{shown}:{number}: runs a file of {other}, another unit")
     return out, checked
 

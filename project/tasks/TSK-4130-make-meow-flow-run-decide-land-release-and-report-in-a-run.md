@@ -1,7 +1,7 @@
 ---
 id: TSK-4130
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2300
 closes:
@@ -72,7 +72,25 @@ budget within `plugins/meow-flow/budget.toml`. Bump `meow-flow` as a `feat`.
 
 ## Evidence
 
-Not yet.
+Pull request 881. The fixtures are in `plugins/meow-flow/tests/test_run_skill.py`,
+class `RunSkill`:
+
+- Criterion 1:
+  `test_a_run_is_recognised_by_its_frozen_prompt_and_decides_without_asking`.
+- Criterion 2:
+  `test_a_separate_agent_critiques_before_the_approval_is_written`.
+- Criterion 3:
+  `test_the_run_merges_after_the_checks_and_releases_only_the_declared_command`.
+- Criterion 4: `test_each_decision_appends_a_line_to_the_report`.
+- Criterion 5:
+  `test_the_next_block_is_one_topic_with_neighbouring_identifiers`.
+- Criterion 6: `test_fetched_material_is_data`.
+
+Criterion 7 rests on judgement, as the task says: the evals under
+`plugins/meow-flow/evals` run by hand, and `test_outside_a_run_the_attended_steps_stay`
+only shows that the attended steps are still in the file. No eval was run.
+The skill's description is unchanged, so `meow-flow` stays at 818 of 820
+characters on every turn.
 
 ## Left alone
 
