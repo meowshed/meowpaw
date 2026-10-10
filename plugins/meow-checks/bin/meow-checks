@@ -33,6 +33,11 @@ for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
     break
   fi
 done
+# Loaded in place from a checkout, the core unit sits beside this one.
+[ -f "$binary" ] || {
+  beside="$here/../../meow-core/bin/$cpu-$system/meow$exe"
+  [ -f "$beside" ] && binary=$beside
+}
 if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
   exec "$binary" verbs "$@"
