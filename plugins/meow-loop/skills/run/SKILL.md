@@ -1,6 +1,6 @@
 ---
 name: run
-description: Starts a run inside this session that repeats `/meow-flow:run` until the record holds no open work or a bound is reached. A person types it with --iterations, --hours and --tokens.
+description: Starts a run inside this session that repeats `/meow-flow:run` until the record holds no open work or a bound is reached. A person types it, optionally with --iterations and --hours.
 disable-model-invocation: true
 ---
 

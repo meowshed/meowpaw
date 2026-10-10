@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: how a person starts a run in the session, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.13.0]
+describes: [meow-loop@0.14.0]
 ---
 
 # meow-loop
@@ -11,8 +11,8 @@ describes: [meow-loop@0.13.0]
 type its command, so one session holds the whole run and no second terminal is
 involved. `/meow-loop:run` repeats `/meow-flow:run` after every turn until the
 record holds no open requirement and no open defect, the number of iterations
-you gave has run, the hours you gave have passed, the tokens you gave would be
-passed by the next iteration, or two iterations in a row change nothing. A
+you gave has run, the hours you gave have passed, or two iterations in a row
+change nothing. A
 program in three hooks holds the run, so nothing the model prints or writes
 extends it, and it decides every ending from the record and the transcript.
 
@@ -34,12 +34,17 @@ claude plugin install meow-loop@meowpaw
 Only a person starts a run, by typing the command in the session:
 
 ```text
-/meow-loop:run --iterations 5 --hours 2 --tokens 2000000
+/meow-loop:run --iterations 5 --hours 2
 ```
 
-All three bounds are required, because a loop with a bound missing stops only
-when you notice it. `--iterations` and `--tokens` are integers of 1 or more,
-`--hours` a number above 0, each written in digits. The model can't start a
+Each bound has a default, so `/meow-loop:run` alone runs up to 10 iterations
+and 4 hours. `--iterations` is an integer of 1 or more and `--hours` a number
+above 0, each written in digits. The start message names the bounds the run is
+held to and marks each default. A run has no token bound: the only total a hook
+can make from the transcript counts every cache read again and begins with the
+session, so it ended runs at the first iteration. A command that still names
+`--tokens` starts the run and says the flag holds nothing, and the flag is
+dropped in the release after this one. The model can't start a
 run: the skill sets `disable-model-invocation`, a hook reads what you typed,
 and the guard denies any command that names `meow-loop`. Any prompt you submit
 while a run is active cancels it with the ending `cancelled`, because the
