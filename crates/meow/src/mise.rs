@@ -54,27 +54,27 @@ const HELP: [crate::help::Entry; 3] = [
         name: "status",
         determines: "which mise tasks resolve in this work tree",
         by_hand: "run `mise tasks ls` in the repository's root and read the `mise.toml` it names",
-        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        lines: "meow-mise mise: unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
         json: "",
     },
     crate::help::Entry {
         name: "bind",
         determines: "the `[stages]` lines that bind each stage to a mise task",
-        by_hand: "match each stage name with a task of that name in `mise.toml` and write the `mise run` command for it",
-        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        by_hand: "match each stage name with a task of that name in `mise.toml` and write `mise run --force <task>` for it",
+        lines: "meow-mise unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
         json: "",
     },
     crate::help::Entry {
         name: "check",
         determines: "whether each stage's mise task can run and isn't skipped as fresh",
         by_hand: "read each stage's command in the profile, find the task it runs and read its `sources`, `outputs` and `depends`",
-        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        lines: "meow-mise format: lint: check: test: build: unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
         json: "",
     },
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("mise", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-mise", &HELP, args) {
         return code;
     }
     match args

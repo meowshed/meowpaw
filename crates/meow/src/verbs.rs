@@ -1078,34 +1078,34 @@ const HELP: [crate::help::Entry; 6] = [
         name: "status",
         determines: "how each of the five stages resolves from the profile, and from where",
         by_hand: "read the `[stages]` table of `.meowpaw/profile.toml`, then `.meowpaw/profile.local.toml` for a command it overrides",
-        lines: "meow-checks profile: format lint check test build subset notice:",
+        lines: "meow-checks profile: unknown personal format lint check test build subset notice:",
         json: "profile profile_state error notices unknown verbs",
     },
     crate::help::Entry {
         name: "run",
         determines: "the result of each stage the profile binds, run in order, and records it",
         by_hand: "run each stage's command from the profile's `[stages]` table from the repository's root and read its exit status",
-        lines: "profile: == passed, failed, interrupted summary: recorded: notice: pruned not",
+        lines: "profile: unknown personal == -- passed, failed, interrupted summary: recorded: notice: pruned not",
         json: "",
     },
     crate::help::Entry {
         name: "evidence",
         determines: "whether each stage has a record of a whole run that is current at this tree",
-        by_hand: "run each stage again at this tree, because the ledger `meow-checks state` names holds only the earlier records",
-        lines: "format: lint: check: test: build: no",
+        by_hand: "read the ledger file `meow-checks state` names, where each line is one record with its stage, its result and the tree it ran at, and compare that tree with `meow-checks tree HEAD`",
+        lines: "format: lint: check: test: build: no ==",
         json: "",
     },
     crate::help::Entry {
         name: "state",
         determines: "where the evidence ledger is and what it holds",
         by_hand: "read the ledger file `meow-checks state` names, which holds one JSON record on each line, and count them",
-        lines: "ledger: records: oldest: newest: lock: purged",
+        lines: "ledger: records: oldest: newest: lock: purged state no",
         json: "",
     },
     crate::help::Entry {
         name: "tree",
-        determines: "the hash of the working tree a stage ran at",
-        by_hand: "run `git write-tree` over a temporary index of the working tree, which is what the ledger binds a record to",
+        determines: "the tree a commit names",
+        by_hand: "run `git rev-parse <commit>^{tree}`",
         lines: "<hash>",
         json: "",
     },
@@ -1119,7 +1119,7 @@ const HELP: [crate::help::Entry; 6] = [
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("verbs", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-checks", &HELP, args) {
         return code;
     }
     let root = profile::repository_root();

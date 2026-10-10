@@ -33,36 +33,36 @@ const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] |
 const HELP: [crate::help::Entry; 4] = [
     crate::help::Entry {
         name: "history",
-        determines: "the issues and pull requests of one repository on the code host, read back",
-        by_hand: "list the repository's issues and pull requests on the code host, with the `gh` tool or its web page",
-        lines: "credential: meow-github primary secondary content spacing { }",
-        json: "repository issues",
+        determines: "the issues, pull requests and comments of one repository on the code host, read back",
+        by_hand: "list the repository's issues, pull requests, conversation comments and review comments on the code host, with the `gh` tool or its web page",
+        lines: "credential: meow-github primary secondary content spacing: read",
+        json: "repository issues comments review_comments credential budget",
     },
     crate::help::Entry {
         name: "project",
         determines: "where each task of an epic, decision or defect stands as an issue, and creates the missing ones",
         by_hand: "read each task's `issue:` and the tracker's issue it names, and create the issue a task lacks",
-        lines: "credential: meow-github primary secondary content spacing <id> <text>",
+        lines: "credential: meow-github primary secondary content spacing: partial: <id>",
         json: "",
     },
     crate::help::Entry {
         name: "sync",
         determines: "what changed on the tracker since the last projection, written back into the record",
         by_hand: "compare each issue's title, state and body with its task's record, and copy a change to the record",
-        lines: "credential: meow-github primary secondary content spacing <id> <text>",
+        lines: "credential: meow-github primary secondary content spacing: partial: <id>",
         json: "",
     },
     crate::help::Entry {
         name: "governance-guard",
         determines: "whether a tool call would change the repository's governance on the code host",
         by_hand: "read the command a hook is about to run for a call that edits branch protection, rulesets or secrets",
-        lines: "{ <text>",
-        json: "",
+        lines: "<json>",
+        json: "hookSpecificOutput",
     },
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("github", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-github", &HELP, args) {
         return code;
     }
     let Some((command, rest)) = args.split_first() else {

@@ -258,7 +258,7 @@ pub fn main(args: &[String]) -> u8 {
         return CLEAN;
     }
     match COMMANDS.iter().find(|command| command.name == verb) {
-        Some(command) if rest.iter().any(|arg| arg == "--help") => {
+        Some(command) if rest.first().map(String::as_str) == Some("--help") => {
             print_help(command);
             CLEAN
         }

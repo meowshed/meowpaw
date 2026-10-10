@@ -29,12 +29,12 @@ const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
     name: "check",
     determines: "whether every tracked file carries the licensing the repository declares",
     by_hand: "read `REUSE.toml`, then each tracked file's header, for the licence and copyright lines the declaration requires",
-    lines: "meow-licence <path> <count> <text>",
+    lines: "meow-licence <path> <count>",
     json: "",
 }];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("licence", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-licence", &HELP, args) {
         return code;
     }
     match args {

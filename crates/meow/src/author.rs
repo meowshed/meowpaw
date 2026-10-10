@@ -37,20 +37,20 @@ const HELP: [crate::help::Entry; 2] = [
         name: "check",
         determines: "whether each skill, agent, output style and prompt hook follows the authoring rules",
         by_hand: "read each file against the rules of the `write` skill of `meow-author`",
-        lines: "meow-author <path> <count> <text>",
+        lines: "meow-author <path> <count>",
         json: "",
     },
     crate::help::Entry {
         name: "cost",
         determines: "the characters each unit loads on every turn against the budget it states",
         by_hand: "count the characters of each skill and agent description and output style a unit loads, and compare with its `budget.toml`",
-        lines: "<unit>: How <count> <text>",
+        lines: "meow-author <unit>: <path> <count> How",
         json: "",
     },
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("author", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-author", &HELP, args) {
         return code;
     }
     match args.split_first() {

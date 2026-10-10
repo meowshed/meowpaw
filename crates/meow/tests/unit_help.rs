@@ -180,10 +180,10 @@ fn lines(bytes: &[u8]) -> Vec<String> {
 }
 
 /// The subcommands `meow <unit> --help` lists, one a line.
-fn listed(dir: &Path, state: &Path, unit: &str) -> Vec<String> {
+fn listed(dir: &Path, state: &Path, unit: &str, binary: &str) -> Vec<String> {
     let help = meow(dir, state, &[unit, "--help"], "");
     assert!(help.status.success(), "meow {unit} --help failed: {help:?}");
-    let prefix = format!("meow {unit} ");
+    let prefix = format!("{binary} ");
     lines(&help.stdout)
         .iter()
         .filter_map(|line| line.strip_prefix(&prefix))
@@ -217,9 +217,11 @@ fn stated(word: &str, kinds: &[&str]) -> bool {
                 && number.chars().all(|c| c.is_ascii_digit())
         }
         "<count>" => !bare.is_empty() && bare.chars().all(|c| c.is_ascii_digit()),
-        "<path>" => bare.contains('/') || bare.contains('.'),
+        "<path>" => bare.contains('/') || bare.contains('.') || word.ends_with(':'),
         "<hash>" => bare.len() >= 7 && bare.chars().all(|c| c.is_ascii_hexdigit()),
         "<unit>:" => word.ends_with(':') && word.starts_with("meow-"),
+        // A line that is a JSON object is held to its keys in `held`.
+        "<json>" => word.starts_with('{'),
         "<text>" => !word.is_empty(),
         placeholder if placeholder.starts_with('<') => {
             panic!("the help states a placeholder this test can't check: {placeholder}")
@@ -236,6 +238,8 @@ fn held(dir: &Path, state: &Path, unit: &str, args: &[&str], input: &str) -> (Ou
     let kinds = help_value(dir, state, unit, name, "lines")
         .unwrap_or_else(|| panic!("meow {unit} {name} --help states no `lines:` line"));
     let kinds: Vec<&str> = kinds.split_whitespace().collect();
+    let json = help_value(dir, state, unit, name, "json").unwrap_or_default();
+    let json: Vec<&str> = json.split_whitespace().collect();
     let mut all = vec![unit];
     all.extend_from_slice(args);
     let output = meow(dir, state, &all, input);
@@ -256,6 +260,29 @@ fn held(dir: &Path, state: &Path, unit: &str, args: &[&str], input: &str) -> (Ou
         let Some(word) = line.split_whitespace().next() else {
             continue;
         };
+        if kinds.contains(&"<json>") && word.starts_with('{') {
+            match serde_json::from_str::<serde_json::Value>(line) {
+                Ok(value) => {
+                    for key in value.as_object().into_iter().flat_map(|o| o.keys()) {
+                        if !json.contains(&key.as_str()) {
+                            MISSING.with(|m| {
+                                m.borrow_mut().push(format!(
+                                    "meow {unit} {}: the key {key:?} in {line:?}",
+                                    args.join(" ")
+                                ))
+                            });
+                        }
+                    }
+                }
+                Err(_) => MISSING.with(|m| {
+                    m.borrow_mut().push(format!(
+                        "meow {unit} {}: {line:?} isn't a JSON object",
+                        args.join(" ")
+                    ))
+                }),
+            }
+            continue;
+        }
         if !stated(word, &kinds) {
             MISSING.with(|m| {
                 m.borrow_mut().push(format!(
@@ -274,7 +301,7 @@ fn held(dir: &Path, state: &Path, unit: &str, args: &[&str], input: &str) -> (Ou
 fn every_subcommand_names_what_a_person_reads_in_its_place() {
     let (dir, state) = fixture("by-hand");
     for (unit, binary) in UNITS {
-        let names = listed(&dir.0, &state, unit);
+        let names = listed(&dir.0, &state, unit, binary);
         assert!(!names.is_empty(), "meow {unit} --help lists nothing");
         for name in &names {
             let by_hand = help_value(&dir.0, &state, unit, name, "by hand")
@@ -288,6 +315,36 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
             assert!(
                 !kinds.trim().is_empty(),
                 "meow {unit} {name}: the `lines:` line states no first word"
+            );
+        }
+        // The parser's own list: the string literals its `match` names.
+        let source = std::fs::read_to_string(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("src")
+                .join(if unit == "loop" { "runloop" } else { unit })
+                .with_extension("rs"),
+        )
+        .unwrap();
+        let main = &source[source.find("pub fn main(args").unwrap()..];
+        let main = &main[..main.find("\n}\n").unwrap()];
+        let arms = main
+            .lines()
+            .filter(|line| line.contains("=>") || line.contains("Some(\"") || line.contains("=="))
+            .flat_map(|line| line.split('"').skip(1).step_by(2).map(str::to_string))
+            .filter(|word| {
+                !word.is_empty()
+                    && word.starts_with(|c: char| c.is_ascii_lowercase())
+                    && word.chars().all(|c| c.is_ascii_lowercase() || c == '-')
+                    && !word.starts_with("meow")
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        for word in &arms {
+            if matches!(word.as_str(), "usage" | "help") {
+                continue;
+            }
+            assert!(
+                names.contains(word),
+                "meow {unit}: the parser names {word}, and `--help` doesn't list it ({names:?})"
             );
         }
         // The usage line is the parser's own list of what it accepts.
@@ -358,6 +415,75 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "markdown", &["links", "README.md"], "");
     held(d, s, "unattended", &["plan"], "");
     held(d, s, "loop", &["purge"], "");
+    held(d, s, "loop", &["start", "--step", "implement"], "");
+    none_missing();
+}
+
+/// REQ-1184: the hooks answer in JSON, and each object holds to the keys the
+/// help states.
+#[test]
+fn a_hook_answers_with_the_keys_its_help_states() {
+    let (dir, state) = fixture("hooks");
+    let (d, s) = (&dir.0, &state);
+    let cwd = d.display().to_string();
+    let event = |name: &str, extra: &str| {
+        format!(
+            "{{\"hook_event_name\":\"{name}\",\"session_id\":\"s1\",\"cwd\":{},{extra}}}",
+            serde_json::to_string(&cwd).unwrap()
+        )
+    };
+    let bash = |command: &str| {
+        event(
+            "PreToolUse",
+            &format!(
+                "\"tool_name\":\"Bash\",\"tool_input\":{{\"command\":{}}}",
+                serde_json::to_string(command).unwrap()
+            ),
+        )
+    };
+    let (_, said) = held(
+        d,
+        s,
+        "github",
+        &["governance-guard"],
+        &bash("gh api -X PUT repos/o/r/branches/main/protection"),
+    );
+    assert_eq!(said.len(), 1, "{said:?}");
+    let (_, said) = held(
+        d,
+        s,
+        "loop",
+        &["prompt"],
+        &event("UserPromptSubmit", "\"prompt\":\"/meow-loop:run go\""),
+    );
+    assert_eq!(said.len(), 1, "{said:?}");
+    held(d, s, "loop", &["guard"], &bash("git push origin main"));
+    held(
+        d,
+        s,
+        "loop",
+        &["stop"],
+        &event("Stop", "\"stop_hook_active\":false"),
+    );
+    held(
+        d,
+        s,
+        "prose",
+        &["check"],
+        &bash(&format!("git comm{}it -m \"feat: add a thing\"", "")),
+    );
+    none_missing();
+}
+
+/// REQ-1184: the unit's refusals when it is not in a repository it serves,
+/// and a tracker the profile doesn't declare, open with stated words.
+#[test]
+fn the_tracker_commands_refuse_with_stated_first_words() {
+    let (dir, state) = fixture("tracker");
+    let (d, s) = (&dir.0, &state);
+    held(d, s, "github", &["history"], "");
+    held(d, s, "github", &["project", "EPC-0001"], "");
+    held(d, s, "github", &["sync", "EPC-0001"], "");
     none_missing();
 }
 

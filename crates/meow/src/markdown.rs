@@ -57,34 +57,34 @@ const HELP: [crate::help::Entry; 4] = [
         name: "status",
         determines: "how Markdown is configured in this repository",
         by_hand: "list the tracked `.md` files and the markdownlint, prettier and render-target files beside them",
-        lines: "meow-markdown profile: unresolved: markdown render markdownlint other <path> # <text>",
+        lines: "meow-markdown profile: unresolved: markdown render markdownlint other lychee <path>",
         json: "",
     },
     crate::help::Entry {
         name: "bind",
         determines: "the `[stages]` lines that bind each stage to a Markdown tool the repository configures",
         by_hand: "match each configuration file with the tool that reads it, and write that tool's command for its stage",
-        lines: "meow-markdown profile: unresolved: # <text> [stages] format lint test build check",
+        lines: "meow-markdown profile: unresolved: # [stages] format lint test build",
         json: "",
     },
     crate::help::Entry {
         name: "check",
         determines: "whether the Markdown configuration files agree with each other",
         by_hand: "read each markdownlint configuration and the render target against the skill's rules",
-        lines: "meow-markdown profile: unresolved: <path> <text> no every",
+        lines: "meow-markdown profile: unresolved: <path> no markdownlint link skipped,",
         json: "",
     },
     crate::help::Entry {
         name: "links",
         determines: "whether each link in the given files resolves",
         by_hand: "open each link in the files, with `lychee` where it is installed",
-        lines: "meow-markdown profile: unresolved: tool skipped, every no lychee <path> <text>",
+        lines: "meow-markdown profile: unresolved: tool skipped, every no findings: unreachable, unresolved, <path>",
         json: "",
     },
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("markdown", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-markdown", &HELP, args) {
         return code;
     }
     match args

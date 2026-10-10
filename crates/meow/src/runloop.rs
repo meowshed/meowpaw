@@ -2056,43 +2056,43 @@ fn names_the_runner(command: &str) -> bool {
 const HELP: [crate::help::Entry; 5] = [
     crate::help::Entry {
         name: "start",
-        determines: "that the terms of a run are refused, because a run now starts in the session with `/meow-loop:run`",
-        by_hand: "type `/meow-loop:run` in the session",
-        lines: "meow-loop usage: unresolved:",
+        determines: "the whole run of a step from a terminal, which the session's `/meow-loop:run` replaces",
+        by_hand: "type `/meow-loop:run` in the session, or run `/meow-flow:run` again until `paw status` names nothing to do",
+        lines: "meow-loop usage: unresolved: run removed step iteration not the two format: lint: check: test: build: <text>",
         json: "",
     },
     crate::help::Entry {
         name: "guard",
-        determines: "whether a tool call of a run is allowed, from the posture",
+        determines: "whether a tool call of a run is denied by its posture",
         by_hand: "read the run's `[unattended]` posture and the command the hook is about to run",
-        lines: "<text>",
-        json: "",
+        lines: "<json>",
+        json: "hookSpecificOutput",
     },
     crate::help::Entry {
         name: "prompt",
-        determines: "the prompt a run repeats in its next iteration",
-        by_hand: "read `run.toml` and `progress/progress.md` of the run under the state directory",
-        lines: "<text>",
-        json: "",
+        determines: "that `/meow-loop:run` starts a run in the session, or that another prompt cancels the active one",
+        by_hand: "type `/meow-loop:run` in the session, which writes the run's files under the state directory",
+        lines: "<json>",
+        json: "hookSpecificOutput systemMessage",
     },
     crate::help::Entry {
         name: "stop",
         determines: "whether the run in this session ends now, from its record",
         by_hand: "read the run's `log.jsonl` against its bounds and the record's open count",
-        lines: "<text>",
-        json: "",
+        lines: "<json>",
+        json: "decision reason systemMessage",
     },
     crate::help::Entry {
         name: "purge",
-        determines: "that the state of ended runs is removed",
-        by_hand: "remove the run directories under the state directory whose `run.toml` has an `ending`",
-        lines: "removed",
+        determines: "that the state of every run of this work tree is removed",
+        by_hand: "remove the run directories of this work tree under the state directory",
+        lines: "removed unresolved:",
         json: "",
     },
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("loop", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-loop", &HELP, args) {
         return code;
     }
     match args.split_first() {

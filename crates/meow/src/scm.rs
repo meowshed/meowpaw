@@ -457,20 +457,20 @@ const HELP: [crate::help::Entry; 2] = [
         name: "convention",
         determines: "the commit convention the profile declares",
         by_hand: "read the `[commits]` and `[commits.types]` tables of `.meowpaw/profile.toml`",
-        lines: "profile: meow-scm type subject trailers may malformed convention:",
+        lines: "profile: unknown personal meow-scm type subject trailers may malformed",
         json: "",
     },
     crate::help::Entry {
         name: "check-message",
-        determines: "whether a commit message meets the convention and names no tool",
-        by_hand: "read the message against each type, the subject limit and the trailers `meow-scm convention` lists",
-        lines: "profile: meow-scm line sign-off",
+        determines: "whether a commit message meets the convention and credits no tool, agent or vendor",
+        by_hand: "read the message against each type, the subject limit and the trailers `meow-scm convention` lists, the sign-off against `git config user.name`, and the text for a credit to a tool, an agent or a vendor",
+        lines: "profile: unknown personal meow-scm line sign-off convention:",
         json: "",
     },
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("scm", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-scm", &HELP, args) {
         return code;
     }
     let root = profile::repository_root();

@@ -412,15 +412,15 @@ const HELP: [crate::help::Entry; 2] = [
     },
     crate::help::Entry {
         name: "push-guard",
-        determines: "whether each commit a push would publish meets the convention and carries a good signature",
-        by_hand: "run `git log` over the commits the push would publish and read each against the convention",
-        lines: "meow-git <hash> line",
+        determines: "whether each commit a push would publish meets the convention, and where `require_signatures` is true carries a good signature, and whether a branch name carries a stored credential",
+        by_hand: "run `git log` over the commits the push would publish and read each against `meow-scm check-message`, `git log --show-signature` and the branch's name",
+        lines: "meow-git",
         json: "",
     },
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("git", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-git", &HELP, args) {
         return code;
     }
     let name = match args {

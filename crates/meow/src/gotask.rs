@@ -50,27 +50,27 @@ const HELP: [crate::help::Entry; 3] = [
         name: "status",
         determines: "which Task tasks resolve in this work tree",
         by_hand: "run `task --list` in the repository's root and read the `Taskfile.yml` it names",
-        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        lines: "meow-gotask unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
         json: "",
     },
     crate::help::Entry {
         name: "bind",
         determines: "the `[stages]` lines that bind each stage to a Task task",
-        by_hand: "match each stage name with a task of that name in the Taskfile and write the `task` command for it",
-        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        by_hand: "match each stage name with a task of that name in the Taskfile and write `task --force <task>` for it",
+        lines: "meow-gotask unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
         json: "",
     },
     crate::help::Entry {
         name: "check",
         determines: "whether each stage's Task task can run and isn't skipped as fresh",
         by_hand: "read each stage's command in the profile, find the task it runs and read its `sources`, `generates` and `deps`",
-        lines: "<unit>: unresolved: nothing profile: [stages] # <text> blocked: <count> tasks listing trust: mise: task: <path>",
+        lines: "meow-gotask format: lint: check: test: build: unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
         json: "",
     },
 ];
 
 pub fn main(args: &[String]) -> u8 {
-    if let Some(code) = crate::help::answer("gotask", &HELP, args) {
+    if let Some(code) = crate::help::answer("meow-gotask", &HELP, args) {
         return code;
     }
     match args
