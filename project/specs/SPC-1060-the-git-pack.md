@@ -2,12 +2,16 @@
 id: SPC-1060
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-10
 states:
   [
     REQ-0079,
     REQ-1292,
-    REQ-1296,
+    REQ-4400,
+    REQ-4402,
+    REQ-4404,
+    REQ-4406,
+    REQ-4408,
     REQ-1298,
     REQ-1306,
     REQ-1312,
@@ -162,12 +166,12 @@ author, which the push guard holds (REQ-2818); a line added to the record
 cites a pull request, never a commit hash, which `paw check frozen`
 holds (REQ-3176); and every read of source control runs with prompting,
 paging, advice and machine-wide configuration off (REQ-2526, REQ-2528). The
-`commit` skill carries the rest: one task, one branch, one pull request and
-one squashed commit on the trunk; short-lived branches from the one trunk; no
+`commit` skill carries the rest: one epic or defect, one branch, one pull
+request and one squashed commit on the trunk; short-lived branches from the one trunk; no
 merge, tag, release or publish without an instruction; one branch in one
 working tree, a locked tree with its reason; a grown branch split; a force
 push over a reviewed branch disclosed; and every commit signed and signed off
-where the repository asks (REQ-1296, REQ-1298, REQ-1306, REQ-1320, REQ-1322,
+where the repository asks (REQ-4400, REQ-4402, REQ-4404, REQ-1298, REQ-1306, REQ-1320, REQ-1322,
 REQ-1324, REQ-1328, REQ-2534, REQ-2536, REQ-2538, REQ-2820, REQ-2822) (ADR-1320).
 
 Every commit reaching the trunk leaves it building with its checks passing
