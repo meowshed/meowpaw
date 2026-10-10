@@ -38,7 +38,7 @@ Nothing.
 
 ## Evidence
 
-Pull request 884. The tests are in `plugins/meow-flow/tests/test_record.py`,
+Pull request 885. The tests are in `plugins/meow-flow/tests/test_record.py`,
 class `WriteCommands`:
 
 - Criterion 1: `test_approve_changes_the_status_line_and_nothing_else`.

@@ -37,7 +37,7 @@ pull request number as the person gave it.
 
 ## Evidence
 
-Pull request 884. The tests are in `plugins/meow-flow/tests/test_record.py`,
+Pull request 885. The tests are in `plugins/meow-flow/tests/test_record.py`,
 class `WriteCommands`:
 
 - Criterion 1: `test_done_closes_the_task_its_epic_and_the_decision` and
