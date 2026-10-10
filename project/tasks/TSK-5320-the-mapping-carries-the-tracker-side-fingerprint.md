@@ -1,7 +1,7 @@
 ---
 id: TSK-5320
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2810
 closes: [REQ-4704]
@@ -35,7 +35,20 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 885. The tests are in `plugins/meow-github/tests/test_github.py`,
+class `Sync`, and in `plugins/meow-flow/tests/test_record.py`:
+
+- Criterion 1: `test_project_writes_the_tracker_fingerprint_beside_the_record_s`.
+- Criterion 2: `test_a_mapping_with_the_record_side_only_gains_the_tracker_side`.
+- The frozen check allows the new field after approval:
+  `test_a_task_may_gain_the_tracker_side_fingerprint`.
+
+The mapping is read in both forms: a task with `projected:` alone is judged by
+its title and body against `projected:`, and gains `tracked:` at the next
+`project` or `sync`. The older single-field form is read until the second
+release after 0.15.0 of `meow-github`, which drops that fallback. Two older
+tests asserted that the front matter ends at `projected:`, and a commit of its
+own makes them accept `tracked:` after it.
 
 ## Left alone
 

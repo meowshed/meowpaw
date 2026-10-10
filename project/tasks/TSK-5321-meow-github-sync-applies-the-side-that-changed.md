@@ -1,7 +1,7 @@
 ---
 id: TSK-5321
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2810
 closes: [REQ-4700, REQ-4702]
@@ -41,7 +41,21 @@ the current text of each side, and write the file as structured data.
 
 ## Evidence
 
-Not yet.
+Pull request 885. The tests are in `plugins/meow-github/tests/test_github.py`,
+class `Sync`:
+
+- Criterion 1: `test_a_draft_takes_a_title_changed_on_github`.
+- Criterion 2: `test_a_title_changed_in_the_record_only_updates_the_issue`.
+- Criterion 3: `test_where_both_sides_changed_the_record_wins`.
+- Criterion 4: `test_an_approved_task_is_never_reworded_from_the_tracker`.
+- Criterion 5:
+  `test_an_issue_closed_on_the_tracker_marks_a_task_whose_evidence_is_written`.
+- `--check` writes nothing: `test_check_writes_nothing`.
+
+The command writes a title only. A body is derived from a task's closes and
+dependencies, so a body edited on the tracker is not written into the record
+and the record's body goes back to the issue, which the unit's page states.
+The tests run against the stand-in for `gh` and make no network call.
 
 ## Left alone
 

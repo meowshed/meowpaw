@@ -1,7 +1,7 @@
 ---
 id: TSK-5322
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2810
 closes: [REQ-4706]
@@ -34,7 +34,15 @@ with its mentions.
 
 ## Evidence
 
-Not yet.
+Pull request 885. The tests are in `plugins/meow-flow/tests/test_record.py`,
+class `SynchronisationStep`:
+
+- Criterion 1: `test_the_implement_step_runs_the_synchronisation_at_its_start_and_its_end`,
+  for the plugin copy and the package copy.
+- Criterion 2: `test_the_script_the_pack_replaces_is_gone_and_unnamed`.
+
+A pattern in the first test stopped at a line break and could match no
+wrapped rule, and a commit of its own corrects it.
 
 ## Left alone
 
