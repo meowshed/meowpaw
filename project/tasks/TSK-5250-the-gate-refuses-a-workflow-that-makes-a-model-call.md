@@ -1,7 +1,7 @@
 ---
 id: TSK-5250
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 realises: ADR-2840
 closes: [REQ-3035]
@@ -42,7 +42,16 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 871. The tests are in `tools/test_check_workflows.py`:
+
+- Criterion 1: `test_a_step_that_runs_the_suite_fails_naming_its_line`.
+- Criterion 2: `test_a_model_credential_as_an_env_key_fails_naming_its_line` and
+  `test_a_model_credential_inside_a_value_fails_naming_its_line`.
+- Criterion 3: `test_this_repository_s_workflows_pass`, which ran unchanged.
+
+`meow-checks run format lint check test build` passed on every verb at one
+tree. The first `lint` run reported `unchecked` because the new worktree had
+no `meow-licence` binary until `build` made it, and the second run passed.
 
 ## Left alone
 
