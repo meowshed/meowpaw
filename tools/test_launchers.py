@@ -76,6 +76,25 @@ class Launchers(unittest.TestCase):
                 done = self.run_launcher(launcher, shared=True)
                 self.assertIn("shared:", done.stdout + done.stderr, done.stdout + done.stderr)
 
+    def test_a_launcher_finds_the_core_unit_beside_it_in_a_checkout(self):
+        """TSK-5302, REQ-4504: loaded in place, a unit finds `plugins/meow-core` beside it with no data file."""
+        for launcher in LAUNCHERS:
+            with self.subTest(launcher=launcher.name):
+                shutil.rmtree(self.base, ignore_errors=True)
+                plugins = self.base / "plugins"
+                (plugins / launcher.parent.parent.name / "bin").mkdir(parents=True)
+                copy = plugins / launcher.parent.parent.name / "bin" / launcher.name
+                shutil.copy(launcher, copy)
+                copy.chmod(0o755)
+                binary = plugins / "meow-core" / "bin" / target() / "meow"
+                binary.parent.mkdir(parents=True)
+                binary.write_text('#!/bin/sh\necho "shared: $*"\n')
+                binary.chmod(0o755)
+                sub = self.subcommands(launcher)[0]
+                env = {"PATH": os.environ["PATH"], "HOME": str(self.base / "home")}
+                done = subprocess.run([str(copy), sub], input="", capture_output=True, text=True, env=env)
+                self.assertIn("shared:", done.stdout + done.stderr, done.stdout + done.stderr)
+
     def test_a_launcher_with_no_binary_names_the_core_unit(self):
         """TSK-5301 criterion 3, REQ-4506: with no data file and no binary, each reports and names meow-core."""
         for launcher in LAUNCHERS:
