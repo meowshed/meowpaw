@@ -110,9 +110,36 @@ tell you something narrower passed than did. `evidence` never counts a subset
 run as the whole stage's result, and prints it beside that result as
 `subset only`.
 
-An unresolved stage is one of six kinds: undeclared, no profile, a profile
-that doesn't parse, a declaration that isn't one command, no interpreter to
-run the program, and, for a run over part of the work, no subset form.
+An unresolved stage is one of seven kinds: undeclared, no profile, a profile
+that doesn't parse, a declaration that isn't one command, a machine path, no
+interpreter to run the program, and, for a run over part of the work, no subset
+form.
+
+### A personal profile
+
+`.meowpaw/profile.local.toml` replaces a stage on your machine and nobody
+else's. `meow-checks local <stage> <command>` writes it and adds
+`/.meowpaw/profile.local.toml` to `.git/info/exclude`, once, so it never
+appears in `git status`:
+
+```fish
+meow-checks local test "mise run test"
+```
+
+`status` names the file each resolved stage came from, the shared profile or
+the personal one. A personal profile holds stages and nothing else: any other
+key is named as `unknown key: <path> (in .meowpaw/profile.local.toml)` and
+ignored. A personal command that starts with `~` or `$HOME`, or with a path
+that resolves outside the repository, quoted or written with `..` or not, is
+unresolved of the kind `machine path` and doesn't run, because the tool should
+be found through the project's toolchain declaration. The same command in the
+shared profile resolves. A path hidden behind a leading `env` or a `NAME=value`
+word isn't recognised.
+
+`local` refuses a machine path, and writes nothing, exiting 1, outside a git
+working tree, where the personal file is a symbolic link, and where git already
+tracks it, because an exclusion hides a tracked file from no one. It rewrites
+the whole file, so a comment you added by hand is lost.
 
 `status` and `run` open with the profile's state: `profile: absent`,
 `profile: unparseable` or `profile: parsed`. An unparseable profile adds
