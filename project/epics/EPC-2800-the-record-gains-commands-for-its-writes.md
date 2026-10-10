@@ -1,7 +1,7 @@
 ---
 id: EPC-2800
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-10
 realises: ADR-2880
 ---
@@ -30,10 +30,10 @@ approved and a requirement withdrawn by one command each.
 
 ## Tasks
 
-- [ ] T-001 TSK-5310 `paw approve` and `paw withdraw`
+- [x] T-001 TSK-5310 `paw approve` and `paw withdraw` (done: pull request 884)
       closes: REQ-4602
       depends: nothing
-- [ ] T-002 TSK-5311 `paw done`
+- [x] T-002 TSK-5311 `paw done` (done: pull request 884)
       closes: REQ-4600
       depends: TSK-5310 (not blocking) - the two share the writer that changes a status line
 

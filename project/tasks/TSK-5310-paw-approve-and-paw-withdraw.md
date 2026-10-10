@@ -1,7 +1,7 @@
 ---
 id: TSK-5310
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2800
 closes: [REQ-4602]
@@ -38,7 +38,18 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 884. The tests are in `plugins/meow-flow/tests/test_record.py`,
+class `WriteCommands`:
+
+- Criterion 1: `test_approve_changes_the_status_line_and_nothing_else`.
+- Criterion 2: `test_approve_refuses_a_draft_with_a_finding_and_changes_nothing`
+  and `test_approve_refuses_a_record_that_is_not_a_draft`.
+- Criterion 3: `test_withdraw_writes_the_tombstone_and_the_status` and
+  `test_withdraw_refuses_a_replacement_that_does_not_exist`.
+
+One fixture written first was wrong: a draft task has to meet the draft rules,
+which ask for an Acceptance criteria section, and a commit of its own gives the
+fixture one. `meow-checks run format lint check test` ran on the final tree.
 
 ## Left alone
 
