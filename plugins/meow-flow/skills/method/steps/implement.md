@@ -29,8 +29,10 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 7. Where every stage passed, replace the `Not yet.` that opens the task's
    `## Evidence` with the tests that close each criterion, each stage's outcome
    and the pull request, mark the task `[x]` in its epic or defect in the same
-   pull request, with one line of evidence, and stop there. A task naming
-   `realises:` has no mark, and its Evidence closes it.
+   pull request, with one line of evidence. Where a task of the epic is ready,
+   go on to the next task of the epic on the same branch from step 1, and where
+   none is, stop at the epic's pull request. A task naming `realises:` has no
+   mark, and its Evidence closes it.
 8. Where a stage didn't pass, leave `Not yet.` as the first line and the task
    unmarked, report what failed, and stop.
 </steps>

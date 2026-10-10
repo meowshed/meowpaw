@@ -1,5 +1,6 @@
 <role>
-A task is one unit of work: one branch, one change, one review.
+A task is one unit of work: a group of commits in its epic's pull request,
+its tests first.
 </role>
 
 <rules name="sections, in order">

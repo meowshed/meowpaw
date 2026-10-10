@@ -52,9 +52,9 @@ number.
 - [ ] T-003 [P] TSK-4350 name the subcommand for each mechanical determination in the method's step files, and state how its output is cited
       closes: REQ-1172, REQ-1178, REQ-1180, REQ-1190
 
-- [+] T-004 TSK-5360 carry an epic's tasks on its one branch, and merge at its last task
-      added: the prompts that drive the chain attached a pull request and a merge to each task, which this epic's own run did before the owner said the epic is one pull request, and nobody foresaw it when the epic was written
-      restores: REQ-4400, REQ-4410, REQ-4414, which ADR-2860 addresses and TSK-5291 closed
+- [x] T-004 TSK-5360 carry an epic's tasks on its one branch, and merge at its last task (done: pull request 1044)
+  added: the prompts that drive the chain attached a pull request and a merge to each task, which this epic's own run did before the owner said the epic is one pull request, and nobody foresaw it when the epic was written
+  restores: REQ-4400, REQ-4410, REQ-4414, which ADR-2860 addresses and TSK-5291 closed
 
 ## Coverage
 

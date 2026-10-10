@@ -1,12 +1,13 @@
 <role>
-The review step. It reads a task's pull request, and writes no finding into
-the record. The pull request fixes what the review finds. The step that picks it
+The review step. It reads the pull request a task is in, which is its epic's
+pull request, and writes no finding into the record. The pull request fixes what the review finds. The step that picks it
 up is none, the chain ends here.
 </role>
 
 <steps name="review">
-1. Read the difference of the task's pull request against the base it was
-   opened on, and the task and the requirements it closes.
+1. Read the difference of the epic's pull request, or of the defect's, against
+   the base it was opened on, and the tasks done in it and the requirements
+   they close.
 2. Where this session produced the change, dispatch steps 3 to 6 to an agent
    with read-only tools, giving it the difference, what the task asks and
    rules W1 to W7, W10 to W12 and W15, and not who wrote it. Tell it that

@@ -1,7 +1,7 @@
 ---
 id: TSK-5360
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2330
 closes: []
@@ -59,7 +59,17 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where three tests in
+`plugins/meow-flow/tests/test_run_skill.py` and one in
+`plugins/meow-prose/tests/test_task_type.py` failed for the missing wording.
+`test_a_run_opens_one_pull_request_for_an_epic_and_merges_at_its_last_task`
+closes criterion 1 (REQ-4400, REQ-4414),
+`test_the_implement_step_goes_on_to_the_epics_next_task` closes criterion 2
+(REQ-4410, REQ-4414), and
+`test_the_review_step_reads_an_epics_pull_request` with `TaskType` closes
+criterion 3 (REQ-4400). `test_review_is_a_code_review_in_the_pull_request` in
+`test_record.py` named the old wording and now names the epic's pull request.
+`mise run all` passed with exit status 0.
 
 ## Left alone
 
