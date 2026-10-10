@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! `meow-markdown`: whether a work tree holds a Markdown corpus, what it
-//! configured, the `[verbs]` table that configuration binds, and the settings
-//! behind its verbs that are missing or have no effect (SPC-1195).
+//! configured, the `[stages]` table that configuration binds, and the settings
+//! behind its stages that are missing or have no effect (SPC-1195).
 //!
 //! `status`, `bind` and `check` read the files git tracks, run git alone and
 //! write nothing (SPC-1190), so detection and binding start none of the tools
@@ -298,9 +298,9 @@ fn status() -> u8 {
     0
 }
 
-/// A `[verbs]` table bound from what the repository committed, never from
+/// A `[stages]` table bound from what the repository committed, never from
 /// what is installed, and printed, never written (ADR-1900). It exits 0 once
-/// the table is printed, because a verb printed with its reason is settled.
+/// the table is printed, because a stage printed with its reason is settled.
 fn bind() -> u8 {
     // What `bind` prints is pasted into the profile, so the state goes to
     // standard error.
@@ -368,14 +368,14 @@ fn bind() -> u8 {
     }
     for (file, runner, pack) in corpus.runners() {
         println!(
-            "# {file} configures {runner}; to bind a verb to its tasks, run {pack} bind, since this pack doesn't read them"
+            "# {file} configures {runner}; to bind a stage to its tasks, run {pack} bind, since this pack doesn't read them"
         );
     }
     0
 }
 
-/// The findings in the settings behind the verbs: a missing render target
-/// (REQ-2452), a markdownlint configuration the `lint` verb lacks, ignores or
+/// The findings in the settings behind the stages: a missing render target
+/// (REQ-2452), a markdownlint configuration the `lint` stage lacks, ignores or
 /// never applies (REQ-2434), and a link check that leaves its network
 /// behaviour undeclared (REQ-2454). It reads the profile and the tracked
 /// files, and exits 1 on any finding.
@@ -466,7 +466,7 @@ fn findings(corpus: &Corpus) -> Vec<String> {
 /// The settings a link check must declare, by their names in `lychee.toml`.
 const LINK_SETTINGS: [&str; 3] = ["offline", "max_retries", "cache"];
 
-/// The findings for each verb that runs `lychee` or `meow-markdown links`:
+/// The findings for each stage that runs `lychee` or `meow-markdown links`:
 /// a setting neither its settings file nor its flags declare, a settings file
 /// that doesn't parse, and a cache the repository's ignore files leave
 /// unignored (REQ-2454).

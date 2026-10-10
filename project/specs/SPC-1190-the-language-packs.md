@@ -55,7 +55,7 @@ rest.
 
 `meow-markdown` is the one language pack so far, with a document of its own. The
 runner packs, SPC-1140 and SPC-1150, keep the same boundary for a runner and
-aren't restated here. Running a bound verb is SPC-1040's.
+aren't restated here. Running a bound stage is SPC-1040's.
 
 ADR-1900 decides this part and EPC-1800 realised it, verified under issue 624.
 ADR-2640 adds the versions a pack states and the configuration it writes,
@@ -74,7 +74,7 @@ to use it:
 | `plugins/<pack>/skills/<name>/SKILL.md` | The skill, which names the program and forbids guessing     |
 | A supporting file beside the skill      | What a reviewer needs beyond the commands, loaded on review |
 | `plugins/<pack>/README.md`              | The unit's page                                             |
-| `.meowpaw/profile.toml`, `[verbs]`      | What `check` reads; the pack never writes it                |
+| `.meowpaw/profile.toml`, `[stages]`     | What `check` reads; the pack never writes it                |
 | `.meowpaw/profile.toml`, `[<language>]` | The pack's own settings, in a table named for its language  |
 
 The program writes no file, in the repository or outside it, and never writes
@@ -124,7 +124,7 @@ from its marker, and ships them one at a time in this order:
 | 8     | Starlark                  | a Bazel or Buck workspace file                                          | REQ-2348           |
 | 9     | Scheme                    | a Scheme project file                                                   | REQ-2350           |
 
-Each pack resolves the five verbs for its language, bound from what the
+Each pack resolves the five stages for its language, bound from what the
 repository commits or unresolved with a reason, and has its own document
 beside this one once it ships. Lua and Neovim plugins share one pack, because
 Neovim is the host that evaluates the plugin's Lua. `docs/README.md` lists
@@ -132,17 +132,17 @@ each pack with its state, as SPC-1110 states.
 
 ### `bind`
 
-`bind` prints a `[verbs]` table for the repository to paste. It binds each verb
+`bind` prints a `[stages]` table for the repository to paste. It binds each stage
 from the configuration the repository commits, and never from what is
-installed. It prints nothing for a verb the profile already declares. A verb
-it doesn't bind is printed as a comment naming the reason: `# <verb>:
-unresolved, <reason>` for a verb the language can't have, and `# <verb>:
+installed. It prints nothing for a stage the profile already declares. A stage
+it doesn't bind is printed as a comment naming the reason: `# <stage>:
+unresolved, <reason>` for a stage the language can't have, and `# <stage>:
 unbound, <what the pack looked for>` for one it found nothing to bind. Where a
 runner's configuration exists, `bind` names it and the runner's pack.
 
 ### `check`
 
-`check` reads each verb's command in the profile. For each tool whose meaning
+`check` reads each stage's command in the profile. For each tool whose meaning
 depends on settings more than on the command line, it reads those settings from
 where the tool reads them, and reports each one that is absent, ignored or
 overridden in silence as a finding naming the file or the setting (REQ-2434).
@@ -165,19 +165,19 @@ anything is unreachable, unresolved, absent or broken.
 
 A pack runs what the repository configured, and nothing it chose:
 
-- Where several tools serve one verb in the ecosystem, it binds the verb to
+- Where several tools serve one stage in the ecosystem, it binds the stage to
   the one the repository configured, and never picks between them (REQ-2420).
 - It turns on no lint group, strictness setting or analysis level the
   repository didn't ask for (REQ-2422).
 - Where the project declares an environment or a package manager, it runs
   each tool through it, and never through whatever the shell finds first
   (REQ-2426).
-- Where the repository pins a toolchain version, it runs the verbs under that
+- Where the repository pins a toolchain version, it runs the stages under that
   version, and reports a difference between it and the installed one
   (REQ-2428).
 - Where a host evaluates the language or the language has several
   implementations, it detects which one applies before it binds, and reports
-  every verb unresolved until it has (REQ-2446).
+  every stage unresolved until it has (REQ-2446).
 - Where a build step has a prerequisite another form of the step performs
   implicitly, it performs the prerequisite explicitly (REQ-2448).
 
@@ -191,7 +191,7 @@ A pack runs what the repository configured, and nothing it chose:
   often have, such as a race detector, `test` turns it on, and a repository
   that turns it off has that recorded in the profile's table for the language
   (REQ-2414).
-- A report of a clean verb names the rule groups or analyses enabled
+- A report of a clean stage names the rule groups or analyses enabled
   (REQ-2432), and where the tool hides findings below a level by default, the
   level it ran at (REQ-2444).
 - A supply-chain check states whether it covers transitive dependencies and
@@ -202,15 +202,15 @@ A pack runs what the repository configured, and nothing it chose:
 - It never applies a fix its tool marks unsafe (REQ-2430).
 - It reports a suggestion to use a newer language feature, and applies none
   during a check (REQ-2440).
-- A verb leaves no file in the working tree, and where the tool writes output
+- A stage leaves no file in the working tree, and where the tool writes output
   there by default, the pack points it outside the tree (REQ-2442).
 
 ### What a pack keeps
 
-- Where the ecosystem has a machine-readable report format for a verb, the
+- Where the ecosystem has a machine-readable report format for a stage, the
   pack collects the result in it, and where none exists it says the evidence
   is captured output (REQ-2416).
-- Where a verb's tool deletes files unless the run asks for them, the pack
+- Where a stage's tool deletes files unless the run asks for them, the pack
   asks for them and names where it kept them (REQ-2418).
 - Its document states which of the ecosystem's generated files are project
   state to commit and which are cache to ignore (REQ-2450).
@@ -218,7 +218,7 @@ A pack runs what the repository configured, and nothing it chose:
 ### Its tool's configuration and its versions
 
 A pack writes its tool's configuration to the project's conventions by
-printing it for the repository to commit, as `bind` prints a `[verbs]`
+printing it for the repository to commit, as `bind` prints a `[stages]`
 table, and amends an existing configuration the same way (REQ-0082). Its
 README states the versions of its toolchain it is current as of, because a
 tool's defaults change under the same command name (REQ-0085).

@@ -15,16 +15,16 @@ Claude Code, because a run the model started is one nobody chose to pay for
 1. Ask which step of the method the run takes: `research`, `requirements`,
    `design`, `spec`, `epic` or `implement`. Ask which record identifiers it
    takes as inputs, because every step but `research` needs at least one.
-   Ask which verbs must pass for it to be done, and read
+   Ask which stages must pass for it to be done, and read
    `.meowpaw/profile.toml` to see which of `format`, `lint`, `check`, `test`
    and `build` it declares.
-2. Write the prompt to a file the person names: the work to do, the verbs
+2. Write the prompt to a file the person names: the work to do, the stages
    that end it, and where to leave notes for the next iteration, which the
    runner names in its preamble.
 3. Ask for the ceiling, the number of iterations, and the budget in US
    dollars, and choose neither yourself.
 4. Print the command, filled in, and stop:
-   `${CLAUDE_PLUGIN_ROOT}/bin/meow-loop start --step <step> --inputs <ids> --prompt <file> --until verbs=<verbs> --iterations <n> --budget-usd <amount> --permission-mode dontAsk`,
+   `${CLAUDE_PLUGIN_ROOT}/bin/meow-loop start --step <step> --inputs <ids> --prompt <file> --until verbs=<stages> --iterations <n> --budget-usd <amount> --permission-mode dontAsk`,
    with any `--allowed-tools` rules the person names. For `research`, leave
    out `--inputs`.
 </steps>

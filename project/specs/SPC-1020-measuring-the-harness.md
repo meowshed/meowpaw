@@ -71,7 +71,7 @@ change, which the first measurement of SPC-1000 found on three cases of four.
 
 Cases come from what this method produces: a progress report with nothing to
 compute from, an error report, a gap list somebody asked to shorten, a summary
-under pressure to drop a verb.
+under pressure to drop a stage.
 
 Each case carries its own threshold (REQ-3030). A threshold inherited from the
 suite says the same thing about a case nobody tuned and a case somebody did.
@@ -95,7 +95,7 @@ transcript, so a miss can be read and not only counted.
 The measurement prefers a grader that costs nothing: a pattern over the reply,
 a tool call, the order of two calls, a file that exists. It spends a judge last
 (REQ-3024), and only where the question needs reading: whether a summary
-rounded an unresolved verb into a pass, whether a report invented a state.
+rounded an unresolved stage into a pass, whether a report invented a state.
 
 Where the judge comes from the same family as the text under test, the
 measurement reports it as a smoke check and never as the result (REQ-3028).

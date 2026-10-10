@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! Repeat one prompt in fresh `claude -p` calls until one step's work is done
-//! and the named verbs pass, or the ceiling ends the run.
+//! and the named stages pass, or the ceiling ends the run.
 //!
 //! SPC-1201 states the behaviour. `start` refuses to begin without a
 //! condition, a ceiling and a budget (REQ-0872), keeps a run's files under the
@@ -10,7 +10,7 @@
 //! process, so nothing a call prints or writes extends it. A run is bound to
 //! one step of the method over inputs that are ready (REQ-0888), and the
 //! runner decides the condition from the step's test on the record and each
-//! verb's exit status at one tree, reading nothing the model printed
+//! stage's exit status at one tree, reading nothing the model printed
 //! (REQ-0884). Every call gets the prompt's bytes as they were at start and one
 //! fixed preamble, in a new session (REQ-0880), and what an iteration leaves
 //! for the next goes in the run's progress file (REQ-0882). Before each call
@@ -146,13 +146,13 @@ fn terms(args: &[String]) -> Result<Terms, Vec<String>> {
         Some((_, Some(list))) => {
             for name in list.split(',').filter(|name| !name.is_empty()) {
                 if !verbs::VERBS.contains(&name) {
-                    errors.push(format!("{name} is not a verb"));
+                    errors.push(format!("{name} is not a stage"));
                 } else if !named.iter().any(|seen| seen == name) {
                     named.push(name.to_string());
                 }
             }
             if list.split(',').all(str::is_empty) {
-                errors.push("--until names no verb".to_string());
+                errors.push("--until names no stage".to_string());
             }
         }
     }
@@ -370,7 +370,7 @@ fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
 }
 
 /// How a run ended, and what the last line of output names after the ending:
-/// each record that crossed, and the verb where an evaluation did.
+/// each record that crossed, and the stage where an evaluation did.
 struct Ended {
     name: &'static str,
     named: String,
@@ -385,7 +385,7 @@ impl From<&'static str> for Ended {
     }
 }
 
-/// What one evaluation found: whether the condition holds, or that a verb it
+/// What one evaluation found: whether the condition holds, or that a stage it
 /// ran changed the record across a gate.
 enum Evaluated {
     Holds(bool),
@@ -393,14 +393,14 @@ enum Evaluated {
 }
 
 /// One evaluation of the condition: it holds only when the step's test passes,
-/// every named verb's command exits 0, and the tree is identified and the same
-/// after the verbs as before the test. Where the verbs changed the tree, the
-/// evaluation runs once more and that second result stands, so a verb that
+/// every named stage's command exits 0, and the tree is identified and the same
+/// after the stages as before the test. Where the stages changed the tree, the
+/// evaluation runs once more and that second result stands, so a stage that
 /// settles after one pass can finish the run and one that changes the tree on
 /// every pass never does. `copy` is the record held at start, which the first
-/// evaluation runs without. A verb that changed the tree is followed by a
-/// comparison of the record with the copy, so a verb that crosses a gate ends
-/// the run `crossed` naming that verb.
+/// evaluation runs without. A stage that changed the tree is followed by a
+/// comparison of the record with the copy, so a stage that crosses a gate ends
+/// the run `crossed` naming that stage.
 fn evaluate(
     root: &Path,
     context: &Context,
@@ -414,11 +414,11 @@ fn evaluate(
             true => println!("step {}: its test holds", context.step),
             false => println!("step {}: its test doesn't hold", context.step),
         }
-        // Each verb runs the command it resolved to at start, so a call that
+        // Each stage runs the command it resolved to at start, so a call that
         // rewrites the profile changes no condition (REQ-0874).
         for (verb, command) in &context.held {
             let ran = verbs::run_recorded(root, verb, command)
-                .map_err(|reason| format!("verb {verb} didn't run: {reason}"))?;
+                .map_err(|reason| format!("stage {verb} didn't run: {reason}"))?;
             match ran.status {
                 0 => println!("{verb}: passed"),
                 status => println!("{verb}: failed, exit status {status}"),
@@ -469,7 +469,7 @@ struct Context {
     /// `meow-loop`'s own directory, which every call names first with
     /// `--plugin-dir`, so the unit's hook loads in every call.
     unit: PathBuf,
-    /// Each named verb with the command it resolved to at start.
+    /// Each named stage with the command it resolved to at start.
     held: Vec<(String, String)>,
     /// The run's id, which every call's environment holds as `MEOW_LOOP_RUN`.
     id: String,
@@ -713,7 +713,7 @@ struct Logged {
 
 /// Writes one line of the log: at its end, or over the line `over` names. A
 /// call's line is written before the condition is evaluated, so a run stopped
-/// during the verbs still shows the call, and written again in place once the
+/// during the stages still shows the call, and written again in place once the
 /// result is known. The log is never cut back, so at every moment it holds
 /// the line in one form or the other, and a shorter line is padded with spaces
 /// to cover the one it replaces.
@@ -832,13 +832,13 @@ fn run(
         })
     };
     if matches!(evaluate(root, context, None)?, Evaluated::Holds(true)) {
-        // The verbs may themselves have changed a watched file.
+        // The stages may themselves have changed a watched file.
         if let Some(ending) = tampered() {
             return Ok(ending.into());
         }
         return Ok("finished".into());
     }
-    // The copy is taken after the first evaluation, so a verb that rewrote a
+    // The copy is taken after the first evaluation, so a stage that rewrote a
     // record then is never blamed on the first call (SPC-1201).
     let copy = record::hold(&record::read_for_run(root, &context.record_root)?);
     let (mut spend, mut largest) = (0.0_f64, 0.0_f64);
@@ -867,7 +867,7 @@ fn run(
             );
             return Ok("budget".into());
         }
-        // Read after the last evaluation, so a verb that writes to the tree
+        // Read after the last evaluation, so a stage that writes to the tree
         // never counts as a change this call made.
         let before = ledger::tree_id(root);
         let progress_before = digest();
@@ -928,7 +928,7 @@ fn run(
             return Ok("budget".into());
         }
         // A call that crossed a gate ends the run before the condition is
-        // evaluated, so a call that approves a draft and makes the verbs pass
+        // evaluated, so a call that approves a draft and makes the stages pass
         // isn't finished. Only two equal, identified trees skip the
         // comparison.
         if unidentified || before != after {
@@ -959,7 +959,7 @@ fn run(
                     return Ok(Ended {
                         name: "crossed",
                         named: format!(
-                            "in the evaluation after iteration {iteration}, verb {verb}: {}",
+                            "in the evaluation after iteration {iteration}, stage {verb}: {}",
                             records.join("; ")
                         ),
                     });
@@ -973,7 +973,7 @@ fn run(
         };
         match held {
             Some(true) => {
-                // The verbs may themselves have changed a watched file, and
+                // The stages may themselves have changed a watched file, and
                 // a changed term is reported before a success.
                 if let Some(ending) = tampered() {
                     return Ok(ending.into());
@@ -1043,7 +1043,7 @@ fn start(args: &[String]) -> u8 {
             Ok(command) => commands.push((verb.clone(), command)),
             Err(_) => {
                 unresolved = true;
-                refuse(&format!("verb {verb} resolves to no command"));
+                refuse(&format!("stage {verb} resolves to no command"));
             }
         }
     }
@@ -1104,7 +1104,7 @@ fn start(args: &[String]) -> u8 {
     if let Err(reason) = write(&terms_file, table.to_string().as_bytes()) {
         return refuse(&reason);
     }
-    // The last line names each record that crossed, and the verb where an
+    // The last line names each record that crossed, and the stage where an
     // evaluation did.
     if ended.named.is_empty() {
         println!("{ending}");
@@ -1559,8 +1559,8 @@ mod tests {
             "dontAsk",
         ];
         let with = |until: &str| errors(&[&["--until", until], &rest[..]].concat());
-        assert!(with("verbs=").contains(&"--until names no verb".to_string()));
-        assert!(with("verbs=test,deploy").contains(&"deploy is not a verb".to_string()));
+        assert!(with("verbs=").contains(&"--until names no stage".to_string()));
+        assert!(with("verbs=test,deploy").contains(&"deploy is not a stage".to_string()));
         assert!(
             with("phrase=done")
                 .contains(&"--until phrase=done is not a condition kind".to_string())

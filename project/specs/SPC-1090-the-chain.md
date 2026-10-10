@@ -395,9 +395,9 @@ what its pull request names. ADR-2610 lets the model write an insight.
 ADR-2630 adds the questions every specification answers and the concerns a
 decision names. ADR-2690 holds this repository to its own method.
 
-A person repeats one prompt in fresh sessions until the verbs pass or a bound
-ends the run, with the loop runner SPC-1201 states. The verbs are the five
-verification verbs (REQ-0132): format, lint, check, test and build.
+A person repeats one prompt in fresh sessions until the stages pass or a bound
+ends the run, with the loop runner SPC-1201 states. The stages are the five
+verification stages (REQ-0132): format, lint, check, test and build.
 
 ## Boundary
 
@@ -588,13 +588,13 @@ The rules name no requirement, because the files ship to other repositories.
 
 The implement step holds what the cover and document steps held, because their
 work lands in the task's pull request. The method skill runs `paw check` on
-every step, so the verbs check the record on every change (REQ-0277, REQ-0132).
+every step, so the stages check the record on every change (REQ-0277, REQ-0132).
 
 The implement step reads `[docs] style` from `.meowpaw/profile.toml`: a path to
 the repository's own style guide, or the name of an installed unit that ships
 one. Where the profile declares none, the step says so and writes to the
-writing standard in force. It reports which verb checked the documentation it
-changed, and reports the documentation as unchecked where no verb covers it
+writing standard in force. It reports which stage checked the documentation it
+changed, and reports the documentation as unchecked where no stage covers it
 (REQ-0287, REQ-0289).
 
 ### A defect's path
@@ -641,11 +641,11 @@ seeing it fail. A defect a gate caught and the same change closed needs no
 record of its own (REQ-3174).
 
 The implement step writes the following under a task's Evidence: the tests
-that close each criterion, each verb's outcome and the pull request. Where
+that close each criterion, each stage's outcome and the pull request. Where
 `meow-checks` isn't installed it also records each command and its exit
 status, because `meow-flow` works without it (REQ-0146, ADR-1480). It keeps no
 run output, in a file or in the task (REQ-3614), and marks the task and its
-completed authorising records `status: done` only in a change whose verbs all
+completed authorising records `status: done` only in a change whose stages all
 passed (REQ-0583, REQ-3606). Before the implementation, it
 names each criterion no program can check as resting on judgement (REQ-3216,
 REQ-0147).
@@ -961,7 +961,7 @@ A dropped task keeps its entry, and its own record, withdrawn, says why
 `/meow-flow:init`, a command only a person invokes, writes
 `.meowpaw/profile.toml` from `paw template profile` and, where none exists,
 `CLAUDE.md` from the constitution template (REQ-1560, REQ-1563). It writes no
-other file. It reports which verbs resolve before anything else (REQ-1554).
+other file. It reports which stages resolve before anything else (REQ-1554).
 It reports an inconsistent convention as its variants and chooses none. It
 records the layout and templates it finds in the profile (REQ-1561, REQ-1562).
 On a second run it shows what would change and writes nothing without
@@ -981,7 +981,7 @@ REQ-1542, REQ-1546, REQ-1548). It invents no requirement and no decision
 drafts (REQ-3114, REQ-3116). It reads an existing harness in full as evidence
 (REQ-1552) and rewrites no existing file (REQ-3094).
 
-Its report, `onboarding.md` at the record's root, opens with the verbs. It
+Its report, `onboarding.md` at the record's root, opens with the stages. It
 then gives the conventions as frequencies offered as decisions, the
 disposition of every tracked document, the gaps and adoption as numbered
 working steps (REQ-1550, REQ-3092, REQ-3096). `paw check coverage` holds that

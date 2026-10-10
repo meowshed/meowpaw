@@ -119,13 +119,13 @@ read:
 
 This is a small fix, so no record is needed. size: none.
 
-Corrected, for "tiny fix: make the profile parser accept a missing verbs
+Corrected, for "tiny fix: make the profile parser accept a missing stages
 table":
 
 outcome: DONE
 size: full
 shape: new work
-reason: `SPC-1040` states how each verb resolves from `.meowpaw/profile.toml`, and accepting a missing table changes what every verb resolves to, behaviour that no approved record authorises.
+reason: `SPC-1040` states how each stage resolves from `.meowpaw/profile.toml`, and accepting a missing table changes what every stage resolves to, behaviour that no approved record authorises.
 ambiguous: no
 override words: route none, route reduced, route full
 </example>

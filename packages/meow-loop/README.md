@@ -7,7 +7,7 @@ describes: [@meowshed/meow-loop@0.12.0]
 
 # @meowshed/meow-loop
 
-Repeats one prompt in fresh claude -p calls, bound to one step of the method, until the step's work is done and the verification verbs a person names pass at one tree, the stated number of iterations has run, the next call could pass the stated budget or two iterations in a row change nothing, with its bounds held outside the model, ends a run that changes its own terms, crosses a gate or leaves its step, and lets only a person start a run. It keeps nothing in context on every turn. Distributed as a Pi package.
+Repeats one prompt in fresh claude -p calls, bound to one step of the method, until the step's work is done and the verification stages a person names pass at one tree, the stated number of iterations has run, the next call could pass the stated budget or two iterations in a row change nothing, with its bounds held outside the model, ends a run that changes its own terms, crosses a gate or leaves its step, and lets only a person start a run. It keeps nothing in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

@@ -26,13 +26,13 @@ installs on its own.
 
 Add the marketplace, install `meow-checks`, which runs your repository's
 checks, and declare one check. Run this from the repository's root. If
-`.meowpaw/profile.toml` already exists, add the `[verbs]` table to it by hand
+`.meowpaw/profile.toml` already exists, add the `[stages]` table to it by hand
 instead of running the last line, because that line replaces the file:
 
 ```bash
 claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
 claude plugin install meow-checks@meowpaw
-mkdir -p .meowpaw && printf '[verbs]\ntest = "./scripts/test"\n' > .meowpaw/profile.toml
+mkdir -p .meowpaw && printf '[stages]\ntest = "./scripts/test"\n' > .meowpaw/profile.toml
 ```
 
 Replace `./scripts/test` with the command your repository runs its tests
@@ -89,7 +89,7 @@ turn on auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.
 These parts are planned, and no unit ships them yet, so no page describes
 them:
 
-- packs that resolve the five verbs `meow-checks` runs, `format`, `lint`,
+- packs that resolve the five stages `meow-checks` runs, `format`, `lint`,
   `check`, `test` and `build`, for a language or a task runner without
   your declaring each command;
 - packs for version control tools other than git, and for trackers other than

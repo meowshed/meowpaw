@@ -74,26 +74,26 @@ names each one. Where there is one, it lists nothing and reports `unresolved:
 remote include`, because listing would need Task to fetch and trust that file,
 which is your decision.
 
-## Bind your verbs to your tasks
+## Bind your stages to your tasks
 
-`meow-gotask bind` prints a `[verbs]` table for you to paste into
+`meow-gotask bind` prints a `[stages]` table for you to paste into
 `.meowpaw/profile.toml`, and never writes the profile itself:
 
 ```toml
-[verbs]
+[stages]
 test = "task --force test"
 # lint: task lint is blocked: ignores errors
 ```
 
-It binds a verb only to the task of exactly its name, and only a task that
+It binds a stage only to the task of exactly its name, and only a task that
 carries no block. Every binding runs the task with `--force`, which runs its
-dependencies too, so a pass is never a skip. A verb whose task is `internal`
+dependencies too, so a pass is never a skip. A stage whose task is `internal`
 reads as internal, not as missing.
 
-`meow-gotask check` reads your profile's `[verbs]`, finds each `task <name>`
-in a verb's command, and reports every block on that task, a task it can't
+`meow-gotask check` reads your profile's `[stages]`, finds each `task <name>`
+in a stage's command, and reports every block on that task, a task it can't
 find, and a task that can skip run without `--force`. It also reports each
-remote include in your Taskfiles, whether or not a verb uses it. It exits 0 on
+remote include in your Taskfiles, whether or not a stage uses it. It exits 0 on
 no finding, 1 on a finding and 3 when it can't read the profile or Task.
 
 `check` reads the profile, so it prints the profile's state,

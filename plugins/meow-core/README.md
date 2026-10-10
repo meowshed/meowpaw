@@ -19,7 +19,7 @@ offering further help. Where a run stops, the last line names the command that
 resumes it.
 
 Nothing is dropped for the sake of brevity. A verification report keeps every
-verb, a review keeps every finding, a gap list keeps every question, and a
+stage, a review keeps every finding, a gap list keeps every question, and a
 hedge that carries real uncertainty stays, because deleting it manufactures
 confidence you have not earned.
 

@@ -7,7 +7,7 @@ describes: [@meowshed/meow-markdown@0.6.1]
 
 # @meowshed/meow-markdown
 
-Detects a Markdown corpus from what git tracks, lists the tools a repository configured for it, and prints a verbs table bound from that configuration, reports a missing render target, markdownlint settings the lint verb lacks, ignores or never applies and a link check that leaves its network behaviour undeclared, and runs lychee to report a link it couldn't reach as unreachable, never as a finding, writing no file, and carries what a reviewer of a Markdown document checks that no command reports. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.
+Detects a Markdown corpus from what git tracks, lists the tools a repository configured for it, and prints a stages table bound from that configuration, reports a missing render target, markdownlint settings the lint stage lacks, ignores or never applies and a link check that leaves its network behaviour undeclared, and runs lychee to report a link it couldn't reach as unreachable, never as a finding, writing no file, and carries what a reviewer of a Markdown document checks that no command reports. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

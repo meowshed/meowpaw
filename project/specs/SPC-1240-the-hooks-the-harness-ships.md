@@ -43,12 +43,12 @@ missing.
 
 ## Boundary
 
-| Surface                                | What it is                                                                |
-| -------------------------------------- | ------------------------------------------------------------------------- |
-| `plugins/<unit>/hooks/hooks.json`      | The unit's hooks: the event, the matcher, the command and its timeout     |
-| `plugins/<unit>/bin/<unit>`            | The launcher each hook's command runs, with one subcommand                |
-| `plugins/<unit>/README.md`, `## Hooks` | One sentence per hook saying what it stops                                |
-| `meow-author check`                    | The check that fails a hook breaking a rule below, run in the `lint` verb |
+| Surface                                | What it is                                                                 |
+| -------------------------------------- | -------------------------------------------------------------------------- |
+| `plugins/<unit>/hooks/hooks.json`      | The unit's hooks: the event, the matcher, the command and its timeout      |
+| `plugins/<unit>/bin/<unit>`            | The launcher each hook's command runs, with one subcommand                 |
+| `plugins/<unit>/README.md`, `## Hooks` | One sentence per hook saying what it stops                                 |
+| `meow-author check`                    | The check that fails a hook breaking a rule below, run in the `lint` stage |
 
 The hooks the units declare:
 
@@ -127,7 +127,7 @@ read (REQ-2730).
 ### The revision counter
 
 `meow-checks` keeps a revision counter per work tree in its run state, beside
-the ledger of the five verbs. Its `revision` subcommand runs on `PostToolUse`
+the ledger of the five stages. Its `revision` subcommand runs on `PostToolUse`
 and on `PostToolUseFailure` for Bash, Edit, Write and NotebookEdit, and adds
 one each time, because a tool use that failed can still have changed the tree
 (REQ-2728).

@@ -59,29 +59,29 @@ when its tasks are done. Decisions, epics and tasks then store `done` as a
 post-approval claim, and the gate rejects it unless the derived closure agrees,
 or rejects a derived-complete record that still stores `approved`.
 
-| Path                                      | Holds                                                                                                              |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE.md`                               | This constitution. At the root because the platform loads it only from there                                       |
-| `project/vision.md`                       | What this is, who it's for, what it won't do. Living                                                               |
-| `project/specs/SPC-NNNN-<topic>.md`       | What the system must do now. One per part, plus the cross-cutting contracts. Living                                |
-| `project/research/RES-NNNN-<topic>.md`    | What was read, with its sources                                                                                    |
-| `project/requirements/REQ-NNNN-<slug>.md` | One obligation per file                                                                                            |
-| `project/adrs/ADR-NNNN-<slug>.md`         | What was chosen, and what lost                                                                                     |
-| `project/epics/EPC-NNNN-<slug>.md`        | One authorising record decomposed into tasks                                                                       |
-| `project/tasks/TSK-NNNN-<slug>.md`        | One task, one branch, one pull request                                                                             |
-| `project/bugs/BUG-NNNN-<slug>.md`         | Evidence that a requirement isn't met                                                                              |
-| `project/insights/INS-NNNN-<slug>.md`     | One lesson learned, with its evidence and the pattern it generalises to                                            |
-| `docs/`                                   | Documentation for someone using the harness as a whole. A separate hierarchy                                       |
-| `plugins/<name>/README.md`                | That unit's own page, shipped inside it                                                                            |
-| `plugins/<name>/`                         | One directory per plugin                                                                                           |
-| `.claude-plugin/marketplace.json`         | The marketplace index                                                                                              |
-| `mise.toml`                               | The gate, as tasks                                                                                                 |
-| `.github/`                                | CI, and the community files a newcomer reads before contributing                                                   |
-| `.meowpaw/profile.toml`                   | What this repository declares about itself: how its verbs resolve, where its artifacts live, which tracker it uses |
-| `.meowpaw/templates/`                     | Any template this repository overrides. Empty or absent means the plugin's own                                     |
+| Path                                      | Holds                                                                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `CLAUDE.md`                               | This constitution. At the root because the platform loads it only from there                                        |
+| `project/vision.md`                       | What this is, who it's for, what it won't do. Living                                                                |
+| `project/specs/SPC-NNNN-<topic>.md`       | What the system must do now. One per part, plus the cross-cutting contracts. Living                                 |
+| `project/research/RES-NNNN-<topic>.md`    | What was read, with its sources                                                                                     |
+| `project/requirements/REQ-NNNN-<slug>.md` | One obligation per file                                                                                             |
+| `project/adrs/ADR-NNNN-<slug>.md`         | What was chosen, and what lost                                                                                      |
+| `project/epics/EPC-NNNN-<slug>.md`        | One authorising record decomposed into tasks                                                                        |
+| `project/tasks/TSK-NNNN-<slug>.md`        | One task, one branch, one pull request                                                                              |
+| `project/bugs/BUG-NNNN-<slug>.md`         | Evidence that a requirement isn't met                                                                               |
+| `project/insights/INS-NNNN-<slug>.md`     | One lesson learned, with its evidence and the pattern it generalises to                                             |
+| `docs/`                                   | Documentation for someone using the harness as a whole. A separate hierarchy                                        |
+| `plugins/<name>/README.md`                | That unit's own page, shipped inside it                                                                             |
+| `plugins/<name>/`                         | One directory per plugin                                                                                            |
+| `.claude-plugin/marketplace.json`         | The marketplace index                                                                                               |
+| `mise.toml`                               | The gate, as tasks                                                                                                  |
+| `.github/`                                | CI, and the community files a newcomer reads before contributing                                                    |
+| `.meowpaw/profile.toml`                   | What this repository declares about itself: how its stages resolve, where its artifacts live, which tracker it uses |
+| `.meowpaw/templates/`                     | Any template this repository overrides. Empty or absent means the plugin's own                                      |
 
 `.meowpaw/` belongs to the repository being worked in, and not to the harness.
-The five verbs resolve from the profile, so it can't live in `.github/`: a
+The five stages resolve from the profile, so it can't live in `.github/`: a
 repository on `jj` with no code host still has to declare how you test it.
 
 Configuration the harness owns is TOML, because a person reads the profile as
@@ -201,7 +201,7 @@ assume otherwise.
 </principle>
 
 <principle name="unresolved_is_not_a_pass">
-A verification verb that resolves to no command is reported as unresolved and
+A verification stage that resolves to no command is reported as unresolved and
 never as passed, and you never guess a command. Implementation violates this
 one more often than any other requirement, because guessing looks helpful. It
 isn't: it produces a green report with nothing behind it.
@@ -266,7 +266,7 @@ replies follow shapes nothing.
   did, no closing offer of further help.
 
 **Completeness outranks brevity.** Brevity is the default and it's
-presentation. Drop no verb from a verification report, no finding from a
+presentation. Drop no stage from a verification report, no finding from a
 review, no question from a gap list, and no hedge that carries real
 uncertainty, because deleting the last of those manufactures confidence. Where
 a rule of shape would delete part of an answer, the answer wins and the shape
@@ -406,7 +406,7 @@ way somebody breaks this by accident.
 Run the gate before opening a pull request, and report what it actually said:
 
 ```bash
-mise run all          # every task the profile's verbs name, composed once in mise.toml
+mise run all          # every task the profile's stages name, composed once in mise.toml
 ```
 
 | Check        | Fails when                                                      |
@@ -433,7 +433,7 @@ Six checks stay in `tools/` as Python scripts, because they read this
 repository and not the record: the documentation, the documentation index,
 links, the shape a subordinate agent carries, the community files under
 `.github/` and the rules every workflow under `.github/workflows/` holds. The
-`test` verb runs all seven, and so does `meow-checks run test`.
+`test` stage runs all seven, and so does `meow-checks run test`.
 
 A check that reports a false positive is a defect in the check, and never a
 reason to reword the text around it. A check that trips on what it shouldn't
@@ -447,7 +447,7 @@ Keep this file and the documentation saying what's true. When you change:
 
 - **a requirement** - allocate a new identifier, tombstone the old one, and
   check the specification that cites it
-- **the layering model, the verb contract or the step chain** - write the
+- **the layering model, the stage contract or the step chain** - write the
   decision first, then the specification, then anything that cites it
 - **the plugin list** - update the specification that states it, and name the
   plugins in one place so that nothing has to be counted twice

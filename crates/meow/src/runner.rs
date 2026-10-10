@@ -44,7 +44,7 @@ pub struct Task {
 /// How a pack names and runs its runner.
 pub struct Runner {
     pub unit: &'static str,
-    /// The words a verb's command starts with to run a task, such as `mise run`.
+    /// The words a stage's command starts with to run a task, such as `mise run`.
     pub runs: &'static [&'static str],
     /// The binding for a task, such as `mise run --force test`.
     pub binding: fn(&str) -> String,
@@ -152,7 +152,7 @@ pub fn status(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved
     0
 }
 
-/// A `[verbs]` table binding each verb to the task of exactly its name, never
+/// A `[stages]` table binding each stage to the task of exactly its name, never
 /// a near one and never by what a task runs (REQ-2474, REQ-2492). It prints
 /// and never writes, because the profile is the repository's (ADR-1070).
 pub fn bind(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved>) -> u8 {
@@ -186,7 +186,7 @@ pub fn bind(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved>)
     0
 }
 
-/// Every task a verb's command runs through the runner, with whether it forces the run.
+/// Every task a stage's command runs through the runner, with whether it forces the run.
 pub fn bound_tasks(command: &str, runs: &[&str]) -> Vec<(String, bool)> {
     let mut found = Vec::new();
     for part in command
@@ -214,7 +214,7 @@ pub fn bound_tasks(command: &str, runs: &[&str]) -> Vec<(String, bool)> {
     found
 }
 
-/// What stops each task a profile's verb runs from being run unattended.
+/// What stops each task a profile's stage runs from being run unattended.
 /// `early` holds findings a pack makes before listing, which a listing it
 /// can't run would otherwise hide.
 pub fn check(
@@ -268,7 +268,7 @@ pub fn check(
     }
     if bound.is_empty() {
         println!(
-            "nothing to check: no verb runs a task through {}",
+            "nothing to check: no stage runs a task through {}",
             runner.runs.join(" ")
         );
         return 0;
@@ -306,6 +306,6 @@ pub fn check(
             findings += 1;
         }
     }
-    println!("{findings} findings in {checked} task runs the profile's verbs name");
+    println!("{findings} findings in {checked} task runs the profile's stages name");
     if findings > 0 { 1 } else { 0 }
 }

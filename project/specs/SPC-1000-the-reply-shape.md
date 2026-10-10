@@ -35,7 +35,7 @@ also covers the kernel's obligation to carry that shape, and the rules block tha
 carries it into a subordinate agent.
 
 Read the writing standard in `CLAUDE.md` for the English inside an artifact,
-because the shape governs the terminal and the standard governs the file. Verb
+because the shape governs the terminal and the standard governs the file. Stage
 resolution, the names of the harness's not-working states, and what a status
 command computes are all settled elsewhere and left out here.
 
@@ -84,7 +84,7 @@ A reply reporting a failure gives the cause, the location and the fix
 (REQ-0938), and no expression of dismay precedes it (REQ-0940). Where a step
 stops, the reply names the command that resumes it (REQ-0942).
 
-Completeness outranks brevity (REQ-0950). No verb leaves a verification report,
+Completeness outranks brevity (REQ-0950). No stage leaves a verification report,
 no finding leaves a review, no question leaves a gap list, and no hedge
 carrying real uncertainty is deleted. Where a rule of shape would delete part
 of an answer, the answer wins and the shape yields (REQ-0952).
@@ -122,4 +122,4 @@ measurement is not repeated until it agrees.
 | A person has selected their own output style                  | Nothing overrides it: the style is applied only when somebody selects it, which BUG-1040 records |
 | A unit dispatches a subordinate agent without the rules block | The subordinate answers in the platform's default shape, which is a defect against REQ-0954      |
 | A reply has nothing in the record to compute progress from    | The reply states that, and states no step count it cannot support                                |
-| The shape would require dropping a verb or a finding          | The shape yields and the item stays (REQ-0952)                                                   |
+| The shape would require dropping a stage or a finding         | The shape yields and the item stays (REQ-0952)                                                   |

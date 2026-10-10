@@ -153,7 +153,7 @@ class Verbs(unittest.TestCase):
         repo = self.repo('[verbs]\nlint = "touch ran"\n')
         done = repo.run("run")
         self.assertEqual(done.returncode, 2)
-        self.assertIn("name the verbs to run", done.stderr)
+        self.assertIn("name the stages to run", done.stderr)
         self.assertFalse((repo.root / "ran").exists())
 
     def test_the_verbs_are_named_as_decided(self):
@@ -171,15 +171,15 @@ class Verbs(unittest.TestCase):
         self.assertIn("verbs.fmt", report["unknown"])
 
     def test_an_old_name_on_the_command_line_is_refused(self):
-        """REQ-2908, ADR-1410: from 0.4.0 typecheck isn't a verb."""
+        """REQ-2908, ADR-1410: from 0.4.0 typecheck isn't a stage."""
         done = self.repo('[verbs]\ncheck = "echo checked"\n').run("run", "typecheck")
         self.assertEqual(done.returncode, 2, done.stdout)
-        self.assertIn("typecheck isn't a verb", done.stderr)
+        self.assertIn("typecheck isn't a stage", done.stderr)
 
     def test_a_sixth_verb_is_refused(self):
         done = self.repo('[verbs]\ndeploy = "true"\n').run("run", "deploy")
         self.assertEqual(done.returncode, 2)
-        self.assertIn("isn't a verb", done.stderr)
+        self.assertIn("isn't a stage", done.stderr)
 
     def test_no_interpreter_leaves_every_verb_unresolved(self):
         repo = self.repo('[verbs]\nlint = "true"\n')

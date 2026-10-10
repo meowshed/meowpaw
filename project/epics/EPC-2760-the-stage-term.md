@@ -35,7 +35,7 @@ check holds living and shipped text to the word.
 - [x] T-001 TSK-5270 The profile reads `[stages]` and reports `[verbs]` as deprecated (done: pull request 875)
       closes: REQ-4202, REQ-4204
       depends: nothing
-- [ ] T-002 TSK-5271 Living and shipped text says "stage"
+- [x] T-002 TSK-5271 Living and shipped text says "stage" (done: pull request 876)
       closes: REQ-4200
       depends: TSK-5270 (blocking) - the pages say a profile declares `[stages]`, and that has to work
 - [ ] T-003 TSK-5272 A check fails on "verb" in living and shipped text

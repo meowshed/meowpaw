@@ -159,16 +159,16 @@ class Status(Fixture):
         self.assertIn("blocked: needs variables ENV", self.task(self.done.stdout, "deploy"))
 
     def test_an_ignored_error_is_reported(self):
-        """REQ-2480: a verb bound to it can't report the failure it ignores."""
+        """REQ-2480: a stage bound to it can't report the failure it ignores."""
         block = self.task(self.done.stdout, "lint")
         self.assertIn("blocked: ignores errors", block)
-        self.assertIn("a verb bound to it can't report the failure it ignores", block)
+        self.assertIn("a stage bound to it can't report the failure it ignores", block)
 
     def test_a_dependency_carries_its_block_up(self):
         """REQ-2480: a task depending on one that ignores errors passes that failure on."""
         block = self.task(self.done.stdout, "all")
         self.assertIn("blocked: ignores errors, through lint", block)
-        self.assertIn("a verb bound to it can't report the failure it ignores", block)
+        self.assertIn("a stage bound to it can't report the failure it ignores", block)
 
     def test_if_and_platforms_are_blocks(self):
         self.assertIn("blocked: runs only if false", self.task(self.done.stdout, "cond"))
