@@ -285,8 +285,8 @@ exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
 ## What it costs you
 
-The `method` and `route` skills' descriptions and the `router` agent's, on
-every turn, so Claude knows when to load each. The driver costs nothing until you type it. The
+The `method` and `route` skills' descriptions, the driver's and the `router`
+agent's, on every turn, so Claude knows when to load each. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, it
 reports the record as not checked and exits 3.
