@@ -321,12 +321,12 @@ built yet.
 [SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
 run's posture: the table a repository declares, the deny rules it yields, how
 a run decides a gate, lands and releases its work, and its report. EPC-2300
-realises it, and none of that work has started.
+realises it, and all four of its tasks are done.
 
 [SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: a run
 inside the session a person starts it in, the three hooks that start it,
 repeat it and guard it, the files it keeps and its six endings. EPC-2300
-realises it, and none of that work has started.
+realises it, and all four of its tasks are done.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
 the gate each checks, the state of the record, the command that drives it,
@@ -661,8 +661,9 @@ requirements ADR-2020 addresses lands in one of them.
 
 [EPC-2300](epics/EPC-2300-a-run-lives-in-the-session-and-decides-merges-and-releases-itself.md)
 realises ADR-2380 in four tasks, TSK-4100 to TSK-4130, which move the run
-into the session and let it decide, merge and release on its own. None has
-started.
+into the session and let it decide, merge and release on its own. All four
+are done, and the unit's `start` command from a terminal stays for one release
+with a deprecation line.
 
 [EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
@@ -889,10 +890,11 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1520](bugs/BUG-1520-the-served-marketplace-keeps-relative-sources.md)                             | The served marketplace keeps relative sources for every unit but one, so no unit installs from the documented address           |
 | [BUG-1530](bugs/BUG-1530-the-test-stage-takes-five-to-sixteen-minutes.md)                              | The test stage takes five to sixteen minutes where five is the bound                                                            |
 
-Forty-six are closed. BUG-1410 is open, and so are BUG-1040, BUG-1100 and BUG-1360. BUG-1410 routes to implement,
-ADR-1000 chose does not deliver what the decision claims. BUG-1100 routes to requirements, because no requirement
-asks for the reviewer's cases to cover every rule. BUG-1410 routes to implement, because the resolution the git
-guard already does is the pattern its start command follows, and its fix is a crate change. BUG-1005 was written
-after its fix, and says so. BUG-1390 is closed: SPC-1201 names the failure states that
-`meow-loop` reaches, and TSK-4050 added the two refusals at start.
-BUG-1520 is open and routes to implement, because REQ-1485 and SPC-1080 already say what the served file holds.
+BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
+the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100
+routes to requirements, because no requirement asks for the reviewer's cases to
+cover every rule. BUG-1360 routes to research, because the cause is unknown.
+BUG-1005 was written after its fix, and says so. BUG-1390 is closed: SPC-1201
+names the failure states that `meow-loop` reaches, and TSK-4050 added the two
+refusals at start. BUG-1410 is closed by TSK-5260, BUG-1520 by TSK-5240 and
+BUG-1530 by TSK-5280.
