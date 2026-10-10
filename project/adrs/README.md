@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-134 decisions in all: 36 approved, 90 done, 8 superseded.
+134 decisions in all: 35 approved, 91 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -100,7 +100,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2370](ADR-2370-the-profile-is-read-at-the-root-reports-unknown-keys-and-keeps-a-personal-file-apart.md)                                              | The profile is read at the root, reports the keys it doesn't know, and keeps a personal file apart                                         | done       |
 | [ADR-2380](ADR-2380-a-run-lives-in-the-session-and-an-unattended-run-decides-merges-and-releases-itself.md)                                               | A run lives in the session, and an unattended run decides, merges and releases on its own                                                  | done       |
 | [ADR-2390](ADR-2390-the-prose-gate-asks-a-model-and-a-program-keeps-only-what-two-judgements-agree-on.md)                                                 | The prose gate asks a model to judge the text, and its program blocks only on what two judgements agree on                                 | done       |
-| [ADR-2400](ADR-2400-the-native-tool-is-the-harness-s-helper-and-each-subcommand-makes-one-determination.md)                                               | The native tool is the harness's helper, and each subcommand makes one determination                                                       | approved   |
+| [ADR-2400](ADR-2400-the-native-tool-is-the-harness-s-helper-and-each-subcommand-makes-one-determination.md)                                               | The native tool is the harness's helper, and each subcommand makes one determination                                                       | done       |
 | [ADR-2410](ADR-2410-a-search-reports-its-mode-and-an-absence-comes-only-from-one-that-read-everything.md)                                                 | A search reports its mode, and an absence comes only from one that read everything                                                         | done       |
 | [ADR-2420](ADR-2420-a-tool-runs-operations-and-the-method-keeps-its-own-decisions.md)                                                                     | A tool runs operations, and the method keeps its own decisions                                                                             | approved   |
 | [ADR-2430](ADR-2430-packing-the-repository-and-querying-the-corpus-are-postponed-until-a-step-needs-them.md)                                              | Packing the repository and querying the corpus are postponed until a step needs them                                                       | approved   |

@@ -8,7 +8,8 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 <steps name="research">
 1. State the question, then challenge the assumption behind it before you
    explore any alternative, because an assumption every option shares turns
-   invisible once the options exist.
+   invisible once the options exist. Take the record's identifier from
+   `paw new research`.
 2. Read primary sources: the documentation, the code, the tool itself.
    Record what you read, ran and searched, and what you couldn't obtain,
    under `## Method`.

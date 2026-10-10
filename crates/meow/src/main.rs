@@ -16,6 +16,21 @@ mod git;
 mod github;
 #[cfg(feature = "gotask")]
 mod gotask;
+#[cfg(any(
+    feature = "author",
+    feature = "git",
+    feature = "github",
+    feature = "gotask",
+    feature = "licence",
+    feature = "loop",
+    feature = "markdown",
+    feature = "mise",
+    feature = "prose",
+    feature = "scm",
+    feature = "unattended",
+    feature = "verbs",
+))]
+mod help;
 #[cfg(feature = "licence")]
 mod licence;
 #[cfg(feature = "markdown")]

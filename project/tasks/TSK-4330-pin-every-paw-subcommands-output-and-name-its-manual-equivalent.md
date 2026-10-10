@@ -1,7 +1,7 @@
 ---
 id: TSK-4330
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2330
 closes: [REQ-1170, REQ-1174, REQ-1176, REQ-1182, REQ-1184]
@@ -60,7 +60,31 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in the pull request's first commit, where three of the
+four in `crates/meow/tests/record_help.rs` failed because `paw --help` named
+nothing. `every_subcommand_names_what_a_person_reads_in_its_place` closes
+criterion 1 (REQ-1176): it reads each subcommand from `paw --help` and fails
+one whose help has no `by hand:` line. Subcommands now dispatch through one
+table that carries the three help fields, so one can't be added without them.
+`read_only_output_opens_with_stated_first_words`,
+`findings_drafts_and_refusals_open_with_stated_first_words`,
+`successful_changes_open_with_stated_first_words` and
+`an_index_with_an_amendment_opens_with_stated_first_words` close criterion 2
+(REQ-1184): they run twelve of the thirteen subcommands on a fixture record,
+with a finding, a draft, a miss, a refusal and a written change, and fail a
+line whose first word the help's `lines:` doesn't state. A placeholder in
+`lines:` is checked against the layout's kinds and relation keys, or a path,
+and only the paragraph under `paw show`'s heading is free text. Removing
+`Decisions` from `paw status`'s `lines:` made the test fail, as intended.
+`onboarding` is run only on its refusal, because its writing path needs an
+approved onboarding report no fixture here builds.
+`the_unit_ships_the_launcher_and_no_other_helper` closes criterion 4
+(REQ-1170): it holds `bin/` to the launcher alone and finds the shipped
+binary's name in it, and it held before the change.
+
+`cargo test --all-features`, `cargo clippy --all-features --all-targets
+-- -D warnings`, `cargo fmt --check` and `mise run all` passed, each with exit
+status 0.
 
 Criterion 3 rests on judgement, because the line between reporting the
 record's next step and choosing one is a reading of the output.

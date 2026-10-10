@@ -23,7 +23,20 @@ const HEADER_LINES: usize = 20;
 const COPYRIGHT: &str = "SPDX-FileCopyrightText:";
 const IDENTIFIER: &str = "SPDX-License-Identifier:";
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
+    name: "check",
+    determines: "whether every tracked file carries the licensing the repository declares",
+    by_hand: "read `REUSE.toml`, then each tracked file's header, for the licence and copyright lines the declaration requires",
+    lines: "meow-licence <path> <count>",
+    json: "",
+}];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("meow-licence", &HELP, args) {
+        return code;
+    }
     match args {
         [command] if command == "check" => check(&profile::repository_root()),
         _ => {

@@ -49,8 +49,22 @@ pub(crate) struct Posture {
     pub trunk: String,
 }
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+#[cfg_attr(not(feature = "unattended"), allow(dead_code))]
+const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
+    name: "plan",
+    determines: "the posture and deny rules an unattended run is held to, from the profile",
+    by_hand: "read the `[unattended]` table of `.meowpaw/profile.toml` and each default the specification states",
+    lines: "profile: unresolved: [unattended] permission_mode gates release amend_approved the deny Edit Bash none A The - denied, it. second it",
+    json: "",
+}];
+
 #[cfg_attr(not(feature = "unattended"), allow(dead_code))]
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("meow-unattended", &HELP, args) {
+        return code;
+    }
     let args: Vec<&str> = args.iter().map(String::as_str).collect();
     match args.as_slice() {
         ["plan"] => plan(&root()),

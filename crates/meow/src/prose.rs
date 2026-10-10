@@ -107,7 +107,20 @@ pub struct Finding {
     pub fix: &'static str,
 }
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
+    name: "check",
+    determines: "whether a command a hook is about to run carries text that breaks the prose rules",
+    by_hand: "read the commit message, pull request body or issue text in the command against the rules of the `writing` skill",
+    lines: "<json>",
+    json: "systemMessage",
+}];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("meow-prose-gate", &HELP, args) {
+        return code;
+    }
     match args.first().map(String::as_str) {
         Some("check") => {
             let mut input = String::new();

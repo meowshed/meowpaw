@@ -2548,7 +2548,7 @@ class ShortChainPrompts(unittest.TestCase):
         """Criterion 4, REQ-3626, REQ-3612: a review of the change in its pull request, fixed there, written into no
         record, reporting a test that would pass against a wrong implementation."""
         text = self.flat(METHOD / "steps" / "review.md")
-        self.assertRegex(text, r"task's pull request")
+        self.assertRegex(text, r"epic's pull request")
         self.assertRegex(text, r"fix.{0,80}in (that|the same) pull request")
         self.assertRegex(text, r"Write no finding into the record")
         self.assertRegex(text, r"writes no finding into the record")

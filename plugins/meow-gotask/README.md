@@ -125,6 +125,13 @@ characters the unit's budget states. The program is a native binary shipped
 inside the unit, and needs Task and git on the machine. On a machine the unit
 carries no binary for, it reports the repository as unresolved and exits 3.
 
+## Read a subcommand's help
+
+`meow-gotask --help` lists the subcommands, and `meow-gotask <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.280 or later, the version this unit was tested on, declared in

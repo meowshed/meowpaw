@@ -1,7 +1,7 @@
 ---
 id: TSK-4340
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2330
 closes: [REQ-1176, REQ-1184]
@@ -46,7 +46,39 @@ Update each unit's README where it lists its subcommands.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where all three in
+`crates/meow/tests/unit_help.rs` failed because no unit answered `--help`. A
+review of the first implementation found nine subcommands the test never ran,
+tables that stated words nothing prints and omitted words something does, and
+`by hand:` lines the source contradicted, and the tests and tables were
+corrected in the same pull request.
+
+`every_subcommand_names_what_a_person_reads_in_its_place` closes criterion 1
+(REQ-1176): it reads each unit's subcommands from `<binary> --help`, fails one
+whose help has no `by hand:` or `lines:` line, and fails a subcommand whose
+name the string literals of the unit's `main` carry and `--help` doesn't list,
+so the list comes from the parser's source and not from this task.
+`output_opens_with_stated_first_words`,
+`a_hook_answers_with_the_keys_its_help_states` and
+`the_tracker_commands_refuse_with_stated_first_words` close criterion 2
+(REQ-1184): between them they run all 34 subcommands on a fixture repository,
+and fail a line whose first word the help doesn't state, or a JSON object with
+a key it doesn't state. Removing `sign-off` from `meow scm check-message`'s
+`lines:` made the first fail. `a_json_answer_has_the_fields_the_help_states`
+holds `meow verbs status --json` to its keys. The lines a stage's own command
+printed, between `-- whole output of` and `-- end of`, are the command's and
+are skipped.
+
+Two pins are weaker than a literal word: `<text>` stands for a task's name in
+the `status` lines of `meow mise` and `meow gotask`, and for the ending word
+that the deprecated whole-run subcommand of `meow loop` prints. `--help` is
+the first argument after a name and nowhere else, so a target or a command
+that is the word `--help` reaches the subcommand. The test reaches only what
+the fixture produces: a refusal for `meow github` and for the tools that
+aren't installed, and no success path that needs the code host.
+
+`cargo test --all-features`, `cargo clippy --all-features --all-targets
+-- -D warnings` and `mise run all` passed, each with exit status 0.
 
 ## Left alone
 
