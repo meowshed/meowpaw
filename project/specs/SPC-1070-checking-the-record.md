@@ -2,9 +2,11 @@
 id: SPC-1070
 artifact: spec
 status: live
-revised: 2026-10-04
+revised: 2026-10-10
 states:
   [
+    REQ-4600,
+    REQ-4602,
     REQ-0137,
     REQ-0145,
     REQ-0216,
@@ -332,6 +334,18 @@ it (REQ-2662). A test pins that a change to an approved insight is reported.
 
 Without `--base`, the check compares with `HEAD`. It isn't among the checks
 `paw check` runs with no name, because it needs a base and git.
+
+### Writing the record
+
+A status change that implies an edit to another record is one command
+(REQ-4600, ADR-2880). `paw approve <id>...` moves a draft to `approved` where
+`paw check` reports nothing about it. `paw done <task> --pr <number>` stores
+`done` in a complete task, marks it in its epic or defect with the pull request,
+and stores `done` in the epic and the decision when it was the last open task.
+`paw withdraw <requirement> --by <decision> --replaced-by <id>...` writes the
+tombstone and the status. Each command changes the lines it owns and leaves the
+rest of the file as it found it, and its result passes `paw check` without the
+command, so a hand edit stays valid (REQ-4602, REQ-0030).
 
 ### This repository
 
