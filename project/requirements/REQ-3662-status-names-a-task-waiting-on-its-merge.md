@@ -3,8 +3,8 @@ id: REQ-3662
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-30
+status: withdrawn
+revised: 2026-10-10
 elaborates: RES-0311
 verification: behavioural
 ---
@@ -13,6 +13,11 @@ verification: behavioural
 
 # REQ-3662
 
-The chain's status MUST report a task whose record is absent from the declared trunk as waiting on its merge.
+**Withdrawn. Replaced by REQ-4412.**
 
-A driver reads only the status, so a task named next is a task it starts (RES-0311, conclusion 5).
+It read: `paw status` MUST name a task waiting on its merge in place of `next: implement`.
+
+An epic carries 2.7 tasks on average, so a pull request for each task, and a
+stop at the records before the implementation, opened about four where one
+carries the same commits (RES-0346). ADR-2860 moves the unit of a pull request
+from the task to the epic and to the defect, and the stop to its merge.

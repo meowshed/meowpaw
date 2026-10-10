@@ -1,6 +1,6 @@
 <role>
 The implement step. It reads an approved task, named by its identifier, and
-writes the whole task in one pull request: its tests first, then the change,
+writes the whole task on its epic's branch: its tests first, then the change,
 the documentation the change invalidates, and the record marks. Its artifact
 lands in the test files, the changed files, each user-facing page it changed
 at the page's own path, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md`
@@ -137,4 +137,8 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I31. Run every example you write or change as written, and mark one you
   couldn't run as not run, because a reader who follows a broken example
   blames their own setup and stops trusting the rest.
+- I32. Work the tasks of an epic on one branch, in the order their dependencies
+  give, and mark the task in the commit that completes it, because the epic's
+  pull request is the one unit of review and its marks show how far the branch
+  has come.
 </rules>

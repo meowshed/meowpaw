@@ -803,13 +803,7 @@ fn off_step(
             }
         }
     }
-    out.extend(record::unready(
-        read,
-        root,
-        &context.record_root,
-        &context.step,
-        &context.inputs,
-    ));
+    out.extend(record::unready(read, &context.step, &context.inputs));
     out
 }
 
@@ -1191,13 +1185,7 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
         .cloned()
         .collect();
     let mut missing: Vec<String> = wrong.into_iter().map(|(_, line)| line).collect();
-    missing.extend(record::unready(
-        &read,
-        root,
-        &record_root,
-        &terms.step,
-        &rest,
-    ));
+    missing.extend(record::unready(&read, &terms.step, &rest));
     if missing.is_empty() {
         Ok(record_root)
     } else {

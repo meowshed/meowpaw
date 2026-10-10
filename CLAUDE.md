@@ -67,8 +67,8 @@ or rejects a derived-complete record that still stores `approved`.
 | `project/research/RES-NNNN-<topic>.md`    | What was read, with its sources                                                                                     |
 | `project/requirements/REQ-NNNN-<slug>.md` | One obligation per file                                                                                             |
 | `project/adrs/ADR-NNNN-<slug>.md`         | What was chosen, and what lost                                                                                      |
-| `project/epics/EPC-NNNN-<slug>.md`        | One authorising record decomposed into tasks                                                                        |
-| `project/tasks/TSK-NNNN-<slug>.md`        | One task, one branch, one pull request                                                                              |
+| `project/epics/EPC-NNNN-<slug>.md`        | One authorising record decomposed into tasks, and one pull request                                                  |
+| `project/tasks/TSK-NNNN-<slug>.md`        | One task, a group of commits in its epic's pull request                                                             |
 | `project/bugs/BUG-NNNN-<slug>.md`         | Evidence that a requirement isn't met                                                                               |
 | `project/insights/INS-NNNN-<slug>.md`     | One lesson learned, with its evidence and the pattern it generalises to                                             |
 | `docs/`                                   | Documentation for someone using the harness as a whole. A separate hierarchy                                        |
@@ -112,10 +112,14 @@ research -> requirements -> design -> spec -> epic
          -> implement -> review
 ```
 
-A task is one pull request: its tests first, in a commit of their own where
-they fail, then the change, its documentation and its record marks. An agent
-reviews the change inside that pull request, and the pull request fixes what
-it finds. A requirement is closed when the tasks that name it are done, and an
+An epic is one pull request, from its research to the merge of its completed
+work, or from its approved records where an earlier pull request merged them.
+A defect that carries its tasks, and a task that realises a decision with no
+epic, follow the same rule. Each task in it is its tests first, in a commit of
+their own where they fail, then the change, its documentation and its record
+marks. An epic that wouldn't be one reviewable change is split into epics
+before its work starts. An agent reviews the change inside that pull request,
+and the pull request fixes what it finds. A requirement is closed when the tasks that name it are done, and an
 open defect naming it reopens it. Nothing else verifies it, and no run output
 is kept in the repository.
 

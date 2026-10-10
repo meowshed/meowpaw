@@ -395,6 +395,11 @@ EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
 
 ## Epics and tasks
 
+[EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
+tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either
+from its research or from its approved records, and the readiness check reads a
+task's approval from the working tree.
+
 [EPC-2760](epics/EPC-2760-the-stage-term.md) realises ADR-2850 in three tasks,
 TSK-5270 to TSK-5272: the five verification obligations are called stages, a
 profile declares them under `[stages]` with `[verbs]` read for two releases,
