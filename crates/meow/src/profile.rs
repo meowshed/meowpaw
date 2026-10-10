@@ -15,6 +15,9 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 pub const PROFILE: &str = ".meowpaw/profile.toml";
+/// The personal profile: one machine's own stages, kept out of the repository
+/// (REQ-2944).
+pub const PERSONAL: &str = ".meowpaw/profile.local.toml";
 
 pub enum Profile {
     Absent,
@@ -240,9 +243,9 @@ fn unreasoned(keys: &[Key]) -> Vec<&'static str> {
         .collect()
 }
 
-/// Each key path in `table`, under `prefix`, that the table of keys doesn't
-/// list, in the order the profile gives them.
-fn unknown(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
+/// Each key path in `table`, under `prefix`, that `known` doesn't list, in the
+/// order the profile gives them.
+fn unknown_among(table: &toml::Table, prefix: &str, known: &[&str], out: &mut Vec<String>) {
     for (name, value) in table {
         let path = if prefix.is_empty() {
             name.clone()
@@ -250,13 +253,61 @@ fn unknown(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
             format!("{prefix}.{name}")
         };
         let below = format!("{path}.");
-        let listed = KEYS.iter().any(|key| key.path == path);
-        let leads = KEYS.iter().any(|key| key.path.starts_with(&below));
+        let listed = known.iter().any(|key| *key == path);
+        let leads = known.iter().any(|key| key.starts_with(&below));
         if !listed && !leads {
             out.push(path);
         } else if leads && let toml::Value::Table(inner) = value {
-            unknown(inner, &path, out);
+            unknown_among(inner, &path, known, out);
         }
+    }
+}
+
+/// Each key path in `table` that the table of keys doesn't list.
+fn unknown(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
+    let known: Vec<&str> = KEYS.iter().map(|key| key.path).collect();
+    unknown_among(table, prefix, &known, out);
+}
+
+/// The personal profile as read: absent, unparseable, or the table and each
+/// key in it that a personal profile may not hold. Only the stage tables are
+/// known there, because the file confines itself to one machine's stages
+/// (ADR-2370).
+pub enum Personal {
+    Absent,
+    Unparseable(String),
+    Parsed(toml::Table, Vec<String>),
+}
+
+pub fn read_personal(root: &Path) -> Personal {
+    let path = root.join(PERSONAL);
+    if !path.is_file() {
+        return Personal::Absent;
+    }
+    let text = match std::fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(error) => return Personal::Unparseable(error.to_string()),
+    };
+    match text.parse::<toml::Table>() {
+        Ok(table) => {
+            let known: Vec<&str> = KEYS
+                .iter()
+                .map(|key| key.path)
+                .filter(|path| path.starts_with("stages.") || path.starts_with("verbs."))
+                .collect();
+            let mut found = Vec::new();
+            unknown_among(&table, "", &known, &mut found);
+            Personal::Parsed(table, found)
+        }
+        Err(error) => Personal::Unparseable(
+            error
+                .message()
+                .lines()
+                .map(str::trim)
+                .filter(|line| !line.is_empty())
+                .collect::<Vec<_>>()
+                .join("; "),
+        ),
     }
 }
 

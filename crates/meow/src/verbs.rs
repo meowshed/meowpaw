@@ -13,7 +13,7 @@
 
 pub(crate) mod ledger;
 
-use crate::profile::{self, PROFILE, Profile};
+use crate::profile::{self, PERSONAL, PROFILE, Personal, Profile};
 use serde_json::{Map, Value, json};
 use std::io::Read;
 use std::path::Path;
@@ -38,6 +38,8 @@ enum Entry {
     Resolved {
         command: String,
         subset: Option<String>,
+        /// The file the declaration came from.
+        source: &'static str,
     },
     Unresolved {
         kind: &'static str,
@@ -58,6 +60,147 @@ struct Report {
 }
 
 fn resolve(root: &Path) -> Report {
+    let mut report = resolve_shared(root);
+    apply_personal(root, &mut report);
+    report
+}
+
+/// The word a command starts with, with its quotes taken off.
+fn first_word(command: &str) -> &str {
+    let command = command.trim_start();
+    match command.chars().next() {
+        Some(quote @ ('"' | '\'')) => {
+            let rest = &command[1..];
+            rest.split(quote).next().unwrap_or(rest)
+        }
+        _ => command.split_whitespace().next().unwrap_or(""),
+    }
+}
+
+/// Where `path` points once its `.` and `..` components are applied, or
+/// `None` where a relative path climbs above its starting point.
+fn lexical(path: &Path) -> Option<std::path::PathBuf> {
+    use std::path::Component;
+    let mut out = std::path::PathBuf::new();
+    let mut depth = 0usize;
+    for part in path.components() {
+        match part {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if depth == 0 && !path.is_absolute() {
+                    return None;
+                }
+                out.pop();
+                depth = depth.saturating_sub(1);
+            }
+            Component::Normal(name) => {
+                out.push(name);
+                depth += 1;
+            }
+            other => out.push(other.as_os_str()),
+        }
+    }
+    Some(out)
+}
+
+/// The first word of a command, where it names a place on this machine and not
+/// a tool the toolchain provides: it starts with `~` or `$HOME`, or is a path
+/// that resolves outside the repository, however it is quoted or written with
+/// `..` (REQ-2946).
+fn machine_path<'a>(root: &Path, command: &'a str) -> Option<&'a str> {
+    let word = first_word(command);
+    if word.starts_with('~') || word.starts_with("$HOME") || word.starts_with("${HOME}") {
+        return Some(word);
+    }
+    let path = Path::new(word);
+    let outside = if path.is_absolute() {
+        lexical(path).is_none_or(|resolved| !resolved.starts_with(root))
+    } else {
+        word.contains('/') && lexical(path).is_none()
+    };
+    outside.then_some(word)
+}
+
+/// Lets the personal profile's stages replace the shared ones on this machine
+/// (REQ-2944). A personal profile that doesn't parse replaces nothing, and an
+/// unparseable shared profile resolves nothing for it to replace (REQ-2948).
+fn apply_personal(root: &Path, report: &mut Report) {
+    if report.state == "unparseable" {
+        return;
+    }
+    match profile::read_personal(root) {
+        Personal::Absent => {}
+        Personal::Unparseable(error) => {
+            report
+                .profile
+                .push("personal profile: unparseable".to_string());
+            report
+                .profile
+                .push(format!("personal profile error: {error}"));
+        }
+        Personal::Parsed(table, unknown) => {
+            for key in unknown {
+                report
+                    .profile
+                    .push(format!("unknown key: {key} (in {PERSONAL})"));
+                report.unknown.push(format!("{key} (in {PERSONAL})"));
+            }
+            let empty = toml::Table::new();
+            let declared = match profile::stages(&table) {
+                None => &empty,
+                Some(toml::Value::Table(declared)) => declared,
+                Some(_) => {
+                    report.profile.push(format!(
+                        "personal profile: the stages declaration in {PERSONAL} isn't a table"
+                    ));
+                    return;
+                }
+            };
+            for (verb, entry) in report.verbs.iter_mut() {
+                let Some(value) = declared.get(*verb) else {
+                    continue;
+                };
+                let personal = match value {
+                    toml::Value::String(command) if !command.trim().is_empty() => Entry::Resolved {
+                        command: command.clone(),
+                        subset: None,
+                        source: PERSONAL,
+                    },
+                    toml::Value::Table(inner) => match from_table(inner) {
+                        Entry::Resolved {
+                            command, subset, ..
+                        } => Entry::Resolved {
+                            command,
+                            subset,
+                            source: PERSONAL,
+                        },
+                        other => other,
+                    },
+                    _ => Entry::Unresolved {
+                        kind: "malformed declaration",
+                        detail: format!(
+                            "the value in {PERSONAL} isn't one command; write one command as a string under [stages]"
+                        ),
+                    },
+                };
+                *entry = match personal {
+                    Entry::Resolved { command, .. } if machine_path(root, &command).is_some() => {
+                        let word = machine_path(root, &command).unwrap_or_default();
+                        Entry::Unresolved {
+                            kind: "machine path",
+                            detail: format!(
+                                "{PERSONAL} runs {word}, a path on this machine; name the tool through the project's toolchain declaration"
+                            ),
+                        }
+                    }
+                    other => other,
+                };
+            }
+        }
+    }
+}
+
+fn resolve_shared(root: &Path) -> Report {
     let path = root.join(PROFILE).display().to_string();
     let every = |kind: &'static str, detail: String| {
         VERBS
@@ -126,7 +269,7 @@ fn resolve(root: &Path) -> Report {
                             detail: "the profile doesn't name it; declare it under [stages] in .meowpaw/profile.toml".into(),
                         },
                         Some(toml::Value::String(command)) if !command.trim().is_empty() => {
-                            Entry::Resolved { command: command.clone(), subset: None }
+                            Entry::Resolved { command: command.clone(), subset: None, source: PROFILE }
                         }
                         Some(toml::Value::Table(table)) => from_table(table),
                         Some(_) => Entry::Unresolved {
@@ -196,6 +339,7 @@ fn from_table(table: &toml::Table) -> Entry {
     Entry::Resolved {
         command: command.to_string(),
         subset,
+        source: PROFILE,
     }
 }
 
@@ -214,8 +358,12 @@ fn status(root: &Path, as_json: bool) -> u8 {
         let mut verbs = Map::new();
         for (verb, entry) in &report.verbs {
             let value = match entry {
-                Entry::Resolved { command, subset } => {
-                    json!({"state": "resolved", "command": command, "subset": subset, "source": PROFILE})
+                Entry::Resolved {
+                    command,
+                    subset,
+                    source,
+                } => {
+                    json!({"state": "resolved", "command": command, "subset": subset, "source": source})
                 }
                 Entry::Unresolved { kind, detail } => {
                     json!({"state": "unresolved", "kind": kind, "detail": detail})
@@ -251,8 +399,12 @@ fn status(root: &Path, as_json: bool) -> u8 {
     println!();
     for (verb, entry) in &report.verbs {
         match entry {
-            Entry::Resolved { command, subset } => {
-                println!("{verb:<10} resolved    {command}   (from {PROFILE})");
+            Entry::Resolved {
+                command,
+                subset,
+                source,
+            } => {
+                println!("{verb:<10} resolved    {command}   (from {source})");
                 match subset {
                     Some(form) => println!("{:<10} subset      {form}", ""),
                     None => println!(
@@ -467,7 +619,9 @@ fn run(root: &Path, args: &[String]) -> u8 {
                 );
                 continue;
             }
-            Entry::Resolved { command, subset } => match (targets, subset) {
+            Entry::Resolved {
+                command, subset, ..
+            } => match (targets, subset) {
                 (None, _) => command.clone(),
                 (Some(parts), Some(form)) => form.replace(
                     TARGETS,
@@ -772,6 +926,151 @@ fn state(root: &Path, args: &[&str]) -> u8 {
     }
 }
 
+/// Where git keeps the exclude file of the working tree at `root`, or why
+/// there is no working tree there (REQ-2944).
+fn exclude_file(root: &Path) -> std::result::Result<std::path::PathBuf, String> {
+    let done = profile::reading_git()
+        .args(["rev-parse", "--git-path", "info/exclude"])
+        .current_dir(root)
+        .output()
+        .map_err(|error| format!("can't start git: {error}"))?;
+    let text = String::from_utf8_lossy(&done.stdout).trim().to_string();
+    if !done.status.success() || text.is_empty() {
+        return Err(format!(
+            "{} isn't inside a git working tree, so there is nowhere to exclude the personal profile",
+            root.display()
+        ));
+    }
+    let path = std::path::PathBuf::from(text);
+    Ok(if path.is_absolute() {
+        path
+    } else {
+        root.join(path)
+    })
+}
+
+/// Writes one stage into the personal profile and excludes the file from the
+/// working tree, in that order of safety: the exclusion first, so the file is
+/// never seen untracked (REQ-2944). It writes nothing else.
+fn local(root: &Path, args: &[&str]) -> u8 {
+    let [verb, command] = args else {
+        eprintln!("usage: meow-checks local <stage> <command>");
+        return USAGE;
+    };
+    if !VERBS.contains(verb) {
+        eprintln!(
+            "meow-checks local: {verb} isn't a stage; the five are {}",
+            VERBS.join(" ")
+        );
+        return USAGE;
+    }
+    if command.trim().is_empty() {
+        eprintln!("meow-checks local: the command is empty; name the command {verb} runs");
+        return USAGE;
+    }
+    if let Some(word) = machine_path(root, command) {
+        eprintln!(
+            "meow-checks local: {word} is a path on this machine, and nothing was written; name the tool through the project's toolchain declaration"
+        );
+        return FAILED;
+    }
+    let exclude = match exclude_file(root) {
+        Ok(path) => path,
+        Err(reason) => {
+            eprintln!("meow-checks local: {reason}; run it inside the repository");
+            return FAILED;
+        }
+    };
+    let file = root.join(PERSONAL);
+    if std::fs::symlink_metadata(&file).is_ok_and(|meta| meta.file_type().is_symlink()) {
+        eprintln!(
+            "meow-checks local: {PERSONAL} is a symbolic link, and writing through it would change a file outside what this command names; replace it with a regular file"
+        );
+        return FAILED;
+    }
+    let tracked = profile::reading_git()
+        .args(["ls-files", "--error-unmatch", "--", PERSONAL])
+        .current_dir(root)
+        .output()
+        .is_ok_and(|done| done.status.success());
+    if tracked {
+        eprintln!(
+            "meow-checks local: {PERSONAL} is tracked by git, so excluding it would hide nothing and it would stay in the repository; run `git rm --cached {PERSONAL}` and run this again"
+        );
+        return FAILED;
+    }
+    let mut table = match std::fs::read_to_string(&file) {
+        Err(_) => toml::Table::new(),
+        Ok(text) => match text.parse::<toml::Table>() {
+            Ok(table) => table,
+            Err(error) => {
+                eprintln!(
+                    "meow-checks local: {PERSONAL} doesn't parse ({}); fix or remove it, and nothing was written",
+                    error.message().trim()
+                );
+                return FAILED;
+            }
+        },
+    };
+    let name = if table.contains_key("stages") || !table.contains_key("verbs") {
+        "stages"
+    } else {
+        "verbs"
+    };
+    let stages = table
+        .entry(name.to_string())
+        .or_insert_with(|| toml::Value::Table(toml::Table::new()));
+    let toml::Value::Table(stages) = stages else {
+        eprintln!(
+            "meow-checks local: [{name}] in {PERSONAL} isn't a table; fix it, and nothing was written"
+        );
+        return FAILED;
+    };
+    stages.insert(verb.to_string(), toml::Value::String(command.to_string()));
+    let body = match toml::to_string(&table) {
+        Ok(body) => body,
+        Err(error) => {
+            eprintln!("meow-checks local: can't write {PERSONAL}: {error}");
+            return FAILED;
+        }
+    };
+    let line = format!("/{PERSONAL}");
+    let kept = std::fs::read_to_string(&exclude).unwrap_or_default();
+    let write = || -> std::io::Result<()> {
+        if !kept.lines().any(|l| l.trim() == line) {
+            if let Some(parent) = exclude.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            let mut text = kept.clone();
+            if !text.is_empty() && !text.ends_with('\n') {
+                text.push('\n');
+            }
+            text.push_str(&line);
+            text.push('\n');
+            std::fs::write(&exclude, text)?;
+        }
+        if let Some(parent) = file.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        let temporary = file.with_extension("toml.tmp");
+        std::fs::write(&temporary, &body)?;
+        std::fs::rename(&temporary, &file).inspect_err(|_| {
+            let _ = std::fs::remove_file(&temporary);
+        })
+    };
+    match write() {
+        Ok(()) => {
+            println!("{PERSONAL}: {verb} = {command}");
+            println!("excluded through {}", exclude.display());
+            PASSED
+        }
+        Err(error) => {
+            eprintln!("meow-checks local: {error}");
+            FAILED
+        }
+    }
+}
+
 pub fn main(args: &[String]) -> u8 {
     let root = profile::repository_root();
     let args: Vec<&str> = args.iter().map(String::as_str).collect();
@@ -783,6 +1082,7 @@ pub fn main(args: &[String]) -> u8 {
             &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
         ),
         ["state", rest @ ..] => state(&root, rest),
+        ["local", rest @ ..] => local(&root, rest),
         ["tree", commit] => match ledger::tree_of_commit(&root, commit) {
             Ok(tree) => {
                 println!("{tree}");
@@ -799,7 +1099,7 @@ pub fn main(args: &[String]) -> u8 {
         ),
         _ => {
             eprintln!(
-                "usage: meow-checks status [--json] | meow-checks run <stage>... [-- <target>...] | meow-checks evidence [--all] [verb...] | meow-checks state [--purge] | meow-checks tree <commit>"
+                "usage: meow-checks status [--json] | meow-checks run <stage>... [-- <target>...] | meow-checks evidence [--all] [verb...] | meow-checks state [--purge] | meow-checks tree <commit> | meow-checks local <stage> <command>"
             );
             USAGE
         }

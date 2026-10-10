@@ -56,7 +56,7 @@ number.
       closes: REQ-2940, REQ-2942, REQ-2948, REQ-2950
       evidence: `crates/meow/tests/profile_states.rs` and the table's tests pass in local runs of `mise run all` and `meow-checks run test`, #818
 
-- [ ] T-002 TSK-4310 read a personal profile, write it with `meow-checks local`, and refuse a machine path in it
+- [x] T-002 TSK-4310 read a personal profile, write it with `meow-checks local`, and refuse a machine path in it (done: pull request 1037)
       closes: REQ-2944, REQ-2946
       depends: TSK-4300 (blocking) - a table other than `[verbs]` in the personal file is reported through the unknown-key list TSK-4300 adds
 
