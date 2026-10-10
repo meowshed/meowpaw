@@ -320,6 +320,58 @@ mod tests {
         }
     }
 
+    /// TSK-5270, criterion 1, REQ-4202: a `[stages]` table is the declaration,
+    /// and nothing about it is deprecated.
+    #[test]
+    fn a_stages_table_is_the_declaration_and_names_no_deprecation() {
+        let (_dir, profile) = with_profile(Some("[stages]\ntest = \"true\"\n"));
+        let Profile::Parsed(table, unknown) = &profile else {
+            panic!("the profile didn't parse");
+        };
+        assert!(unknown.is_empty(), "{unknown:?}");
+        assert_eq!(report(&profile), ["profile: parsed"]);
+        let declared = stages(table).and_then(toml::Value::as_table).unwrap();
+        assert!(declared.contains_key("test"));
+    }
+
+    /// TSK-5270, criterion 2, REQ-4204: a `[verbs]` table still declares them,
+    /// and the report names `[stages]` as the table to use.
+    #[test]
+    fn a_verbs_table_declares_the_stages_and_names_the_table_to_use() {
+        let (_dir, profile) = with_profile(Some("[verbs]\ntest = \"true\"\n"));
+        let Profile::Parsed(table, _) = &profile else {
+            panic!("the profile didn't parse");
+        };
+        let declared = stages(table).and_then(toml::Value::as_table).unwrap();
+        assert!(declared.contains_key("test"));
+        let lines = report(&profile);
+        assert_eq!(lines[0], "profile: parsed");
+        assert!(
+            lines
+                .iter()
+                .any(|line| line.contains("[verbs]") && line.contains("[stages]")),
+            "{lines:?}"
+        );
+    }
+
+    /// TSK-5270, criterion 3, REQ-4204: with both tables, `[stages]` wins and
+    /// the report names the duplicate.
+    #[test]
+    fn with_both_tables_stages_wins_and_the_report_names_the_duplicate() {
+        let (_dir, profile) =
+            with_profile(Some("[verbs]\ntest = \"old\"\n[stages]\ntest = \"new\"\n"));
+        let Profile::Parsed(table, _) = &profile else {
+            panic!("the profile didn't parse");
+        };
+        let declared = stages(table).and_then(toml::Value::as_table).unwrap();
+        assert_eq!(
+            declared.get("test").and_then(toml::Value::as_str),
+            Some("new")
+        );
+        let lines = report(&profile);
+        assert!(lines.iter().any(|line| line.contains("both")), "{lines:?}");
+    }
+
     #[test]
     fn a_read_takes_no_optional_lock() {
         // REQ-2524: a read never takes the index lock or refreshes the index.

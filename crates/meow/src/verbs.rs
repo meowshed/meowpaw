@@ -805,6 +805,37 @@ pub fn main(args: &[String]) -> u8 {
 mod tests {
     use super::*;
 
+    fn profile_in(case: &str, text: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("meow-stages-{case}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join(".meowpaw")).unwrap();
+        std::fs::write(dir.join(PROFILE), text).unwrap();
+        dir
+    }
+
+    fn resolved(report: &Report, stage: &str) -> Option<String> {
+        report.verbs.iter().find_map(|(name, entry)| match entry {
+            Entry::Resolved { command, .. } if *name == stage => Some(command.clone()),
+            _ => None,
+        })
+    }
+
+    /// TSK-5270, criteria 1 and 2, REQ-4202 and REQ-4204: a stage resolves
+    /// from `[stages]`, and from `[verbs]` with the table to use named.
+    #[test]
+    fn a_stage_resolves_from_either_table() {
+        let stages = resolve(&profile_in("stages", "[stages]\ntest = \"run-tests\"\n"));
+        assert_eq!(resolved(&stages, "test").as_deref(), Some("run-tests"));
+        assert_eq!(stages.profile, ["profile: parsed"]);
+        let verbs = resolve(&profile_in("verbs", "[verbs]\ntest = \"run-tests\"\n"));
+        assert_eq!(resolved(&verbs, "test").as_deref(), Some("run-tests"));
+        assert!(
+            verbs.profile.iter().any(|line| line.contains("[stages]")),
+            "{:?}",
+            verbs.profile
+        );
+    }
+
     #[test]
     fn a_command_that_never_started_is_not_an_exit_status() {
         // SPC-1201: an unspawned verb counts neither as a pass nor as a fail.
