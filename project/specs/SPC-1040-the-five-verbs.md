@@ -2,7 +2,7 @@
 id: SPC-1040
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-10
 states:
   [
     REQ-3634,
@@ -49,6 +49,9 @@ states:
     REQ-3084,
     REQ-3086,
     REQ-3090,
+    REQ-4200,
+    REQ-4202,
+    REQ-4204,
   ]
 ---
 
@@ -87,6 +90,19 @@ ADR-2450 and ADR-2700 the revision counter, and ADR-2680 `doctor`.
 | `plugins/meow-checks/README.md`        | The unit's documentation page                                             |
 
 ## Behaviour
+
+### The term
+
+The five are called stages, and this page still says "verb" in the sections
+below until TSK-5271 rewrites it (REQ-4200, ADR-2850). A stage is a named
+obligation that a repository binds to a command. The five are independent: a
+failure in one stops no other, and only `format` goes first, because a
+formatter that rewrites files leaves every earlier result stale.
+
+A profile declares the stages under `[stages]` (REQ-4202). A profile that
+declares them under `[verbs]` still resolves, and the report names `[stages]`
+as the table to use, until the second release after the one that adds
+`[stages]` (REQ-4204).
 
 ### The verbs
 
