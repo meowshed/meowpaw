@@ -59,7 +59,7 @@ class Launchers(unittest.TestCase):
             root = self.base / "core"
             binary = root / "bin" / target() / "meow"
             binary.parent.mkdir(parents=True)
-            binary.write_text('#!/bin/sh\necho "shared: $*"\n')
+            binary.write_text('#!/bin/sh\necho "shared: $* layout=$MEOW_LAYOUT"\n')
             binary.chmod(0o755)
             (data / "meow-core-test").mkdir(parents=True)
             (data / "meow-core-test" / "meow-root").write_text(f"{root}\n")
@@ -75,6 +75,15 @@ class Launchers(unittest.TestCase):
             with self.subTest(launcher=launcher.name):
                 done = self.run_launcher(launcher, shared=True)
                 self.assertIn("shared:", done.stdout + done.stderr, done.stdout + done.stderr)
+
+    def test_a_unit_that_ships_a_layout_hands_it_to_the_shared_binary(self):
+        """TSK-5301 criterion 2, REQ-4504: the shared binary sits in another unit, so it can't find the layout."""
+        for launcher in LAUNCHERS:
+            if not (launcher.parent.parent / "lib" / "layout.toml").is_file():
+                continue
+            with self.subTest(launcher=launcher.name):
+                done = self.run_launcher(launcher, shared=True, sub=self.subcommands(launcher)[0])
+                self.assertRegex(done.stdout, r"layout=\S*/lib/layout\.toml", done.stdout + done.stderr)
 
     def test_a_launcher_finds_the_core_unit_beside_it_in_a_checkout(self):
         """TSK-5302, REQ-4504: loaded in place, a unit finds `plugins/meow-core` beside it with no data file."""
