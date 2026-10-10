@@ -129,11 +129,17 @@ meow-checks local test "mise run test"
 `status` names the file each resolved stage came from, the shared profile or
 the personal one. A personal profile holds stages and nothing else: any other
 key is named as `unknown key: <path> (in .meowpaw/profile.local.toml)` and
-ignored. A personal command that starts with `~`, or with an absolute path
-outside the repository, is unresolved of the kind `machine path` and doesn't
-run, because the tool should be found through the project's toolchain
-declaration. The same command in the shared profile resolves. Outside a git
-working tree `local` writes nothing and exits 1.
+ignored. A personal command that starts with `~` or `$HOME`, or with a path
+that resolves outside the repository, quoted or written with `..` or not, is
+unresolved of the kind `machine path` and doesn't run, because the tool should
+be found through the project's toolchain declaration. The same command in the
+shared profile resolves. A path hidden behind a leading `env` or a `NAME=value`
+word isn't recognised.
+
+`local` refuses a machine path, and writes nothing, exiting 1, outside a git
+working tree, where the personal file is a symbolic link, and where git already
+tracks it, because an exclusion hides a tracked file from no one. It rewrites
+the whole file, so a comment you added by hand is lost.
 
 `status` and `run` open with the profile's state: `profile: absent`,
 `profile: unparseable` or `profile: parsed`. An unparseable profile adds

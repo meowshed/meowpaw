@@ -65,13 +65,60 @@ fn resolve(root: &Path) -> Report {
     report
 }
 
+/// The word a command starts with, with its quotes taken off.
+fn first_word(command: &str) -> &str {
+    let command = command.trim_start();
+    match command.chars().next() {
+        Some(quote @ ('"' | '\'')) => {
+            let rest = &command[1..];
+            rest.split(quote).next().unwrap_or(rest)
+        }
+        _ => command.split_whitespace().next().unwrap_or(""),
+    }
+}
+
+/// Where `path` points once its `.` and `..` components are applied, or
+/// `None` where a relative path climbs above its starting point.
+fn lexical(path: &Path) -> Option<std::path::PathBuf> {
+    use std::path::Component;
+    let mut out = std::path::PathBuf::new();
+    let mut depth = 0usize;
+    for part in path.components() {
+        match part {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if depth == 0 && !path.is_absolute() {
+                    return None;
+                }
+                out.pop();
+                depth = depth.saturating_sub(1);
+            }
+            Component::Normal(name) => {
+                out.push(name);
+                depth += 1;
+            }
+            other => out.push(other.as_os_str()),
+        }
+    }
+    Some(out)
+}
+
 /// The first word of a command, where it names a place on this machine and not
-/// a tool the toolchain provides: it starts with `~`, or is an absolute path
-/// outside the repository (REQ-2946).
+/// a tool the toolchain provides: it starts with `~` or `$HOME`, or is a path
+/// that resolves outside the repository, however it is quoted or written with
+/// `..` (REQ-2946).
 fn machine_path<'a>(root: &Path, command: &'a str) -> Option<&'a str> {
-    let word = command.split_whitespace().next()?;
-    let outside = Path::new(word).is_absolute() && !Path::new(word).starts_with(root);
-    (word.starts_with('~') || outside).then_some(word)
+    let word = first_word(command);
+    if word.starts_with('~') || word.starts_with("$HOME") || word.starts_with("${HOME}") {
+        return Some(word);
+    }
+    let path = Path::new(word);
+    let outside = if path.is_absolute() {
+        lexical(path).is_none_or(|resolved| !resolved.starts_with(root))
+    } else {
+        word.contains('/') && lexical(path).is_none()
+    };
+    outside.then_some(word)
 }
 
 /// Lets the personal profile's stages replace the shared ones on this machine
@@ -921,6 +968,12 @@ fn local(root: &Path, args: &[&str]) -> u8 {
         eprintln!("meow-checks local: the command is empty; name the command {verb} runs");
         return USAGE;
     }
+    if let Some(word) = machine_path(root, command) {
+        eprintln!(
+            "meow-checks local: {word} is a path on this machine, and nothing was written; name the tool through the project's toolchain declaration"
+        );
+        return FAILED;
+    }
     let exclude = match exclude_file(root) {
         Ok(path) => path,
         Err(reason) => {
@@ -929,6 +982,23 @@ fn local(root: &Path, args: &[&str]) -> u8 {
         }
     };
     let file = root.join(PERSONAL);
+    if std::fs::symlink_metadata(&file).is_ok_and(|meta| meta.file_type().is_symlink()) {
+        eprintln!(
+            "meow-checks local: {PERSONAL} is a symbolic link, and writing through it would change a file outside what this command names; replace it with a regular file"
+        );
+        return FAILED;
+    }
+    let tracked = profile::reading_git()
+        .args(["ls-files", "--error-unmatch", "--", PERSONAL])
+        .current_dir(root)
+        .output()
+        .is_ok_and(|done| done.status.success());
+    if tracked {
+        eprintln!(
+            "meow-checks local: {PERSONAL} is tracked by git, so excluding it would hide nothing and it would stay in the repository; run `git rm --cached {PERSONAL}` and run this again"
+        );
+        return FAILED;
+    }
     let mut table = match std::fs::read_to_string(&file) {
         Err(_) => toml::Table::new(),
         Ok(text) => match text.parse::<toml::Table>() {
@@ -982,7 +1052,11 @@ fn local(root: &Path, args: &[&str]) -> u8 {
         if let Some(parent) = file.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        std::fs::write(&file, &body)
+        let temporary = file.with_extension("toml.tmp");
+        std::fs::write(&temporary, &body)?;
+        std::fs::rename(&temporary, &file).inspect_err(|_| {
+            let _ = std::fs::remove_file(&temporary);
+        })
     };
     match write() {
         Ok(()) => {

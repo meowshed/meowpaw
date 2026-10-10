@@ -80,8 +80,18 @@ failed first, in the commit before the change, and pass:
 5. `a_personal_profile_with_a_commits_table_names_it_unknown`.
 6. `local_outside_a_working_tree_writes_nothing_and_fails`.
 
+An agent's review of the change added tests for REQ-2946 and REQ-2944, four of
+which failed first: every spelling of a machine path (`~`, `$HOME`, quoted,
+`..`), `local` refusing a machine path, a symbolic-link personal file and a
+tracked one. The others pin an unparseable shared profile, an unparseable
+personal one, a personal file that holds `[verbs]` and a linked working tree.
+
 The tests assert `[stages]` where criterion 1 names `[verbs]`, because REQ-4202
 and REQ-4204 made `[stages]` the declaration after this task was approved.
+
+Left unrecognised, and stated in the README: a machine path behind a leading
+`env` or a `NAME=value` word, and a hand-written comment in the personal file,
+which `local` drops when it rewrites the file.
 
 Stages: the pull request's `gate` check passed, and `paw check` printed 0
 findings, exit 0. The documentation is `plugins/meow-checks/README.md`.
