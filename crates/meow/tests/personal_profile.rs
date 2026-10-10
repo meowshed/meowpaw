@@ -235,3 +235,213 @@ fn local_outside_a_working_tree_writes_nothing_and_fails() {
     );
     assert!(!root.0.join(".meowpaw").exists());
 }
+
+/// A personal profile holding `command` as its `test` stage, written as TOML
+/// so the command's own quotes survive.
+fn personal_with(dir: &Path, command: &str) {
+    let mut stages = toml::Table::new();
+    stages.insert("test".into(), toml::Value::String(command.into()));
+    let mut table = toml::Table::new();
+    table.insert("stages".into(), toml::Value::Table(stages));
+    write(dir, PERSONAL, &toml::to_string(&table).unwrap());
+}
+
+#[test]
+fn every_spelling_of_a_path_on_this_machine_is_a_machine_path() {
+    // TSK-4310 criterion 4, REQ-2946: the symptom is the path, however the
+    // command spells it.
+    let root = Dir::new("spellings");
+    let state = Dir::new("spellings-state");
+    init(&root.0);
+    let top = root.0.canonicalize().unwrap();
+    let escaping = format!("{}/../elsewhere/runner", top.display());
+    let flagged = [
+        "~/bin/runner",
+        "~someone/bin/runner",
+        "\"/Users/someone/bin/runner\" --flag",
+        "'~/bin/runner'",
+        "$HOME/bin/runner",
+        "${HOME}/bin/runner",
+        "../tools/runner",
+        escaping.as_str(),
+    ];
+    for command in flagged {
+        personal_with(&root.0, command);
+        let (_, stdout) = checks(&root.0, &state.0, &["status"]);
+        assert!(
+            line_for(&stdout, "test").contains("unresolved  machine path:"),
+            "{command:?} wasn't a machine path:\n{stdout}"
+        );
+    }
+    let inside = format!("{}/tools/runner --all", top.display());
+    for command in [
+        "./tools/runner",
+        "tools/runner --all",
+        "mise run test",
+        &inside,
+    ] {
+        personal_with(&root.0, command);
+        let (_, stdout) = checks(&root.0, &state.0, &["status"]);
+        assert!(
+            line_for(&stdout, "test").contains("resolved    "),
+            "{command:?} was refused:\n{stdout}"
+        );
+    }
+}
+
+#[test]
+fn local_refuses_a_machine_path_and_writes_nothing() {
+    // TSK-4310 criterion 4, REQ-2946: the command that creates the file is
+    // where the symptom is cheapest to report.
+    let root = Dir::new("local-machine");
+    let state = Dir::new("local-machine-state");
+    init(&root.0);
+    let (done, stdout) = checks(&root.0, &state.0, &["local", "test", "~/bin/runner"]);
+    assert_eq!(done.status.code(), Some(1), "{stdout}");
+    assert!(!root.0.join(PERSONAL).exists());
+    let exclude = std::fs::read_to_string(root.0.join(".git/info/exclude")).unwrap_or_default();
+    assert!(!exclude.contains("profile.local.toml"), "{exclude}");
+}
+
+#[test]
+fn an_unparseable_shared_profile_resolves_nothing_for_the_personal_one() {
+    // TSK-4310, REQ-2948: nothing falls back, the personal file included.
+    let root = Dir::new("shared-broken");
+    let state = Dir::new("shared-broken-state");
+    init(&root.0);
+    write(&root.0, ".meowpaw/profile.toml", "[stages\n");
+    write(&root.0, PERSONAL, "[stages]\ntest = \"true\"\n");
+    let (_, stdout) = checks(&root.0, &state.0, &["status"]);
+    assert!(
+        line_for(&stdout, "test").contains("unresolved  profile unparseable:"),
+        "{stdout}"
+    );
+}
+
+#[test]
+fn an_unparseable_personal_profile_is_named_and_leaves_the_shared_stage() {
+    // TSK-4310: a personal file that doesn't parse is told apart from one
+    // that holds nothing, and replaces nothing.
+    let root = Dir::new("personal-broken");
+    let state = Dir::new("personal-broken-state");
+    init(&root.0);
+    write(
+        &root.0,
+        ".meowpaw/profile.toml",
+        "[stages]\ntest = \"true\"\n",
+    );
+    write(&root.0, PERSONAL, "[stages\n");
+    let (done, stdout) = checks(&root.0, &state.0, &["status"]);
+    assert_eq!(done.status.code(), Some(0), "{stdout}");
+    assert!(
+        stdout
+            .lines()
+            .any(|l| l.starts_with("personal profile: unparseable")),
+        "{stdout}"
+    );
+    assert!(line_for(&stdout, "test").contains("true"), "{stdout}");
+    assert!(
+        line_for(&stdout, "test").contains(".meowpaw/profile.toml"),
+        "{stdout}"
+    );
+}
+
+#[test]
+fn local_keeps_the_stages_a_file_already_holds_under_verbs() {
+    // TSK-4310: a personal file written before `[stages]` keeps its table.
+    let root = Dir::new("old-table");
+    let state = Dir::new("old-table-state");
+    init(&root.0);
+    write(&root.0, PERSONAL, "[verbs]\nlint = \"make lint\"\n");
+    let (done, stdout) = checks(&root.0, &state.0, &["local", "test", "make test"]);
+    assert_eq!(done.status.code(), Some(0), "{stdout}");
+    let table: toml::Table = std::fs::read_to_string(root.0.join(PERSONAL))
+        .unwrap()
+        .parse()
+        .unwrap();
+    assert!(!table.contains_key("stages"), "{table:?}");
+    assert_eq!(table["verbs"]["lint"].as_str(), Some("make lint"));
+    assert_eq!(table["verbs"]["test"].as_str(), Some("make test"));
+}
+
+#[test]
+fn local_refuses_a_symlinked_personal_file() {
+    // TSK-4310, REQ-1563: it writes only the two files it names, and a link
+    // would make it write a third.
+    let root = Dir::new("symlink");
+    let state = Dir::new("symlink-state");
+    let outside = Dir::new("symlink-outside");
+    init(&root.0);
+    std::fs::create_dir_all(root.0.join(".meowpaw")).unwrap();
+    let target = outside.0.join("elsewhere.toml");
+    std::fs::write(&target, "").unwrap();
+    std::os::unix::fs::symlink(&target, root.0.join(PERSONAL)).unwrap();
+    let (done, stdout) = checks(&root.0, &state.0, &["local", "test", "make test"]);
+    assert_eq!(done.status.code(), Some(1), "{stdout}");
+    assert_eq!(std::fs::read_to_string(&target).unwrap(), "");
+}
+
+#[test]
+fn local_refuses_a_personal_file_the_repository_already_tracks() {
+    // TSK-4310, REQ-2944: an exclusion does nothing for a tracked file, so
+    // saying the file is excluded would be false.
+    let root = Dir::new("tracked");
+    let state = Dir::new("tracked-state");
+    init(&root.0);
+    write(&root.0, PERSONAL, "[stages]\ntest = \"true\"\n");
+    assert!(git(&root.0, &["add", "-f", PERSONAL]).status.success());
+    let before = std::fs::read_to_string(root.0.join(PERSONAL)).unwrap();
+    let (done, stdout) = checks(&root.0, &state.0, &["local", "lint", "make lint"]);
+    assert_eq!(done.status.code(), Some(1), "{stdout}");
+    assert!(
+        stdout.contains("tracked") || String::from_utf8_lossy(&done.stderr).contains("tracked")
+    );
+    assert_eq!(
+        std::fs::read_to_string(root.0.join(PERSONAL)).unwrap(),
+        before
+    );
+}
+
+#[test]
+fn local_excludes_the_file_from_a_linked_working_tree() {
+    // TSK-4310 criterion 1, REQ-2944: in a linked working tree `.git` is a
+    // file, and the exclusion still has to hide the personal file.
+    let root = Dir::new("linked");
+    let state = Dir::new("linked-state");
+    init(&root.0);
+    let commit = git(
+        &root.0,
+        &[
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@example.com",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-q",
+            "--allow-empty",
+            "-m",
+            "start",
+        ],
+    );
+    assert!(commit.status.success(), "{commit:?}");
+    let linked = root.0.join("linked");
+    let added = git(
+        &root.0,
+        &[
+            "worktree",
+            "add",
+            "-q",
+            linked.to_str().unwrap(),
+            "-b",
+            "side",
+        ],
+    );
+    assert!(added.status.success(), "{added:?}");
+    let (done, stdout) = checks(&linked, &state.0, &["local", "test", "make test"]);
+    assert_eq!(done.status.code(), Some(0), "{stdout}");
+    assert!(linked.join(PERSONAL).is_file());
+    let porcelain = git(&linked, &["status", "--porcelain"]);
+    assert_eq!(String::from_utf8_lossy(&porcelain.stdout), "");
+}
