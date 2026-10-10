@@ -1,6 +1,6 @@
 ---
 name: run
-description: Starts a run inside this session that repeats `/meow-flow:run` until the record holds no open work or a bound is reached. A person types it with --iterations, --hours and --tokens.
+description: Starts a run inside this session that repeats `/meow-flow:run` until the record holds no open work or a bound is reached. A person types it, optionally with --iterations and --hours.
 disable-model-invocation: true
 ---
 
@@ -22,8 +22,8 @@ chose to pay for (REQ-0894).
 
 <rules name="run">
 - R1. Never run `meow-loop` or edit a run's `run.toml`, `log.jsonl` or its
-  bounds, because the run's program decides every ending from the record and
-  the transcript, and the guard denies each of them.
+  bounds, because the run's program decides every ending from the record, and
+  the guard denies each of them.
 - R2. Write only the run's `progress/progress.md` and `report.md`, because
   they are the two files an iteration may write.
 - R3. Don't decide that the run is finished or that a bound is reached,
