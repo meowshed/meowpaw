@@ -141,4 +141,16 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
   give, and mark the task in the commit that completes it, because the epic's
   pull request is the one unit of review and its marks show how far the branch
   has come.
+- I33. Close a finished task with `paw done <task> --pr <number>`, which stores
+  `done` in the task, marks it in its epic or defect and closes the epic and
+  the decision where it was the last task, because the same close made by
+  editing three files leaves one of them out.
+- I34. Where `[tracker] kind` is declared, run `meow-github sync <epic>` before
+  the first task of an epic starts, so a change made on the tracker reaches
+  the record before it is worked from, because the record decides and the
+  tracker is read first.
+- I35. Where `[tracker] kind` is declared, run `meow-github sync <epic>` again
+  after the last task's Evidence is written, so the issues take what the
+  record now says, and never run it in the background, because a run no person
+  starts writes into the record with nobody looking (REQ-4706).
 </rules>

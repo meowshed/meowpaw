@@ -23,7 +23,11 @@ jobs:
           # changed the trust behaviour its tests hold.
           version: "2026.9.11"
           experimental: true
+      # mise installs each stage's tools from GitHub releases, and an anonymous
+      # request is limited to 60 an hour, which a run can use up (PR 882).
       - run: mise run all
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   attribution:
     runs-on: ubuntu-26.04

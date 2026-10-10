@@ -92,10 +92,11 @@ which EPC-1090 closed.
 
 ## Closed by
 
-Not yet. The fix is a task under this record, `bug: BUG-1520`. It lands with a
-check that fails when a served `marketplace.json` carries a `source` that is a
-string, so a single-unit run can't publish one again, and the reproduction's
-first step then prints `archive` on every line.
+`tools/marketplace_release.py` fills a single-unit run's other entries from the
+published file and fails the run, naming each unit, before it publishes a file
+that holds a relative `source`. `ReleasedFile` in `tools/test_marketplace.py`
+holds it (TSK-5240, pull request 868), and the publishing run 37997364757
+released a file whose 16 entries are all archives.
 
 ## Tasks
 

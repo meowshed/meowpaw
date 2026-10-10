@@ -147,10 +147,13 @@ pub fn main(args: &[String]) -> u8 {
         "new" => new_identifier(rest),
         "find" => find(rest),
         "count" => count_record(rest),
+        "approve" => approve(rest),
+        "withdraw" => withdraw(rest),
+        "done" => done(rest),
         "onboarding" => onboarding(rest),
         _ => {
             eprintln!(
-                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | onboarding remove",
+                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | approve <id>... | withdraw <id> --by <id> --replaced-by <id>... | done <task> --pr <number> | onboarding remove",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -715,13 +718,13 @@ fn frozen_text(text: &str, sections: &[&str], fields: &[&str]) -> String {
 }
 
 /// A task's text without what may change after approval: its evidence, what
-/// it left alone, which the implementer writes, its issue, its projection and
-/// its revision date.
+/// it left alone, which the implementer writes, its issue, its projection, the
+/// tracker side's fingerprint and its revision date.
 fn frozen_part(text: &str) -> String {
     frozen_text(
         text,
         &["Evidence", "Left alone"],
-        &["issue", "projected", "revised"],
+        &["issue", "projected", "tracked", "revised"],
     )
 }
 
@@ -4336,6 +4339,410 @@ fn find(rest: &[String]) -> u8 {
         say!("{line}");
     }
     say!("artifacts matched: {}", hits.len());
+    CLEAN
+}
+
+/// The text with the value of one front matter field replaced, and every other
+/// line, a trailing comment on that line included, as it was (REQ-4602).
+fn with_field(text: &str, key: &str, value: &str) -> Option<String> {
+    let mut out = String::with_capacity(text.len() + 16);
+    let mut opened = false;
+    let mut inside = false;
+    let mut replaced = false;
+    for line in text.split_inclusive('\n') {
+        let content = line.trim_end_matches(['\n', '\r']);
+        if !opened {
+            opened = content == "---";
+            inside = opened;
+            out.push_str(line);
+            continue;
+        }
+        if inside && content == "---" {
+            inside = false;
+            out.push_str(line);
+            continue;
+        }
+        let continued = line.starts_with(' ') || line.starts_with('\t');
+        if inside
+            && !replaced
+            && !continued
+            && let Some((name, rest)) = content.split_once(':')
+            && name.trim() == key
+        {
+            let comment = rest.find(" #").map(|at| &rest[at..]).unwrap_or("");
+            out.push_str(&format!(
+                "{key}: {value}{comment}{}",
+                &line[content.len()..]
+            ));
+            replaced = true;
+            continue;
+        }
+        out.push_str(line);
+    }
+    replaced.then_some(out)
+}
+
+/// The text with the mark of one task's entry set to done and the pull request
+/// that did it named, and every other line as it was.
+fn with_done_mark(text: &str, task: &str, pull_request: &str) -> Option<String> {
+    let head =
+        Regex::new(&format!(r"^- \[.\] (T-\d+ (?:\[P\] )?{task}\b)(.*)$")).expect("mark pattern");
+    let mut out = String::with_capacity(text.len() + 32);
+    let mut marked = false;
+    for line in text.split_inclusive('\n') {
+        let content = line.trim_end_matches(['\n', '\r']);
+        if !marked && let Some(c) = head.captures(content) {
+            let note = if c[2].contains("(done:") {
+                String::new()
+            } else {
+                format!(" (done: pull request {pull_request})")
+            };
+            out.push_str(&format!(
+                "- [x] {}{}{}{}",
+                &c[1],
+                &c[2],
+                note,
+                &line[content.len()..]
+            ));
+            marked = true;
+            continue;
+        }
+        out.push_str(line);
+    }
+    marked.then_some(out)
+}
+
+/// Whether the task's Evidence says something other than `Not yet.`.
+fn evidence_written(task: &Doc) -> bool {
+    section_lines(task, "Evidence")
+        .into_iter()
+        .map(|(_, line)| line.trim())
+        .find(|line| !line.is_empty())
+        .is_some_and(|line| !line.starts_with("Not yet."))
+}
+
+/// A file written beside itself and renamed into place, so an interrupted
+/// write leaves the old text or the new and never half of either.
+fn write_text(path: &Path, text: &str) -> Result<(), String> {
+    let temporary = path.with_extension("md.meow-tmp");
+    std::fs::write(&temporary, text)
+        .and_then(|_| std::fs::rename(&temporary, path))
+        .map_err(|e| {
+            let _ = std::fs::remove_file(&temporary);
+            format!("{}: {e}", path.display())
+        })
+}
+
+/// Regenerates the index of each kind whose index file carries a generated
+/// block, after a write moved a status an index shows (REQ-0575). A kind with
+/// no index, or whose index a person writes, is left out without a word.
+fn regenerate(kinds: &[String]) {
+    let Ok((record, _, root)) = open_record("index") else {
+        return;
+    };
+    let mut seen: Vec<&String> = Vec::new();
+    for kind in kinds {
+        if seen.contains(&kind) {
+            continue;
+        }
+        seen.push(kind);
+        let Some(k) = kind_named(&record, kind) else {
+            continue;
+        };
+        let Some(index) = record.layout.kinds[k].index.as_deref() else {
+            continue;
+        };
+        let carries = std::fs::read_to_string(root.join(index))
+            .ok()
+            .is_some_and(|text| markers(&text).is_some());
+        if carries {
+            let _ = index_command(&[kind.clone(), "--write".to_string()]);
+        }
+    }
+}
+
+/// The identifiers a list names as prose: `A`, `A and B`, `A, B and C`.
+fn named_list(ids: &[String]) -> String {
+    match ids {
+        [] => String::new(),
+        [one] => one.clone(),
+        [init @ .., last] => format!("{} and {last}", init.join(", ")),
+    }
+}
+
+/// `paw approve <id>...`: moves each draft to `approved` where the checks
+/// report nothing about it, and writes nothing otherwise (ADR-2880).
+fn approve(rest: &[String]) -> u8 {
+    if rest.is_empty() {
+        eprintln!("usage: paw approve <id>...");
+        return USAGE;
+    }
+    let (record, repository, root) = match open_record("approve") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let known = known(&record);
+    let mut targets: Vec<&Doc> = Vec::new();
+    for id in rest {
+        match known.get(id.as_str()) {
+            None => {
+                say!("paw approve: {id} names no record");
+                return FOUND;
+            }
+            Some(doc) if bare(doc.value("status")) != "draft" => {
+                say!(
+                    "paw approve: {id} is {}, not a draft",
+                    bare(doc.value("status"))
+                );
+                return FOUND;
+            }
+            Some(doc) => targets.push(doc),
+        }
+    }
+    let mut found = 0;
+    for check in CHECKS {
+        for finding in run_check(check, &record, &root, &repository) {
+            if targets.iter().any(|doc| doc.shown == finding.shown) {
+                match finding.line {
+                    Some(line) => say!("{}:{}: {}", finding.shown, line, finding.message),
+                    None => say!("{}: {}", finding.shown, finding.message),
+                }
+                found += 1;
+            }
+        }
+    }
+    if found > 0 {
+        say!(
+            "paw approve: {found} finding{} about what you asked to approve; nothing was changed",
+            if found == 1 { "" } else { "s" }
+        );
+        return FOUND;
+    }
+    let mut written: Vec<String> = Vec::new();
+    for doc in &targets {
+        let Some(text) = with_field(&doc.text, "status", "approved") else {
+            say!(
+                "paw approve: {} carries no status line to change",
+                doc.shown
+            );
+            return FOUND;
+        };
+        if let Err(reason) = write_text(&doc.path, &text) {
+            say!("paw approve: {reason}");
+            return FOUND;
+        }
+        written.push(kind_of(&record, doc).to_string());
+        say!("paw approve: {} is approved", bare(doc.id()));
+    }
+    regenerate(&written);
+    CLEAN
+}
+
+/// `paw withdraw <requirement> --by <decision> --replaced-by <id>...`: writes
+/// the tombstone and the status of a requirement (ADR-2880).
+fn withdraw(rest: &[String]) -> u8 {
+    let usage = "usage: paw withdraw <requirement> --by <decision> --replaced-by <id>...";
+    let [id, by_flag, by, replaced_flag, replaced @ ..] = rest else {
+        eprintln!("{usage}");
+        return USAGE;
+    };
+    if by_flag != "--by" || replaced_flag != "--replaced-by" || replaced.is_empty() {
+        eprintln!("{usage}");
+        return USAGE;
+    }
+    let (record, _, _) = match open_record("withdraw") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let known = known(&record);
+    let Some(doc) = known.get(id.as_str()) else {
+        say!("paw withdraw: {id} names no record");
+        return FOUND;
+    };
+    if kind_of(&record, doc) != "requirement" || !approved(doc) {
+        say!("paw withdraw: {id} is not an approved requirement");
+        return FOUND;
+    }
+    match known.get(by.as_str()) {
+        Some(d) if kind_of(&record, d) == "decision" => {}
+        _ => {
+            say!("paw withdraw: {by} is not a decision in the record");
+            return FOUND;
+        }
+    }
+    for other in replaced {
+        if !known.contains_key(other.as_str()) || other == id {
+            say!("paw withdraw: {other} names no record other than {id}");
+            return FOUND;
+        }
+    }
+    // The statement a tombstone quotes: the first paragraph after the heading,
+    // leaving out the comment line templates carry.
+    let heading = format!("\n# {id}");
+    let Some(at) = doc.text.find(&heading) else {
+        say!("paw withdraw: {} has no heading `# {id}`", doc.shown);
+        return FOUND;
+    };
+    let after = &doc.text[at + heading.len()..];
+    let after = after.split_once('\n').map(|(_, rest)| rest).unwrap_or("");
+    let statement: Vec<&str> = after
+        .lines()
+        .skip_while(|l| l.trim().is_empty() || l.trim_start().starts_with("<!--"))
+        .take_while(|l| !l.trim().is_empty())
+        .collect();
+    let mut quoted = statement.join("\n");
+    if let Some(first) = quoted.chars().next() {
+        quoted = format!("{}{}", first.to_lowercase(), &quoted[first.len_utf8()..]);
+    }
+    let head = &doc.text[..at + heading.len()];
+    let body = format!(
+        "{head}\n\n**Withdrawn. Replaced by {}.**\n\nIt read: {quoted}\n\nWithdrawn by {by}.\n",
+        named_list(replaced)
+    );
+    let Some(text) =
+        with_field(&body, "status", "withdrawn").and_then(|t| with_field(&t, "revised", &today()))
+    else {
+        say!(
+            "paw withdraw: {} carries no status or revised line",
+            doc.shown
+        );
+        return FOUND;
+    };
+    if let Err(reason) = write_text(&doc.path, &text) {
+        say!("paw withdraw: {reason}");
+        return FOUND;
+    }
+    say!(
+        "paw withdraw: {id} is withdrawn, replaced by {}",
+        named_list(replaced)
+    );
+    regenerate(&["requirement".to_string()]);
+    CLEAN
+}
+
+/// `paw done <task> --pr <number>`: stores `done` in a complete task, marks it
+/// in its epic or defect, and closes the epic and the decision where it was
+/// the last open task (ADR-2880).
+fn done(rest: &[String]) -> u8 {
+    let [task, flag, number] = rest else {
+        eprintln!("usage: paw done <task> --pr <number>");
+        return USAGE;
+    };
+    if flag != "--pr" || number.is_empty() || !number.chars().all(|c| c.is_ascii_digit()) {
+        eprintln!("usage: paw done <task> --pr <number>");
+        return USAGE;
+    }
+    let (record, _, _) = match open_record("done") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let known_now = known(&record);
+    let Some(doc) = known_now.get(task.as_str()) else {
+        say!("paw done: {task} names no record");
+        return FOUND;
+    };
+    if kind_of(&record, doc) != "task" {
+        say!("paw done: {task} is not a task");
+        return FOUND;
+    }
+    match bare(doc.value("status")) {
+        "approved" => {}
+        other => {
+            say!("paw done: {task} is {other}, and only an approved task is closed");
+            return FOUND;
+        }
+    }
+    if !evidence_written(doc) {
+        say!(
+            "paw done: {task}'s Evidence is not written; it opens with `Not yet.` or holds nothing"
+        );
+        return FOUND;
+    }
+    let authority = authority_of(doc).to_string();
+    let epic_text = match known_now.get(authority.as_str()) {
+        Some(a) if matches!(kind_of(&record, a), "epic" | "defect") => {
+            let Some(text) = with_done_mark(&a.text, task, number) else {
+                say!("paw done: {} lists no entry for {task}", a.shown);
+                return FOUND;
+            };
+            Some((a.path.clone(), text))
+        }
+        _ => None,
+    };
+    let Some(task_text) = with_field(&doc.text, "status", "done") else {
+        say!("paw done: {} carries no status line to change", doc.shown);
+        return FOUND;
+    };
+    let task_path = doc.path.clone();
+    let direct = is_direct(doc);
+    if let Err(reason) = write_text(&task_path, &task_text) {
+        say!("paw done: {reason}");
+        return FOUND;
+    }
+    if let Some((path, text)) = epic_text
+        && let Err(reason) = write_text(&path, &text)
+    {
+        say!("paw done: {reason}");
+        return FOUND;
+    }
+    say!("paw done: {task} is done in pull request {number}");
+    // What the writes complete: the epic once every task of it is done, then
+    // the decision once every epic and task of it is.
+    let mut touched: Vec<String> = vec!["task".to_string(), "epic".to_string()];
+    for _ in 0..2 {
+        let Ok((fresh, _, _)) = open_record("done") else {
+            break;
+        };
+        let known_fresh = known(&fresh);
+        let mut next: Option<(PathBuf, String, String)> = None;
+        for candidate in [authority.as_str(), ""] {
+            let mut ids: Vec<String> = Vec::new();
+            if candidate.is_empty() {
+                if let Some(epic) = known_fresh.get(authority.as_str()) {
+                    let realised = bare(epic.value("realises")).to_string();
+                    if !realised.is_empty() {
+                        ids.push(realised);
+                    }
+                }
+                if direct {
+                    ids.push(authority.clone());
+                }
+            } else {
+                ids.push(candidate.to_string());
+            }
+            for id in ids {
+                let Some(target) = known_fresh.get(id.as_str()) else {
+                    continue;
+                };
+                let kind = kind_of(&fresh, target);
+                if matches!(kind, "epic" | "decision")
+                    && bare(target.value("status")) == "approved"
+                    && derived_done(&fresh, &known_fresh, target)
+                    && let Some(text) = with_field(&target.text, "status", "done")
+                {
+                    next = Some((target.path.clone(), text, kind.to_string()));
+                    break;
+                }
+            }
+            if next.is_some() {
+                break;
+            }
+        }
+        let Some((path, text, kind)) = next else {
+            break;
+        };
+        drop(known_fresh);
+        if let Err(reason) = write_text(&path, &text) {
+            say!("paw done: {reason}");
+            return FOUND;
+        }
+        say!(
+            "paw done: {} is done",
+            path.file_name().and_then(|n| n.to_str()).unwrap_or("")
+        );
+        touched.push(kind);
+    }
+    regenerate(&touched);
     CLEAN
 }
 
