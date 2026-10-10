@@ -145,4 +145,12 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
   `done` in the task, marks it in its epic or defect and closes the epic and
   the decision where it was the last task, because the same close made by
   editing three files leaves one of them out.
+- I34. Where `[tracker] kind` is declared, run `meow-github sync <epic>` before
+  the first task of an epic starts, so a change made on the tracker reaches
+  the record before it is worked from, because the record decides and the
+  tracker is read first.
+- I35. Where `[tracker] kind` is declared, run `meow-github sync <epic>` again
+  after the last task's Evidence is written, so the issues take what the
+  record now says, and never run it in the background, because a run no person
+  starts writes into the record with nobody looking (REQ-4706).
 </rules>

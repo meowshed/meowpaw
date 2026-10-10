@@ -1,7 +1,7 @@
 ---
 id: EPC-2810
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-10
 realises: ADR-2890
 ---
@@ -33,13 +33,13 @@ it at the start and the end of an epic's work.
 
 ## Tasks
 
-- [ ] T-001 TSK-5320 The mapping carries the tracker side's fingerprint
+- [x] T-001 TSK-5320 The mapping carries the tracker side's fingerprint (done: pull request 886)
       closes: REQ-4704
       depends: nothing
-- [ ] T-002 TSK-5321 `meow-github sync` applies the side that changed
+- [x] T-002 TSK-5321 `meow-github sync` applies the side that changed (done: pull request 886)
       closes: REQ-4700, REQ-4702
       depends: TSK-5320 (blocking) - the command compares the two fingerprints
-- [ ] T-003 TSK-5322 The method runs the synchronisation and the script is retired
+- [x] T-003 TSK-5322 The method runs the synchronisation and the script is retired (done: pull request 886)
       closes: REQ-4706
       depends: TSK-5321 (blocking) - the steps name the command
 
