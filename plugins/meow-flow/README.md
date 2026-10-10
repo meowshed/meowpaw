@@ -215,9 +215,9 @@ A status change that touches several files is one command, so none of the
 files is left out:
 
 ```bash
-paw approve REQ-1000 ADR-1000        # draft to approved, where `paw check` reports nothing about it
-paw done TSK-1000 --pr 12            # done in the task, marked in its epic or defect, closed up the chain
-paw withdraw REQ-1000 --by ADR-2000 --replaced-by REQ-2000
+paw approve <id>...                      # draft to approved, where `paw check` reports nothing about it
+paw done <task> --pr <number>            # done in the task, marked in its epic or defect, closed up the chain
+paw withdraw <requirement> --by <decision> --replaced-by <id>...
 ```
 
 `approve` writes nothing and exits 1 where the check has a finding about a

@@ -4432,16 +4432,31 @@ fn write_text(path: &Path, text: &str) -> Result<(), String> {
         })
 }
 
-/// Regenerates the index of each kind that has one, after a write moved a
-/// status an index shows (REQ-0575).
+/// Regenerates the index of each kind whose index file carries a generated
+/// block, after a write moved a status an index shows (REQ-0575). A kind with
+/// no index, or whose index a person writes, is left out without a word.
 fn regenerate(kinds: &[String]) {
+    let Ok((record, _, root)) = open_record("index") else {
+        return;
+    };
     let mut seen: Vec<&String> = Vec::new();
     for kind in kinds {
         if seen.contains(&kind) {
             continue;
         }
         seen.push(kind);
-        let _ = index_command(&[kind.clone(), "--write".to_string()]);
+        let Some(k) = kind_named(&record, kind) else {
+            continue;
+        };
+        let Some(index) = record.layout.kinds[k].index.as_deref() else {
+            continue;
+        };
+        let carries = std::fs::read_to_string(root.join(index))
+            .ok()
+            .is_some_and(|text| markers(&text).is_some());
+        if carries {
+            let _ = index_command(&[kind.clone(), "--write".to_string()]);
+        }
     }
 }
 
