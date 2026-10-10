@@ -1,7 +1,7 @@
 ---
 id: TSK-4310
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2320
 closes: [REQ-2944, REQ-2946]
@@ -69,7 +69,22 @@ command and the new kind.
 
 ## Evidence
 
-Not yet.
+Closed in pull request 1037. The tests of `crates/meow/tests/personal_profile.rs`
+failed first, in the commit before the change, and pass:
+
+1. `local_writes_the_personal_file_and_excludes_it` (REQ-2944).
+2. `a_second_local_call_excludes_the_file_once` (REQ-2944).
+3. `a_personal_stage_replaces_the_shared_one_and_names_its_file`.
+4. `a_machine_path_in_the_personal_profile_is_unresolved_and_runs_nothing`
+   (REQ-2946).
+5. `a_personal_profile_with_a_commits_table_names_it_unknown`.
+6. `local_outside_a_working_tree_writes_nothing_and_fails`.
+
+The tests assert `[stages]` where criterion 1 names `[verbs]`, because REQ-4202
+and REQ-4204 made `[stages]` the declaration after this task was approved.
+
+Stages: the pull request's `gate` check passed, and `paw check` printed 0
+findings, exit 0. The documentation is `plugins/meow-checks/README.md`.
 
 ## Left alone
 
