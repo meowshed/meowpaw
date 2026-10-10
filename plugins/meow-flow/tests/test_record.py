@@ -2842,6 +2842,128 @@ class EpicIsOnePullRequest(unittest.TestCase):
         self.assertRegex(text, r"mark(ed)? (it |each |the task )?in the commit that")
 
 
+class WriteCommands(unittest.TestCase):
+    """TSK-5310, TSK-5311, ADR-2880: a status change that crosses files is one command, and nothing else moves."""
+
+    def repo(self):
+        repository = Repository()
+        self.addCleanup(repository.tmp.cleanup)
+        return repository
+
+    def snapshot(self, repository):
+        return {str(p.relative_to(repository.root)): p.read_text(encoding="utf-8")
+                for p in sorted(repository.root.rglob("*.md"))}
+
+    def changed(self, before, after):
+        return sorted(name for name in after if before.get(name) != after[name])
+
+    def lines_changed(self, before, after):
+        return [(a, b) for a, b in zip(before.splitlines(), after.splitlines()) if a != b]
+
+    def test_approve_changes_the_status_line_and_nothing_else(self):
+        """TSK-5310 criterion 1, REQ-4602: a draft the check accepts is approved, and only its status line moved."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        repository.edit("tasks/TSK-0001-a-task.md", "## What to do", "## Acceptance criteria\n\nText.\n\n## What to do")
+        before = self.snapshot(repository)
+        done = repository.run("approve", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        after = self.snapshot(repository)
+        self.assertEqual(self.changed(before, after), ["tasks/TSK-0001-a-task.md"])
+        self.assertEqual(self.lines_changed(before["tasks/TSK-0001-a-task.md"], after["tasks/TSK-0001-a-task.md"]),
+                         [("status: draft", "status: approved")])
+        self.assertEqual(repository.run("check").returncode, 0)
+
+    def test_approve_refuses_a_draft_with_a_finding_and_changes_nothing(self):
+        """TSK-5310 criterion 2, REQ-4602: a finding about the draft stops the command, names it, and writes nothing."""
+        repository = self.repo()
+        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: draft")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "verification: static\n", "")
+        before = self.snapshot(repository)
+        done = repository.run("approve", "REQ-0001")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("REQ-0001-an-obligation.md", done.stdout)
+        self.assertEqual(self.snapshot(repository), before)
+
+    def test_approve_refuses_a_record_that_is_not_a_draft(self):
+        """TSK-5310, REQ-4602: an approved record isn't approved again, and nothing is written."""
+        repository = self.repo()
+        before = self.snapshot(repository)
+        done = repository.run("approve", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("not a draft", done.stdout)
+        self.assertEqual(self.snapshot(repository), before)
+
+    def test_withdraw_writes_the_tombstone_and_the_status(self):
+        """TSK-5310 criterion 3, REQ-4602: the file carries the tombstone naming the replacement and the status."""
+        repository = self.repo()
+        for ident in ("REQ-0005", "REQ-0007"):
+            repository.write(f"requirements/{ident}-another-obligation.md", record(
+                "requirement", ident,
+                {"topic": "a", "class": "functional", "verification": "static", "elaborates": "RES-0002"}, []))
+        repository.write("requirements/README.md", index("index", ["REQ-0001", "REQ-0005", "REQ-0007"]))
+        done = repository.run("withdraw", "REQ-0005", "--by", "ADR-0001", "--replaced-by", "REQ-0007")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        text = (repository.root / "requirements/REQ-0005-another-obligation.md").read_text(encoding="utf-8")
+        self.assertIn("status: withdrawn", text)
+        self.assertIn("**Withdrawn. Replaced by REQ-0007.**", text)
+        self.assertIn("ADR-0001", text)
+        self.assertEqual(repository.run("check", "front-matter").returncode, 0)
+
+    def test_withdraw_refuses_a_replacement_that_does_not_exist(self):
+        """TSK-5310, REQ-4602: a tombstone naming no record is refused, and nothing is written."""
+        repository = self.repo()
+        before = self.snapshot(repository)
+        done = repository.run("withdraw", "REQ-0001", "--by", "ADR-0001", "--replaced-by", "REQ-0099")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(self.snapshot(repository), before)
+
+    def finished_task(self, repository):
+        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe tests close it.")
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
+                        "## Tasks\n\n- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001")
+
+    def test_done_closes_the_task_its_epic_and_the_decision(self):
+        """TSK-5311 criteria 1 and 2, REQ-4600: one command stores done, marks the epic and closes the last of them."""
+        repository = self.repo()
+        self.finished_task(repository)
+        done = repository.run("done", "TSK-0001", "--pr", "12")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        files = self.snapshot(repository)
+        self.assertIn("status: done", files["tasks/TSK-0001-a-task.md"])
+        self.assertIn("- [x] T-001 TSK-0001 the task (done: pull request 12)", files["epics/EPC-0001-a-plan.md"])
+        self.assertIn("status: done", files["epics/EPC-0001-a-plan.md"])
+        self.assertIn("status: done", files["adrs/ADR-0001-a-choice.md"])
+        self.assertEqual(repository.run("check").returncode, 0, repository.run("check").stdout)
+
+    def test_done_leaves_the_epic_open_while_another_task_is_open(self):
+        """TSK-5311 criterion 1, REQ-4600: the epic and the decision keep their status until the last task is done."""
+        repository = self.repo()
+        self.finished_task(repository)
+        repository.write("tasks/TSK-0002-a-second-task.md", record(
+            "task", "TSK-0002", {"epic": "EPC-0001", "closes": "\n  [\n    REQ-0001,\n  ]"},
+            ["What to do", "Depends on", "Evidence", "Left alone"]))
+        repository.edit("epics/EPC-0001-a-plan.md", "      closes: REQ-0001",
+                        "      closes: REQ-0001\n- [ ] T-002 TSK-0002 the second task\n      closes: REQ-0001")
+        done = repository.run("done", "TSK-0001", "--pr", "12")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        files = self.snapshot(repository)
+        self.assertIn("- [x] T-001 TSK-0001", files["epics/EPC-0001-a-plan.md"])
+        self.assertIn("- [ ] T-002 TSK-0002", files["epics/EPC-0001-a-plan.md"])
+        self.assertNotIn("status: done", files["epics/EPC-0001-a-plan.md"])
+        self.assertNotIn("status: done", files["adrs/ADR-0001-a-choice.md"])
+
+    def test_done_refuses_a_task_whose_evidence_is_not_written(self):
+        """TSK-5311 criterion 3, REQ-4600: a task whose Evidence opens with `Not yet.` isn't closed, and nothing moves."""
+        repository = self.repo()
+        self.finished_task(repository)
+        repository.edit("tasks/TSK-0001-a-task.md", "The tests close it.", "Not yet.")
+        before = self.snapshot(repository)
+        done = repository.run("done", "TSK-0001", "--pr", "12")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(self.snapshot(repository), before)
+
+
 class DeniedDispatch(unittest.TestCase):
     """TSK-2703 criteria 1 and 3, REQ-2978, SPC-1030 "What an agent reports" and SPC-1090 "The review": every
     shipped agent carries the denial rule in the same words, and the review step ends a `BLOCKED` dispatch there."""

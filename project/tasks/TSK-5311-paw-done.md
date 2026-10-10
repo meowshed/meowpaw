@@ -1,7 +1,7 @@
 ---
 id: TSK-5311
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2800
 closes: [REQ-4600]
@@ -37,7 +37,17 @@ pull request number as the person gave it.
 
 ## Evidence
 
-Not yet.
+Pull request 885. The tests are in `plugins/meow-flow/tests/test_record.py`,
+class `WriteCommands`:
+
+- Criterion 1: `test_done_closes_the_task_its_epic_and_the_decision` and
+  `test_done_leaves_the_epic_open_while_another_task_is_open`.
+- Criterion 2: `test_done_closes_the_task_its_epic_and_the_decision`.
+- Criterion 3: `test_done_refuses_a_task_whose_evidence_is_not_written`.
+
+This task and TSK-5310 were closed with the command: `paw done TSK-5310 --pr
+884` and `paw done TSK-5311 --pr 884` stored `done`, marked the entries and
+closed EPC-2800 and ADR-2880.
 
 ## Left alone
 
