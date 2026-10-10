@@ -18,7 +18,9 @@ closes:
     REQ-2588,
     REQ-2824,
   ]
-issue:
+issue: 1011
+projected: cce9a2d8f43c
+tracked: de767f69b45c
 ---
 
 # Project an epic onto the tracker's grouping

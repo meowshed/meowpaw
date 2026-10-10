@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-10
 epic: EPC-2770
 closes: [REQ-4412]
-issue:
+issue: 1024
+projected: dde787fc6aac
+tracked: 6f1c83bd63b7
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2555
 closes: [REQ-0343, REQ-3040, REQ-3046]
-issue:
+issue: 987
+projected: 86b30e9da05d
+tracked: e9b7bfbe54fe
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

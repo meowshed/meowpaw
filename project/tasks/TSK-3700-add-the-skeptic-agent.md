@@ -5,7 +5,9 @@ status: approved
 revised: 2026-09-28
 epic: EPC-2100
 closes: [REQ-0314, REQ-2070, REQ-2078]
-issue:
+issue: 923
+projected: c6e48a22b3e8
+tracked: c4f43d652b1c
 ---
 
 # Add the `skeptic` agent to `meow-flow`

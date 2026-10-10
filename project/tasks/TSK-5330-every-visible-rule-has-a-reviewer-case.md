@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-10
 bug: BUG-1100
 closes: [REQ-4800, REQ-4802, REQ-4804]
-issue:
+issue: 908
+projected: f6cfe02e7d96
+tracked: bfcd765570b0
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

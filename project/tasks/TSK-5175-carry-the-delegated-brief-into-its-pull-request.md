@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2620
 closes: [REQ-1764]
-issue:
+issue: 1015
+projected: 6992effa5692
+tracked: b1988ec313f5
 ---
 
 # Carry the delegated brief into its pull request

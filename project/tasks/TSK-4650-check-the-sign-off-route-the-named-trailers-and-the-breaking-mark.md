@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-03
 realises: ADR-2530
 closes: [REQ-2206, REQ-2208, REQ-2210, REQ-2212]
-issue:
+issue: 904
+projected: 274783defadc
+tracked: c29aa845e421
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

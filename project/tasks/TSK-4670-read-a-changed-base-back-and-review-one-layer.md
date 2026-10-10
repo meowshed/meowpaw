@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2430
 closes: [REQ-1818, REQ-1820, REQ-1822, REQ-1830, REQ-1842]
-issue:
+issue: 951
+projected: 1ddd569db8d2
+tracked: 5986beadb2c1
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

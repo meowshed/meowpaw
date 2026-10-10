@@ -5,7 +5,9 @@ status: done
 revised: 2026-09-30
 realises: ADR-2310
 closes: [REQ-3656, REQ-3658, REQ-3660, REQ-3662, REQ-3664]
-issue:
+issue: 893
+projected: 7d7f57e8ccf8
+tracked: 82c9068130a3
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
