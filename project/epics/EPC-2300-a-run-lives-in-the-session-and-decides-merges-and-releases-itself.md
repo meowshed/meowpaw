@@ -56,7 +56,7 @@ number.
       closes: REQ-0870, REQ-0876, REQ-0878, REQ-0882, REQ-0884, REQ-0886, REQ-0892, REQ-2654, REQ-2656, REQ-2658, REQ-3702, REQ-3704, REQ-3706, REQ-3708, REQ-3710
       depends: TSK-4100 (blocking) - the `Stop` hook reads the run state the start writes
 
-- [ ] T-003 [P] TSK-4120 resolve the posture, check the session's mode at start and deny what the posture forbids
+- [x] T-003 [P] TSK-4120 resolve the posture, check the session's mode at start and deny what the posture forbids (done: pull request 881)
       closes: REQ-2370, REQ-2388, REQ-3722
       depends: TSK-4100 (blocking) - the start hook refuses on an unresolved posture
 
