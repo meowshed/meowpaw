@@ -1205,16 +1205,35 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
     }
 }
 
-/// `meow-loop`'s own directory: the program sits at
-/// `<unit>/bin/<target>/meow`, so the unit is three levels up from it, and
-/// it is the unit only where its manifest names `meow-loop`, because a call
-/// that names another directory loads no hook.
+/// `meow-loop`'s own directory, from `MEOW_LOOP_UNIT` and the program's path
+/// (TSK-5260, BUG-1410).
 fn own_unit() -> Option<PathBuf> {
     let program = std::env::current_exe().ok()?.canonicalize().ok()?;
-    let unit = program.parent()?.parent()?.parent()?.to_path_buf();
-    let manifest = std::fs::read_to_string(unit.join(".claude-plugin").join("plugin.json")).ok()?;
-    let manifest: Value = serde_json::from_str(&manifest).ok()?;
-    (manifest.get("name").and_then(Value::as_str) == Some("meow-loop")).then_some(unit)
+    let named = std::env::var_os("MEOW_LOOP_UNIT").map(PathBuf::from);
+    unit_from(&program, named.as_deref())
+}
+
+/// The loop's unit for a program at `<unit>/bin/<target>/meow`: the directory
+/// `named` gives, then the program's own unit, then the `meow-loop` beside it,
+/// because the binary ships with the core package under ADR-2810. A candidate
+/// is the unit only where its manifest names `meow-loop`, because a call that
+/// names another directory loads no hook.
+fn unit_from(program: &Path, named: Option<&Path>) -> Option<PathBuf> {
+    let own = program.parent()?.parent()?.parent()?;
+    let beside = own.parent().map(|packages| packages.join("meow-loop"));
+    named
+        .map(Path::to_path_buf)
+        .into_iter()
+        .chain(std::iter::once(own.to_path_buf()))
+        .chain(beside)
+        .find(|unit| names_meow_loop(unit))
+}
+
+fn names_meow_loop(unit: &Path) -> bool {
+    std::fs::read_to_string(unit.join(".claude-plugin").join("plugin.json"))
+        .ok()
+        .and_then(|text| serde_json::from_str::<Value>(&text).ok())
+        .is_some_and(|manifest| manifest.get("name").and_then(Value::as_str) == Some("meow-loop"))
 }
 
 /// `path` as an absolute path with every link and `..` resolved, where it
@@ -1453,12 +1472,17 @@ mod tests {
     /// A packages directory with each named unit's manifest, and the program's
     /// path inside the first one, as `<unit>/bin/<target>/meow`.
     fn packages(case: &str, units: &[&str]) -> (PathBuf, PathBuf) {
-        let base = std::env::temp_dir().join(format!("meow-loop-unit-{case}-{}", std::process::id()));
+        let base =
+            std::env::temp_dir().join(format!("meow-loop-unit-{case}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&base);
         for unit in units {
             let manifest = base.join(unit).join(".claude-plugin");
             std::fs::create_dir_all(&manifest).unwrap();
-            std::fs::write(manifest.join("plugin.json"), format!("{{\"name\": \"{unit}\"}}")).unwrap();
+            std::fs::write(
+                manifest.join("plugin.json"),
+                format!("{{\"name\": \"{unit}\"}}"),
+            )
+            .unwrap();
         }
         let program = base.join(units[0]).join("bin").join("target").join("meow");
         std::fs::create_dir_all(program.parent().unwrap()).unwrap();
