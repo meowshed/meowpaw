@@ -22,17 +22,17 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::path::{Path, PathBuf};
 
-const CLEAN: u8 = 0;
-const FOUND: u8 = 1;
-const UNREAD: u8 = 3;
+pub(super) const CLEAN: u8 = 0;
+pub(super) const FOUND: u8 = 1;
+pub(super) const UNREAD: u8 = 3;
 
-struct Record {
-    path: PathBuf,
-    text: String,
+pub(super) struct Record {
+    pub(super) path: PathBuf,
+    pub(super) text: String,
 }
 
 impl Record {
-    fn field(&self, key: &str) -> String {
+    pub(super) fn field(&self, key: &str) -> String {
         front_matter(&self.text)
             .iter()
             .find(|l| l.starts_with(&format!("{key}:")))
@@ -47,7 +47,7 @@ impl Record {
             .unwrap_or_default()
     }
 
-    fn title(&self) -> String {
+    pub(super) fn title(&self) -> String {
         self.text
             .lines()
             .find(|l| l.starts_with("# "))
@@ -76,7 +76,7 @@ impl Record {
         out
     }
 
-    fn section(&self, name: &str) -> String {
+    pub(super) fn section(&self, name: &str) -> String {
         let mut out = Vec::new();
         let mut inside = false;
         for line in self.text.lines() {
@@ -100,7 +100,7 @@ fn front_matter(text: &str) -> Vec<&str> {
     lines.take_while(|l| *l != "---").collect()
 }
 
-fn records(dir: &Path, prefix: &str) -> Vec<Record> {
+pub(super) fn records(dir: &Path, prefix: &str) -> Vec<Record> {
     let Ok(entries) = std::fs::read_dir(dir) else {
         return Vec::new();
     };
@@ -129,7 +129,7 @@ pub fn fingerprint(title: &str, body: &str) -> String {
 
 /// What the record says the task's issue holds: its title, and its body
 /// without the marker, which names the fingerprint and so can't be part of it.
-fn projection(task: &Record, authoriser: &Record) -> (String, String) {
+pub(super) fn projection(task: &Record, authoriser: &Record) -> (String, String) {
     let id = task.field("id");
     let title = format!("{id}: {}", task.title());
     let closes = task.closes();
@@ -161,12 +161,17 @@ fn projection(task: &Record, authoriser: &Record) -> (String, String) {
     (title, body)
 }
 
-fn marker(id: &str, fingerprint: &str) -> String {
+pub(super) fn marker(id: &str, fingerprint: &str) -> String {
     format!("<!-- meow-github: projected from {id} at {fingerprint} -->")
 }
 
-/// Writes `issue:` and `projected:` into the task's front matter.
-fn record_mapping(task: &Record, number: u64, fingerprint: &str) -> std::io::Result<()> {
+/// Writes `issue:`, `projected:` and `tracked:` into the task's front matter.
+pub(super) fn record_mapping(
+    task: &Record,
+    number: u64,
+    fingerprint: &str,
+    tracked: &str,
+) -> std::io::Result<()> {
     let mut out = Vec::new();
     let mut in_front = false;
     let mut fences = 0;
@@ -181,12 +186,17 @@ fn record_mapping(task: &Record, number: u64, fingerprint: &str) -> std::io::Res
             }
             if fences == 2 && !out.iter().any(|l: &String| l.starts_with("projected:")) {
                 out.push(format!("projected: {fingerprint}"));
+                out.push(format!("tracked: {tracked}"));
             }
         } else if in_front && line.starts_with("issue:") {
             out.push(format!("issue: {number}"));
             continue;
         } else if in_front && line.starts_with("projected:") {
             out.push(format!("projected: {fingerprint}"));
+            out.push(format!("tracked: {tracked}"));
+            continue;
+        } else if in_front && line.starts_with("tracked:") {
+            // Written after `projected:`, so an older line is dropped here.
             continue;
         }
         out.push(line.to_string());
@@ -198,13 +208,43 @@ fn record_mapping(task: &Record, number: u64, fingerprint: &str) -> std::io::Res
     std::fs::write(&task.path, text)
 }
 
-fn same(a: &str, b: &str) -> bool {
+pub(super) fn same(a: &str, b: &str) -> bool {
     a.replace("\r\n", "\n").trim_end() == b.replace("\r\n", "\n").trim_end()
 }
 
-/// What the tracker holds now, as the fingerprint its title and body carry
-/// without the marker, and whether the issue is closed.
-fn tracked(layer: &mut Layer, repository: &str, issue: &str) -> Result<(String, bool), Failure> {
+/// The tracker side's fingerprint: the title, the body without its marker and
+/// the issue's state, which the mapping carries as `tracked:` beside the record
+/// side's `projected:` (REQ-4704, ADR-2890).
+pub(super) fn tracker_fingerprint(title: &str, body: &str, closed: bool) -> String {
+    let state = if closed { "closed" } else { "open" };
+    fingerprint(title, &format!("{body}\n{state}"))
+}
+
+/// What the tracker holds now: the title, the body without its marker and
+/// whether the issue is closed.
+pub(super) struct Tracker {
+    pub(super) title: String,
+    pub(super) body: String,
+    pub(super) closed: bool,
+}
+
+impl Tracker {
+    /// The fingerprint of the title and body alone, as `projected:` carries it.
+    pub(super) fn text_fingerprint(&self) -> String {
+        fingerprint(&self.title, &self.body)
+    }
+
+    pub(super) fn fingerprint(&self) -> String {
+        tracker_fingerprint(&self.title, &self.body, self.closed)
+    }
+}
+
+/// Reads the issue through the layer.
+pub(super) fn read_tracker(
+    layer: &mut Layer,
+    repository: &str,
+    issue: &str,
+) -> Result<Tracker, Failure> {
     let read = layer.get_mapped(&format!("repos/{repository}/issues/{issue}"))?;
     let lacks = || Failure::Failed("the issue lacks the field `title`".to_string());
     let title = read
@@ -221,11 +261,15 @@ fn tracked(layer: &mut Layer, repository: &str, issue: &str) -> Result<(String, 
         .map(|(b, _)| b.to_string())
         .unwrap_or(body);
     let closed = read.get("state").and_then(Value::as_str) == Some("closed");
-    Ok((fingerprint(title, &body), closed))
+    Ok(Tracker {
+        title: title.to_string(),
+        body,
+        closed,
+    })
 }
 
 /// The tasks the epic marks done.
-fn done_in(epic: &Record) -> Vec<String> {
+pub(super) fn done_in(epic: &Record) -> Vec<String> {
     epic.text
         .lines()
         .filter_map(|l| l.strip_prefix("- [x] "))
@@ -239,7 +283,7 @@ fn done_in(epic: &Record) -> Vec<String> {
 
 /// Prints why a call gave nothing, after `context`, with a refusal's line on a
 /// line of its own so that it reads as GitHub's answer and not as the task's.
-fn report(context: &str, failure: &Failure) {
+pub(super) fn report(context: &str, failure: &Failure) {
     match failure {
         Failure::Refused(line) | Failure::Rejected(line) => {
             println!("{line}");
@@ -251,7 +295,7 @@ fn report(context: &str, failure: &Failure) {
 
 /// Prints the line of a throttle, a ceiling or a rejected credential, and says
 /// the run sends nothing after it.
-fn halt(failure: &Failure) {
+pub(super) fn halt(failure: &Failure) {
     println!("{failure}");
     let what = match failure {
         Failure::Rejected(_) => "the rejected credential",
@@ -589,7 +633,7 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
                 continue;
             }
             // Computed from the two fingerprints each run, never stored (REQ-1388).
-            let (on_tracker, closed) = match tracked(layer, &repository, &issue) {
+            let remote = match read_tracker(layer, &repository, &issue) {
                 Ok(state) => state,
                 Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
                     halt(&stop);
@@ -602,6 +646,7 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
                     continue;
                 }
             };
+            let (on_tracker, closed) = (remote.text_fingerprint(), remote.closed);
             if closed && !done.contains(&id) {
                 if direct {
                     println!(
@@ -620,6 +665,14 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
                 );
                 worst = worst.max(FOUND);
             } else if projected == print {
+                // An older mapping carries the record side only; the next run
+                // adds the tracker side and changes nothing else (REQ-4704).
+                if task.field("tracked").is_empty()
+                    && !check
+                    && let Ok(n) = issue.parse::<u64>()
+                {
+                    let _ = record_mapping(task, n, &print, &remote.fingerprint());
+                }
                 println!("{id}: unchanged, issue #{issue} at {print}");
                 outcome.projected.push(id);
             } else if check {
@@ -631,11 +684,9 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
                 let endpoint = format!("repos/{repository}/issues/{issue}");
                 match layer.update_issue(&repository, &issue, &[("title", &title), ("body", &full)])
                 {
-                    Ok(_) => match issue
-                        .parse::<u64>()
-                        .ok()
-                        .map(|n| record_mapping(task, n, &print))
-                    {
+                    Ok(_) => match issue.parse::<u64>().ok().map(|n| {
+                        record_mapping(task, n, &print, &tracker_fingerprint(&title, &body, closed))
+                    }) {
                         Some(Ok(())) => {
                             println!(
                                 "{id}: changed since {projected}, issue #{issue} updated to {print}"
@@ -689,7 +740,12 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
             outcome.stopped = true;
             break;
         };
-        if let Err(e) = record_mapping(task, number, &print) {
+        if let Err(e) = record_mapping(
+            task,
+            number,
+            &print,
+            &tracker_fingerprint(&title, &body, false),
+        ) {
             println!(
                 "{id}: issue #{number} created, and the mapping couldn't be written to {}: {e}",
                 task.path.display()

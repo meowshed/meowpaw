@@ -987,6 +987,14 @@ class Frozen(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
 
+    def test_a_task_may_gain_the_tracker_side_fingerprint(self):
+        """TSK-5320, REQ-4704: `tracked` beside `projected` is a mapping field and changes after approval."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "epic: EPC-0001", "epic: EPC-0001\nprojected: 0123456789ab\ntracked: fedcba987654")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
+
     def test_a_task_may_say_what_it_left_alone(self):
         """The implementer fills `## Left alone` after approval, as the template asks, so it is free like Evidence."""
         repository = self.repo()
@@ -2962,6 +2970,39 @@ class WriteCommands(unittest.TestCase):
         done = repository.run("done", "TSK-0001", "--pr", "12")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertEqual(self.snapshot(repository), before)
+
+
+class SynchronisationStep(unittest.TestCase):
+    """TSK-5322, REQ-4706: the implement step runs the synchronisation at the start and the end of an epic's work."""
+
+    ROOT = Path(__file__).resolve().parents[3]
+
+    def test_the_implement_step_runs_the_synchronisation_at_its_start_and_its_end(self):
+        """Criterion 1: where `[tracker] kind` is declared the step names `meow-github sync` twice, in both copies."""
+        for where in ("plugins", "packages"):
+            with self.subTest(copy=where):
+                text = (self.ROOT / where / "meow-flow/skills/method/steps/implement.md").read_text(encoding="utf-8")
+                self.assertGreaterEqual(text.count("meow-github sync"), 2, text[-900:])
+                self.assertRegex(text, r"(?s)\[tracker\] kind.{0,300}meow-github sync")
+                self.assertRegex(text, r"(?is)(before|start).{0,200}meow-github sync|meow-github sync.{0,200}(before|start)")
+                self.assertRegex(text, r"(?is)(after|end).{0,200}meow-github sync|meow-github sync.{0,200}(after|end)")
+
+    def test_the_script_the_pack_replaces_is_gone_and_unnamed(self):
+        """Criterion 2: `tools/sync_issues.py` doesn't exist, and no living or shipped file names it."""
+        self.assertFalse((self.ROOT / "tools" / "sync_issues.py").exists())
+        tracked = subprocess.run(["git", "ls-files"], cwd=self.ROOT, capture_output=True, text=True, check=True)
+        frozen = ("project/research/", "project/adrs/", "project/tasks/", "project/requirements/", "project/bugs/",
+                  "project/epics/", "project/insights/")
+        named = []
+        for name in tracked.stdout.splitlines():
+            if name.startswith(frozen) or name == "plugins/meow-flow/tests/test_record.py":
+                continue
+            try:
+                if "sync_issues" in (self.ROOT / name).read_text(encoding="utf-8"):
+                    named.append(name)
+            except (UnicodeDecodeError, FileNotFoundError):
+                continue
+        self.assertEqual(named, [])
 
 
 class DeniedDispatch(unittest.TestCase):

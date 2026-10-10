@@ -718,13 +718,13 @@ fn frozen_text(text: &str, sections: &[&str], fields: &[&str]) -> String {
 }
 
 /// A task's text without what may change after approval: its evidence, what
-/// it left alone, which the implementer writes, its issue, its projection and
-/// its revision date.
+/// it left alone, which the implementer writes, its issue, its projection, the
+/// tracker side's fingerprint and its revision date.
 fn frozen_part(text: &str) -> String {
     frozen_text(
         text,
         &["Evidence", "Left alone"],
-        &["issue", "projected", "revised"],
+        &["issue", "projected", "tracked", "revised"],
     )
 }
 

@@ -1,7 +1,7 @@
 ---
 id: ADR-2890
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-10
 addresses: [REQ-4700, REQ-4702, REQ-4704, REQ-4706]
 supersedes: []

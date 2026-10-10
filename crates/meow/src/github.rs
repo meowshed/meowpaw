@@ -15,6 +15,7 @@ use serde_json::{Value, json};
 mod guard;
 mod project;
 mod request;
+mod sync;
 
 const USAGE: u8 = 2;
 const UNREAD: u8 = 3;
@@ -25,7 +26,7 @@ const LISTINGS: [(&str, &str); 4] = [
     ("review comments", "pulls/comments?per_page=100"),
 ];
 
-const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | governance-guard";
+const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | sync <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | governance-guard";
 
 pub fn main(args: &[String]) -> u8 {
     let Some((command, rest)) = args.split_first() else {
@@ -50,6 +51,10 @@ pub fn main(args: &[String]) -> u8 {
         ("project", [record, repository], _) => {
             project(&mut layer, record, Some(repository), check)
         }
+        ("sync", [record], _) => synchronise(&mut layer, record, None, check),
+        ("sync", [record, repository], _) => {
+            synchronise(&mut layer, record, Some(repository), check)
+        }
         _ => {
             eprintln!("{USAGE_LINE}");
             USAGE
@@ -62,6 +67,18 @@ pub fn main(args: &[String]) -> u8 {
 fn project(layer: &mut Layer, record: &str, repository: Option<&str>, check: bool) -> u8 {
     println!("credential: {}", credential());
     let code = project::run(layer, record, repository, check);
+    for line in layer.budget() {
+        println!("{line}");
+    }
+    code
+}
+
+/// Synchronises an authorising record's tasks with their issues, with the
+/// credential's form as the report's first line and the budget as its last
+/// lines, as `project` does (ADR-2890).
+fn synchronise(layer: &mut Layer, record: &str, repository: Option<&str>, check: bool) -> u8 {
+    println!("credential: {}", credential());
+    let code = sync::run(layer, record, repository, check);
     for line in layer.budget() {
         println!("{line}");
     }
