@@ -2,12 +2,12 @@
 reader: someone installing or running meow-unattended on Pi
 answers: what meow-unattended provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-unattended@0.3.0]
+describes: [@meowshed/meow-unattended@0.4.0]
 ---
 
 # @meowshed/meow-unattended
 
-Plans an unattended run from the [unattended] table a repository declares: prints the command that would start it with its posture and budget, and writes the snapshot of deny rules that holds its authority. It starts nothing and keeps nothing in context on every turn. Distributed as a Pi package.
+Prints the posture an unattended run is held to from the [unattended] table a repository declares: the permission mode, the gates the run may decide, its release command and whether it may amend an approved record, with each deny rule and what the rules don't stop. It writes nothing, starts nothing and keeps nothing in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

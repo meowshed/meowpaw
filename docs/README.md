@@ -7,7 +7,7 @@ describes:
     meow-core@0.6.2,
     meow-git@0.3.1,
     meow-github@0.14.0,
-    meow-flow@0.47.2,
+    meow-flow@0.48.0,
     meow-prose-gate@0.4.0,
     meow-prose@0.5.1,
     meow-scm@0.5.0,
