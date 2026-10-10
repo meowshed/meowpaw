@@ -2,7 +2,7 @@
 reader: someone installing or running meow-core on Pi
 answers: what meow-core provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-core@0.6.1]
+describes: [@meowshed/meow-core@0.8.0]
 ---
 
 # @meowshed/meow-core
