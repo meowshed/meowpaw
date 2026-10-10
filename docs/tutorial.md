@@ -2,7 +2,7 @@
 reader: someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work
 answers: how to get from an empty repository to a first check that Claude Code runs and reports honestly
 kind: tutorial
-describes: [meow-checks@0.10.0]
+describes: [meow-checks@0.11.0]
 ---
 
 # Your first verified change
