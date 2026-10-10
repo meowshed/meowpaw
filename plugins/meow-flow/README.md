@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.48.0]
+describes: [meow-flow@0.49.0]
 ---
 
 # meow-flow
@@ -208,6 +208,25 @@ implementation. Where the agent reports `BLOCKED`, because a tool it needed
 was denied, the step reports the review as not run, and doesn't resume the
 agent, send another under the same permissions or review the change itself. No agent reviews a record: you read it when you approve its
 pull request.
+
+## Write a status change in one command
+
+A status change that touches several files is one command, so none of the
+files is left out:
+
+```bash
+paw approve REQ-1000 ADR-1000        # draft to approved, where `paw check` reports nothing about it
+paw done TSK-1000 --pr 12            # done in the task, marked in its epic or defect, closed up the chain
+paw withdraw REQ-1000 --by ADR-2000 --replaced-by REQ-2000
+```
+
+`approve` writes nothing and exits 1 where the check has a finding about a
+record you named. `done` refuses a task whose Evidence still opens with
+`Not yet.`, marks the entry with the pull request you give, and stores `done`
+in the epic and the decision once the last task is done. `withdraw` writes the
+tombstone, the status and today's date. Each command changes only the lines it
+owns and regenerates the index of each kind it touched, and a result passes
+`paw check` without the command, so you can still edit a record in your editor.
 
 ## Postpone requirements
 
