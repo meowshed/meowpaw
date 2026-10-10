@@ -4,6 +4,7 @@
 """Fixtures for check_workflows: a workflow starts read-only and trusts no foreign value (ADR-2520)."""
 
 import io
+import re
 import sys
 import tempfile
 import textwrap
@@ -236,6 +237,27 @@ class Workflows(unittest.TestCase):
         status, out = self.run_check(self.tree({}))
         self.assertEqual(status, 1, out)
         self.assertEqual(out, ["no workflow files under .github/workflows/", "0 workflow files, 1 findings"])
+
+    def test_the_gate_step_carries_the_job_token_in_its_own_environment(self):
+        """The `gate` step that runs `mise run all` has `GITHUB_TOKEN` in its own `env:`, so mise installs a tool
+        with the job's token and not anonymously, where 60 requests an hour fail a run (2026-10-10, PR 882)."""
+        text = (ROOT / ".github/workflows/ci.yml").read_text()
+        step = text.split("- run: mise run all", 1)
+        self.assertEqual(len(step), 2, "the gate runs `mise run all` as one step")
+        before, after = step
+        block = before.rsplit("- ", 1)[-1] + "- run: mise run all" + after.split("\n  attribution:", 1)[0]
+        self.assertRegex(block, r"env:\s*\n\s+GITHUB_TOKEN: \$\{\{ github\.token \}\}")
+        self.assertNotRegex(before.split("jobs:", 1)[-1].split("steps:", 1)[0], r"GITHUB_TOKEN", "not on the job")
+
+    def test_every_step_that_reads_build_target_sets_it(self):
+        """Each step of `rust-tool.yml` that reads `$BUILD_TARGET` sets it in its own `env:`, because a step with
+        none reads it empty, and `find plugins/*/bin/` then hands ldid every launcher (2026-10-05, PR 860)."""
+        text = (ROOT / ".github/workflows/rust-tool.yml").read_text()
+        steps = re.split(r"\n(?=      - )", text)
+        reading = [s for s in steps if "$BUILD_TARGET" in s and "uses:" not in s.split("\n", 1)[0]]
+        self.assertTrue(reading, "the workflow reads $BUILD_TARGET in some step")
+        for step in reading:
+            self.assertIn("BUILD_TARGET: ${{ matrix.target }}", step, step.split("\n", 1)[0])
 
     def test_this_repository_s_workflows_pass(self):
         """REQ-2196, REQ-2198, REQ-2200: the workflows this repository runs hold every rule."""
