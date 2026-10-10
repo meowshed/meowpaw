@@ -59,7 +59,7 @@ class Launchers(unittest.TestCase):
             root = self.base / "core"
             binary = root / "bin" / target() / "meow"
             binary.parent.mkdir(parents=True)
-            binary.write_text('#!/bin/sh\necho "shared: $* layout=$MEOW_LAYOUT"\n')
+            binary.write_text('#!/bin/sh\necho "shared: $* layout=$MEOW_LAYOUT unit=$MEOW_LOOP_UNIT"\n')
             binary.chmod(0o755)
             (data / "meow-core-test").mkdir(parents=True)
             (data / "meow-core-test" / "meow-root").write_text(f"{root}\n")
@@ -84,6 +84,13 @@ class Launchers(unittest.TestCase):
             with self.subTest(launcher=launcher.name):
                 done = self.run_launcher(launcher, shared=True, sub=self.subcommands(launcher)[0])
                 self.assertRegex(done.stdout, r"layout=\S*/lib/layout\.toml", done.stdout + done.stderr)
+
+    def test_the_loop_launcher_names_its_own_unit_to_the_shared_binary(self):
+        """TSK-5301, BUG-1410, REQ-4504: the shared binary sits in another unit, so the loop's unit is named to it."""
+        launcher = ROOT / "plugins/meow-loop/bin/meow-loop"
+        done = self.run_launcher(launcher, shared=True, sub="guard")
+        unit = (self.base / "unit").resolve()
+        self.assertIn(f"unit={unit}", done.stdout, done.stdout + done.stderr)
 
     def test_a_launcher_finds_the_core_unit_beside_it_in_a_checkout(self):
         """TSK-5302, REQ-4504: loaded in place, a unit finds `plugins/meow-core` beside it with no data file."""
