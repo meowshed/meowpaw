@@ -2,8 +2,8 @@
 id: SPC-1210
 artifact: spec
 status: live
-revised: 2026-10-03
-states: [REQ-2214, REQ-2216, REQ-2196, REQ-2198, REQ-2200]
+revised: 2026-10-10
+states: [REQ-2214, REQ-2216, REQ-2196, REQ-2198, REQ-2200, REQ-3035]
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
@@ -78,11 +78,15 @@ other value of `${{ github.event.* }}`, `${{ github.head_ref }}` or
 environment variable (REQ-2200). A `run:` line holds no `${{` at all, so the
 check has no list of trusted contexts to keep.
 
+No workflow runs the measurement suite or names a model credential, because
+every run of the suite is a real model call and the owner keeps those out of
+continuous integration (REQ-3035).
+
 `tools/check_workflows.py` reads every workflow file and fails, naming the
 file and the line, on a missing top-level `permissions`, a top-level
 permission other than `contents: read`, a forbidden trigger in a workflow that
-also runs `actions/checkout`, and `${{` inside a `run:` value. The `test` verb
-runs it.
+also runs `actions/checkout`, `${{` inside a `run:` value, and the suite's
+task or a model credential named anywhere in the file. The `test` verb runs it.
 
 ## Failure paths
 
@@ -94,4 +98,5 @@ runs it.
 | A workflow grants write access at its top level         | `check_workflows.py` fails, naming the file and the permission  |
 | `pull_request_target` or `workflow_run` with a checkout | `check_workflows.py` fails, naming the file and the trigger     |
 | `${{` inside a `run:` value                             | `check_workflows.py` fails, naming the file and the line        |
+| A workflow names the suite's task or a model credential | `check_workflows.py` fails, naming the file and the line        |
 | A workflow file doesn't parse                           | `check_workflows.py` fails, naming the file and the parse error |
