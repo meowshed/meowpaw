@@ -61,3 +61,7 @@ session), and the in-session guard is unaffected.
 ## Closed by
 
 Not yet closed.
+
+## Tasks
+
+- [ ] T-001 TSK-5260 resolve the loop's unit from an override, the program's own unit or a sibling, in `crates/meow/src/runloop.rs`
