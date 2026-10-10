@@ -25,7 +25,7 @@ class SharedBinary(unittest.TestCase):
         binary = ROOT / "plugins/meow-core/bin" / target() / "meow"
         self.assertTrue(binary.is_file(), f"{binary} was not built")
         done = subprocess.run([str(binary)], capture_output=True, text=True)
-        carried = (done.stdout + done.stderr).split("carries:")[-1].split()
+        carried = [word.strip(",") for word in (done.stdout + done.stderr).split("carries:")[-1].split()]
         self.assertEqual(sorted(carried), sorted(SUBCOMMANDS))
 
 
