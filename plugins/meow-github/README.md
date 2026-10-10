@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.14.0]
+describes: [meow-github@0.15.0]
 ---
 
 # meow-github
@@ -190,7 +190,7 @@ where it isn't. `--check` prints what each task would get and writes nothing.
 
 The method runs `sync` before the first task of an epic and after the last
 task's Evidence, where a tracker is declared, and nothing runs it in the
-background (ADR-2890).
+background.
 
 ## Project a task by hand
 
