@@ -141,7 +141,11 @@ fn a_personal_stage_replaces_the_shared_one_and_names_its_file() {
     let root = Dir::new("replace");
     let state = Dir::new("replace-state");
     init(&root.0);
-    write(&root.0, ".meowpaw/profile.toml", "[stages]\ntest = \"true\"\n");
+    write(
+        &root.0,
+        ".meowpaw/profile.toml",
+        "[stages]\ntest = \"true\"\n",
+    );
     write(&root.0, PERSONAL, "[stages]\ntest = \"false\"\n");
     let (done, stdout) = checks(&root.0, &state.0, &["status"]);
     assert_eq!(done.status.code(), Some(0), "{stdout}");
@@ -159,14 +163,21 @@ fn a_machine_path_in_the_personal_profile_is_unresolved_and_runs_nothing() {
     let state = Dir::new("machine-state");
     init(&root.0);
     let command = "/Users/someone/bin/runner";
-    write(&root.0, PERSONAL, &format!("[stages]\ntest = \"{command}\"\n"));
+    write(
+        &root.0,
+        PERSONAL,
+        &format!("[stages]\ntest = \"{command}\"\n"),
+    );
     let (done, stdout) = checks(&root.0, &state.0, &["run", "test"]);
     assert_eq!(done.status.code(), Some(3), "{stdout}");
     assert!(
         stdout.contains("== test: unresolved (machine path:"),
         "{stdout}"
     );
-    assert!(stdout.contains(command), "the report names no path:\n{stdout}");
+    assert!(
+        stdout.contains(command),
+        "the report names no path:\n{stdout}"
+    );
     assert!(stdout.contains("not run"), "{stdout}");
 
     // The same value in the shared profile resolves.
@@ -178,7 +189,10 @@ fn a_machine_path_in_the_personal_profile_is_unresolved_and_runs_nothing() {
         &format!("[stages]\ntest = \"{command}\"\n"),
     );
     let (_, status) = checks(&shared.0, &state.0, &["status"]);
-    assert!(line_for(&status, "test").contains("resolved    "), "{status}");
+    assert!(
+        line_for(&status, "test").contains("resolved    "),
+        "{status}"
+    );
     assert!(
         !line_for(&status, "test").contains("machine path"),
         "{status}"
