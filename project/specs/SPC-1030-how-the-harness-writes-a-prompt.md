@@ -2,7 +2,7 @@
 id: SPC-1030
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-10
 states:
   [
     REQ-0077,
@@ -47,7 +47,6 @@ states:
     REQ-1150,
     REQ-1672,
     REQ-1678,
-    REQ-2680,
     REQ-2682,
     REQ-2684,
     REQ-2686,
@@ -80,6 +79,8 @@ states:
     REQ-0828,
     REQ-2980,
     REQ-2986,
+    REQ-4900,
+    REQ-4902,
   ]
 ---
 
@@ -312,8 +313,9 @@ load it (REQ-1110). A unit also follows these rules:
 - The harness has one kind of loadable unit, the skill. A command is a skill
   that only a person invokes, with `disable-model-invocation`, so a unit ships
   no `commands/` directory (REQ-1111).
-- A skill with side effects is invoked only by a person, and a skill that holds
-  only knowledge is invoked only by the model (REQ-2680).
+- A skill with side effects is invoked only by a person, except the driver,
+  which a run makes the model repeat (REQ-4900), and a skill that holds only
+  knowledge is invoked only by the model (REQ-4902).
 - A skill for one language or directory declares its `paths` (REQ-2682).
 - A skill whose work is a long read ending in a short answer runs in a forked
   context (REQ-2684).
