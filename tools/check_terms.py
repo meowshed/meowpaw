@@ -42,6 +42,7 @@ SKIPPED_FILES = {
     "plugins/meow-loop/lib/layout.toml": "the onboarding section name `Verbs` is record shape and needs a migration",
     "tools/check_subagent_shape.py": "a grammatical use: the verb of a sentence",
     "tools/check_gate_covers_verbs.py": "a file name and a local variable",
+    "tools/check_terms.py": "the check names the word it looks for",
 }
 SKIPPED_PARTS = {
     "/evals/": "evaluation cases are measured inputs and keep their wording",
