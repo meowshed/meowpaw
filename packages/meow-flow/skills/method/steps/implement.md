@@ -141,4 +141,8 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
   give, and mark the task in the commit that completes it, because the epic's
   pull request is the one unit of review and its marks show how far the branch
   has come.
+- I33. Close a finished task with `paw done <task> --pr <number>`, which stores
+  `done` in the task, marks it in its epic or defect and closes the epic and
+  the decision where it was the last task, because the same close made by
+  editing three files leaves one of them out.
 </rules>

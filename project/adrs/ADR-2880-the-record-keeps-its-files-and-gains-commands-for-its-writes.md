@@ -1,7 +1,7 @@
 ---
 id: ADR-2880
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-10
 addresses: [REQ-4600, REQ-4602]
 supersedes: []
