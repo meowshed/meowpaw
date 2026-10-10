@@ -26,7 +26,8 @@ BIN = UNIT / "bin" / "meow-loop"
 SESSION = "11111111-1111-4111-8111-111111111111"
 START = "/meow-loop:run --iterations 3 --hours 1 --tokens 100000"
 DEPRECATION = "meow-loop start is deprecated: a run now lives in the session, so type /meow-loop:run there"
-PROFILE = '[git]\ntrunk = "main"\n'
+POSTURE = '[unattended]\npermission_mode = "dontAsk"\ngates = []\nrelease = false\n'
+PROFILE = '[git]\ntrunk = "main"\n\n' + POSTURE
 
 
 def front(**fields):
@@ -288,6 +289,67 @@ class Stopping(Session):
         self.assertEqual(done.returncode, 0)
         self.assertEqual(done.stdout.strip(), "")
         self.assertEqual(self.runs(), [])
+
+
+class PostureAtStart(Session):
+    def test_a_session_in_another_mode_is_refused_naming_both(self):
+        """TSK-4120 criterion 3, REQ-2388: the declared mode and the session's mode are both named."""
+        done, answer = self.prompt(START, mode="default")
+        self.assertEqual(self.runs(), [])
+        self.assertIn("unresolved: the session is in default, and the posture declares dontAsk",
+                      answer["systemMessage"])
+
+    def test_a_release_of_false_is_recorded_and_other_values_are_refused(self):
+        """TSK-4120 criterion 4, REQ-3722: `release = false` is a run that releases nothing."""
+        self.start()
+        table, _ = self.run_toml()
+        self.assertIs(table["release"], False)
+        self.write(".meowpaw/profile.toml", PROFILE.replace("release = false", "release = 3"))
+        shutil.rmtree(self.state, ignore_errors=True)
+        done, answer = self.prompt(START)
+        self.assertEqual(self.runs(), [])
+        self.assertIn("unresolved: [unattended] release 3 is not a command or false", answer["systemMessage"])
+
+    def test_a_repository_with_no_posture_starts_no_run(self):
+        """TSK-4120, SPC-1201 failure paths: an unresolved posture gives each line SPC-1200 states."""
+        self.write(".meowpaw/profile.toml", PROFILE.split("[unattended]")[0])
+        done, answer = self.prompt(START)
+        self.assertEqual(self.runs(), [])
+        self.assertIn("unresolved: no [unattended] table in .meowpaw/profile.toml", answer["systemMessage"])
+
+
+class PostureGuard(Guarding):
+    def active(self, **changes):
+        text = PROFILE
+        for old, new in changes.items():
+            text = text.replace(old, new)
+        self.write(".meowpaw/profile.toml", text)
+        self.start()
+
+    def test_the_guard_denies_the_profile_a_push_to_the_trunk_and_an_approved_record(self):
+        """TSK-4120 criterion 5, REQ-3718: each of the three the posture forbids is denied."""
+        self.start()
+        self.assertEqual(self.guard("Edit", file_path=str(self.repo / ".meowpaw" / "profile.toml")), "deny")
+        self.assertEqual(self.guard("Bash", command="git push origin main"), "deny")
+        self.assertEqual(self.guard("Bash", command="git push"), "deny")
+        self.assertEqual(self.guard("Bash", command="git push origin HEAD"), "deny")
+        self.assertEqual(self.guard("Edit", file_path=str(self.repo / "project/requirements/REQ-0001-a-duty.md")),
+                         "deny")
+
+    def test_the_guard_allows_a_push_of_a_branch_and_a_draft_record(self):
+        """TSK-4120 criterion 5: a branch, a new record and a draft are what a run may write."""
+        self.start()
+        self.assertIsNone(self.guard("Bash", command="git push origin feat/a-change"))
+        self.write("project/requirements/REQ-0009-a-draft.md", requirement("REQ-0009", status="draft"))
+        self.assertIsNone(self.guard("Edit", file_path=str(self.repo / "project/requirements/REQ-0009-a-draft.md")))
+        self.assertIsNone(self.guard("Write", file_path=str(self.repo / "notes.md")))
+
+    def test_amend_approved_lets_the_run_edit_an_approved_record(self):
+        """TSK-4120 criterion 5, REQ-3718: where the repository declares it, the record's file may be edited."""
+        self.write(".meowpaw/profile.toml", PROFILE + "amend_approved = true\n")
+        self.start()
+        self.assertIsNone(self.guard("Edit", file_path=str(self.repo / "project/requirements/REQ-0001-a-duty.md")))
+        self.assertEqual(self.guard("Edit", file_path=str(self.repo / ".meowpaw" / "profile.toml")), "deny")
 
 
 class Skill(unittest.TestCase):
