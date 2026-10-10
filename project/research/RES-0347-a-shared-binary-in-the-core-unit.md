@@ -95,12 +95,12 @@ the cache layout, which the documentation doesn't promise.
 
 ## Comparison
 
-| Option                                             | Better at                                         | Why it falls short                                                       |
-| -------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------ |
-| Keep a binary in each unit                         | Each unit works alone, the rule the records chose | 13 copies, 41 MB, and 12 feature builds on every release                 |
-| One binary in `meow-core`, units depend on it      | One build, 7 MB, and one place for a fix          | Reverses two approved requirements, and a unit needs the core installed  |
-| One binary in a new unit that the others depend on | Keeps `meow-core` free of a program               | A 17th unit for the same cost, and the owner asked for the core unit     |
-| Download the binary at first use                   | Units stay small                                  | A network call at run time, which the records refuse                     |
+| Option                                             | Better at                                         | Why it falls short                                                      |
+| -------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------- |
+| Keep a binary in each unit                         | Each unit works alone, the rule the records chose | 13 copies, 41 MB, and 12 feature builds on every release                |
+| One binary in `meow-core`, units depend on it      | One build, 7 MB, and one place for a fix          | Reverses two approved requirements, and a unit needs the core installed |
+| One binary in a new unit that the others depend on | Keeps `meow-core` free of a program               | A 17th unit for the same cost, and the owner asked for the core unit    |
+| Download the binary at first use                   | Units stay small                                  | A network call at run time, which the records refuse                    |
 
 ## The case against
 

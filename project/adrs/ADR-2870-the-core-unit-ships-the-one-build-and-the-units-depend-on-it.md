@@ -47,12 +47,12 @@ promise it.
 
 ## Alternatives
 
-| Option                                      | Better at                                  | Why it lost                                                            |
-| ------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------- |
-| Do nothing                                  | Each unit works alone                      | 13 builds and 41 MB, and 12 feature builds on every release            |
-| A new unit that holds the binary            | `meow-core` stays free of a program        | A 17th unit for the same cost, and the owner asked for the core unit   |
-| Look the binary up in the cache layout      | No session start hook                      | Undocumented, and several versions of the core unit sit in it          |
-| Download the binary at first use            | Small archives                             | A network call at run time, which the records refuse                   |
+| Option                                 | Better at                           | Why it lost                                                          |
+| -------------------------------------- | ----------------------------------- | -------------------------------------------------------------------- |
+| Do nothing                             | Each unit works alone               | 13 builds and 41 MB, and 12 feature builds on every release          |
+| A new unit that holds the binary       | `meow-core` stays free of a program | A 17th unit for the same cost, and the owner asked for the core unit |
+| Look the binary up in the cache layout | No session start hook               | Undocumented, and several versions of the core unit sit in it        |
+| Download the binary at first use       | Small archives                      | A network call at run time, which the records refuse                 |
 
 ## What it costs
 
