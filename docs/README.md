@@ -46,26 +46,26 @@ Every page, who it is for and what it answers:
 
 <!-- check_docs index -->
 
-| Page | For | Answers | Kind |
-| --- | --- | --- | --- |
-| [meow-author](../plugins/meow-author/README.md) | someone choosing or running meow-author | what meow-author does, what it adds to a session and how to run it | reference |
-| [meow-checks](../plugins/meow-checks/README.md) | someone choosing or running meow-checks | what meow-checks does, what it adds to a session and how to run it | reference |
-| [meow-code](../plugins/meow-code/README.md) | someone choosing or running meow-code | what meow-code does, what it adds to a session and how to use it | reference |
-| [meow-core](../plugins/meow-core/README.md) | someone choosing or running meow-core | what meow-core does, what it adds to a session and how to run it | reference |
-| [meow-flow](../plugins/meow-flow/README.md) | someone choosing or running meow-flow | what meow-flow does, what it adds to a session and how to run it | reference |
-| [meow-git](../plugins/meow-git/README.md) | someone choosing or running meow-git | what meow-git does, what it adds to a session and how to run it | reference |
-| [meow-github](../plugins/meow-github/README.md) | someone choosing or running meow-github | what meow-github does, what it adds to a session and how to run it | reference |
-| [meow-gotask](../plugins/meow-gotask/README.md) | someone choosing or running meow-gotask | what meow-gotask does, what it adds to a session and how to run it | reference |
-| [meow-licence](../plugins/meow-licence/README.md) | someone choosing or running meow-licence | what meow-licence does, what it adds to a session and how to run it | reference |
-| [meow-loop](../plugins/meow-loop/README.md) | someone choosing or running meow-loop | how a person starts a run in the session, what bounds a run and what a run keeps | reference |
-| [meow-markdown](../plugins/meow-markdown/README.md) | someone choosing or running meow-markdown | what meow-markdown does, what it adds to a session and how to run it | reference |
-| [meow-mise](../plugins/meow-mise/README.md) | someone choosing or running meow-mise | what meow-mise does, what it adds to a session and how to run it | reference |
-| [meow-prose](../plugins/meow-prose/README.md) | someone choosing or running meow-prose | what meow-prose does, what it adds to a session and how to run it | reference |
-| [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate | what meow-prose-gate does, what it adds to a session and how to run it | reference |
-| [meow-scm](../plugins/meow-scm/README.md) | someone choosing or running meow-scm | what meow-scm does, what it adds to a session and how to run it | reference |
-| [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended | what posture meow-unattended prints, what its deny rules stop and what they don't | reference |
-| [troubleshooting](troubleshooting.md) | someone whose meowpaw unit just refused, blocked or reported something they didn't expect | what each message a unit prints means, why it appeared and what fixes it | troubleshooting |
-| [tutorial](tutorial.md) | someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work | how to get from an empty repository to a first check that Claude Code runs and reports honestly | tutorial |
+| Page                                                    | For                                                                                                   | Answers                                                                                         | Kind            |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------- |
+| [meow-author](../plugins/meow-author/README.md)         | someone choosing or running meow-author                                                               | what meow-author does, what it adds to a session and how to run it                              | reference       |
+| [meow-checks](../plugins/meow-checks/README.md)         | someone choosing or running meow-checks                                                               | what meow-checks does, what it adds to a session and how to run it                              | reference       |
+| [meow-code](../plugins/meow-code/README.md)             | someone choosing or running meow-code                                                                 | what meow-code does, what it adds to a session and how to use it                                | reference       |
+| [meow-core](../plugins/meow-core/README.md)             | someone choosing or running meow-core                                                                 | what meow-core does, what it adds to a session and how to run it                                | reference       |
+| [meow-flow](../plugins/meow-flow/README.md)             | someone choosing or running meow-flow                                                                 | what meow-flow does, what it adds to a session and how to run it                                | reference       |
+| [meow-git](../plugins/meow-git/README.md)               | someone choosing or running meow-git                                                                  | what meow-git does, what it adds to a session and how to run it                                 | reference       |
+| [meow-github](../plugins/meow-github/README.md)         | someone choosing or running meow-github                                                               | what meow-github does, what it adds to a session and how to run it                              | reference       |
+| [meow-gotask](../plugins/meow-gotask/README.md)         | someone choosing or running meow-gotask                                                               | what meow-gotask does, what it adds to a session and how to run it                              | reference       |
+| [meow-licence](../plugins/meow-licence/README.md)       | someone choosing or running meow-licence                                                              | what meow-licence does, what it adds to a session and how to run it                             | reference       |
+| [meow-loop](../plugins/meow-loop/README.md)             | someone choosing or running meow-loop                                                                 | how a person starts a run in the session, what bounds a run and what a run keeps                | reference       |
+| [meow-markdown](../plugins/meow-markdown/README.md)     | someone choosing or running meow-markdown                                                             | what meow-markdown does, what it adds to a session and how to run it                            | reference       |
+| [meow-mise](../plugins/meow-mise/README.md)             | someone choosing or running meow-mise                                                                 | what meow-mise does, what it adds to a session and how to run it                                | reference       |
+| [meow-prose](../plugins/meow-prose/README.md)           | someone choosing or running meow-prose                                                                | what meow-prose does, what it adds to a session and how to run it                               | reference       |
+| [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
+| [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
+| [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended                                                           | what posture meow-unattended prints, what its deny rules stop and what they don't               | reference       |
+| [troubleshooting](troubleshooting.md)                   | someone whose meowpaw unit just refused, blocked or reported something they didn't expect             | what each message a unit prints means, why it appeared and what fixes it                        | troubleshooting |
+| [tutorial](tutorial.md)                                 | someone new to meowpaw, on macOS or Linux, who wants to see what it does before using it on real work | how to get from an empty repository to a first check that Claude Code runs and reports honestly | tutorial        |
 
 <!-- /check_docs index -->
 
