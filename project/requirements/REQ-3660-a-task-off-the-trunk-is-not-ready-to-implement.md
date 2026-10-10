@@ -3,8 +3,8 @@ id: REQ-3660
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-30
+status: withdrawn
+revised: 2026-10-10
 elaborates: RES-0311
 verification: behavioural
 ---
@@ -13,6 +13,11 @@ verification: behavioural
 
 # REQ-3660
 
-A task whose record is absent from the trunk the repository declares MUST NOT be reported ready to implement.
+**Withdrawn. Replaced by REQ-4412.**
 
-An approved status on an unmerged branch is a status waiting on its merge, and a session that remembers nothing can't otherwise tell it from an approval (RES-0311, conclusion 4).
+It read: `paw ready implement` MUST refuse a task whose record is absent from the trunk the profile declares.
+
+An epic carries 2.7 tasks on average, so a pull request for each task, and a
+stop at the records before the implementation, opened about four where one
+carries the same commits (RES-0346). ADR-2860 moves the unit of a pull request
+from the task to the epic and to the defect, and the stop to its merge.
