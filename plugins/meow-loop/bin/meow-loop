@@ -40,6 +40,12 @@ done
 }
 if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
+  # The binary may sit in another unit, so it is told where this unit's
+  # layout is. A layout the caller named wins.
+  if [ -z "$MEOW_LAYOUT" ]; then
+    MEOW_LAYOUT="$here/../lib/layout.toml"
+    export MEOW_LAYOUT
+  fi
   exec "$binary" loop "$@"
 fi
 
