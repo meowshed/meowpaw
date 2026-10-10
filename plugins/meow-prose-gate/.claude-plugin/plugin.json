@@ -9,11 +9,6 @@
   "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-prose-gate/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
-  "keywords": [
-    "writing",
-    "prose",
-    "hook",
-    "gate",
-    "meowpaw"
-  ]
+  "keywords": ["writing", "prose", "hook", "gate", "meowpaw"],
+  "dependencies": ["meow-core"]
 }

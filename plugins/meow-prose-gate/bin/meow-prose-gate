@@ -22,11 +22,23 @@ arm64 | aarch64) cpu=aarch64 ;;
 x86_64 | amd64) cpu=x86_64 ;;
 esac
 binary="$here/$cpu-$system/meow$exe"
+# The shared binary the core unit ships, found through the core unit's data
+# directory, which the platform documents and the core unit's session start
+# writes (REQ-4504). The unit's own build beside it is the fallback.
+data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
+for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
+  [ -f "$core" ] || continue
+  read -r root <"$core" 2>/dev/null
+  if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/meow$exe" ]; then
+    binary="$root/bin/$cpu-$system/meow$exe"
+    break
+  fi
+done
 if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
   exec "$binary" prose "$@"
 fi
 
 cat >/dev/null 2>&1
-echo "meow-prose-gate $1: unrun (no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64); nothing was checked"
+echo "meow-prose-gate $1: unrun (no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64); nothing was checked"
 exit 0

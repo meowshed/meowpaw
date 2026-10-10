@@ -9,5 +9,6 @@
   "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-flow/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
-  "keywords": ["record", "requirements", "traceability", "meowpaw"]
+  "keywords": ["record", "requirements", "traceability", "meowpaw"],
+  "dependencies": ["meow-core"]
 }
