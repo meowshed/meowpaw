@@ -1,7 +1,7 @@
 ---
 id: ADR-2370
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses:
   [REQ-2940, REQ-2942, REQ-2944, REQ-2946, REQ-2948, REQ-2950, REQ-2952]
