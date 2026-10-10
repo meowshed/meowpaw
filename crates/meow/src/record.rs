@@ -4363,18 +4363,19 @@ fn with_field(text: &str, key: &str, value: &str) -> Option<String> {
             continue;
         }
         let continued = line.starts_with(' ') || line.starts_with('\t');
-        if inside && !replaced && !continued {
-            if let Some((name, rest)) = content.split_once(':') {
-                if name.trim() == key {
-                    let comment = rest.find(" #").map(|at| &rest[at..]).unwrap_or("");
-                    out.push_str(&format!(
-                        "{key}: {value}{comment}{}",
-                        &line[content.len()..]
-                    ));
-                    replaced = true;
-                    continue;
-                }
-            }
+        if inside
+            && !replaced
+            && !continued
+            && let Some((name, rest)) = content.split_once(':')
+            && name.trim() == key
+        {
+            let comment = rest.find(" #").map(|at| &rest[at..]).unwrap_or("");
+            out.push_str(&format!(
+                "{key}: {value}{comment}{}",
+                &line[content.len()..]
+            ));
+            replaced = true;
+            continue;
         }
         out.push_str(line);
     }
@@ -4678,11 +4679,11 @@ fn done(rest: &[String]) -> u8 {
         say!("paw done: {reason}");
         return FOUND;
     }
-    if let Some((path, text)) = epic_text {
-        if let Err(reason) = write_text(&path, &text) {
-            say!("paw done: {reason}");
-            return FOUND;
-        }
+    if let Some((path, text)) = epic_text
+        && let Err(reason) = write_text(&path, &text)
+    {
+        say!("paw done: {reason}");
+        return FOUND;
     }
     say!("paw done: {task} is done in pull request {number}");
     // What the writes complete: the epic once every task of it is done, then
