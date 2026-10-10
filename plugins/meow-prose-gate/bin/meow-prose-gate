@@ -41,6 +41,11 @@ done
 }
 if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
+  # The shared binary sits in another unit, so it is told where this one is.
+  if [ -z "$MEOW_PROSE_GATE_UNIT" ]; then
+    MEOW_PROSE_GATE_UNIT=$(cd "$here/.." 2>/dev/null && pwd -P)
+    export MEOW_PROSE_GATE_UNIT
+  fi
   exec "$binary" prose "$@"
 fi
 

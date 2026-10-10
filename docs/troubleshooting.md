@@ -8,7 +8,7 @@ describes:
     meow-git@0.3.1,
     meow-github@0.14.0,
     meow-flow@0.48.0,
-    meow-prose-gate@0.4.0,
+    meow-prose-gate@0.4.1,
     meow-scm@0.5.0,
     meow-checks@0.10.0,
   ]
