@@ -1,7 +1,7 @@
 ---
 id: TSK-4320
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2320
 closes: [REQ-2952]
@@ -46,7 +46,21 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Closed in pull request 1039. The type check already read `[commits.types]`
+alone, so no test could fail first, and each is cited as the test that holds
+the rule. Each was shown to fail when the check accepts `feat` whatever the
+profile declares:
+
+1. `a_type_the_profile_doesnt_declare_fails_the_declared_type_check`
+   (REQ-2952).
+2. `a_declared_type_passes_the_declared_type_check` (REQ-2952), which holds the
+   other direction and passed under the mutation.
+3. `the_scm_source_holds_no_list_of_conventional_types` (REQ-2952).
+
+All three are in `crates/meow/tests/commit_types.rs`.
+
+Stages: the pull request's `gate` check, and `paw check`, which printed 0
+findings. No documentation changed, because the behaviour didn't.
 
 ## Left alone
 
