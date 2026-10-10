@@ -178,6 +178,51 @@ class Workflows(unittest.TestCase):
         self.assertEqual(status, 0, out)
         self.assertEqual(out, ["1 workflow files, 0 findings"])
 
+    def test_a_step_that_runs_the_suite_fails_naming_its_line(self):
+        """TSK-5250 criterion 1, REQ-3035: a run: block that starts the suite makes a model call in CI."""
+        text = GOOD.replace('              build "$TARGET"\n', '              build "$TARGET"\n              mise run eval\n')
+        status, out = self.run_check(self.tree({"eval.yml": text}))
+        self.assertEqual(status, 1, out)
+        self.assertEqual(
+            out,
+            [
+                ".github/workflows/eval.yml:31: names mise run eval, and no workflow makes a model call",
+                "1 workflow files, 1 findings",
+            ],
+        )
+
+    def test_a_model_credential_as_an_env_key_fails_naming_its_line(self):
+        """TSK-5250 criterion 2, REQ-3035: a credential name under env: gives the job a way to call a model."""
+        text = GOOD.replace(
+            "              TARGET: ${{ matrix.target }}\n",
+            "              TARGET: ${{ matrix.target }}\n              ANTHROPIC_API_KEY: x\n",
+        )
+        status, out = self.run_check(self.tree({"key.yml": text}))
+        self.assertEqual(status, 1, out)
+        self.assertEqual(
+            out,
+            [
+                ".github/workflows/key.yml:28: names ANTHROPIC_API_KEY, and no workflow makes a model call",
+                "1 workflow files, 1 findings",
+            ],
+        )
+
+    def test_a_model_credential_inside_a_value_fails_naming_its_line(self):
+        """TSK-5250 criterion 2, REQ-3035: a secret read by name is a credential wherever it lands."""
+        text = GOOD.replace(
+            "              TARGET: ${{ matrix.target }}\n",
+            "              TARGET: ${{ matrix.target }}\n              TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}\n",
+        )
+        status, out = self.run_check(self.tree({"value.yml": text}))
+        self.assertEqual(status, 1, out)
+        self.assertEqual(
+            out,
+            [
+                ".github/workflows/value.yml:28: names CLAUDE_CODE_OAUTH_TOKEN, and no workflow makes a model call",
+                "1 workflow files, 1 findings",
+            ],
+        )
+
     def test_a_file_that_does_not_parse_fails_naming_it(self):
         """REQ-2196: a workflow the check can't read is one it can't hold to the rules."""
         status, out = self.run_check(self.tree({"broken.yaml": "on: [push\npermissions:\n  contents: read\n"}))
