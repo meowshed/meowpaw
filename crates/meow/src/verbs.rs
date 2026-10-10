@@ -82,7 +82,7 @@ fn resolve(root: &Path) -> Report {
             error: None,
             verbs: every(
                 "no profile",
-                format!("{PROFILE} doesn't exist; write it, declaring each verb under [verbs]"),
+                format!("{PROFILE} doesn't exist; write it, declaring each stage under [stages]"),
             ),
             profile: lines,
             unknown: Vec::new(),
@@ -99,7 +99,7 @@ fn resolve(root: &Path) -> Report {
         },
         Profile::Parsed(data, unknown) => {
             let empty = toml::Table::new();
-            let declared = match data.get("verbs") {
+            let declared = match profile::stages(&data) {
                 None => &empty,
                 Some(toml::Value::Table(table)) => table,
                 Some(_) => {
@@ -107,7 +107,10 @@ fn resolve(root: &Path) -> Report {
                         path,
                         state: "parsed",
                         error: None,
-                        verbs: every("malformed declaration", "`verbs` isn't a table".to_string()),
+                        verbs: every(
+                            "malformed declaration",
+                            "the stages declaration isn't a table".to_string(),
+                        ),
                         profile: lines,
                         unknown,
                         notices: Vec::new(),
@@ -120,7 +123,7 @@ fn resolve(root: &Path) -> Report {
                     let entry = match declared.get(*verb) {
                         None => Entry::Unresolved {
                             kind: "undeclared",
-                            detail: "the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml".into(),
+                            detail: "the profile doesn't name it; declare it under [stages] in .meowpaw/profile.toml".into(),
                         },
                         Some(toml::Value::String(command)) if !command.trim().is_empty() => {
                             Entry::Resolved { command: command.clone(), subset: None }
@@ -128,7 +131,7 @@ fn resolve(root: &Path) -> Report {
                         Some(toml::Value::Table(table)) => from_table(table),
                         Some(_) => Entry::Unresolved {
                             kind: "malformed declaration",
-                            detail: "the value isn't one command; write one command as a string under [verbs]".into(),
+                            detail: "the value isn't one command; write one command as a string under [stages]".into(),
                         },
                     };
                     (*verb, entry)
@@ -476,7 +479,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
                 ),
                 (Some(_), None) => {
                     let detail = format!(
-                        "the profile declares no `subset` for {name}; declare one under [verbs.{name}] with {TARGETS}, or run the whole verb"
+                        "the profile declares no `subset` for {name}; declare one under [stages.{name}] with {TARGETS}, or run the whole verb"
                     );
                     println!("== {name}: unresolved (no subset form: {detail}), not run\n");
                     outcomes.push((name.clone(), "unresolved"));

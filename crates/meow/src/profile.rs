@@ -103,6 +103,66 @@ pub const KEYS: &[Key] = &[
         reason: SUBSET,
     },
     Key {
+        path: "stages.format",
+        reason: VERB,
+    },
+    Key {
+        path: "stages.format.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "stages.format.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "stages.lint",
+        reason: VERB,
+    },
+    Key {
+        path: "stages.lint.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "stages.lint.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "stages.check",
+        reason: VERB,
+    },
+    Key {
+        path: "stages.check.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "stages.check.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "stages.test",
+        reason: VERB,
+    },
+    Key {
+        path: "stages.test.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "stages.test.subset",
+        reason: SUBSET,
+    },
+    Key {
+        path: "stages.build",
+        reason: VERB,
+    },
+    Key {
+        path: "stages.build.command",
+        reason: WHOLE,
+    },
+    Key {
+        path: "stages.build.subset",
+        reason: SUBSET,
+    },
+    Key {
         path: "commits.types",
         reason: "Which commit types a repository uses and what each means for a release is its own convention, and no ecosystem file declares it (REQ-1318)",
     },
@@ -208,6 +268,26 @@ fn unknown(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
     }
 }
 
+/// The table that declares the stages: `[stages]`, and `[verbs]` where the
+/// profile has no `[stages]` (REQ-4202, REQ-4204).
+pub fn stages(table: &toml::Table) -> Option<&toml::Value> {
+    table.get("stages").or_else(|| table.get("verbs"))
+}
+
+/// What a profile that still declares `[verbs]` is told, one line a notice.
+fn deprecations(table: &toml::Table) -> Vec<String> {
+    match (table.contains_key("verbs"), table.contains_key("stages")) {
+        (true, true) => vec![
+            "profile: [verbs] and [stages] are both declared; [stages] wins, so remove [verbs]"
+                .to_string(),
+        ],
+        (true, false) => {
+            vec!["profile: [verbs] is deprecated; declare the stages under [stages]".to_string()]
+        }
+        _ => Vec::new(),
+    }
+}
+
 /// The lines every command that reads the profile prints: its state, then
 /// the parser's message or each unknown key, one line a key (SPC-1080).
 pub fn report(profile: &Profile) -> Vec<String> {
@@ -217,8 +297,9 @@ pub fn report(profile: &Profile) -> Vec<String> {
             "profile: unparseable".to_string(),
             format!("profile error: {message}"),
         ],
-        Profile::Parsed(_, unknown) => std::iter::once("profile: parsed".to_string())
+        Profile::Parsed(table, unknown) => std::iter::once("profile: parsed".to_string())
             .chain(unknown.iter().map(|key| format!("unknown key: {key}")))
+            .chain(deprecations(table))
             .collect(),
     }
 }
