@@ -2225,4 +2225,61 @@ mod tests {
             said("--permission-mode", value, "is refused");
         }
     }
+
+    /// TSK-5350, REQ-3726: an omitted bound takes its default and is marked so.
+    #[test]
+    fn a_bare_start_takes_both_defaults() {
+        let held = bounds(&[]).expect("a bare start has no error");
+        assert_eq!((held.iterations, held.hours), (10, 4.0));
+        assert!(held.iterations_default && held.hours_default);
+        assert!(held.tokens.is_none());
+    }
+
+    /// TSK-5350, REQ-3726: both spellings of a flag name its value.
+    #[test]
+    fn a_named_bound_replaces_only_its_own_default() {
+        let held = bounds(&["--iterations=3", "--hours", "0.5"]).expect("both parse");
+        assert_eq!((held.iterations, held.hours), (3, 0.5));
+        assert!(!held.iterations_default && !held.hours_default);
+        let held = bounds(&["--iterations", "7"]).expect("one parses");
+        assert_eq!((held.iterations, held.hours), (7, 4.0));
+        assert!(!held.iterations_default && held.hours_default);
+    }
+
+    /// TSK-5350, SPC-1201: a bound that is named and has no usable value is
+    /// refused, and never taken as the default or overwritten by a later flag.
+    #[test]
+    fn a_named_bound_with_no_usable_value_is_refused() {
+        for words in [
+            vec!["--iterations"],
+            vec!["--hours"],
+            vec!["--iterations=", "--hours", "2"],
+            vec!["--hours", "0"],
+        ] {
+            let errors = bounds(&words).err().unwrap_or_default();
+            assert!(
+                errors.iter().any(|e| e.contains("is not a number above 0")),
+                "{words:?} gave {errors:?}"
+            );
+        }
+        let errors = bounds(&["--iterations", "5", "--iterations"])
+            .err()
+            .unwrap_or_default();
+        assert!(!errors.is_empty(), "a trailing duplicate overwrote the 5");
+    }
+
+    /// TSK-5350, REQ-3730: any form of `--tokens` is reported, and none holds a bound.
+    #[test]
+    fn every_form_of_a_tokens_flag_is_reported() {
+        for words in [
+            vec!["--tokens", "100"],
+            vec!["--tokens=100"],
+            vec!["--tokens"],
+            vec!["--iterations", "3", "--tokens"],
+        ] {
+            let held = bounds(&words).expect("the flag is accepted");
+            assert!(held.tokens.is_some(), "{words:?} was not reported");
+        }
+        assert!(bounds(&["--iterations", "3"]).unwrap().tokens.is_none());
+    }
 }
