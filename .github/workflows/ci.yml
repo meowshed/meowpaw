@@ -21,7 +21,7 @@ jobs:
         with:
           # The version meow-mise was tested on, in its crate: a newer mise
           # changed the trust behaviour its tests hold.
-          version: "2026.9.11"
+          version: "2026.10.7"
           experimental: true
       # mise installs each stage's tools from GitHub releases, and an anonymous
       # request is limited to 60 an hour, which a run can use up (PR 882).
