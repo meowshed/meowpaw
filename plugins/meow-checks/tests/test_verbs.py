@@ -107,7 +107,7 @@ class Verbs(unittest.TestCase):
         self.assertEqual(report["verbs"]["lint"]["kind"], "malformed declaration")
         self.assertEqual(report["verbs"]["test"]["kind"], "malformed declaration")
         self.assertEqual(report["verbs"]["format"]["kind"], "undeclared")
-        self.assertIn("declare it under [verbs] in .meowpaw/profile.toml", report["verbs"]["format"]["detail"])
+        self.assertIn("declare it under [stages] in .meowpaw/profile.toml", report["verbs"]["format"]["detail"])
 
     def test_a_declared_verb_resolves_and_status_runs_nothing(self):
         repo = self.repo('[verbs]\nlint = "touch ran"\n')

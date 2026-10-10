@@ -202,10 +202,9 @@ impl Corpus {
     }
 
     fn declared(&self, verb: &str) -> bool {
-        self.profile
-            .get("verbs")
+        crate::profile::stages(&self.profile)
             .and_then(toml::Value::as_table)
-            .is_some_and(|verbs| verbs.contains_key(verb))
+            .is_some_and(|stages| stages.contains_key(verb))
     }
 }
 
@@ -314,7 +313,7 @@ fn bind() -> u8 {
         }
     };
     println!("# meow-markdown bind: paste what follows into .meowpaw/profile.toml");
-    println!("[verbs]");
+    println!("[stages]");
     if !corpus.declared("format") {
         if !corpus.prettier().is_empty() {
             println!("format = \"prettier --check '**/*.md'\"");
@@ -411,9 +410,7 @@ fn findings(corpus: &Corpus) -> Vec<String> {
     if target.trim().is_empty() {
         found.push("no render target: declare [markdown] target".to_string());
     }
-    let lint = corpus
-        .profile
-        .get("verbs")
+    let lint = crate::profile::stages(&corpus.profile)
         .and_then(|v| v.get("lint"))
         .and_then(toml::Value::as_str)
         .unwrap_or("");
@@ -475,7 +472,8 @@ const LINK_SETTINGS: [&str; 3] = ["offline", "max_retries", "cache"];
 /// unignored (REQ-2454).
 fn link_settings(corpus: &Corpus) -> Vec<String> {
     let mut found = Vec::new();
-    let Some(verbs) = corpus.profile.get("verbs").and_then(toml::Value::as_table) else {
+    let Some(verbs) = crate::profile::stages(&corpus.profile).and_then(toml::Value::as_table)
+    else {
         return found;
     };
     for command in verbs.values().filter_map(toml::Value::as_str) {

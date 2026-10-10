@@ -1,7 +1,7 @@
 ---
 id: TSK-5270
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2760
 closes: [REQ-4202, REQ-4204]
@@ -42,7 +42,19 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 875. The tests are in `crates/meow/src/profile.rs` and
+`crates/meow/src/verbs.rs`:
+
+- Criterion 1: `a_stages_table_is_the_declaration_and_names_no_deprecation`
+  and `a_stage_resolves_from_either_table`.
+- Criterion 2: `a_verbs_table_declares_the_stages_and_names_the_table_to_use`
+  and `a_stage_resolves_from_either_table`.
+- Criterion 3: `with_both_tables_stages_wins_and_the_report_names_the_duplicate`.
+
+Three Python tests asserted the old table name in a bind output and in the
+undeclared stage hint, and a commit of its own corrects them. `meow-checks run
+build format lint check test` passed on every stage, `test` at 319.6 seconds
+after the corrected expectations.
 
 ## Left alone
 
