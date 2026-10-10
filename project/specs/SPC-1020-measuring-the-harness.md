@@ -2,7 +2,7 @@
 id: SPC-1020
 artifact: spec
 status: live
-revised: 2026-09-27
+revised: 2026-10-10
 states:
   [
     REQ-0153,
@@ -16,7 +16,7 @@ states:
     REQ-3028,
     REQ-3030,
     REQ-3032,
-    REQ-3034,
+    REQ-3035,
     REQ-3036,
     REQ-3038,
   ]
@@ -178,8 +178,9 @@ that they do not.
 
 ### When the suite runs
 
-The suite runs on a schedule and at release (REQ-3034), which keeps it
-affordable, and a model release is its own reason to run it again (REQ-3038).
+The suite runs by hand on the owner's machine, and no workflow runs it or
+holds a model credential (REQ-3035), because every run is a real model call.
+A model release is its own reason to run it again (REQ-3038).
 
 ## Failure paths
 
