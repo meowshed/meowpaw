@@ -1,7 +1,7 @@
 ---
 id: ADR-2380
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses:
   [
