@@ -201,8 +201,8 @@ the unit's rename isn't read, and `--write` names the markers it needs.
 `paw --help` lists every subcommand, and `paw <subcommand> --help` prints what
 it determines, a `by hand:` line naming what you read to reach the same answer
 without the tool, and a `lines:` line stating the first word of each kind of
-line it prints. A test per subcommand holds its output to that line, so a
-script that reads one word can rely on it.
+line it prints. Tests run each subcommand on a fixture record and fail a
+line whose first word the help doesn't state.
 
 ## Have a change reviewed
 

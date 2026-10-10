@@ -218,8 +218,7 @@ fn fixture(name: &str) -> Dir {
 
 /// `meow record <args>` in `dir`, against this repository's own layout.
 fn paw(dir: &Path, args: &[&str]) -> Output {
-    let layout =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plugins/meow-flow/lib/layout.toml");
+    let layout = layout_path();
     Command::new(env!("CARGO_BIN_EXE_meow"))
         .arg("record")
         .args(args)
@@ -259,6 +258,32 @@ fn help_value(dir: &Path, verb: &str, key: &str) -> Option<String> {
         .find_map(|line| line.strip_prefix(&format!("{key}: ")).map(str::to_string))
 }
 
+/// The layout's kind names and relation keys, which `<kind>` and `<relation>`
+/// stand for.
+fn vocabulary() -> (Vec<String>, Vec<String>) {
+    let text = std::fs::read_to_string(layout_path()).unwrap();
+    let table: toml::Table = text.parse().unwrap();
+    let relations = table
+        .get("relations")
+        .and_then(|v| v.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|v| v.as_str().map(str::to_string))
+        .collect();
+    let kinds = table
+        .get("kind")
+        .and_then(|v| v.as_array())
+        .into_iter()
+        .flatten()
+        .filter_map(|k| k.get("name").and_then(|n| n.as_str()).map(str::to_string))
+        .collect();
+    (kinds, relations)
+}
+
+fn layout_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plugins/meow-flow/lib/layout.toml")
+}
+
 /// Whether `word`, the first word of an output line, is one the help states:
 /// a literal as printed, or a placeholder the help names in angle brackets.
 fn stated(word: &str, kinds: &[&str]) -> bool {
@@ -272,7 +297,14 @@ fn stated(word: &str, kinds: &[&str]) -> bool {
                 && number.chars().all(|c| c.is_ascii_digit())
         }
         "<count>" => !bare.is_empty() && bare.chars().all(|c| c.is_ascii_digit()),
-        placeholder if placeholder.starts_with('<') => !word.is_empty(),
+        "<path>" => bare.contains('/'),
+        "<kind>:" => word.ends_with(':') && vocabulary().0.iter().any(|k| k == bare),
+        "<relation>:" => word.ends_with(':') && vocabulary().1.iter().any(|k| k == bare),
+        // Free text, accepted only in the first block of lines `held` allows.
+        "<text>" => false,
+        placeholder if placeholder.starts_with('<') => {
+            panic!("the help states a placeholder this test can't check: {placeholder}")
+        }
         literal => literal == word,
     })
 }
@@ -285,10 +317,22 @@ fn held(dir: &Path, verb: &str, args: &[&str]) -> Vec<String> {
     let kinds: Vec<&str> = kinds.split_whitespace().collect();
     let output = paw(dir, args);
     let printed = lines(&output);
-    for line in &printed {
+    assert!(
+        !printed.is_empty(),
+        "paw {} printed nothing: {output:?}",
+        args.join(" ")
+    );
+    let free_first_block = kinds.contains(&"<text>");
+    let mut in_first_block = true;
+    for (number, line) in printed.iter().enumerate() {
         let Some(word) = line.split_whitespace().next() else {
+            in_first_block = false;
             continue;
         };
+        // `<text>` covers the paragraph under a heading, and not the heading.
+        if free_first_block && in_first_block && number > 0 {
+            continue;
+        }
         assert!(
             stated(word, &kinds),
             "paw {}: the line {line:?} opens with {word:?}, which the help doesn't state ({kinds:?})",
@@ -371,6 +415,8 @@ fn read_only_output_opens_with_stated_first_words() {
     held(d, "new", &["new", "task"]);
     held(d, "index", &["index", "requirement"]);
     held(d, "index", &["index", "task"]);
+    held(d, "find", &["find", "vision"]);
+    held(d, "show", &["show", "vision"]);
 }
 
 /// REQ-1184: a finding's line, a draft's waiting line and a refused change
@@ -440,5 +486,71 @@ fn the_unit_ships_the_launcher_and_no_other_helper() {
     assert!(
         launcher.contains("meow$exe"),
         "paw doesn't run the shipped meow binary"
+    );
+}
+
+/// REQ-1184: the lines a change writes open with a stated first word.
+#[test]
+fn successful_changes_open_with_stated_first_words() {
+    let dir = fixture("changes");
+    let d = &dir.0;
+    write(
+        &d.join("project"),
+        "requirements/REQ-0002-a-replacement.md",
+        &record(
+            "requirement",
+            "REQ-0002",
+            &[
+                ("topic", "a"),
+                ("class", "functional"),
+                ("verification", "static"),
+                ("elaborates", "RES-0002"),
+            ],
+            &[],
+            "",
+        ),
+    );
+    let epic = d.join("project/epics/EPC-0001-a-plan.md");
+    let text = std::fs::read_to_string(&epic).unwrap();
+    std::fs::write(
+        &epic,
+        format!("{text}\n- [ ] T-001 TSK-0001 a task\n      closes: REQ-0001\n"),
+    )
+    .unwrap();
+    let done = held(d, "done", &["done", "TSK-0001", "--pr", "7"]);
+    assert!(
+        done.iter().any(|l| l.contains("is done in pull request 7")),
+        "{done:?}"
+    );
+    let withdrawn = held(
+        d,
+        "withdraw",
+        &[
+            "withdraw",
+            "REQ-0001",
+            "--by",
+            "ADR-0001",
+            "--replaced-by",
+            "REQ-0002",
+        ],
+    );
+    assert!(
+        withdrawn.iter().any(|l| l.contains("is withdrawn")),
+        "{withdrawn:?}"
+    );
+}
+
+/// REQ-1184: an index's amendment line opens with a stated first word.
+#[test]
+fn an_index_with_an_amendment_opens_with_stated_first_words() {
+    let dir = fixture("amended");
+    let d = &dir.0;
+    let path = d.join("project/requirements/REQ-0001-an-obligation.md");
+    let text = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(&path, format!("{text}\n**Amended by ADR-0001.**\n")).unwrap();
+    let printed = held(d, "index", &["index", "requirement"]);
+    assert!(
+        printed.iter().any(|l| l.starts_with("Amended:")),
+        "index printed no amendment line: {printed:?}"
     );
 }
