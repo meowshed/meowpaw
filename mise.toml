@@ -8,7 +8,7 @@ python = "3.14"
 rust = { version = "1.99", components = "rustfmt,clippy" }
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
-task = "3.53.1"
+task = "3.54.0"
 
 [tasks.fmt]
 description = "Bring Markdown, the native tool's code and the shipped shell to canonical form"
