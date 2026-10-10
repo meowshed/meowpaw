@@ -42,7 +42,7 @@ number.
 
 ## Tasks
 
-- [ ] T-001 TSK-4330 pin every `paw` subcommand's output lines and name its manual equivalent in its help, in the `record` feature
+- [x] T-001 TSK-4330 pin every `paw` subcommand's output lines and name its manual equivalent in its help, in the `record` feature (done: pull request 1044)
       closes: REQ-1170, REQ-1174, REQ-1176, REQ-1182, REQ-1184
 
 - [ ] T-002 [P] TSK-4340 pin the output lines and name the manual equivalent of every other unit's subcommand

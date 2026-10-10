@@ -1,7 +1,7 @@
 ---
 id: TSK-4330
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2330
 closes: [REQ-1170, REQ-1174, REQ-1176, REQ-1182, REQ-1184]
