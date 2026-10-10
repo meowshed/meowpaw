@@ -253,7 +253,7 @@ class Launcher(unittest.TestCase):
             launcher.parent.mkdir()
             launcher.write_text((UNIT / "bin" / "meow-git").read_text(encoding="utf-8"), encoding="utf-8")
             launcher.chmod(0o755)
-            done = subprocess.run(["sh", str(launcher), "commit-guard"], cwd=tmp, capture_output=True, text=True, input="")
+            done = subprocess.run(["sh", str(launcher), "commit-guard"], cwd=tmp, env={"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}, capture_output=True, text=True, input="")
             machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
             self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
             self.assertIn("unrun", done.stdout)
