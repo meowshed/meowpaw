@@ -70,6 +70,17 @@ the method skill's new rules M23 and M24 state what a cited output carries
 No determination was found that needs a subcommand `meow` doesn't have, so
 this pull request lists no gap. `mise run all` passed with exit status 0.
 
+A review by a separate agent found the check exempting a whole item for one
+mention of `paw`, a pattern that missed counting and matching, and a rule that
+didn't say where a cited output goes. The check now reads each sentence and
+the pattern covers both words, rule M23 says to cite in the report or the pull
+request and never in a file of the repository, and the design, spec, epic and
+research steps now name `paw new` for the identifier they allocate, which
+`test_each_step_that_writes_a_record_takes_its_identifier_from_paw_new` holds.
+`design.md`'s "refused" and `epic.md`'s "refuse a task that cites none" are
+checks a program could make, and no subcommand makes them yet, so they are a
+gap this pull request lists, and ADR-2400 adds no subcommand.
+
 ## Left alone
 
 The subcommands themselves, which TSK-4330 and TSK-4340 change.

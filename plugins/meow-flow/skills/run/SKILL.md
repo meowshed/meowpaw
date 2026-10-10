@@ -49,12 +49,15 @@ progress file. With no such prompt, you are attended and everything below
    approve anything, and revise it for each finding you accept, so finding a
    fault and fixing it are two passes.
 4. Approve the record, or the change, and write the approval as a harness
-   approval in the pull request body, naming the run's id.
+   approval in the pull request's body, or in a comment on it once it is open,
+   naming the run's id.
 5. Land the work on the epic's one branch, in the epic's one pull request: push
    the branch, open the pull request once, and carry on with the next task of
    the epic on the same branch while `paw status` names one, and merge the
    pull request only once `paw status` shows the epic is closed, its checks pass
-   and the repository's gate passed on the branch.
+   and the repository's gate passed on the branch. A defect's tasks, and a
+   task that realises a decision, keep a pull request of their own, which
+   merges once `paw status` shows the defect or the decision closed.
    Where a merged change needs a release and `[unattended] release` names a
    command, run that command once, after the merge, from the repository's root.
    You never guess a release command.

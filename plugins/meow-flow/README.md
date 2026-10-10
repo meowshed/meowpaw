@@ -107,7 +107,7 @@ decision says so.
 An epic's pull request carries the whole epic, and each of its tasks is a
 group of commits on that branch: its tests first, in a commit of their own
 where they fail, then the implementation, the documentation it changes and its
-record marks. The pull request merges when the last task is done.
+record marks. The pull request is ready to merge when the last task is done.
 
 The implement step writes to the documentation style you declare in
 `.meowpaw/profile.toml`, as a path to your style guide or the name of an

@@ -71,6 +71,15 @@ criterion 3 (REQ-4400). `test_review_is_a_code_review_in_the_pull_request` in
 `test_record.py` named the old wording and now names the epic's pull request.
 `mise run all` passed with exit status 0.
 
+A review by a separate agent found the merge condition naming only an epic, a
+retired section's reason, the method skill's description, the task type and the
+review step still attaching a pull request to one task, and tests that would
+pass on a near miss. Each was corrected in the same pull request, and the tests
+came first again: `test_no_prompt_gives_a_task_a_branch_a_pull_request_or_a_review_of_its_own`
+holds the shipped prompts, `lib/layout.toml` and the README to the wording, and
+`test_a_defect_or_a_task_that_realises_a_decision_keeps_its_own_pull_request`
+holds the exception REQ-4402 and REQ-4404 state.
+
 ## Left alone
 
 The method's other steps, `paw status`'s `next:` lines, which name the task a

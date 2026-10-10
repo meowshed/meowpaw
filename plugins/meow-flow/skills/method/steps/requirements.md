@@ -8,9 +8,9 @@ none. The step that picks it up is design.
 
 <steps name="requirements">
 1. Build requirements from the research's conclusions, not its body.
-2. Write one obligation per file, as the `REQ-NNNN` that
-   `paw new requirement --topic <topic>` prints from the identifier block of
-   its topic, with the gap its neighbours leave.
+2. Write one obligation per file, as the identifier
+   `paw new requirement --topic <topic>` prints, with the gap its neighbours
+   leave.
 3. State what must be true, never how: a requirement that names a mechanism
    has decided what the design hasn't.
 4. Give each one its verification: static, behavioural, judgement or

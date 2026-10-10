@@ -82,6 +82,22 @@ class StepFilesNameTheSubcommand(unittest.TestCase):
         self.assertEqual(missing, {}, "a step file asks for a determination and names no `paw` subcommand")
 
 
+class IdentifiersComeFromTheSubcommand(unittest.TestCase):
+    def test_each_step_that_writes_a_record_takes_its_identifier_from_paw_new(self):
+        """TSK-4350 criterion 1, REQ-1172: allocating the next identifier is a determination `paw new` makes."""
+        wanted = {
+            "requirements.md": ["paw new requirement"],
+            "design.md": ["paw new decision"],
+            "epic.md": ["paw new epic", "paw new task"],
+            "spec.md": ["paw new specification"],
+            "research.md": ["paw new research"],
+        }
+        for name, commands in wanted.items():
+            text = " ".join((STEPS / name).read_text(encoding="utf-8").split())
+            for command in commands:
+                self.assertIn(command, text, f"{name} never says `{command}` allocates the identifier")
+
+
 class MethodRules(unittest.TestCase):
     def setUp(self):
         self.text = " ".join((METHOD / "SKILL.md").read_text(encoding="utf-8").split())
