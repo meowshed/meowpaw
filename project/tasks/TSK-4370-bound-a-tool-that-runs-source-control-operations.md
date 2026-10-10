@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 realises: ADR-2420
 closes: [REQ-2608, REQ-2610, REQ-2612, REQ-2614, REQ-2616, REQ-2618, REQ-2620]
-issue:
+issue: 899
+projected: e0b66700b920
+tracked: cceae49f2bc3
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

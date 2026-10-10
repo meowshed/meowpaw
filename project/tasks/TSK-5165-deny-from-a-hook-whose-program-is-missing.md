@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2610
 closes: [REQ-1426]
-issue:
+issue: 1013
+projected: f7fbbc45089c
+tracked: 2ae621469738
 ---
 
 # Deny from a hook whose program is missing

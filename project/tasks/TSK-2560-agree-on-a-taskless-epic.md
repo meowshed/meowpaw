@@ -5,7 +5,9 @@ status: done
 revised: 2026-09-28
 bug: BUG-1250
 closes: []
-issue:
+issue: 909
+projected: 888148b67717
+tracked: d54aaeb8d642
 ---
 
 # Make `ready` and `status` agree on an epic with no tasks

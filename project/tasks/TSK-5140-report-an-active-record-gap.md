@@ -39,7 +39,9 @@ closes:
     REQ-3900,
     REQ-3902,
   ]
-issue:
+issue: 1008
+projected: fb826a5d7120
+tracked: b678b82ddc1f
 ---
 
 # Report an active requirement or decision gap

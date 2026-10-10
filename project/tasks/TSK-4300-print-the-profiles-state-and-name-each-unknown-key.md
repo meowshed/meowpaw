@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-03
 epic: EPC-2320
 closes: [REQ-2940, REQ-2942, REQ-2948, REQ-2950]
-issue:
+issue: 937
+projected: 8da754f6d37a
+tracked: 33d429a10a8d
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
