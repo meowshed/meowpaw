@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-03
 realises: ADR-2410
 closes: [REQ-2590, REQ-2592, REQ-2594, REQ-2595, REQ-2596, REQ-2597]
-issue:
+issue: 898
+projected: 3ef3140f7db0
+tracked: 036a374b1bac
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

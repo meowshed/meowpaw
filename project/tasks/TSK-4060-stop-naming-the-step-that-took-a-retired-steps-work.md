@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-03
 realises: ADR-2350
 closes: [REQ-3004]
-issue:
+issue: 895
+projected: 8f6c25cb2cbf
+tracked: 445a1e22d729
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

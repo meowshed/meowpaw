@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 realises: ADR-2490
 closes: [REQ-2992]
-issue:
+issue: 901
+projected: 89b9d0f014aa
+tracked: 577145948df1
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

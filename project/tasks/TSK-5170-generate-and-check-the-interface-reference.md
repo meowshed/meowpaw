@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2615
 closes: [REQ-2992]
-issue:
+issue: 1014
+projected: 4615300fd583
+tracked: c390db8c2740
 ---
 
 # Generate and check the interface reference

@@ -5,7 +5,9 @@ status: done
 revised: 2026-09-26
 epic: EPC-1080
 closes: []
-issue:
+issue: 920
+projected: 29eb10eee160
+tracked: e7655ff755d1
 ---
 
 # Port the git pack to the native tool

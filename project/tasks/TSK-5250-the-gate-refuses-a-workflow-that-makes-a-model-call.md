@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-10
 realises: ADR-2840
 closes: [REQ-3035]
-issue:
+issue: 907
+projected: baf6fb386faf
+tracked: 709e37e6112f
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

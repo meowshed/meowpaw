@@ -5,7 +5,9 @@ status: approved
 revised: 2026-10-03
 epic: EPC-2580
 closes: [REQ-3800]
-issue:
+issue: 1009
+projected: 2fec0b9d5caa
+tracked: 122480f0c707
 ---
 
 # Pin comments in the profile format

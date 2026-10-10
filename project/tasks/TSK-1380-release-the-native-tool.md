@@ -5,7 +5,9 @@ status: done
 revised: 2026-09-26
 epic: EPC-1080
 closes: [REQ-0074, REQ-3178]
-issue:
+issue: 921
+projected: 42e9c523c921
+tracked: 261292061996
 ---
 
 # Release the units with their binaries

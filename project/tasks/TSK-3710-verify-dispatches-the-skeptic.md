@@ -5,7 +5,9 @@ status: approved
 revised: 2026-09-28
 epic: EPC-2100
 closes: [REQ-3520, REQ-3522, REQ-3524]
-issue:
+issue: 924
+projected: 4a5d81eeb565
+tracked: db706ebee615
 ---
 
 # Make the verify step dispatch the skeptic and record each refutation it confirms
