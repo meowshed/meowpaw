@@ -1,7 +1,7 @@
 ---
 id: ADR-2840
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-10
 addresses: [REQ-3035]
 supersedes: []

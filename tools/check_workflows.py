@@ -12,6 +12,9 @@ value holds no `${{`, so a value the workflow doesn't control reaches a script
 only through `env:` (REQ-2200). ADR-2520 decided the rules and SPC-1210 states
 them under "The workflows".
 
+No workflow runs the measurement suite or names a model credential, because
+every run of the suite is a real model call (REQ-3035, ADR-2840).
+
 The check reads each file as YAML, because a `run:` value spans several lines
 and only the structure says which key a line belongs to. The standard library
 has no YAML parser and the gate installs none, so `Reader` takes the block and
@@ -29,6 +32,7 @@ WORKFLOWS = ".github/workflows"
 SUFFIXES = (".yml", ".yaml")
 ALLOWED = ("contents", "read")
 FORBIDDEN_TRIGGERS = ("pull_request_target", "workflow_run")
+MODEL_CALL = re.compile(r"mise run eval\b|\b(?:ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN)\b")
 CHECKOUT = "actions/checkout"
 BLOCK_HEADER = re.compile(r"([|>])([1-9]?)([+-]?)([1-9]?)\s*(#.*)?")
 
@@ -437,6 +441,23 @@ def runs(name, doc):
     return found
 
 
+def model_calls(name, doc):
+    """A workflow that starts the suite or holds a model credential, by the line that names it."""
+    found = {}
+    for node in walk(doc):
+        if isinstance(node, Scalar):
+            hits = [(line, text) for line, text in node.source]
+        elif isinstance(node, Mapping):
+            hits = [(node.lines[key], key) for key in node if isinstance(key, str)]
+        else:
+            continue
+        for line, text in hits:
+            match = MODEL_CALL.search(text)
+            if match:
+                found.setdefault(line, match.group(0))
+    return [f"{name}:{line}: names {what}, and no workflow makes a model call" for line, what in sorted(found.items())]
+
+
 def findings(name, text):
     try:
         doc = Reader(text).document()
@@ -444,7 +465,7 @@ def findings(name, text):
         return [f"{name}: doesn't parse: {error}"]
     if not isinstance(doc, Mapping):
         return [f"{name}: doesn't parse: the top level isn't a mapping"]
-    return permissions(name, doc) + triggers(name, doc) + runs(name, doc)
+    return permissions(name, doc) + triggers(name, doc) + runs(name, doc) + model_calls(name, doc)
 
 
 def main(root: Path = ROOT) -> int:
