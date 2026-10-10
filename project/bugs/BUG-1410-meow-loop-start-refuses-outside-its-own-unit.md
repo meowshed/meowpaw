@@ -64,4 +64,4 @@ Not yet closed.
 
 ## Tasks
 
-- [ ] T-001 TSK-5260 resolve the loop's unit from an override, the program's own unit or a sibling, in `crates/meow/src/runloop.rs`
+- [x] T-001 TSK-5260 resolve the loop's unit from an override, the program's own unit or a sibling, in `crates/meow/src/runloop.rs` (done: pull request 873)

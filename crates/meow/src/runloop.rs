@@ -1205,16 +1205,35 @@ fn ready(root: &Path, terms: &Terms) -> Result<PathBuf, Vec<String>> {
     }
 }
 
-/// `meow-loop`'s own directory: the program sits at
-/// `<unit>/bin/<target>/meow`, so the unit is three levels up from it, and
-/// it is the unit only where its manifest names `meow-loop`, because a call
-/// that names another directory loads no hook.
+/// `meow-loop`'s own directory, from `MEOW_LOOP_UNIT` and the program's path
+/// (TSK-5260, BUG-1410).
 fn own_unit() -> Option<PathBuf> {
     let program = std::env::current_exe().ok()?.canonicalize().ok()?;
-    let unit = program.parent()?.parent()?.parent()?.to_path_buf();
-    let manifest = std::fs::read_to_string(unit.join(".claude-plugin").join("plugin.json")).ok()?;
-    let manifest: Value = serde_json::from_str(&manifest).ok()?;
-    (manifest.get("name").and_then(Value::as_str) == Some("meow-loop")).then_some(unit)
+    let named = std::env::var_os("MEOW_LOOP_UNIT").map(PathBuf::from);
+    unit_from(&program, named.as_deref())
+}
+
+/// The loop's unit for a program at `<unit>/bin/<target>/meow`: the directory
+/// `named` gives, then the program's own unit, then the `meow-loop` beside it,
+/// because the binary ships with the core package under ADR-2810. A candidate
+/// is the unit only where its manifest names `meow-loop`, because a call that
+/// names another directory loads no hook.
+fn unit_from(program: &Path, named: Option<&Path>) -> Option<PathBuf> {
+    let own = program.parent()?.parent()?.parent()?;
+    let beside = own.parent().map(|packages| packages.join("meow-loop"));
+    named
+        .map(Path::to_path_buf)
+        .into_iter()
+        .chain(std::iter::once(own.to_path_buf()))
+        .chain(beside)
+        .find(|unit| names_meow_loop(unit))
+}
+
+fn names_meow_loop(unit: &Path) -> bool {
+    std::fs::read_to_string(unit.join(".claude-plugin").join("plugin.json"))
+        .ok()
+        .and_then(|text| serde_json::from_str::<Value>(&text).ok())
+        .is_some_and(|manifest| manifest.get("name").and_then(Value::as_str) == Some("meow-loop"))
 }
 
 /// `path` as an absolute path with every link and `..` resolved, where it
@@ -1448,6 +1467,65 @@ mod tests {
         assert_eq!(cap(10.0), "10");
         assert_eq!(cap(0.0000004), "0.0000004");
         assert_eq!(cap(-0.0000000001), "0");
+    }
+
+    /// A packages directory with each named unit's manifest, and the program's
+    /// path inside the first one, as `<unit>/bin/<target>/meow`.
+    fn packages(case: &str, units: &[&str]) -> (PathBuf, PathBuf) {
+        let base =
+            std::env::temp_dir().join(format!("meow-loop-unit-{case}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        for unit in units {
+            let manifest = base.join(unit).join(".claude-plugin");
+            std::fs::create_dir_all(&manifest).unwrap();
+            std::fs::write(
+                manifest.join("plugin.json"),
+                format!("{{\"name\": \"{unit}\"}}"),
+            )
+            .unwrap();
+        }
+        let program = base.join(units[0]).join("bin").join("target").join("meow");
+        std::fs::create_dir_all(program.parent().unwrap()).unwrap();
+        std::fs::write(&program, "").unwrap();
+        (base, program)
+    }
+
+    /// TSK-5260, criterion 1, REQ-0894: the binary ships in the core package,
+    /// so the unit is the sibling whose manifest names `meow-loop`.
+    #[test]
+    fn the_unit_is_the_sibling_where_the_binary_ships_in_another_package() {
+        let (base, program) = packages("sibling", &["meow-core", "meow-loop"]);
+        assert_eq!(unit_from(&program, None), Some(base.join("meow-loop")));
+    }
+
+    /// TSK-5260, criterion 2, REQ-0894: the override comes before the walk.
+    #[test]
+    fn the_override_is_taken_before_the_programs_own_unit() {
+        let (base, program) = packages("override", &["meow-loop", "elsewhere", "meow-core"]);
+        let named = base.join("elsewhere");
+        std::fs::write(
+            named.join(".claude-plugin").join("plugin.json"),
+            "{\"name\": \"meow-loop\"}",
+        )
+        .unwrap();
+        assert_eq!(unit_from(&program, Some(&named)), Some(named));
+    }
+
+    /// TSK-5260, criterion 3, REQ-0894: a candidate that doesn't name
+    /// `meow-loop` is never returned, so a call loads no foreign hook.
+    #[test]
+    fn a_directory_that_names_another_unit_is_refused() {
+        let (base, program) = packages("refused", &["meow-core", "meow-git"]);
+        let named = base.join("meow-git");
+        assert_eq!(unit_from(&program, Some(&named)), None);
+    }
+
+    /// TSK-5260, criterion 4, REQ-0894: the unit the program sits in still
+    /// counts where its manifest names `meow-loop`.
+    #[test]
+    fn the_programs_own_unit_is_returned_where_it_names_meow_loop() {
+        let (base, program) = packages("own", &["meow-loop", "meow-core"]);
+        assert_eq!(unit_from(&program, None), Some(base.join("meow-loop")));
     }
 
     #[test]

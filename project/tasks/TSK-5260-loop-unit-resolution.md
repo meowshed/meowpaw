@@ -1,7 +1,7 @@
 ---
 id: TSK-5260
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 bug: BUG-1410
 closes: [REQ-0894]
@@ -50,7 +50,19 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 873. The tests are in `crates/meow/src/runloop.rs`:
+
+- Criterion 1:
+  `the_unit_is_the_sibling_where_the_binary_ships_in_another_package`.
+- Criterion 2: `the_override_is_taken_before_the_programs_own_unit`.
+- Criterion 3: `a_directory_that_names_another_unit_is_refused`.
+- Criterion 4:
+  `the_programs_own_unit_is_returned_where_it_names_meow_loop`.
+
+`meow-checks run format lint check test build` passed on every verb at one
+tree, after a first run that failed `format` and `test` on rustfmt's diff of
+the new tests, fixed in its own commit, and reported `lint` as `unchecked`
+because the new worktree had no `meow-licence` binary until `build` made it.
 
 ## Left alone
 
