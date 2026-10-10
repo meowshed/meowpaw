@@ -1,7 +1,7 @@
 ---
 id: TSK-5330
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 bug: BUG-1100
 closes: [REQ-4800, REQ-4802, REQ-4804]
@@ -49,7 +49,12 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+1. `python3 -m unittest plugins/meow-prose/tests/test_rule_cases.py` ran five
+   tests and exited 0. The test failed on all 56 rules in the commit that added
+   it and passes with the 56 cases tagged `rule-<ID>` and the five entries in
+   `plugins/meow-prose/evals/rule-cases.toml`: criteria 1 to 4.
+2. The `format`, `lint`, `check` and `test` stages passed, and `paw check` and
+   `paw check frozen --base origin/main` reported no findings.
 
 ## Left alone
 

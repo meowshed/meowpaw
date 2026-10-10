@@ -104,4 +104,4 @@ dropped from the list shows in the diff.
 
 - `plugins/meow-prose/skills/writing/SKILL.md` and `documents.md`, as of `origin/main` at pull request 886, read 2026-10-10 - the 65 rules and their identifiers.
 - `plugins/meow-prose/evals/`, as of `origin/main` at pull request 886, read 2026-10-10 - the cases, their tags and their graders.
-- `project/bugs/BUG-1100-the-reviewer-is-unmeasured-on-most-rules.md`, read 2026-10-10 - the count the defect gave at revision `2b613b6`.
+- `project/bugs/BUG-1100-the-reviewer-is-unmeasured-on-most-rules.md`, read 2026-10-10 - the counts the defect gave on 2026-09-26.
