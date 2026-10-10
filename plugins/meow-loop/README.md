@@ -14,7 +14,7 @@ record holds no open requirement and no open defect, the number of iterations
 you gave has run, the hours you gave have passed, or two iterations in a row
 change nothing. A
 program in three hooks holds the run, so nothing the model prints or writes
-extends it, and it decides every ending from the record and the transcript.
+extends it, and it decides every ending from the record.
 
 The older runner, `meow-loop start`, repeats fresh `claude -p` calls from a
 terminal outside Claude Code. It keeps working for one release and prints a

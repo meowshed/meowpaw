@@ -1508,7 +1508,8 @@ struct Bounds {
     hours: f64,
     iterations_default: bool,
     hours_default: bool,
-    /// The value of a `--tokens` the command still carries, which holds no bound.
+    /// A `--tokens` the command still carries, with its value where it has
+    /// one, which holds no bound.
     tokens: Option<String>,
 }
 
@@ -1518,7 +1519,8 @@ const DEFAULT_HOURS: f64 = 4.0;
 /// The bounds a start names, each omitted one at its default, or one line for
 /// each that isn't a number above 0 written in digits.
 fn bounds(words: &[&str]) -> Result<Bounds, Vec<String>> {
-    let mut found: [Option<&str>; 3] = [None; 3];
+    // `Some(None)` is a flag named with no value after it.
+    let mut found: [Option<Option<&str>>; 3] = [None; 3];
     let names = ["--iterations", "--hours", "--tokens"];
     let mut errors = Vec::new();
     let mut i = 0;
@@ -1536,7 +1538,7 @@ fn bounds(words: &[&str]) -> Result<Bounds, Vec<String>> {
                         words.get(i).copied()
                     }
                 };
-                found[at] = value;
+                found[at] = Some(value);
             }
             None => errors.push(format!("unresolved: /meow-loop:run doesn't take {flag}")),
         }
@@ -1547,12 +1549,13 @@ fn bounds(words: &[&str]) -> Result<Bounds, Vec<String>> {
         hours: DEFAULT_HOURS,
         iterations_default: true,
         hours_default: true,
-        tokens: found[2].map(str::to_string),
+        tokens: found[2].map(|value| value.unwrap_or_default().to_string()),
     };
     for (at, name) in names.iter().enumerate().take(2) {
         let Some(value) = found[at] else {
             continue;
         };
+        let value = value.unwrap_or("");
         let digits = value.chars().all(|c| c.is_ascii_digit())
             || (at == 1
                 && value.matches('.').count() == 1
@@ -1741,7 +1744,12 @@ fn prompt() -> u8 {
     let said = |is_default: bool| if is_default { " (default)" } else { "" };
     let notice = match &held.tokens {
         Some(value) => format!(
-            " --tokens {value} is no longer a bound: a run ends on its iterations and its hours only, and the flag is dropped in the release after this one."
+            " --tokens{} is no longer a bound: a run ends on its iterations and its hours only, and the flag is dropped in the release after this one.",
+            if value.is_empty() {
+                String::new()
+            } else {
+                format!(" {value}")
+            }
         ),
         None => String::new(),
     };
