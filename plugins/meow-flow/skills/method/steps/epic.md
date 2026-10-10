@@ -16,8 +16,9 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
    with acceptance criteria taken from the decision's list of how it will be
    known realised.
 2. Decompose it into tasks, each a vertical slice someone can observe, each a
-   record of its own from the `task` template that cites every requirement it
-   closes and names the tasks it depends on.
+   record of its own from the `task` template, as the identifier `paw new task`
+   prints, that cites every requirement it closes and names the tasks it
+   depends on. Take the epic's identifier from `paw new epic`.
 3. Land every requirement the record addresses in at least one task, or defer
    it under `## Not covered` with a reason, and run `paw check
    coverage` to prove it.

@@ -110,6 +110,13 @@ The unit ships no skill, so it keeps nothing in context on every turn, and its
 budget states zero characters. It runs the shared binary that `meow-core`
 ships, and needs git on the machine.
 
+## Read a subcommand's help
+
+`meow-unattended --help` lists the subcommands, and `meow-unattended <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, declared in

@@ -359,6 +359,13 @@ or an alias, or a session with hooks turned off. Where the machine has no `meow-
 it lets every command through, because a hook that fails blocks every Bash
 call.
 
+## Read a subcommand's help
+
+`meow-github --help` lists the subcommands, and `meow-github <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared

@@ -83,6 +83,13 @@ the unit, so it needs nothing installed on the machine except git, which it
 reads the tracked files through. On a machine the unit carries no binary for,
 the check reports the repository as unchecked and exits 3.
 
+## Read a subcommand's help
+
+`meow-licence --help` lists the subcommands, and `meow-licence <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared

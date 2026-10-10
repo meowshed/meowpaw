@@ -400,7 +400,29 @@ fn run_check(
     ))
 }
 
+/// What each subcommand determines, what a person reads in its place, and its
+/// kinds of line (SPC-1080).
+const HELP: [crate::help::Entry; 2] = [
+    crate::help::Entry {
+        name: "commit-guard",
+        determines: "whether a commit is made on the trunk",
+        by_hand: "read `git branch --show-current` and compare it with `[git] trunk` in `.meowpaw/profile.toml`",
+        lines: "meow-git",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "push-guard",
+        determines: "whether each commit a push would publish meets the convention, and where `require_signatures` is true carries a good signature, and whether a branch name carries a stored credential",
+        by_hand: "run `git log` over the commits the push would publish and read each against `meow-scm check-message`, `git log --show-signature` and the branch's name",
+        lines: "meow-git",
+        json: "",
+    },
+];
+
 pub fn main(args: &[String]) -> u8 {
+    if let Some(code) = crate::help::answer("meow-git", &HELP, args) {
+        return code;
+    }
     let name = match args {
         [name] if name == "commit-guard" || name == "push-guard" => name.as_str(),
         _ => {

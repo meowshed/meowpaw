@@ -97,16 +97,17 @@ To run one step yourself, ask for it by name, such as "run the design step for
 | `spec`         | an approved decision           | the specification, updated  |
 | `epic`         | an approved decision or defect | an epic and its tasks       |
 | `implement`    | an approved task               | the change and its evidence |
-| `review`       | the task's pull request        | findings, fixed in it       |
+| `review`       | the epic's pull request        | findings, fixed in it       |
 
 Where a decision adds a security-relevant boundary, the design step also
 updates the threat model your specification keeps, so the new threats are
 ranked among those it already lists. Where your specification keeps none, the
 decision says so.
 
-A task's pull request carries the whole task: its tests first, in a commit of
-their own where they fail, then the implementation, the documentation it
-changes and its record marks.
+An epic's pull request carries the whole epic, and each of its tasks is a
+group of commits on that branch: its tests first, in a commit of their own
+where they fail, then the implementation, the documentation it changes and its
+record marks. The pull request is ready to merge when the last task is done.
 
 The implement step writes to the documentation style you declare in
 `.meowpaw/profile.toml`, as a path to your style guide or the name of an
@@ -198,9 +199,15 @@ the unit's rename isn't read, and `--write` names the markers it needs.
 `paw template <kind>` prints the template a step writes from: yours at
 `.meowpaw/templates/<kind>.md` where you have one, and the unit's otherwise.
 
+`paw --help` lists every subcommand, and `paw <subcommand> --help` prints what
+it determines, a `by hand:` line naming what you read to reach the same answer
+without the tool, and a `lines:` line stating the first word of each kind of
+line it prints. Tests run each subcommand on a fixture record and fail a
+line whose first word the help doesn't state.
+
 ## Have a change reviewed
 
-The review step reads a task's pull request. Where the session wrote the
+The review step reads the epic's pull request. Where the session wrote the
 change, it sends the difference to an agent with read-only tools, fixes what
 the agent finds in that pull request, and writes one sentence on it in the
 task's Evidence. It reports each test that would still pass against a wrong

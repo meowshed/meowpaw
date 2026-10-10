@@ -132,28 +132,140 @@ pub(crate) struct Record {
     ids: Regex,
 }
 
+/// One subcommand: what it determines, what a person reads to reach the same
+/// answer by hand, and the first word of each kind of line it prints
+/// (SPC-1080, REQ-1176, REQ-1184). A subcommand is dispatched through this
+/// table only, so one can't be added without all three.
+struct Command {
+    name: &'static str,
+    run: fn(&[String]) -> u8,
+    determines: &'static str,
+    by_hand: &'static str,
+    /// Whitespace-separated. A word in angle brackets stands for a kind of
+    /// word: `<id>` an identifier, `<count>` a number, anything else any word.
+    lines: &'static str,
+}
+
+const COMMANDS: [Command; 13] = [
+    Command {
+        name: "check",
+        run: check,
+        determines: "whether the record meets each rule its layout declares",
+        by_hand: "read each artifact's front matter, required sections and index table against `lib/layout.toml`, follow each cited identifier to the file that carries it, and for `frozen` compare each approved record with `git show <rev>:<path>`",
+        lines: "front-matter: identifiers: relations: index: coverage: shape: rules: frozen: the <path> paw",
+    },
+    Command {
+        name: "status",
+        run: status,
+        determines: "where each approved decision stands in the chain, as the record says",
+        by_hand: "list every artifact whose `status:` is draft, then for each approved decision read the epics that `realises:` it and each epic's tasks, count each requirement's state from the tasks that `closes:` it, and with `--waiting` list the drafts alone",
+        lines: "Waiting Decisions Tasks Requirements Postponed Only The nothing none <id> <count> waiting: next: closed: postponing: by unconnected, paw",
+    },
+    Command {
+        name: "ready",
+        run: ready,
+        determines: "whether the input a step names is approved and complete",
+        by_hand: "read each named artifact's `status:`, for `epic` the `states:` of its specifications, and for `implement` the authority's `status:` and each `depends:` task's completion",
+        lines: "paw <id>",
+    },
+    Command {
+        name: "template",
+        run: template,
+        determines: "which template is in force for a kind",
+        by_hand: "look for the kind's file in `.meowpaw/templates/`, then in the unit's `templates/` directory",
+        lines: "<path> paw",
+    },
+    Command {
+        name: "show",
+        run: show,
+        determines: "what one artifact says, what it names and what cites it",
+        by_hand: "open the artifact's file, read its front matter relations, and search the record for its identifier to find what cites it",
+        lines: "<id> vision <text> Names State Cited <relation>: body: nothing open, closed postponed paw",
+    },
+    Command {
+        name: "index",
+        run: index_command,
+        determines: "the index table of one kind of artifact",
+        by_hand: "list the kind's directory and write one row for each file from its front matter and its conclusion, and with `--write` replace the table between the index's markers",
+        lines: "<count> | Amended: By - paw",
+    },
+    Command {
+        name: "new",
+        run: new_identifier,
+        determines: "the next free identifier of a kind",
+        by_hand: "search the whole repository for each `PREFIX-NNNN` of the kind, and take the next multiple of ten above the highest found, or the next one for research and insight",
+        lines: "<id> paw",
+    },
+    Command {
+        name: "find",
+        run: find,
+        determines: "which artifacts carry the words, by identifier, title and conclusion",
+        by_hand: "search each artifact's identifier, heading and conclusion, which is the title or for a requirement its statement, for the words, ranked by how many words match",
+        lines: "exhaustive: vision <id> artifacts paw",
+    },
+    Command {
+        name: "count",
+        run: count_record,
+        determines: "how many artifacts of each kind the record holds, by status",
+        by_hand: "list each kind's directory and read each file's `status:`",
+        lines: "<kind>: identifiers:",
+    },
+    Command {
+        name: "approve",
+        run: approve,
+        determines: "whether a draft passes the checks, and sets it approved where it does",
+        by_hand: "run `paw check` and read what it reports about the draft, then change its `status:` to approved",
+        lines: "paw <path>",
+    },
+    Command {
+        name: "withdraw",
+        run: withdraw,
+        determines: "that an approved requirement is withdrawn by a named decision",
+        by_hand: "change the requirement's `status:` to withdrawn and its `revised:` to today, and name the decision and the replacement in its body",
+        lines: "paw",
+    },
+    Command {
+        name: "done",
+        run: done,
+        determines: "that a complete approved task is done in a pull request",
+        by_hand: "read that the task's Evidence no longer opens with `Not yet.`, then change its `status:` to done, mark it with the pull request in its epic's or defect's task list, and close the epic and decision where it was the last open task",
+        lines: "paw",
+    },
+    Command {
+        name: "onboarding",
+        run: onboarding,
+        determines: "what an approved onboarding report placed, and removes it",
+        by_hand: "check the report is approved and each migrated or superseded destination exists, then delete each file whose outcome is migrated, superseded or discarded",
+        lines: "paw before: removed after: <path>",
+    },
+];
+
+fn print_help(command: &Command) {
+    say!("paw {}: {}", command.name, command.determines);
+    say!("by hand: {}", command.by_hand);
+    say!("lines: {}", command.lines);
+}
+
 pub fn main(args: &[String]) -> u8 {
     let (verb, rest) = match args.split_first() {
         Some((verb, rest)) => (verb.as_str(), rest),
         None => ("", &[][..]),
     };
-    match verb {
-        "check" => check(rest),
-        "status" => status(rest),
-        "ready" => ready(rest),
-        "template" => template(rest),
-        "show" => show(rest),
-        "index" => index_command(rest),
-        "new" => new_identifier(rest),
-        "find" => find(rest),
-        "count" => count_record(rest),
-        "approve" => approve(rest),
-        "withdraw" => withdraw(rest),
-        "done" => done(rest),
-        "onboarding" => onboarding(rest),
-        _ => {
+    if verb == "--help" {
+        for command in &COMMANDS {
+            say!("paw {}: {}", command.name, command.determines);
+        }
+        return CLEAN;
+    }
+    match COMMANDS.iter().find(|command| command.name == verb) {
+        Some(command) if rest.first().map(String::as_str) == Some("--help") => {
+            print_help(command);
+            CLEAN
+        }
+        Some(command) => (command.run)(rest),
+        None => {
             eprintln!(
-                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | approve <id>... | withdraw <id> --by <id> --replaced-by <id>... | done <task> --pr <number> | onboarding remove",
+                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | approve <id>... | withdraw <id> --by <id> --replaced-by <id>... | done <task> --pr <number> | onboarding remove; paw <subcommand> --help names what a person reads in its place",
                 CHECKS.join(" | ")
             );
             USAGE

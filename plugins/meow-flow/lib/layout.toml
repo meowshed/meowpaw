@@ -32,7 +32,7 @@ checked-at = "no verification is recorded; a requirement closes with the tasks t
 
 # Sections the record has retired, reported wherever one is still carried.
 [retired.sections]
-Cover = "a task's tests land first in its own pull request, and nothing in the task records them (ADR-2300)"
+Cover = "a task's tests land first in a commit of their own in the epic's pull request, and nothing in the task records them (ADR-2300)"
 Verified = "no verification is recorded; an epic closes with its tasks (ADR-2300)"
 "Open review findings" = "no agent reviews a record, so none leaves findings in it (ADR-2300)"
 
