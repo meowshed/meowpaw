@@ -50,7 +50,7 @@ plan)
   exit 3
   ;;
 *)
-  echo "usage: meow-unattended plan [--purge]" >&2
+  echo "usage: meow-unattended plan" >&2
   exit 2
   ;;
 esac

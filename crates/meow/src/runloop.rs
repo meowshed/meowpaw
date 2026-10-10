@@ -20,6 +20,7 @@
 
 use crate::profile;
 use crate::record;
+use crate::unattended;
 use crate::verbs::{self, ledger};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -1272,6 +1273,10 @@ fn guard() -> u8 {
     let mut text = String::new();
     let _ = std::io::Read::read_to_string(&mut std::io::stdin(), &mut text);
     let event: Value = serde_json::from_str(&text).unwrap_or(Value::Null);
+    if let Some(reason) = posture_denial(&event) {
+        deny(&reason);
+        return FINISHED;
+    }
     if let Some(command) = event.pointer("/tool_input/command").and_then(Value::as_str) {
         if starts_a_run(command) {
             deny(
@@ -1625,6 +1630,18 @@ fn prompt() -> u8 {
             "unresolved: a run already holds this work tree".into(),
         ]);
     }
+    let posture = match unattended::posture(&root) {
+        Ok(posture) => posture,
+        Err(refusals) => return refuse(refusals),
+    };
+    if let Some(mode) = event.get("permission_mode").and_then(Value::as_str)
+        && mode != posture.mode
+    {
+        return refuse(vec![format!(
+            "unresolved: the session is in {mode}, and the posture declares {}",
+            posture.mode
+        )]);
+    }
     let (requirements, defects) = match record::open_counts(&root) {
         Ok(counts) => counts,
         Err(reason) => {
@@ -1659,6 +1676,27 @@ fn prompt() -> u8 {
     table.insert("hours".into(), hours.into());
     table.insert("tokens".into(), tokens.into());
     table.insert("started_by".into(), "person".into());
+    table.insert("permission_mode".into(), posture.mode.clone().into());
+    table.insert(
+        "gates".into(),
+        toml::Value::Array(
+            posture
+                .gates
+                .iter()
+                .cloned()
+                .map(toml::Value::String)
+                .collect(),
+        ),
+    );
+    // `false` is a run that releases nothing (REQ-3722).
+    table.insert(
+        "release".into(),
+        match &posture.release {
+            Some(command) => toml::Value::String(command.clone()),
+            None => toml::Value::Boolean(false),
+        },
+    );
+    table.insert("amend_approved".into(), posture.amend_approved.into());
     table.insert("started_at".into(), ledger::now().into());
     table.insert("open_requirements".into(), (requirements as i64).into());
     table.insert("open_defects".into(), (defects as i64).into());
@@ -1949,6 +1987,53 @@ fn command_words(command: &str) -> Vec<&str> {
         words.extend(word.split('&').filter(|w| !w.is_empty()));
     }
     words
+}
+
+/// The reason the declared posture denies a tool call, while the session has
+/// an active run: a write of the profile or the session's settings, a push
+/// that names the trunk, `HEAD` or no branch, and a write of an approved
+/// requirement or decision where `amend_approved` is false (REQ-3718). The
+/// posture is read on every call, and the profile is itself denied to a run, so
+/// a run can't change what it is held to.
+fn posture_denial(event: &Value) -> Option<String> {
+    let session = event.get("session_id")?.as_str()?;
+    if let Some(cwd) = event.get("cwd").and_then(Value::as_str) {
+        let _ = std::env::set_current_dir(cwd);
+    }
+    let root = profile::repository_root();
+    active_run(&ledger::runs_dir(&root)?, session)?;
+    let posture = unattended::posture(&root).ok()?;
+    if let Some(command) = event.pointer("/tool_input/command").and_then(Value::as_str) {
+        return unattended::push_denied(command, &posture.trunk).then(|| {
+            format!(
+                "meow-loop: a push that names {}, HEAD or no branch is denied while a run is active, so the run lands work through a pull request (REQ-3718)",
+                posture.trunk
+            )
+        });
+    }
+    let path = event.pointer("/tool_input/file_path")?.as_str()?;
+    let target = resolved(Path::new(path));
+    let tree = resolved(&root);
+    for protected in [".meowpaw", ".claude"] {
+        if target.starts_with(tree.join(protected)) {
+            return Some(format!(
+                "meow-loop: a write under {protected}/ is denied while a run is active, so the run can't change its own posture or the session's settings (REQ-3718)"
+            ));
+        }
+    }
+    if !posture.amend_approved {
+        let record_root = resolved(&root.join(record::declared_root(&root).ok()?));
+        if unattended::approved(&record_root)
+            .iter()
+            .any(|approved| resolved(approved) == target)
+        {
+            return Some(format!(
+                "meow-loop: a write of {} is denied, because its status is approved and the posture doesn't let a run amend it; write a new record that amends it (REQ-3718)",
+                target.display()
+            ));
+        }
+    }
+    None
 }
 
 /// Whether the session the hook input names has an active run in the work
