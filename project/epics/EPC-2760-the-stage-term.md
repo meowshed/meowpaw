@@ -1,7 +1,7 @@
 ---
 id: EPC-2760
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-10
 realises: ADR-2850
 ---
@@ -38,7 +38,7 @@ check holds living and shipped text to the word.
 - [x] T-002 TSK-5271 Living and shipped text says "stage" (done: pull request 876)
       closes: REQ-4200
       depends: TSK-5270 (blocking) - the pages say a profile declares `[stages]`, and that has to work
-- [ ] T-003 TSK-5272 A check fails on "verb" in living and shipped text
+- [x] T-003 TSK-5272 A check fails on "verb" in living and shipped text (done: pull request 877)
       closes: REQ-4200
       depends: TSK-5271 (blocking) - the check fails on every page until the pages change
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-5272
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2760
 closes: [REQ-4200]
@@ -42,7 +42,20 @@ under `tools/` are.
 
 ## Evidence
 
-Not yet.
+Pull request 877. The tests are in `tools/test_check_terms.py`:
+
+- Criterion 1: `test_a_living_file_that_says_verbs_fails_naming_its_line`.
+- Criterion 2: `test_a_frozen_record_that_says_verb_is_not_reported`.
+- Criterion 3: `test_an_allow_listed_file_is_not_reported` and
+  `test_a_line_naming_a_retired_unit_or_the_loop_argument_is_not_reported`.
+- Criterion 4: `test_this_repository_passes`, and the `test` stage, which runs
+  `tools/check_terms.py` after `check_workflows.py`.
+
+The check also fails on a tree it read no file of
+(`test_a_tree_with_no_file_to_read_fails`), because a run that read nothing
+has held nothing to the word. Two fixtures written first read no file and
+passed on the exit status alone, so a commit of its own gives them a page to
+read.
 
 ## Left alone
 
