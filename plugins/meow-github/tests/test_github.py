@@ -1496,7 +1496,7 @@ class Launcher(unittest.TestCase):
             launcher.parent.mkdir()
             launcher.write_text((UNIT / "bin" / "meow-github").read_text(encoding="utf-8"), encoding="utf-8")
             launcher.chmod(0o755)
-            done = subprocess.run(["sh", str(launcher), "history"], cwd=tmp, capture_output=True, text=True)
+            done = subprocess.run(["sh", str(launcher), "history"], cwd=tmp, env={"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}, capture_output=True, text=True)
             machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
             self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
             self.assertIn("unread", done.stdout)
@@ -1512,7 +1512,7 @@ class Launcher(unittest.TestCase):
             launcher.write_text((UNIT / "bin" / "meow-github").read_text(encoding="utf-8"), encoding="utf-8")
             launcher.chmod(0o755)
             event = json.dumps({"tool_input": {"command": "gh repo delete o/r"}})
-            done = subprocess.run(["sh", str(launcher), "governance-guard"], input=event, cwd=tmp,
+            done = subprocess.run(["sh", str(launcher), "governance-guard"], input=event, cwd=tmp, env={"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"},
                                   capture_output=True, text=True)
             self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
 
