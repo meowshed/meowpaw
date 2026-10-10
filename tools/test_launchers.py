@@ -5,6 +5,7 @@
 
 import os
 import platform
+import re
 import shutil
 import subprocess
 import tempfile
@@ -40,7 +41,16 @@ class Launchers(unittest.TestCase):
         copy.chmod(0o755)
         return copy
 
-    def run_launcher(self, launcher, shared=False):
+    def subcommands(self, launcher):
+        """The subcommands the launcher's own `case "$1"` names, in order."""
+        text = launcher.read_text()
+        found = []
+        for label in re.findall(r"^([a-z][a-z-]*(?: \| [a-z][a-z-]*)*)\)", text, re.M):
+            found += label.split(" | ")
+        found += re.findall(r'"\$1" = "([a-z][a-z-]*)"', text)
+        return found or ["status"]
+
+    def run_launcher(self, launcher, shared=False, sub="status"):
         copy = self.unit_with(launcher)
         data = self.base / "data"
         env = {"PATH": os.environ["PATH"], "HOME": str(self.base / "home"),
@@ -53,7 +63,7 @@ class Launchers(unittest.TestCase):
             binary.chmod(0o755)
             (data / "meow-core-test").mkdir(parents=True)
             (data / "meow-core-test" / "meow-root").write_text(f"{root}\n")
-        return subprocess.run([str(copy), "status"], input="", capture_output=True, text=True, env=env)
+        return subprocess.run([str(copy), sub], input="", capture_output=True, text=True, env=env)
 
     def test_every_unit_has_a_launcher_to_test(self):
         """TSK-5301 criterion 2, REQ-4504: the fixture finds the 12 units' launchers and the record's."""
@@ -70,9 +80,12 @@ class Launchers(unittest.TestCase):
         """TSK-5301 criterion 3, REQ-4506: with no data file and no binary, each reports and names meow-core."""
         for launcher in LAUNCHERS:
             with self.subTest(launcher=launcher.name):
-                done = self.run_launcher(launcher, shared=False)
-                self.assertIn("meow-core", done.stdout + done.stderr, done.stdout + done.stderr)
-                self.assertNotIn("shared:", done.stdout + done.stderr)
+                said = []
+                for sub in self.subcommands(launcher):
+                    done = self.run_launcher(launcher, shared=False, sub=sub)
+                    self.assertNotIn("shared:", done.stdout + done.stderr)
+                    said.append(done.stdout + done.stderr)
+                self.assertTrue(any("meow-core" in text for text in said), said)
 
 
 if __name__ == "__main__":
