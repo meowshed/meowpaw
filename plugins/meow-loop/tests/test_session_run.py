@@ -176,6 +176,120 @@ class Guarding(Session):
         self.assertIsNone(self.guard("Write", file_path=str(directory / "report.md")))
 
 
+class Stopping(Session):
+    FROZEN = ("meow-loop run {id}: run /meow-flow:run once and carry the chain to its next stop. Read {progress} "
+              "first and update it before you finish. The record decides when this run ends; you don't.")
+
+    def transcript(self, *usages):
+        path = Path(self.tmp.name) / "transcript.jsonl"
+        lines = [json.dumps({"type": "assistant", "message": {"usage": {"input_tokens": i, "output_tokens": o}}})
+                 for i, o in usages]
+        path.write_text("\n".join(lines) + "\n")
+        return str(path)
+
+    def stop(self, *usages, session=SESSION):
+        return self.hook("stop", {"hook_event_name": "Stop", "session_id": session, "cwd": str(self.repo),
+                                  "transcript_path": self.transcript(*(usages or [(10, 5)])),
+                                  "stop_hook_active": False})
+
+    def change_tree(self, text="x"):
+        self.write("work.txt", text + "\n")
+
+    def log(self):
+        _, directory = self.run_toml()
+        path = directory / "log.jsonl"
+        return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+    def test_an_open_record_blocks_the_stop_with_the_same_frozen_prompt(self):
+        """TSK-4110 criterion 1, REQ-3702, REQ-0870: two iterations get the same bytes naming the run."""
+        self.prompt("/meow-loop:run --iterations 5 --hours 1 --tokens 100000")
+        table, directory = self.run_toml()
+        expected = self.FROZEN.format(id=directory.name, progress=directory / "progress" / "progress.md")
+        self.change_tree("one")
+        done, first = self.stop()
+        self.change_tree("two")
+        done, second = self.stop()
+        self.assertEqual(first.get("decision"), "block", done.stdout + done.stderr)
+        self.assertEqual(first["reason"], expected)
+        self.assertEqual(second["reason"], expected)
+
+    def test_a_record_with_nothing_open_ends_the_run_finished(self):
+        """TSK-4110 criterion 2, REQ-3704, REQ-3706, REQ-0884: a postponed requirement doesn't keep a run open."""
+        self.start()
+        (self.repo / "project/requirements/REQ-0001-a-duty.md").unlink()
+        self.write("project/requirements/REQ-0002-a-later-duty.md", requirement("REQ-0002"))
+        self.write("project/adrs/ADR-0001-postpone.md", front(
+            id="ADR-0001", artifact="adr", status="approved", revised="2026-01-01", addresses="[]",
+            postpones="[REQ-0002]") + "\n# 1. Postpone it\n")
+        done, answer = self.stop()
+        self.assertNotEqual(answer.get("decision"), "block", done.stdout)
+        table, _ = self.run_toml()
+        self.assertEqual(table["ending"], "finished")
+
+    def test_each_bound_ends_the_run_with_its_own_ending(self):
+        """TSK-4110 criterion 3, REQ-3708, REQ-0876, REQ-0878: ceiling, time and tokens."""
+        cases = {
+            "ceiling": ("/meow-loop:run --iterations 1 --hours 1 --tokens 100000", (10, 5), None),
+            "tokens": ("/meow-loop:run --iterations 5 --hours 1 --tokens 1000", (900, 600), None),
+            "time": ("/meow-loop:run --iterations 5 --hours 1 --tokens 100000", (10, 5), "2000-01-01T00:00:00Z"),
+        }
+        for ending, (command, usage, started) in cases.items():
+            with self.subTest(ending=ending):
+                shutil.rmtree(self.state, ignore_errors=True)
+                self.prompt(command)
+                if started:
+                    _, directory = self.run_toml()
+                    table = tomllib.loads((directory / "run.toml").read_text())
+                    text = (directory / "run.toml").read_text().replace(table["started_at"], started)
+                    (directory / "run.toml").write_text(text)
+                self.change_tree(ending)
+                done, answer = self.stop(usage)
+                self.assertNotEqual(answer.get("decision"), "block", done.stdout)
+                table, _ = self.run_toml()
+                self.assertEqual(table["ending"], ending)
+
+    def test_two_unchanged_iterations_end_the_run_stuck_and_name_the_counts(self):
+        """TSK-4110 criterion 4, REQ-3710, REQ-0886: the tree id, the counts and the notes stayed as they were."""
+        self.start()
+        done, first = self.stop()
+        self.assertEqual(first.get("decision"), "block", done.stdout)
+        done, second = self.stop()
+        self.assertNotEqual(second.get("decision"), "block", done.stdout)
+        table, _ = self.run_toml()
+        self.assertEqual(table["ending"], "stuck")
+        self.assertRegex(second["systemMessage"], r"1 requirement")
+
+    def test_every_iteration_appends_one_log_line(self):
+        """TSK-4110 criterion 5, REQ-2654, REQ-0892, REQ-0882: the line carries the state the checks used."""
+        self.start()
+        self.change_tree("a")
+        self.stop((100, 50))
+        self.change_tree("b")
+        self.stop((300, 150))
+        lines = self.log()
+        self.assertEqual([line["iteration"] for line in lines], [1, 2])
+        for line in lines:
+            for key in ("tree_before", "tree_after", "open_requirements", "open_defects", "progress_changed", "tokens"):
+                self.assertIn(key, line)
+        self.assertEqual(lines[1]["tokens"], 450)
+
+    def test_an_ending_is_one_of_six_and_reverts_nothing(self):
+        """TSK-4110 criterion 6, REQ-2658, REQ-2656: the work tree keeps what the iteration changed."""
+        self.prompt("/meow-loop:run --iterations 1 --hours 1 --tokens 100000")
+        self.change_tree("kept")
+        self.stop()
+        table, _ = self.run_toml()
+        self.assertIn(table["ending"], {"finished", "ceiling", "time", "tokens", "stuck", "cancelled"})
+        self.assertEqual((self.repo / "work.txt").read_text(), "kept\n")
+
+    def test_no_active_run_allows_the_stop_and_writes_nothing(self):
+        """TSK-4110 criterion 7: with no run for the session the hook answers nothing and creates no run."""
+        done, answer = self.stop()
+        self.assertEqual(done.returncode, 0)
+        self.assertEqual(done.stdout.strip(), "")
+        self.assertEqual(self.runs(), [])
+
+
 class Skill(unittest.TestCase):
     def test_the_start_command_cannot_be_invoked_by_the_model(self):
         """TSK-4100 criterion 5, REQ-0894: the skill sets `disable-model-invocation: true`."""
