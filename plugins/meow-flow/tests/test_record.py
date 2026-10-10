@@ -2839,7 +2839,7 @@ class EpicIsOnePullRequest(unittest.TestCase):
         """Criterion 3, REQ-4414: the step says the tasks of an epic share one branch, each marked where it lands."""
         text = (self.ROOT / "plugins/meow-flow/skills/method/steps/implement.md").read_text(encoding="utf-8")
         self.assertRegex(text, r"tasks of (the|an) epic[^.]{0,200}one branch")
-        self.assertRegex(text, r"marked? (it |each |the task )?in the commit that")
+        self.assertRegex(text, r"mark(ed)? (it |each |the task )?in the commit that")
 
 
 class DeniedDispatch(unittest.TestCase):
