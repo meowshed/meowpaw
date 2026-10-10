@@ -263,7 +263,7 @@ class Project(unittest.TestCase):
         self.assertRegex(second, r"<!-- meow-github: projected from TSK-0002 at [0-9a-f]{12} -->$")
         text = self.task(root, "TSK-0002-second.md")
         self.assertIn("\nissue: 2\n", text)
-        self.assertRegex(text, r"\nprojected: [0-9a-f]{12}\n---\n")
+        self.assertRegex(text, r"\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
         self.assertRegex(done.stdout, r"(?m)^TSK-0001: projected to issue #1 at [0-9a-f]{12}, read back$")
         gets = [c for c in self.state(root)["calls"] if "-X" not in c]
         self.assertEqual(len(gets), 1, gets)
@@ -294,7 +294,7 @@ class Project(unittest.TestCase):
         path = root / "project" / "tasks" / "TSK-0001-first.md"
         path.write_text(path.read_text(encoding="utf-8").replace("issue:\n", "", 1), encoding="utf-8")
         self.project(root)
-        self.assertRegex(self.task(root, "TSK-0001-first.md"), r"\nissue: 1\nprojected: [0-9a-f]{12}\n---\n")
+        self.assertRegex(self.task(root, "TSK-0001-first.md"), r"\nissue: 1\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
         done = self.project(root)
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertEqual(len(self.state(root)["issues"]), 2)
