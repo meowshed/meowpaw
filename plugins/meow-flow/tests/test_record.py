@@ -2864,6 +2864,7 @@ class WriteCommands(unittest.TestCase):
         """TSK-5310 criterion 1, REQ-4602: a draft the check accepts is approved, and only its status line moved."""
         repository = self.repo()
         repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
+        repository.edit("tasks/TSK-0001-a-task.md", "## What to do", "## Acceptance criteria\n\nText.\n\n## What to do")
         before = self.snapshot(repository)
         done = repository.run("approve", "TSK-0001")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
