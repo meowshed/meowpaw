@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-133 decisions in all: 37 approved, 88 done, 8 superseded.
+133 decisions in all: 36 approved, 89 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -97,7 +97,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2340](ADR-2340-an-issue-the-listing-leaves-out-is-read-by-its-number.md)                                                                             | An issue the read-back listing leaves out is read by its number before it is reported                                                      | done       |
 | [ADR-2350](ADR-2350-paw-ready-stops-naming-the-step-that-took-a-retired-steps-work.md)                                                                    | `paw ready` stops naming the step that took a retired step's work                                                                          | done       |
 | [ADR-2360](ADR-2360-the-meow-verbs-stub-leaves-the-marketplace.md)                                                                                        | The `meow-verbs` stub leaves the marketplace                                                                                               | done       |
-| [ADR-2370](ADR-2370-the-profile-is-read-at-the-root-reports-unknown-keys-and-keeps-a-personal-file-apart.md)                                              | The profile is read at the root, reports the keys it doesn't know, and keeps a personal file apart                                         | approved   |
+| [ADR-2370](ADR-2370-the-profile-is-read-at-the-root-reports-unknown-keys-and-keeps-a-personal-file-apart.md)                                              | The profile is read at the root, reports the keys it doesn't know, and keeps a personal file apart                                         | done       |
 | [ADR-2380](ADR-2380-a-run-lives-in-the-session-and-an-unattended-run-decides-merges-and-releases-itself.md)                                               | A run lives in the session, and an unattended run decides, merges and releases on its own                                                  | done       |
 | [ADR-2390](ADR-2390-the-prose-gate-asks-a-model-and-a-program-keeps-only-what-two-judgements-agree-on.md)                                                 | The prose gate asks a model to judge the text, and its program blocks only on what two judgements agree on                                 | done       |
 | [ADR-2400](ADR-2400-the-native-tool-is-the-harness-s-helper-and-each-subcommand-makes-one-determination.md)                                               | The native tool is the harness's helper, and each subcommand makes one determination                                                       | approved   |
