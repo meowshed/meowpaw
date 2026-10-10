@@ -14,8 +14,9 @@ OPENING = re.sub(r"\s+", " ", TYPE.read_text(encoding="utf-8"))[:400]
 class TaskType(unittest.TestCase):
     def test_a_task_has_no_branch_or_review_of_its_own(self):
         """TSK-5360 criterion 3, REQ-4400."""
-        self.assertRegex(OPENING, r"epic's pull request")
-        self.assertNotRegex(OPENING, r"one branch, one change, one review")
+        self.assertRegex(OPENING, r"epic or defect")
+        self.assertRegex(OPENING, r"pull request")
+        self.assertNotRegex(OPENING, r"one branch|one review|its own pull request")
 
 
 if __name__ == "__main__":

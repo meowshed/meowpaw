@@ -87,21 +87,59 @@ class EpicOnOneBranch(unittest.TestCase):
         steps = in_a_run()
         self.assertRegex(steps, r"epic's (one )?(branch|pull request)")
         self.assertRegex(steps, r"next task of the epic[^.]{0,120}same branch")
-        self.assertRegex(steps, r"merge[^.]{0,200}(epic is closed|last task)")
+        self.assertRegex(steps, r"merge the pull request only once[^.]{0,120}is closed")
         self.assertNotRegex(steps, r"open the pull request and merge it once")
+
+    def test_a_defect_or_a_task_that_realises_a_decision_keeps_its_own_pull_request(self):
+        """TSK-5360 criterion 1, REQ-4402, REQ-4404: the merge condition names the record the pull request carries."""
+        steps = in_a_run()
+        self.assertRegex(steps, r"defect's")
+        self.assertRegex(steps, r"realises")
 
     def test_the_implement_step_goes_on_to_the_epics_next_task(self):
         """TSK-5360 criterion 2, REQ-4410, REQ-4414: marking a task is not where the step stops."""
         text = flat(STEPS / "implement.md")
-        self.assertRegex(text, r"next (ready )?task of (the|its) epic[^.]{0,160}same branch")
-        self.assertRegex(text, r"stop[^.]{0,80}epic's pull request")
+        self.assertRegex(text, r"next task of (the|its) epic[^.]{0,160}same branch")
+        self.assertRegex(text, r"stop at the epic's pull request")
         self.assertNotRegex(text, r"and stop there\.")
 
     def test_the_review_step_reads_an_epics_pull_request(self):
         """TSK-5360 criterion 3, REQ-4400: a task has no review of its own."""
-        opening = flat(STEPS / "review.md")[:600]
-        self.assertRegex(opening, r"epic's pull request")
-        self.assertNotRegex(opening, r"reads a task's pull request")
+        text = flat(STEPS / "review.md")
+        role = text[: text.index("</role>")]
+        self.assertRegex(role, r"epic's pull request")
+        self.assertNotRegex(role, r"task's pull request")
+        self.assertRegex(text, r"what the tasks in it ask")
+        self.assertRegex(text, r"unmark the task whose stage failed")
+
+    def test_no_prompt_gives_a_task_a_branch_a_pull_request_or_a_review_of_its_own(self):
+        """TSK-5360 criterion 3, REQ-4400: the wording that attached them is gone from the shipped prompts."""
+        unit = Path(__file__).resolve().parent.parent
+        files = [unit / "skills" / "run" / "SKILL.md", unit / "lib" / "layout.toml", unit / "README.md"]
+        files += sorted((unit / "skills" / "method").rglob("*.md"))
+        files += [unit.parent / "meow-prose" / "skills" / "writing" / "types" / "record" / "task.md"]
+        pattern = re.compile(
+            r"\b(?:a|each|every|its|the) task's (?:own )?(?:branch|pull request|review)\b|\bits own pull request\b"
+            r"|\bone task, one branch\b",
+            re.IGNORECASE,
+        )
+        found = {}
+        for path in files:
+            hits = pattern.findall(re.sub(r"\s+", " ", path.read_text(encoding="utf-8")))
+            if hits:
+                found[path.name] = hits
+        self.assertEqual(found, {}, "a prompt attaches a branch, a pull request or a review to a task")
+
+    def test_the_layout_copies_agree(self):
+        """TSK-5360: the reason a retired Cover section prints names the epic's pull request."""
+        unit = Path(__file__).resolve().parent.parent
+        text = (unit / "lib" / "layout.toml").read_text(encoding="utf-8")
+        self.assertIn("commit of their own in the epic's pull request", text)
+
+    def test_the_method_description_attaches_no_pull_request_to_a_task(self):
+        """TSK-5360 criterion 3, REQ-4400: the description the model chooses by."""
+        head = (STEPS.parent / "SKILL.md").read_text(encoding="utf-8").split("---")[1]
+        self.assertNotRegex(head, r"its pull request")
 
 
 if __name__ == "__main__":

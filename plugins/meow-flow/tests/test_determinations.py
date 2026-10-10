@@ -19,8 +19,8 @@ STEPS = METHOD / "steps"
 
 # A determination a program makes: a count, a coverage, a staleness, a resolution, a readiness or an allocation.
 DETERMINATION = re.compile(
-    r"\b(count(?:s|ed)?|coverage|stale(?:ness)?|resol(?:ve|ves|ved|ution)|ready|allocate[sd]?|identifier block"
-    r"|set difference)\b",
+    r"\b(count(?:s|ed|ing)?|coverage|stale(?:ness)?|resol(?:ve|ves|ved|ution)|ready|allocate[sd]?|identifier block"
+    r"|set differences?|match(?:es|ing)?)\b",
     re.IGNORECASE,
 )
 
@@ -30,6 +30,7 @@ EXEMPT = {
     ("research.md", "secondary coverage lags"): "means press coverage of a project, and not a count",
     ("spec.md", "Allocate a document's identifier to its subject"): "chooses a subject for a name: a judgement",
     ("spec.md", "which one is stale is a judgement"): "says the choice is a judgement and asks for none",
+    ("review.md", "matches output loosely"): "describes a weak test to report, and asks for no determination",
 }
 
 
@@ -39,15 +40,22 @@ def items(text):
     return [" ".join(part.split()) for part in parts]
 
 
+def sentences(item):
+    """The sentences of one item, each on one line."""
+    return [part for part in re.split(r"(?<=[.;:])\s+(?=[A-Z`])", item) if part]
+
+
 def unnamed(name, text):
-    """The items of `text` that ask for a determination and name no `paw` subcommand."""
+    """The sentences of `text` that ask for a determination and name no `paw` subcommand: the subcommand has to
+    sit in the same sentence, because one mention elsewhere in an item says nothing about this one."""
     found = []
     for item in items(text):
-        if not DETERMINATION.search(item) or "paw " in item:
-            continue
-        if any(name == exempt and phrase in item for exempt, phrase in EXEMPT):
-            continue
-        found.append(item)
+        for sentence in sentences(item):
+            if not DETERMINATION.search(sentence) or "paw " in sentence:
+                continue
+            if any(name == exempt and phrase in item for exempt, phrase in EXEMPT):
+                continue
+            found.append(sentence)
     return found
 
 
@@ -56,7 +64,11 @@ class StepFilesNameTheSubcommand(unittest.TestCase):
         """TSK-4350 criterion 1, REQ-1172: the fixture can fail."""
         self.assertEqual(
             unnamed("fixture.md", "3. Count the requirements the decision addresses and list them.\n"),
-            ["3. Count the requirements the decision addresses and list them."],
+            ["Count the requirements the decision addresses and list them."],
+        )
+        self.assertEqual(
+            unnamed("fixture.md", "1. Run `paw template task`. Match each task with its epic by reading.\n"),
+            ["Match each task with its epic by reading."],
         )
         self.assertEqual(unnamed("fixture.md", "3. Run `paw count` and list what it prints.\n"), [])
 
@@ -78,6 +90,7 @@ class MethodRules(unittest.TestCase):
         """TSK-4350 criterion 2, REQ-1178."""
         self.assertRegex(self.text, r"- M\d+\. Cite a subcommand's output as evidence[^.]{0,200}exit status")
         self.assertRegex(self.text, r"exit status[^.]{0,120}tree revision")
+        self.assertRegex(self.text, r"tree revision it ran at[^.]{0,200}never in a file")
 
     def test_a_contradiction_between_a_subcommand_and_the_tree_is_reported(self):
         """TSK-4350 criterion 2, REQ-1180."""
