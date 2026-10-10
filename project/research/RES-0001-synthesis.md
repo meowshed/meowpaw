@@ -191,6 +191,7 @@ here or in the sources below.
 | [Building every target under Linux](RES-0343-building-every-target-under-linux.md)                                                                 | All six targets build under Linux runners — musl natively, windows through cargo-xwin, darwin through osxcross — with the darwin SDK's licence the one trade-off, named and pinned.                                    |
 | [Naming the five verification obligations](RES-0344-naming-the-five-verification-obligations.md)                                                   | No common word for a named, runnable obligation is free in this repository, and `stage` collides least.                                                                                                                |
 | [How long the test stage takes](RES-0345-how-long-the-test-stage-takes-and-where-the-time-goes.md)                                                 | The test stage takes five to sixteen minutes, and a quarter of that is one suite.                                                                                                                                      |
+| [An epic as the unit of a pull request](RES-0346-an-epic-and-a-defect-as-the-unit-of-a-pull-request.md)                                            | An epic holds 2.7 tasks on average, and a pull request for each task and stage multiplies the gate.                                                                                                                    |
 
 ## The situation
 
