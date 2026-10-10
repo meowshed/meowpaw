@@ -32,7 +32,7 @@ check holds living and shipped text to the word.
 
 ## Tasks
 
-- [ ] T-001 TSK-5270 The profile reads `[stages]` and reports `[verbs]` as deprecated
+- [x] T-001 TSK-5270 The profile reads `[stages]` and reports `[verbs]` as deprecated (done: pull request 875)
       closes: REQ-4202, REQ-4204
       depends: nothing
 - [ ] T-002 TSK-5271 Living and shipped text says "stage"
