@@ -1,7 +1,7 @@
 ---
 id: TSK-4320
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2320
 closes: [REQ-2952]
@@ -46,7 +46,30 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Closed in pull request 1039. The type check already read `[commits.types]`
+alone, so no test could fail first, and each is cited as the test that holds
+the rule. All are in `crates/meow/tests/commit_types.rs`:
+
+1. `a_type_the_profile_doesnt_declare_fails_the_declared_type_check`
+   (REQ-2952), over a plain, a scoped and a `!` subject.
+2. `every_conventional_type_the_profile_leaves_out_fails_the_check`
+   (REQ-2952), over twelve conventional names, so a built-in list in any form
+   lets one through and fails it.
+3. `a_declared_type_passes_the_declared_type_check` and
+   `a_type_no_list_holds_passes_when_the_profile_declares_it` (REQ-2952), which
+   hold the other direction, a name outside every list included.
+4. `no_declared_type_means_no_fallback_list` (REQ-2952), over an empty table, a
+   `types` that isn't a table and a meaning that isn't one of the four.
+5. `the_scm_source_holds_no_list_of_conventional_types` (REQ-2952), a search
+   of the program part of `scm.rs` for the twelve names as literals.
+
+Under a mutation of the check that accepts `feat` and `fix` whatever the
+profile declares, tests 1, 2 and 5 failed, and 3 and 4 passed, as they hold
+what the mutation doesn't touch. The source search reads only literals, so
+test 2 is the one that holds the rule against any other form of list.
+
+Stages: the pull request's `gate` check, and `paw check`, which printed 0
+findings. No documentation changed, because the behaviour didn't.
 
 ## Left alone
 

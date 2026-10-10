@@ -1,7 +1,7 @@
 ---
 id: EPC-2320
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2370
 ---
@@ -60,7 +60,7 @@ number.
       closes: REQ-2944, REQ-2946
       depends: TSK-4300 (blocking) - a table other than `[verbs]` in the personal file is reported through the unknown-key list TSK-4300 adds
 
-- [ ] T-003 [P] TSK-4320 check a commit type against the profile's `[commits.types]` alone, in `meow-scm`
+- [x] T-003 [P] TSK-4320 check a commit type against the profile's `[commits.types]` alone, in `meow-scm` (done: pull request 1039)
       closes: REQ-2952
 
 ## Coverage
