@@ -73,8 +73,19 @@ REQ-2614, REQ-2616), and `test_a_working_tree_is_removed_only_in_the_foreground`
 closes criterion 4 (REQ-2618, REQ-2620). The rules are T1 to T7 of the `commit`
 skill, and the README names them. `mise run all` passed with exit status 0.
 
+A review by a separate agent found the README paragraph missing from the
+branch, the ban on an automatic rebase worded as a condition, the one
+allowance for a summary and the sharing clauses untested, and a reason that
+contradicted the skill's own aim. Each was corrected in the same pull request,
+with the tests first: seven of the eight `ToolOperations` tests failed before
+the rules changed.
+
 ## Left alone
 
 A program that enforces these rules, because ADR-2420 states that review
 holds them. Whether the harness supports a worktree manager at all, which
 ADR-2420 leaves to ADR-2660.
+
+The skill loads when a message is written, so a person who runs `wt merge` or removes
+a working tree without writing one never loads it. B4 and B5 have the same
+reach, and widening the description would spend budget this task doesn't ask for.
