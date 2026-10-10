@@ -7,7 +7,7 @@ describes: [@meowshed/meow-flow@0.50.0]
 
 # @meowshed/meow-flow
 
-Runs the method's seven steps from research to review, each refused by a native program until its input is approved, routes each request before work starts, drives the steps to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it. It keeps up to 820 characters in context on every turn. Distributed as a Pi package.
+Runs the method's seven steps from research to review, each refused by a native program until its input is approved, routes each request before work starts, drives the steps to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it. It keeps up to 910 characters in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

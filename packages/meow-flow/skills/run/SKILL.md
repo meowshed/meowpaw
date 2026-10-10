@@ -2,7 +2,6 @@
 name: run
 description: Drives the method's chain to its next approval gate, from the state the record shows.
 argument-hint: "[record identifier]"
-disable-model-invocation: true
 ---
 
 <role>
