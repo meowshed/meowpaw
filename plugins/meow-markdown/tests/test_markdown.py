@@ -436,7 +436,7 @@ class Adopted(unittest.TestCase):
         """TSK-3110 criterion 7, REQ-2452 and REQ-2434: `[markdown] target` and the `lint` verb, by the program's path."""
         profile = tomllib.loads((ROOT / ".meowpaw" / "profile.toml").read_text(encoding="utf-8"))
         self.assertEqual(profile.get("markdown", {}).get("target"), "github")
-        self.assertIn("plugins/meow-markdown/bin/meow-markdown check", profile["verbs"]["lint"])
+        self.assertIn("plugins/meow-markdown/bin/meow-markdown check", profile["stages"]["lint"])
 
     def test_criterion_7_check_passes_on_this_repository(self):
         """TSK-3110 criterion 7, REQ-2434 and REQ-2452: `check` finds nothing in this repository."""

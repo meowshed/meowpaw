@@ -13,7 +13,7 @@
 - [meow-core](plugins/meow-core/README.md): the shape of every reply
 - [meow-prose](plugins/meow-prose/README.md): the writing standard, loaded before Claude Code writes
 - [meow-prose-gate](plugins/meow-prose-gate/README.md): a hook that blocks a publish carrying a defect any reader can point to
-- [meow-checks](plugins/meow-checks/README.md): the five verification verbs, run as the repository declares them
+- [meow-checks](plugins/meow-checks/README.md): the five verification stages, run as the repository declares them
 - [meow-scm](plugins/meow-scm/README.md): the commit convention, checked before a message is used
 - [meow-git](plugins/meow-git/README.md): refuses a commit on the trunk and checks a branch before it is pushed
 - [meow-flow](plugins/meow-flow/README.md): runs the method's seven steps and checks the record they write

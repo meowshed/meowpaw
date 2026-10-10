@@ -55,20 +55,20 @@ states:
   ]
 ---
 
-# The five verbs
+# The five stages
 
 ## Scope
 
-This covers the five verification verbs a repository declares and the unit
+This covers the five verification stages a repository declares and the unit
 that resolves, reports and runs them, `meow-checks`. ADR-2300 named the unit
 for what it does for the reader: it was `meow-verbs`, which stayed in the
 marketplace one release as a stub and is gone from it now (REQ-3634,
-REQ-3636, ADR-2360). It states where a verb resolves from, what an unresolved
-verb reports, and what a run records.
+REQ-3636, ADR-2360). It states where a stage resolves from, what an unresolved
+stage reports, and what a run records.
 
-It also states how a verb resolves for each part of a repository, the
+It also states how a stage resolves for each part of a repository, the
 revision counter beside the ledger, and `doctor`, which answers whether the
-repository can be worked on here. Binding a verb to a runner's tasks is the
+repository can be worked on here. Binding a stage to a runner's tasks is the
 runner pack's, and binding it from a language's tools is the language pack's. How the
 unit's skill is written is SPC-1030's.
 
@@ -80,21 +80,20 @@ ADR-2450 and ADR-2700 the revision counter, and ADR-2680 `doctor`.
 
 ## Boundary
 
-| Surface                                | What it is                                                                |
-| -------------------------------------- | ------------------------------------------------------------------------- |
-| `.meowpaw/profile.toml`, `[verbs]`     | The repository's declaration: one command per verb it declares            |
-| `plugins/meow-checks/bin/meow-checks`  | The program: `status`, `run <verb>...`, `evidence [verb...]` and `doctor` |
-| `plugins/meow-checks/hooks/hooks.json` | The `PostToolUse` and `PostToolUseFailure` hooks running `revision`       |
-| `<state>/meowpaw/evidence/`            | The ledger of recorded results, outside the repository                    |
-| `plugins/meow-checks/skills/verify/`   | The skill that tells the model to use the program, not a guess            |
-| `plugins/meow-checks/README.md`        | The unit's documentation page                                             |
+| Surface                                | What it is                                                                  |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| `.meowpaw/profile.toml`, `[stages]`    | The repository's declaration: one command per stage it declares             |
+| `plugins/meow-checks/bin/meow-checks`  | The program: `status`, `run <stage>...`, `evidence [stage...]` and `doctor` |
+| `plugins/meow-checks/hooks/hooks.json` | The `PostToolUse` and `PostToolUseFailure` hooks running `revision`         |
+| `<state>/meowpaw/evidence/`            | The ledger of recorded results, outside the repository                      |
+| `plugins/meow-checks/skills/verify/`   | The skill that tells the model to use the program, not a guess              |
+| `plugins/meow-checks/README.md`        | The unit's documentation page                                               |
 
 ## Behaviour
 
 ### The term
 
-The five are called stages, and this page still says "verb" in the sections
-below until TSK-5271 rewrites it (REQ-4200, ADR-2850). A stage is a named
+The five are called stages (REQ-4200, ADR-2850). A stage is a named
 obligation that a repository binds to a command. The five are independent: a
 failure in one stops no other, and only `format` goes first, because a
 formatter that rewrites files leaves every earlier result stale.
@@ -104,43 +103,43 @@ declares them under `[verbs]` still resolves, and the report names `[stages]`
 as the table to use, until the second release after the one that adds
 `[stages]` (REQ-4204).
 
-### The verbs
+### The stages
 
-There are five verbs and no others: `format` for formatting, `lint` for static
+There are five stages and no others: `format` for formatting, `lint` for static
 analysis, `check` for type checking, which in a compiled language is the
 compiler checking the code without building it, `test` for tests and `build`
 for the build (REQ-0130, REQ-2908). A unit adds no sixth (REQ-0131), because a
-sixth verb is a command with no agreed meaning across repositories.
+sixth stage is a command with no agreed meaning across repositories.
 
-From 0.4.0, under its earlier name, the program no longer reads the names the verbs had
+From 0.4.0, under its earlier name, the program no longer reads the names the stages had
 before ADR-1410, `fmt` for `format` and `typecheck` for `check`: a profile key
 under an old name is named as an unknown key, and an old name on the command line
-isn't a verb.
+isn't a stage.
 
-### Where a verb resolves from
+### Where a stage resolves from
 
-A verb resolves from the command the repository declares for it, and from
+A stage resolves from the command the repository declares for it, and from
 nowhere else (REQ-0134):
 
 ```toml
-[verbs]
+[stages]
 format = "mise run fmt-check"
 lint = "mise run lint"
 ```
 
 The value is one command, run by the shell from the repository's root, or a
 table whose `command` is that command and whose optional `subset` runs the
-verb over part of the work, with `{targets}` where the part goes:
+stage over part of the work, with `{targets}` where the part goes:
 
 ```toml
-[verbs.test]
+[stages.test]
 command = "./scripts/test"
 subset = "./scripts/test {targets}"
 ```
 
-`run <verb>... -- <target>...` runs each named verb through its `subset`, with
+`run <stage>... -- <target>...` runs each named stage through its `subset`, with
 every `{targets}` replaced by the targets, each quoted for the shell and
-separated by spaces (REQ-0140). A verb with no `subset` is unresolved of the
+separated by spaces (REQ-0140). A stage with no `subset` is unresolved of the
 kind `no subset form` and doesn't run, and the program never runs the whole
 command in its place (REQ-0142). A `subset` without `{targets}` is a
 `malformed declaration`, and a `--` naming no target is a usage error
@@ -152,19 +151,19 @@ behind it.
 The profile is read from the repository's root only, found as the top of the
 version control working tree the program runs in, or the current directory
 where there is none. It doesn't walk further up, because a repository has one
-answer to what a verb means. A personal profile beside it,
-`.meowpaw/profile.local.toml`, replaces a verb on one machine, and
-`meow-checks local <verb> <command>` writes it; SPC-1080 states how both files
+answer to what a stage means. A personal profile beside it,
+`.meowpaw/profile.local.toml`, replaces a stage on one machine, and
+`meow-checks local <stage> <command>` writes it; SPC-1080 states how both files
 are read, the profile's three states and the table of keys.
 
-### A verb in each part
+### A stage in each part
 
-A verb resolves per part: in a repository whose profile declares `[parts]`,
-each part's verbs come from that part's profile, read over the root's as
+A stage resolves per part: in a repository whose profile declares `[parts]`,
+each part's stages come from that part's profile, read over the root's as
 SPC-1080 states, so one repository can bind `test` to a different command in
 each part (REQ-0078, REQ-3042). `run` and `status` take `--part <name>`, and
 with none they work on the part whose directory holds the current directory,
-or the root where none does. A gate run for a part runs the verbs of that
+or the root where none does. A gate run for a part runs the stages of that
 part and covers its directory only (REQ-3042). A repository that declares no
 `[parts]` is one part, its root.
 
@@ -176,25 +175,25 @@ reach, which instructions load and which settings apply (REQ-3044).
 
 ### What `status` reports
 
-`meow-checks status` reports all five verbs and runs none of them (REQ-0150).
-For a resolved verb it gives the command and the file it came from, the shared
-profile or the personal one. For an unresolved verb it gives the kind, one of
+`meow-checks status` reports all five stages and runs none of them (REQ-0150).
+For a resolved stage it gives the command and the file it came from, the shared
+profile or the personal one. For an unresolved stage it gives the kind, one of
 six, and a run over part of the work adds a seventh (REQ-0154, REQ-0142,
 REQ-2946):
 
 | Kind                  | Means                                                                           |
 | --------------------- | ------------------------------------------------------------------------------- |
-| undeclared            | The profile exists and doesn't name the verb                                    |
+| undeclared            | The profile exists and doesn't name the stage                                   |
 | no profile            | The repository has no `.meowpaw/profile.toml`                                   |
 | profile unparseable   | The profile exists and can't be read; the parser's message is shown             |
-| malformed declaration | The profile names the verb with a value that isn't one command                  |
+| malformed declaration | The profile names the stage with a value that isn't one command                 |
 | machine path          | The personal profile's command starts with `~` or a path outside the repository |
 | no interpreter        | The program can't run on this machine: the unit carries no binary for it        |
-| no subset form        | A run over part of the work names a verb that declares no `subset`              |
+| no subset form        | A run over part of the work names a stage that declares no `subset`             |
 
-A key under `[verbs]` that is not one of the five, and a key the table of keys
+A key under `[stages]` that is not one of the five, and a key the table of keys
 doesn't list, are named as unknown, so the person learns why a setting had no
-effect (REQ-2942). An unparseable profile resolves no verb, and nothing falls
+effect (REQ-2942). An unparseable profile resolves no stage, and nothing falls
 back (REQ-2948).
 
 `status --json` gives the same report as one JSON object, for a program to
@@ -202,30 +201,30 @@ read.
 
 ### What `run` reports
 
-`meow-checks run <verb>...` runs each named verb in the order given and reports
+`meow-checks run <stage>...` runs each named stage in the order given and reports
 each one (REQ-0144):
 
-- a verb that ran: the exact command, its exit status, how long it took, and
+- a stage that ran: the exact command, its exit status, how long it took, and
   its whole output, standard output and standard error in the order they
   arrived
-- a verb that failed: the same, led by the last lines of its output, where a
+- a stage that failed: the same, led by the last lines of its output, where a
   failing tool almost always puts its error (REQ-0135)
-- an unresolved verb: its kind, and the words "not run"
+- an unresolved stage: its kind, and the words "not run"
 
-An unresolved verb is never reported as passed (REQ-0136). The program ends
-with a summary line naming each verb as passed, failed or unresolved, and
-exits with 0 only when every named verb ran and passed: 1 when any failed, and
-3 when none failed and any was unresolved. `run` with no verb named is an
-error, because a run of every declared verb would pass while the undeclared
+An unresolved stage is never reported as passed (REQ-0136). The program ends
+with a summary line naming each stage as passed, failed or unresolved, and
+exits with 0 only when every named stage ran and passed: 1 when any failed, and
+3 when none failed and any was unresolved. `run` with no stage named is an
+error, because a run of every declared stage would pass while the undeclared
 ones went unmentioned.
 
 ### What `run` records
 
-`run` records each verb it runs, an unresolved one included, in a ledger
-outside the repository: the verb, the command, the outcome, the exit status,
+`run` records each stage it runs, an unresolved one included, in a ledger
+outside the repository: the stage, the command, the outcome, the exit status,
 the time and the tree id, with the whole output in a file named for the
-record. Under its summary it prints one line per verb:
-`recorded: <verb> <record> at tree <tree id>`
+record. Under its summary it prints one line per stage:
+`recorded: <stage> <record> at tree <tree id>`
 (REQ-0146) (ADR-1480). The ledger is `<state>/meowpaw/evidence/<key>.jsonl`,
 where `<state>` is `$XDG_STATE_HOME` where it is set, and otherwise
 `%LOCALAPPDATA%` on Windows and `~/.local/state` elsewhere, and `<key>` is a
@@ -234,28 +233,28 @@ hash of the work tree's absolute path. `meow-checks` only appends to it.
 The tree id is git's hash of the working state as a tree object, untracked
 files included and ignored ones left out, built through a temporary index so
 the repository's own index is untouched. It equals the tree of a commit that
-adds every file it counted. The program takes it before and after each verb,
+adds every file it counted. The program takes it before and after each stage,
 and a record whose two ids differ is marked as changed during the run. Outside
 a git work tree the tree id is `none`.
 
 ### What `evidence` reports
 
-`meow-checks evidence [verb...]` prints the latest record for each named verb,
-or every verb with a record when none is named: its outcome, its identifier,
+`meow-checks evidence [stage...]` prints the latest record for each named stage,
+or every stage with a record when none is named: its outcome, its identifier,
 and `current` or `stale` with the tree it ran on and the tree now. The latest
-record decides. It exits 0 when every named verb's latest record passed on the
+record decides. It exits 0 when every named stage's latest record passed on the
 current tree; 1 when one failed, is stale or changed during its run; and 3
 when one has no record, was unresolved or is bound to no tree (REQ-0148).
 
 A record from a subset run carries its targets, and `evidence` never counts it
-as current for the whole verb: it reads the latest record run without
+as current for the whole stage: it reads the latest record run without
 targets, prints the latest subset record beside it as `subset only`, and reads
 a record carrying no targets field as a whole run.
 
 ### No run output in the repository
 
 The repository keeps no run output (REQ-3614). A record or a pull request
-cites a result as `evidence` prints it: the verb, the outcome, the record and
+cites a result as `evidence` prints it: the stage, the outcome, the record and
 the tree id. `evidence --keep` and `evidence --kept` exit 2, naming ADR-2300,
 and write nothing, for one release. The tree id leaves no directory out,
 and `meow-checks tree <commit>` prints a commit's tree id, for comparing a
@@ -265,7 +264,7 @@ Every record carries the tree id it was collected at, and any change to the
 tree makes it stale (REQ-0452, REQ-0454). Where a submodule has uncommitted
 changes the tree id is `none`, so a result then is bound to nothing and an
 earlier one reads as bound to nothing too, with `evidence` naming the
-submodule and exiting 3 (ADR-1560). `evidence` reports, for each verb the
+submodule and exiting 3 (ADR-1560). `evidence` reports, for each stage the
 work claims, the result behind the claim and whether it holds for the tree as
 it is (REQ-0456).
 
@@ -297,10 +296,10 @@ prune when the lock is held, and `state --purge` drops all (REQ-2962). Rewrites
 go through a temporary file renamed into place, and a reader skips a line cut
 short (REQ-2966).
 
-A verb's run is recorded as started, with its process id, start time and host,
+A stage's run is recorded as started, with its process id, start time and host,
 and ended in a second line; a start with no end reads as `running` while that
-process lives and `interrupted` otherwise, and a verb ended by a signal is
-`interrupted` (REQ-2968, REQ-2969). `run` and `evidence` exit 1 where a verb
+process lives and `interrupted` otherwise, and a stage ended by a signal is
+`interrupted` (REQ-2968, REQ-2969). `run` and `evidence` exit 1 where a stage
 failed or went stale, else 4 where one was interrupted or is running, else 3
 where one was unresolved, else 0. `evidence --all` adds every work tree whose
 records name the same repository (REQ-2970).
@@ -310,10 +309,10 @@ records name the same repository (REQ-2970).
 `meow-checks doctor` answers one question: whether this repository can be
 worked on here. `paw status` answers where the work stands, and neither
 command answers the other (REQ-3080). `doctor` reports the profile's state,
-each verb's resolution in each part, and each installed pack's detection,
+each stage's resolution in each part, and each installed pack's detection,
 naming the pack, the marker file it matched and the directory it is in, so a
 wrong detection shows before a wrong command runs (REQ-3090). It runs no
-verb.
+stage.
 
 A finding that depends on this machine, such as a tool not on `PATH`, a
 binary missing for the machine's target or a platform older than a unit
@@ -329,10 +328,10 @@ the repository, and 3 where every finding is marked `machine`.
 model would format, lint, type-check, test or build, in the description form
 SPC-1030 states. It runs `status` before the first `run` in a session, so the
 commands the profile names are on screen before anything executes, and it
-reports each verb with the kind of result the program gave, never rounding an
-unresolved verb into a pass. It runs `format` before the other verbs, cites a
+reports each stage with the kind of result the program gave, never rounding an
+unresolved stage into a pass. It runs `format` before the other stages, cites a
 result as `evidence` prints it, and calls the work done only when `evidence`
-on the verbs the change needs exits 0 or a person accepts what it reported
+on the stages the change needs exits 0 or a person accepts what it reported
 (REQ-0146, REQ-0148).
 
 ### The program
@@ -340,22 +339,22 @@ on the verbs the change needs exits 0 or a person accepts what it reported
 The program is the `verbs` subcommand of the native tool SPC-1080 states,
 shipped as a binary inside the unit, so it needs nothing installed on the
 machine. The launcher runs the binary for the machine's target, and where
-there is none, every verb reports the kind "no interpreter" and nothing reports
+there is none, every stage reports the kind "no interpreter" and nothing reports
 passed. The kind keeps the name it had when the program needed an interpreter,
 so the fixtures that define it didn't change in the port; it means the program
 can't run on this machine.
 
 ## Failure paths
 
-| Condition                                     | What happens                                                                     |
-| --------------------------------------------- | -------------------------------------------------------------------------------- |
-| No profile                                    | Every verb is unresolved, of kind "no profile"; `run` runs nothing and exits 3   |
-| The profile doesn't parse                     | Every verb is unresolved, of kind "profile unparseable", with the parser's error |
-| A verb's value isn't a string                 | That verb is unresolved, reported as a malformed declaration                     |
-| The declared command exits non-zero           | The verb failed: its command, status and whole output, led by its last lines     |
-| The declared command isn't found by the shell | The verb failed, with the shell's own message, because the repository named it   |
-| No binary for the machine's target            | Every verb is unresolved, of kind "no interpreter"                               |
-| `run` with no verb                            | An error naming the five verbs, and nothing runs                                 |
-| `--part` names no declared part               | An error naming the parts the profile declares, and nothing runs                 |
-| A part's profile leaves out a verb            | That verb is unresolved in that part, of kind "undeclared"                       |
-| `doctor` finds a tool missing on this machine | The finding is marked `machine`, and the repository isn't reported broken        |
+| Condition                                     | What happens                                                                      |
+| --------------------------------------------- | --------------------------------------------------------------------------------- |
+| No profile                                    | Every stage is unresolved, of kind "no profile"; `run` runs nothing and exits 3   |
+| The profile doesn't parse                     | Every stage is unresolved, of kind "profile unparseable", with the parser's error |
+| A stage's value isn't a string                | That stage is unresolved, reported as a malformed declaration                     |
+| The declared command exits non-zero           | The stage failed: its command, status and whole output, led by its last lines     |
+| The declared command isn't found by the shell | The stage failed, with the shell's own message, because the repository named it   |
+| No binary for the machine's target            | Every stage is unresolved, of kind "no interpreter"                               |
+| `run` with no stage                           | An error naming the five stages, and nothing runs                                 |
+| `--part` names no declared part               | An error naming the parts the profile declares, and nothing runs                  |
+| A part's profile leaves out a stage           | That stage is unresolved in that part, of kind "undeclared"                       |
+| `doctor` finds a tool missing on this machine | The finding is marked `machine`, and the repository isn't reported broken         |

@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-# What this repository declares to the harness (RES-0261). Each verb is one
+# What this repository declares to the harness (RES-0261). Each stage is one
 # command, run by the shell from the repository's root. All five reach the
 # native tool in crates/meow through mise.toml's tasks (ADR-1610).
 
-[verbs]
+[stages]
 format = "mise run fmt-check && mise run shell-fmt && mise run crate-fmt"
 check = "mise run crate-check"
 lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run standalone && mise run budget && plugins/meow-licence/bin/meow-licence check && plugins/meow-mise/bin/meow-mise check && mise run shell-lint && plugins/meow-markdown/bin/meow-markdown check && mise run crate-lint"

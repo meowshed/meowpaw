@@ -8,8 +8,8 @@ describes: [meow-markdown@0.6.1]
 # meow-markdown
 
 `meow-markdown` tells you whether your repository holds a Markdown corpus,
-lists the tools you configured for it, prints a `[verbs]` table bound from
-that configuration, checks the settings behind your verbs, and runs your link
+lists the tools you configured for it, prints a `[stages]` table bound from
+that configuration, checks the settings behind your stages, and runs your link
 check. Its skill tells Claude Code what a reviewer of a Markdown document
 checks that no command reports. It writes no file. `status`, `bind` and `check` read the files git
 tracks and run git alone, and `links` runs lychee. It installs on its own, with
@@ -62,13 +62,13 @@ each key no unit reads. `bind` prints them on standard error, so what it
 prints on standard output stays ready to paste. None of them changes the exit
 status.
 
-## Bind your verbs
+## Bind your stages
 
-`meow-markdown bind` prints a `[verbs]` table for you to paste into
+`meow-markdown bind` prints a `[stages]` table for you to paste into
 `.meowpaw/profile.toml`, and never writes the profile itself:
 
 ```toml
-[verbs]
+[stages]
 format = "prettier --check '**/*.md'"
 lint = "markdownlint-cli2 '**/*.md'"
 # meow-markdown check runs the settings checks; this lint command doesn't
@@ -77,9 +77,9 @@ test = "meow-markdown links"
 # build: unbound, mkdocs.yml configures a site build
 ```
 
-Each verb takes the first binding that applies:
+Each stage takes the first binding that applies:
 
-| Verb     | Bound to                       | When                                                                              |
+| Stage    | Bound to                       | When                                                                              |
 | -------- | ------------------------------ | --------------------------------------------------------------------------------- |
 | `format` | `prettier --check '**/*.md'`   | A `.prettierrc*`, a `prettier.config.*` or a `package.json` with a `prettier` key |
 | `format` | `mdformat --check .`           | A `.mdformat.toml`                                                                |
@@ -90,13 +90,13 @@ Each verb takes the first binding that applies:
 | `test`   | `meow-markdown links`          | A `lychee.toml`                                                                   |
 | `build`  | nothing, printed as unbound    | A `mkdocs.yml`, `book.toml`, `hugo.toml` or `docusaurus.config.*`, which it names |
 
-A verb with no binding is a comment naming what the program looked for.
+A stage with no binding is a comment naming what the program looked for.
 `build` stays unbound where a site generator is configured, because nobody has
 yet watched a generator's build fail on a broken page. `bind` prints nothing
-for a verb your profile already declares. It names a `.remarkrc*` or
+for a stage your profile already declares. It names a `.remarkrc*` or
 `.textlintrc*` as a linter it binds no command for, and names a `mise.toml` or
 a `Taskfile.yml` with the runner's pack, `meow-mise` or `meow-gotask`, since a
-repository that runs its tools through a runner binds its verbs to the
+repository that runs its tools through a runner binds its stages to the
 runner's tasks.
 
 `meow-markdown links` is the link check that table binds, as
@@ -104,40 +104,40 @@ runner's tasks.
 
 ## Check your settings
 
-`meow-markdown check` reports each setting your verbs depend on that is
+`meow-markdown check` reports each setting your stages depend on that is
 missing or has no effect, one line for each finding, and exits 1 on any:
 
-| Line                                                                     | When                                                                                                                                                                                           |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `no render target: declare [markdown] target`                            | Your profile's `[markdown] target` is missing or empty                                                                                                                                         |
-| `markdownlint-cli2 runs its defaults: no configuration file`             | Your `lint` verb runs `markdownlint-cli2`, names no `--config <file>`, and git tracks no markdownlint configuration                                                                            |
-| `markdownlint runs its defaults: no configuration file`                  | Your `lint` verb runs `markdownlint` or `markdownlint-cli`, names no `-c <file>`, `--config <file>` or `--config=<file>`, and git tracks no `.markdownlint.*` or `.markdownlintrc` at the root |
-| `markdownlint ignores <file>`                                            | Your `lint` verb runs `markdownlint` or `markdownlint-cli`, and git tracks a `.markdownlint-cli2.*` file                                                                                       |
-| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules                                                                                             |
-| `link check declares no <setting>`                                       | A verb runs `lychee` or `meow-markdown links`, and nothing it reads sets `offline`, `max_retries` or `cache`                                                                                   |
-| `<file> doesn't parse as TOML: <message>`                                | The link check's settings file isn't valid TOML                                                                                                                                                |
-| `.lycheecache isn't ignored`                                             | The link check's cache is on, and no ignore file in your repository covers `.lycheecache`                                                                                                      |
+| Line                                                                     | When                                                                                                                                                                                            |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `no render target: declare [markdown] target`                            | Your profile's `[markdown] target` is missing or empty                                                                                                                                          |
+| `markdownlint-cli2 runs its defaults: no configuration file`             | Your `lint` stage runs `markdownlint-cli2`, names no `--config <file>`, and git tracks no markdownlint configuration                                                                            |
+| `markdownlint runs its defaults: no configuration file`                  | Your `lint` stage runs `markdownlint` or `markdownlint-cli`, names no `-c <file>`, `--config <file>` or `--config=<file>`, and git tracks no `.markdownlint.*` or `.markdownlintrc` at the root |
+| `markdownlint ignores <file>`                                            | Your `lint` stage runs `markdownlint` or `markdownlint-cli`, and git tracks a `.markdownlint-cli2.*` file                                                                                       |
+| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules                                                                                              |
+| `link check declares no <setting>`                                       | A stage runs `lychee` or `meow-markdown links`, and nothing it reads sets `offline`, `max_retries` or `cache`                                                                                   |
+| `<file> doesn't parse as TOML: <message>`                                | The link check's settings file isn't valid TOML                                                                                                                                                 |
+| `.lycheecache isn't ignored`                                             | The link check's cache is on, and no ignore file in your repository covers `.lycheecache`                                                                                                       |
 
-Any string in `[markdown] target` counts as a declaration. For a verb running
+Any string in `[markdown] target` counts as a declaration. For a stage running
 `lychee`, `check` reads the file `--config` names, or `lychee.toml` at the root,
-and the flags `--offline`, `--max-retries` and `--cache`. For a verb running
+and the flags `--offline`, `--max-retries` and `--cache`. For a stage running
 `meow-markdown links` it reads `lychee.toml` alone, because `links` forwards no
 flag. A global excludes file and `.git/info/exclude` protect one clone only, so
 neither counts as ignoring `.lycheecache`. The last finding
-comes from the files alone, whatever your `lint` verb runs. `check` reads the
-tool your `lint` verb names, so a linter run through a runner's task, such as
+comes from the files alone, whatever your `lint` stage runs. `check` reads the
+tool your `lint` stage names, so a linter run through a runner's task, such as
 `mise run lint`, isn't seen. It names a program without an `@<version>`
 suffix, so `npx markdownlint-cli2@0.23.2` counts as markdownlint-cli2. Write
 markdownlint-cli2's `--config` with the path as the next word, because
 markdownlint-cli2 reads `--config=<path>` as a glob and applies no
 configuration from it. With no finding it prints `no findings` and exits 0.
 
-To run the checks with your linter, append the command to your `lint` verb,
+To run the checks with your linter, append the command to your `lint` stage,
 naming the program by its path so a CI job without the unit's `bin/` on
 `PATH` still finds it:
 
 ```toml
-[verbs]
+[stages]
 lint = "markdownlint-cli2 '**/*.md' && plugins/meow-markdown/bin/meow-markdown check"
 ```
 
@@ -168,7 +168,7 @@ unresolved, and 0 where every checked link resolved. A skipped address counts
 towards no exit status. A site that is down therefore never makes a finding,
 and never makes a pass either.
 
-`meow-checks` reads a `test` verb's exit status alone, so it reports a `links`
+`meow-checks` reads a `test` stage's exit status alone, so it reports a `links`
 run that exits 3 as failed, and the lines it quotes say `unreachable`.
 
 ## What it reports instead of a table
@@ -185,7 +185,7 @@ exit 1 on a finding, and every command exits 3 when it can't:
 | `tool broken: lychee ended with exit status ...`  | lychee exited 3 on its configuration or 1 on its inputs                                     |
 | `tool broken: lychee printed ...`                 | lychee printed no JSON, or JSON missing a map `links` reads or carrying one it doesn't know |
 
-`bind` exits 0 whatever comments its table holds, because a verb printed with
+`bind` exits 0 whatever comments its table holds, because a stage printed with
 its reason is settled.
 
 ## Review a document

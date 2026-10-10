@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! `meow-gotask`: what Task resolves in a work tree, and the verbs bound to
+//! `meow-gotask`: what Task resolves in a work tree, and the stages bound to
 //! its tasks (SPC-1150).
 //!
 //! Task's listing carries a name and a file and nothing that changes what a
@@ -145,7 +145,7 @@ fn read_taskfiles(tree: &Tree, root_file: &Path) -> Result<Taskfiles, String> {
 }
 
 /// Remote includes as `check` findings, which it reports whether or not a
-/// verb runs a task from one (REQ-2487).
+/// stage runs a task from one (REQ-2487).
 fn remote_findings() -> Vec<String> {
     let tree = Tree::read();
     let Some(file) = root_taskfile(&tree.root) else {
@@ -352,7 +352,7 @@ impl Definitions {
     }
 }
 
-/// What a definition itself sets that stops a verb running it unattended.
+/// What a definition itself sets that stops a stage running it unattended.
 fn own_blocks(definition: &Yaml) -> Vec<String> {
     let mut blocks = Vec::new();
     if !definition["prompt"].is_badvalue() {
@@ -461,7 +461,7 @@ fn task(tree: &Tree, known: &mut Definitions, entry: &serde_json::Map<String, Va
     ) {
         (Some(blocks), Some((definition, doc))) => {
             if blocks.iter().any(|b| b.starts_with("ignores errors")) {
-                notes.push("a verb bound to it can't report the failure it ignores".to_string());
+                notes.push("a stage bound to it can't report the failure it ignores".to_string());
             }
             let method = scalar(&definition["method"])
                 .or_else(|| scalar(&doc["method"]))
@@ -494,7 +494,7 @@ fn task(tree: &Tree, known: &mut Definitions, entry: &serde_json::Map<String, Va
     }
 }
 
-/// Tasks a Taskfile declares internal, which the listing leaves out, so a verb
+/// Tasks a Taskfile declares internal, which the listing leaves out, so a stage
 /// naming one reads as internal and never as missing.
 fn internal_tasks(taskfiles: &Taskfiles) -> Vec<(String, String)> {
     let mut internal = Vec::new();

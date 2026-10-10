@@ -1202,7 +1202,7 @@ class Crossed(Case):
             f"  mv tmp.md {REQUIREMENT_FILE}\nfi\nexit 1\n")
         (f.root / ".meowpaw" / "profile.toml").write_text(PROFILE.replace('test -f done.flag', f"sh {script}"))
         done = f.start(step_terms("design", "REQ-0001"))
-        self.crossed(f, done, "REQ-0001", found="in the evaluation after iteration 1, verb test")
+        self.crossed(f, done, "REQ-0001", found="in the evaluation after iteration 1, stage test")
 
     def test_a_verb_that_leaves_the_record_alone_crosses_nothing(self):
         """TSK-3420 criterion 5, REQ-0888: a verb that changes the tree on its second run and leaves every record as
@@ -1624,7 +1624,7 @@ class Refusals(Case):
             ("not a git work tree", dict(cwd=outside, env=f.env(GIT_CEILING_DIRECTORIES=str(f.base)))),
             ("state writing is off", dict(env=f.env(MEOWPAW_STATE="off"))),
             ("claude is not on the path", dict(env={**f.env(), "PATH": f"{bare}{os.pathsep}/usr/bin{os.pathsep}/bin"})),
-            ("verb lint resolves to no command", dict(terms=replaced("--until", "verbs=lint"))),
+            ("stage lint resolves to no command", dict(terms=replaced("--until", "verbs=lint"))),
         ]
         lock = f.runs_dir()
         lock.mkdir(parents=True)

@@ -25,8 +25,8 @@ up is none, the chain ends here.
 6. Order findings worst first, mark a preference as one, and report a clean
    result as clean in one sentence.
 7. Where a finding stands, fix it in that pull request as the implement step
-   would, run the verbs again, and have a fresh agent review the fixes, for
-   at most two rounds of fixes. Where a verb fails after a fix, unmark the
+   would, run the stages again, and have a fresh agent review the fixes, for
+   at most two rounds of fixes. Where a stage fails after a fix, unmark the
    task, put `Not yet.` back as the first line of its Evidence, and report it.
 8. End in one verdict, named as an agent's, and stop: not run where the first
    agent reported `BLOCKED`, the fixes unreviewed where the agent reviewing a

@@ -38,7 +38,7 @@ decides the rules a workflow holds, and EPC-2420 realises it.
 | `.github/workflows/*.yml`          | The workflows CI runs                                     |
 | `tools/check_community.py`         | The check that the six community files are present        |
 | `tools/check_workflows.py`         | The check that every workflow holds the rules below       |
-| The `test` verb                    | Runs both checks, as `.meowpaw/profile.toml` binds it     |
+| The `test` stage                   | Runs both checks, as `.meowpaw/profile.toml` binds it     |
 
 ## Behaviour
 
@@ -59,7 +59,7 @@ works and what a reviewer reads first, in that order, as the writing standard's
 rule for a pull request asks.
 
 `tools/check_community.py` fails, naming the file, when any of the six is
-missing from `.github/`. The `test` verb runs it.
+missing from `.github/`. The `test` stage runs it.
 
 ### The workflows
 
@@ -86,7 +86,7 @@ continuous integration (REQ-3035).
 file and the line, on a missing top-level `permissions`, a top-level
 permission other than `contents: read`, a forbidden trigger in a workflow that
 also runs `actions/checkout`, `${{` inside a `run:` value, and the suite's
-task or a model credential named anywhere in the file. The `test` verb runs it.
+task or a model credential named anywhere in the file. The `test` stage runs it.
 
 ## Failure paths
 

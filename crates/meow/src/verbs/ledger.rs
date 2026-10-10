@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! The ledger of recorded verb results, outside the repository, each bound to
+//! The ledger of recorded stage results, outside the repository, each bound to
 //! the tree it ran on (ADR-1480).
 //!
 //! A tree id is git's hash of the working state as a tree object, untracked
@@ -453,7 +453,7 @@ pub fn runs_dir(root: &Path) -> Option<PathBuf> {
     Some(ledger.parent()?.parent()?.join("runs").join(key))
 }
 
-/// One verb's result, as `run` hands it over.
+/// One stage's result, as `run` hands it over.
 pub struct Result<'a> {
     pub verb: &'a str,
     pub command: Option<&'a str>,
@@ -545,7 +545,7 @@ fn host() -> String {
         .unwrap_or_default()
 }
 
-/// Records a verb as started before it runs, naming this process, so a run
+/// Records a stage as started before it runs, naming this process, so a run
 /// cut short reads as interrupted and never as a result (REQ-2968).
 pub fn start(
     root: &Path,
@@ -574,7 +574,7 @@ pub fn start(
     append(root, &ledger, &line).ok().map(|_| id)
 }
 
-/// Whether the process a started record names still runs this verb.
+/// Whether the process a started record names still runs this stage.
 fn still_running(started: &Value) -> bool {
     let pid = started.get("pid").and_then(Value::as_u64).unwrap_or(0) as u32;
     let same_host = started.get("host").and_then(Value::as_str) == Some(host().as_str());

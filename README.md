@@ -86,7 +86,7 @@ kernel             meow-core
 ```
 
 Everything above the packs knows nothing about your stack. A language pack
-teaches the kernel five verbs - `format`, `lint`, `check`, `test`, `build` -
+teaches the kernel five stages - `format`, `lint`, `check`, `test`, `build` -
 authors that tool's configuration, and adds the idioms a reviewer needs. A
 runner pack reads the tasks your project already declares. A tool pack teaches
 the harness an external command-line tool, and every one of those is optional.

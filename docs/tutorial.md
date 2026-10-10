@@ -45,11 +45,11 @@ nothing else.
 ## 3. Declare the check
 
 Tell `meow-checks` how this repository runs its tests. Create
-`.meowpaw/profile.toml` with one line under `[verbs]`:
+`.meowpaw/profile.toml` with one line under `[stages]`:
 
 ```bash
 mkdir .meowpaw
-printf '[verbs]\ntest = "./scripts/test"\n' > .meowpaw/profile.toml
+printf '[stages]\ntest = "./scripts/test"\n' > .meowpaw/profile.toml
 cat .meowpaw/profile.toml
 ```
 
@@ -66,16 +66,16 @@ claude "run the tests"
 ```
 
 Claude Code loads the `meow-checks:verify` skill before it runs anything, and
-shows you what each verb resolves to:
+shows you what each stage resolves to:
 
 ```text
 profile: parsed
 
-format     unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
-lint       unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
-check      unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
+format     unresolved  undeclared: the profile doesn't name it; declare it under [stages] in .meowpaw/profile.toml
+lint       unresolved  undeclared: the profile doesn't name it; declare it under [stages] in .meowpaw/profile.toml
+check      unresolved  undeclared: the profile doesn't name it; declare it under [stages] in .meowpaw/profile.toml
 test       resolved    ./scripts/test   (from .meowpaw/profile.toml)
-build      unresolved  undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml
+build      unresolved  undeclared: the profile doesn't name it; declare it under [stages] in .meowpaw/profile.toml
 ```
 
 If Claude Code asks for permission to run the program, allow it. Then it runs
@@ -104,13 +104,13 @@ doesn't have:
 claude "lint the repository"
 ```
 
-Claude Code shows the same table of what each verb resolves to, then reports
+Claude Code shows the same table of what each stage resolves to, then reports
 `lint` as unresolved and runs nothing in its place:
 
 ```text
 profile: parsed
 
-== lint: unresolved (undeclared: the profile doesn't name it; declare it under [verbs] in .meowpaw/profile.toml), not run
+== lint: unresolved (undeclared: the profile doesn't name it; declare it under [stages] in .meowpaw/profile.toml), not run
 
 summary: lint unresolved
 ```
@@ -122,6 +122,6 @@ caller can mistake for success.
 
 ## What to do next
 
-To add another check, add a line under `[verbs]`. Each unit's own page,
+To add another check, add a line under `[stages]`. Each unit's own page,
 listed in the [introduction](README.md), says what else you can install and
 what it costs you.

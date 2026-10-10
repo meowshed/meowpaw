@@ -491,15 +491,15 @@ class WriteSkill(unittest.TestCase):
     def test_the_injection_rule_says_what_cheap_and_certain_mean(self):
         """TSK-2701 criterion 1, REQ-2686: A6 says what makes injected material cheap and certain, as RES-0201
         records it, and keeps each obligation beside its own reason: the two-minute timeout, an exit of zero because
-        a non-zero exit aborts the invocation, no verification verb because a verb belongs in the body, and no
+        a non-zero exit aborts the invocation, no verification stage because a stage belongs in the body, and no
         dependence because a setting can turn injection off. Each regex tolerates wording that keeps the meaning,
         such as "2-minute", and refuses a rule that drops an obligation."""
         body = self.body("A6")
         for clause in (r"cheap means it finishes inside the platform's (two|2).minute timeout",
                        r"certain means it exits zero wherever the skill runs, because the platform aborts the "
                        r"invocation on a non-zero exit",
-                       r"run no verification verb \(format, lint, check, test or build\) in the injection, because a "
-                       r"verb belongs in the body as an instruction",
+                       r"run no verification stage \(format, lint, check, test or build\) in the injection, because a "
+                       r"stage belongs in the body as an instruction",
                        r"a test run can exceed the timeout",
                        r"never let the material depend on the injection, because a setting can turn injection off",
                        r"a failing injection aborts every invocation"):

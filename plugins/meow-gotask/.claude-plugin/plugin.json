@@ -1,7 +1,7 @@
 {
   "name": "meow-gotask",
   "version": "0.2.2",
-  "description": "Reports the tasks Task (go-task) resolves in a repository, with where each came from and what stops a verb running it unattended, binds the verbs to them, and never trusts a remote Taskfile, answers a prompt or writes into the repository. It keeps up to 380 characters in context on every turn.",
+  "description": "Reports the tasks Task (go-task) resolves in a repository, with where each came from and what stops a stage running it unattended, binds the stages to them, and never trusts a remote Taskfile, answers a prompt or writes into the repository. It keeps up to 380 characters in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
     "email": "me@retran.me"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-gotask/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
-  "keywords": ["go-task", "taskfile", "tasks", "runner", "verbs", "meowpaw"]
+  "keywords": ["go-task", "taskfile", "tasks", "runner", "stages", "meowpaw"]
 }

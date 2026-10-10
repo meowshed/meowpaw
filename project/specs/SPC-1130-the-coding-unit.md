@@ -72,7 +72,7 @@ symbol, a structural edit for a mechanical rewrite and a textual edit only for
 a literal, and makes a change one structural edit can express as that one edit
 (REQ-2010, REQ-2012). Reads and edits that don't depend on each other are
 batched (REQ-2014). After an edit the model reads the file's diagnostics before
-claiming anything about it, and its evidence comes from the verification verbs,
+claiming anything about it, and its evidence comes from the verification stages,
 never from diagnostics (REQ-2016, REQ-2018). Every publicly reachable
 declaration carries documentation, and an example the language runs as a check
 is preferred where it runs them (REQ-1010, REQ-1015).

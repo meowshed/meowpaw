@@ -1,4 +1,4 @@
-# The repository's own gate. `meow-mise` reads these tasks to resolve the verbs.
+# The repository's own gate. `meow-mise` reads these tasks to resolve the stages.
 
 [tools]
 claude = "latest"
@@ -89,7 +89,7 @@ description = "The full gate, as CI runs it"
 depends = ["fmt-check", "shell-fmt", "crate-fmt", "lint", "style", "prompts", "kernel", "standalone", "budget", "licence", "mise-check", "markdown", "shell-lint", "crate-lint", "crate-check", "test", "build"]
 
 [tasks.mise-check]
-description = "Check the profile's verbs name the tasks mise declares"
+description = "Check the profile's stages name the tasks mise declares"
 depends = ["build"]
 run = "plugins/meow-mise/bin/meow-mise check"
 

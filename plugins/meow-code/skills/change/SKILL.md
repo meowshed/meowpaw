@@ -21,7 +21,7 @@ proven by a check that couldn't fail costs every reader after you.
 4. After each edit, read the file's diagnostics before you claim anything
    about it.
 5. Prove the change with a check that fails without it, take the evidence
-   from the repository's verification verbs, and stop when they pass.
+   from the repository's verification stages, and stop when they pass.
 </steps>
 
 <rules name="changing code">
@@ -40,7 +40,7 @@ proven by a check that couldn't fail costs every reader after you.
 - E5. Batch reads and edits that don't depend on each other, because each
   round trip costs time and context for nothing.
 - E6. Read a file's diagnostics after editing it and before claiming anything
-  about it, and take evidence from the verification verbs, never from the
+  about it, and take evidence from the verification stages, never from the
   diagnostics, because diagnostics say a file parses, not that the work is
   done.
 - E7. Never reformat while changing behaviour, because in the diff a

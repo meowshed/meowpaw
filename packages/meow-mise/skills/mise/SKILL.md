@@ -1,6 +1,6 @@
 ---
 name: mise
-description: The tasks mise resolves in this repository and what each can safely do. It MUST be loaded before running, listing or binding a mise task or a verb to one in a repository with a mise.toml or a mise task directory. It MUST NOT be used to trust a configuration.
+description: The tasks mise resolves in this repository and what each can safely do. It MUST be loaded before running, listing or binding a mise task or a stage to one in a repository with a mise.toml or a mise task directory. It MUST NOT be used to trust a configuration.
 ---
 
 <role>
@@ -21,13 +21,13 @@ and never yours.
    and a blocked task each say why a result from it proves less.
 </steps>
 
-<steps name="bind the verbs">
+<steps name="bind the stages">
 1. Run `meow-mise bind` and show the table it
-   prints, each unbound verb's reason included.
+   prints, each unbound stage's reason included.
 2. Give the table to the person to put in `.meowpaw/profile.toml`, and write
    the profile yourself only when they ask, because the profile is the
    repository's declaration.
-3. After a profile's verbs change, run
+3. After a profile's stages change, run
    `meow-mise check` and report every finding it
    prints, with its exit status.
 </steps>

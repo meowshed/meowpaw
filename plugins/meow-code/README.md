@@ -34,7 +34,7 @@ Before Claude Code changes code or writes a check, it loads the
 - prefer a semantic edit for a symbol, a structural one for a mechanical
   rewrite and a textual one only for a literal;
 - read a file's diagnostics after editing it, and take its evidence from your
-  verification verbs, never from the diagnostics;
+  verification stages, never from the diagnostics;
 - document every declaration another module or a user can reach, preferring
   an example the language runs as a check;
 - check what it can statically before behaviourally, and behaviourally before

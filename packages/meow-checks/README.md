@@ -7,7 +7,7 @@ describes: [@meowshed/meow-checks@0.10.0]
 
 # @meowshed/meow-checks
 
-Runs a repository's five verification verbs, format, lint, check, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a verb with no command as unresolved, never as passed. It keeps up to 450 characters in context on every turn. Distributed as a Pi package.
+Runs a repository's five verification stages, format, lint, check, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a stage with no command as unresolved, never as passed. It keeps up to 450 characters in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

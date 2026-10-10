@@ -13,9 +13,9 @@ What this repository already is, read from its documentation, its harness and
 its code, and what couldn't be determined. It records no requirement and no
 decision, because code shows what a system does and never what it must do.
 
-## Verbs
+## Stages
 
-Which verbs resolve and which don't, from `meow-checks status` where that unit
+Which stages resolve and which don't, from `meow-checks status` where that unit
 is installed, first, because how a repository is checked is the first thing a
 person hits.
 
