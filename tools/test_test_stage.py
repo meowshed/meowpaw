@@ -57,7 +57,7 @@ class TestStage(unittest.TestCase):
         split = {"test": {"depends": ["a", "b"]}, "a": {"run": "x"}, "b": {"run": "y"}}
         runs = {name: task.get("run", "") for name, task in split.items()}
         self.assertEqual(gate.covered("mise run test", ["test"], runs), (True, "the task test"))
-        self.assertEqual(gate.covered("mise run test", ["a", "b"], runs), (False, ""))
+        self.assertEqual(gate.covered("mise run test", ["a", "b"], runs), (False, "the task test"))
 
     def test_the_repository_gate_carries_the_stage(self):
         """TSK-5280 criterion 3, REQ-4300: this repository's `all` depends on `test`, and the check passes."""
