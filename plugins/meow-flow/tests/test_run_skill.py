@@ -66,5 +66,43 @@ class RunSkill(unittest.TestCase):
         self.assertIn("Stop where that step ends at an approval gate.", TEXT)
 
 
+STEPS = Path(__file__).resolve().parent.parent / "skills" / "method" / "steps"
+
+
+def flat(path):
+    return re.sub(r"\s+", " ", path.read_text(encoding="utf-8"))
+
+
+def in_a_run():
+    """The run skill's steps for a run, without the attended steps and the rules."""
+    start = FLAT.index('<steps name="in a run">')
+    return FLAT[start:FLAT.index("</steps>", start)]
+
+
+class EpicOnOneBranch(unittest.TestCase):
+    """TSK-5360: the prompts that drive the chain carry an epic's tasks on its one branch."""
+
+    def test_a_run_opens_one_pull_request_for_an_epic_and_merges_at_its_last_task(self):
+        """TSK-5360 criterion 1, REQ-4400, REQ-4414: the merge waits for the epic, not for a task."""
+        steps = in_a_run()
+        self.assertRegex(steps, r"epic's (one )?(branch|pull request)")
+        self.assertRegex(steps, r"next task of the epic[^.]{0,120}same branch")
+        self.assertRegex(steps, r"merge[^.]{0,200}(epic is closed|last task)")
+        self.assertNotRegex(steps, r"open the pull request and merge it once")
+
+    def test_the_implement_step_goes_on_to_the_epics_next_task(self):
+        """TSK-5360 criterion 2, REQ-4410, REQ-4414: marking a task is not where the step stops."""
+        text = flat(STEPS / "implement.md")
+        self.assertRegex(text, r"next (ready )?task of (the|its) epic[^.]{0,160}same branch")
+        self.assertRegex(text, r"stop[^.]{0,80}epic's pull request")
+        self.assertNotRegex(text, r"and stop there\.")
+
+    def test_the_review_step_reads_an_epics_pull_request(self):
+        """TSK-5360 criterion 3, REQ-4400: a task has no review of its own."""
+        opening = flat(STEPS / "review.md")[:600]
+        self.assertRegex(opening, r"epic's pull request")
+        self.assertNotRegex(opening, r"reads a task's pull request")
+
+
 if __name__ == "__main__":
     unittest.main()
