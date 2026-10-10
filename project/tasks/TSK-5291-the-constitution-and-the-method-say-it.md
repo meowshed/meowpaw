@@ -1,7 +1,7 @@
 ---
 id: TSK-5291
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2770
 closes: [REQ-4400, REQ-4402, REQ-4404, REQ-4410, REQ-4414]
@@ -42,7 +42,15 @@ package copies. Leave the commit skill to TSK-5292.
 
 ## Evidence
 
-Not yet.
+Pull request 880. The tests are in `plugins/meow-flow/tests/test_record.py`,
+class `EpicIsOnePullRequest`:
+
+- Criterion 1: `test_no_living_text_says_a_task_is_a_pull_request`.
+- Criterion 2: `test_the_constitution_says_an_epic_is_one_pull_request`.
+- Criterion 3: `test_the_implement_step_works_the_tasks_of_an_epic_on_one_branch`.
+
+One pattern in the tests written first asked for "marke" and an optional "d",
+so no wording could meet it, and a commit of its own corrects it.
 
 ## Left alone
 

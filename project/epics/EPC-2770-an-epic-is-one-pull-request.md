@@ -1,7 +1,7 @@
 ---
 id: EPC-2770
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-10
 realises: ADR-2860
 ---
@@ -36,13 +36,13 @@ the same.
 
 ## Tasks
 
-- [ ] T-001 TSK-5290 The readiness check reads a task's approval from the working tree
+- [x] T-001 TSK-5290 The readiness check reads a task's approval from the working tree (done: pull request 880)
       closes: REQ-4412
       depends: nothing
-- [ ] T-002 TSK-5291 The constitution, the method unit and its templates say it
+- [x] T-002 TSK-5291 The constitution, the method unit and its templates say it (done: pull request 880)
       closes: REQ-4400, REQ-4402, REQ-4404, REQ-4410, REQ-4414
       depends: TSK-5290 (blocking) - the text says a task approved on the branch is ready, and that has to work
-- [ ] T-003 TSK-5292 The commit skill states the unit of a pull request
+- [x] T-003 TSK-5292 The commit skill states the unit of a pull request (done: pull request 880)
       closes: REQ-4406, REQ-4408
       depends: TSK-5291 (not blocking) - the two texts agree, and either task can write first
 

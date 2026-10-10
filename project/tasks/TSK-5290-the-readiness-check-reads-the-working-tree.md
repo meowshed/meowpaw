@@ -1,7 +1,7 @@
 ---
 id: TSK-5290
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2770
 closes: [REQ-4412]
@@ -39,7 +39,19 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 880. The tests are in `plugins/meow-flow/tests/test_record.py`,
+class `ApprovedOnTheBranch`:
+
+- Criterion 1: `test_a_task_approved_on_the_branch_is_ready`.
+- Criterion 2: `test_status_names_the_task_as_next`.
+- Criterion 3: `test_a_draft_task_is_not_ready`.
+
+The tests of the withdrawn guard, 22 in the class `OffTheTrunk`, were removed in a
+commit of its own that says why. This task changed the guard that would have
+refused it, so `paw ready implement TSK-5290` couldn't be run before the change
+on this branch, and the owner's instruction to work this epic by the new rules
+is what authorised starting it. `meow-checks run format lint check test build`
+ran on the final tree; its result is in the pull request's `gate` job.
 
 ## Left alone
 

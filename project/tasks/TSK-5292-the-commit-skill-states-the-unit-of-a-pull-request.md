@@ -1,7 +1,7 @@
 ---
 id: TSK-5292
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2770
 closes: [REQ-4406, REQ-4408]
@@ -39,7 +39,11 @@ assert its wording.
 
 ## Evidence
 
-Not yet.
+Pull request 880. The tests are in `plugins/meow-scm/tests/test_scm.py`, class
+`CommitSkill`:
+
+- Criterion 1: `test_b1_names_the_epic_or_the_defect_as_the_unit`.
+- Criterion 2: `test_b6_splits_the_epic_before_the_work_starts`.
 
 ## Left alone
 
