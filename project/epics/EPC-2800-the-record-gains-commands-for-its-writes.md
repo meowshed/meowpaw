@@ -30,10 +30,10 @@ approved and a requirement withdrawn by one command each.
 
 ## Tasks
 
-- [x] T-001 TSK-5310 `paw approve` and `paw withdraw` (done: pull request 884)
+- [x] T-001 TSK-5310 `paw approve` and `paw withdraw` (done: pull request 885)
       closes: REQ-4602
       depends: nothing
-- [x] T-002 TSK-5311 `paw done` (done: pull request 884)
+- [x] T-002 TSK-5311 `paw done` (done: pull request 885)
       closes: REQ-4600
       depends: TSK-5310 (not blocking) - the two share the writer that changes a status line
 
