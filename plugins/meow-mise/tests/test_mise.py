@@ -328,7 +328,7 @@ class Bind(Fixture):
     def test_a_verb_binds_to_its_exact_task_with_force(self):
         """REQ-1316, REQ-2354, REQ-2468: the verb runs the declared task, and a skip can't pass."""
         self.assertEqual(self.done.returncode, 0, self.done.stdout + self.done.stderr)
-        self.assertIn("[verbs]\n", self.done.stdout)
+        self.assertIn("[stages]\n", self.done.stdout)
         self.assertIn('test = "mise run --force test"', self.done.stdout)
         self.assertIn('build = "mise run --force build"', self.done.stdout)
 

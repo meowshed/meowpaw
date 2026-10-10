@@ -168,7 +168,7 @@ pub fn bind(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved>)
         "# {} bind: paste what follows into .meowpaw/profile.toml",
         runner.unit
     );
-    println!("[verbs]");
+    println!("[stages]");
     for verb in VERBS {
         match resolved.tasks.iter().find(|t| t.name == verb) {
             None => match resolved.unlisted.iter().find(|(name, _)| name == verb) {
@@ -237,8 +237,7 @@ pub fn check(
             println!("unresolved: the profile doesn't parse: {message}");
             return UNRESOLVED;
         }
-        profile::Profile::Parsed(table, _) => table
-            .get("verbs")
+        profile::Profile::Parsed(table, _) => profile::stages(&table)
             .and_then(toml::Value::as_table)
             .cloned()
             .unwrap_or_default(),
