@@ -1,7 +1,7 @@
 ---
 id: TSK-5303
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2790
 closes: [REQ-4502]
@@ -33,7 +33,11 @@ adoption in part.
 
 ## Evidence
 
-Not yet.
+Pull request 881. The tests are in `tools/test_check_standalone.py`:
+
+- Criterion 1: a unit that names `meow-core` under `dependencies` may climb to it.
+- Criterion 2: climbing to it without declaring it, or to any other unit, is a
+  path leaving the unit.
 
 ## Left alone
 

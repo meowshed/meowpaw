@@ -1,7 +1,7 @@
 ---
 id: EPC-2790
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-10
 realises: ADR-2870
 ---
@@ -31,10 +31,10 @@ core unit and no other.
 
 ## Tasks
 
-- [ ] T-001 TSK-5302 The release packs one build and the units ship none
+- [x] T-001 TSK-5302 The release packs one build and the units ship none (done: pull request 881)
       closes: REQ-4500
       depends: EPC-2780 is done (blocking) - the launchers find the shared binary first
-- [ ] T-002 TSK-5303 The standalone check lets a unit name the core unit
+- [x] T-002 TSK-5303 The standalone check lets a unit name the core unit (done: pull request 881)
       closes: REQ-4502
       depends: TSK-5302 (not blocking) - either can land first
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-5302
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2790
 closes: [REQ-4500]
@@ -32,7 +32,15 @@ Change `crates/meow/build-units` and `.github/workflows/claude-release.yml`.
 
 ## Evidence
 
-Not yet.
+Pull request 881. The tests are `tools/test_release_layout.py` and
+`tools/test_launchers.py`:
+
+- Criterion 1: the artifact-path test, where the build fills one unit.
+- Criterion 2: the test that the build script has no loop over the units' own
+  builds.
+
+A unit loaded in place finds `plugins/meow-core` beside it with no data file,
+which `test_launchers.py` also tests.
 
 ## Left alone
 

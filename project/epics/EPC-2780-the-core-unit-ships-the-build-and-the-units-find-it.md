@@ -1,7 +1,7 @@
 ---
 id: EPC-2780
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-10
 realises: ADR-2870
 ---
@@ -33,10 +33,10 @@ their own builds.
 
 ## Tasks
 
-- [ ] T-001 TSK-5300 The core unit ships the one build and writes where it is
+- [x] T-001 TSK-5300 The core unit ships the one build and writes where it is (done: pull request 881)
       closes: REQ-4500
       depends: nothing
-- [ ] T-002 TSK-5301 Each unit declares the dependency and finds the binary
+- [x] T-002 TSK-5301 Each unit declares the dependency and finds the binary (done: pull request 881)
       closes: REQ-4502, REQ-4504, REQ-4506, REQ-4508
       depends: TSK-5300 (blocking) - a launcher needs the data file to read
 

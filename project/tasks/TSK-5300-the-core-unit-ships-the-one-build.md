@@ -1,7 +1,7 @@
 ---
 id: TSK-5300
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2780
 closes: [REQ-4500]
@@ -36,7 +36,15 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Pull request 881. The tests are `tools/test_shared_binary.py`,
+`plugins/meow-core/tests/test_root_hook.py` and `tools/test_check_kernel.py`:
+
+- Criterion 1: `tools/test_shared_binary.py`, which names all 13 subcommands as
+  carried by `plugins/meow-core/bin/<target>/meow`.
+- Criterion 2: the four tests of `test_root_hook.py`.
+
+The kernel check read the shipped binary as text and failed, so it now skips a
+file that isn't text, with a test in a commit of its own.
 
 ## Left alone
 

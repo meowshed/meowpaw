@@ -1,7 +1,7 @@
 ---
 id: TSK-5301
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2780
 closes: [REQ-4502, REQ-4504, REQ-4506, REQ-4508]
@@ -39,7 +39,17 @@ as the fallback until EPC-2790 removes the builds.
 
 ## Evidence
 
-Not yet.
+Pull request 881. The tests are `tools/test_dependencies.py` and
+`tools/test_launchers.py`:
+
+- Criterion 1: the two dependency tests in `test_dependencies.py`.
+- Criterion 2: the launcher tests of `test_launchers.py`, run through a data file.
+- Criterion 3: the test of the launchers with no data file and no binary.
+- Criterion 4: the version and range test in `test_dependencies.py`.
+
+The shared binary sits in another unit, so it lost the layout and the loop's
+unit directory. The launchers export `MEOW_LAYOUT` and `MEOW_LOOP_UNIT`, with
+tests in commits of their own (BUG-1410).
 
 ## Left alone
 
