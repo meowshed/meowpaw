@@ -52,4 +52,4 @@ doesn't drop one.
 
 ## Tasks
 
-- [ ] T-001 TSK-5280 run the unit suites of the `test` stage at the same time, and keep the gate check reading it
+- [x] T-001 TSK-5280 run the unit suites of the `test` stage at the same time, and keep the gate check reading it (done: pull request 879)
