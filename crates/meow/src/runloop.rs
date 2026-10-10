@@ -1692,6 +1692,236 @@ fn prompt() -> u8 {
     FINISHED
 }
 
+/// A UTC time written as `YYYY-MM-DDTHH:MM:SSZ`, in seconds since 1970.
+fn epoch(iso: &str) -> Option<i64> {
+    let (date, time) = iso.trim_end_matches('Z').split_once('T')?;
+    let mut d = date.split('-').map(|p| p.parse::<i64>().ok());
+    let (y, m, day) = (d.next()??, d.next()??, d.next()??);
+    let mut t = time.split(':').map(|p| p.parse::<i64>().ok());
+    let (h, mi, s) = (t.next()??, t.next()??, t.next()??);
+    let y = if m <= 2 { y - 1 } else { y };
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let mp = (m + 9) % 12;
+    let doy = (153 * mp + 2) / 5 + day - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    Some((era * 146_097 + doe - 719_468) * 86_400 + h * 3_600 + mi * 60 + s)
+}
+
+/// The tokens a transcript's usage fields sum to: input, output and both
+/// cache counts of every message that carries them (REQ-0878).
+fn transcript_tokens(path: &Path) -> Result<u64, String> {
+    let text = std::fs::read_to_string(path)
+        .map_err(|error| format!("can't read the transcript {}: {error}", path.display()))?;
+    let mut total = 0u64;
+    for line in text.lines() {
+        let Ok(value) = serde_json::from_str::<Value>(line) else {
+            continue;
+        };
+        let usage = value
+            .pointer("/message/usage")
+            .or_else(|| value.get("usage"));
+        if let Some(usage) = usage {
+            for key in [
+                "input_tokens",
+                "output_tokens",
+                "cache_creation_input_tokens",
+                "cache_read_input_tokens",
+            ] {
+                total += usage.get(key).and_then(Value::as_u64).unwrap_or(0);
+            }
+        }
+    }
+    Ok(total)
+}
+
+/// The `Stop` hook: after every turn it logs the iteration, checks the five
+/// endings in the order SPC-1201 gives, and otherwise blocks the stop with the
+/// frozen prompt. A state it can't read allows the stop and ends nothing, so
+/// the run reads as interrupted and never goes on past a bound it couldn't
+/// check (REQ-3702, REQ-3704, REQ-3706, REQ-3708, REQ-3710).
+fn stop() -> u8 {
+    let event = read_event();
+    if let Some(cwd) = event.get("cwd").and_then(Value::as_str) {
+        let _ = std::env::set_current_dir(cwd);
+    }
+    let session = event
+        .get("session_id")
+        .and_then(Value::as_str)
+        .unwrap_or("")
+        .to_string();
+    let root = profile::repository_root();
+    let Some(runs) = ledger::runs_dir(&root) else {
+        return FINISHED;
+    };
+    let Some(dir) = active_run(&runs, &session) else {
+        return FINISHED;
+    };
+    let id = dir
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let unresolved = |what: String| {
+        say_only(&format!("unresolved: {what}"));
+        FINISHED
+    };
+    let file = dir.join("run.toml");
+    let table: toml::Table = match std::fs::read_to_string(&file)
+        .map_err(|error| error.to_string())
+        .and_then(|text| {
+            text.parse()
+                .map_err(|error: toml::de::Error| error.to_string())
+        }) {
+        Ok(table) => table,
+        Err(reason) => return unresolved(format!("can't read {}: {reason}", file.display())),
+    };
+    let number = |key: &str| -> Option<f64> {
+        table
+            .get(key)
+            .and_then(|v| v.as_float().or_else(|| v.as_integer().map(|i| i as f64)))
+    };
+    let (Some(iterations), Some(hours), Some(tokens)) =
+        (number("iterations"), number("hours"), number("tokens"))
+    else {
+        return unresolved(format!("{} holds no bounds", file.display()));
+    };
+    let started = table
+        .get("started_at")
+        .and_then(toml::Value::as_str)
+        .and_then(epoch);
+    let (requirements, defects) = match record::open_counts(&root) {
+        Ok(counts) => counts,
+        Err(reason) => return unresolved(format!("the record can't be read: {reason}")),
+    };
+    let Some(transcript) = event.get("transcript_path").and_then(Value::as_str) else {
+        return unresolved("the hook input names no transcript".into());
+    };
+    let total = match transcript_tokens(Path::new(transcript)) {
+        Ok(total) => total,
+        Err(reason) => return unresolved(reason),
+    };
+    let tree = ledger::tree_id(&root);
+    let progress = dir.join("progress").join("progress.md");
+    let hash = sha256(&std::fs::read(&progress).unwrap_or_default());
+    let log = dir.join("log.jsonl");
+    let earlier: Vec<Value> = std::fs::read_to_string(&log)
+        .unwrap_or_default()
+        .lines()
+        .filter_map(|line| serde_json::from_str(line).ok())
+        .collect();
+    let last = earlier.last();
+    let text_of = |value: Option<&Value>, key: &str| -> Option<String> {
+        value
+            .and_then(|v| v.get(key))
+            .and_then(Value::as_str)
+            .map(str::to_string)
+    };
+    let count_of = |value: Option<&Value>, key: &str| -> Option<u64> {
+        value.and_then(|v| v.get(key)).and_then(Value::as_u64)
+    };
+    let tree_before = text_of(last, "tree_after")
+        .or_else(|| {
+            table
+                .get("tree")
+                .and_then(toml::Value::as_str)
+                .map(str::to_string)
+        })
+        .unwrap_or_default();
+    let requirements_before = count_of(last, "open_requirements").or_else(|| {
+        table
+            .get("open_requirements")
+            .and_then(toml::Value::as_integer)
+            .map(|n| n as u64)
+    });
+    let defects_before = count_of(last, "open_defects").or_else(|| {
+        table
+            .get("open_defects")
+            .and_then(toml::Value::as_integer)
+            .map(|n| n as u64)
+    });
+    let hash_before = text_of(last, "progress_hash").unwrap_or_else(|| sha256(b""));
+    let changed = hash != hash_before;
+    let unchanged = tree == tree_before
+        && Some(requirements as u64) == requirements_before
+        && Some(defects as u64) == defects_before
+        && !changed;
+    let earlier_total = count_of(last, "tokens").unwrap_or(0);
+    let this_iteration = total.saturating_sub(earlier_total);
+    let largest = earlier
+        .iter()
+        .filter_map(|line| line.get("iteration_tokens").and_then(Value::as_u64))
+        .max()
+        .unwrap_or(0)
+        .max(this_iteration);
+    let n = earlier.len() as u64 + 1;
+    let line = json!({
+        "iteration": n,
+        "tree_before": tree_before,
+        "tree_after": tree,
+        "open_requirements": requirements,
+        "open_defects": defects,
+        "progress_changed": changed,
+        "progress_hash": hash,
+        "tokens": total,
+        "iteration_tokens": this_iteration,
+        "unchanged": unchanged,
+    });
+    let written = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log)
+        .and_then(|mut f| writeln!(f, "{line}"));
+    if let Err(error) = written {
+        return unresolved(format!("can't write {}: {error}", log.display()));
+    }
+    let elapsed = started.map(|s| {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_secs() as i64)
+            .unwrap_or(0);
+        (now - s) as f64
+    });
+    let previous_unchanged = last
+        .and_then(|l| l.get("unchanged"))
+        .and_then(Value::as_bool)
+        == Some(true);
+    let ending = if requirements == 0 && defects == 0 {
+        Some("finished")
+    } else if (n as f64) >= iterations {
+        Some("ceiling")
+    } else if elapsed.is_some_and(|e| e >= hours * 3_600.0) {
+        Some("time")
+    } else if (total + largest) as f64 > tokens {
+        Some("tokens")
+    } else if unchanged && previous_unchanged {
+        Some("stuck")
+    } else {
+        None
+    };
+    match ending {
+        Some(ending) => {
+            if let Err(reason) = end_run(&dir, ending, &[]) {
+                return unresolved(reason);
+            }
+            let named = if ending == "stuck" {
+                format!(
+                    ": two iterations in a row changed nothing, with {requirements} requirements and {defects} defects open"
+                )
+            } else {
+                String::new()
+            };
+            say_only(&format!("meow-loop run {id} ended: {ending}{named}"));
+        }
+        None => {
+            println!(
+                "{}",
+                json!({"decision": "block", "reason": frozen_prompt(&id, &progress)})
+            );
+        }
+    }
+    FINISHED
+}
+
 /// `meow-loop purge`: removes every run of this work tree.
 fn purge() -> u8 {
     let root = profile::repository_root();
@@ -1750,6 +1980,7 @@ pub fn main(args: &[String]) -> u8 {
         Some((command, rest)) if command == "guard" && rest.is_empty() => guard(),
         Some((command, rest)) if command == "prompt" && rest.is_empty() => prompt(),
         Some((command, rest)) if command == "purge" && rest.is_empty() => purge(),
+        Some((command, rest)) if command == "stop" && rest.is_empty() => stop(),
         _ => {
             eprintln!(
                 "usage: meow-loop start --step <step> [--inputs <id>[,<id>...]] --prompt <file> --until verbs=<verb>[,<verb>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..."
