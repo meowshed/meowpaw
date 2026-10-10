@@ -112,17 +112,17 @@ hook keeps.
 
 ## Boundary
 
-| Surface                          | What it is                                                                                                                 |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `plugins/<unit>/skills/<skill>/` | A skill: `SKILL.md` as the core, and the files it names                                                                    |
-| `plugins/<unit>/agents/*.md`     | An agent definition                                                                                                        |
-| `plugins/<unit>/output-styles/`  | An output style, loaded on every turn it is in force                                                                       |
-| `plugins/<unit>/hooks/`          | A hook's configuration, and the text of any prompt hook                                                                    |
-| `meow-author check`              | The check over every prompt it is given, run by the `prompts` task in the `lint` verb (one of the five verification verbs) |
-| `plugins/meow-author/`           | The unit that ships the authoring skill and the check                                                                      |
-| `tools/check_kernel.py`          | The check that the kernel (the `meow-core` unit) names no unit outside it                                                  |
-| `tools/check_language.py`        | The check that no prompt, template or page of the method names a language or a tool, run by the `test` verb                |
-| `meow-author cost`               | The report of each unit's cost against its budget, and its use, run by the `budget` task                                   |
+| Surface                          | What it is                                                                                                                   |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `plugins/<unit>/skills/<skill>/` | A skill: `SKILL.md` as the core, and the files it names                                                                      |
+| `plugins/<unit>/agents/*.md`     | An agent definition                                                                                                          |
+| `plugins/<unit>/output-styles/`  | An output style, loaded on every turn it is in force                                                                         |
+| `plugins/<unit>/hooks/`          | A hook's configuration, and the text of any prompt hook                                                                      |
+| `meow-author check`              | The check over every prompt it is given, run by the `prompts` task in the `lint` stage (one of the five verification stages) |
+| `plugins/meow-author/`           | The unit that ships the authoring skill and the check                                                                        |
+| `tools/check_kernel.py`          | The check that the kernel (the `meow-core` unit) names no unit outside it                                                    |
+| `tools/check_language.py`        | The check that no prompt, template or page of the method names a language or a tool, run by the `test` stage                 |
+| `meow-author cost`               | The report of each unit's cost against its budget, and its use, run by the `budget` task                                     |
 
 ## Behaviour
 
@@ -274,7 +274,7 @@ characters (REQ-1060, REQ-1062, REQ-1134, REQ-3050).
 A unit that has to be in context before the model acts is loaded by its
 description, which states the obligation. The description opens with a
 sentence saying what the unit is, then says in the third person that the unit
-MUST be loaded before the work (REQ-1144). It names each verb a request uses
+MUST be loaded before the work (REQ-1144). It names each stage a request uses
 for that work and no work the unit does not govern (REQ-1146), and it closes
 by saying the unit MUST NOT be skipped however short or simple the work looks
 (REQ-1148). The writing skill's description shows the form:
@@ -286,7 +286,7 @@ comments, pull request and issue descriptions, commit messages, and Markdown
 files. It MUST NOT be skipped, however short or simple the text looks.
 ```
 
-Sonnet 5 reads a description literally, so a verb the description leaves out
+Sonnet 5 reads a description literally, so a stage the description leaves out
 is a request the unit misses. A description in the second person reads as a
 different voice from the platform's own prompt, and it loaded the writing skill
 in 24 of 60 runs against 45 of 53 for the third person (RES-0272, ADR-1050).
@@ -321,7 +321,7 @@ load it (REQ-1110). A unit also follows these rules:
   (REQ-2686, RES-0201). Cheap means it finishes inside the platform's
   two-minute timeout. Certain means it exits zero wherever the skill runs,
   because the platform aborts the invocation on a non-zero exit. It runs no
-  verification verb such as `lint` or `test`, because a verb belongs in the
+  verification stage such as `lint` or `test`, because a stage belongs in the
   body as an instruction. Nothing depends on it, because a setting can turn
   injection off.
 - Every command is namespaced, because the platform prefixes a unit's skills
@@ -486,7 +486,7 @@ it is given, such as `.claude/`, and fails, naming the file and the line, on:
   stops;
 - an agent's tool, or a tool in a skill's `allowed-tools`, whose unit's README
   names no step beside it;
-- a description whose first sentence carries none of the verbs its unit's
+- a description whose first sentence carries none of the stages its unit's
   `when_to_use` names, because a request reaches a unit through those words
   (REQ-3050).
 
@@ -508,7 +508,7 @@ One check audits every unit, because the format is uniform across them
 | A description loads its unit on a near miss                         | The routing measurement shows it, and the wording is narrowed before it ships          |
 | An agent leaves out a declared field                                | The check fails in the gate, naming the file and the field                             |
 | A unit grants a tool no step is named for                           | The check fails, naming the unit, the tool and the agent or skill granting it          |
-| A method prompt names a language or a tool                          | `tools/check_language.py` fails in the `test` verb, naming the file, line and word     |
+| A method prompt names a language or a tool                          | `tools/check_language.py` fails in the `test` stage, naming the file, line and word    |
 | A language name the list lacks                                      | The check passes it, and review holds it until the word joins the list                 |
 | An agent's front matter doesn't parse                               | The check fails, naming the file and the reason, and runs no field rule on it          |
 | A shipped agent lists `Agent`, `Task` or `*`                        | The check fails, naming the file and the `tools` field                                 |

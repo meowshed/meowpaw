@@ -798,7 +798,7 @@ class Chain(unittest.TestCase):
         path = Path(done.stdout.strip())
         self.assertEqual(path.name, "profile.toml")
         text = path.read_text(encoding="utf-8")
-        for section in ("[verbs]", "[commits]", "[git]", "[record]", "[prose]"):
+        for section in ("[stages]", "[commits]", "[git]", "[record]", "[prose]"):
             self.assertIn(section, text)
         for word in ("python", "rust", "cargo", "npm", "node", "make", "mise", "gradle", "maven", "go ", "java", ".py", ".rs", ".js"):
             self.assertNotIn(word, text.lower(), word)
@@ -2530,11 +2530,11 @@ class ShortChainPrompts(unittest.TestCase):
         self.assertRegex(text, r"(modify|weaken).{0,120}commit of its own.{0,60}why")
         self.assertRegex(text, r"documentation.{0,120}same pull request|same pull request.{0,120}documentation")
         self.assertRegex(text, r"mark the task.{0,80}same pull request")
-        self.assertRegex(text, r"Where every verb passed,.{0,260}mark the task")
-        self.assertRegex(text, r"Mark the task done only in a change whose verbs all passed, because")
+        self.assertRegex(text, r"Where every stage passed,.{0,260}mark the task")
+        self.assertRegex(text, r"Mark the task done only in a change whose stages all passed, because")
         self.assertNotRegex(text, r"its output")
-        self.assertRegex(text, r"Keep `Not yet\.` as the first line of the task's Evidence until every verb has passed, because")
-        self.assertRegex(text, r"Where a verb didn't pass, leave `Not yet\.` as the first line")
+        self.assertRegex(text, r"Keep `Not yet\.` as the first line of the task's Evidence until every stage has passed, because")
+        self.assertRegex(text, r"Where a stage didn't pass, leave `Not yet\.` as the first line")
 
     def test_review_is_a_code_review_in_the_pull_request(self):
         """Criterion 4, REQ-3626, REQ-3612: a review of the change in its pull request, fixed there, written into no

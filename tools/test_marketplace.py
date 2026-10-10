@@ -32,7 +32,7 @@ class RetiredUnits(unittest.TestCase):
     def test_the_test_verb_runs_no_retired_unit(self):
         """TSK-3870 criterion 3: the profile's `test` verb names no retired unit's tests."""
         with open(ROOT / ".meowpaw/profile.toml", "rb") as handle:
-            test = tomllib.load(handle)["verbs"]["test"]
+            test = tomllib.load(handle)["stages"]["test"]
         for unit in RETIRED:
             self.assertNotIn(f"plugins/{unit}", test)
 

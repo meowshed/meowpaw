@@ -24,20 +24,20 @@ installed the harness agreed to that install and to nothing else.
    `paw template constitution` names,
    holding only what the repository already shows. Where it has one, leave it
    untouched and say so.
-5. Report which verbs resolve first, then the two files, what each value
+5. Report which stages resolve first, then the two files, what each value
    came from, each inconsistency you found, and what you couldn't determine.
 </steps>
 
 <rules name="initialise">
 - N1. Write `.meowpaw/profile.toml` and, only where none exists, `CLAUDE.md`,
-  and nothing else: no unit of work, no verb run, nothing installed that
+  and nothing else: no unit of work, no stage run, nothing installed that
   changes what another tool does, and no edit to a file the repository
   already keeps, because the repository agreed to the harness and to nothing
   more.
-- N2. Report which verbs resolve before anything else, from
+- N2. Report which stages resolve before anything else, from
   `meow-checks status` where that unit is installed, and otherwise by listing
-  each verb you declared and each you found no command for, because how a
-  repository is checked is the first thing a person hits. Resolving a verb
+  each stage you declared and each you found no command for, because how a
+  repository is checked is the first thing a person hits. Resolving a stage
   runs nothing.
 - N3. Where the repository follows a convention inconsistently, report each
   variant with how often it appears and leave the value out of the profile,

@@ -7,7 +7,7 @@ describes: [@meowshed/meow-gotask@0.2.1]
 
 # @meowshed/meow-gotask
 
-Reports the tasks Task (go-task) resolves in a repository, with where each came from and what stops a verb running it unattended, binds the verbs to them, and never trusts a remote Taskfile, answers a prompt or writes into the repository. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.
+Reports the tasks Task (go-task) resolves in a repository, with where each came from and what stops a stage running it unattended, binds the stages to them, and never trusts a remote Taskfile, answers a prompt or writes into the repository. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

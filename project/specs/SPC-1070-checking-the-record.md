@@ -335,7 +335,7 @@ Without `--base`, the check compares with `HEAD`. It isn't among the checks
 
 ### This repository
 
-`.meowpaw/profile.toml` declares `root = "project"`, and the `test` verb runs
+`.meowpaw/profile.toml` declares `root = "project"`, and the `test` stage runs
 `paw check` in place of the four scripts it replaces, which are
 deleted (REQ-1673). `tools/check_index.py`, `tools/check_links.py` and the
 checks over the harness's own units stay.

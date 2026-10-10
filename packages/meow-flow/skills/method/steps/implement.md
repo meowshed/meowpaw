@@ -24,14 +24,14 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 5. Bring the user-facing documentation the change invalidates into agreement
    with it, in the same pull request: its pages, the index they are listed in,
    and any install or usage instruction. Run every example you changed.
-6. Run the repository's verbs through `meow-checks`. Where `meow-checks` isn't
-   installed, run each verb's command and note its exit status instead.
-7. Where every verb passed, replace the `Not yet.` that opens the task's
-   `## Evidence` with the tests that close each criterion, each verb's outcome
+6. Run the repository's stages through `meow-checks`. Where `meow-checks` isn't
+   installed, run each stage's command and note its exit status instead.
+7. Where every stage passed, replace the `Not yet.` that opens the task's
+   `## Evidence` with the tests that close each criterion, each stage's outcome
    and the pull request, mark the task `[x]` in its epic or defect in the same
    pull request, with one line of evidence, and stop there. A task naming
    `realises:` has no mark, and its Evidence closes it.
-8. Where a verb didn't pass, leave `Not yet.` as the first line and the task
+8. Where a stage didn't pass, leave `Not yet.` as the first line and the task
    unmarked, report what failed, and stop.
 </steps>
 
@@ -52,7 +52,7 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I6. Where the work turns out to be uncovered by any requirement, stop and
   return to the requirements step, because work with no requirement closes
   nothing.
-- I7. Claim the work done only with evidence: the tests that ran, each verb's
+- I7. Claim the work done only with evidence: the tests that ran, each stage's
   result and the identifier of what it closes, because prose asserting
   success is not evidence.
 - I8. Name in each test the requirement it proves, cover every requirement
@@ -96,10 +96,10 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I19. Keep no run output in the repository, in a file or in the task,
   because the first commit shows the tests failing and the gate shows them
   passing.
-- I20. Mark the task done only in a change whose verbs all passed, because a
+- I20. Mark the task done only in a change whose stages all passed, because a
   done mark without the gate closes its requirements on nothing.
 - I21. Keep `Not yet.` as the first line of the task's Evidence until every
-  verb has passed, because the program reads an Evidence that opens with
+  stage has passed, because the program reads an Evidence that opens with
   anything else as a finished task, and a task naming `realises:` has no
   other mark.
 - I22. Don't report the task finished while documentation it invalidated is
@@ -126,11 +126,11 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I28. Open the repository's introduction with what the project is, followed
   by a quick start that works, and no promotional material, because a reader
   deciding whether to use the project needs those two things first.
-- I29. Take reference for a public interface from the verb that generates it,
-  and where no verb does, report the reference as written by hand and
+- I29. Take reference for a public interface from the stage that generates it,
+  and where no stage does, report the reference as written by hand and
   unchecked against the interface, because hand-written reference drifts from
   the interface it describes.
-- I30. Check documentation through the repository's verbs, report the verb
+- I30. Check documentation through the repository's stages, report the stage
   that checked it or report it unchecked where none does, and never run a
   check of your own, because a check the repository didn't declare is a
   command you guessed.

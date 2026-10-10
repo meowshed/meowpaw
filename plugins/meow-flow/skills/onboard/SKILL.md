@@ -11,7 +11,7 @@ does as though somebody had decided it must.
 </role>
 
 <steps name="onboard">
-1. Run `meow-checks status` where that unit is installed, and note which verbs
+1. Run `meow-checks status` where that unit is installed, and note which stages
    resolve; where `.meowpaw/profile.toml` is missing, stop and say to run
    `/meow-flow:init` first.
 2. Read the repository's documentation, any harness it already has, and its
@@ -27,7 +27,7 @@ does as though somebody had decided it must.
    draft.
 5. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it
    reports in what you wrote.
-6. Report the verbs, the gaps and the disposition of every document, and stop.
+6. Report the stages, the gaps and the disposition of every document, and stop.
    Say that once the report is approved,
    `${CLAUDE_SKILL_DIR}/../../bin/paw onboarding remove` removes what it
    placed.

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! `meow-mise`: what mise resolves in a work tree, and the verbs bound to its
+//! `meow-mise`: what mise resolves in a work tree, and the stages bound to its
 //! tasks (SPC-1140).
 //!
 //! The program asks mise and reads the repository's committed files, and it

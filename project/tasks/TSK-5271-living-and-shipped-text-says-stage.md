@@ -1,7 +1,7 @@
 ---
 id: TSK-5271
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 epic: EPC-2760
 closes: [REQ-4200]
@@ -46,8 +46,31 @@ originals.
 
 ## Evidence
 
-Not yet. Criterion 2 rests on judgement, because no program can read whether a
-paragraph says the stages are independent; the owner reads it in review.
+Pull request 876. A mechanical script made the word change and a short set of
+hand edits made the rest, in two commits with the tests' expectations in a
+third.
+
+- Criterion 1: `git grep -niP '\bverbs?\b'` over the tracked files, outside
+  the frozen record kinds, `plugins/meow-prose` and its mirror, `evals/`,
+  `tests/`, `tools/test_*` and `crates/`, then outside lines naming
+  `meow-verbs`, `verbs=`, the `verbs` subcommand, a `[verbs]` table, the JSON
+  key `"verbs"` or `VERBS`, leaves the onboarding section name `Verbs` in two
+  `layout.toml` files and two grammatical uses in `tools/`. TSK-5272 turns that
+  list into the check's allow-list.
+- Criterion 3: `meow-checks status` on this repository prints no deprecation
+  line, because the profile declares `[stages]`.
+
+Criterion 2 rests on the owner's judgement, because no program can read
+whether a paragraph says the stages are independent: SPC-1040's section "The
+term" says it in its first paragraph.
+
+The onboarding section name `Verbs` stays, because it names a heading in an
+onboarding report that repositories already carry, so changing it is a record
+shape migration that needs its own task. The writing standard's grammatical
+use of "verb", the evaluation cases and the Rust identifiers also stay.
+
+`meow-checks run format lint check test` passed on every stage with this
+branch's binary, after two rounds of corrections to tests and tables.
 
 ## Left alone
 

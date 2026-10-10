@@ -9,7 +9,7 @@ describes: [meow-mise@0.2.2]
 
 `meow-mise` reports the tasks mise resolves in your repository, where each one
 came from and what would stop a check running it unattended, and binds your
-verbs to the tasks you declare. It never trusts
+stages to the tasks you declare. It never trusts
 a configuration, answers a prompt, runs a task or writes a file. It installs
 on its own, with no other part of the `meowpaw` harness.
 
@@ -69,25 +69,25 @@ only, never a value a file holds:
   `idiomatic_version_file_enable_tools` names its tool, and as possibly inert
   where it doesn't, which is mise's default.
 
-## Bind your verbs to your tasks
+## Bind your stages to your tasks
 
-`meow-mise bind` prints a `[verbs]` table for you to paste into
+`meow-mise bind` prints a `[stages]` table for you to paste into
 `.meowpaw/profile.toml`, and never writes the profile itself:
 
 ```toml
-[verbs]
+[stages]
 test = "mise run --force test"
 # lint: task lint is blocked: hidden
 ```
 
-It binds a verb only to the task of exactly its name, so a task named `tests`
+It binds a stage only to the task of exactly its name, so a task named `tests`
 or `unit` is never bound to `test`, and only a task that carries no block.
 Every binding runs the task with `--force`, so a task mise would skip as fresh
-runs, and a passing verb is never a skip. Each verb it leaves unbound is a
+runs, and a passing stage is never a skip. Each stage it leaves unbound is a
 comment with the reason.
 
-`meow-mise check` reads your profile's `[verbs]`, finds each `mise run <task>`
-in a verb's command, including each part of a chain joined by `&&`, `||` or
+`meow-mise check` reads your profile's `[stages]`, finds each `mise run <task>`
+in a stage's command, including each part of a chain joined by `&&`, `||` or
 `;`, and reports every block on that task, a task it can't find, and a task
 that can skip as fresh run without `--force`. It exits 0 on no finding, 1 on a
 finding and 3 when it can't read the profile or mise, so you can run it in

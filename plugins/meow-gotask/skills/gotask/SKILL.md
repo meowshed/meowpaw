@@ -1,6 +1,6 @@
 ---
 name: gotask
-description: The tasks Task (go-task) resolves in this repository and what each can safely do. It MUST be loaded before running, listing or binding a Task task, or a verb to one, in a repository with a Taskfile. It MUST NOT be used to trust a remote Taskfile.
+description: The tasks Task (go-task) resolves in this repository and what each can safely do. It MUST be loaded before running, listing or binding a Task task, or a stage to one, in a repository with a Taskfile. It MUST NOT be used to trust a remote Taskfile.
 ---
 
 <role>
@@ -27,7 +27,7 @@ trusting one is the person's decision and never yours.
   code into the person's environment.
 - G3. Never write an include whose `taskfile` names a URL or a `git::`
   source, because the project would then depend on a third party whenever a
-  verb runs.
+  stage runs.
 - G4. Treat a variable marked `secret: true` as unprotected, because Task
   masks it only in the command it echoes, and a command's own output still
   prints it.
@@ -36,13 +36,13 @@ trusting one is the person's decision and never yours.
   happened.
 </rules>
 
-<steps name="bind the verbs">
+<steps name="bind the stages">
 1. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-gotask bind` and show the table it
-   prints, each unbound verb's reason included.
+   prints, each unbound stage's reason included.
 2. Give the table to the person to put in `.meowpaw/profile.toml`, and write
    the profile yourself only when they ask, because the profile is the
    repository's declaration.
-3. After a profile's verbs change, run
+3. After a profile's stages change, run
    `${CLAUDE_SKILL_DIR}/../../bin/meow-gotask check` and report every finding
    it prints, with its exit status.
 </steps>
