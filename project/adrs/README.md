@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-127 decisions in all: 37 approved, 82 done, 8 superseded.
+128 decisions in all: 38 approved, 82 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -145,6 +145,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2820](ADR-2820-a-pi-package-mirrors-each-unit-one-to-one.md)                                                                                         | A Pi package mirrors each unit one to one, and one tag releases both                                                                       | done       |
 | [ADR-2830](ADR-2830-a-unit-tag-is-cut-from-the-marketplace-release-tree.md)                                                                               | A unit tag is cut from the marketplace release tree, once per release                                                                      | done       |
 | [ADR-2840](ADR-2840-the-suite-runs-by-hand-and-no-workflow-makes-a-model-call.md)                                                                         | The measurement suite runs by hand, and no workflow makes a model call                                                                     | done       |
+| [ADR-2850](ADR-2850-the-five-verification-obligations-are-called-stages.md)                                                                               | The five verification obligations are called stages                                                                                        | approved   |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1140 by ADR-2770; ADR-1170 by ADR-2770; ADR-1210 by ADR-2770; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310.
 <!-- /meow-flow index -->
