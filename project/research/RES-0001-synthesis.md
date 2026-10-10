@@ -196,6 +196,7 @@ here or in the sources below.
 | [How long the test stage takes](RES-0345-how-long-the-test-stage-takes-and-where-the-time-goes.md)                                                 | The test stage takes five to sixteen minutes, and a quarter of that is one suite.                                                                                                                                      |
 | [An epic as the unit of a pull request](RES-0346-an-epic-and-a-defect-as-the-unit-of-a-pull-request.md)                                            | An epic holds 2.7 tasks on average, and a pull request for each task and stage multiplies the gate.                                                                                                                    |
 | [A shared binary in the core unit](RES-0347-a-shared-binary-in-the-core-unit.md)                                                                   | The platform can install the core unit with each unit and shows a path to it, and a shared binary saves about 34 MB.                                                                                                   |
+| [A token total from the transcript counts each cache read again](RES-0351-a-token-total-from-the-transcript-counts-each-cache-read-again.md)       | The token total a hook makes from the transcript is 98 per cent cache reads and begins with the session, so a run keeps its iteration ceiling and time limit, each with a default, and drops the token bound.          |
 
 ## The situation
 
