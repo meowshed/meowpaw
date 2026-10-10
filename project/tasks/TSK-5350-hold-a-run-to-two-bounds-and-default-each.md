@@ -1,7 +1,7 @@
 ---
 id: TSK-5350
 artifact: task
-status: approved
+status: done
 revised: 2026-10-10
 realises: ADR-2910
 closes: [REQ-3724, REQ-3726, REQ-3728, REQ-3730, REQ-3732]
@@ -68,7 +68,37 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Closed in pull request 1041. The tests failed first, in `9fb1415f` for the
+unit's tests and in the commit that added the `bounds` tests for the parser,
+and pass. The criteria say "crate test", and the hooks are driven through the
+unit's launcher, so the tests are the unit's Python tests, which run the built
+program, and Rust unit tests of `bounds` in `crates/meow/src/runloop.rs`:
+
+1. `Stopping.test_a_huge_transcript_does_not_end_the_run` (REQ-3732).
+2. `Stopping.test_each_bound_ends_the_run_with_its_own_ending` (REQ-3724).
+3. `Stopping.test_an_ending_is_one_of_five_and_reverts_nothing` and
+   `Stopping.test_every_iteration_appends_one_log_line` (REQ-3732).
+4. `Starting.test_a_bare_start_runs_with_the_defaults_and_names_them`
+   (REQ-3726, REQ-3728).
+5. `Starting.test_one_named_bound_leaves_the_other_its_default_and_says_so`
+   (REQ-3726, REQ-3728), and the Rust tests `a_bare_start_takes_both_defaults`
+   and `a_named_bound_replaces_only_its_own_default`.
+6. `Starting.test_a_tokens_flag_starts_the_run_and_says_the_bound_is_gone`
+   (REQ-3730), and the Rust test `every_form_of_a_tokens_flag_is_reported`.
+7. `Starting.test_a_bad_bound_writes_nothing_and_names_it` and the Rust test
+   `a_named_bound_with_no_usable_value_is_refused`.
+
+Stages: `mise run test-loop` exit 0 with 130 tests, `mise run test-crate`
+exit 0, `paw check` 0 findings, and the pull request's `gate` check passed on
+`a2f62868`. `mise run all` fails locally in `test-scm` and `test-licence`,
+which find an installed binary where each expects none, and fails the same way
+on `main`; the pull request's `gate` runs them on a clean machine.
+
+An agent's review of the change found a bound flag with no value taking its
+default, a bare `--tokens` going unreported, and the specification and the
+unit's pages still naming the transcript; each is fixed in this pull request.
+The Pi package of the unit, `packages/meow-loop`, carries the version bump and
+no other change.
 
 ## Left alone
 
