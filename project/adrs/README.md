@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-134 decisions in all: 35 approved, 91 done, 8 superseded.
+134 decisions in all: 34 approved, 92 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -102,7 +102,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2390](ADR-2390-the-prose-gate-asks-a-model-and-a-program-keeps-only-what-two-judgements-agree-on.md)                                                 | The prose gate asks a model to judge the text, and its program blocks only on what two judgements agree on                                 | done       |
 | [ADR-2400](ADR-2400-the-native-tool-is-the-harness-s-helper-and-each-subcommand-makes-one-determination.md)                                               | The native tool is the harness's helper, and each subcommand makes one determination                                                       | done       |
 | [ADR-2410](ADR-2410-a-search-reports-its-mode-and-an-absence-comes-only-from-one-that-read-everything.md)                                                 | A search reports its mode, and an absence comes only from one that read everything                                                         | done       |
-| [ADR-2420](ADR-2420-a-tool-runs-operations-and-the-method-keeps-its-own-decisions.md)                                                                     | A tool runs operations, and the method keeps its own decisions                                                                             | approved   |
+| [ADR-2420](ADR-2420-a-tool-runs-operations-and-the-method-keeps-its-own-decisions.md)                                                                     | A tool runs operations, and the method keeps its own decisions                                                                             | done       |
 | [ADR-2430](ADR-2430-packing-the-repository-and-querying-the-corpus-are-postponed-until-a-step-needs-them.md)                                              | Packing the repository and querying the corpus are postponed until a step needs them                                                       | approved   |
 | [ADR-2440](ADR-2440-answering-a-symbol-question-through-a-language-server-is-postponed.md)                                                                | Answering a symbol question through a language server is postponed                                                                         | approved   |
 | [ADR-2450](ADR-2450-a-shipped-hook-only-denies-and-meow-author-check-holds-every-hook-to-the-rules.md)                                                    | A shipped hook only denies, and `meow-author check` holds every hook to the rules                                                          | approved   |

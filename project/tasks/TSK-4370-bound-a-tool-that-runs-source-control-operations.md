@@ -1,7 +1,7 @@
 ---
 id: TSK-4370
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2420
 closes: [REQ-2608, REQ-2610, REQ-2612, REQ-2614, REQ-2616, REQ-2618, REQ-2620]
@@ -61,7 +61,17 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where all six in
+`plugins/meow-scm/tests/test_scm.py` class `ToolOperations` failed.
+`test_it_lists_the_composite_commands_it_never_runs_with_a_reason` closes
+criterion 1 (REQ-2610), and
+`test_a_message_a_tool_generated_is_never_used` closes criterion 2 (REQ-2612).
+`test_a_tool_with_no_machine_readable_output_runs_operations_only`,
+`test_a_rebase_after_signing_is_signed_again_and_never_automatic` and
+`test_a_model_written_summary_is_never_evidence` close criterion 3 (REQ-2608,
+REQ-2614, REQ-2616), and `test_a_working_tree_is_removed_only_in_the_foreground`
+closes criterion 4 (REQ-2618, REQ-2620). The rules are T1 to T7 of the `commit`
+skill, and the README names them. `mise run all` passed with exit status 0.
 
 ## Left alone
 
