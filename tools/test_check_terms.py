@@ -52,13 +52,15 @@ class Terms(unittest.TestCase):
     def test_a_frozen_record_that_says_verb_is_not_reported(self):
         """TSK-5272 criterion 2, REQ-4200: an approved record keeps the word it was written with."""
         root = self.tree({"project/adrs/ADR-9999-a.md": "A verb resolves.\n",
-                          "project/requirements/REQ-9999-a.md": "A verb MUST resolve.\n"})
+                          "project/requirements/REQ-9999-a.md": "A verb MUST resolve.\n",
+                          "docs/a.md": "A page that names no old word.\n"})
         status, out = self.run_check(root)
         self.assertEqual(status, 0, out)
 
     def test_an_allow_listed_file_is_not_reported(self):
         """TSK-5272 criterion 3, REQ-4200: the writing standard uses the grammatical term."""
-        root = self.tree({"plugins/meow-prose/skills/writing/SKILL.md": "Turn the action back into a verb.\n"})
+        root = self.tree({"plugins/meow-prose/skills/writing/SKILL.md": "Turn the action back into a verb.\n",
+                          "docs/a.md": "A page that names no old word.\n"})
         status, out = self.run_check(root)
         self.assertEqual(status, 0, out)
 
@@ -67,6 +69,13 @@ class Terms(unittest.TestCase):
         root = self.tree({"docs/troubleshooting.md": "Uninstall `meow-verbs` first.\n\nPass `--until verbs=test`.\n"})
         status, out = self.run_check(root)
         self.assertEqual(status, 0, out)
+
+    def test_a_tree_with_no_file_to_read_fails(self):
+        """TSK-5272, REQ-4200: a check that read nothing has held nothing to the word."""
+        root = self.tree({"project/adrs/ADR-9999-a.md": "A verb resolves.\n"})
+        status, out = self.run_check(root)
+        self.assertEqual(status, 1, out)
+        self.assertEqual(out, ["0 files read, 0 uses of the old word"])
 
     def test_this_repository_passes(self):
         """TSK-5272 criterion 4, REQ-4200: the tracked living and shipped files hold the word."""
