@@ -403,6 +403,10 @@ units depend on it and find it, and then the units drop their own builds.
 [EPC-2800](epics/EPC-2800-the-record-gains-commands-for-its-writes.md) realises ADR-2880
 in two tasks, TSK-5310 and TSK-5311: the record keeps its files, and `paw approve`,
 `paw withdraw` and `paw done` make each write that crosses files one step.
+[EPC-2810](epics/EPC-2810-a-task-and-its-issue-are-synchronised.md) realises ADR-2890
+in three tasks, TSK-5320 to TSK-5322: a task and its issue are synchronised by a
+fingerprint of each side, the record wins a conflict, and an approved record is
+only reported.
 
 [EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
 tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either
