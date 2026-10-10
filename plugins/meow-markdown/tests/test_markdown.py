@@ -70,7 +70,7 @@ class Fixture(unittest.TestCase):
     def bind(self, files):
         done = self.repo(files).run("bind")
         self.assertIn(done.returncode, BIND_EXITS, done.stdout + done.stderr)
-        self.assertIn("[verbs]", done.stdout, done.stderr)
+        self.assertIn("[stages]", done.stdout, done.stderr)
         return done.stdout.splitlines()
 
     @staticmethod
