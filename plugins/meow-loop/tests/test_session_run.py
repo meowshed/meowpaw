@@ -24,7 +24,7 @@ UNIT = Path(__file__).resolve().parent.parent
 CORE = UNIT.parent / "meow-core"
 BIN = UNIT / "bin" / "meow-loop"
 SESSION = "11111111-1111-4111-8111-111111111111"
-START = "/meow-loop:run --iterations 3 --hours 1 --tokens 100000"
+START = "/meow-loop:run --iterations 3 --hours 1"
 DEPRECATION = "meow-loop start is deprecated: a run now lives in the session, so type /meow-loop:run there"
 POSTURE = '[unattended]\npermission_mode = "dontAsk"\ngates = []\nrelease = false\n'
 PROFILE = '[git]\ntrunk = "main"\n\n' + POSTURE
@@ -98,24 +98,57 @@ class Session(unittest.TestCase):
 
 class Starting(Session):
     def test_the_start_command_writes_a_run_with_its_bounds(self):
-        """TSK-4100 criterion 1, REQ-3700, REQ-0872: a run directory holds the session id and the three bounds."""
+        """TSK-4100 criterion 1, REQ-3700, REQ-3728: a run directory holds the session id and the two bounds."""
         answer = self.start()
         table, directory = self.run_toml()
         self.assertEqual(table["session_id"], SESSION)
-        self.assertEqual((table["iterations"], table["hours"], table["tokens"]), (3, 1, 100000))
+        self.assertEqual((table["iterations"], table["hours"]), (3, 1))
+        self.assertNotIn("tokens", table)
         self.assertEqual(table["started_by"], "person")
         self.assertEqual((directory / "progress" / "progress.md").read_text(), "")
         context = answer["hookSpecificOutput"]["additionalContext"]
         self.assertIn(directory.name, context)
         self.assertEqual(answer["hookSpecificOutput"]["hookEventName"], "UserPromptSubmit")
 
-    def test_a_missing_or_bad_bound_writes_nothing_and_names_each(self):
-        """TSK-4100 criterion 2, REQ-0872: each bound that is missing or not above zero is named."""
-        done, answer = self.prompt("/meow-loop:run --iterations 0 --tokens 5")
+    def test_a_bad_bound_writes_nothing_and_names_it(self):
+        """TSK-5350 criterion 7, SPC-1201: a bound that is not above zero is named, and no run starts."""
+        done, answer = self.prompt("/meow-loop:run --hours 0")
         self.assertEqual(self.runs(), [])
-        message = answer["systemMessage"]
-        self.assertIn("unresolved: --iterations 0 is not a number above 0", message)
-        self.assertIn("unresolved: /meow-loop:run needs --hours", message)
+        self.assertIn("unresolved: --hours 0 is not a number above 0", answer["systemMessage"])
+        done, answer = self.prompt("/meow-loop:run --iterations 0 --hours 2")
+        self.assertEqual(self.runs(), [])
+        self.assertIn("unresolved: --iterations 0 is not a number above 0", answer["systemMessage"])
+        self.assertNotIn("needs --", answer["systemMessage"])
+
+    def test_a_bare_start_runs_with_the_defaults_and_names_them(self):
+        """TSK-5350 criterion 4, REQ-3726, REQ-3728: ten iterations and four hours, stated at the start."""
+        done, answer = self.prompt("/meow-loop:run")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        table, _ = self.run_toml()
+        self.assertEqual((table["iterations"], table["hours"]), (10, 4.0))
+        context = answer["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("10 iterations", context)
+        self.assertIn("4 hours", context)
+        self.assertIn("default", context)
+
+    def test_one_named_bound_leaves_the_other_its_default_and_says_so(self):
+        """TSK-5350 criterion 5, REQ-3726, REQ-3728."""
+        done, answer = self.prompt("/meow-loop:run --iterations 3")
+        table, _ = self.run_toml()
+        self.assertEqual((table["iterations"], table["hours"]), (3, 4.0))
+        context = answer["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("--hours 4 (default)", context)
+        self.assertNotIn("--iterations 3 (default)", context)
+
+    def test_a_tokens_flag_starts_the_run_and_says_the_bound_is_gone(self):
+        """TSK-5350 criterion 6, REQ-3730: the flag is accepted, kept nowhere and reported."""
+        done, answer = self.prompt("/meow-loop:run --iterations 10 --hours 4 --tokens 10000000")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        table, _ = self.run_toml()
+        self.assertNotIn("tokens", table)
+        context = answer["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("no longer", context)
+        self.assertIn("--tokens", context)
 
     def test_a_second_start_in_the_same_session_is_refused(self):
         """TSK-4100, SPC-1201 failure paths: a run already holds this work tree."""
@@ -203,7 +236,7 @@ class Stopping(Session):
 
     def test_an_open_record_blocks_the_stop_with_the_same_frozen_prompt(self):
         """TSK-4110 criterion 1, REQ-3702, REQ-0870: two iterations get the same bytes naming the run."""
-        self.prompt("/meow-loop:run --iterations 5 --hours 1 --tokens 100000")
+        self.prompt("/meow-loop:run --iterations 5 --hours 1")
         table, directory = self.run_toml()
         expected = self.FROZEN.format(id=directory.name, progress=directory / "progress" / "progress.md")
         self.change_tree("one")
@@ -227,12 +260,20 @@ class Stopping(Session):
         table, _ = self.run_toml()
         self.assertEqual(table["ending"], "finished")
 
+    def test_a_huge_transcript_does_not_end_the_run(self):
+        """TSK-5350 criterion 1, REQ-3732, REQ-3724: 30 million tokens in the transcript is not a bound."""
+        self.prompt("/meow-loop:run --iterations 10 --hours 4")
+        self.change_tree("big")
+        done, answer = self.stop((30_000_000, 0))
+        self.assertEqual(answer.get("decision"), "block", done.stdout + done.stderr)
+        table, _ = self.run_toml()
+        self.assertNotIn("ending", table)
+
     def test_each_bound_ends_the_run_with_its_own_ending(self):
-        """TSK-4110 criterion 3, REQ-3708, REQ-0876, REQ-0878: ceiling, time and tokens."""
+        """TSK-5350 criterion 2, REQ-3724, REQ-0876: ceiling and time."""
         cases = {
-            "ceiling": ("/meow-loop:run --iterations 1 --hours 1 --tokens 100000", (10, 5), None),
-            "tokens": ("/meow-loop:run --iterations 5 --hours 1 --tokens 1000", (900, 600), None),
-            "time": ("/meow-loop:run --iterations 5 --hours 1 --tokens 100000", (10, 5), "2000-01-01T00:00:00Z"),
+            "ceiling": ("/meow-loop:run --iterations 1 --hours 1", (10, 5), None),
+            "time": ("/meow-loop:run --iterations 5 --hours 1", (10, 5), "2000-01-01T00:00:00Z"),
         }
         for ending, (command, usage, started) in cases.items():
             with self.subTest(ending=ending):
@@ -270,17 +311,18 @@ class Stopping(Session):
         lines = self.log()
         self.assertEqual([line["iteration"] for line in lines], [1, 2])
         for line in lines:
-            for key in ("tree_before", "tree_after", "open_requirements", "open_defects", "progress_changed", "tokens"):
+            for key in ("tree_before", "tree_after", "open_requirements", "open_defects", "progress_changed"):
                 self.assertIn(key, line)
-        self.assertEqual(lines[1]["tokens"], 450)
+            for key in ("tokens", "iteration_tokens"):
+                self.assertNotIn(key, line)
 
-    def test_an_ending_is_one_of_six_and_reverts_nothing(self):
-        """TSK-4110 criterion 6, REQ-2658, REQ-2656: the work tree keeps what the iteration changed."""
-        self.prompt("/meow-loop:run --iterations 1 --hours 1 --tokens 100000")
+    def test_an_ending_is_one_of_five_and_reverts_nothing(self):
+        """TSK-5350 criterion 3, REQ-2658, REQ-2656, REQ-3732: no ending is `tokens`, and the tree is kept."""
+        self.prompt("/meow-loop:run --iterations 1 --hours 1")
         self.change_tree("kept")
         self.stop()
         table, _ = self.run_toml()
-        self.assertIn(table["ending"], {"finished", "ceiling", "time", "tokens", "stuck", "cancelled"})
+        self.assertIn(table["ending"], {"finished", "ceiling", "time", "stuck", "cancelled"})
         self.assertEqual((self.repo / "work.txt").read_text(), "kept\n")
 
     def test_no_active_run_allows_the_stop_and_writes_nothing(self):

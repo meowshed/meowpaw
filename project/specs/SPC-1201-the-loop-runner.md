@@ -167,7 +167,7 @@ stop. Read <progress file> first and update it before you finish. The record
 decides when this run ends; you don't.
 ```
 
-A program decides every ending from the record and the transcript, and nothing
+A program decides every ending from the record, and nothing
 the model printed changes it (REQ-3706, REQ-0876). The platform overrides a
 `Stop` hook that blocks eight times in a row without the model calling a tool
 (RES-0320, conclusion 9). An iteration that runs `/meow-flow:run` calls tools,
@@ -241,7 +241,7 @@ writes no run directory and lets the prompt through as an ordinary prompt:
 | No state directory can be named                | `unresolved: no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME` |
 | The run's directory can't be written           | `unresolved: can't create a run in <directory>: <error>`                        |
 
-During a run, a `Stop` hook that can't read `run.toml`, the record or the
-transcript allows the stop, writes no ending and reports `unresolved: <what>`.
+During a run, a `Stop` hook that can't read `run.toml` or the record
+allows the stop, writes no ending and reports `unresolved: <what>`.
 The run then reads as interrupted and never continues past a bound it couldn't
 check. A `log.jsonl` line the hook can't write is reported the same way.

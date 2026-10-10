@@ -1502,10 +1502,25 @@ fn end_run(dir: &Path, ending: &str, extra: &[(&str, &str)]) -> Result<(), Strin
     write(&file, table.to_string().as_bytes())
 }
 
-/// The three bounds a start names, or one line for each that is missing or
-/// not a number above 0 written in digits.
-fn bounds(words: &[&str]) -> Result<(i64, f64, i64), Vec<String>> {
-    let mut found: [Option<&str>; 3] = [None; 3];
+/// What a start command's bounds come to (REQ-3724, REQ-3726, REQ-3730).
+struct Bounds {
+    iterations: i64,
+    hours: f64,
+    iterations_default: bool,
+    hours_default: bool,
+    /// A `--tokens` the command still carries, with its value where it has
+    /// one, which holds no bound.
+    tokens: Option<String>,
+}
+
+const DEFAULT_ITERATIONS: i64 = 10;
+const DEFAULT_HOURS: f64 = 4.0;
+
+/// The bounds a start names, each omitted one at its default, or one line for
+/// each that isn't a number above 0 written in digits.
+fn bounds(words: &[&str]) -> Result<Bounds, Vec<String>> {
+    // `Some(None)` is a flag named with no value after it.
+    let mut found: [Option<Option<&str>>; 3] = [None; 3];
     let names = ["--iterations", "--hours", "--tokens"];
     let mut errors = Vec::new();
     let mut i = 0;
@@ -1523,18 +1538,24 @@ fn bounds(words: &[&str]) -> Result<(i64, f64, i64), Vec<String>> {
                         words.get(i).copied()
                     }
                 };
-                found[at] = value;
+                found[at] = Some(value);
             }
             None => errors.push(format!("unresolved: /meow-loop:run doesn't take {flag}")),
         }
         i += 1;
     }
-    let mut numbers = (0i64, 0f64, 0i64);
-    for (at, name) in names.iter().enumerate() {
+    let mut result = Bounds {
+        iterations: DEFAULT_ITERATIONS,
+        hours: DEFAULT_HOURS,
+        iterations_default: true,
+        hours_default: true,
+        tokens: found[2].map(|value| value.unwrap_or_default().to_string()),
+    };
+    for (at, name) in names.iter().enumerate().take(2) {
         let Some(value) = found[at] else {
-            errors.push(format!("unresolved: /meow-loop:run needs {name}"));
             continue;
         };
+        let value = value.unwrap_or("");
         let digits = value.chars().all(|c| c.is_ascii_digit())
             || (at == 1
                 && value.matches('.').count() == 1
@@ -1546,9 +1567,14 @@ fn bounds(words: &[&str]) -> Result<(i64, f64, i64), Vec<String>> {
         };
         match parsed {
             Some(number) if number > 0.0 => match at {
-                0 => numbers.0 = number as i64,
-                1 => numbers.1 = number,
-                _ => numbers.2 = number as i64,
+                0 => {
+                    result.iterations = number as i64;
+                    result.iterations_default = false;
+                }
+                _ => {
+                    result.hours = number;
+                    result.hours_default = false;
+                }
             },
             _ => errors.push(format!(
                 "unresolved: {name} {value} is not a number above 0"
@@ -1556,7 +1582,7 @@ fn bounds(words: &[&str]) -> Result<(i64, f64, i64), Vec<String>> {
         }
     }
     if errors.is_empty() {
-        Ok(numbers)
+        Ok(result)
     } else {
         Err(errors)
     }
@@ -1564,7 +1590,7 @@ fn bounds(words: &[&str]) -> Result<(i64, f64, i64), Vec<String>> {
 
 /// The `UserPromptSubmit` hook: it starts a run where the person typed the
 /// start command, and cancels the session's active run on any other prompt
-/// (REQ-3700, REQ-0872, REQ-3712, REQ-0890).
+/// (REQ-3700, REQ-3728, REQ-3712, REQ-0890).
 fn prompt() -> u8 {
     let event = read_event();
     if let Some(cwd) = event.get("cwd").and_then(Value::as_str) {
@@ -1607,10 +1633,11 @@ fn prompt() -> u8 {
         say_only(&lines.join("\n"));
         FINISHED
     };
-    let (iterations, hours, tokens) = match bounds(&words[1..]) {
-        Ok(bounds) => bounds,
+    let held = match bounds(&words[1..]) {
+        Ok(held) => held,
         Err(errors) => return refuse(errors),
     };
+    let (iterations, hours) = (held.iterations, held.hours);
     if session.is_empty() {
         return refuse(vec!["unresolved: the hook input names no session".into()]);
     }
@@ -1674,7 +1701,6 @@ fn prompt() -> u8 {
     table.insert("session_id".into(), session.clone().into());
     table.insert("iterations".into(), iterations.into());
     table.insert("hours".into(), hours.into());
-    table.insert("tokens".into(), tokens.into());
     table.insert("started_by".into(), "person".into());
     table.insert("permission_mode".into(), posture.mode.clone().into());
     table.insert(
@@ -1715,8 +1741,22 @@ fn prompt() -> u8 {
     }
     // Old runs go only once the new one is whole, so a refused start removes none.
     let _ = remove_old_runs(&runs, &dir);
+    let said = |is_default: bool| if is_default { " (default)" } else { "" };
+    let notice = match &held.tokens {
+        Some(value) => format!(
+            " --tokens{} is no longer a bound: a run ends on its iterations and its hours only, and the flag is dropped in the release after this one.",
+            if value.is_empty() {
+                String::new()
+            } else {
+                format!(" {value}")
+            }
+        ),
+        None => String::new(),
+    };
     let context = format!(
-        "A meow-loop run {id} has started in this session: {iterations} iterations, {hours} hours, {tokens} tokens. Its progress file is {}. First iteration: {}",
+        "A meow-loop run {id} has started in this session: {iterations} iterations and {hours} hours, as --iterations {iterations}{} and --hours {hours}{}.{notice} Its progress file is {}. First iteration: {}",
+        said(held.iterations_default),
+        said(held.hours_default),
         progress.display(),
         frozen_prompt(&id, &progress)
     );
@@ -1746,38 +1786,11 @@ fn epoch(iso: &str) -> Option<i64> {
     Some((era * 146_097 + doe - 719_468) * 86_400 + h * 3_600 + mi * 60 + s)
 }
 
-/// The tokens a transcript's usage fields sum to: input, output and both
-/// cache counts of every message that carries them (REQ-0878).
-fn transcript_tokens(path: &Path) -> Result<u64, String> {
-    let text = std::fs::read_to_string(path)
-        .map_err(|error| format!("can't read the transcript {}: {error}", path.display()))?;
-    let mut total = 0u64;
-    for line in text.lines() {
-        let Ok(value) = serde_json::from_str::<Value>(line) else {
-            continue;
-        };
-        let usage = value
-            .pointer("/message/usage")
-            .or_else(|| value.get("usage"));
-        if let Some(usage) = usage {
-            for key in [
-                "input_tokens",
-                "output_tokens",
-                "cache_creation_input_tokens",
-                "cache_read_input_tokens",
-            ] {
-                total += usage.get(key).and_then(Value::as_u64).unwrap_or(0);
-            }
-        }
-    }
-    Ok(total)
-}
-
 /// The `Stop` hook: after every turn it logs the iteration, checks the five
 /// endings in the order SPC-1201 gives, and otherwise blocks the stop with the
 /// frozen prompt. A state it can't read allows the stop and ends nothing, so
 /// the run reads as interrupted and never goes on past a bound it couldn't
-/// check (REQ-3702, REQ-3704, REQ-3706, REQ-3708, REQ-3710).
+/// check (REQ-3702, REQ-3704, REQ-3706, REQ-3724, REQ-3710).
 fn stop() -> u8 {
     let event = read_event();
     if let Some(cwd) = event.get("cwd").and_then(Value::as_str) {
@@ -1818,9 +1831,7 @@ fn stop() -> u8 {
             .get(key)
             .and_then(|v| v.as_float().or_else(|| v.as_integer().map(|i| i as f64)))
     };
-    let (Some(iterations), Some(hours), Some(tokens)) =
-        (number("iterations"), number("hours"), number("tokens"))
-    else {
+    let (Some(iterations), Some(hours)) = (number("iterations"), number("hours")) else {
         return unresolved(format!("{} holds no bounds", file.display()));
     };
     let started = table
@@ -1830,13 +1841,6 @@ fn stop() -> u8 {
     let (requirements, defects) = match record::open_counts(&root) {
         Ok(counts) => counts,
         Err(reason) => return unresolved(format!("the record can't be read: {reason}")),
-    };
-    let Some(transcript) = event.get("transcript_path").and_then(Value::as_str) else {
-        return unresolved("the hook input names no transcript".into());
-    };
-    let total = match transcript_tokens(Path::new(transcript)) {
-        Ok(total) => total,
-        Err(reason) => return unresolved(reason),
     };
     let tree = ledger::tree_id(&root);
     let progress = dir.join("progress").join("progress.md");
@@ -1883,14 +1887,6 @@ fn stop() -> u8 {
         && Some(requirements as u64) == requirements_before
         && Some(defects as u64) == defects_before
         && !changed;
-    let earlier_total = count_of(last, "tokens").unwrap_or(0);
-    let this_iteration = total.saturating_sub(earlier_total);
-    let largest = earlier
-        .iter()
-        .filter_map(|line| line.get("iteration_tokens").and_then(Value::as_u64))
-        .max()
-        .unwrap_or(0)
-        .max(this_iteration);
     let n = earlier.len() as u64 + 1;
     let line = json!({
         "iteration": n,
@@ -1900,8 +1896,6 @@ fn stop() -> u8 {
         "open_defects": defects,
         "progress_changed": changed,
         "progress_hash": hash,
-        "tokens": total,
-        "iteration_tokens": this_iteration,
         "unchanged": unchanged,
     });
     let written = OpenOptions::new()
@@ -1929,8 +1923,6 @@ fn stop() -> u8 {
         Some("ceiling")
     } else if elapsed.is_some_and(|e| e >= hours * 3_600.0) {
         Some("time")
-    } else if (total + largest) as f64 > tokens {
-        Some("tokens")
     } else if unchanged && previous_unchanged {
         Some("stuck")
     } else {
@@ -2240,5 +2232,62 @@ mod tests {
         for value in ["acceptEdits", "bypassPermissions", "default"] {
             said("--permission-mode", value, "is refused");
         }
+    }
+
+    /// TSK-5350, REQ-3726: an omitted bound takes its default and is marked so.
+    #[test]
+    fn a_bare_start_takes_both_defaults() {
+        let held = bounds(&[]).expect("a bare start has no error");
+        assert_eq!((held.iterations, held.hours), (10, 4.0));
+        assert!(held.iterations_default && held.hours_default);
+        assert!(held.tokens.is_none());
+    }
+
+    /// TSK-5350, REQ-3726: both spellings of a flag name its value.
+    #[test]
+    fn a_named_bound_replaces_only_its_own_default() {
+        let held = bounds(&["--iterations=3", "--hours", "0.5"]).expect("both parse");
+        assert_eq!((held.iterations, held.hours), (3, 0.5));
+        assert!(!held.iterations_default && !held.hours_default);
+        let held = bounds(&["--iterations", "7"]).expect("one parses");
+        assert_eq!((held.iterations, held.hours), (7, 4.0));
+        assert!(!held.iterations_default && held.hours_default);
+    }
+
+    /// TSK-5350, SPC-1201: a bound that is named and has no usable value is
+    /// refused, and never taken as the default or overwritten by a later flag.
+    #[test]
+    fn a_named_bound_with_no_usable_value_is_refused() {
+        for words in [
+            vec!["--iterations"],
+            vec!["--hours"],
+            vec!["--iterations=", "--hours", "2"],
+            vec!["--hours", "0"],
+        ] {
+            let errors = bounds(&words).err().unwrap_or_default();
+            assert!(
+                errors.iter().any(|e| e.contains("is not a number above 0")),
+                "{words:?} gave {errors:?}"
+            );
+        }
+        let errors = bounds(&["--iterations", "5", "--iterations"])
+            .err()
+            .unwrap_or_default();
+        assert!(!errors.is_empty(), "a trailing duplicate overwrote the 5");
+    }
+
+    /// TSK-5350, REQ-3730: any form of `--tokens` is reported, and none holds a bound.
+    #[test]
+    fn every_form_of_a_tokens_flag_is_reported() {
+        for words in [
+            vec!["--tokens", "100"],
+            vec!["--tokens=100"],
+            vec!["--tokens"],
+            vec!["--iterations", "3", "--tokens"],
+        ] {
+            let held = bounds(&words).expect("the flag is accepted");
+            assert!(held.tokens.is_some(), "{words:?} was not reported");
+        }
+        assert!(bounds(&["--iterations", "3"]).unwrap().tokens.is_none());
     }
 }
