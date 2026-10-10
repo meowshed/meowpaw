@@ -188,6 +188,40 @@ class CommitSkill(unittest.TestCase):
         self.assertRegex(self.TEXT, r"B6\. Split an epic[^.]{0,200}before its work starts")
 
 
+class ToolOperations(unittest.TestCase):
+    """TSK-4370, ADR-2420: the commit skill bounds a tool that runs source control operations."""
+
+    TEXT = " ".join((UNIT / "skills/commit/SKILL.md").read_text(encoding="utf-8").split())
+
+    def test_it_lists_the_composite_commands_it_never_runs_with_a_reason(self):
+        """Criterion 1, REQ-2610: a command that bundles decisions the method reserves is never called."""
+        self.assertRegex(self.TEXT, r"T\d+\. Never run a command that bundles[^.]{0,200}`wt merge`")
+        self.assertRegex(self.TEXT, r"`wt merge`[^.]{0,260}because")
+
+    def test_a_message_a_tool_generated_is_never_used(self):
+        """Criterion 2, REQ-2612: only a message that passed the check is used, and a generated one never is."""
+        self.assertRegex(self.TEXT, r"T\d+\. Never use a message a tool generated[^.]{0,200}because")
+        self.assertRegex(self.TEXT, r"Use the message only when the check exits 0")
+
+    def test_a_tool_with_no_machine_readable_output_runs_operations_only(self):
+        """Criterion 3, REQ-2608: state is read from git, not from the tool's text."""
+        self.assertRegex(self.TEXT, r"no (documented )?machine-readable output[^.]{0,200}operations[^.]{0,200}git")
+
+    def test_a_rebase_after_signing_is_signed_again_and_never_automatic(self):
+        """Criterion 3, REQ-2614."""
+        self.assertRegex(self.TEXT, r"rebase[^.]{0,120}signed again")
+        self.assertRegex(self.TEXT, r"no workflow rebases[^.]{0,120}signatures are required|never rebase automatically")
+
+    def test_a_model_written_summary_is_never_evidence(self):
+        """Criterion 3, REQ-2616."""
+        self.assertRegex(self.TEXT, r"model-written summary[^.]{0,200}never[^.]{0,80}evidence|never cite a model-written summary")
+
+    def test_a_working_tree_is_removed_only_in_the_foreground(self):
+        """Criterion 4, REQ-2618, REQ-2620."""
+        self.assertRegex(self.TEXT, r"Remove a working tree only in the foreground[^.]{0,200}asks")
+        self.assertRegex(self.TEXT, r"working trees share only ignored build output")
+
+
 class Launcher(unittest.TestCase):
     """ADR-1270: a launcher with no binary for the machine names the machine and the fix."""
 
