@@ -987,6 +987,14 @@ class Frozen(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
 
+    def test_a_task_may_gain_the_tracker_side_fingerprint(self):
+        """TSK-5320, REQ-4704: `tracked` beside `projected` is a mapping field and changes after approval."""
+        repository = self.repo()
+        repository.edit("tasks/TSK-0001-a-task.md", "epic: EPC-0001", "epic: EPC-0001\nprojected: 0123456789ab\ntracked: fedcba987654")
+        done = self.frozen(repository)
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("frozen: 0 findings", done.stdout)
+
     def test_a_task_may_say_what_it_left_alone(self):
         """The implementer fills `## Left alone` after approval, as the template asks, so it is free like Evidence."""
         repository = self.repo()

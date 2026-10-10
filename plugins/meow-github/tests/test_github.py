@@ -642,6 +642,123 @@ START = 1790692237
 SECONDARY = {"message": "You have exceeded a secondary rate limit. Please wait a few minutes before you try again."}
 
 
+class Sync(unittest.TestCase):
+    """TSK-5320 and TSK-5321, ADR-2890: a task and its issue are synchronised by a fingerprint of each side."""
+
+    repository = Project.repository
+    state = Project.state
+    task = Project.task
+    writes = Project.writes
+
+    def run_tool(self, root, command, *extra):
+        env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json")}
+        return subprocess.run([str(BIN), command, "EPC-0001", "o/r", *extra], cwd=root, capture_output=True, text=True, env=env)
+
+    def synced(self, status="approved"):
+        """A projected epic whose two tasks carry the given status, and a first synchronisation that changes nothing."""
+        root = self.repository()
+        self.run_tool(root, "project")
+        for name in ("TSK-0001-first.md", "TSK-0002-second.md"):
+            path = root / "project" / "tasks" / name
+            path.write_text(path.read_text(encoding="utf-8").replace("status: approved", f"status: {status}"), encoding="utf-8")
+        return root
+
+    def edit_issue(self, root, number, **fields):
+        state = self.state(root)
+        state["issues"][str(number)].update(fields)
+        (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+
+    def test_project_writes_the_tracker_fingerprint_beside_the_record_s(self):
+        """TSK-5320 criterion 1, REQ-4704: `projected` and `tracked` are both on the task after `project`."""
+        root = self.repository()
+        self.run_tool(root, "project")
+        self.assertRegex(self.task(root, "TSK-0001-first.md"), r"\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
+
+    def test_a_mapping_with_the_record_side_only_gains_the_tracker_side(self):
+        """TSK-5320 criterion 2, REQ-4704: an older mapping is read, and the next `project` adds `tracked`, nothing else."""
+        root = self.repository()
+        self.run_tool(root, "project")
+        path = root / "project" / "tasks" / "TSK-0001-first.md"
+        older = re.sub(r"\ntracked: [0-9a-f]{12}", "", path.read_text(encoding="utf-8"))
+        path.write_text(older, encoding="utf-8")
+        done = self.run_tool(root, "project")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertRegex(path.read_text(encoding="utf-8"), r"\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
+        self.assertEqual(re.sub(r"\ntracked: [0-9a-f]{12}", "", path.read_text(encoding="utf-8")), older)
+
+    def test_a_draft_takes_a_title_changed_on_github(self):
+        """TSK-5321 criterion 1, REQ-4700: the side that changed is applied, here the tracker's into a draft."""
+        root = self.synced(status="draft")
+        self.edit_issue(root, 1, title="TSK-0001: Refuse a blank title")
+        calls = len(self.state(root)["calls"])
+        done = self.run_tool(root, "sync")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("\n# Refuse a blank title\n", self.task(root, "TSK-0001-first.md"))
+        self.assertFalse(self.writes(root, calls))
+        again = self.run_tool(root, "sync")
+        self.assertIn("TSK-0001: unchanged, issue #1", again.stdout)
+
+    def test_a_title_changed_in_the_record_only_updates_the_issue(self):
+        """TSK-5321 criterion 2, REQ-4700: the record's change is applied to the issue where only it changed."""
+        root = self.synced(status="draft")
+        path = root / "project" / "tasks" / "TSK-0001-first.md"
+        path.write_text(path.read_text(encoding="utf-8").replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+        calls = len(self.state(root)["calls"])
+        done = self.run_tool(root, "sync")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse a blank title")
+        self.assertEqual([c[:4] for c in self.writes(root, calls)], [["api", "repos/o/r/issues/1", "-X", "PATCH"]])
+
+    def test_where_both_sides_changed_the_record_wins(self):
+        """TSK-5321 criterion 3, REQ-4700: a conflict is won by the file, and the issue holds the record's text."""
+        root = self.synced(status="draft")
+        path = root / "project" / "tasks" / "TSK-0001-first.md"
+        path.write_text(path.read_text(encoding="utf-8").replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+        self.edit_issue(root, 1, title="TSK-0001: Reject an empty title")
+        done = self.run_tool(root, "sync")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("both sides changed", done.stdout)
+        self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse a blank title")
+        self.assertIn("\n# Refuse a blank title\n", self.task(root, "TSK-0001-first.md"))
+
+    def test_an_approved_task_is_never_reworded_from_the_tracker(self):
+        """TSK-5321 criterion 4, REQ-4702: the difference is printed, the file is not written, nothing is sent."""
+        root = self.synced(status="approved")
+        before = self.task(root, "TSK-0001-first.md")
+        self.edit_issue(root, 1, title="TSK-0001: Refuse a blank title")
+        calls = len(self.state(root)["calls"])
+        done = self.run_tool(root, "sync")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("never written", done.stdout)
+        self.assertEqual(self.task(root, "TSK-0001-first.md"), before)
+        self.assertFalse(self.writes(root, calls))
+
+    def test_an_issue_closed_on_the_tracker_marks_a_task_whose_evidence_is_written(self):
+        """TSK-5321 criterion 5, REQ-4700: the state flows to the record where the Evidence is written, and is
+        reported where it isn't."""
+        root = self.synced(status="approved")
+        path = root / "project" / "tasks" / "TSK-0001-first.md"
+        path.write_text(path.read_text(encoding="utf-8").replace("Not yet.", "The fixture passed."), encoding="utf-8")
+        self.edit_issue(root, 1, state="closed")
+        self.edit_issue(root, 2, state="closed")
+        done = self.run_tool(root, "sync")
+        epic = (root / "project" / "epics" / "EPC-0001-a-plan.md").read_text(encoding="utf-8")
+        self.assertIn("- [x] T-001 TSK-0001", epic)
+        self.assertIn("- [ ] T-002 TSK-0002", epic)
+        self.assertIn("TSK-0002: issue #2 is closed on GitHub while its Evidence isn't written", done.stdout)
+
+    def test_check_writes_nothing(self):
+        """REQ-1400: `--check` computes the difference on demand and changes neither side."""
+        root = self.synced(status="draft")
+        self.edit_issue(root, 1, title="TSK-0001: Refuse a blank title")
+        before = self.task(root, "TSK-0001-first.md")
+        calls = len(self.state(root)["calls"])
+        done = self.run_tool(root, "sync", "--check")
+        self.assertEqual(self.task(root, "TSK-0001-first.md"), before)
+        self.assertFalse(self.writes(root, calls))
+        self.assertIn("would", done.stdout)
+
+
 class Layered:
     """Runs `meow-github` against the stand-in above, with an injected clock and sleep."""
 
