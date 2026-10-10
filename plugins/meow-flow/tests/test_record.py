@@ -3141,6 +3141,53 @@ class OffTheTrunk(unittest.TestCase):
         self.assertRegex(rule, r"Where the repository declares no code host, name the branch in its place")
 
 
+class ApprovedOnTheBranch(unittest.TestCase):
+    """TSK-5290, ADR-2860: a task's approval is read from the working tree, wherever the trunk stands."""
+
+    TASK = "tasks/TSK-0001-a-task.md"
+
+    def git(self, repository, *args):
+        return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", *args],
+                              cwd=repository.path, check=True, capture_output=True, text=True,
+                              env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"})
+
+    def repo(self, draft=False):
+        """A record whose one open task is committed on `work` and absent from `main`."""
+        repository = Repository(profile='[git]\ntrunk = "main"\n')
+        self.addCleanup(repository.tmp.cleanup)
+        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        repository.edit(self.TASK, "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
+        self.git(repository, "checkout", "-q", "-b", "main")
+        task = (repository.root / self.TASK).read_text(encoding="utf-8")
+        (repository.root / self.TASK).unlink()
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "-m", "base")
+        self.git(repository, "checkout", "-q", "-b", "work")
+        if draft:
+            task = task.replace("status: approved", "status: draft")
+        (repository.root / self.TASK).write_text(task, encoding="utf-8")
+        self.git(repository, "add", "-A")
+        self.git(repository, "commit", "-q", "--allow-empty", "-m", "the task")
+        return repository
+
+    def test_a_task_approved_on_the_branch_is_ready(self):
+        """Criterion 1, REQ-4412: `ready implement` exits 0 for a task approved on the branch and absent from the trunk."""
+        done = self.repo().run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
+    def test_status_names_the_task_as_next(self):
+        """Criterion 2, REQ-4412: `status` prints next and no waiting line for that task."""
+        status = self.repo().run("status").stdout
+        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", status)
+        self.assertNotIn("waiting: TSK-0001", status)
+
+    def test_a_draft_task_is_not_ready(self):
+        """Criterion 3, REQ-4412: reading the working tree still refuses a task that is a draft there."""
+        done = self.repo(draft=True).run("ready", "implement", "TSK-0001")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("TSK-0001", done.stdout)
+
+
 class DeniedDispatch(unittest.TestCase):
     """TSK-2703 criteria 1 and 3, REQ-2978, SPC-1030 "What an agent reports" and SPC-1090 "The review": every
     shipped agent carries the denial rule in the same words, and the review step ends a `BLOCKED` dispatch there."""
