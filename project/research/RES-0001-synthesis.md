@@ -189,6 +189,7 @@ here or in the sources below.
 | [Mapping each plugin to Pi](RES-0341-mapping-each-plugin-to-pi.md)                                                                                 | Each of the sixteen plugins maps component by component onto one Pi package per layer, with the native binaries shelled out to and the router agent becoming a registered tool.                                        |
 | [How a Pi package installs](RES-0342-how-a-pi-package-installs.md)                                                                                 | npm is the one install source that is both checkout-independent and free of a download; a local path is a development install that runs no lifecycle script, and a git install fetches the binary in its postinstall.  |
 | [Building every target under Linux](RES-0343-building-every-target-under-linux.md)                                                                 | All six targets build under Linux runners — musl natively, windows through cargo-xwin, darwin through osxcross — with the darwin SDK's licence the one trade-off, named and pinned.                                    |
+| [Naming the five verification obligations](RES-0344-naming-the-five-verification-obligations.md)                                                   | No common word for a named, runnable obligation is free in this repository, and `stage` collides least.                                                                                                                |
 
 ## The situation
 
