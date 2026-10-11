@@ -437,6 +437,27 @@ def triggers(name, doc):
     ]
 
 
+PIPELINE_PUBLISH = re.compile(r"npm publish[^\n|]*\|")
+
+
+def publishes(name, doc):
+    """A `run:` step that publishes to npm inside a pipeline, by the line it starts at.
+
+    The shell reads an `if`'s condition from the pipeline's last command, so
+    `npm publish | tee` publishes nothing while the step stays green, which
+    BUG-1590 caught on a day fourteen packages failed the same way. npm's own
+    exit status decides a release.
+    """
+    found = []
+    for node in walk(doc):
+        if not (isinstance(node, Mapping) and isinstance(node.get("run"), Scalar)):
+            continue
+        for line, text in node["run"].source:
+            if PIPELINE_PUBLISH.search(text):
+                found.append(f"{name}:{line}: runs npm publish inside a pipeline, whose status is the last command's, so a failed publish reads as passed")
+    return found
+
+
 def runs(name, doc):
     found = []
     for node in walk(doc):
@@ -513,8 +534,8 @@ def findings(name, text):
         return [f"{name}: doesn't parse: {error}"]
     if not isinstance(doc, Mapping):
         return [f"{name}: doesn't parse: the top level isn't a mapping"]
-    return (permissions(name, doc) + triggers(name, doc) + runs(name, doc) + model_calls(name, doc)
-            + governance(name, doc))
+    return (permissions(name, doc) + triggers(name, doc) + runs(name, doc) + publishes(name, doc)
+            + model_calls(name, doc) + governance(name, doc))
 
 
 def main(root: Path = ROOT) -> int:
