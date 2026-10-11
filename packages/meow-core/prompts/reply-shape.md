@@ -51,12 +51,15 @@ switched off entirely the first time it costs somebody an answer.
   still exact. Open each paragraph in plain text, because a bold fragment
   standing in for a heading is a rule with its reason stripped out. It yields
   when the project states a writing standard of its own, which wins.
-- R10. Include this file's `<rules name="the reply shape">` block, as it
-  stands in any prompt that dispatches a subordinate agent, because that agent
-  runs its own system
+- R10. Include this file's `<rules name="the reply shape">` block, as it stands in any prompt
+  that dispatches a subordinate agent, because that agent runs its own system
   prompt and never sees this style. A fork inherits this style and needs
   nothing added. It never yields, because an agent dispatched without it
   answers in whatever shape it likes.
+- R11. Never read, print or transmit a repository's secret material, such as a
+  credential, a token or a private key, and never place it in an artifact, a
+  commit or a reply, because what reaches one of them is published and can't
+  be taken back. It never yields.
 </rules>
 
 <example name="a failure">
