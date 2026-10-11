@@ -4,7 +4,8 @@
 """No task the gate runs skips silently when its tool is missing (TSK-4925 criterion 5, REQ-1426).
 
 A shell command that names a missing tool exits 127 and says its name. A task skips silently only where it
-swallows that: `|| true`, `; true`, a `command -v` guard that falls through, or a `-` prefix that ignores the exit.
+goes on past that: `|| true`, `|| :`, `|| echo`, `; true`, a `command -v`, `hash`, `which` or `test -x` guard that
+falls through, or a `-` prefix that ignores the exit status. The check reads `mise.toml` and runs nothing.
 """
 
 import re
@@ -15,10 +16,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 SWALLOW = [
-    (re.compile(r"\|\|\s*(true|:|exit\s+0)\b"), "ends with `|| true`"),
-    (re.compile(r";\s*(true|exit\s+0)\s*$"), "ends with `; true`"),
-    (re.compile(r"\bcommand\s+-v\b|\bwhich\s+\w+\s*(&&|\|\|)|\btype\s+-p\b"), "tests whether a tool exists and skips"),
+    (re.compile(r"\|\|\s*(?:true\b|:(?:\s|$)|exit\s+0\b|echo\b)"), "ends with `|| true` or another way of going on"),
+    (re.compile(r";\s*(?:true|exit\s+0)\s*$"), "ends with `; true`"),
+    (re.compile(r"\bcommand\s+-v\b|\bhash\s+\w+|\btype\s+-p\b|\bwhich\s+\w+|\btest\s+-x\b|\[\s+-x\b"),
+     "tests whether a tool exists and may skip"),
     (re.compile(r"2>\s*/dev/null\s*\|\|"), "hides a failure and falls through"),
+    (re.compile(r"^\s*-\s*\w"), "has a `-` prefix that ignores the exit status"),
 ]
 
 
@@ -34,14 +37,21 @@ def swallowed(command):
 class GateTasks(unittest.TestCase):
     def test_a_command_that_swallows_a_missing_tool_is_found(self):
         """TSK-4925 criterion 5: the check can fail."""
-        self.assertEqual(swallowed("prettier --check . || true"), ["ends with `|| true`"])
+        self.assertEqual(swallowed("prettier --check . || true"), ["ends with `|| true` or another way of going on"])
+        self.assertTrue(swallowed("lychee . || :"))
+        self.assertTrue(swallowed("lychee . || echo skipped"))
+        self.assertTrue(swallowed("hash lychee && lychee ."))
+        self.assertTrue(swallowed("- lychee ."))
         self.assertTrue(swallowed("command -v lychee && lychee ."))
         self.assertEqual(swallowed("prettier --check ."), [])
 
     def test_no_gate_task_swallows_a_missing_tool(self):
         found = {}
-        for name, task in gate_tasks().items():
-            for line in str(task["run"]).splitlines():
+        tasks = gate_tasks()
+        self.assertGreater(len(tasks), 10, "the check read no gate task")
+        for name, task in tasks.items():
+            run = task["run"]
+            for line in (run if isinstance(run, list) else str(run).splitlines()):
                 reasons = swallowed(line)
                 if reasons:
                     found[name] = reasons

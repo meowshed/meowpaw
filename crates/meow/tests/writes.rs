@@ -166,7 +166,15 @@ fn no_subcommand_writes_outside_the_state_the_repository_and_the_record() {
         (vec!["record", "count"], ""),
     ];
     for (args, input) in calls {
-        run(&args, input);
+        let done = run(&args, input);
+        let code = done.status.code();
+        // A call that reached its work exits 0, 1 or 3, and never by a signal or a usage error.
+        assert!(
+            matches!(code, Some(0 | 1 | 3)),
+            "meow {} ended with {code:?}: {}",
+            args.join(" "),
+            String::from_utf8_lossy(&done.stderr)
+        );
     }
     assert_eq!(
         changed(&home_before, &snapshot(&home.0)),
@@ -178,6 +186,18 @@ fn no_subcommand_writes_outside_the_state_the_repository_and_the_record() {
         Vec::<PathBuf>::new(),
         "a subcommand wrote into the temporary directory"
     );
+    // Every file under the state directory is under `meowpaw/` or a lock named for it.
+    for path in snapshot(&state.0).keys() {
+        let relative = path
+            .strip_prefix(&state.0)
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+        assert!(
+            relative.starts_with("meowpaw"),
+            "a subcommand wrote {relative} under the state directory, outside meowpaw/"
+        );
+    }
     let repo_changed = changed(&repo_before, &snapshot(&repo.0));
     assert_eq!(
         repo_changed,
@@ -251,6 +271,12 @@ fn each_write_in_the_source_is_one_the_table_names() {
         "remove_dir_all(",
         "File::options",
         "set_permissions(",
+        "create_dir(",
+        "remove_dir(",
+        "hard_link(",
+        "symlink(",
+        "File::create_new(",
+        "set_len(",
     ];
     fn files(dir: &Path, out: &mut Vec<PathBuf>) {
         for entry in std::fs::read_dir(dir).unwrap().flatten() {
@@ -272,7 +298,9 @@ fn each_write_in_the_source_is_one_the_table_names() {
             .to_string_lossy()
             .to_string();
         let text = std::fs::read_to_string(&path).unwrap();
-        let body = text.split("#[cfg(test)]").next().unwrap();
+        // The test module starts at `#[cfg(test)]` followed by `mod tests`; an earlier
+        // `#[cfg(test)]` on a helper doesn't end the production code.
+        let body = text.split("#[cfg(test)]\nmod tests").next().unwrap();
         let count: usize = patterns.iter().map(|p| body.matches(p).count()).sum();
         let expected = table.get(relative.as_str()).copied().unwrap_or(0);
         assert_eq!(

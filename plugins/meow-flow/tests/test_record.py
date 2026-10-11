@@ -1467,7 +1467,7 @@ class Launcher(unittest.TestCase):
                                   capture_output=True, text=True, input="")
             self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
             self.assertIn("not checked", done.stdout)
-            self.assertIn("install meow-core", done.stdout)
+            self.assertIn("claude plugin install meow-core@meowpaw", done.stdout)
 
 
 class Named(unittest.TestCase):

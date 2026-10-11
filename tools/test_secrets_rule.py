@@ -26,8 +26,10 @@ class SecretsRule(unittest.TestCase):
         rule = self.rule()
         for word in ("read", "print", "transmit", "artifact"):
             self.assertRegex(rule, rf"\b{word}\b", f"the rule names no `{word}`: {rule}")
-        self.assertRegex(rule, r"\bnever\b|\bnot\b")
+        self.assertRegex(rule, r"Never read, print or transmit", "the rule names no prohibition of the three")
+        self.assertRegex(rule, r"never place it in", "the rule names no prohibition of the fourth")
         self.assertRegex(rule, r"because", "the rule carries no reason")
+        self.assertRegex(rule, r"It never yields\.\s*$", "the rule yields")
 
     def test_it_stays_within_the_kernels_budget(self):
         """TSK-4935 criterion 2: the style's characters stay within `permanent_characters`."""

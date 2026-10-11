@@ -95,7 +95,7 @@ fn a_tool_with_no_step_fails_naming_the_unit_the_tool_and_the_agent() {
             && text.contains("plugins/u/README.md"),
         "{text}"
     );
-    assert!(!text.contains("`Read` has no step"), "{text}");
+    assert!(!text.contains("grants `Read`"), "{text}");
 }
 
 /// REQ-1430, REQ-1432: a skill's `allowed-tools` is held to the same rule.
@@ -126,6 +126,46 @@ fn each_tool_named_beside_a_step_passes() {
     );
     let done = check(&dir.0);
     assert_eq!(done.status.code(), Some(0), "{}", said(&done));
+}
+
+/// The string form of `tools`, and a pattern a skill grants, are read as the
+/// tools they name (SPC-1030: a list or a comma-separated string).
+#[test]
+fn the_string_form_and_a_granted_pattern_name_their_tools() {
+    let agent = AGENT.replace("tools: [Read, Grep]", "tools: Read, Grep");
+    let dir = unit(
+        "# u\n\n## Tools\n\n- `Read`: the reader opens the one file it was asked about.\n- `Grep`: the reader finds a line.\n- `Bash`: the act step runs one command.\n",
+        &[
+            ("agents/reader.md", agent),
+            (
+                "skills/act/SKILL.md",
+                skill("Read, Bash(git status:*), Grep"),
+            ),
+        ],
+    );
+    let done = check(&dir.0);
+    assert_eq!(done.status.code(), Some(0), "{}", said(&done));
+    // A tool the pattern grants is named by its bare name, and one with none fails.
+    let missing = unit(
+        "# u\n\n## Tools\n\n- `Read`: opens a file.\n",
+        &[("skills/act/SKILL.md", skill("Read, Bash(git status:*)"))],
+    );
+    let done = check(&missing.0);
+    let text = said(&done);
+    assert_eq!(done.status.code(), Some(1), "{text}");
+    assert!(text.contains("grants `Bash`"), "{text}");
+    assert!(!text.contains("status:*"), "{text}");
+}
+
+/// An item inside a fenced block under `## Tools` is an example, not a step.
+#[test]
+fn an_item_inside_a_fence_names_no_step() {
+    let dir = unit(
+        "# u\n\n## Tools\n\n```text\n- `Read`: an example.\n- `Grep`: an example.\n```\n",
+        &[("agents/reader.md", AGENT.to_string())],
+    );
+    let done = check(&dir.0);
+    assert_eq!(done.status.code(), Some(1), "{}", said(&done));
 }
 
 /// A line that names the tool and no step is not a step.
