@@ -128,6 +128,10 @@ what it determines, what you read to reach the same answer without the tool,
 and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
+## Hooks
+
+`check` stops a publish whose text breaks a rule the gate holds: the exact rules first, then a judge model asked twice, which is the one hook allowed to reach beyond local files.
+
 ## What it needs
 
 Claude Code 2.1.284 or later, the version this unit was tested on, declared in

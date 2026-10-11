@@ -96,9 +96,9 @@ specification states. The
 exception covers that judge call alone, and `meow-author check` names it by
 unit and subcommand, so no other hook inherits it (ADR-2700).
 
-No hook writes its input to a file or a log (REQ-2724). The one hook that
-writes is `meow-checks revision`, which writes a count to the unit's run state
-and nothing it read.
+No hook writes its input to a file or a log (REQ-2724). `meow-checks revision`
+writes a count to the unit's run state and nothing it read, and `meow-loop`'s
+hooks write the run's own state, which holds no copy of the input.
 
 ### How a hook is declared
 
@@ -158,8 +158,8 @@ standard's specification states under REQ-3748.
 script a declaration runs, and fails, naming the file and the hook, on:
 
 - a hook that prints `allow` as its decision, or an `updatedInput`;
-- a hook command that is anything other than the unit's launcher with one
-  subcommand;
+- a hook command, on an event that can stop a call or the turn, that is
+  anything other than the unit's launcher with one subcommand;
 - a hook that names a network command, such as `curl`, `wget`, `ssh`, `gh`,
   `git fetch`, `git pull` or `claude -p`, other than the prose gate's judge;
 - a hook with no sentence under its unit's `## Hooks`.

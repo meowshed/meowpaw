@@ -424,6 +424,10 @@ what it determines, what you read to reach the same answer without the tool,
 and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
+## Hooks
+
+`prompt` starts or cancels a run from the prompt a person typed, `stop` blocks the end of a turn while the run has work left, and `guard` stops a write into a run's own state or a status the run can't give.
+
 ## What it needs
 
 Claude Code 2.1.280 or later, declared in `plugins/meow-loop/requires.toml`,

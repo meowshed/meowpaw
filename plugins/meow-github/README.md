@@ -366,6 +366,10 @@ what it determines, what you read to reach the same answer without the tool,
 and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
+## Hooks
+
+`governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared

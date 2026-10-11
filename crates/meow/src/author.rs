@@ -36,7 +36,7 @@ const HELP: [crate::help::Entry; 2] = [
     crate::help::Entry {
         name: "check",
         determines: "whether each skill, agent, output style and prompt hook follows the authoring rules",
-        by_hand: "read each file against the rules of the `write` skill of `meow-author`",
+        by_hand: "read each file against the rules of the `write` skill of `meow-author`, and each `hooks/hooks.json` against the answer, network and launcher rules of SPC-1240",
         lines: "meow-author <path> <count>",
         json: "",
     },
@@ -130,6 +130,9 @@ fn check(paths: &[String]) -> u8 {
             files += 1;
             failures.extend(vocabulary(&prompt, &where_));
         }
+        let (hooks, broken) = hook_rules(&root, unit);
+        files += hooks;
+        failures.extend(broken);
     }
     if files == 0 && failures.is_empty() {
         println!(
@@ -341,6 +344,163 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
             out.push(path);
         }
     }
+}
+
+/// Events whose hook can stop a call or the turn, where the launcher rule
+/// holds. A `SessionStart` hook blocks nothing, so the rule doesn't reach it
+/// (REQ-2716).
+const BLOCKING_EVENTS: [&str; 5] = [
+    "PreToolUse",
+    "UserPromptSubmit",
+    "Stop",
+    "SubagentStop",
+    "PermissionRequest",
+];
+
+/// The command hooks of a unit held to the rules SPC-1240 states under "The
+/// check" (REQ-2716, REQ-2718, REQ-2720, REQ-2726, REQ-2727): no `allow`
+/// decision, no `updatedInput`, no network command, a blocking hook that is the
+/// unit's launcher with one subcommand, and a sentence for it under the
+/// README's `## Hooks`. It returns how many hooks it read and each failure.
+///
+/// The prose gate's `check` is the one subcommand excused from the network
+/// rule, named here by unit and subcommand so no other hook inherits it
+/// (ADR-2700).
+fn hook_rules(root: &Path, unit: &Path) -> (usize, Vec<String>) {
+    let path = unit.join("hooks").join("hooks.json");
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        return (0, Vec::new());
+    };
+    let Ok(config) = serde_json::from_str::<serde_json::Value>(&text) else {
+        return (0, Vec::new());
+    };
+    let unit_name = unit
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_default();
+    let readme = std::fs::read_to_string(unit.join("README.md")).unwrap_or_default();
+    let section = hooks_section(&readme);
+    let allow = Regex::new(r"(?i)permissionDecision[^\n]{0,24}\ballow\b").expect("allow pattern");
+    let network = Regex::new(
+        r"(?i)\b(curl|wget|ssh|scp|sftp|ncat|telnet)\b|\bgh\s+\w|\bgit\s+(fetch|pull|clone|ls-remote)\b|\bclaude\s+-p\b",
+    )
+    .expect("network pattern");
+    let launcher = Regex::new(
+        r#"^"?\$\{CLAUDE_PLUGIN_ROOT\}"?/bin/([A-Za-z0-9._-]+) +([A-Za-z0-9._-]+)( +--?[A-Za-z0-9-]+)*$"#,
+    )
+    .expect("launcher pattern");
+    let mut count = 0;
+    let mut out = Vec::new();
+    let Some(events) = config.get("hooks").and_then(|h| h.as_object()) else {
+        return (0, Vec::new());
+    };
+    for (event, groups) in events {
+        for group in groups.as_array().into_iter().flatten() {
+            for hook in group
+                .get("hooks")
+                .and_then(|h| h.as_array())
+                .into_iter()
+                .flatten()
+            {
+                if hook
+                    .get("type")
+                    .and_then(|t| t.as_str())
+                    .unwrap_or("command")
+                    != "command"
+                {
+                    continue;
+                }
+                let command = hook
+                    .get("command")
+                    .and_then(|c| c.as_str())
+                    .unwrap_or_default();
+                count += 1;
+                let where_ = format!("{} ({event})", shown(root, &path));
+                let first = command
+                    .split_whitespace()
+                    .next()
+                    .unwrap_or_default()
+                    .replace('"', "");
+                let script = PathBuf::from(
+                    first.replace("${CLAUDE_PLUGIN_ROOT}", &unit.display().to_string()),
+                );
+                let script_text = std::fs::read(&script)
+                    .ok()
+                    .and_then(|bytes| String::from_utf8(bytes).ok())
+                    .unwrap_or_default();
+                let matched = launcher.captures(command);
+                let (name, subcommand) = match &matched {
+                    Some(found) => (found[2].to_string(), Some(found[2].to_string())),
+                    None => (
+                        script
+                            .file_name()
+                            .map(|n| n.to_string_lossy().to_string())
+                            .unwrap_or_default(),
+                        None,
+                    ),
+                };
+                let haystack = format!("{command}\n{script_text}");
+                if allow.is_match(&haystack) {
+                    out.push(format!(
+                        "{where_}: `{name}` answers `allow`, which skips the permission flow the repository owns (REQ-2720)"
+                    ));
+                }
+                if haystack.contains("updatedInput") {
+                    out.push(format!(
+                        "{where_}: `{name}` returns an `updatedInput`, where it denies with the reason and lets the model redo the call (REQ-2718)"
+                    ));
+                }
+                let excused =
+                    unit_name == "meow-prose-gate" && subcommand.as_deref() == Some("check");
+                if !excused && let Some(found) = network.find(&haystack) {
+                    out.push(format!(
+                        "{where_}: `{name}` names the network command `{}`, and no hook reaches the network (REQ-2727)",
+                        found.as_str().trim()
+                    ));
+                }
+                if BLOCKING_EVENTS.contains(&event.as_str()) {
+                    let ours = matched
+                        .as_ref()
+                        .is_some_and(|found| unit.join("bin").join(&found[1]).is_file());
+                    if !ours {
+                        out.push(format!(
+                            "{where_}: a hook that can stop a call runs the unit's launcher with one subcommand, and `{command}` isn't that (REQ-2716)"
+                        ));
+                    }
+                }
+                if !section
+                    .split('`')
+                    .skip(1)
+                    .step_by(2)
+                    .any(|span| span.split_whitespace().any(|word| word == name))
+                {
+                    out.push(format!(
+                        "{where_}: `{name}` has no sentence under `## Hooks` in {} (REQ-2726)",
+                        shown(root, &unit.join("README.md"))
+                    ));
+                }
+            }
+        }
+    }
+    (count, out)
+}
+
+/// The text under a README's `## Hooks` heading, up to the next heading of its
+/// level, or none where it has no such heading.
+fn hooks_section(readme: &str) -> String {
+    let mut inside = false;
+    let mut out = String::new();
+    for line in readme.lines() {
+        if line.starts_with("## ") {
+            inside = line.trim() == "## Hooks";
+            continue;
+        }
+        if inside {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
 }
 
 /// Each prompt hook's text, from the unit's `hooks/hooks.json`.

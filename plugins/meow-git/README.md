@@ -89,6 +89,10 @@ what it determines, what you read to reach the same answer without the tool,
 and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
+## Hooks
+
+`commit-guard` stops a commit on the declared trunk, and `push-guard` stops a push of a commit whose message or signature fails the declared convention.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
