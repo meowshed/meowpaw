@@ -31,7 +31,7 @@ Nothing.
 
 ## Evidence
 
-The tests came first, in a commit of their own, where four failed: the
+The tests came first, in a commit of their own, where five failed: the
 launchers of `meow-git`, `meow-github`, `meow-prose-gate` and `meow-loop`
 exited 0 with no binary. The tests are
 `test_a_missing_binary_names_the_machine_and_the_reinstall` and

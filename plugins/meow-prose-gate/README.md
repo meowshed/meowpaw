@@ -86,8 +86,9 @@ Each hook waits up to 120 seconds, so the judge's 45-second limit always fires
 first.
 
 The program is a native binary shipped inside the unit. On a machine the unit
-carries no binary for, it denies the publish and names
-`claude plugin install meow-core@meowpaw`.
+carries no binary for, it denies each `git` and `gh` command its hook matches
+and names `claude plugin install meow-core@meowpaw`, to run in a terminal
+outside the session.
 
 `MEOW_PROSE_GATE_JUDGE` names a program to run in place of `claude`. It exists
 for the unit's fixtures, which set it to a stub judge so that no test calls a

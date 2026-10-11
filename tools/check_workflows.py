@@ -23,8 +23,12 @@ tab in the indentation or a quoted scalar spanning lines as a file that
 doesn't parse.
 """
 
+import json
+import os
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,18 +36,6 @@ WORKFLOWS = ".github/workflows"
 SUFFIXES = (".yml", ".yaml")
 ALLOWED = ("contents", "read")
 FORBIDDEN_TRIGGERS = ("pull_request_target", "workflow_run")
-# What `meow-github`'s governance guard asks a person about, as a tree check: a
-# workflow that runs it changes how the repository is governed unasked
-# (REQ-2576, REQ-2712, BUG-1562).
-GOVERNANCE = re.compile(
-    r"\bgh\s+api\b[^\n]*?(?:-X|--method)[ =]+(?:PUT|PATCH|POST|DELETE)\b"
-    r"[^\n]*?(?:/branches/[^\s/]+/protection|/rulesets|/actions/permissions|/actions/secrets|/actions/variables"
-    r"|/environments|/hooks|/collaborators)"
-    r"|\bgh\s+api\b[^\n]*?(?:/branches/[^\s/]+/protection|/rulesets|/actions/permissions|/actions/secrets"
-    r"|/actions/variables|/environments|/hooks|/collaborators)[^\n]*?(?:-X|--method)[ =]+(?:PUT|PATCH|POST|DELETE)\b"
-    r"|\bgh\s+(?:repo\s+(?:edit|delete|archive|rename|transfer)|secret\s+(?:set|delete|remove)"
-    r"|variable\s+(?:set|delete)|ruleset\s+(?:create|delete|edit))\b"
-)
 MODEL_CALL = re.compile(r"mise run eval\b|\b(?:ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN)\b")
 CHECKOUT = "actions/checkout"
 BLOCK_HEADER = re.compile(r"([|>])([1-9]?)([+-]?)([1-9]?)\s*(#.*)?")
@@ -470,17 +462,48 @@ def model_calls(name, doc):
     return [f"{name}:{line}: names {what}, and no workflow makes a model call" for line, what in sorted(found.items())]
 
 
+def guard_asks(command):
+    """What `meow-github`'s governance guard says about a command, or None where it says nothing, and the
+    reason it can't be asked."""
+    launcher = ROOT / "plugins" / "meow-github" / "bin" / "meow-github"
+    event = json.dumps({"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}})
+    with tempfile.TemporaryDirectory() as tmp:
+        # An empty data directory, so the launcher runs the build beside it and not an installed copy.
+        env = {**os.environ, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}
+        done = subprocess.run([str(launcher), "governance-guard"], input=event, capture_output=True, text=True,
+                              env=env, timeout=30)
+    if done.returncode != 0:
+        return None, "meow-github can't run here, so no workflow was asked about governance"
+    if not done.stdout.strip():
+        return None, None
+    reason = json.loads(done.stdout)["hookSpecificOutput"]["permissionDecisionReason"]
+    return reason.split(" changes how")[0].removeprefix("meow-github: "), None
+
+
 def governance(name, doc):
-    """A workflow that runs a `gh` command that changes how the repository is governed, by its line."""
-    found = {}
+    """A workflow step whose `run:` holds a command the governance guard asks about, by the line it starts at.
+
+    The guard decides, so the gate and the hook read a command the same way (REQ-2576, REQ-2712).
+    """
+    found = []
     for node in walk(doc):
-        if isinstance(node, Mapping) and isinstance(node.get("run"), Scalar):
-            for line, text in node["run"].source:
-                match = GOVERNANCE.search(text)
-                if match:
-                    found.setdefault(line, match.group(0))
-    return [f"{name}:{line}: runs {what}, which changes how the repository is governed, and no workflow does that"
-            for line, what in sorted(found.items())]
+        if not (isinstance(node, Mapping) and isinstance(node.get("run"), Scalar)):
+            continue
+        # One command a continuation joins, by the line it starts at.
+        commands = []
+        for line, text in node["run"].source:
+            if commands and commands[-1][1].endswith("\\"):
+                commands[-1] = (commands[-1][0], commands[-1][1][:-1] + " " + text.strip())
+            else:
+                commands.append((line, text.strip()))
+        for line, command in commands:
+            asked, unresolved = guard_asks(command)
+            if unresolved:
+                return [f"{name}: unresolved: {unresolved}"]
+            if asked:
+                found.append(f"{name}:{line}: runs {asked}, which changes how the repository is governed, "
+                             "and no workflow does that")
+    return found
 
 
 def findings(name, text):

@@ -1394,8 +1394,11 @@ class Guard(unittest.TestCase):
     def guard(self, command):
         """`meow-github governance-guard` run on a Bash tool call holding `command`, as the hook runs it."""
         event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}}
-        return subprocess.run([str(BIN), "governance-guard"], input=json.dumps(event), capture_output=True,
-                              text=True)
+        # An empty data directory, so the launcher runs the binary built beside it and not an installed one.
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {**os.environ, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}
+            return subprocess.run([str(BIN), "governance-guard"], input=json.dumps(event), capture_output=True,
+                                  text=True, env=env)
 
     def asked(self, done):
         """The reason of an `ask` answer, failing where the answer is anything else."""
@@ -1428,6 +1431,10 @@ class Guard(unittest.TestCase):
             ("gh api repos/o/r/rulesets -fname=x", "gh api POST repos/o/r/rulesets"),
             ("gh api 2>/dev/null -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
             ("gh api -X PUT /repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            # A global flag before the subcommand, which gh accepts, doesn't hide it (BUG-1562).
+            ("gh -R o/r api -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh --repo o/r repo edit --visibility private", "gh repo edit"),
+            ("gh --repo=o/r secret set TOKEN", "gh secret set"),
             ("gh api /graphql -f query='mutation { x }'", "gh api POST graphql"),
             ("gh api https://api.github.com/graphql -f query='mutation { x }'", "gh api POST graphql"),
             ("gh api -X POST orgs/o/rulesets -f name=x", "gh api POST orgs/o/rulesets"),

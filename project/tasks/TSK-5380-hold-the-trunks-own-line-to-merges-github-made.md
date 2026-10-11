@@ -11,7 +11,7 @@ closes: []
 
 # Hold the trunk's own line to merges GitHub made, in the gate
 
-`tools/check_layers.py trunk` fails a commit on the trunk's own line, after the baseline, that GitHub did not make, and `mise run layers` runs it on the trunk. It restores REQ-2712 and closes no requirement, because
+`tools/check_layers.py trunk` fails a commit on the trunk's own line, after the baseline, that GitHub did not make, and `mise run layers` runs it on the trunk. A commit made in GitHub's web interface has the same committer and isn't found. It restores REQ-2712 and closes no requirement, because
 ADR-2450 addressed it and TSK-4905 closed it.
 
 ## Acceptance criteria

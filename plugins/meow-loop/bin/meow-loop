@@ -62,7 +62,7 @@ guard)
   # through, so the guard denies every Bash command, Edit and Write it matches
   # and says how to install the binary (ADR-2710).
   cat >/dev/null
-  echo "meow-loop: denied $1 because $reason, with: claude plugin install meow-core@meowpaw" >&2
+  echo "meow-loop: denied $1 because $reason, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
   exit 2
   ;;
 prompt | stop)

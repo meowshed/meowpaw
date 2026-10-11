@@ -33,7 +33,7 @@ Nothing.
 
 ## Evidence
 
-The tests came first, in a commit of their own, where `test_a_step_that_changes_governance_fails_naming_its_line` in `tools/test_check_workflows.py` and the three tests of `GovernanceSkill` in `plugins/meow-github/tests/test_skill.py` failed. They close criterion 1, and `test_each_hook_with_a_gate_check_names_it` and `test_the_governance_guard_names_a_skill_in_its_unit` close criterion 2. The skill's description is 313 characters and the unit's budget is 353. `mise run all` passed with exit status 0.
+The tests came first, in a commit of their own, where `test_a_step_that_changes_governance_fails_naming_its_line` in `tools/test_check_workflows.py` and the three tests of `GovernanceSkill` in `plugins/meow-github/tests/test_skill.py` failed. They close criterion 1, and `test_each_hook_with_a_gate_check_names_it` and `test_the_governance_guard_names_a_skill_in_its_unit` close criterion 2. The skill's description is 394 characters and the unit's budget is 440. A review found the first rule matching a few spellings, so the check now asks the guard itself, which also learned to read a `gh -R owner/name` before its subcommand. `mise run all` passed with exit status 0.
 
 ## Left alone
 

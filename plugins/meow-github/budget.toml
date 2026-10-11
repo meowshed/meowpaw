@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # What this unit may load on every turn, in characters (REQ-1056): the
-# governance skill's description, which routes it, measured at 313 by the
+# governance skill's description, which routes it, measured at 394 by the
 # budget check on 2026-10-11. The program is on the Bash tool's PATH and loads
 # nothing into context.
-permanent_characters = 353
+permanent_characters = 440

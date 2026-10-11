@@ -178,7 +178,7 @@ description = "The full gate, as CI runs it"
 depends = ["fmt-check", "shell-fmt", "crate-fmt", "lint", "style", "prompts", "kernel", "standalone", "budget", "licence", "mise-check", "markdown", "layers", "shell-lint", "crate-lint", "crate-check", "test", "build"]
 
 [tasks.layers]
-description = "Check the history and the tree for what the hooks stop: a commit on the trunk, a message or a signature, and a run's state"
+description = "Check the history for what the hooks stop: a commit made on the trunk, and a branch commit's message, signature and prose"
 depends = ["build"]
 run = "python3 tools/check_layers.py all"
 

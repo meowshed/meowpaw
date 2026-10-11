@@ -47,5 +47,5 @@ fi
 # A hook that lets a call through for a missing binary lets through the call it
 # exists to stop (ADR-2710), so each guard denies and says how to install.
 cat >/dev/null 2>&1
-echo "meow-git: denied $1 because no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with: claude plugin install meow-core@meowpaw" >&2
+echo "meow-git: denied $1 because no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
 exit 2
