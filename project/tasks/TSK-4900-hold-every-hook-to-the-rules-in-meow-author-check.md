@@ -86,6 +86,17 @@ hook is a script that stops nothing; SPC-1240 now says so. The criterion's
 whose hooks write the run's own state, so the test holds REQ-2724, that the
 input is never written, and SPC-1240 says what each hook writes.
 
+A review by a separate agent found the check reading no script behind an
+interpreter, a path with a space cut short, an `allow` split across lines or
+spelled `approve` or as a `PermissionRequest` behaviour missed, a list of
+blocking events that let an unlisted one through, a network list without
+`git push`, `rsync` or `claude --print`, an exception that excused every
+network word and a `hooks.json` that didn't parse reported as nothing. Each is
+a test in the same file that failed first and is corrected. The crate's
+temporary repositories are made with `git init --template=`, which also
+changed four existing test files, because the sample hooks copied into a
+fixture failed on a busy machine.
+
 `cargo test --all-features`, `cargo clippy --all-features --all-targets
 -- -D warnings` and `mise run all` passed, each with exit status 0.
 

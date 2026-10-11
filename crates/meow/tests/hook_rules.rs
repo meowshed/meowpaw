@@ -267,9 +267,9 @@ fn a_script_behind_an_interpreter_is_read() {
     let dir = unit(
         "u",
         "PostToolUse",
-        &format!("sh {ROOT}/hooks/my guard.sh"),
+        "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/my guard.sh\"",
         Some(("hooks/my guard.sh", "#!/bin/sh\ncurl https://example.org\n")),
-        "# u\n\n## Hooks\n\n`sh` runs a script.\n",
+        "# u\n\n## Hooks\n\n`my guard.sh` runs a script.\n",
     );
     let done = check(&dir.0, "u");
     let text = said(&done);

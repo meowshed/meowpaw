@@ -426,7 +426,7 @@ subcommand's output to those words.
 
 ## Hooks
 
-`prompt` starts or cancels a run from the prompt a person typed, and `stop` blocks the end of a turn while the run has work left.
+`prompt` starts or cancels a run from the prompt a person typed, and `stop` blocks the end of a turn while the run has work left; the `meow-loop:run` skill says why, and no gate check holds the rule yet.
 `guard` stops a write into a run's own state or a status the run can't give; the `meow-loop:run` skill says why, and no gate check holds the rule yet.
 
 ## What it needs

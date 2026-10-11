@@ -47,4 +47,5 @@ Severity is minor, because the hook still stops the call in a session.
 ## Closed by
 
 A check in `mise.toml` or the CI workflow that fails a tree or a history
-breaking the rule, named in the unit's README sentence in place of this defect.
+breaking the rule, and a skill in the unit that explains it, both named in the
+unit's README sentence.

@@ -275,8 +275,8 @@ The run state holds a revision counter per work tree beside the ledger.
 `PostToolUseFailure` hooks on Bash, Edit, Write and NotebookEdit, adds one to
 it, after a failed tool use as well as a successful one, because a command
 that failed can still have changed the tree (REQ-2728). Each record carries
-the counter's value when its run started, and `evidence` prints it beside the
-current value. The tree id alone decides whether a record is current, because
+the counter's value when its result is recorded, and `evidence` prints it
+beside the current value. The tree id alone decides whether a record is current, because
 an edit made outside the session advances no counter. SPC-1240 states the
 rules the hooks keep.
 

@@ -107,8 +107,9 @@ runs, `meow-author check` fails a hook, naming the file and the event, that:
 - names a network command, such as `curl`, `wget`, `ssh`, `gh`, `git fetch`,
   `git pull` or `claude -p`, except `meow-prose-gate check`, which is excused
   by unit and subcommand and no other hook inherits;
-- is not the unit's launcher with one subcommand, on an event that can stop a
-  call or the turn, such as `PreToolUse`, `UserPromptSubmit` and `Stop`;
+- is not the unit's launcher with one subcommand, on any event but
+  `SessionStart`, `SessionEnd`, `PostToolUse` and `PostToolUseFailure`, so an
+  event added later is held to the rule until the check lists it;
 - has no sentence under its unit's README `## Hooks` naming the subcommand in
   code font.
 

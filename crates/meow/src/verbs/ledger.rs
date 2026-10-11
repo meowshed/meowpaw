@@ -435,8 +435,16 @@ pub fn advance(root: &Path) -> std::result::Result<u64, String> {
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).map_err(|e| format!("can't create {}: {e}", dir.display()))?;
     }
-    let _held =
-        lock(root, true).ok_or("the ledger's lock stayed held; the counter didn't advance")?;
+    // A hook has ten seconds, so the lock is tried for five and then given up.
+    let mut held = None;
+    for _ in 0..100 {
+        held = lock(root, false);
+        if held.is_some() {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+    let _held = held.ok_or("the ledger's lock stayed held; the counter didn't advance")?;
     let next = revision(root) + 1;
     let partial = path.with_extension("revision.partial");
     std::fs::write(&partial, format!("{next}\n"))
