@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""The kernel's output style states the secrets rule, within the kernel's budget (TSK-4935, REQ-1424)."""
+"""The kernel's output style states the secrets rule (TSK-4935, REQ-1424)."""
 
 import re
-import tomllib
 import unittest
 from pathlib import Path
 
@@ -30,11 +29,6 @@ class SecretsRule(unittest.TestCase):
         self.assertRegex(rule, r"never place it in", "the rule names no prohibition of the fourth")
         self.assertRegex(rule, r"because", "the rule carries no reason")
         self.assertRegex(rule, r"It never yields\.\s*$", "the rule yields")
-
-    def test_it_stays_within_the_kernels_budget(self):
-        """TSK-4935 criterion 2: the style's characters stay within `permanent_characters`."""
-        budget = tomllib.loads((ROOT / "plugins" / "meow-core" / "budget.toml").read_text(encoding="utf-8"))
-        self.assertLessEqual(len(STYLE.read_text(encoding="utf-8")), budget["permanent_characters"])
 
 
 if __name__ == "__main__":

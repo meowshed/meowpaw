@@ -2,11 +2,12 @@
 id: SPC-1110
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-11
 states:
   [
     REQ-3632,
     REQ-2838,
+    REQ-3194,
     REQ-3130,
     REQ-3132,
     REQ-3134,
@@ -22,7 +23,6 @@ states:
     REQ-3154,
     REQ-3160,
     REQ-3162,
-    REQ-3164,
     REQ-2330,
     REQ-2992,
   ]
@@ -138,9 +138,7 @@ repository, and the file restates none of it (REQ-3146).
 Each unit's `plugin.json` carries `description`, `homepage`, `repository`,
 `license` and `keywords`. `homepage` points at the unit's own page on the
 repository's default branch (REQ-3160). The description states what the unit
-does for the reader and what keeping it installed costs them, and names the
-ceiling from the unit's `budget.toml` as characters of context on every turn
-(REQ-3164).
+does for the reader (REQ-3194).
 
 The committed `.claude-plugin/marketplace.json` names each unit, its source
 and its homepage. The release workflow copies `description`, `repository`,
@@ -151,7 +149,7 @@ so the entry a reader sees before an install carries all five fields
 ### The check
 
 `python3 tools/check_docs.py` reads every user-facing page, each unit's
-`plugin.json` and `budget.toml`, `docs/README.md`, `llms.txt`, the root
+`plugin.json`, `docs/README.md`, `llms.txt`, the root
 `README.md`, `CLAUDE.md`, `project/vision.md` and the method skill, and prints
 one line per failure and a count. It exits 1 on any failure and 0 otherwise.
 It fails when:
@@ -162,8 +160,8 @@ It fails when:
   the unit's own;
 - a page carries a record identifier, a record artifact kind or a record
   status, or links into `project/`;
-- a `plugin.json` lacks a catalogue field, its `homepage` doesn't point at the
-  unit's page, or its description doesn't name the unit's ceiling;
+- a `plugin.json` lacks a catalogue field, or its `homepage` doesn't point at
+  the unit's page;
 - the generated table in `docs/README.md` differs from the pages, or a kind is
   neither carried nor listed under `## Not written`;
 - `llms.txt` lacks its H1 or summary, links to a path that doesn't exist, or
@@ -213,7 +211,6 @@ Each failure prints one line, and the check goes on to report the rest.
 | A root file that isn't UTF-8         | `<file>: isn't UTF-8`                                                | Save the file as UTF-8                                                   |
 | A missing catalogue field            | `<unit>: plugin.json lacks <field>`                                  | Add the field to `plugin.json`                                           |
 | A homepage elsewhere                 | `<unit>: homepage doesn't point at plugins/<unit>/README.md`         | Point `homepage` at the unit's page                                      |
-| A description without the ceiling    | `<unit>: the description doesn't name its ceiling, <n>`              | Add the ceiling from `budget.toml` to the description                    |
 | A stale index                        | `docs/README.md: the table is out of date; run --write`              | `python3 tools/check_docs.py --write`                                    |
 | A kind neither carried nor recorded  | `docs/README.md: no page is <kind>, and Not written doesn't list it` | Write the page, or list the kind with its reason                         |
 | `llms.txt` without its H1 or summary | `llms.txt: lacks its <part>`                                         | Add the H1 or the blockquote summary                                     |

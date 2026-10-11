@@ -411,6 +411,11 @@ in three tasks, TSK-5320 to TSK-5322: a task and its issue are synchronised by a
 fingerprint of each side, the record wins a conflict, and an approved record is
 only reported.
 
+[EPC-2820](epics/EPC-2820-the-harness-budgets-no-characters-and-counts-no-tokens.md)
+realises ADR-2970 in five tasks, TSK-5510 to TSK-5550: the harness budgets no
+characters and counts no tokens, the eight requirements naming a budget are
+withdrawn, and the platform cap keeps its check in `meow author check`.
+
 [EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
 tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either
 from its research or from its approved records, and the readiness check reads a

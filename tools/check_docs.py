@@ -24,7 +24,6 @@ from pathlib import Path
 
 FIELDS = ("reader", "answers", "kind", "describes")
 CATALOGUE = ("description", "homepage", "repository", "license", "keywords")
-CEILING = re.compile(r"^permanent_characters\s*=\s*(\d+)", re.M)
 KINDS = ("introduction", "tutorial", "how-to", "reference", "explanation", "troubleshooting")
 RECORD_KEYS = ("id", "artifact", "status")
 IDENTIFIER = re.compile(r"\b(?:REQ|ADR|SPC|EPC|TSK|BUG|RES|INS)-\d{4}\b")
@@ -156,13 +155,6 @@ def check_page(root, path, versions):
     return out
 
 
-def ceiling(root, unit):
-    """The characters the unit keeps in context on every turn, from its `budget.toml`."""
-    budget = root / "plugins" / unit / "budget.toml"
-    found = CEILING.search(budget.read_text(encoding="utf-8")) if budget.is_file() else None
-    return int(found.group(1)) if found else None
-
-
 def check_catalogue(root, unit):
     """The fields a reader sees before an install, written once in `plugin.json`."""
     data = json.loads((root / "plugins" / unit / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
@@ -170,14 +162,6 @@ def check_catalogue(root, unit):
     homepage = data.get("homepage", "")
     if homepage and not homepage.endswith(f"/plugins/{unit}/README.md"):
         out.append(f"{unit}: homepage doesn't point at plugins/{unit}/README.md")
-    limit = ceiling(root, unit)
-    description = data.get("description", "")
-    if limit is None:
-        out.append(f"{unit}: budget.toml states no ceiling")
-    elif description:
-        named = "nothing in context" if limit == 0 else f"{limit:,} characters"
-        if named not in description:
-            out.append(f"{unit}: the description doesn't name its ceiling, {named}")
     return out
 
 

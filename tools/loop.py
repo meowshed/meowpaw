@@ -18,11 +18,10 @@ in the unit. Everything else is copied from the unit unchanged.
 
 Every candidate runs on each model the prompts serve, Sonnet 5 and Opus 5.5 by
 default, and lands only when it lands on every one of them. On one model, a
-candidate lands when its delta holds and its token cost falls. Its delta
-holds when it is no lower than the baseline's by more than twice their
-combined standard error, because five runs of a model vary and a smaller fall
-is indistinguishable from that variance. A candidate that scores better and
-costs more is published with both numbers, and the owner decides.
+candidate lands when its delta holds. Its delta holds when it is no lower than
+the baseline's by more than twice their combined standard error, because five
+runs of a model vary and a smaller fall is indistinguishable from that
+variance.
 
 In `--mode classifier` the cases carry a `defect` or a `clean` tag, the run has
 no baseline arm, and the table reports how often each kind passed. That is how
@@ -170,32 +169,6 @@ def variant(unit, overlay, into):
     return into
 
 
-def input_tokens(model, cwd, prompt_file=None):
-    """Every input token one print-mode call reads, cached or not."""
-    cmd = ["claude", "-p", PROBE, "--model", model, "--output-format", "json", "--max-turns", "1"]
-    if prompt_file:
-        cmd += ["--append-system-prompt-file", str(prompt_file)]
-    out = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=True,
-                         stdin=subprocess.DEVNULL).stdout
-    result = [e for e in json.loads(out) if e.get("type") == "result"][-1]["usage"]
-    return sum(result.get(k, 0) for k in
-               ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
-
-
-def token_cost(root, loads, model, cwd, empty):
-    """What the unit's loaded text costs, measured as the model's own tokenizer counts it.
-
-    The text is appended to a system prompt and the difference against an empty
-    call is the cost, so it is a count and not an estimate from characters.
-    """
-    files = sorted(p for pattern in loads for p in root.glob(pattern))
-    if not files:
-        return 0
-    joined = cwd / "loaded.md"
-    joined.write_text("\n\n".join(p.read_text(encoding="utf-8") for p in files), encoding="utf-8")
-    return input_tokens(model, cwd, joined) - empty
-
-
 def evaluate(root, args, out, mode, model):
     report = out / "result.json"
     cmd = ["claude", "plugin", "eval", str(root), "--runs", str(args.runs),
@@ -249,7 +222,7 @@ def summarise(result):
     delta = mean([c["delta"] for c in cases.values()])
     se = math.sqrt(sum(c["var"] for c in cases.values())) / k if k else float("nan")
     return {"cases": cases, "delta": delta, "se": se, "errors": errors,
-            "partial": result.get("partial", False), "cost": result.get("costUsd", 0)}
+            "partial": result.get("partial", False)}
 
 
 def classify(result, unit):
@@ -270,7 +243,7 @@ def classify(result, unit):
         cases[case["name"]] = compare(arms["with"], arms["without"])
     return {"kinds": {k: compare(v["with"], v["without"]) for k, v in kinds.items()},
             "cases": cases, "errors": errors,
-            "partial": result.get("partial", False), "cost": result.get("costUsd", 0)}
+            "partial": result.get("partial", False)}
 
 
 def compare(with_, without):
@@ -284,27 +257,18 @@ def compare(with_, without):
 
 
 def verdict(base, cand):
-    if cand["tokens"] is None or base["tokens"] is None:
-        return "no token count"
     margin = 2 * math.sqrt(base["se"] ** 2 + cand["se"] ** 2)
-    holds = cand["delta"] >= base["delta"] - margin
-    better = cand["delta"] > base["delta"] + margin
-    cheaper = cand["tokens"] < base["tokens"]
-    if holds and cheaper:
+    if cand["delta"] >= base["delta"] - margin:
         return "lands"
-    if better and not cheaper:
-        return "better and costlier: owner decides"
-    if not holds:
-        return f"loses: delta fell by more than {margin:.2f}"
-    return "loses: costs no less"
+    return f"loses: delta fell by more than {margin:.2f}"
 
 
 def table_delta(rows, limits):
-    lines = ["| Candidate | Model | Change | Delta | 2SE | Tokens | Errors | Verdict |",
-             "| --- | --- | --- | --- | --- | --- | --- | --- |"]
+    lines = ["| Candidate | Model | Change | Delta | 2SE | Errors | Verdict |",
+             "| --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
         lines.append(f"| {r['name']} | {r['model']} | {r['change']} | {r['delta']:+.2f} | {2 * r['se']:.2f} | "
-                     f"{r['tokens'] if r['tokens'] is not None else '-'} | {r['errors']} | {r['verdict']} |")
+                     f"{r['errors']} | {r['verdict']} |")
     for base in (r for r in rows if r["name"] == "baseline"):
         lines += per_case(base, limits)
     return "\n".join(lines)
@@ -331,8 +295,8 @@ def per_case(base, limits):
 
 
 def table_classifier(rows, limits):
-    lines = ["| Candidate | Model | Change | Kind | With | Without | Delta | 2SE | Runs | Label | Tokens | Errors |",
-             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+    lines = ["| Candidate | Model | Change | Kind | With | Without | Delta | 2SE | Runs | Label | Errors |",
+             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     for r in rows:
         for kind, k in r["kinds"].items():
             if not k["runs"]:
@@ -340,7 +304,7 @@ def table_classifier(rows, limits):
             lines.append(f"| {r['name']} | {r['model']} | {r['change']} | {kind} | "
                          f"{k['with']:.2f} ±{2 * k['with_se']:.2f} | {k['without']:.2f} ±{2 * k['without_se']:.2f} | "
                          f"{k['delta']:+.2f} | {2 * k['se']:.2f} | {k['runs']} | {k['label']} | "
-                         f"{r['tokens']} | {r['errors']} |")
+                         f"{r['errors']} |")
     for base in (r for r in rows if r["name"] == "baseline"):
         lines += per_case(base, limits)
     return "\n".join(lines)
@@ -369,18 +333,14 @@ def loop(unit, args, entries):
     rows = []
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        probe = tmp / "probe"
-        probe.mkdir()
         for model in args.models:
-            empty = input_tokens(model, probe)
             for name, change, overlay in entries:
                 root = variant(unit, overlay, tmp / model / name / unit.name)
                 result = evaluate(root, args, out / model / name, args.mode, model)
                 row = (classify(result, root) if args.mode == "classifier" else summarise(result))
-                row.update(name=name, change=change, model=model,
-                           tokens=token_cost(root, args.loads, model, probe, empty))
+                row.update(name=name, change=change, model=model)
                 rows.append(row)
-                print(f"{unit.name} {name} on {model}: done, ${row['cost']:.2f}", file=sys.stderr)
+                print(f"{unit.name} {name} on {model}: done", file=sys.stderr)
 
     baselines = {r["model"]: r for r in rows if r["name"] == "baseline"}
     if args.mode == "classifier":
@@ -399,7 +359,7 @@ def loop(unit, args, entries):
         text = table_delta(rows, thresholds(unit))
 
     head = "\n".join([
-        f"{unit.name} at {stamp}: models {', '.join(args.models)}, ${sum(r['cost'] for r in rows):.2f}.",
+        f"{unit.name} at {stamp}: models {', '.join(args.models)}.",
         *judge_line(args.judge, args.models, args.runs),
         (f"Thresholds as committed at {commit}, before this run (REQ-0159)." if commit
          else "No thresholds file: no case gets a verdict (REQ-0159)."),
@@ -419,8 +379,6 @@ def main():
     ap.add_argument("units", type=Path, nargs="+")
     ap.add_argument("--candidates", type=Path)
     ap.add_argument("--mode", choices=("delta", "classifier"), default="delta")
-    ap.add_argument("--loads", nargs="+", default=["output-styles/*.md"],
-                    help="globs, relative to the unit, for the text whose token cost is reported")
     ap.add_argument("--runs", type=int, default=RUNS)
     ap.add_argument("--cases")
     ap.add_argument("--tag", dest="tags", action="append",

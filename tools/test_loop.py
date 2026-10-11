@@ -80,13 +80,13 @@ class Judge(unittest.TestCase):
 class Verdicts(unittest.TestCase):
     """REQ-0159: what counts is stated before the run."""
 
-    def row(self, delta, se, tokens):
-        return {"delta": delta, "se": se, "tokens": tokens}
+    def row(self, delta, se):
+        return {"delta": delta, "se": se}
 
     def test_a_candidate_lands_only_within_twice_the_combined_error(self):
-        base = self.row(0.5, 0.05, 100)
-        self.assertEqual(loop.verdict(base, self.row(0.40, 0.05, 90)), "lands")
-        self.assertTrue(loop.verdict(base, self.row(0.30, 0.05, 90)).startswith("loses: delta fell"))
+        base = self.row(0.5, 0.05)
+        self.assertEqual(loop.verdict(base, self.row(0.40, 0.05)), "lands")
+        self.assertTrue(loop.verdict(base, self.row(0.30, 0.05)).startswith("loses: delta fell"))
 
     def test_a_case_below_its_threshold_does_not_meet_it(self):
         self.assertEqual(loop.meets(0.5, 0.66), "no")

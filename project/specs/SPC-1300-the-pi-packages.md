@@ -11,7 +11,6 @@ states:
     REQ-4108,
     REQ-4112,
     REQ-4114,
-    REQ-4120,
     REQ-4122,
     REQ-4124,
     REQ-4126,
@@ -97,7 +96,6 @@ packages/<name>/
 │   └── <layer>.ts        registers event handlers, commands and tools
 ├── skills/               symlinked or copied from plugins/<name>/skills/
 ├── bin/                  platform-specific native binaries
-├── budget.toml           documented permanent character cost
 └── README.md             the package's page
 ```
 
@@ -286,13 +284,6 @@ call — the prose reviewer and the researcher — carries its own
 bundled copy of the reply shape into that call's messages, because a nested
 call runs its own prompt and never sees the session's.
 
-### Budgets
-
-Each package carries a `budget.toml` that states the permanent character cost
-its skills and commands add to the system prompt (REQ-4120). The values are
-the same as the Claude Code plugins state. Pi does not enforce the budget; the
-file documents the cost for the package author and the installer.
-
 ### Evals
 
 Eval suites remain in the `plugins/` directory and are not carried in the Pi
@@ -325,7 +316,7 @@ download source the core installer names (RES-0342).
 ### The packages
 
 Each Pi package mirrors one unit (REQ-4146): `@meowshed/<unit>` carries
-that unit's skills, launcher, extension and budget, and its manifest
+that unit's skills, launcher and extension, and its manifest
 states the version the unit's `.claude-plugin/plugin.json` states. A tag
 named `<unit>-v<version>` releases the unit to both registries, and each
 side skips what it already holds. The guards live in the units that own

@@ -23,9 +23,8 @@ procedure states where it stops.
    where the content mixes kinds (B2), with every obligation a numbered list
    item under `<rules>` and every file the material relies on named in the
    body of its own file.
-4. Where the material adds to what loads on every turn, run
-   `${CLAUDE_SKILL_DIR}/../../bin/meow-author cost`. Before cutting or keeping
-   material, run `/skill-doctor` and read how often the material was used.
+4. Before cutting or keeping material, run `/skill-doctor` and read how often
+   the material was used.
 5. Run `${CLAUDE_SKILL_DIR}/../../bin/meow-author check` on the directory you
    wrote in, fix each line it names, and stop when it passes.
 </steps>

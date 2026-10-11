@@ -2,7 +2,7 @@
 id: SPC-1030
 artifact: spec
 status: live
-revised: 2026-10-10
+revised: 2026-10-11
 states:
   [
     REQ-0077,
@@ -10,17 +10,14 @@ states:
     REQ-1050,
     REQ-1052,
     REQ-1054,
-    REQ-1056,
-    REQ-1057,
-    REQ-1058,
     REQ-1060,
     REQ-1062,
     REQ-1064,
     REQ-1066,
+    REQ-2748,
+    REQ-5000,
     REQ-1068,
     REQ-1070,
-    REQ-1072,
-    REQ-1074,
     REQ-1076,
     REQ-1078,
     REQ-1110,
@@ -123,7 +120,6 @@ hook keeps.
 | `plugins/meow-author/`           | The unit that ships the authoring skill and the check                                                                        |
 | `tools/check_kernel.py`          | The check that the kernel (the `meow-core` unit) names no unit outside it                                                    |
 | `tools/check_language.py`        | The check that no prompt, template or page of the method names a language or a tool, run by the `test` stage                 |
-| `meow-author cost`               | The report of each unit's cost against its budget, and its use, run by the `budget` task                                     |
 
 ## Behaviour
 
@@ -222,24 +218,15 @@ exempt (ADR-2640).
 
 ### Size
 
-Each unit states a size budget and is measured against it, and an overrun is a
-defect (REQ-1056, REQ-1058). The budget sits in the unit's `budget.toml` as
-`permanent_characters`, with the measurement it was set from beside it. It
-covers what loads on every turn: each skill's and agent's description and
-`when_to_use`, and the whole of an output style.
+No unit carries a size budget, and no check reads one (REQ-2748). The
+harness holds what loads on every turn with the rules on when material loads,
+not with a number: only what a model needs to decide whether the unit is
+relevant sits in context on every turn (REQ-1050), and the authoring capability
+enforces the writing standard on what it produces (REQ-5000).
 
-`meow-author cost` reports, for each unit under `plugins/`, the characters it
-keeps in context on every turn against the budget its `budget.toml` states. It
-counts that in the gate, so the report is part of every verification
-(REQ-1074). It fails on a unit over its budget, on a unit stating no budget and
-on a description and its `when_to_use` together over the cap of 1,536
-characters (REQ-1072). How often each skill is used comes from the platform's
-`/skill-doctor`, which the report names, and the harness reads none of the
-platform's private files (REQ-1072).
-
-Material past the budget moves into supporting files, and a unit never loses an
-obligation to get shorter (REQ-1057). Only what a model needs to decide whether
-the unit is relevant sits in context on every turn (REQ-1050).
+`meow author check` fails on a description or a `when_to_use` over the
+platform's cap of 1,536 characters (REQ-1060). The platform, not the harness,
+sets the cap; the harness holds nothing else to a count.
 
 A unit's obligations sit in the first 5,000 tokens of its core and ahead of its
 explanations. The platform keeps that much of a skill after compaction, so a
@@ -499,28 +486,28 @@ One check audits every unit, because the format is uniform across them
 
 ## Failure paths
 
-| Condition                                                           | What happens                                                                           |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| A prompt uses a heading or an unknown tag                           | The check fails in the gate, naming the file and the line                              |
-| A prompt nests a tag inside another                                 | The check fails, because the vocabulary is top-level only                              |
-| A core names no supporting file for a kind of work                  | The model loads nothing for it, and the unit is defective against REQ-1124             |
-| An obligation sits past the first 5,000 tokens of a core            | The platform drops it after compaction, which is a defect against REQ-1064             |
-| A unit exceeds its stated budget                                    | The overrun is reported as a defect and the material moves into supporting files       |
-| The model does not load a unit that MUST be loaded                  | The routing measurement shows it, and the description is the thing that changes        |
-| A description loads its unit on a near miss                         | The routing measurement shows it, and the wording is narrowed before it ships          |
-| An agent leaves out a declared field                                | The check fails in the gate, naming the file and the field                             |
-| A unit grants a tool no step is named for                           | The check fails, naming the unit, the tool and the agent or skill granting it          |
-| A method prompt names a language or a tool                          | `tools/check_language.py` fails in the `test` stage, naming the file, line and word    |
-| A language name the list lacks                                      | The check passes it, and review holds it until the word joins the list                 |
-| An agent's front matter doesn't parse                               | The check fails, naming the file and the reason, and runs no field rule on it          |
-| A shipped agent lists `Agent`, `Task` or `*`                        | The check fails, naming the file and the `tools` field                                 |
-| A shipped agent names a model the account lacks                     | The dispatch fails to start, and a repository replaces the agent with its own          |
-| An agent reaches its `maxTurns`                                     | Its output comes back marked partial, and the dispatcher reads it as unfinished        |
-| A unit's agent doesn't name all four outcomes                       | The check fails, naming the file and each missing word                                 |
-| A shipped agent's tool call is denied                               | The agent makes no other call for it and ends with `outcome: BLOCKED` and the tool     |
-| A shipped agent's report carries no outcome line                    | Its dispatcher reads it as work that didn't run                                        |
-| A unit ships a `commands/` directory                                | The check fails, naming the unit                                                       |
-| A skill's directory holds a file its `SKILL.md` never names         | The check fails, naming the file, because the model never loads it                     |
-| A prompt writes a path into the unit without the directory variable | The check fails, naming the file and the line, because the path breaks off the install |
-| A procedure has no step naming where it stops                       | The check fails, naming the file                                                       |
-| A background agent's permission prompt in an interactive session    | It waits in the main session for the person, with no timeout the harness sets          |
+| Condition                                                                         | What happens                                                                           |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| A prompt uses a heading or an unknown tag                                         | The check fails in the gate, naming the file and the line                              |
+| A prompt nests a tag inside another                                               | The check fails, because the vocabulary is top-level only                              |
+| A core names no supporting file for a kind of work                                | The model loads nothing for it, and the unit is defective against REQ-1124             |
+| An obligation sits past the first 5,000 tokens of a core                          | The platform drops it after compaction, which is a defect against REQ-1064             |
+| A description or a `when_to_use` sits over the platform's cap of 1,536 characters | `meow author check` fails, naming the file (REQ-1060)                                  |
+| The model does not load a unit that MUST be loaded                                | The routing measurement shows it, and the description is the thing that changes        |
+| A description loads its unit on a near miss                                       | The routing measurement shows it, and the wording is narrowed before it ships          |
+| An agent leaves out a declared field                                              | The check fails in the gate, naming the file and the field                             |
+| A unit grants a tool no step is named for                                         | The check fails, naming the unit, the tool and the agent or skill granting it          |
+| A method prompt names a language or a tool                                        | `tools/check_language.py` fails in the `test` stage, naming the file, line and word    |
+| A language name the list lacks                                                    | The check passes it, and review holds it until the word joins the list                 |
+| An agent's front matter doesn't parse                                             | The check fails, naming the file and the reason, and runs no field rule on it          |
+| A shipped agent lists `Agent`, `Task` or `*`                                      | The check fails, naming the file and the `tools` field                                 |
+| A shipped agent names a model the account lacks                                   | The dispatch fails to start, and a repository replaces the agent with its own          |
+| An agent reaches its `maxTurns`                                                   | Its output comes back marked partial, and the dispatcher reads it as unfinished        |
+| A unit's agent doesn't name all four outcomes                                     | The check fails, naming the file and each missing word                                 |
+| A shipped agent's tool call is denied                                             | The agent makes no other call for it and ends with `outcome: BLOCKED` and the tool     |
+| A shipped agent's report carries no outcome line                                  | Its dispatcher reads it as work that didn't run                                        |
+| A unit ships a `commands/` directory                                              | The check fails, naming the unit                                                       |
+| A skill's directory holds a file its `SKILL.md` never names                       | The check fails, naming the file, because the model never loads it                     |
+| A prompt writes a path into the unit without the directory variable               | The check fails, naming the file and the line, because the path breaks off the install |
+| A procedure has no step naming where it stops                                     | The check fails, naming the file                                                       |
+| A background agent's permission prompt in an interactive session                  | It waits in the main session for the person, with no timeout the harness sets          |

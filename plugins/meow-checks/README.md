@@ -159,9 +159,8 @@ gives, and leaves every stage unresolved. A parsed one adds
 had no effect. The key is ignored and the exit status stays what it would be
 without it.
 
-## What it costs you
+## What it costs you The
 
-The skill's description costs 332 characters in context on every turn. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, every
 stage is reported unresolved, as "no interpreter".
