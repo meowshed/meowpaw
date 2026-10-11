@@ -1931,9 +1931,10 @@ fn is_draft(doc: &Doc) -> bool {
     bare(doc.value("status")) == "draft"
 }
 
-/// Relations that name no provider: a superseded record and a postponed
-/// requirement are what a record moves away from, not what it rests on.
-const NOT_PROVIDERS: [&str; 2] = ["supersedes", "postpones"];
+/// Relations that name no provider: a superseded record, a postponed
+/// requirement and a requirement a defect violated are what a record moves
+/// away from or moved against, not what it rests on (ADR-2960).
+const NOT_PROVIDERS: [&str; 3] = ["supersedes", "postpones", "violates"];
 
 /// Kinds that change after approval by design, an epic as its tasks close and
 /// a defect as its Tasks and Closed by sections fill, so their date says
