@@ -947,7 +947,9 @@ fn manifest_rules(root: &Path, unit: &Path) -> Vec<String> {
         }
     };
     let layer = match table.get("layer") {
-        Some(toml::Value::String(layer)) if LAYERS.contains(&layer.as_str()) => Some(layer.as_str()),
+        Some(toml::Value::String(layer)) if LAYERS.contains(&layer.as_str()) => {
+            Some(layer.as_str())
+        }
         Some(toml::Value::String(layer)) => {
             out.push(format!(
                 "{where_}: layer is `{layer}`, where the unit states kernel, method, practice or pack"
@@ -1165,9 +1167,16 @@ mod tests {
     /// A fixture unit carrying the manifest files the manifest rules read: a
     /// version in its plugin manifest, a requires.toml and a README. Each file
     /// named is replaced; each left alone keeps its default.
-    fn manifest_check(case: &str, plugin: Option<&str>, requires: Option<&str>, readme: Option<&str>) -> u8 {
-        let root =
-            std::env::temp_dir().join(format!("meow-author-manifest-{case}-{}", std::process::id()));
+    fn manifest_check(
+        case: &str,
+        plugin: Option<&str>,
+        requires: Option<&str>,
+        readme: Option<&str>,
+    ) -> u8 {
+        let root = std::env::temp_dir().join(format!(
+            "meow-author-manifest-{case}-{}",
+            std::process::id()
+        ));
         let _ = std::fs::remove_dir_all(&root);
         let unit = root.join("plugins").join("meow-demo");
         std::fs::create_dir_all(unit.join(".claude-plugin")).unwrap();
