@@ -175,7 +175,8 @@ citation in an approved artifact, and an approved or living artifact that cites
 nothing and that nothing cites. None of these makes it fail. Where the record's root is under no version control, it says the
 record is local to this machine. When a session starts, a hook runs `paw status
 --waiting`, so Claude opens with any draft waiting for you and says nothing
-when none is. `paw show <id>` prints what an identifier names and every
+when none is, except on a machine with no binary, where it says the record
+wasn't checked. `paw show <id>` prints what an identifier names and every
 artifact that cites it, grouped by the field that cites it, and for a
 requirement each task closing it with its mark and its epic.
 It marks a citation as suspect where its target was revised after the citing
@@ -304,7 +305,9 @@ The `method` and `route` skills' descriptions, the driver's and the `router`
 agent's, on every turn, so Claude knows when to load each. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, it
-reports the record as not checked and exits 3.
+reports the record as not checked and exits 3, and its session-start hook says
+so and names `claude plugin install meow-core@meowpaw` and exits 0, so the
+session begins.
 
 ## What it needs
 

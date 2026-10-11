@@ -897,6 +897,8 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1563](bugs/BUG-1563-no-check-in-the-gate-finds-a-run-s-own-state-edited-by-hand.md)                | No check in the gate finds a run's own state edited by hand, so `meow-loop`'s `guard` rule is held by the hook alone                                                                       |
 | [BUG-1564](bugs/BUG-1564-no-check-in-the-gate-finds-text-that-breaks-the-prose-rules.md)                | No check in the gate finds text that breaks the prose rules the gate holds, so `meow-prose-gate`'s `check` rule is held by the hook and by review alone                                    |
 | [BUG-1565](bugs/BUG-1565-no-check-in-the-gate-finds-a-run-whose-turn-ended-with-work-left.md)           | No check in the gate finds a run whose turn ended with work left, so `meow-loop`'s `stop` rule is held by the hook alone                                                                   |
+| [BUG-1570](bugs/BUG-1570-gotask-writes-a-scratch-directory-in-the-temporary-directory.md)               | `meow-gotask` writes a scratch directory in the temporary directory, outside the run state                                                                                                 |
+| [BUG-1580](bugs/BUG-1580-the-ledger-copies-the-index-into-the-temporary-directory.md)                   | The ledger copies the index into the temporary directory to bind a result to a tree                                                                                                        |
 
 BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
 the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100
@@ -907,5 +909,5 @@ names the failure states that `meow-loop` reaches, and TSK-4050 added the two
 refusals at start. BUG-1410 is closed by TSK-5260, BUG-1520 by TSK-5240 and
 BUG-1530 by TSK-5280, and BUG-1540 by TSK-5340. BUG-1550 routes to implement,
 because the requirement is right and a description didn't state the obligation,
-and is closed by TSK-5370. BUG-1560 to BUG-1565 are open and route to design,
+and is closed by TSK-5370. BUG-1560 to BUG-1565, BUG-1570 and BUG-1580 are open and route to design,
 because each names a hook whose rule no check in the gate holds.

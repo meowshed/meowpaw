@@ -53,7 +53,7 @@ fi
 # wasn't checked and how to install the binary, and the session begins
 # (SPC-1240).
 if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
-  echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+  echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with: claude plugin install meow-core@meowpaw"
   exit 0
 fi
 echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"

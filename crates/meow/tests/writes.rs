@@ -228,7 +228,7 @@ const WRITES: [(&str, usize, &str); 11] = [
     (
         "gotask.rs",
         2,
-        "a scratch directory its own test helper makes and removes",
+        "a scratch directory in the temporary directory for one `task --list-all` call (BUG-1570)",
     ),
     (
         "record.rs",
@@ -237,18 +237,18 @@ const WRITES: [(&str, usize, &str); 11] = [
     ),
     (
         "runloop.rs",
-        11,
+        15,
         "a run's own files under the run state, and its lock",
     ),
     (
         "verbs.rs",
-        6,
+        7,
         "the personal profile and the exclude file of the repository, written through a temporary file",
     ),
     (
         "verbs/ledger.rs",
         16,
-        "the ledger, its outputs, the counter and the lock under the run state, and a temporary index in the temporary directory",
+        "the ledger, its outputs, the counter and the lock under the run state, and a temporary copy of the index in the temporary directory (BUG-1580)",
     ),
     ("scm.rs", 0, "writes nothing"),
     ("licence.rs", 0, "writes nothing"),

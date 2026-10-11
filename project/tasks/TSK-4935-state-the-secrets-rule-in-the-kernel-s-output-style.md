@@ -1,7 +1,7 @@
 ---
 id: TSK-4935
 artifact: task
-status: done
+status: approved
 revised: 2026-10-03
 epic: EPC-2525
 closes: [REQ-1424]

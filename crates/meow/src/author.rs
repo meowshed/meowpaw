@@ -349,6 +349,33 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
+/// The tools a comma-separated string names, split at the commas outside
+/// parentheses, so `Bash(git status:*)` stays one entry.
+fn split_tools(list: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut current = String::new();
+    let mut depth = 0usize;
+    for c in list.chars() {
+        match c {
+            '(' => {
+                depth += 1;
+                current.push(c);
+            }
+            ')' => {
+                depth = depth.saturating_sub(1);
+                current.push(c);
+            }
+            ',' if depth == 0 => out.push(std::mem::take(&mut current)),
+            c => current.push(c),
+        }
+    }
+    out.push(current);
+    out.into_iter()
+        .map(|t| t.trim().to_string())
+        .filter(|t| !t.is_empty())
+        .collect()
+}
+
 /// Each tool an agent's `tools` or a skill's `allowed-tools` grants, which the
 /// unit's README names no step for under `## Tools`, naming the file, the tool
 /// and the README (REQ-1430, REQ-1432, SPC-1030 "What a unit declares").
@@ -361,7 +388,7 @@ fn tool_steps(root: &Path, unit: &Path) -> Vec<String> {
     let mut inside = false;
     let mut fenced = false;
     for line in readme.lines() {
-        if line.trim_start().starts_with("```") {
+        if line.trim_start().starts_with("```") || line.trim_start().starts_with("~~~") {
             fenced = !fenced;
         }
         if !fenced && line.starts_with("## ") {
@@ -369,6 +396,7 @@ fn tool_steps(root: &Path, unit: &Path) -> Vec<String> {
             continue;
         }
         if inside
+            && !fenced
             && let Some(item) = line.strip_prefix("- `")
             && let Some((tool, rest)) = item.split_once("`:")
             && !rest.trim().is_empty()
@@ -407,7 +435,7 @@ fn tool_steps(root: &Path, unit: &Path) -> Vec<String> {
                 .iter()
                 .filter_map(|i| i.as_str().map(str::to_string))
                 .collect(),
-            Some(Yaml::String(list)) => list.split([',', ' ']).map(str::to_string).collect(),
+            Some(Yaml::String(list)) => split_tools(list),
             _ => Vec::new(),
         };
         for tool in granted {
