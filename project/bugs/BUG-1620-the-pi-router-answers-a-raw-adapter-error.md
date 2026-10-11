@@ -1,18 +1,21 @@
 ---
 id: BUG-1620
 artifact: bug
-status: approved
+status: withdrawn
 severity: major
 violates: REQ-4110
 enters: implement
 found: 2026-10-11
 revised: 2026-10-11
-issue:
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
 
 # The Pi router answers a raw adapter error and never picks a Claude model
+
+Withdrawn by ADR-2930: the `meow-router` tool this defect reports is deleted
+with the dispatch behind it, so the route is the session's own act and the
+defect has no subject to fix.
 
 The `meow-router` tool returns `content.some is not a function` as its whole
 result, because its model choice matches the provider name `anthropic`

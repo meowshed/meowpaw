@@ -1,7 +1,7 @@
 ---
 id: TSK-5460
 artifact: task
-status: approved
+status: withdrawn
 revised: 2026-10-11
 bug: BUG-1620
 closes: []
@@ -9,6 +9,11 @@ issue:
 ---
 
 # Make the Pi router answer, or name the model that failed
+
+Withdrawn by ADR-2930: the `meow-router` tool this task fixed is deleted with
+the dispatch behind it, so the route is the session's own act and the task has
+no subject. Its module and tests landed on this branch and are deleted again
+in the change that withdraws them.
 
 The router's model choice and message handling move into
 `packages/meow-flow/lib/router.mjs`, where a test drives them against a

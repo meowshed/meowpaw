@@ -906,6 +906,8 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1600](bugs/BUG-1600-the-pi-step-commands-load-no-skill.md)                                         | The Pi step commands tell the person to load a skill and load nothing                                                                                                                      |
 | [BUG-1610](bugs/BUG-1610-a-run-cannot-start-from-a-pi-session.md)                                       | A run cannot start from a Pi session                                                                                                                                                       |
 | [BUG-1620](bugs/BUG-1620-the-pi-router-answers-a-raw-adapter-error.md)                                  | The Pi router answers a raw adapter error and never picks a Claude model                                                                                                                   |
+| [BUG-1630](bugs/BUG-1630-pi-injects-a-stale-copy-of-the-style.md)                                       | Pi injects a stale copy of the style, which lacks the secrets rule                                                         |
+| [BUG-1640](bugs/BUG-1640-the-checker-walks-a-defects-violates-as-a-provider.md)                         | The record checker walks a defect's `violates` as a provider, so a withdrawal cascades into provenance chains             |
 
 BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
 the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100

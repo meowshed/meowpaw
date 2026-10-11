@@ -3,13 +3,17 @@ id: REQ-4110
 artifact: requirement
 topic: pi-packages
 class: functional
-status: approved
-revised: 2026-10-04
+status: withdrawn
+revised: 2026-10-11
 verification: behavioural
 elaborates: RES-0340
 ---
 
 # REQ-4110
+
+Withdrawn by ADR-2930, which deletes the router agent and the `meow-router`
+tool it mapped to, and leaves no agent definition that maps to a Pi tool; a
+later decision states the mapping when an agent ships.
 
 The router agent (`agents/router.md`) and the skeptic agent become tools
 registered by the meow-flow extension via `pi.registerTool()`. The tool's

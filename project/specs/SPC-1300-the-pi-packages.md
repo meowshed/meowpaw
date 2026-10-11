@@ -9,7 +9,6 @@ states:
     REQ-4104,
     REQ-4106,
     REQ-4108,
-    REQ-4110,
     REQ-4112,
     REQ-4114,
     REQ-4120,
@@ -25,6 +24,8 @@ states:
     REQ-4610,
     REQ-4612,
     REQ-4614,
+    REQ-4616,
+    REQ-4618,
   ]
 ---
 
@@ -195,33 +196,16 @@ its own system prompt.
 
 ### Agents
 
-The router agent (`plugins/meow-flow/agents/router.md`) becomes a tool
-registered by the method extension (REQ-4110):
-
-```typescript
-pi.registerTool("meow-router", {
-  description: "Route a request to change the repository before work starts",
-  parameters: RouterParametersSchema,
-  execute: async (args, ctx) => {
-    const result = await ctx.modelRegistry.streamSimple({
-      model: "sonnet",
-      messages: [
-        { role: "system", content: replyShape },
-        { role: "user", content: routerPrompt(args.request) },
-      ],
-      tools: ["Read", "Grep", "Glob"],
-    });
-    return { content: result.text, details: undefined };
-  },
-});
-```
-
-The skeptic agent follows the same pattern.
-
-The router's nested call picks the model the `MEOW_ROUTER_MODEL` environment
-variable names before any other, and a Claude model where it names nothing,
-so the person chooses what the route costs and the harness names no vendor's
-model in its own voice.
+An agent definition maps to a registered tool where the platform has no
+subagent to dispatch (REQ-4618, REQ-3526). The prose reviewer maps to
+`meow-prose-review`, registered by the `meow-prose` extension, and the
+researcher to `meow-research`, registered by the method extension. Both are
+nested model calls that carry the reply shape and run on the cheap tier:
+haiku 5.5 on Claude Code, and glm 5.3 flash on Pi, where a model the
+`MEOW_NESTED_MODEL` environment variable names goes first. The nested call
+reads no file and holds no skill, so each call inlines what it reviews or
+drafts against, read from the package's own bundled files at load. ADR-2930
+deletes the router agent and maps nothing in its place.
 
 ### The two-judge prose gate
 
@@ -298,7 +282,7 @@ in the Claude Code plugin.
 The `@meowshed/meow-core` extension alone injects the reply shape into the
 system prompt guidelines on `before_agent_start` (REQ-4108, REQ-4134). No
 other package's extension injects it. A package that makes a nested model
-call — the method's router, the prose gate's judge — carries its own
+call — the prose reviewer and the researcher — carries its own
 bundled copy of the reply shape into that call's messages, because a nested
 call runs its own prompt and never sees the session's.
 

@@ -378,13 +378,14 @@ output. Every record meets the shape of the seven steps (REQ-3652), and the
 marketplace ships no unit whose only purpose the chain no longer has
 (REQ-3654).
 
-The `route` skill dispatches the router and reports the route before any edit.
-The method skill and this repository's `CLAUDE.md` name the skill. Its cases
-live in `plugins/meow-flow/evals/` and run by hand, so the gate doesn't
-measure whether the skill loads before work on each model.
+The `route` skill classifies the request in the session and reports the route
+before any edit (ADR-2930). The method skill and this repository's
+`CLAUDE.md` name the skill. Its cases live in `plugins/meow-flow/evals/` and
+run by hand, so the gate doesn't measure whether the skill loads before work
+on each model.
 
 Each dispatched agent reports an outcome, and its dispatcher acts on it, as
-SPC-1030 states. The router and the prose reviewer both do.
+SPC-1030 states. The prose reviewer and the researcher do.
 
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
@@ -412,7 +413,7 @@ verification stages (REQ-0132): format, lint, check, test and build.
 | `plugins/meow-flow/skills/method/steps/`   | One file per step, read only for the step being run                       |
 | `plugins/meow-flow/skills/run/SKILL.md`    | `/meow-flow:run`, the command that drives the chain                       |
 | `plugins/meow-flow/skills/route/SKILL.md`  | The skill that routes a request before work starts                        |
-| `plugins/meow-flow/agents/router.md`       | The read-only agent the route skill dispatches                            |
+| `plugins/meow-flow/agents/researcher.md`   | The cheap subagent the research step dispatches                           |
 | `plugins/meow-flow/templates/<kind>.md`    | The unit's template for each kind                                         |
 | `.meowpaw/templates/<kind>.md`             | A repository's own template, which overrides the unit's                   |
 | `paw status`, `ready`, `template`          | The chain's state, a step's gate, the template in force                   |
@@ -452,19 +453,15 @@ A defect's size is `reduced` where a requirement in force appears to cover the
 behaviour and `full` where none does. The size records only that, because the
 step the defect's triage names in `enters` overrides it (REQ-0360).
 
-The skill dispatches `meow-flow:router`, whose front matter sets
-`tools: Read, Grep, Glob` and no other tool, so classification writes nothing
-(REQ-0346). The router reads the request and the repository together:
-`.meowpaw/profile.toml`, the record's indexes and specifications where the
-profile declares a record, and the files the request would touch (REQ-0342).
-It returns the size, the shape, a reason naming at least one path or
-identifier it read, whether the evidence was ambiguous and the override words
-that would change the route. Its first field is `outcome:`, and a `cause:`
-field follows it where the outcome isn't `DONE`, as SPC-1030 states. The
-router's own definition states these fields, and the skill reads them and
-nothing its brief adds. Where the evidence points to two sizes, the router
-takes the larger (REQ-0338), and the report says `ambiguous` and names the
-evidence on each side (REQ-0340).
+The session classifies the request itself, under the skill, reading the
+request and the repository together: `.meowpaw/profile.toml`, the record's
+indexes and specifications where the profile declares a record, and the files
+the request would touch (REQ-0342). It reports the size, the shape, a reason
+naming at least one path or identifier it read, whether the evidence was
+ambiguous and the override words that would change the route, and it writes
+nothing before the report (REQ-0346). Where the evidence points to two sizes,
+the route takes the larger (REQ-0338), and the report says `ambiguous` and
+names the evidence on each side (REQ-0340).
 
 After the report, the skill proceeds without a question:
 
@@ -489,27 +486,11 @@ A person overrides the route in one instruction, in either direction
 A size word given after a several-changes route sets that size on every entry
 and keeps the list. No word splits one change into several. An override
 applies to the request it answers and not to later ones. An override given
-with the request skips the dispatch. A parent agent that already routed the
+with the request is taken as the route. A parent agent that already routed the
 work passes its route in the brief the same way, and the subagent doesn't
 route again.
 
 A question in chat that changes nothing isn't routed.
-
-The skill acts on the router's outcome before it reads any other field, and
-each outcome maps onto a route result that already exists (REQ-0816):
-
-| Outcome              | The router reports it when                                                                            | The `route` skill                                                                                                 |
-| -------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `DONE`               | It gave every change the request asks for a size and a shape                                          | Reads the fields, as above                                                                                        |
-| `DONE_WITH_CONCERNS` | It routed, and a file or index its steps name couldn't be found, so it decided on less than they read | Reads the fields, and names beside the route what the router couldn't find                                        |
-| `NEEDS_CONTEXT`      | The request names no change it can route                                                              | Reports `full`, `ambiguous`, "the router's reply named no route", and the override words, with no second dispatch |
-| `BLOCKED`            | A tool call was denied                                                                                | Reports `full`, `ambiguous`, "the router couldn't run", and the override words                                    |
-
-A router reply with no outcome line from the set gets the row for a reply that
-names no size, even where it carries a `size:` field (REQ-2978).
-
-A failed router run reports as itself and never as a route. The Failure paths
-table lists each case.
 
 The reply is the only place the route is recorded.
 
