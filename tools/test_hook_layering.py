@@ -25,6 +25,7 @@ BLOCKING = [
     ("meow-git", "push-guard"),
     ("meow-github", "governance-guard"),
     ("meow-loop", "guard"),
+    ("meow-loop", "stop"),
     ("meow-prose-gate", "check"),
 ]
 
