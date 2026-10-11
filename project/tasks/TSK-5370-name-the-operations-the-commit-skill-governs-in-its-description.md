@@ -53,3 +53,18 @@ which closes criterion 2. `mise run all` passed with exit status 0.
 ## Left alone
 
 The rules T1 to T7, which TSK-4370 wrote, and any other unit's description.
+
+A review by a separate agent found the description naming neither `worktree`,
+a bare merge nor deletion, and the check matching a word anywhere in the
+description. The description now says "a branch is merged or rebased, or a
+worktree or working tree is created, removed or deleted" in the sentence that
+says the skill MUST be loaded, at 419 characters under the ceiling of 450, and
+the test anchors each verb to that sentence. The bug now violates REQ-1146
+alone, because REQ-2610 and REQ-2618 are what goes unheld and not what was
+broken.
+
+Two gaps stay. Whether the longer description over-triggers on Sonnet 5 or
+Opus 5.5 is unmeasured, and ADR-1050 asks for that measurement before a
+description ships, so it falls to the owner's next evaluation run. The Pi
+package under `packages/meow-scm` mirrors the unit and was already behind
+before this change; syncing it is the release's work under ADR-2820.

@@ -1,6 +1,6 @@
 ---
 name: commit
-description: The commit convention for this repository, and the check a message passes before it is used. It MUST be loaded before any commit message, squash message or pull request title is written, rewritten or reworded, and before a composite command such as `wt merge` is run, a branch is rebased or a working tree is created or removed. It MUST NOT be skipped, however short the message or the command is.
+description: The commit convention for this repository, and the check a message passes before it is used. It MUST be loaded before any commit message, squash message or pull request title is written, rewritten or reworded, and before a command such as `wt merge` is run, a branch is merged or rebased, or a worktree or working tree is created, removed or deleted. It MUST NOT be skipped, however short the message or the command is.
 ---
 
 <role>

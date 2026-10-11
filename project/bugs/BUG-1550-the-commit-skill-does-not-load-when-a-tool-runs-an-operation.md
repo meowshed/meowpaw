@@ -3,7 +3,7 @@ id: BUG-1550
 artifact: bug
 status: approved
 severity: major
-violates: [REQ-1146, REQ-2610, REQ-2618]
+violates: REQ-1146
 enters: implement
 found: 2026-10-11
 revised: 2026-10-11
@@ -38,10 +38,10 @@ at the moment they apply.
 ## What it should do, and why
 
 REQ-1146 says a description names each verb a request uses for the work the
-unit governs, and the unit now governs running a composite command, rebasing
-and creating or removing a working tree as well. REQ-2610 and REQ-2618 forbid
-calling a bundling command and removing a working tree in the background, and
-a rule the model doesn't have in context holds only by luck.
+unit governs, and the skill's rules have governed running a composite command,
+merging, rebasing and creating or removing a working tree since TSK-4370, so
+the description was due to name them and wasn't. REQ-2610 and REQ-2618 are
+what goes unheld: a rule the model doesn't have in context holds only by luck.
 
 ## Triage
 

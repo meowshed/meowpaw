@@ -899,6 +899,6 @@ cover every rule. BUG-1360 routes to research, because the cause is unknown.
 BUG-1005 was written after its fix, and says so. BUG-1390 is closed: SPC-1201
 names the failure states that `meow-loop` reaches, and TSK-4050 added the two
 refusals at start. BUG-1410 is closed by TSK-5260, BUG-1520 by TSK-5240 and
-BUG-1530 by TSK-5280, and BUG-1540 by TSK-5340. BUG-1550 is open and routes
-to implement, because the requirements are right and a description doesn't
-state the obligation.
+BUG-1530 by TSK-5280, and BUG-1540 by TSK-5340. BUG-1550 routes to implement,
+because the requirement is right and a description didn't state the obligation,
+and is closed by TSK-5370.
