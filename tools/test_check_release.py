@@ -117,6 +117,42 @@ class Release(unittest.TestCase):
         repo.save("feat!: drop the old name")
         self.assertEqual(check_release.check(repo.root), [])
 
+    def test_a_changed_unit_at_its_released_version_is_refused(self):
+        """REQ-2996: a released version is never modified; a change is a new version."""
+        repo = self.repo()
+        repo.write("plugins/meow-b/skill.md", "changed\n")
+        repo.save("fix: change the skill under the released version")
+        problems = check_release.check(repo.root)
+        self.assertEqual([p.split(":")[0] for p in problems], ["meow-b"], problems)
+        self.assertIn("0.3.0", problems[0])
+
+    def test_an_unchanged_unit_at_its_released_version_passes(self):
+        """REQ-2996: a unit unchanged since its tag holds nothing to refuse."""
+        self.assertEqual(check_release.check(self.repo().root), [])
+
+    def test_a_new_version_without_a_changelog_section_is_refused(self):
+        """REQ-3002: the notes are written for the person whose repository changes."""
+        repo = self.repo()
+        repo.bump("meow-b", "0.4.0")
+        repo.save("chore: release")
+        problems = check_release.check(repo.root)
+        self.assertEqual([p.split(":")[0] for p in problems], ["meow-b"], problems)
+        self.assertIn("0.4.0", problems[0])
+
+    def test_a_new_version_with_a_changelog_section_passes(self):
+        """REQ-3002: a section in the unit's CHANGELOG.md is what the notes come from."""
+        repo = self.repo()
+        repo.write("plugins/meow-b/CHANGELOG.md", "# meow-b\n\n## 0.4.0\n\nThe change, for the person whose repository updates.\n")
+        repo.bump("meow-b", "0.4.0")
+        repo.save("chore: release")
+        self.assertEqual(check_release.check(repo.root), [])
+
+    def test_the_release_notes_come_from_the_changelog_and_generate_nothing(self):
+        """REQ-3002: each unit's release takes its notes from its changelog section, and no option generates notes from commits."""
+        workflow = Path(__file__).resolve().parent.parent.joinpath(".github", "workflows", "claude-release.yml").read_text(encoding="utf-8")
+        self.assertIn("CHANGELOG.md", workflow)
+        self.assertNotIn("generate-notes", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
