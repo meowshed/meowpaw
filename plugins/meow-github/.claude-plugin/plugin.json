@@ -1,6 +1,6 @@
 {
   "name": "meow-github",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Reads a GitHub repository's issues, pull requests and comments through gh as one JSON document, projects an approved epic's tasks onto issues and writes nothing else, and asks before a Bash command's gh changes how the repository is governed.",
   "author": {
     "name": "Andrew Vasilyev",
@@ -9,6 +9,14 @@
   "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-github/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
-  "keywords": ["github", "issues", "pull-requests", "onboarding", "meowpaw"],
-  "dependencies": ["meow-core"]
+  "keywords": [
+    "github",
+    "issues",
+    "pull-requests",
+    "onboarding",
+    "meowpaw"
+  ],
+  "dependencies": [
+    "meow-core"
+  ]
 }

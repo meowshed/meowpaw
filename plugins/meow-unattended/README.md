@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what posture meow-unattended prints, what its deny rules stop and what they don't
 kind: reference
-describes: [meow-unattended@0.5.0]
+describes: [meow-unattended@0.6.0]
 ---
 
 # meow-unattended
@@ -24,6 +24,8 @@ claude plugin install meow-unattended@meowpaw
 ```
 
 Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone.
+
+Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Declare the posture
 

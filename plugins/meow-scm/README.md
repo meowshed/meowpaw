@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-scm
 answers: what meow-scm does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-scm@0.7.0]
+describes: [meow-scm@0.8.0]
 ---
 
 # meow-scm
@@ -22,6 +22,8 @@ claude plugin install meow-scm@meowpaw
 ```
 
 Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone.
+
+Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Declare your convention
 

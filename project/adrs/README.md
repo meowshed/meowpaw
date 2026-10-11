@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-140 decisions in all: 34 approved, 97 done, 9 superseded.
+140 decisions in all: 33 approved, 98 done, 9 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -108,7 +108,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2450](ADR-2450-a-shipped-hook-only-denies-and-meow-author-check-holds-every-hook-to-the-rules.md)                                                    | A shipped hook only denies, and `meow-author check` holds every hook to the rules                                                          | done       |
 | [ADR-2460](ADR-2460-each-unit-requests-only-the-permissions-a-step-names-and-writes-only-inside-the-repository.md)                                        | Each unit requests only the permissions a step names, and writes only inside the repository                                                | done       |
 | [ADR-2470](ADR-2470-the-harness-keeps-one-threat-model-that-ranks-its-own-accidents-first.md)                                                             | The harness keeps one threat model, which ranks its own accidents first                                                                    | done       |
-| [ADR-2480](ADR-2480-each-unit-is-a-versioned-plugin-whose-contracts-are-files-and-commands.md)                                                            | Each unit is a versioned plugin whose contracts are files and commands                                                                     | approved   |
+| [ADR-2480](ADR-2480-each-unit-is-a-versioned-plugin-whose-contracts-are-files-and-commands.md)                                                            | Each unit is a versioned plugin whose contracts are files and commands                                                                     | done       |
 | [ADR-2490](ADR-2490-the-public-interface-is-one-reference-page-that-a-check-holds-to-the-tool.md)                                                         | The public interface is one reference page that a check holds to the tool                                                                  | approved   |
 | [ADR-2500](ADR-2500-the-harness-installs-by-the-platform-s-own-command-and-its-material-is-written-once.md)                                               | The harness installs by the platform's own command, and its material is written once                                                       | approved   |
 | [ADR-2510](ADR-2510-the-repository-carries-the-community-files-where-the-code-host-looks.md)                                                              | The repository carries the community files where the code host looks                                                                       | done       |

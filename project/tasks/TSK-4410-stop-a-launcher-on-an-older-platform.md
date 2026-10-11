@@ -1,7 +1,7 @@
 ---
 id: TSK-4410
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2340
 closes: [REQ-1738]
@@ -50,7 +50,18 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests were written first and seen failing in `794713a7`, and pass after
+`8d8e321c`. They live in `tools/test_launchers.py`, and each names REQ-1738:
+the older platform stops the launcher naming both versions, the tested and
+newer platforms run the binary, an unreadable version prints unknown and
+runs the binary, and every launcher in the tree carries the stop. The
+documented means is `claude --version`, which the platform's command-line
+reference lists; the stubs that stand in for it answer at once, because the
+real one costs more than a second. Each launcher-carrying unit's README says
+its launcher stops. The five stages passed at tree `dc741c41414b`, each
+bound by `meow-checks run` and confirmed by `meow-checks evidence`, exit 0:
+format `c97f46c46d07`, check `5fd194c8283c`, lint `48e163d2686b`, test
+`c82df3e51f2c`, build `dc756eb1f1ba`.
 
 ## Left alone
 
