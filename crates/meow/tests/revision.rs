@@ -48,7 +48,7 @@ fn git(dir: &Path, args: &[&str]) {
 
 /// A repository whose profile binds the lint stage to a command that passes,
 /// with one commit, and a state directory beside it.
-fn fixture(name: &str) -> (Dir, PathBuf) {
+fn fixture(name: &str) -> (Dir, Dir) {
     let dir = Dir::new(name);
     git(&dir.0, &["init", "-q"]);
     std::fs::create_dir_all(dir.0.join(".meowpaw")).unwrap();
@@ -73,9 +73,8 @@ fn fixture(name: &str) -> (Dir, PathBuf) {
             "chore: seed",
         ],
     );
-    let state = dir.0.join(".state");
-    std::fs::create_dir_all(&state).unwrap();
-    (dir, state)
+    // Outside the work tree, so writing the ledger doesn't change the tree.
+    (dir, Dir::new(&format!("{name}-state")))
 }
 
 fn meow(dir: &Path, state: &Path, off: bool, args: &[&str], input: &str) -> Output {
@@ -122,27 +121,27 @@ fn revision(dir: &Path, state: &Path) -> u64 {
 /// REQ-2728: a failed tool use and a successful one each add one.
 #[test]
 fn a_failed_tool_use_advances_the_counter_and_so_does_a_successful_one() {
-    let (dir, state) = fixture("advance");
+    let (dir, state_dir) = fixture("advance");
     for _ in 0..4 {
-        let done = meow(&dir.0, &state, false, &["verbs", "revision"], USED);
+        let done = meow(&dir.0, &state_dir.0, false, &["verbs", "revision"], USED);
         assert!(done.status.success(), "{done:?}");
     }
-    assert_eq!(revision(&dir.0, &state), 4);
-    let failed = meow(&dir.0, &state, false, &["verbs", "revision"], FAILED);
+    assert_eq!(revision(&dir.0, &state_dir.0), 4);
+    let failed = meow(&dir.0, &state_dir.0, false, &["verbs", "revision"], FAILED);
     assert!(failed.status.success(), "{failed:?}");
-    assert_eq!(revision(&dir.0, &state), 5);
-    let used = meow(&dir.0, &state, false, &["verbs", "revision"], USED);
+    assert_eq!(revision(&dir.0, &state_dir.0), 5);
+    let used = meow(&dir.0, &state_dir.0, false, &["verbs", "revision"], USED);
     assert!(used.status.success(), "{used:?}");
-    assert_eq!(revision(&dir.0, &state), 6);
+    assert_eq!(revision(&dir.0, &state_dir.0), 6);
 }
 
 /// REQ-2728, REQ-2724: the subcommand prints nothing and writes nothing of
 /// its input.
 #[test]
 fn the_counter_holds_a_count_and_nothing_the_hook_read() {
-    let (dir, state) = fixture("input");
+    let (dir, state_dir) = fixture("input");
     let marker = r#"{"tool_name":"Bash","tool_input":{"command":"echo MARKER-8c1f"}}"#;
-    let done = meow(&dir.0, &state, false, &["verbs", "revision"], marker);
+    let done = meow(&dir.0, &state_dir.0, false, &["verbs", "revision"], marker);
     assert!(done.status.success(), "{done:?}");
     assert!(done.stdout.is_empty(), "{done:?}");
     fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
@@ -156,7 +155,7 @@ fn the_counter_holds_a_count_and_nothing_the_hook_read() {
         }
     }
     let mut files = Vec::new();
-    walk(&state, &mut files);
+    walk(&state_dir.0, &mut files);
     assert!(
         !files.is_empty(),
         "the counter wrote no file under the state directory"
@@ -175,16 +174,22 @@ fn the_counter_holds_a_count_and_nothing_the_hook_read() {
 /// beside the current one while the tree id alone decides whether it is current.
 #[test]
 fn evidence_prints_the_records_revision_and_the_current_one() {
-    let (dir, state) = fixture("evidence");
+    let (dir, state_dir) = fixture("evidence");
     for _ in 0..5 {
-        meow(&dir.0, &state, false, &["verbs", "revision"], USED);
+        meow(&dir.0, &state_dir.0, false, &["verbs", "revision"], USED);
     }
-    let run = meow(&dir.0, &state, false, &["verbs", "run", "lint"], "");
+    let run = meow(&dir.0, &state_dir.0, false, &["verbs", "run", "lint"], "");
     assert!(run.status.success(), "{run:?}");
     for _ in 0..2 {
-        meow(&dir.0, &state, false, &["verbs", "revision"], FAILED);
+        meow(&dir.0, &state_dir.0, false, &["verbs", "revision"], FAILED);
     }
-    let evidence = meow(&dir.0, &state, false, &["verbs", "evidence", "lint"], "");
+    let evidence = meow(
+        &dir.0,
+        &state_dir.0,
+        false,
+        &["verbs", "evidence", "lint"],
+        "",
+    );
     let text = String::from_utf8_lossy(&evidence.stdout).to_string();
     assert!(evidence.status.success(), "{evidence:?}");
     assert!(
@@ -200,8 +205,8 @@ fn evidence_prints_the_records_revision_and_the_current_one() {
 /// REQ-2728, REQ-2960: with state writing off the subcommand writes nothing.
 #[test]
 fn state_off_writes_nothing_and_exits_zero() {
-    let (dir, state) = fixture("off");
-    let done = meow(&dir.0, &state, true, &["verbs", "revision"], USED);
+    let (dir, state_dir) = fixture("off");
+    let done = meow(&dir.0, &state_dir.0, true, &["verbs", "revision"], USED);
     assert_eq!(done.status.code(), Some(0), "{done:?}");
-    assert!(std::fs::read_dir(&state).unwrap().next().is_none());
+    assert!(std::fs::read_dir(&state_dir.0).unwrap().next().is_none());
 }

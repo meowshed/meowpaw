@@ -412,6 +412,39 @@ fn ledger_of(root: &Path) -> Option<(PathBuf, PathBuf)> {
     Some((dir.join(format!("{key}.jsonl")), dir.join(key)))
 }
 
+/// The revision counter of a work tree, in a file beside its ledger.
+fn counter_of(root: &Path) -> Option<PathBuf> {
+    let (ledger, _) = ledger_of(root)?;
+    Some(ledger.with_extension("revision"))
+}
+
+/// The count of tool uses this work tree has seen, or none where nothing has
+/// been counted (SPC-1240 "The revision counter").
+pub fn revision(root: &Path) -> u64 {
+    counter_of(root)
+        .and_then(|path| std::fs::read_to_string(path).ok())
+        .and_then(|text| text.trim().parse().ok())
+        .unwrap_or(0)
+}
+
+/// Adds one to the counter under the ledger's lock, through a temporary file
+/// renamed into place, and returns the new count. It writes the count and
+/// nothing a hook read (REQ-2724, REQ-2728).
+pub fn advance(root: &Path) -> std::result::Result<u64, String> {
+    let path = counter_of(root).ok_or(no_state_reason())?;
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| format!("can't create {}: {e}", dir.display()))?;
+    }
+    let _held =
+        lock(root, true).ok_or("the ledger's lock stayed held; the counter didn't advance")?;
+    let next = revision(root) + 1;
+    let partial = path.with_extension("revision.partial");
+    std::fs::write(&partial, format!("{next}\n"))
+        .map_err(|e| format!("can't write the counter: {e}"))?;
+    std::fs::rename(&partial, &path).map_err(|e| format!("can't replace the counter: {e}"))?;
+    Ok(next)
+}
+
 /// Now, as an ISO 8601 time in UTC.
 pub fn now() -> String {
     let secs = SystemTime::now()
@@ -488,6 +521,7 @@ pub fn record(
         "time": time,
         "tree_before": result.before,
         "tree": result.after,
+        "revision": revision(root),
         "targets": result.targets,
         "repository": repository_identity(root),
         "work_tree": std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()).display().to_string(),

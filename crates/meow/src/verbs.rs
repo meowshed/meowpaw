@@ -867,7 +867,11 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
             );
             failed = true;
         } else {
-            println!("{head}, current at tree {}", ledger::short(&tree));
+            let counted = match latest.get("revision").and_then(Value::as_u64) {
+                Some(then) => format!(", revision {then}, now {}", ledger::revision(root)),
+                None => String::new(),
+            };
+            println!("{head}, current at tree {}{counted}", ledger::short(&tree));
             failed |= outcome != "passed";
         }
     }
@@ -899,6 +903,24 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
     }
 }
 
+/// Adds one to the work tree's revision counter for a tool use that ended,
+/// failed or not. It reads its input to the end and keeps none of it, prints
+/// nothing, and writes nothing where state writing is off (REQ-2724,
+/// REQ-2728).
+fn revision(root: &Path) -> u8 {
+    use std::io::Read;
+    let mut sink = Vec::new();
+    let _ = std::io::stdin().read_to_end(&mut sink);
+    match ledger::advance(root) {
+        Ok(_) => PASSED,
+        Err(_) if ledger::state_off() => PASSED,
+        Err(reason) => {
+            eprintln!("meow-checks revision: {reason}");
+            FAILED
+        }
+    }
+}
+
 /// Where the ledger is and what it holds, or, with `--purge`, an emptied one
 /// (REQ-0756, REQ-2962).
 fn state(root: &Path, args: &[&str]) -> u8 {
@@ -907,6 +929,7 @@ fn state(root: &Path, args: &[&str]) -> u8 {
             for line in ledger::facts(root) {
                 println!("{line}");
             }
+            println!("revision: {}", ledger::revision(root));
             PASSED
         }
         ["--purge"] => match ledger::purge(root) {
@@ -1073,7 +1096,7 @@ fn local(root: &Path, args: &[&str]) -> u8 {
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 6] = [
+const HELP: [crate::help::Entry; 7] = [
     crate::help::Entry {
         name: "status",
         determines: "how each of the five stages resolves from the profile, and from where",
@@ -1099,7 +1122,14 @@ const HELP: [crate::help::Entry; 6] = [
         name: "state",
         determines: "where the evidence ledger is and what it holds",
         by_hand: "read the ledger file `meow-checks state` names, which holds one JSON record on each line, and count them",
-        lines: "ledger: records: oldest: newest: lock: purged state no",
+        lines: "ledger: records: oldest: newest: lock: revision: purged state no",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "revision",
+        determines: "that a tool use ended, by adding one to the work tree's revision counter",
+        by_hand: "add one to the number in the counter file beside the ledger `meow-checks state` names, and write nothing the hook read",
+        lines: "meow-checks",
         json: "",
     },
     crate::help::Entry {
@@ -1131,6 +1161,7 @@ pub fn main(args: &[String]) -> u8 {
             &root,
             &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
         ),
+        ["revision"] => revision(&root),
         ["state", rest @ ..] => state(&root, rest),
         ["local", rest @ ..] => local(&root, rest),
         ["tree", commit] => match ledger::tree_of_commit(&root, commit) {
