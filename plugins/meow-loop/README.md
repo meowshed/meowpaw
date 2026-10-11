@@ -31,6 +31,8 @@ claude plugin install meow-loop@meowpaw
 
 Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone. It also enables `meow-flow`, whose `/meow-flow:run` command a run repeats, and keeps `meow-flow` enabled while this unit is on.
 
+Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
+
 ## Start a run
 
 Only a person starts a run, by typing the command in the session:

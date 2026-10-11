@@ -139,7 +139,9 @@ class Release(unittest.TestCase):
     def test_a_new_version_without_a_changelog_section_is_refused(self):
         """REQ-3002: the notes are written for the person whose repository changes."""
         repo = self.repo()
-        repo.bump("meow-b", "0.4.0")
+        # A bump writes the section, so the version moves by hand here, where
+        # the test asks for one without a section.
+        repo.write("plugins/meow-b/.claude-plugin/plugin.json", json.dumps({"name": "meow-b", "version": "0.4.0"}))
         repo.save("chore: release")
         problems = check_release.check(repo.root)
         self.assertEqual([p.split(":")[0] for p in problems], ["meow-b"], problems)

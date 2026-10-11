@@ -51,7 +51,13 @@ class Launcher:
             claude = stubs / "claude"
             claude.write_text(f"#!/bin/sh\necho '{reported} (Claude Code)'\n")
             claude.chmod(0o755)
-        self.env = {**ENV, "PATH": f"{stubs}:{os.environ['PATH']}" if not no_claude and reported is not None else ENV["PATH"]}
+        if no_claude:
+            # A stub that fails, so the machine's own claude, if any, never
+            # answers and the version the launcher reads stays unknown.
+            claude = stubs / "claude"
+            claude.write_text("#!/bin/sh\nexit 1\n")
+            claude.chmod(0o755)
+        self.env = {**ENV, "PATH": f"{stubs}:{os.environ['PATH']}" if reported is not None or no_claude else ENV["PATH"]}
 
     def write_requires(self, claude_code):
         (self.unit / "requires.toml").write_text(f'claude_code = "{claude_code}"\n', encoding="utf-8")
@@ -99,7 +105,7 @@ class Stop(unittest.TestCase):
 
     def test_every_binary_unit_ships_the_stop(self):
         """REQ-1738: every unit with a launcher reads the platform version its requires.toml names."""
-        for launcher in sorted((ROOT / "plugins").glob("*/bin/meow-*")):
+        for launcher in sorted((ROOT / "plugins").glob("*/bin/meow-*")) + sorted((ROOT / "plugins").glob("*/bin/paw")):
             if not launcher.is_file():
                 continue
             unit = launcher.parent.parent
