@@ -23,8 +23,12 @@ tab in the indentation or a quoted scalar spanning lines as a file that
 doesn't parse.
 """
 
+import json
+import os
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -458,6 +462,50 @@ def model_calls(name, doc):
     return [f"{name}:{line}: names {what}, and no workflow makes a model call" for line, what in sorted(found.items())]
 
 
+def guard_asks(command):
+    """What `meow-github`'s governance guard says about a command, or None where it says nothing, and the
+    reason it can't be asked."""
+    launcher = ROOT / "plugins" / "meow-github" / "bin" / "meow-github"
+    event = json.dumps({"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}})
+    with tempfile.TemporaryDirectory() as tmp:
+        # An empty data directory, so the launcher runs the build beside it and not an installed copy.
+        env = {**os.environ, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}
+        done = subprocess.run([str(launcher), "governance-guard"], input=event, capture_output=True, text=True,
+                              env=env, timeout=30)
+    if done.returncode != 0:
+        return None, "meow-github can't run here, so no workflow was asked about governance"
+    if not done.stdout.strip():
+        return None, None
+    reason = json.loads(done.stdout)["hookSpecificOutput"]["permissionDecisionReason"]
+    return reason.split(" changes how")[0].removeprefix("meow-github: "), None
+
+
+def governance(name, doc):
+    """A workflow step whose `run:` holds a command the governance guard asks about, by the line it starts at.
+
+    The guard decides, so the gate and the hook read a command the same way (REQ-2576, REQ-2712).
+    """
+    found = []
+    for node in walk(doc):
+        if not (isinstance(node, Mapping) and isinstance(node.get("run"), Scalar)):
+            continue
+        # One command a continuation joins, by the line it starts at.
+        commands = []
+        for line, text in node["run"].source:
+            if commands and commands[-1][1].endswith("\\"):
+                commands[-1] = (commands[-1][0], commands[-1][1][:-1] + " " + text.strip())
+            else:
+                commands.append((line, text.strip()))
+        for line, command in commands:
+            asked, unresolved = guard_asks(command)
+            if unresolved:
+                return [f"{name}: unresolved: {unresolved}"]
+            if asked:
+                found.append(f"{name}:{line}: runs {asked}, which changes how the repository is governed, "
+                             "and no workflow does that")
+    return found
+
+
 def findings(name, text):
     try:
         doc = Reader(text).document()
@@ -465,7 +513,8 @@ def findings(name, text):
         return [f"{name}: doesn't parse: {error}"]
     if not isinstance(doc, Mapping):
         return [f"{name}: doesn't parse: the top level isn't a mapping"]
-    return permissions(name, doc) + triggers(name, doc) + runs(name, doc) + model_calls(name, doc)
+    return (permissions(name, doc) + triggers(name, doc) + runs(name, doc) + model_calls(name, doc)
+            + governance(name, doc))
 
 
 def main(root: Path = ROOT) -> int:

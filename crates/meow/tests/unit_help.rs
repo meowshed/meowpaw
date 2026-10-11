@@ -111,7 +111,7 @@ fn git(dir: &Path, args: &[&str]) {
 /// state directory of its own.
 fn fixture(name: &str) -> (Dir, PathBuf) {
     let dir = Dir::new(name);
-    git(&dir.0, &["init", "-q"]);
+    git(&dir.0, &["init", "-q", "--template="]);
     std::fs::create_dir_all(dir.0.join(".meowpaw")).unwrap();
     std::fs::write(
         dir.0.join(".meowpaw/profile.toml"),
@@ -389,6 +389,7 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "verbs", &["evidence", "lint"], "");
     held(d, s, "verbs", &["state"], "");
     held(d, s, "verbs", &["tree", "HEAD"], "");
+    held(d, s, "verbs", &["revision"], "{}");
     held(d, s, "verbs", &["local", "lint", "true"], "");
     held(d, s, "scm", &["convention"], "");
     held(d, s, "scm", &["check-message"], "");

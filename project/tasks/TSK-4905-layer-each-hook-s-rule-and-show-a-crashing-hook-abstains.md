@@ -1,7 +1,7 @@
 ---
 id: TSK-4905
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2520
 closes: [REQ-2710, REQ-2712, REQ-2714]
@@ -52,7 +52,29 @@ it is small, or write a defect record against REQ-2712.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where
+`test_each_blocking_hook_names_an_existing_check_and_skill_or_a_defect` in
+`tools/test_hook_layering.py` failed. It closes criteria 1 and 2 (REQ-2710,
+REQ-2712): for each hook SPC-1240 lists as stopping a call, its README sentence
+names a gate check and a skill that exist, or the defect that records the gap,
+and `test_a_hook_whose_rule_has_no_gate_check_is_a_finding_against_the_unit`
+holds that such a defect violates REQ-2712 and names the hook. No unit has a
+gate check for its hook's rule, and `meow-github` has no skill, so the pull
+request lists the hooks with their records: `commit-guard` BUG-1560,
+`push-guard` BUG-1561, `governance-guard` BUG-1562, `guard` BUG-1563, `stop`
+BUG-1565 and `check` BUG-1564. The other four name the skill that says why.
+A shipped page cites no record, so each sentence says there is no gate check
+and the defect in the record names the hook.
+
+Criterion 3 is closed by `Abstention` in the same file, which runs each
+blocking unit's launcher against a binary that exits 1 and against one killed
+by a one-second timeout, and reads no decision and an exit status other than 2.
+It passed before the change, because the platform's reading of a crash is its
+own. Running the same launchers with no binary found that four of them exit 0
+where SPC-1240 and ADR-2710 say they deny with exit 2, which TSK-5165 of
+EPC-2610 changes and this task doesn't.
+
+`mise run all` passed with exit status 0.
 
 ## Left alone
 

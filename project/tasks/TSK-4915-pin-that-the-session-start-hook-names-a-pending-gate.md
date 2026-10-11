@@ -1,7 +1,7 @@
 ---
 id: TSK-4915
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2520
 closes: [REQ-2730]
@@ -42,7 +42,12 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The test in `plugins/meow-flow/tests/test_hooks.py` pins what the unit already
+did, so it passed when it was written, and it fails when the declaration
+changes: with `status --waiting` replaced by `status` in `hooks.json`, both
+tests failed. `test_a_pending_gate_reaches_the_model_through_the_hooks_output`
+closes criterion 1 (REQ-2730) and `test_nothing_waiting_prints_nothing` closes
+criterion 2. `mise run all` passed with exit status 0.
 
 ## Left alone
 

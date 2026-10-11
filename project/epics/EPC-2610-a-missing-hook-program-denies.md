@@ -1,7 +1,7 @@
 ---
 id: EPC-2610
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2710
 ---
@@ -24,7 +24,7 @@ Realises ADR-2710 in TSK-5165.
 
 ## Tasks
 
-- [ ] T-001 TSK-5165 deny from a blocking hook whose program is missing
+- [x] T-001 TSK-5165 deny from a blocking hook whose program is missing (done: pull request 1047)
       closes: REQ-1426
 
 ## Coverage

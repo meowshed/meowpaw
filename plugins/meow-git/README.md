@@ -71,8 +71,8 @@ nothing.
 Nothing in context: the pack is two hooks, and each runs only on its own
 command. A push takes one message check and one signature check per commit.
 The program is a native binary shipped inside the pack, so it needs nothing
-installed on the machine; on a machine the pack carries no binary for, it says
-it checked nothing and blocks nothing.
+installed on the machine; on a machine the pack carries no binary for, it denies the
+commit or the push and names `claude plugin install meow-core@meowpaw`.
 
 ## Branch names
 
@@ -88,6 +88,11 @@ read as a date.
 what it determines, what you read to reach the same answer without the tool,
 and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
+
+## Hooks
+
+`commit-guard` stops a commit on the declared trunk; the `meow-scm:commit` skill says why, and `mise run layers` fails a trunk with a commit GitHub didn't make.
+`push-guard` stops a push of a commit whose message or signature fails the declared convention; the `meow-scm:commit` skill says why, and `mise run layers` fails a branch whose commits fail it.
 
 ## What it needs
 
