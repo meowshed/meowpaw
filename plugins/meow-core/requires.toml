@@ -5,3 +5,11 @@
 # manifest has no field for a minimum platform version, so the unit states it
 # here: the version its behaviour was last tested on, 2026-09-26.
 claude_code = "2.1.283"
+
+# The layer of the harness this unit ships in (SPC-1080 "Each unit is a
+# plugin"): the kernel ships the shared binary every other unit's launcher runs.
+layer = "kernel"
+
+# The units this one needs (REQ-1482), read from what it runs: nothing the
+# kernel runs reaches another unit's files.
+units = []

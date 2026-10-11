@@ -24,6 +24,8 @@ claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-flow@meowpaw
 ```
 
+Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone. It also enables `meow-prose`, whose writing skill the researcher agent preloads, and keeps `meow-prose` enabled while this unit is on.
+
 ## Bring a repository in
 
 Type `/meow-flow:init` in a repository with no `.meowpaw/profile.toml`. It

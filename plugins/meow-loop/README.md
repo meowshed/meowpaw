@@ -29,6 +29,8 @@ claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-loop@meowpaw
 ```
 
+Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone. It also enables `meow-flow`, whose `/meow-flow:run` command a run repeats, and keeps `meow-flow` enabled while this unit is on.
+
 ## Start a run
 
 Only a person starts a run, by typing the command in the session:
