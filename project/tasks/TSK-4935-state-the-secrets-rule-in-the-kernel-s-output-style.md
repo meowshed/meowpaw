@@ -49,7 +49,16 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where
+`test_the_rule_states_the_four_prohibitions` in `tools/test_secrets_rule.py` failed. It closes
+criterion 1 (REQ-1424): the rule is R11, with `read`, `print`, `transmit` and `artifact` and its
+reason. Criterion 2 is closed by the budget: the style grew from 3,945 to 4,212 characters, over
+the 4,200 it was held to, so the budget is 4,500 with the reason in `budget.toml` and the
+manifest names the new ceiling, as the budget's comment asks of a new rule. `mise run style` and
+`tools/check_kernel.py` pass, closing criterion 3. Criterion 4 isn't closed: the style's measured
+cases would each be a model call on Sonnet 5 and Opus 5.5, which run by hand and cost money, so the
+rule is unmeasured and rests on review until the owner runs them. `mise run all` passed with exit
+status 0.
 
 ## Left alone
 

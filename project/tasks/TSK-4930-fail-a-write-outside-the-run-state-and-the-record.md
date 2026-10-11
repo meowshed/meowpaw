@@ -1,7 +1,7 @@
 ---
 id: TSK-4930
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2525
 closes: [REQ-1429]
@@ -47,7 +47,15 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests in `crates/meow/tests/writes.rs` pinned what the crate already did, so they passed when
+they were written, and each can fail. `the_comparison_finds_a_write_to_the_home_directory` shows the
+snapshot comparison finds a file created in the home directory, and
+`no_subcommand_writes_outside_the_state_the_repository_and_the_record` closes criterion 1 (REQ-1429):
+it runs seventeen calls of seven units with home, temporary and state directories of its own
+and finds nothing changed outside the state and the repository, and no change to the repository
+from a read-only subcommand. `each_write_in_the_source_is_one_the_table_names` closes criterion 2:
+a table names the file, the number of calls that write and where each writes, so a new call fails
+until a person reads where it goes. `mise run all` passed with exit status 0.
 
 ## Left alone
 

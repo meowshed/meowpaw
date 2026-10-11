@@ -47,17 +47,17 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-4920 fail a tool no step is named for, in `meow-author check`, and name each tool's step in every unit's README
+- [x] T-001 [P] TSK-4920 fail a tool no step is named for, in `meow-author check`, and name each tool's step in every unit's README (done: pull request 1048)
       closes: REQ-1430, REQ-1432
 
-- [ ] T-002 [P] TSK-4925 deny from every blocking hook's launcher when its binary is missing, naming the install command
+- [x] T-002 [P] TSK-4925 deny from every blocking hook's launcher when its binary is missing, naming the install command (done: pull request 1048)
       closes: REQ-1426
 
-- [ ] T-003 [P] TSK-4930 fail a subcommand that writes outside the run state and the record, in a crate test
+- [x] T-003 [P] TSK-4930 fail a subcommand that writes outside the run state and the record, in a crate test (done: pull request 1048)
       closes: REQ-1429
 
-- [ ] T-004 [P] TSK-4935 state the secrets rule in `meow-core`'s output style, within its budget
-      closes: REQ-1424
+- [>] T-004 [P] TSK-4935 state the secrets rule in `meow-core`'s output style, within its budget (the rule is written and held by a test; criterion 4, the measured cases on Sonnet 5 and Opus 5.5, is a hand run for the owner, so the task isn't done)
+  closes: REQ-1424
 
 ## Coverage
 

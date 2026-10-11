@@ -130,6 +130,9 @@ fn check(paths: &[String]) -> u8 {
             files += 1;
             failures.extend(vocabulary(&prompt, &where_));
         }
+        if shipped {
+            failures.extend(tool_steps(&root, unit));
+        }
         let (hooks, broken) = hook_rules(&root, unit);
         files += hooks;
         failures.extend(broken);
@@ -344,6 +347,111 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
             out.push(path);
         }
     }
+}
+
+/// The tools a comma-separated string names, split at the commas outside
+/// parentheses, so `Bash(git status:*)` stays one entry.
+fn split_tools(list: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut current = String::new();
+    let mut depth = 0usize;
+    for c in list.chars() {
+        match c {
+            '(' => {
+                depth += 1;
+                current.push(c);
+            }
+            ')' => {
+                depth = depth.saturating_sub(1);
+                current.push(c);
+            }
+            ',' if depth == 0 => out.push(std::mem::take(&mut current)),
+            c => current.push(c),
+        }
+    }
+    out.push(current);
+    out.into_iter()
+        .map(|t| t.trim().to_string())
+        .filter(|t| !t.is_empty())
+        .collect()
+}
+
+/// Each tool an agent's `tools` or a skill's `allowed-tools` grants, which the
+/// unit's README names no step for under `## Tools`, naming the file, the tool
+/// and the README (REQ-1430, REQ-1432, SPC-1030 "What a unit declares").
+///
+/// The README names a step in a list item, `` - `Tool`: what the step does ``,
+/// and a tool with no text after its colon names none.
+fn tool_steps(root: &Path, unit: &Path) -> Vec<String> {
+    let readme = std::fs::read_to_string(unit.join("README.md")).unwrap_or_default();
+    let mut named = std::collections::BTreeSet::new();
+    let mut inside = false;
+    let mut fenced = false;
+    for line in readme.lines() {
+        if line.trim_start().starts_with("```") || line.trim_start().starts_with("~~~") {
+            fenced = !fenced;
+        }
+        if !fenced && line.starts_with("## ") {
+            inside = line.trim() == "## Tools";
+            continue;
+        }
+        if inside
+            && !fenced
+            && let Some(item) = line.strip_prefix("- `")
+            && let Some((tool, rest)) = item.split_once("`:")
+            && !rest.trim().is_empty()
+        {
+            named.insert(tool.trim().to_string());
+        }
+    }
+    let mut files = Vec::new();
+    walk(&unit.join("agents"), &mut files);
+    walk(&unit.join("skills"), &mut files);
+    files.retain(|p| p.extension().is_some_and(|e| e == "md"));
+    files.sort();
+    let mut out = Vec::new();
+    for path in files {
+        let is_skill = path.file_name().is_some_and(|n| n == "SKILL.md");
+        let is_agent = path
+            .parent()
+            .and_then(|p| p.file_name())
+            .is_some_and(|n| n == "agents");
+        if !is_skill && !is_agent {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).unwrap_or_default();
+        let Some(front) = front_matter(&text) else {
+            continue;
+        };
+        let Ok(docs) = YamlLoader::load_from_str(front) else {
+            continue;
+        };
+        let Some(Yaml::Hash(map)) = docs.into_iter().next() else {
+            continue;
+        };
+        let key = if is_agent { "tools" } else { "allowed-tools" };
+        let granted: Vec<String> = match map.get(&Yaml::String(key.to_string())) {
+            Some(Yaml::Array(items)) => items
+                .iter()
+                .filter_map(|i| i.as_str().map(str::to_string))
+                .collect(),
+            Some(Yaml::String(list)) => split_tools(list),
+            _ => Vec::new(),
+        };
+        for tool in granted {
+            // `Bash(git status:*)` grants the tool `Bash` for a pattern.
+            let name = tool.split('(').next().unwrap_or("").trim().to_string();
+            if name.is_empty() || named.contains(&name) {
+                continue;
+            }
+            out.push(format!(
+                "{}: grants `{name}`, and {} names no step for it under `## Tools`",
+                shown(root, &path),
+                shown(root, &unit.join("README.md"))
+            ));
+        }
+    }
+    out
 }
 
 /// Events whose hook can't stop a call or the turn, and so are free of the
@@ -973,6 +1081,11 @@ mod tests {
         let agents = dir.join(unit).join("agents");
         std::fs::create_dir_all(&agents).unwrap();
         std::fs::write(agents.join("reviewer.md"), outcome_agent(role)).unwrap();
+        std::fs::write(
+            dir.join(unit).join("README.md"),
+            "# demo\n\n## Tools\n\n- `Read`: the review reads the file.\n- `Grep`: the review finds a line.\n- `Glob`: the review lists paths.\n",
+        )
+        .unwrap();
         let status = check(&[dir.join(unit).display().to_string()]);
         let _ = std::fs::remove_dir_all(&dir);
         status

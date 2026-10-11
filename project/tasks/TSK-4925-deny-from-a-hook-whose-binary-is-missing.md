@@ -1,7 +1,7 @@
 ---
 id: TSK-4925
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2525
 closes: [REQ-1426]
@@ -61,7 +61,20 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The launchers of `meow-git`, `meow-prose-gate`, `meow-github` and `meow-loop` deny with exit 2 and
+name the unit, the machine and the install command, and that landed with TSK-5165 in pull request 1047,
+whose tests close criteria 1, 2 and 4: `test_a_missing_binary_names_the_machine_and_the_reinstall`
+and the fixtures of the three other units, and the `meow-scm` case that stays as it was. The command
+they name is `claude plugin install meow-core@meowpaw`, where this task wrote
+`meow-git@meowpaw`, because `meow-core` ships the shared binary and reinstalling the unit
+doesn't restore it. The tests of this pull request came first, in a commit of their own:
+`test_a_missing_binary_at_session_start_says_so_and_lets_the_session_begin` in
+`plugins/meow-flow/tests/test_record.py` failed, because `paw status --waiting` printed nothing,
+and closes criterion 3 for `meow-flow`; `meow-checks revision` printed its message and exited 0
+already, in pull request 1047. `tools/test_gate_tasks.py` closes criterion 5: no task of
+`mise.toml` ends in `|| true`, tests whether a tool exists and skips, or hides a failure and falls
+through, so a missing tool fails a task with the shell's own message naming it. It can fail:
+its first test runs it on three spellings that do. `mise run all` passed with exit status 0.
 
 ## Left alone
 
