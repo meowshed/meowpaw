@@ -1,8 +1,8 @@
 ---
 id: ADR-2100
 artifact: adr
-status: done
-revised: 2026-09-28
+status: superseded
+revised: 2026-10-11
 addresses:
   [
     REQ-0330,
@@ -19,6 +19,8 @@ supersedes: []
 ---
 
 # 2100. A read-only agent routes each request on the repository before work starts, and the route is reported before any edit
+
+**Superseded by ADR-2930.**
 
 ## Decision
 

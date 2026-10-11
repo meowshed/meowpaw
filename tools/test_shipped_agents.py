@@ -111,7 +111,7 @@ class ShippedOutcomes(unittest.TestCase):
     def test_the_shipped_agents_name_the_four_outcomes(self):
         paths = sorted(ROOT.glob("plugins/*/agents/*.md"))
         self.assertEqual(sorted(f"{p.parent.parent.name}:{p.stem}" for p in paths),
-                         ["meow-flow:router", "meow-prose:prose"])
+                         ["meow-flow:researcher", "meow-prose:prose"])
         for path in paths:
             with self.subTest(agent=str(path.relative_to(ROOT))):
                 self.assertEqual(named_outcomes(path), set(OUTCOMES))

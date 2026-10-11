@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: how a person starts a run in the session, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.15.0]
+describes: [meow-loop@0.16.0]
 ---
 
 # meow-loop

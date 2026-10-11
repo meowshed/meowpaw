@@ -4,7 +4,7 @@ focus: last_message
 weight: 2
 ---
 
-Judge whether the router listed the request as three changes.
+Judge whether the reply listed the request as three changes.
 
 The request asks for a spelling fix in a README, a flag for a command and a change to what the licence unit accepts.
 
