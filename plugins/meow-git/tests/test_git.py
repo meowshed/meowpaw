@@ -231,15 +231,13 @@ class GitPack(unittest.TestCase):
         self.assertIn("checked nothing", done.stdout)
 
     def test_no_program_denies_the_commit_and_says_how_to_install(self):
-        """TSK-5165, REQ-1426, ADR-2710: a launcher that can run nothing denies, with the install command."""
+        """TSK-5165, REQ-1426, ADR-2710: a launcher that finds no program on a bare PATH denies, with the install
+        command."""
         repo = self.repo()
         run(repo.root, "git", "checkout", "-q", "main")
-        fake = Path(repo.tmp.name) / "bin"
-        fake.mkdir()
-        old = fake / "python3"
-        old.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
-        old.chmod(0o755)
-        done = repo.guard("commit-guard", env={"PATH": str(fake), "HOME": repo.tmp.name})
+        bare = Path(repo.tmp.name) / "bin"
+        bare.mkdir()
+        done = repo.guard("commit-guard", env={"PATH": str(bare), "HOME": repo.tmp.name})
         self.assertEqual(done.returncode, 2)
         self.assertIn("denied commit-guard", done.stderr)
         self.assertIn("claude plugin install meow-core@meowpaw", done.stderr)

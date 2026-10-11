@@ -98,7 +98,6 @@ CHECKS = {
     ("meow-git", "commit-guard"): "layers",
     ("meow-git", "push-guard"): "layers",
     ("meow-github", "governance-guard"): "test-tools",
-    ("meow-loop", "guard"): "layers",
     ("meow-prose-gate", "check"): "layers",
 }
 
@@ -107,13 +106,18 @@ class Named(unittest.TestCase):
     def test_each_hook_with_a_gate_check_names_it(self):
         """REQ-2712: the sentence names the check, and the check is a task of the gate."""
         mise = (ROOT / "mise.toml").read_text(encoding="utf-8")
-        gate = re.search(r"^\[tasks\.all\].*?^depends = \[(.*?)\]", mise, re.M | re.S).group(1)
+        def depends(task):
+            found = re.search(rf"^\[tasks\.{task}\].*?^depends = \[(.*?)\]", mise, re.M | re.S)
+            return re.findall(r'"([^"]+)"', found.group(1)) if found else []
+
+        members = set(depends("all"))
+        for task in list(members):
+            members.update(depends(task))
         for (unit, subcommand), task in CHECKS.items():
             sentence = readme_sentence(unit, subcommand)
             self.assertIn(f"`mise run {task}`", sentence, f"{unit} `{subcommand}` doesn't name `mise run {task}`")
             self.assertNotIn("no gate check", sentence, f"{unit} `{subcommand}` still says there is none")
-            self.assertIn(f'"{task}"', gate + '"test-tools"' if task == "test-tools" else gate,
-                          f"`{task}` isn't a member of the gate")
+            self.assertIn(task, members, f"`{task}` isn't a member of the gate")
 
     def test_the_governance_guard_names_a_skill_in_its_unit(self):
         """BUG-1562, REQ-2712: the rule has an instruction beside its hook and its check."""

@@ -28,9 +28,10 @@ class GovernanceSkill(unittest.TestCase):
         self.assertEqual(self.fields["name"], "governance")
         description = self.fields["description"]
         self.assertRegex(description, r"It MUST be loaded before[^.]*(branch protection|ruleset)[^.]*\.")
-        for verb in ("secret", "setting", "collaborator", "workflow"):
+        self.assertTrue(description.split(".")[0].split()[0] in {"The", "A", "Governance"}, description)
+        for verb in ("change", "protect", "approve", "add", "disable", "set", "edit", "delete"):
             self.assertIn(verb, description)
-        self.assertRegex(description, r"It MUST NOT be skipped")
+        self.assertRegex(description, r"It MUST NOT be skipped, however short or simple the work looks\.$")
         self.assertNotRegex(description, r"\b(you|your|I|we)\b")
 
     def test_the_body_carries_the_rule_and_where_it_stops(self):
