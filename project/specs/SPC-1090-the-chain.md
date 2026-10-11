@@ -499,7 +499,9 @@ The reply is the only place the route is recorded.
 The chain runs seven steps in this order, each writing one kind of artifact
 (REQ-3638): research, requirements, design, spec, epic, implement and review.
 The documentation check reports a living page that states another number of
-steps (REQ-3632).
+steps (REQ-3632). The research step dispatches the researcher, reads nothing
+itself, and writes the artifact from the draft the researcher returns
+(REQ-3526).
 
 A task's pull request carries the whole task: its tests first, in a commit of
 their own where they fail, then the implementation, the documentation it

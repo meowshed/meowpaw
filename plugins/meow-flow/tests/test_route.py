@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Static checks on the router agent SPC-1090 "The route" states, and ADR-2100's allowlist.
+"""Static checks on the route skill SPC-1090 "The route" states, and ADR-2930's classification.
 
-The router's behaviour on a request is a model's, so its cases run by hand under `evals/`. What a program can
-read is the definition: the tools its front matter grants and the sizes, shapes and fields its prompt names.
+The route's behaviour on a request is a model's, so its cases run by hand under `evals/`. What a program can
+read is the skill: that it dispatches nothing, and that the sizes, shapes and fields its rules name.
 """
 
 import os
@@ -17,7 +17,6 @@ from pathlib import Path
 
 UNIT = Path(__file__).resolve().parent.parent
 REPOSITORY = UNIT.parent.parent
-ROUTER = UNIT / "agents" / "router.md"
 SKILL = UNIT / "skills" / "route" / "SKILL.md"
 METHOD = UNIT / "skills" / "method" / "SKILL.md"
 EVALS = UNIT / "evals"
@@ -58,40 +57,18 @@ def flat(text):
     return re.sub(r"\s+", " ", text.replace("`", "")).lower().strip()
 
 
-class RouterAgent(unittest.TestCase):
-    """ADR-2100: the router holds Read, Grep and Glob only, and its prompt states the route's vocabulary."""
+class SkillRoute(unittest.TestCase):
+    """ADR-2930: the skill states the route's vocabulary itself, and names no dispatch."""
 
-    def router(self):
-        self.assertTrue(ROUTER.is_file(), f"{ROUTER} doesn't exist")
-        return ROUTER.read_text(encoding="utf-8")
+    def skill(self):
+        self.assertTrue(SKILL.is_file(), f"{SKILL} doesn't exist")
+        return SKILL.read_text(encoding="utf-8")
 
-    def assertReadOnly(self, text):
-        granted = tools(text)
-        self.assertIsNotNone(granted, "the front matter names no tools, so the agent inherits every tool")
-        self.assertEqual(granted, READ_ONLY)
-
-    def test_tools_are_read_grep_glob(self):
-        """TSK-3500 criterion 1, REQ-0346: the router's front matter names exactly Read, Grep and Glob."""
-        self.assertReadOnly(self.router())
-
-    def test_a_writing_copy_fails(self):
-        """TSK-3500 criterion 1, REQ-0346: a copy of the router that adds Write, Edit or Bash, or drops `tools`,
-        fails the same assertion the shipped router passes."""
-        text = self.router()
-        line = next(line for line in split(text)[0] if line.startswith("tools:"))
-        copies = {name: text.replace(line, f"{line}, {name}", 1) for name in ("Write", "Edit", "Bash")}
-        copies["no tools"] = text.replace(line + "\n", "", 1)
-        for name, copy in copies.items():
-            with self.subTest(copy=name):
-                self.assertNotEqual(copy, text)
-                with self.assertRaises(AssertionError):
-                    self.assertReadOnly(copy)
-
-    def test_the_prompt_names_sizes_shapes_and_fields(self):
-        """TSK-3500 criterion 2, REQ-0334, REQ-0344, REQ-0338, REQ-0342: the prompt names the sizes none,
-        reduced and full, the four shapes including several changes, and the reply fields size, shape, reason,
-        ambiguous and override words."""
-        body = flat(split(self.router())[1])
+    def test_the_skill_names_sizes_shapes_and_fields(self):
+        """REQ-0334, REQ-0344, REQ-0338, REQ-0342: the skill names the sizes none, reduced and full, the four
+        shapes including several changes, and the reply fields size, shape, reason, ambiguous and override
+        words."""
+        body = flat(split(self.skill())[1])
         for size in ("none", "reduced", "full"):
             with self.subTest(size=size):
                 self.assertRegex(body, rf"\b{size}\b")
@@ -106,6 +83,12 @@ class RouterAgent(unittest.TestCase):
         with self.subTest(rule="it reads the profile"):
             self.assertIn(".meowpaw/profile.toml", body)
 
+    def test_the_skill_dispatches_nothing(self):
+        """ADR-2930: no agent is dispatched, and the session classifies the request itself."""
+        text = flat(self.skill())
+        self.assertNotRegex(text, r"meow-flow:router\b")
+        self.assertRegex(text, r"classif(?:y|ies)")
+
 
 def names_the_route_skill(text):
     """Whether the text names the `route` skill, and not only the router agent or the verb."""
@@ -119,7 +102,7 @@ def route_cases():
 
 
 class RouteSkill(unittest.TestCase):
-    """SPC-1090 "The route": the skill dispatches the router, takes four override words, and the method's
+    """SPC-1090 "The route": the skill takes four override words, and the method's
     entry points name it."""
 
     def skill(self):
@@ -133,11 +116,6 @@ class RouteSkill(unittest.TestCase):
         for word in ("route none", "route reduced", "route full", "route one"):
             with self.subTest(word=word):
                 self.assertRegex(text, rf"\b{word}\b")
-
-    def test_the_skill_dispatches_the_router(self):
-        """TSK-3510 criterion 1, REQ-0330, REQ-0332: the skill names meow-flow:router as the agent it
-        dispatches."""
-        self.assertRegex(flat(self.skill()), r"meow-flow:router\b")
 
     def test_the_method_and_constitution_name_the_route(self):
         """TSK-3510 criterion 2, REQ-0330: the method skill and CLAUDE.md's own_method_first, where it names

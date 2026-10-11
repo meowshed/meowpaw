@@ -85,12 +85,12 @@ guarantee that routing happens at all.
 
 ## Alternatives
 
-| Option                                          | Better at                                             | Why it lost                                                                                                        |
-| ----------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Keep the dispatch, fix the nested call          | Keeps the read-only classifier on Claude Code         | The nested call's throw is Pi's adapter, outside this repository, and a fixed call still pays the dispatch per request |
-| A hook that classifies on keywords              | Deterministic, no model                               | RES-0053 found a keyword classifier fails the first time somebody describes an architectural change in plain words |
-| A hook denying writes until a route is reported | Enforces report-before-edit by construction           | RES-0203 found the transcript a hook reads lags the conversation, and it would run on every tool call in every session |
-| Keep the agent on Claude Code and drop the tool on Pi | Keeps the stronger guarantee where it exists    | REQ-4614 holds a unit's contract equal across the two distributions, and a route that behaves differently per platform is two methods, not one |
+| Option                                                | Better at                                     | Why it lost                                                                                                                                    |
+| ----------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Keep the dispatch, fix the nested call                | Keeps the read-only classifier on Claude Code | The nested call's throw is Pi's adapter, outside this repository, and a fixed call still pays the dispatch per request                         |
+| A hook that classifies on keywords                    | Deterministic, no model                       | RES-0053 found a keyword classifier fails the first time somebody describes an architectural change in plain words                             |
+| A hook denying writes until a route is reported       | Enforces report-before-edit by construction   | RES-0203 found the transcript a hook reads lags the conversation, and it would run on every tool call in every session                         |
+| Keep the agent on Claude Code and drop the tool on Pi | Keeps the stronger guarantee where it exists  | REQ-4614 holds a unit's contract equal across the two distributions, and a route that behaves differently per platform is two methods, not one |
 
 ## What it costs
 

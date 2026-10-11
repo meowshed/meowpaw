@@ -293,16 +293,17 @@ exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
 ## Tools
 
-The `router` agent holds three tools, each for one step of its procedure:
+The `researcher` agent holds four tools, each for one step of its procedure:
 
-- `Read`: step 2 reads the profile, the record's indexes and the files the request touches.
-- `Grep`: step 3 finds the files the request would touch where it names no path.
-- `Glob`: step 3 lists the paths that match a name the request gives.
+- `Read`: step 1 reads the primary sources the brief names.
+- `Grep`: step 1 finds where a source lives where the brief names no path.
+- `Glob`: step 1 lists the paths that match a name the brief gives.
+- `WebFetch`: step 1 reads a source the brief names by its address.
 
 ## What it costs you
 
-The `method` and `route` skills' descriptions, the driver's and the `router`
-agent's, on every turn, so Claude knows when to load each. The
+The `method` and `route` skills' descriptions, the driver's and the
+`researcher` agent's, on every turn, so Claude knows when to load each. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, it
 reports the record as not checked and exits 3, and its session-start hook says

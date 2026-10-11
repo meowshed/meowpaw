@@ -4919,7 +4919,12 @@ mod tests {
                 ),
             );
         }
-        let dir = std::env::temp_dir().join(format!("meow-chain-{}", std::process::id()));
+        // The statuses name the directory, because the tests run in parallel
+        // in one process and share the id.
+        let dir = std::env::temp_dir().join(format!(
+            "meow-chain-{first}-{second}-{}",
+            std::process::id()
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(dir.join(".meowpaw")).unwrap();
         std::fs::create_dir_all(dir.join("project").join("specs")).unwrap();

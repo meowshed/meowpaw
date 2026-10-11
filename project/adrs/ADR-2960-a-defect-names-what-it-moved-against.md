@@ -36,10 +36,10 @@ removed was a dependency of anything.
 
 ## Alternatives
 
-| Option                                            | Better at                              | Why it lost                                                                                         |
-| ------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Move the provenance instead: amend the frozen records that cite the defect | Keeps the walk's provider set as it is | The records the chain runs through are approved and frozen, so the move rewords what approval froze |
-| Leave the withdrawal out and keep the requirement in force | No checker change              | The requirement names a mapping for an agent the harness no longer ships, and a false requirement in force is the drift the record exists to stop |
+| Option                                                                     | Better at                              | Why it lost                                                                                                                                       |
+| -------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Move the provenance instead: amend the frozen records that cite the defect | Keeps the walk's provider set as it is | The records the chain runs through are approved and frozen, so the move rewords what approval froze                                               |
+| Leave the withdrawal out and keep the requirement in force                 | No checker change                      | The requirement names a mapping for an agent the harness no longer ships, and a false requirement in force is the drift the record exists to stop |
 
 ## What it costs
 

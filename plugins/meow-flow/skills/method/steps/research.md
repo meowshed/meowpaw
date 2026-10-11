@@ -10,16 +10,16 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
    explore any alternative, because an assumption every option shares turns
    invisible once the options exist. Take the record's identifier from
    `paw new research`.
-2. Read primary sources: the documentation, the code, the tool itself.
-   Record what you read, ran and searched, and what you couldn't obtain,
-   under `## Method`.
-3. Write one finding per claim, each with its source and the date you read
-   it. Drop any claim you remember but didn't read.
-4. Compare at least three options where the question admits them, doing
-   nothing among them, each in the terms its advocate would use, and state
-   the case against the one you lead with.
-5. End with numbered conclusions, each an obligation that follows from a
-   finding above, and never cite a requirement.
+2. Dispatch the researcher — the `meow-flow:researcher` agent on Claude Code,
+   the `meow-research` tool on Pi — with the question, the sources the person
+   named and, on Pi, the material the call drafts from: the template
+   `paw template research` prints, the record searches and the sources' text,
+   because a nested call reads nothing (REQ-3526). The researcher reads the
+   primary sources and returns the draft, and writes nothing.
+3. Write the artifact from `paw template research`: the front matter with the
+   identifier, and the body from the researcher's draft, held to the rules
+   below, because the rules bind the record however it was drafted.
+4. Run `paw check` and stop at the gate, as the method skill says.
 </steps>
 
 <rules name="research">

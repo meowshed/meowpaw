@@ -24,7 +24,7 @@ its marks.
    `${CLAUDE_PLUGIN_ROOT}/output-styles/meow.md`, and equal nowhere else.
    Closed by: `tools/test_pi_extensions.py`, seen failing first (BUG-1630).
 2. Given this change's tree, when `meow-checks run format lint check test
-   build` runs, then each passes. Closed by: each verb's outcome in the task's
+build` runs, then each passes. Closed by: each verb's outcome in the task's
    pull request.
 
 ## What to do

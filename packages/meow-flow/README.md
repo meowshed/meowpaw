@@ -35,7 +35,6 @@ driver skill, and `/meow-flow:init` and `/meow-flow:onboard` their own. Type
 the command and its arguments, and the model carries out what the skill
 says.
 
-The router's nested call picks the model the `MEOW_ROUTER_MODEL` environment
-variable names before any other, so you choose what the route costs:
-`MEOW_ROUTER_MODEL=glm-5.3-flash` picks `z-ai/glm-5.3-flash` under any
-provider. Without the variable it prefers a Claude model.
+The researcher's nested call picks the model the `MEOW_NESTED_MODEL`
+environment variable names before any other, so you choose what the draft
+costs: it runs on glm 5.3 flash where the variable names nothing.

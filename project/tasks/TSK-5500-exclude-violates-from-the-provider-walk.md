@@ -25,7 +25,7 @@ review: the tests first, then the change, its documentation and its marks.
    runs, then a draft specification stating it still reports resting on the
    draft, so the exclusion hides no draft finding. Closed by: the same test.
 3. Given this change's tree, when `meow-checks run format lint check test
-   build` runs, then each passes. Closed by: each verb's outcome in the task's
+build` runs, then each passes. Closed by: each verb's outcome in the task's
    pull request.
 
 ## What to do

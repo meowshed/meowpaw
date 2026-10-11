@@ -30,7 +30,7 @@ review: the tests first, then the change, its documentation and its marks.
    answer yields its text, and a catalogue where every model fails names the
    last failure with its provider and model. Closed by: the same test.
 4. Given this change's tree, when `meow-checks run format lint check test
-   build` runs, then each passes. Closed by: each verb's outcome in the task's
+build` runs, then each passes. Closed by: each verb's outcome in the task's
    pull request.
 
 ## What to do

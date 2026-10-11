@@ -3,8 +3,7 @@ id: ADR-2950
 artifact: adr
 status: approved
 revised: 2026-10-11
-addresses:
-  [REQ-4618, REQ-3526]
+addresses: [REQ-4618, REQ-3526]
 supersedes: []
 ---
 
@@ -57,11 +56,11 @@ same tier on both platforms, which REQ-4614 asks of a unit's contract.
 
 ## Alternatives
 
-| Option                                    | Better at                          | Why it lost                                                                    |
-| ----------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
-| The session researches itself             | Reads with full context            | The reading fills the context the chain's later steps need, and pays the session's model rate |
-| A dearer model for the reviewer           | Catches finer findings             | The gate after the review is the person, and the cheap tier's misses cost a reread, not a defect |
-| No Pi mapping for either                  | Smaller packages                   | REQ-4614 holds a unit's contract equal, and a review the platform can't run is a method half-shipped |
+| Option                          | Better at               | Why it lost                                                                                          |
+| ------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| The session researches itself   | Reads with full context | The reading fills the context the chain's later steps need, and pays the session's model rate        |
+| A dearer model for the reviewer | Catches finer findings  | The gate after the review is the person, and the cheap tier's misses cost a reread, not a defect     |
+| No Pi mapping for either        | Smaller packages        | REQ-4614 holds a unit's contract equal, and a review the platform can't run is a method half-shipped |
 
 ## What it costs
 
