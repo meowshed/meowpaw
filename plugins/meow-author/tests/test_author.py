@@ -53,6 +53,16 @@ class Repository:
                 readme = f"plugins/{parts[1]}/README.md"
                 files.setdefault(readme, "# demo\n\n## Tools\n\n" + "".join(
                     f"- `{tool}`: the review step uses it.\n" for tool in ("Read", "Grep", "Glob", "Bash", "Edit", "Write")))
+        # The manifest rules of SPC-1080 "Each unit is a plugin" read these, so
+        # a fixture unit under plugins/ carries them (REQ-1482, REQ-2990).
+        for name in list(files):
+            parts = name.split("/")
+            if len(parts) >= 3 and parts[0] == "plugins":
+                unit_name = parts[1]
+                files.setdefault(f"plugins/{unit_name}/.claude-plugin/plugin.json",
+                                 f'{{"name":"{unit_name}","version":"0.1.0"}}')
+                files.setdefault(f"plugins/{unit_name}/requires.toml",
+                                 f'claude_code = "2.0.0"\nlayer = "practice"\nunits = []\n')
         for name, text in files.items():
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -137,9 +147,11 @@ class Check(unittest.TestCase):
 
     def test_a_unit_without_requires_toml_fails(self):
         """REQ-1482: each unit declares what it requires, in requires.toml."""
-        files = unit()
-        del files["plugins/meow-demo/requires.toml"]
-        self.fails(files, "has no plugins/meow-demo/requires.toml")
+        repository = self.repo(unit())
+        (repository.root / "plugins/meow-demo/requires.toml").unlink()
+        done = repository.check()
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("has no plugins/meow-demo/requires.toml", done.stdout)
 
     def test_a_unit_without_a_version_fails(self):
         """REQ-2990: every unit the harness ships carries a version."""

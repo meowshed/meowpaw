@@ -121,6 +121,7 @@ fn check(paths: &[String]) -> u8 {
             failures.extend(vocabulary(&prompt, &where_));
         }
         if shipped {
+            failures.extend(manifest_rules(&root, unit));
             failures.extend(tool_steps(&root, unit));
             for (path, size) in permanent(&unit_root(unit)) {
                 if path.extension().is_some_and(|e| e == "md")
@@ -897,6 +898,112 @@ fn unnamed_files(root: &Path, core: &Path, text: &str) -> Vec<String> {
     out
 }
 
+/// The four layers a unit ships in, as SPC-1080 states them under "Each unit
+/// is a plugin".
+const LAYERS: [&str; 4] = ["kernel", "method", "practice", "pack"];
+
+/// Each defect in a unit's manifest, as SPC-1080 states under "Each unit is a
+/// plugin" (REQ-1482, REQ-2990, REQ-2998, REQ-3006): a version in the plugin
+/// manifest, a requires.toml naming `layer` and `units`, a `kernel` range in a
+/// pack, and, for each unit `units` names, a README that says the platform
+/// enables it and keeps it enabled while this unit is on.
+fn manifest_rules(root: &Path, unit: &Path) -> Vec<String> {
+    let name = shown(root, unit);
+    let mut out = Vec::new();
+    let plugin = unit.join(".claude-plugin").join("plugin.json");
+    let version = std::fs::read_to_string(&plugin)
+        .ok()
+        .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+        .and_then(|value| {
+            value
+                .get("version")
+                .and_then(|v| v.as_str())
+                .map(str::to_string)
+        });
+    match version {
+        Some(v) if !v.is_empty() => {}
+        _ => out.push(format!(
+            "{}: has no version, where every unit the harness ships carries one (REQ-2990)",
+            shown(root, &plugin)
+        )),
+    }
+    let requires = unit.join("requires.toml");
+    let text = match std::fs::read_to_string(&requires) {
+        Ok(text) => text,
+        Err(_) => {
+            out.push(format!(
+                "{name}: has no {}, which states its platform version, layer, units and kernel range (REQ-1482)",
+                shown(root, &requires)
+            ));
+            return out;
+        }
+    };
+    let where_ = shown(root, &requires);
+    let table = match text.parse::<toml::Table>() {
+        Ok(table) => table,
+        Err(error) => {
+            out.push(format!("{where_}: doesn't parse: {error}"));
+            return out;
+        }
+    };
+    let layer = match table.get("layer") {
+        Some(toml::Value::String(layer)) if LAYERS.contains(&layer.as_str()) => Some(layer.as_str()),
+        Some(toml::Value::String(layer)) => {
+            out.push(format!(
+                "{where_}: layer is `{layer}`, where the unit states kernel, method, practice or pack"
+            ));
+            None
+        }
+        Some(_) => {
+            out.push(format!(
+                "{where_}: layer is not a string naming kernel, method, practice or pack"
+            ));
+            None
+        }
+        None => {
+            out.push(format!(
+                "{where_}: has no layer, where the unit states kernel, method, practice or pack"
+            ));
+            None
+        }
+    };
+    let units: Option<Vec<String>> = match table.get("units") {
+        Some(toml::Value::Array(items)) => items
+            .iter()
+            .map(|item| item.as_str().map(str::to_string))
+            .collect(),
+        Some(_) => {
+            out.push(format!(
+                "{where_}: units is not a list of unit names, empty where the unit needs none"
+            ));
+            None
+        }
+        None => {
+            out.push(format!(
+                "{where_}: has no units, where the unit states the units it needs, empty where it needs none (REQ-1482)"
+            ));
+            None
+        }
+    };
+    if layer == Some("pack") && table.get("kernel").is_none() {
+        out.push(format!(
+            "{where_}: has no kernel, where a pack states the range of meow-core versions it works with (REQ-2998)"
+        ));
+    }
+    let readme = unit.join("README.md");
+    let read = std::fs::read_to_string(&readme).unwrap_or_default();
+    for required in units.into_iter().flatten() {
+        let says = read.contains(&required) && read.contains("enabled");
+        if !says {
+            out.push(format!(
+                "{}: requires {required} and doesn't say the platform enables it and keeps it enabled while this unit is on (REQ-3006)",
+                shown(root, &readme)
+            ));
+        }
+    }
+    out
+}
+
 fn has_steps(text: &str) -> bool {
     text.contains("<steps")
 }
@@ -1073,6 +1180,15 @@ mod tests {
             std::fs::write(unit.join("requires.toml"), requires).unwrap();
         }
         std::fs::write(unit.join("README.md"), readme.unwrap_or("# meow-demo\n")).unwrap();
+        // A skill, so the check reads prompt material and reports a pass as
+        // clean instead of unresolved (unresolved is never a pass).
+        let skill = unit.join("skills").join("demo");
+        std::fs::create_dir_all(&skill).unwrap();
+        std::fs::write(
+            skill.join("SKILL.md"),
+            "---\nname: demo\ndescription: The demo skill. It MUST be loaded before a demo is run.\n---\n\n<role>\nYou run the demo.\n</role>\n\n<steps name=\"demo\">\n1. Run the demo, report what it printed, and stop.\n</steps>\n",
+        )
+        .unwrap();
         let status = check(&[unit.display().to_string()]);
         let _ = std::fs::remove_dir_all(&root);
         status

@@ -5,3 +5,16 @@
 # manifest has no field for a minimum platform version, so the unit states it
 # here: the version its behaviour was last tested on, 2026-09-26.
 claude_code = "2.1.283"
+
+# The layer of the harness this unit ships in (SPC-1080 "Each unit is a
+# plugin"): it wraps git, a tool a repository may leave out.
+layer = "pack"
+
+# The units this one needs (REQ-1482), read from what it runs: its launcher
+# finds the shared binary meow-core ships, and it runs `meow-scm` at run time.
+units = ["meow-core", "meow-scm"]
+
+# The range of meow-core versions this pack works with (REQ-2998). The
+# launcher contract and the `paw` subcommands it calls are unchanged across
+# 0.9.x; the tight range says the pack is coupled to them.
+kernel = "0.9"
