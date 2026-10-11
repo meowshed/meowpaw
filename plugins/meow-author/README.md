@@ -138,7 +138,7 @@ README, so a tool no step needs is visible and removed.
 
 `meow-author check` also reads each unit's always-loaded material, and fails
 on a skill's or agent's description and its `when_to_use` together over the
-platform's cap of 1,536 characters, which the platform sets (REQ-1060). How
+platform's cap of 1,536 characters, which the platform sets. How
 often each skill is used comes from `/skill-doctor` in Claude Code; the unit
 reads none of Claude Code's own files.
 
