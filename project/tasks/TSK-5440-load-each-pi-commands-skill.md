@@ -27,7 +27,7 @@ its marks.
 2. Given the skill file each command names, when the test resolves it under
    `packages/meow-flow/skills/`, then each exists. Closed by: the same test.
 3. Given this change's tree, when `meow-checks run format lint check test
-   build` runs, then each passes. Closed by: each verb's outcome in the task's
+build` runs, then each passes. Closed by: each verb's outcome in the task's
    pull request.
 
 ## What to do

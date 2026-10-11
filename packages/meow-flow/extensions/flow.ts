@@ -5,10 +5,10 @@
  * meow-flow extension for Pi.
  *
  * Reports what waits at a gate when a session starts, offers the router as
- * a tool, and registers a command for each method step and driver. The
- * guards live in the units that own them (ADR-2820): meow-git's in
- * meow-git, the governance guard in meow-github, the loop guard in
- * meow-loop.
+ * a tool, and registers a command for each method step and driver, each
+ * sending its skill into the session. The guards live in the units that own
+ * them (ADR-2820): meow-git's in meow-git, the governance guard in
+ * meow-github, the loop guard in meow-loop.
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
@@ -17,6 +17,7 @@ import { readFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Type } from "typebox";
+import { answerWith, pickModels, responseText } from "../lib/router.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageRoot = join(__dirname, "..");
@@ -49,24 +50,20 @@ async function readPrompt(name: string): Promise<string> {
 
 /** Run one nested model call with the reply shape as its system prompt. */
 async function nestedCall(
-  ctx: Pick<ExtensionContext, "modelRegistry">,
+  ctx: Pick<ExtensionContext, "modelRegistry" | "model">,
   systemPrompt: string,
   userPrompt: string,
-): Promise<string> {
+): Promise<{ ok: true; text: string } | { ok: false; reason: string }> {
   const models = await ctx.modelRegistry.getAvailableOfType("chat");
-  const model =
-    models.find((m) => m.provider === "anthropic" && /sonnet/i.test(m.id)) ??
-    models[0];
-  if (!model) throw new Error("no available chat model");
-  const message = await ctx.modelRegistry.completeSimple(model, {
-    systemPrompt,
-    messages: [{ role: "user", content: userPrompt }],
+  return answerWith(pickModels(models, ctx.model, process.env.MEOW_ROUTER_MODEL), async (model) => {
+    const message = await ctx.modelRegistry.completeSimple(model, {
+      systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    const text = responseText(message);
+    if (!text.ok) throw new Error(text.reason);
+    return text.text;
   });
-  return message.content
-    .filter((b): b is { type: "text"; text: string } => b.type === "text")
-    .map((b) => b.text)
-    .join("\n")
-    .trim();
 }
 
 export default async function (pi: ExtensionAPI) {
@@ -110,29 +107,42 @@ export default async function (pi: ExtensionAPI) {
         `${routerPrompt}\n\nRequest: ${args.request}`,
       );
 
-      return { content: route, details: undefined };
+      return { content: route.ok ? route.text : route.reason, details: undefined };
     },
   });
 
-  // One command per step and driver, each loading its skill.
-  const commands: ReadonlyArray<readonly [string, string]> = [
-    ["meow-flow:research", "Run the research step"],
-    ["meow-flow:requirements", "Run the requirements step"],
-    ["meow-flow:design", "Run the design step"],
-    ["meow-flow:spec", "Run the spec step"],
-    ["meow-flow:epic", "Run the epic step"],
-    ["meow-flow:implement", "Run the implement step"],
-    ["meow-flow:review", "Run the review step"],
-    ["meow-flow:run", "Drive the method to the next approval gate"],
-    ["meow-flow:init", "Initialise a repository with a profile and constitution"],
-    ["meow-flow:onboard", "Bring a repository's existing documents into the record"],
+  // One command per step and driver, each sending its skill into the
+  // session, because a notification reaches only the person (REQ-4122).
+  const commands: ReadonlyArray<readonly [string, string, string]> = [
+    ["meow-flow:research", "Run the research step", "method"],
+    ["meow-flow:requirements", "Run the requirements step", "method"],
+    ["meow-flow:design", "Run the design step", "method"],
+    ["meow-flow:spec", "Run the spec step", "method"],
+    ["meow-flow:epic", "Run the epic step", "method"],
+    ["meow-flow:implement", "Run the implement step", "method"],
+    ["meow-flow:review", "Run the review step", "method"],
+    ["meow-flow:run", "Drive the method to the next approval gate", "run"],
+    ["meow-flow:init", "Initialise a repository with a profile and constitution", "init"],
+    ["meow-flow:onboard", "Bring a repository's existing documents into the record", "onboard"],
   ];
 
-  for (const [name, description] of commands) {
+  for (const [name, description, skill] of commands) {
     pi.registerCommand(name, {
       description,
-      handler: async (_args, ctx) => {
-        ctx.ui.notify(`Load the skill /${name} and follow its instructions`, "info");
+      handler: async (args, ctx) => {
+        const file = join(packageRoot, "skills", skill, "SKILL.md");
+        let body: string;
+        try {
+          body = await readFile(file, "utf-8");
+        } catch {
+          if (ctx.hasUI) {
+            ctx.ui.notify(`meow-flow: ${file} is missing, so /${name} loads nothing`, "warning");
+          }
+          return;
+        }
+        pi.sendUserMessage(
+          `${body}\n\nYou are running this skill from the /${name} command. Its arguments, as the person typed them: ${args || "(none)"}. Carry out the skill's instructions now.`,
+        );
       },
     });
   }

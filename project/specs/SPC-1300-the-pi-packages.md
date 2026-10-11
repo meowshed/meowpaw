@@ -218,6 +218,11 @@ pi.registerTool("meow-router", {
 
 The skeptic agent follows the same pattern.
 
+The router's nested call picks the model the `MEOW_ROUTER_MODEL` environment
+variable names before any other, and a Claude model where it names nothing,
+so the person chooses what the route costs and the harness names no vendor's
+model in its own voice.
+
 ### The two-judge prose gate
 
 The gate binary holds the judge itself, as it does for the Claude Code
@@ -233,18 +238,18 @@ The method extension registers a command for each step and driver
 (REQ-4122). The seven steps share the method skill, because the unit ships
 no skill per step:
 
-| Command                   | Loads skill                |
-| ------------------------- | -------------------------- |
-| `/meow-flow:research`     | `skills/method/SKILL.md`   |
-| `/meow-flow:requirements` | `skills/method/SKILL.md`   |
-| `/meow-flow:design`       | `skills/method/SKILL.md`   |
-| `/meow-flow:spec`         | `skills/method/SKILL.md`   |
-| `/meow-flow:epic`         | `skills/method/SKILL.md`   |
-| `/meow-flow:implement`    | `skills/method/SKILL.md`   |
-| `/meow-flow:review`       | `skills/method/SKILL.md`   |
-| `/meow-flow:run`          | `skills/run/SKILL.md`      |
-| `/meow-flow:init`         | `skills/init/SKILL.md`     |
-| `/meow-flow:onboard`      | `skills/onboard/SKILL.md`  |
+| Command                   | Loads skill               |
+| ------------------------- | ------------------------- |
+| `/meow-flow:research`     | `skills/method/SKILL.md`  |
+| `/meow-flow:requirements` | `skills/method/SKILL.md`  |
+| `/meow-flow:design`       | `skills/method/SKILL.md`  |
+| `/meow-flow:spec`         | `skills/method/SKILL.md`  |
+| `/meow-flow:epic`         | `skills/method/SKILL.md`  |
+| `/meow-flow:implement`    | `skills/method/SKILL.md`  |
+| `/meow-flow:review`       | `skills/method/SKILL.md`  |
+| `/meow-flow:run`          | `skills/run/SKILL.md`     |
+| `/meow-flow:init`         | `skills/init/SKILL.md`    |
+| `/meow-flow:onboard`      | `skills/onboard/SKILL.md` |
 
 Each handler sends the skill file's text and the command's arguments into the
 session as a user message, because a notification reaches only the person

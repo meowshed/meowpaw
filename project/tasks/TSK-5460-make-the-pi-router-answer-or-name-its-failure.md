@@ -20,8 +20,9 @@ its marks.
 
 1. Given a catalogue whose Claude models name another provider, when the
    choice runs, then it returns a Claude model from that provider before any
-   other. Closed by: `tools/test_pi_extensions.py`, seen failing first
-   (BUG-1620).
+   other, and a model the `MEOW_ROUTER_MODEL` environment variable names
+   before that Claude model. Closed by: `tools/test_pi_extensions.py`, seen
+   failing first (BUG-1620).
 2. Given a completed message whose `content` is a string, when the text is
    read, then it yields the string; a block list yields its text blocks. A
    message whose stop reason is `error` or that carries an error message
@@ -31,17 +32,19 @@ its marks.
    it returns `meow-router: no model answered: <reason>` with the last
    failure's provider and model named. Closed by: the same test.
 4. Given this change's tree, when `meow-checks run format lint check test
-   build` runs, then each passes. Closed by: each verb's outcome in the
+build` runs, then each passes. Closed by: each verb's outcome in the
    task's pull request.
 
 ## What to do
 
-`pickModels` orders the candidates: Claude models first, whichever provider
-names them, then the session's model, then the rest; `responseText` reads a
-string or a block list and refuses an error message. `flow.ts` keeps the
-reply shape and the router prompt and calls the two. The throw site inside
-Pi's `openai-completions` adapter stays outside this repository; the router
-names what failed instead of surfacing it bare.
+`pickModels` orders the candidates: a model the `MEOW_ROUTER_MODEL`
+environment variable names first, so the person chooses what the route
+costs, then Claude models, whichever provider names them, then the session's
+model, then the rest; `responseText` reads a string or a block list and
+refuses an error message. `flow.ts` keeps the reply shape and the router
+prompt and calls the two. The throw site inside Pi's `openai-completions`
+adapter stays outside this repository; the router names what failed instead
+of surfacing it bare.
 
 ## Depends on
 

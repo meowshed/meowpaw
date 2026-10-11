@@ -42,6 +42,11 @@ const xiaomi = { provider: "xiaomi-token-plan-ams", id: "mimo-v2.5-pro" };
 const picked = pickModels([xiaomi, openrouterClaude], xiaomi);
 assert(picked[0] === openrouterClaude, "a Claude model under another provider is not picked first: " + JSON.stringify(picked));
 
+const glm = { provider: "openrouter", id: "z-ai/glm-5.3-flash" };
+const preferred = pickModels([xiaomi, openrouterClaude, glm], xiaomi, "glm-5.3-flash");
+assert(preferred[0] === glm, "the model MEOW_ROUTER_MODEL names is not picked first: " + JSON.stringify(preferred));
+assert(preferred[1] === openrouterClaude, "the Claude model is not second after the preference: " + JSON.stringify(preferred));
+
 assert(responseText({ content: " route " }).ok && responseText({ content: " route " }).text === "route", "a string content yields its text");
 assert(responseText({ content: [{ type: "text", text: "route" }] }).text === "route", "a block list yields its text");
 assert(!responseText({ stopReason: "error", errorMessage: "boom" }).ok, "an error message fails the model");
@@ -101,7 +106,7 @@ class FlowCommands(unittest.TestCase):
     def test_the_router_uses_the_shared_answer_loop(self):
         """TSK-5460: the tool answers through the module the test drives."""
         self.assertIn("from \"../lib/router.mjs\"", self.text, "flow.ts imports no router module")
-        self.assertIn("answerWith(pickModels(models, ctx.model)", self.text, "the nested call runs no candidate loop")
+        self.assertIn("answerWith(pickModels(models, ctx.model, process.env.MEOW_ROUTER_MODEL)", self.text, "the nested call runs no candidate loop")
         self.assertIn("route.ok ? route.text : route.reason", self.text, "the tool surfaces neither the text nor the reason")
 
 
