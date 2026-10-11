@@ -216,10 +216,10 @@ fn fixture(name: &str) -> Dir {
     dir
 }
 
-/// `meow record <args>` in `dir`, against this repository's own layout.
+/// `paw record <args>` in `dir`, against this repository's own layout.
 fn paw(dir: &Path, args: &[&str]) -> Output {
     let layout = layout_path();
-    Command::new(env!("CARGO_BIN_EXE_meow"))
+    Command::new(env!("CARGO_BIN_EXE_paw"))
         .arg("record")
         .args(args)
         .current_dir(dir)
@@ -484,8 +484,8 @@ fn the_unit_ships_the_launcher_and_no_other_helper() {
     assert_eq!(files, ["paw"], "files beside the launcher: {files:?}");
     let launcher = std::fs::read_to_string(bin.join("paw")).unwrap();
     assert!(
-        launcher.contains("meow$exe"),
-        "paw doesn't run the shipped meow binary"
+        launcher.contains("paw$exe"),
+        "paw doesn't run the shipped paw executable"
     );
 }
 

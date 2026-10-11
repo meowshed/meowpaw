@@ -127,7 +127,7 @@ def commits(root, base):
                  "tool_input": {"command": f"git commit -m {shlex.quote(message)}"}}
         prose = subprocess.run([str(launcher("meow-prose-gate")), "check"], cwd=root, input=json.dumps(event),
                                capture_output=True, text=True, env=env)
-        if prose.returncode == 2 and "no meow binary was found" in prose.stderr:
+        if prose.returncode == 2 and "no paw executable was found" in prose.stderr:
             print("commits: unresolved: meow-prose-gate can't run here, so no message was read against its rules")
             return UNRESOLVED
         if prose.returncode == 2:

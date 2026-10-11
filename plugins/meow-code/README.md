@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-code
 answers: what meow-code does, what it adds to a session and how to use it
 kind: reference
-describes: [meow-code@0.2.3]
+describes: [meow-code@0.3.0]
 ---
 
 # meow-code
@@ -16,7 +16,7 @@ installs on its own, with no other part of the `meowpaw` harness.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-code@meowpaw
 ```
 

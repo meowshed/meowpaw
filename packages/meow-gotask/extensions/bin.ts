@@ -5,8 +5,8 @@
  * Pi extension for this unit.
  *
  * Puts the package's launcher on PATH so the skills call it by name, the
- * way Claude Code does natively for a plugin's bin/. The meow binary comes
- * from the core package's install (REQ-4144).
+ * way Claude Code does natively for a plugin's bin/. The paw executable comes
+ * from the core package's install (REQ-4612).
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";

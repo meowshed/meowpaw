@@ -53,10 +53,10 @@ fn init(dir: &Path) {
     assert!(done.status.success(), "git init failed: {done:?}");
 }
 
-/// `meow <args>` in `dir`, given `input` on standard input, with a state
+/// `paw <args>` in `dir`, given `input` on standard input, with a state
 /// directory of the fixture's own.
 fn meow(dir: &Path, state: &Path, args: &[&str], input: &str) -> Output {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_meow"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_paw"))
         .args(args)
         .current_dir(dir)
         .env("XDG_STATE_HOME", state)
@@ -78,7 +78,7 @@ fn meow(dir: &Path, state: &Path, args: &[&str], input: &str) -> Output {
     child.wait_with_output().unwrap()
 }
 
-/// `meow verbs <args>` in `dir`, and what it printed on standard output.
+/// `paw verbs <args>` in `dir`, and what it printed on standard output.
 fn checks(dir: &Path, state: &Path, args: &[&str]) -> (Output, String) {
     let done = meow(dir, state, &[&["verbs"], args].concat(), "");
     let stdout = String::from_utf8_lossy(&done.stdout).into_owned();

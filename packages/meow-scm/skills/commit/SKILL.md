@@ -1,6 +1,6 @@
 ---
 name: commit
-description: The commit convention for this repository, and the check a message passes before it is used. It MUST be loaded before any commit message, squash message or pull request title is written, rewritten or reworded. It MUST NOT be skipped, however short the message is.
+description: The commit convention for this repository, and the check a message passes before it is used. It MUST be loaded before any commit message, squash message or pull request title is written, rewritten or reworded, and before a command such as `wt merge` is run, a branch is merged or rebased, or a worktree or working tree is created, removed or deleted. It MUST NOT be skipped, however short the message or the command is.
 ---
 
 <role>
@@ -89,6 +89,33 @@ project gained and when, so every message is written for that question.
 - B8. Sign every commit, and write the sign-off as well where the repository
   asks for both: the signature says the claim wasn't forged, the sign-off
   says who makes it.
+</rules>
+
+<rules name="tools that run operations">
+- T1. Never run a command that bundles several decisions the method reserves
+  for itself, such as `wt merge`, which writes a message, commits, rebases and
+  removes a working tree together, because each decision then escapes the
+  check that guards it.
+- T2. Never use a message a tool generated, because it describes the change
+  and carries no reason a person chose, and the check in step 3 can't tell a
+  generated message from a written one.
+- T3. Where a tool documents no machine-readable output, use it to run
+  operations only, and read state from the documented output of the tool that
+  owns it, because text meant for people changes between releases and a
+  parser of it breaks without a failure.
+- T4. Treat a rebase after signing as a change to what was signed, so the
+  rebased commits are signed again, and never use a workflow that rebases on
+  its own where signatures are required, because the signature then names a
+  commit nobody wrote.
+- T5. Never cite a model-written summary as evidence, because it states what
+  the model took the change to be and not what the change is. Show one only
+  where a person is reading a list.
+- T6. Never remove a working tree in the background. Remove one only in the
+  foreground, when the person or the step that made it asks, because one that
+  disappears while something uses it fails in a way that is hard to attribute.
+- T7. Never let working trees share tracked source: working trees share only
+  ignored build output, and you report where the filesystem can't support the
+  sharing, because shared source makes an edit in one tree an edit in all.
 </rules>
 
 <example name="a subject">

@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what posture meow-unattended prints, what its deny rules stop and what they don't
 kind: reference
-describes: [meow-unattended@0.4.0]
+describes: [meow-unattended@0.5.0]
 ---
 
 # meow-unattended
@@ -19,7 +19,7 @@ it to the posture this unit prints.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-unattended@meowpaw
 ```
 

@@ -101,7 +101,7 @@ you need instead of the whole catalogue.
 Add the marketplace and install the plugins you want by name:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-core@meowpaw
 ```
 

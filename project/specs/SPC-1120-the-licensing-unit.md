@@ -129,4 +129,4 @@ copyright line passes it (REQ-3070).
 | A licence in use with no text        | `LICENSES/: <id> is in use and has no text`                             | 1    |
 | Nothing declared                     | `licensing is undeclared: no REUSE.toml, no [licence] and no header`    | 3    |
 | No git, or not a repository          | `unchecked: the tracked files can't be listed`                          | 3    |
-| No binary for the machine            | `unchecked: no meow binary was found for this machine`                  | 3    |
+| No binary for the machine            | `unchecked: no paw executable was found for this machine`               | 3    |

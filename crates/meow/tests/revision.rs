@@ -78,7 +78,7 @@ fn fixture(name: &str) -> (Dir, Dir) {
 }
 
 fn meow(dir: &Path, state: &Path, off: bool, args: &[&str], input: &str) -> Output {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_meow"));
+    let mut command = Command::new(env!("CARGO_BIN_EXE_paw"));
     command
         .args(args)
         .current_dir(dir)

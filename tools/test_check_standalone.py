@@ -44,7 +44,7 @@ class Standalone(unittest.TestCase):
         """TSK-5303 criterion 1, REQ-4502: a unit that names meow-core under dependencies may climb to it."""
         root = self.plugins({
             "meow-a/.claude-plugin/plugin.json": '{"name": "meow-a", "dependencies": ["meow-core"]}',
-            "meow-a/bin/meow-a": 'beside="$here/../../meow-core/bin/x/meow"\n',
+            "meow-a/bin/meow-a": 'beside="$here/../../meow-core/bin/x/paw"\n',
         })
         self.assertEqual(findings(root), ([], 2))
 
@@ -52,7 +52,7 @@ class Standalone(unittest.TestCase):
         """TSK-5303 criterion 2, REQ-4502: climbing to meow-core without declaring it is a path leaving the unit."""
         root = self.plugins({
             "meow-a/.claude-plugin/plugin.json": '{"name": "meow-a"}',
-            "meow-a/bin/meow-a": 'beside="$here/../../meow-core/bin/x/meow"\n',
+            "meow-a/bin/meow-a": 'beside="$here/../../meow-core/bin/x/paw"\n',
         })
         out, _ = findings(root)
         self.assertEqual(out, ["plugins/meow-a/bin/meow-a:1: runs a file of meow-core without declaring it under dependencies"])
@@ -61,7 +61,7 @@ class Standalone(unittest.TestCase):
         """TSK-5303 criterion 2, REQ-4502: the dependency lets a unit reach meow-core and no other unit."""
         root = self.plugins({
             "meow-a/.claude-plugin/plugin.json": '{"name": "meow-a", "dependencies": ["meow-core"]}',
-            "meow-a/bin/meow-a": 'beside="$here/../../meow-b/bin/x/meow"\n',
+            "meow-a/bin/meow-a": 'beside="$here/../../meow-b/bin/x/paw"\n',
         })
         out, _ = findings(root)
         self.assertEqual(out, ["plugins/meow-a/bin/meow-a:1: runs a file of meow-b, another unit"])

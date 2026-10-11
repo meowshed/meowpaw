@@ -4,13 +4,13 @@ answers: what each message a unit prints means, why it appeared and what fixes i
 kind: troubleshooting
 describes:
   [
-    meow-core@0.8.0,
-    meow-git@0.4.0,
-    meow-github@0.15.0,
-    meow-flow@0.50.1,
-    meow-prose-gate@0.5.0,
-    meow-scm@0.6.0,
-    meow-checks@0.12.0,
+    meow-core@0.9.0,
+    meow-git@0.5.0,
+    meow-github@0.16.0,
+    meow-flow@0.51.0,
+    meow-prose-gate@0.6.0,
+    meow-scm@0.7.0,
+    meow-checks@0.13.0,
   ]
 ---
 
@@ -19,9 +19,9 @@ describes:
 Each entry starts from the message a unit prints, or from what you see, then
 says why it happened and what fixes it.
 
-## No meow binary was found for this machine
+## No paw executable was found for this machine
 
-`no meow binary was found for this machine` means a unit's program couldn't
+`no paw executable was found for this machine` means a unit's program couldn't
 find its binary for your operating system and processor. `meow-checks` then
 reports every stage unresolved, `meow-scm` reports the message unchecked and
 exits 3, `meow-github history` names the machine and exits 3, and `paw` reports
@@ -131,7 +131,7 @@ blocked too, apply the fix the reason names. If the span is inside code or a
 path the gate should have skipped, or a J finding names text that breaks no
 rule, that is a defect in the gate: report it with the command.
 
-If the gate denies a command with `denied` and `no meow binary was found`, the
+If the gate denies a command with `denied` and `no paw executable was found`, the
 unit carries no binary for your machine, so it stopped the command it would
 have checked, and that includes every `git` and `gh` command its hook matches.
 Reinstall `meow-core` from a terminal outside the session.

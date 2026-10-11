@@ -1,7 +1,7 @@
 # Publishes the Pi packages. The binaries come from the last successful
 # Rust Tool run, so a plugin change starts no build (ADR-2810). The core
-# package alone carries the meow binary: its tarball holds every platform,
-# and the other packages' launchers fall back to `meow` on PATH (REQ-4144).
+# package alone carries the paw executable: its tarball holds every platform,
+# and the other packages' launchers fall back to `paw` on PATH (REQ-4612).
 # The npm tarball publishes to npm; the GitHub release archives stay as the
 # record of what shipped.
 
@@ -71,10 +71,10 @@ jobs:
             mkdir -p "packages/meow-core/bin/$triple"
             ext=""
             case $triple in *-windows-*) ext=.exe ;; esac
-            src=$(find bin-full -path "*/$triple/meow$ext" | head -1)
+            src=$(find bin-full -path "*/$triple/paw$ext" | head -1)
             if [ -n "$src" ]; then
-              cp "$src" "packages/meow-core/bin/$triple/meow$ext"
-              chmod +x "packages/meow-core/bin/$triple/meow$ext"
+              cp "$src" "packages/meow-core/bin/$triple/paw$ext"
+              chmod +x "packages/meow-core/bin/$triple/paw$ext"
             else
               echo "::error::no $triple binary among the Rust Tool artifacts"
               exit 1

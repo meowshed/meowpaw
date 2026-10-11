@@ -20,7 +20,7 @@ case $(uname -m 2>/dev/null) in
 arm64 | aarch64) cpu=aarch64 ;;
 x86_64 | amd64) cpu=x86_64 ;;
 esac
-binary="$here/$cpu-$system/meow$exe"
+binary="$here/$cpu-$system/paw$exe"
 if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
   MEOW_LAYOUT="$here/../lib/layout.toml"
@@ -28,17 +28,16 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   exec "$binary" record "$@"
 fi
 
-# The core package carries the meow binary (ADR-2810); where it
-# sits on PATH, this wrapper runs its subcommand through it.
-if command -v meow >/dev/null 2>&1; then
+# The core extension exports the shared executable path for this wrapper.
+if [ -n "${MEOWPAW_BINARY:-}" ] && [ -x "$MEOWPAW_BINARY" ]; then
   MEOW_LAYOUT="$here/../lib/layout.toml"
   export MEOW_LAYOUT
-  exec meow record "$@"
+  exec "$MEOWPAW_BINARY" record "$@"
 fi
 
 # At the start of a session, say nothing rather than a failure nobody asked about.
 if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
   exit 0
 fi
-echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"
+echo "paw: the record was not checked: no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"
 exit 3

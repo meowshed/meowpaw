@@ -249,6 +249,9 @@ Every decision below is approved and in force, as amended by the ones after it.
   decision keeps an approved plan.
 - [ADR-2750](adrs/ADR-2750-an-attended-irreversible-action-asks-each-time.md):
   an attended irreversible action asks for confirmation on every invocation.
+- [ADR-2920](adrs/ADR-2920-the-shared-executable-is-named-paw.md): the
+  shared executable is named `paw`, and Claude and Pi stay aligned in the same
+  pull request.
 
 ## Specifications
 

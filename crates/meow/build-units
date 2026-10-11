@@ -55,6 +55,6 @@ case $target in
   ;;
 esac
 mkdir -p "$root/plugins/meow-core/bin/$target"
-rm -f "$root/plugins/meow-core/bin/$target/meow$exe"
-cp "$root/target/full/$built/meow$exe" "$root/plugins/meow-core/bin/$target/meow$exe"
+rm -f "$root/plugins/meow-core/bin/$target/paw$exe"
+cp "$root/target/full/$built/paw$exe" "$root/plugins/meow-core/bin/$target/paw$exe"
 echo "built meow-core for $target"

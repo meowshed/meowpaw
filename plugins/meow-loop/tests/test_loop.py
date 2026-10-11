@@ -426,9 +426,9 @@ class Terms(Case):
         for manifest in (None, '{"name": "meow-git"}'):
             with self.subTest(manifest=manifest):
                 unit = f.base / ("bare" if manifest is None else "other")
-                stray = unit / "bin" / "target" / "meow"
+                stray = unit / "bin" / "target" / "paw"
                 stray.parent.mkdir(parents=True)
-                shutil.copy2(next((UNIT.parent / "meow-core" / "bin").glob("*-*/meow*")), stray)
+                shutil.copy2(next((UNIT.parent / "meow-core" / "bin").glob("*-*/paw*")), stray)
                 if manifest is not None:
                     (unit / ".claude-plugin").mkdir()
                     (unit / ".claude-plugin" / "plugin.json").write_text(manifest)
@@ -676,7 +676,7 @@ class Hook(Case):
         denied = (f"meow-loop start {terms}", f"cd x && meow-loop start {terms}",
                   f"${{CLAUDE_PLUGIN_ROOT}}/bin/meow-loop start {terms}",
                   f"env -u CLAUDECODE meow-loop start {terms}", f"bash -c 'meow-loop start {terms}'",
-                  f"/x/meow-loop/bin/aarch64-apple-darwin/meow loop start {terms}",
+                  f"/x/meow-loop/bin/aarch64-apple-darwin/paw loop start {terms}",
                   # The review of TSK-3400: an escaped space, a continued line and a redirect joined to `start`.
                   f"bash -c meow-loop\\ start {terms}", f"meow-loop \\\n  start {terms}",
                   f"meow-loop start>run.log {terms}", f"meow-loop start<p.md",

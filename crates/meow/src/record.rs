@@ -425,7 +425,7 @@ fn layout_path() -> Result<PathBuf, String> {
         Some(path) => Ok(PathBuf::from(path)),
         None => {
             let exe = std::env::current_exe().map_err(|e| e.to_string())?;
-            // The binary sits at <unit>/bin/<target>/meow.
+            // The binary sits at <unit>/bin/<target>/paw.
             let unit = exe.parent().and_then(Path::parent).and_then(Path::parent);
             Ok(unit
                 .ok_or("the binary is not inside a unit")?

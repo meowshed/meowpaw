@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-10-10
+revised: 2026-10-11
 states:
   [
     REQ-0010,
@@ -157,6 +157,9 @@ states:
     REQ-4142,
     REQ-4146,
     REQ-4148,
+    REQ-4610,
+    REQ-4612,
+    REQ-4614,
   ]
 ---
 
@@ -206,7 +209,7 @@ tracker the harness serves.
 
 ### One crate, a feature per unit
 
-The crate `crates/meow/` builds one binary, `meow`, whose subcommands are the
+The crate `crates/meow/` builds one binary, `paw`, whose subcommands are the
 units' programs: `verbs`, `scm`, `git`, `record`, `github`,
 `licence` and `author`. Each
 subcommand sits behind a feature named for its unit. The core unit ships the one
@@ -306,7 +309,7 @@ the shared profile is not refused by this rule.
 
 `plugins/<unit>/bin/<unit>` stays the command a skill or hook runs. It names
 the machine's target from the operating system and the processor, looks for
-`bin/<target>/meow`, sets its executable bit if the delivery didn't keep it,
+`bin/<target>/paw`, sets its executable bit if the delivery didn't keep it,
 and runs it with the unit's subcommand and the arguments it was given. Where no
 binary exists for the target, it reports every check as unrun and exits as the
 unit's specification says a missing program does, never with success on a

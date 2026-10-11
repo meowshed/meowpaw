@@ -56,7 +56,7 @@ fn without_groups(text: &str) -> String {
     out
 }
 
-/// Each unit's subcommand of `meow`, and the name its usage line gives it.
+/// Each unit's subcommand of `paw`, and the name its usage line gives it.
 const UNITS: [(&str, &str); 12] = [
     ("verbs", "meow-checks"),
     ("scm", "meow-scm"),
@@ -148,9 +148,9 @@ fn fixture(name: &str) -> (Dir, PathBuf) {
     (dir, state)
 }
 
-/// `meow <args>` in `dir`, given `input` on standard input.
+/// `paw <args>` in `dir`, given `input` on standard input.
 fn meow(dir: &Path, state: &Path, args: &[&str], input: &str) -> Output {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_meow"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_paw"))
         .args(args)
         .current_dir(dir)
         .env("XDG_STATE_HOME", state)
@@ -179,10 +179,10 @@ fn lines(bytes: &[u8]) -> Vec<String> {
         .collect()
 }
 
-/// The subcommands `meow <unit> --help` lists, one a line.
+/// The subcommands `paw <unit> --help` lists, one a line.
 fn listed(dir: &Path, state: &Path, unit: &str, binary: &str) -> Vec<String> {
     let help = meow(dir, state, &[unit, "--help"], "");
-    assert!(help.status.success(), "meow {unit} --help failed: {help:?}");
+    assert!(help.status.success(), "paw {unit} --help failed: {help:?}");
     let prefix = format!("{binary} ");
     lines(&help.stdout)
         .iter()
@@ -197,7 +197,7 @@ fn help_value(dir: &Path, state: &Path, unit: &str, name: &str, key: &str) -> Op
     let help = meow(dir, state, &[unit, name, "--help"], "");
     assert!(
         help.status.success(),
-        "meow {unit} {name} --help failed: {help:?}"
+        "paw {unit} {name} --help failed: {help:?}"
     );
     lines(&help.stdout)
         .iter()
@@ -230,13 +230,13 @@ fn stated(word: &str, kinds: &[&str]) -> bool {
     })
 }
 
-/// Runs `meow <unit> <args>` and holds every line of standard output to the
+/// Runs `paw <unit> <args>` and holds every line of standard output to the
 /// first words the subcommand's help states. Lines between `skip_from` and
 /// `skip_to`, which a command the subcommand ran printed, are exempt.
 fn held(dir: &Path, state: &Path, unit: &str, args: &[&str], input: &str) -> (Output, Vec<String>) {
     let name = args[0];
     let kinds = help_value(dir, state, unit, name, "lines")
-        .unwrap_or_else(|| panic!("meow {unit} {name} --help states no `lines:` line"));
+        .unwrap_or_else(|| panic!("paw {unit} {name} --help states no `lines:` line"));
     let kinds: Vec<&str> = kinds.split_whitespace().collect();
     let json = help_value(dir, state, unit, name, "json").unwrap_or_default();
     let json: Vec<&str> = json.split_whitespace().collect();
@@ -267,7 +267,7 @@ fn held(dir: &Path, state: &Path, unit: &str, args: &[&str], input: &str) -> (Ou
                         if !json.contains(&key.as_str()) {
                             MISSING.with(|m| {
                                 m.borrow_mut().push(format!(
-                                    "meow {unit} {}: the key {key:?} in {line:?}",
+                                    "paw {unit} {}: the key {key:?} in {line:?}",
                                     args.join(" ")
                                 ))
                             });
@@ -276,7 +276,7 @@ fn held(dir: &Path, state: &Path, unit: &str, args: &[&str], input: &str) -> (Ou
                 }
                 Err(_) => MISSING.with(|m| {
                     m.borrow_mut().push(format!(
-                        "meow {unit} {}: {line:?} isn't a JSON object",
+                        "paw {unit} {}: {line:?} isn't a JSON object",
                         args.join(" ")
                     ))
                 }),
@@ -286,7 +286,7 @@ fn held(dir: &Path, state: &Path, unit: &str, args: &[&str], input: &str) -> (Ou
         if !stated(word, &kinds) {
             MISSING.with(|m| {
                 m.borrow_mut().push(format!(
-                    "meow {unit} {}: {word:?} in {line:?}",
+                    "paw {unit} {}: {word:?} in {line:?}",
                     args.join(" ")
                 ))
             });
@@ -302,19 +302,19 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
     let (dir, state) = fixture("by-hand");
     for (unit, binary) in UNITS {
         let names = listed(&dir.0, &state, unit, binary);
-        assert!(!names.is_empty(), "meow {unit} --help lists nothing");
+        assert!(!names.is_empty(), "paw {unit} --help lists nothing");
         for name in &names {
             let by_hand = help_value(&dir.0, &state, unit, name, "by hand")
-                .unwrap_or_else(|| panic!("meow {unit} {name} --help has no `by hand:` line"));
+                .unwrap_or_else(|| panic!("paw {unit} {name} --help has no `by hand:` line"));
             assert!(
                 by_hand.split_whitespace().count() >= 4,
-                "meow {unit} {name}: the `by hand:` line names too little to follow: {by_hand:?}"
+                "paw {unit} {name}: the `by hand:` line names too little to follow: {by_hand:?}"
             );
             let kinds = help_value(&dir.0, &state, unit, name, "lines")
-                .unwrap_or_else(|| panic!("meow {unit} {name} --help has no `lines:` line"));
+                .unwrap_or_else(|| panic!("paw {unit} {name} --help has no `lines:` line"));
             assert!(
                 !kinds.trim().is_empty(),
-                "meow {unit} {name}: the `lines:` line states no first word"
+                "paw {unit} {name}: the `lines:` line states no first word"
             );
         }
         // The parser's own list: the string literals its `match` names.
@@ -335,7 +335,7 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
                 !word.is_empty()
                     && word.starts_with(|c: char| c.is_ascii_lowercase())
                     && word.chars().all(|c| c.is_ascii_lowercase() || c == '-')
-                    && !word.starts_with("meow")
+                    && !word.starts_with("paw")
             })
             .collect::<std::collections::BTreeSet<_>>();
         for word in &arms {
@@ -344,7 +344,7 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
             }
             assert!(
                 names.contains(word),
-                "meow {unit}: the parser names {word}, and `--help` doesn't list it ({names:?})"
+                "paw {unit}: the parser names {word}, and `--help` doesn't list it ({names:?})"
             );
         }
         // The usage line is the parser's own list of what it accepts.
@@ -362,7 +362,7 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
         }
         assert!(
             !accepted.is_empty(),
-            "meow {unit}: its usage line names no subcommand ({binary}): {text:?}"
+            "paw {unit}: its usage line names no subcommand ({binary}): {text:?}"
         );
         for word in accepted {
             if word.starts_with("--") {
@@ -370,7 +370,7 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
             }
             assert!(
                 names.contains(&word),
-                "meow {unit}: the usage line accepts {word}, and `--help` doesn't list it ({names:?})"
+                "paw {unit}: the usage line accepts {word}, and `--help` doesn't list it ({names:?})"
             );
         }
     }
