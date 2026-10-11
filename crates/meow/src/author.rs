@@ -130,7 +130,9 @@ fn check(paths: &[String]) -> u8 {
             files += 1;
             failures.extend(vocabulary(&prompt, &where_));
         }
-        failures.extend(tool_steps(&root, unit));
+        if shipped {
+            failures.extend(tool_steps(&root, unit));
+        }
         let (hooks, broken) = hook_rules(&root, unit);
         files += hooks;
         failures.extend(broken);
@@ -1051,6 +1053,11 @@ mod tests {
         let agents = dir.join(unit).join("agents");
         std::fs::create_dir_all(&agents).unwrap();
         std::fs::write(agents.join("reviewer.md"), outcome_agent(role)).unwrap();
+        std::fs::write(
+            dir.join(unit).join("README.md"),
+            "# demo\n\n## Tools\n\n- `Read`: the review reads the file.\n- `Grep`: the review finds a line.\n- `Glob`: the review lists paths.\n",
+        )
+        .unwrap();
         let status = check(&[dir.join(unit).display().to_string()]);
         let _ = std::fs::remove_dir_all(&dir);
         status
