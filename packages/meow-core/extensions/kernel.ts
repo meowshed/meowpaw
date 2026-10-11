@@ -5,9 +5,9 @@
  * meowpaw kernel extension for Pi.
  *
  * This is the one extension that injects the reply shape into the system
- * prompt, and the one that puts the meow binary on PATH: the binary ships
+ * prompt, and the one that puts the paw executable on PATH: the binary ships
  * with this package alone, and every other meowpaw package's launcher
- * falls back to it (REQ-4144, ADR-2810).
+ * falls back to it (REQ-4612, ADR-2810).
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -34,6 +34,8 @@ export default async function (pi: ExtensionAPI) {
     : process.platform === "linux" ? "unknown-linux-musl"
     : process.platform === "win32" ? "pc-windows-msvc"
     : "unknown"}`;
+  const nativeBinary = join(binDir, triple, process.platform === "win32" ? "paw.exe" : "paw");
+  process.env.MEOWPAW_BINARY = nativeBinary;
   process.env.PATH = `${join(binDir, triple)}:${process.env.PATH ?? ""}`;
 
   // Load the bundled reply shape in the factory, so the first request

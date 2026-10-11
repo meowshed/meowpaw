@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const binDir = join(__dirname, "..", "bin");
 // The scm launcher lives in the sibling meow-scm package, and the git
-// binary looks for it beside itself or at MEOW_SCM (REQ-4144).
+// binary looks for it beside itself or at MEOW_SCM (REQ-4612).
 const scmLauncher = join(__dirname, "..", "..", "meow-scm", "bin", "meow-scm");
 
 function runGuard(

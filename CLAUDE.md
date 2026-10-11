@@ -136,6 +136,15 @@ around, and then it reports a process it never performed. Anything that
 changes behaviour isn't trivial.
 </principle>
 
+<principle name="claude_pi_parity">
+Every unit ships through both Claude Code and Pi. Keep the two distributions
+aligned in the same pull request: update shared skills and behavior in both
+source trees, keep their manifests and documented versions equal, and carry
+contract or user-facing documentation changes to both sides. Keep platform
+adapters specific to their host. A unit tag releases both distributions, so a
+one-sided update leaves users on one platform behind.
+</principle>
+
 <principle name="living_and_record">
 Three kinds of document are living: the vision, this constitution, and the
 specifications. They describe the present, carry no history, and you rewrite

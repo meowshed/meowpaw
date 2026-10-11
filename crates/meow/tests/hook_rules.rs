@@ -86,7 +86,7 @@ fn unit(name: &str, event: &str, command: &str, script: Option<(&str, &str)>, re
 }
 
 fn check(dir: &Path, unit: &str) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_meow"))
+    Command::new(env!("CARGO_BIN_EXE_paw"))
         .args(["author", "check", &format!("plugins/{unit}")])
         .current_dir(dir)
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
@@ -392,7 +392,7 @@ fn a_hooks_file_that_does_not_parse_fails() {
 #[test]
 fn this_repositorys_units_pass() {
     let repository = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let done = Command::new(env!("CARGO_BIN_EXE_meow"))
+    let done = Command::new(env!("CARGO_BIN_EXE_paw"))
         .args(["author", "check"])
         .current_dir(&repository)
         .output()
@@ -419,7 +419,7 @@ fn this_repositorys_units_pass() {
 }
 
 fn run(dir: &Path, state: &Path, args: &[&str], input: &str) -> Output {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_meow"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_paw"))
         .args(args)
         .current_dir(dir)
         .env("XDG_STATE_HOME", state)
@@ -538,16 +538,16 @@ fn every_hook_subcommand_keeps_the_rules() {
         let name = args.join(" ");
         assert!(
             !text.contains("\"allow\""),
-            "meow {name} answered allow: {text}"
+            "paw {name} answered allow: {text}"
         );
         assert!(
             !text.contains("updatedInput"),
-            "meow {name} rewrote its input: {text}"
+            "paw {name} rewrote its input: {text}"
         );
         if asks {
             assert!(
                 text.contains("\"permissionDecision\":\"ask\""),
-                "meow {name} didn't ask: {text}"
+                "paw {name} didn't ask: {text}"
             );
         }
         if name == "git commit-guard" {
@@ -557,14 +557,14 @@ fn every_hook_subcommand_keeps_the_rules() {
         }
         let mut after = Vec::new();
         files_of(&repo.0, &mut after);
-        assert_eq!(before, after, "meow {name} changed the work tree");
+        assert_eq!(before, after, "paw {name} changed the work tree");
         let mut kept = Vec::new();
         files_of(&state.0, &mut kept);
         for (path, bytes) in kept {
             let held = String::from_utf8_lossy(&bytes).to_string();
             assert!(
                 !held.contains(marker),
-                "meow {name} wrote its input to {}",
+                "paw {name} wrote its input to {}",
                 path.display()
             );
         }

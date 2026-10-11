@@ -8,6 +8,11 @@ edition = "2024"
 license = "Apache-2.0"
 description = "The native tool every meowpaw unit's program is a subcommand of"
 publish = false
+default-run = "paw"
+
+[[bin]]
+name = "paw"
+path = "src/main.rs"
 
 [features]
 default = []

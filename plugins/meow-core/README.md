@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-core
 answers: what meow-core does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-core@0.8.0]
+describes: [meow-core@0.9.0]
 ---
 
 # meow-core
@@ -55,7 +55,7 @@ of them by enabling it.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-core@meowpaw
 ```
 

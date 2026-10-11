@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: how a person starts a run in the session, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.14.0]
+describes: [meow-loop@0.15.0]
 ---
 
 # meow-loop
@@ -25,7 +25,7 @@ line saying it is deprecated, and the release after removes it.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-loop@meowpaw
 ```
 

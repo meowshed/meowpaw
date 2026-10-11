@@ -141,7 +141,7 @@ class Abstention(unittest.TestCase):
             launcher = bin_dir / unit
             launcher.write_text((PLUGINS / unit / "bin" / unit).read_text(encoding="utf-8"), encoding="utf-8")
             launcher.chmod(0o755)
-            fake = bin_dir / self.machine() / "meow"
+            fake = bin_dir / self.machine() / "paw"
             fake.write_text(body, encoding="utf-8")
             fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
             env = {"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/none"}

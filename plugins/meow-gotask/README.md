@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-gotask
 answers: what meow-gotask does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-gotask@0.3.0]
+describes: [meow-gotask@0.4.0]
 ---
 
 # meow-gotask
@@ -18,7 +18,7 @@ harness.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-gotask@meowpaw
 ```
 

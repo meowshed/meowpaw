@@ -84,8 +84,8 @@ jobs:
               gh release download "$tag" --pattern "$zip" --dir dist
               state=released
             else
-              chmod +x "$dir"/bin/* "$dir"/bin/*/meow* 2>/dev/null || true
-              { git ls-files "$dir"; ls "$dir"/bin/*-*-*/meow* 2>/dev/null || true; } |
+              chmod +x "$dir"/bin/* "$dir"/bin/*/paw* 2>/dev/null || true
+              { git ls-files "$dir"; ls "$dir"/bin/*-*-*/paw* 2>/dev/null || true; } |
                 sed 's|^plugins/||' | (cd plugins && zip -q -X "../dist/$zip" -@)
               echo "$tag" >> dist/tags
               state=new

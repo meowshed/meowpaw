@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Downloads the meow binary from the meow-full release.
+ * Downloads the paw executable from the meow-full release.
  *
- * The meow binary is built once with every subcommand for six platforms and
+ * The paw executable is built once with every subcommand for six platforms and
  * published as the meow-full release; every meowpaw Pi package's installer
  * downloads the same archive, because a package bundles several units and
  * one unit's own release carries only its unit's feature (ADR-2790). This
  * script extracts the binary for the current machine and places it at
- * bin/<cpu>-<system>/meow, which is where the shell wrappers look for it.
+ * bin/<cpu>-<system>/paw, which is where the shell wrappers look for it.
  * Where the download fails, the wrappers report each check as unrun and
  * let the command through, so a failed download breaks nothing.
  */
@@ -66,14 +66,14 @@ async function main() {
   const { triple, isWindows } = targetTriple();
   const scriptDir = dirname(new URL(import.meta.url).pathname);
   const binDir = join(scriptDir, "bin", triple);
-  const exe = isWindows ? "meow.exe" : "meow";
+  const exe = isWindows ? "paw.exe" : "paw";
   const dest = join(binDir, exe);
 
   if (existsSync(dest)) process.exit(0);
 
   const archiveUrl = `${RELEASE_BASE}/meow-full-v${VERSION}/meow-full-${VERSION}.zip`;
   const tmp = join(scriptDir, "bin", `.tmp-${triple}.zip`);
-  console.log(`meowpaw: downloading the meow binary for ${triple} from meow-full v${VERSION}`);
+  console.log(`meowpaw: downloading the paw executable for ${triple} from meow-full v${VERSION}`);
 
   try {
     await download(archiveUrl, tmp);
@@ -85,14 +85,14 @@ async function main() {
         `Expand-Archive -Path '${tmp}' -DestinationPath '${inner}' -Force`,
       ], { stdio: "pipe" });
       const { renameSync, rmSync } = await import("node:fs");
-      renameSync(join(inner, `meow-${triple}.exe`), dest);
+      renameSync(join(inner, `paw-${triple}.exe`), dest);
       rmSync(inner, { recursive: true, force: true });
     } else {
-      execFileSync("unzip", ["-jo", tmp, `meow-${triple}`, "-d", binDir], { stdio: "pipe" });
+      execFileSync("unzip", ["-jo", tmp, `paw-${triple}`, "-d", binDir], { stdio: "pipe" });
       // The archive names each binary with its target triple; the wrappers
-      // look for a plain meow.
+      // look for a plain paw.
       const { renameSync } = await import("node:fs");
-      renameSync(join(binDir, `meow-${triple}`), dest);
+      renameSync(join(binDir, `paw-${triple}`), dest);
       await chmod(dest, 0o755);
     }
     if (platform() === "darwin") {

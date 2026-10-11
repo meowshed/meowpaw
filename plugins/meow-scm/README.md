@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-scm
 answers: what meow-scm does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-scm@0.6.0]
+describes: [meow-scm@0.7.0]
 ---
 
 # meow-scm
@@ -17,7 +17,7 @@ names no version control tool, so it works whichever one you use.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-scm@meowpaw
 ```
 

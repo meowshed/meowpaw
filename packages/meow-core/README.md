@@ -2,7 +2,7 @@
 reader: someone installing or running meow-core on Pi
 answers: what meow-core provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-core@0.8.0]
+describes: [@meowshed/meow-core@0.9.0]
 ---
 
 # @meowshed/meow-core
@@ -15,8 +15,8 @@ Shapes every reply Claude Code makes to you: the action first, a failure as caus
 pi install npm:@meowshed/meow-core
 ```
 
-The npm tarball carries the all-features meow binary for every platform
-(REQ-4144), so the install makes no request and needs no checkout. Every
+The npm tarball carries the all-features paw executable for every platform
+(REQ-4612), so the install makes no request and needs no checkout. Every
 other meowpaw package's launcher falls back to this binary, so the core
 package is the one install every layer sits beside. A git-source install
 downloads the binary in its `postinstall` instead.
