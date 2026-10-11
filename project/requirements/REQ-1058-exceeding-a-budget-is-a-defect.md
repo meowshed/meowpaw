@@ -3,8 +3,8 @@ id: REQ-1058
 artifact: requirement
 topic: context-cost
 class: non-functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-11
 elaborates: RES-0005
 verification: behavioural
 ---

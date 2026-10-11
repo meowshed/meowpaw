@@ -3,8 +3,8 @@ id: REQ-4120
 artifact: requirement
 topic: pi-packages
 class: functional
-status: approved
-revised: 2026-10-04
+status: withdrawn
+revised: 2026-10-11
 verification: static
 elaborates: RES-0340, RES-0341
 ---

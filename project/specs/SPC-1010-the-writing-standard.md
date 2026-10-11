@@ -2,7 +2,7 @@
 id: SPC-1010
 artifact: spec
 status: live
-revised: 2026-10-10
+revised: 2026-10-11
 states:
   [
     REQ-0990,
@@ -19,7 +19,6 @@ states:
     REQ-1002,
     REQ-1671,
     REQ-1674,
-    REQ-1676,
     REQ-3182,
     REQ-3183,
     REQ-3184,
@@ -257,7 +256,7 @@ disagreeing in one repository leave an author no way to tell which applies.
 
 The unit's own material is the first text its reviewer reads. The skill, the
 reviewer's own prompt and the documentation page are held to the standard they
-carry (REQ-1674, REQ-1676), and a finding in them counts as readily
+carry (REQ-1674, REQ-5000), and a finding in them counts as readily
 as a finding anywhere else.
 
 ### What the reviewer's cases cover
@@ -295,6 +294,5 @@ thresholds, the judge, and what counts as a regression.
 | The reviewer's finding is disputed               | The author decides, because the reviewer reports and never edits                                              |
 | The reviewer reports a preference                | The reviewer's own prompt is the defect, and the text it flagged is not rewritten to satisfy it               |
 | A repository declares a replacement standard     | The shipped standard is not loaded, and the replacement's own reviewer runs                                   |
-| A unit exceeds its stated budget                 | The overrun is reported as a defect, and the unit is not left over budget                                     |
 | A text is published with no review               | The omission is reported, because a silent skip is the substitution this harness exists to prevent            |
 | The reviewer passes a text a reader later faults | The finding goes against the reviewer's own prompt, which is the thing that changes                           |
