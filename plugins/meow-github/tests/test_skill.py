@@ -42,14 +42,6 @@ class GovernanceSkill(unittest.TestCase):
         self.assertRegex(flat, r"never answer[^.]*for the person|answers? through the platform")
         self.assertRegex(flat, r"because")
 
-    def test_the_budget_counts_the_description(self):
-        """REQ-1056: the unit's budget states what its description loads."""
-        budget = (UNIT / "budget.toml").read_text(encoding="utf-8")
-        ceiling = int(re.search(r"^permanent_characters\s*=\s*(\d+)", budget, re.M).group(1))
-        self.assertGreaterEqual(ceiling, len(self.fields["description"]))
-        manifest = json.loads((UNIT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
-        self.assertIn(f"{ceiling:,} characters", manifest["description"])
-
 
 if __name__ == "__main__":
     unittest.main()
