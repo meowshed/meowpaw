@@ -58,5 +58,8 @@ chain, in the gate's `test-record` task.
 
 ## Tasks
 
-- [ ] T-001 Repoint BUG-1400's `violates:` away from the withdrawn REQ-4110,
+- [x] T-001 Repoint BUG-1400's `violates:` away from the withdrawn REQ-4110,
       in `project/bugs/BUG-1400*.md`, and rerun the record check on the trunk
+      — done in the change that repointed it: `violates:` names REQ-4108 and
+      REQ-4112, the body names ADR-2930's withdrawal where REQ-4110 stood,
+      and `paw check` reports 0 findings, exit 0.

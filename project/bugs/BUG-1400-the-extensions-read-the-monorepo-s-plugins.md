@@ -3,10 +3,10 @@ id: BUG-1400
 artifact: bug
 status: approved
 severity: major
-violates: REQ-4108, REQ-4110, REQ-4112
+violates: REQ-4108, REQ-4112
 enters: implement
 found: 2026-10-04
-revised: 2026-10-04
+revised: 2026-10-11
 issue:
 ---
 
@@ -44,9 +44,12 @@ marked done from a monorepo checkout where the path accidentally holds.
 
 ## What it should do, and why
 
-The kernel injects the reply shape (REQ-4108), the flow loads the router's
-prompt and carries the reply shape into its nested call (REQ-4110,
-REQ-4112), from files bundled inside each installed package. A package that
+The kernel injects the reply shape (REQ-4108), and the flow carries the reply
+shape into the nested calls its routing makes (REQ-4112), from files bundled
+inside each installed package. ADR-2930 withdrew REQ-4110, which named the
+router agent this defect found running on empty strings; the agent is
+deleted, so the router part of this defect is retired with it, and the
+citation moved with the withdrawal (BUG-1650). A package that
 reads its own directory works wherever Pi puts it, and one that cannot find
 its files fails visibly instead of running on empty strings.
 
