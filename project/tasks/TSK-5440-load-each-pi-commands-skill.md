@@ -1,7 +1,7 @@
 ---
 id: TSK-5440
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 bug: BUG-1600
 closes: []
@@ -51,4 +51,4 @@ routing is a tool the model invokes and not a step a person drives.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, c22f6679, where every command's handler still notified. `tools/test_pi_extensions.py` closes criteria 1 and 2: `FlowCommands.test_each_command_sends_its_skill_into_the_session` and `FlowCommands.test_each_command_maps_to_a_skill_that_exists` pass on this tree, `Ran 14 tests` and `OK`. Criterion 3 is closed by the verbs' outcomes in pull request 1053. SPC-1300's command table names the skills that exist, and both manifests carry 0.52.0 (REQ-4614).

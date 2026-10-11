@@ -58,7 +58,8 @@ and REQ-4616 carries TSK-5450 as its closing task.
 
 ## Tasks
 
-- [ ] T-001 TSK-5450 register the `meow-loop:run` command on Pi and carry a
+- [x] T-001 TSK-5450 (done: pull request 1053)
+      closes: REQ-4616 register the `meow-loop:run` command on Pi and carry a
       run with the runner's `prompt` and `stop` subcommands, in
       `packages/meow-loop/extensions/loop.ts`
       closes: REQ-4616

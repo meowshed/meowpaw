@@ -1,7 +1,7 @@
 ---
 id: TSK-5450
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 bug: BUG-1610
 closes: [REQ-4616]
@@ -62,4 +62,4 @@ namespace, so the session path carries through the command and not a skill.
 
 ## Evidence
 
-Not yet.
+The tests came first in c22f6679, where no command was registered. `LoopRun.test_the_start_command_is_registered_and_reaches_the_runner`, `test_other_input_reaches_the_runner` and `test_the_settle_boundary_carries_the_frozen_prompt` close criteria 1 to 3 on this tree. Criterion 4: on the installed wrapper, in a scratch work tree whose profile declared the posture, `prompt` answered `{"systemMessage":"unresolved: ..."}` for a refused start and `hookSpecificOutput.additionalContext` with the run's id, bounds and progress file for a started one, and `stop` answered the ending `meow-loop run <id> ended: finished` and, once ended, nothing; the `block` answer's shape is pinned by the `Stop` checks of EPC-1920 in `crates/meow`. The scratch state was removed. Criterion 4 is closed by pull request 1053. Both manifests carry 0.16.0 (REQ-4614).

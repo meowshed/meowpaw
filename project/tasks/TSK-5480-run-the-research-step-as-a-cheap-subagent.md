@@ -1,7 +1,7 @@
 ---
 id: TSK-5480
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 realises: ADR-2950
 closes: [REQ-3526]
@@ -54,4 +54,4 @@ research record's gate, which stays the person's.
 
 ## Evidence
 
-Not yet.
+The tests came first in 2fa8b06b, where no agent existed and the step dispatched nothing. `Researcher.test_the_claude_agent_reads_and_writes_nothing` closes criterion 1, `Researcher.test_the_step_dispatches_and_writes_back` closes criterion 2, and `FlowCommands.test_the_researcher_drafts_from_passed_material` closes criterion 3, all passing on this tree. Criterion 4 is closed by the verbs' outcomes in pull request 1053.

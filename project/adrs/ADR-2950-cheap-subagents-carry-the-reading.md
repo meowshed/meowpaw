@@ -1,7 +1,7 @@
 ---
 id: ADR-2950
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-11
 addresses: [REQ-4618, REQ-3526]
 supersedes: []

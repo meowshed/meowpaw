@@ -1,7 +1,7 @@
 ---
 id: TSK-5490
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 bug: BUG-1630
 closes: []
@@ -44,4 +44,4 @@ this defect doesn't touch.
 
 ## Evidence
 
-Not yet.
+The test came first in 2fa8b06b, where both copies lacked R11 and carried the older R10. `StyleParity.test_every_bundled_reply_shape_carries_the_style` closes criterion 1 on this tree, comparing every `packages/*/prompts/reply-shape.md` with the style the plugin ships, modulo the R10 path phrase. Criterion 2 is closed by the verbs' outcomes in pull request 1053.

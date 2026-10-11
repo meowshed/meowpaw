@@ -57,5 +57,6 @@ into the session, naming the skill file the command maps to.
 
 ## Tasks
 
-- [ ] T-001 TSK-5440 send each command's skill into the session instead of a
+- [x] T-001 TSK-5440 (done: pull request 1053)
+      closes: REQ-4122 send each command's skill into the session instead of a
       notification, in `packages/meow-flow/extensions/flow.ts`

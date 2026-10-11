@@ -56,6 +56,7 @@ style and the check holds them equal.
 
 ## Tasks
 
-- [ ] T-001 TSK-5490 carry the style into the bundled copy and hold the copy
+- [x] T-001 TSK-5490 (done: pull request 1053)
+      closes: REQ-4108 carry the style into the bundled copy and hold the copy
       to the source with a check, in `packages/meow-core/prompts/` and
       `tools/test_pi_extensions.py`

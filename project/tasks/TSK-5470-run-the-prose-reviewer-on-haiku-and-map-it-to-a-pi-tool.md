@@ -1,7 +1,7 @@
 ---
 id: TSK-5470
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 realises: ADR-2950
 closes: [REQ-4618]
@@ -56,4 +56,4 @@ stays for a text the person reviews inline.
 
 ## Evidence
 
-Not yet.
+The tests came first in 2fa8b06b, where no tool was registered and the agent named sonnet. `ProseReview.test_the_reviewer_is_registered_with_the_bundled_standard` and `test_the_reviewer_runs_on_the_cheap_tier` close criterion 2, `test_the_claude_agent_runs_on_the_haiku_tier` closes criterion 1, and `ModelsModule.test_the_module_answers_across_providers_and_names_its_failure` closes criterion 3, all passing on this tree, `Ran 14 tests` and `OK`. Criterion 4 is closed by the verbs' outcomes in pull request 1053. Both manifests carry 0.7.0 (REQ-4614).
