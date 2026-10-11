@@ -25,6 +25,9 @@ class Repository:
         self.git("init", "-q", "-b", "main")
         for name, binary in (("meow-a", True), ("meow-b", False), ("meow-vet", False)):
             self.write(f"plugins/{name}/.claude-plugin/plugin.json", json.dumps({"name": name, "version": "0.3.0"}))
+            # The notes rule reads each unit's CHANGELOG.md (REQ-3002), so a
+            # fixture unit carries a section for the version it releases.
+            self.write(f"plugins/{name}/CHANGELOG.md", f"# {name}\n\n## 0.3.0\n\nThe changes this release carries.\n")
             if binary:
                 self.write(f"plugins/{name}/bin/{name}", "#!/bin/sh\n")
         self.write("crates/meow/src/main.rs", "fn main() {}\n")
@@ -47,6 +50,7 @@ class Repository:
 
     def bump(self, name, to):
         self.write(f"plugins/{name}/.claude-plugin/plugin.json", json.dumps({"name": name, "version": to}))
+        self.write(f"plugins/{name}/CHANGELOG.md", f"# {name}\n\n## {to}\n\nThe changes this release carries.\n")
 
 
 class Release(unittest.TestCase):
@@ -110,12 +114,14 @@ class Release(unittest.TestCase):
         repo.save("chore: release")
         self.assertEqual([p.split(":")[0] for p in check_release.check(repo.root)], ["meow-vet"])
 
-    def test_a_unit_not_being_released_is_not_held(self):
-        """REQ-3192: the check reads a unit only when its version is released."""
+    def test_a_unit_not_being_released_is_still_held(self):
+        """REQ-2996: a changed unit at its released version is refused, released or not."""
         repo = self.repo()
         repo.write("plugins/meow-b/skill.md", "changed\n")
         repo.save("feat!: drop the old name")
-        self.assertEqual(check_release.check(repo.root), [])
+        problems = check_release.check(repo.root)
+        self.assertEqual([p.split(":")[0] for p in problems], ["meow-b"], problems)
+        self.assertIn("never modified", problems[0])
 
     def test_a_changed_unit_at_its_released_version_is_refused(self):
         """REQ-2996: a released version is never modified; a change is a new version."""
