@@ -890,6 +890,7 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1520](bugs/BUG-1520-the-served-marketplace-keeps-relative-sources.md)                              | The served marketplace keeps relative sources for every unit but one, so no unit installs from the documented address           |
 | [BUG-1530](bugs/BUG-1530-the-test-stage-takes-five-to-sixteen-minutes.md)                               | The test stage takes five to sixteen minutes where five is the bound                                                            |
 | [BUG-1540](bugs/BUG-1540-a-run-cannot-start-its-iteration-because-the-driver-is-closed-to-the-model.md) | A run cannot start an iteration, because the driver it repeats is closed to the model                                           |
+| [BUG-1550](bugs/BUG-1550-the-commit-skill-does-not-load-when-a-tool-runs-an-operation.md)               | The commit skill does not load when a tool runs a composite command or removes a working tree                                   |
 
 BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
 the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100
@@ -898,4 +899,6 @@ cover every rule. BUG-1360 routes to research, because the cause is unknown.
 BUG-1005 was written after its fix, and says so. BUG-1390 is closed: SPC-1201
 names the failure states that `meow-loop` reaches, and TSK-4050 added the two
 refusals at start. BUG-1410 is closed by TSK-5260, BUG-1520 by TSK-5240 and
-BUG-1530 by TSK-5280, and BUG-1540 by TSK-5340.
+BUG-1530 by TSK-5280, and BUG-1540 by TSK-5340. BUG-1550 is open and routes
+to implement, because the requirements are right and a description doesn't
+state the obligation.
