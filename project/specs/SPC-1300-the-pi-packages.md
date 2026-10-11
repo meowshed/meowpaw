@@ -324,7 +324,10 @@ them: the prose gate's handlers in `meow-prose-gate`, the git guards in
 router and the step commands in `meow-flow`.
 
 The paw executable still ships with `meow-core` alone (REQ-4612), and every
-other package's launcher falls back to `paw` on PATH. The prose gate's
+other package's launcher invokes the `MEOWPAW_BINARY` path the core extension
+exports, reporting each check as unresolved where it is unset: a fallback to
+`paw` on PATH would find `meow-flow`'s own launcher, which is named `paw`,
+and resolve it recursively (ADR-2920). The prose gate's
 fragments sit in its package at `fragments/`, where the binary resolves
 them from its own unit root.
 
