@@ -60,6 +60,10 @@ chain, in the gate's `test-record` task.
 
 - [x] T-001 Repoint BUG-1400's `violates:` away from the withdrawn REQ-4110,
       in `project/bugs/BUG-1400*.md`, and rerun the record check on the trunk
-      — done in the change that repointed it: `violates:` names REQ-4108 and
-      REQ-4112, the body names ADR-2930's withdrawal where REQ-4110 stood,
-      and `paw check` reports 0 findings, exit 0.
+      — done, then undone in the same pull request. The rerun on the trunk
+      showed the record check passing with the original citation, because a
+      fresh build of the checker excludes a defect's `violates` from the
+      provider walk (TSK-5500, ADR-2960), so the finding this defect records
+      came from the installed `meow-core` 0.9.0 binary the launchers prefer,
+      not from the tree (BUG-1680). The repoint undid history the exclusion
+      keeps by design, so it was reverted; the citation stays.
