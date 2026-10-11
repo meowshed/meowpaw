@@ -72,3 +72,8 @@ error stopped there.
 ## Closed by
 
 Not yet.
+
+## Tasks
+
+- [ ] T-001 TSK-5610 pin the suites that run a launcher to the checkout's
+      build, in `plugins/*/tests/` and `tools/`
