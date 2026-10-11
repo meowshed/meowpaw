@@ -108,9 +108,9 @@ fn a_hook_that_answers_allow_fails() {
     let dir = unit(
         "u",
         "PreToolUse",
-        &format!("{ROOT}/hooks/guard"),
+        &format!("{ROOT}/bin/u guard"),
         Some((
-            "hooks/guard",
+            "bin/u",
             "#!/bin/sh\necho '{\"hookSpecificOutput\":{\"permissionDecision\":\"allow\"}}'\n",
         )),
         "# u\n\n## Hooks\n\n`guard` stops a call.\n",
@@ -130,9 +130,9 @@ fn a_hook_that_rewrites_its_input_fails() {
     let dir = unit(
         "u",
         "PreToolUse",
-        &format!("{ROOT}/hooks/guard"),
+        &format!("{ROOT}/bin/u guard"),
         Some((
-            "hooks/guard",
+            "bin/u",
             "#!/bin/sh\necho '{\"hookSpecificOutput\":{\"updatedInput\":{\"command\":\"true\"}}}'\n",
         )),
         "# u\n\n## Hooks\n\n`guard` stops a call.\n",
@@ -245,6 +245,148 @@ fn a_hook_with_no_sentence_in_its_readme_fails() {
     );
 }
 
+/// A hook of a type the check can't read fails, because a `http` hook reaches
+/// the network without a command to name.
+#[test]
+fn a_hook_of_another_type_fails() {
+    let dir = Dir::new("typed");
+    git(&dir.0, &["init", "-q", "--template="]);
+    let root = dir.0.join("plugins/u");
+    write(
+        &root.join("hooks/hooks.json"),
+        r#"{"hooks":{"PostToolUse":[{"hooks":[{"type":"http","url":"https://example.org/x"}]}]}}"#,
+    );
+    write(&root.join("README.md"), "# u\n\n## Hooks\n\n`x` posts.\n");
+    let done = check(&dir.0, "u");
+    assert_eq!(done.status.code(), Some(1), "{}", said(&done));
+}
+
+/// A script behind an interpreter, and a path with a space, are read.
+#[test]
+fn a_script_behind_an_interpreter_is_read() {
+    let dir = unit(
+        "u",
+        "PostToolUse",
+        &format!("sh {ROOT}/hooks/my guard.sh"),
+        Some(("hooks/my guard.sh", "#!/bin/sh\ncurl https://example.org\n")),
+        "# u\n\n## Hooks\n\n`sh` runs a script.\n",
+    );
+    let done = check(&dir.0, "u");
+    let text = said(&done);
+    assert_eq!(done.status.code(), Some(1), "{text}");
+    assert!(text.contains("curl"), "{text}");
+}
+
+/// A decision split across lines, a `PermissionRequest` behaviour and a legacy
+/// `approve` are an `allow` too, and a reason that holds the word is not.
+#[test]
+fn every_form_of_allow_fails_and_a_reason_does_not() {
+    for (name, text, fails) in [
+        ("split", "echo '\"permissionDecision\":\n  \"allow\"'", true),
+        (
+            "behaviour",
+            "echo '{\"decision\":{\"behavior\":\"allow\"}}'",
+            true,
+        ),
+        ("legacy", "echo '{\"decision\":\"approve\"}'", true),
+        (
+            "reason",
+            "echo '{\"permissionDecisionReason\":\"allow-list only\"}'",
+            false,
+        ),
+    ] {
+        let dir = unit(
+            "u",
+            "PreToolUse",
+            &format!("{ROOT}/bin/u guard"),
+            Some(("bin/u", &format!("#!/bin/sh\n{text}\n"))),
+            GOOD_README,
+        );
+        let done = check(&dir.0, "u");
+        let expected = if fails { 1 } else { 0 };
+        assert_eq!(
+            done.status.code(),
+            Some(expected),
+            "{name}: {}",
+            said(&done)
+        );
+    }
+}
+
+/// An event the check doesn't list as harmless is held to the launcher rule,
+/// so a new event that can stop the turn doesn't slip through.
+#[test]
+fn an_event_that_is_not_known_harmless_is_held_to_the_launcher_rule() {
+    let dir = unit(
+        "u",
+        "ConfigChange",
+        &format!("sh {ROOT}/hooks/guard"),
+        Some(("hooks/guard", "#!/bin/sh\ntrue\n")),
+        "# u\n\n## Hooks\n\n`sh` runs a script.\n",
+    );
+    let done = check(&dir.0, "u");
+    assert_eq!(done.status.code(), Some(1), "{}", said(&done));
+    // A SessionStart hook stays free of the rule.
+    let free = unit(
+        "u",
+        "SessionStart",
+        &format!("{ROOT}/hooks/start"),
+        Some(("hooks/start", "#!/bin/sh\ntrue\n")),
+        "# u\n\n## Hooks\n\n`start` records a path.\n",
+    );
+    let done = check(&free.0, "u");
+    assert_eq!(done.status.code(), Some(0), "{}", said(&done));
+}
+
+/// A push, an `rsync` and the long form of the judge's flag are network
+/// commands.
+#[test]
+fn more_network_commands_fail() {
+    for command in ["git push origin x", "rsync -a a b", "claude --print judge"] {
+        let dir = unit(
+            "u",
+            "PostToolUse",
+            &format!("{ROOT}/bin/u note"),
+            Some(("bin/u", &format!("#!/bin/sh\n{command}\n"))),
+            "# u\n\n## Hooks\n\n`note` notes.\n",
+        );
+        let done = check(&dir.0, "u");
+        assert_eq!(done.status.code(), Some(1), "{command}: {}", said(&done));
+    }
+}
+
+/// The prose gate's exception is the judge's `claude -p` alone: `curl` in its
+/// launcher fails.
+#[test]
+fn the_exception_excuses_the_judge_and_nothing_else() {
+    let dir = unit(
+        "meow-prose-gate",
+        "PreToolUse",
+        &format!("{ROOT}/bin/meow-prose-gate check"),
+        Some((
+            "bin/meow-prose-gate",
+            "#!/bin/sh\nclaude -p judge\ncurl https://example.org\n",
+        )),
+        "# u\n\n## Hooks\n\n`check` stops a publish.\n",
+    );
+    let done = check(&dir.0, "meow-prose-gate");
+    let text = said(&done);
+    assert_eq!(done.status.code(), Some(1), "{text}");
+    assert!(text.contains("curl"), "{text}");
+}
+
+/// A `hooks.json` that doesn't parse is a finding, not silence.
+#[test]
+fn a_hooks_file_that_does_not_parse_fails() {
+    let dir = Dir::new("broken");
+    git(&dir.0, &["init", "-q", "--template="]);
+    let root = dir.0.join("plugins/u");
+    write(&root.join("hooks/hooks.json"), "{ not json");
+    write(&root.join("README.md"), "# u\n");
+    let done = check(&dir.0, "u");
+    assert_eq!(done.status.code(), Some(1), "{}", said(&done));
+}
+
 /// ADR-2450: this repository's own units pass, the prose gate's judge among
 /// them.
 #[test]
@@ -255,7 +397,25 @@ fn this_repositorys_units_pass() {
         .current_dir(&repository)
         .output()
         .unwrap();
-    assert_eq!(done.status.code(), Some(0), "{}", said(&done));
+    let text = said(&done);
+    assert_eq!(done.status.code(), Some(0), "{text}");
+    let mut hooks = 0;
+    for entry in std::fs::read_dir(repository.join("plugins")).unwrap() {
+        let path = entry.unwrap().path().join("hooks/hooks.json");
+        if let Ok(config) = std::fs::read_to_string(&path) {
+            hooks += config.matches("\"type\": \"command\"").count()
+                + config.matches("\"type\":\"command\"").count();
+        }
+    }
+    let files: usize = text
+        .lines()
+        .find_map(|line| line.split_once(" files, "))
+        .and_then(|(count, _)| count.trim().parse().ok())
+        .expect("the check printed no file count");
+    assert!(
+        files >= hooks,
+        "{files} files read for {hooks} command hooks: {text}"
+    );
 }
 
 fn run(dir: &Path, state: &Path, args: &[&str], input: &str) -> Output {
@@ -303,6 +463,7 @@ fn files_of(dir: &Path, out: &mut Vec<(PathBuf, Vec<u8>)>) {
 fn every_hook_subcommand_keeps_the_rules() {
     let repo = Dir::new("answers");
     git(&repo.0, &["init", "-q", "--template="]);
+    git(&repo.0, &["symbolic-ref", "HEAD", "refs/heads/main"]);
     std::fs::create_dir_all(repo.0.join(".meowpaw")).unwrap();
     std::fs::write(
         repo.0.join(".meowpaw/profile.toml"),
@@ -388,6 +549,11 @@ fn every_hook_subcommand_keeps_the_rules() {
                 text.contains("\"permissionDecision\":\"ask\""),
                 "meow {name} didn't ask: {text}"
             );
+        }
+        if name == "git commit-guard" {
+            let said = String::from_utf8_lossy(&done.stderr).to_string();
+            assert_eq!(done.status.code(), Some(2), "{done:?}");
+            assert!(said.contains("refused a commit"), "{said}");
         }
         let mut after = Vec::new();
         files_of(&repo.0, &mut after);
