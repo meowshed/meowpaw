@@ -66,7 +66,7 @@ states an obligation.
   harness material, the baseline, judge, run-count, threshold, regression and
   shuffle rules, the by-hand and re-run rules for the suite, the suites' Pi
   deferral, and the reviewer's case set. Each carries `verification:
-  evaluation` or cites the suite directly.
+evaluation` or cites the suite directly.
 - **What stays.** The prose gate keeps its runtime judge and its pre-release
   hand run, because it is the review flow's enforcement, not a measurement of
   a prompt. The four verification kinds keep `evaluation` as a declared value,

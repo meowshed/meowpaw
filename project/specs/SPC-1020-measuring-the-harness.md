@@ -39,8 +39,8 @@ check on the text.
 
 ## Failure paths
 
-| Condition                                                              | What happens                                                                                       |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| A workflow under `.github/workflows/` names a model call or a credential | `tools/check_workflows.py` fails the gate (ADR-2840)                                                |
-| A change to a shipped prompt is asserted safe, not reviewed             | The move is reviewed against the behaviour the material produces, not asserted (REQ-2750)           |
-| A prompt's behaviour regresses and review passed it                     | The failure that would bring the measurement back early is recorded, and the redesign decides       |
+| Condition                                                                | What happens                                                                                  |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| A workflow under `.github/workflows/` names a model call or a credential | `tools/check_workflows.py` fails the gate (ADR-2840)                                          |
+| A change to a shipped prompt is asserted safe, not reviewed              | The move is reviewed against the behaviour the material produces, not asserted (REQ-2750)     |
+| A prompt's behaviour regresses and review passed it                      | The failure that would bring the measurement back early is recorded, and the redesign decides |

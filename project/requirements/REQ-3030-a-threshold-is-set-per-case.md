@@ -17,6 +17,5 @@ A measurement's threshold MUST be set per case rather than inherited.
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.
 
-
 A refusal is at perfection because one failure is the whole defect, and a
 tendency is not.

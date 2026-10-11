@@ -30,7 +30,7 @@ Taken from ADR-2980's list of how it will be known realised:
 4. SPC-1020 states that no prompt is measured, and SPC-1000, SPC-1010,
    SPC-1030 and SPC-1090 name review where they named measurement.
 5. The twelve postponed requirements are named under Postponed in `paw
-   status`, with ADR-2980's condition.
+status`, with ADR-2980's condition.
 6. REQ-5100 states the workflow prohibition, and SPC-1210 states it.
 7. Every requirement ADR-2980 addresses is named by a closed task.
 

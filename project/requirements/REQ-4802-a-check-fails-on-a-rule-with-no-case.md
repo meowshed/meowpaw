@@ -20,5 +20,4 @@ A check MUST fail and name each rule of the writing standard that has neither a 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.
 
-
 Without the check a rule added to the standard joins it unmeasured, and the gap returns without a record of it.

@@ -20,5 +20,4 @@ The reviewer's labelled set MUST hold at least one case for every rule of the wr
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.
 
-
 A rate measured on some of the rules reads as a rate for all of them, so a rule with no case is a rule whose review has never been measured, and the published rate says nothing about it.

@@ -486,28 +486,28 @@ One check audits every unit, because the format is uniform across them
 
 ## Failure paths
 
-| Condition                                                                         | What happens                                                                           |
-| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| A prompt uses a heading or an unknown tag                                         | The check fails in the gate, naming the file and the line                              |
-| A prompt nests a tag inside another                                               | The check fails, because the vocabulary is top-level only                              |
-| A core names no supporting file for a kind of work                                | The model loads nothing for it, and the unit is defective against REQ-1124             |
-| An obligation sits past the first 5,000 tokens of a core                          | The platform drops it after compaction, which is a defect against REQ-1064             |
-| A description or a `when_to_use` sits over the platform's cap of 1,536 characters | `meow author check` fails, naming the file (REQ-1060)                                  |
+| Condition                                                                         | What happens                                                                                       |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| A prompt uses a heading or an unknown tag                                         | The check fails in the gate, naming the file and the line                                          |
+| A prompt nests a tag inside another                                               | The check fails, because the vocabulary is top-level only                                          |
+| A core names no supporting file for a kind of work                                | The model loads nothing for it, and the unit is defective against REQ-1124                         |
+| An obligation sits past the first 5,000 tokens of a core                          | The platform drops it after compaction, which is a defect against REQ-1064                         |
+| A description or a `when_to_use` sits over the platform's cap of 1,536 characters | `meow author check` fails, naming the file (REQ-1060)                                              |
 | The model does not load a unit that MUST be loaded                                | Review shows it, and the description is the thing that changes, until the evaluation is redesigned |
-| A description loads its unit on a near miss                                       | Review shows it, and the wording is narrowed before it ships                           |
-| An agent leaves out a declared field                                              | The check fails in the gate, naming the file and the field                             |
-| A unit grants a tool no step is named for                                         | The check fails, naming the unit, the tool and the agent or skill granting it          |
-| A method prompt names a language or a tool                                        | `tools/check_language.py` fails in the `test` stage, naming the file, line and word    |
-| A language name the list lacks                                                    | The check passes it, and review holds it until the word joins the list                 |
-| An agent's front matter doesn't parse                                             | The check fails, naming the file and the reason, and runs no field rule on it          |
-| A shipped agent lists `Agent`, `Task` or `*`                                      | The check fails, naming the file and the `tools` field                                 |
-| A shipped agent names a model the account lacks                                   | The dispatch fails to start, and a repository replaces the agent with its own          |
-| An agent reaches its `maxTurns`                                                   | Its output comes back marked partial, and the dispatcher reads it as unfinished        |
-| A unit's agent doesn't name all four outcomes                                     | The check fails, naming the file and each missing word                                 |
-| A shipped agent's tool call is denied                                             | The agent makes no other call for it and ends with `outcome: BLOCKED` and the tool     |
-| A shipped agent's report carries no outcome line                                  | Its dispatcher reads it as work that didn't run                                        |
-| A unit ships a `commands/` directory                                              | The check fails, naming the unit                                                       |
-| A skill's directory holds a file its `SKILL.md` never names                       | The check fails, naming the file, because the model never loads it                     |
-| A prompt writes a path into the unit without the directory variable               | The check fails, naming the file and the line, because the path breaks off the install |
-| A procedure has no step naming where it stops                                     | The check fails, naming the file                                                       |
-| A background agent's permission prompt in an interactive session                  | It waits in the main session for the person, with no timeout the harness sets          |
+| A description loads its unit on a near miss                                       | Review shows it, and the wording is narrowed before it ships                                       |
+| An agent leaves out a declared field                                              | The check fails in the gate, naming the file and the field                                         |
+| A unit grants a tool no step is named for                                         | The check fails, naming the unit, the tool and the agent or skill granting it                      |
+| A method prompt names a language or a tool                                        | `tools/check_language.py` fails in the `test` stage, naming the file, line and word                |
+| A language name the list lacks                                                    | The check passes it, and review holds it until the word joins the list                             |
+| An agent's front matter doesn't parse                                             | The check fails, naming the file and the reason, and runs no field rule on it                      |
+| A shipped agent lists `Agent`, `Task` or `*`                                      | The check fails, naming the file and the `tools` field                                             |
+| A shipped agent names a model the account lacks                                   | The dispatch fails to start, and a repository replaces the agent with its own                      |
+| An agent reaches its `maxTurns`                                                   | Its output comes back marked partial, and the dispatcher reads it as unfinished                    |
+| A unit's agent doesn't name all four outcomes                                     | The check fails, naming the file and each missing word                                             |
+| A shipped agent's tool call is denied                                             | The agent makes no other call for it and ends with `outcome: BLOCKED` and the tool                 |
+| A shipped agent's report carries no outcome line                                  | Its dispatcher reads it as work that didn't run                                                    |
+| A unit ships a `commands/` directory                                              | The check fails, naming the unit                                                                   |
+| A skill's directory holds a file its `SKILL.md` never names                       | The check fails, naming the file, because the model never loads it                                 |
+| A prompt writes a path into the unit without the directory variable               | The check fails, naming the file and the line, because the path breaks off the install             |
+| A procedure has no step naming where it stops                                     | The check fails, naming the file                                                                   |
+| A background agent's permission prompt in an interactive session                  | It waits in the main session for the person, with no timeout the harness sets                      |

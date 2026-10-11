@@ -4,7 +4,21 @@ artifact: adr
 status: done
 revised: 2026-10-11
 addresses: [REQ-2750, REQ-5100]
-postpones: [REQ-1138, REQ-1140, REQ-1144, REQ-1146, REQ-1148, REQ-1666, REQ-1758, REQ-3184, REQ-3188, REQ-3214, REQ-3215, REQ-3524]
+postpones:
+  [
+    REQ-1138,
+    REQ-1140,
+    REQ-1144,
+    REQ-1146,
+    REQ-1148,
+    REQ-1666,
+    REQ-1758,
+    REQ-3184,
+    REQ-3188,
+    REQ-3214,
+    REQ-3215,
+    REQ-3524,
+  ]
 supersedes: ADR-1500
 withdraws:
   [
@@ -93,11 +107,11 @@ half-keeping a runner nobody runs.
 
 ## Alternatives
 
-| Option                              | Better at                        | Why it lost                                                                                  |
-| ----------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
-| Keep the runners, run nothing       | A redesign that reuses the code  | The runner's value was its case sets, and dead runners rot faster than deleted ones           |
-| Keep the published results' dirs    | The history of the runs          | They are kept: the removal deletes the cases the results measured, not the results themselves |
-| Keep the prose reviewer's case set  | The reviewer's case coverage     | Its cases exist to be run by the loop, and a fixture for a runner that is gone is drift        |
+| Option                             | Better at                       | Why it lost                                                                                   |
+| ---------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
+| Keep the runners, run nothing      | A redesign that reuses the code | The runner's value was its case sets, and dead runners rot faster than deleted ones           |
+| Keep the published results' dirs   | The history of the runs         | They are kept: the removal deletes the cases the results measured, not the results themselves |
+| Keep the prose reviewer's case set | The reviewer's case coverage    | Its cases exist to be run by the loop, and a fixture for a runner that is gone is drift       |
 
 ## What it costs
 
@@ -135,7 +149,7 @@ set existed to catch.
    name review where they named measurement, and SPC-1210 names the
    workflow prohibition (REQ-5100).
 5. The twelve postponed requirements are named under Postponed in `paw
-   status`, with this decision's condition.
+status`, with this decision's condition.
 6. Every requirement this decision addresses lands in exactly one closed
    task.
 

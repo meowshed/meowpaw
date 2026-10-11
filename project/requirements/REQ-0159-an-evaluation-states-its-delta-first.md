@@ -17,6 +17,5 @@ An evaluation MUST state the delta that counts before it is run.
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.
 
-
 An evaluation produces a distribution rather than a pass, so a threshold
 chosen after the result is chosen to fit it.
