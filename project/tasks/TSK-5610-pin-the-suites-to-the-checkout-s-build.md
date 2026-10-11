@@ -1,7 +1,7 @@
 ---
 id: TSK-5610
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 bug: BUG-1680
 closes: [REQ-2928]
