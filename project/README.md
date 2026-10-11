@@ -421,6 +421,11 @@ in five tasks, TSK-5560 to TSK-5600: the harness measures no prompt, the twenty
 requirements making a measurement obligatory are withdrawn, and the prose gate
 and its hand run stay.
 
+[EPC-2840](epics/EPC-2840-the-checkers-walk-follows-no-moved-against-relation.md)
+realises ADR-2960 in one task, TSK-5620: the checker's provider walk follows
+no relation a record moved away on, and the specification names the three
+exclusions.
+
 [EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
 tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either
 from its research or from its approved records, and the readiness check reads a

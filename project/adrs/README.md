@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-140 decisions in all: 33 approved, 98 done, 9 superseded.
+140 decisions in all: 32 approved, 99 done, 9 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -155,7 +155,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2920](ADR-2920-the-shared-executable-is-named-paw.md)                                                                                                | The shared executable is named `paw`                                                                                                       | approved   |
 | [ADR-2930](ADR-2930-the-session-routes-each-request-itself.md)                                                                                            | The session routes each request itself under the route skill, and no dispatch runs before work                                             | approved   |
 | [ADR-2950](ADR-2950-cheap-subagents-carry-the-reading.md)                                                                                                 | The prose reviewer and the research step run as cheap subagents, haiku on Claude Code and glm on Pi                                        | done       |
-| [ADR-2960](ADR-2960-a-defect-names-what-it-moved-against.md)                                                                                              | A defect names what it moved against, and the provider walk follows no violation                                                           | approved   |
+| [ADR-2960](ADR-2960-a-defect-names-what-it-moved-against.md)                                                                                              | A defect names what it moved against, and the provider walk follows no violation                                                           | done       |
 | [ADR-2970](ADR-2970-the-harness-budgets-no-characters-and-counts-no-tokens.md)                                                                            | The harness budgets no characters and counts no tokens                                                                                     | done       |
 | [ADR-2980](ADR-2980-the-harness-measures-no-prompt.md)                                                                                                    | The harness measures no prompt                                                                                                             | done       |
 
