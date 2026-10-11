@@ -67,10 +67,11 @@ authorized can't be told from a gap nobody noticed.
 
 ## Alternatives
 
-| Option                        | Better at             | Why it lost                                                         |
-| ----------------------------- | --------------------- | ------------------------------------------------------------------- |
-| Leave the strays unaddressed  | No new record         | The check reports ten requirements in force with no provider         |
-| Withdraw the ten              | Fewer relations       | Each states a behaviour the tree holds and a test pins               |
+| Option                       | Better at       | Why it lost                                                  |
+| ---------------------------- | --------------- | ------------------------------------------------------------ |
+| Leave the strays unaddressed | No new record   | The check reports ten requirements in force with no provider |
+| Withdraw the ten             | Fewer relations | Each states a behaviour the tree holds and a test pins       |
+
 ## Consequences
 
 The ten requirements name providers, so the record's coverage and relations
