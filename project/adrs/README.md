@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-139 decisions in all: 34 approved, 96 done, 9 superseded.
+140 decisions in all: 34 approved, 97 done, 9 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -157,6 +157,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2950](ADR-2950-cheap-subagents-carry-the-reading.md)                                                                                                 | The prose reviewer and the research step run as cheap subagents, haiku on Claude Code and glm on Pi                                        | done       |
 | [ADR-2960](ADR-2960-a-defect-names-what-it-moved-against.md)                                                                                              | A defect names what it moved against, and the provider walk follows no violation                                                           | approved   |
 | [ADR-2970](ADR-2970-the-harness-budgets-no-characters-and-counts-no-tokens.md)                                                                            | The harness budgets no characters and counts no tokens                                                                                     | done       |
+| [ADR-2980](ADR-2980-the-harness-measures-no-prompt.md)                                                                                                    | The harness measures no prompt                                                                                                             | done       |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1140 by ADR-2770; ADR-1170 by ADR-2770; ADR-1210 by ADR-2770; ADR-1310 by ADR-2890; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310; ADR-2310 by ADR-2860.
 <!-- /meow-flow index -->

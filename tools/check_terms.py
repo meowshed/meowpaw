@@ -47,7 +47,6 @@ SKIPPED_FILES = {
     "tools/check_terms.py": "the check names the word it looks for",
 }
 SKIPPED_PARTS = {
-    "/evals/": "evaluation cases are measured inputs and keep their wording",
     "/tests/": "tests that exercise the deprecated table and the old names",
     "bin/meow-checks": "shell variables and the `verbs` subcommand of the tool",
 }
