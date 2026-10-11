@@ -240,6 +240,27 @@ class ToolOperations(unittest.TestCase):
         self.assertRegex(self.README, r"no message a tool generated|never uses a message a tool generated")
 
 
+class SkillLoading(unittest.TestCase):
+    """TSK-5370, BUG-1550: the description routes the skill on every operation its rules bound."""
+
+    DESCRIPTION = next(
+        line for line in (UNIT / "skills/commit/SKILL.md").read_text(encoding="utf-8").splitlines()
+        if line.startswith("description:")
+    )
+
+    def test_the_description_names_each_operation_the_rules_bound(self):
+        """Criterion 1, REQ-1146: merge, rebase and the creation and removal of a working tree."""
+        self.assertRegex(self.DESCRIPTION, r"MUST be loaded before[^.]{0,200}`wt merge`")
+        for verb in ("rebase", "working tree"):
+            self.assertIn(verb, self.DESCRIPTION)
+        self.assertRegex(self.DESCRIPTION, r"created or removed|created, removed|removes? a working tree")
+
+    def test_the_description_keeps_the_message_obligation_and_the_closing_sentence(self):
+        """Criterion 1, REQ-1148: the earlier obligation and the MUST NOT be skipped stay."""
+        self.assertRegex(self.DESCRIPTION, r"commit message, squash message or pull request title")
+        self.assertRegex(self.DESCRIPTION, r"It MUST NOT be skipped")
+
+
 class Launcher(unittest.TestCase):
     """ADR-1270: a launcher with no binary for the machine names the machine and the fix."""
 
