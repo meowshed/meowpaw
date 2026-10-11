@@ -42,7 +42,10 @@ class Repository:
         for directory in (self.root, self.home):
             directory.mkdir(parents=True)
         self.env = {k: v for k, v in os.environ.items() if not k.startswith(("MISE_", "__MISE_"))}
-        self.env.update(HOME=str(self.home), GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
+        # The launcher's data directory is pinned, so the build beside the unit
+        # is what runs and never an installed release (REQ-2928).
+        self.env.update(HOME=str(self.home), GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1",
+                        CLAUDE_PLUGIN_DATA=f"{base}/data/unit")
         subprocess.run(["git", "init", "-q"], cwd=self.root, check=True, env=self.env)
         for name, text in files.items():
             target = self.root / name

@@ -1,7 +1,7 @@
 ---
 id: BUG-1680
 artifact: bug
-status: draft
+status: approved
 severity: major
 enters: requirements
 found: 2026-10-11
@@ -71,4 +71,15 @@ error stopped there.
 
 ## Closed by
 
-Not yet.
+The reproduction, now passing: `paw check` on the trunk reports 0 findings
+from the chain, with and without the installed release, because TSK-5500's
+exclusion already holds in a fresh build and the suites that produced the
+false output now pin their launchers to the checkout's build (REQ-2928).
+
+## Tasks
+
+- [x] T-001 TSK-5610 pin the suites that run a launcher to the checkout's (done: pull request 1061)
+      build, in `plugins/*/tests/` and `tools/` — done in this pull request:
+      four suites pinned, the static test holds the rest, and the record
+      suite passes with the installed 0.9.0 present, so the false records
+      this defect stood behind can't be written again.
