@@ -162,12 +162,14 @@ equivalent at runtime:
 Each `hooks.json` entry maps to an event handler registered with `pi.on()`
 (REQ-4104):
 
-| Claude Code event     | Pi event        | Handler returns                          |
-| --------------------- | --------------- | ---------------------------------------- |
-| `SessionStart`        | `session_start` | nothing (side effect only)               |
-| `PreToolUse` on Bash  | `user_bash`     | `{ block: true, reason }` or `undefined` |
-| `PreToolUse` on tools | `tool_call`     | `{ block: true, reason }` or `undefined` |
-| `PostToolUse`         | `tool_result`   | modified result or `undefined`           |
+| Claude Code event     | Pi event              | Handler returns                          |
+| --------------------- | --------------------- | ---------------------------------------- |
+| `SessionStart`        | `session_start`       | nothing (side effect only)               |
+| `UserPromptSubmit`    | `input`               | `{ action: "continue" }`                 |
+| `Stop`                | `agent_before_settle` | one continued request, or nothing        |
+| `PreToolUse` on Bash  | `user_bash`           | `{ block: true, reason }` or `undefined` |
+| `PreToolUse` on tools | `tool_call`           | `{ block: true, reason }` or `undefined` |
+| `PostToolUse`         | `tool_result`         | modified result or `undefined`           |
 
 The handler shells out to the same native binary the Claude Code hook runs
 (REQ-4106). It invokes the binary with `child_process.execFile`, interprets
@@ -228,20 +230,40 @@ program holds.
 ### Commands
 
 The method extension registers a command for each step and driver
-(REQ-4122):
+(REQ-4122). The seven steps share the method skill, because the unit ships
+no skill per step:
 
-| Command                   | Loads skill                    |
-| ------------------------- | ------------------------------ |
-| `/meow-flow:research`     | `skills/research/SKILL.md`     |
-| `/meow-flow:requirements` | `skills/requirements/SKILL.md` |
-| `/meow-flow:design`       | `skills/design/SKILL.md`       |
-| `/meow-flow:spec`         | `skills/spec/SKILL.md`         |
-| `/meow-flow:epic`         | `skills/epic/SKILL.md`         |
-| `/meow-flow:implement`    | `skills/implement/SKILL.md`    |
-| `/meow-flow:review`       | `skills/review/SKILL.md`       |
-| `/meow-flow:run`          | `skills/method/SKILL.md`       |
-| `/meow-flow:init`         | `skills/init/SKILL.md`         |
-| `/meow-flow:onboard`      | `skills/onboard/SKILL.md`      |
+| Command                   | Loads skill                |
+| ------------------------- | -------------------------- |
+| `/meow-flow:research`     | `skills/method/SKILL.md`   |
+| `/meow-flow:requirements` | `skills/method/SKILL.md`   |
+| `/meow-flow:design`       | `skills/method/SKILL.md`   |
+| `/meow-flow:spec`         | `skills/method/SKILL.md`   |
+| `/meow-flow:epic`         | `skills/method/SKILL.md`   |
+| `/meow-flow:implement`    | `skills/method/SKILL.md`   |
+| `/meow-flow:review`       | `skills/method/SKILL.md`   |
+| `/meow-flow:run`          | `skills/run/SKILL.md`      |
+| `/meow-flow:init`         | `skills/init/SKILL.md`     |
+| `/meow-flow:onboard`      | `skills/onboard/SKILL.md`  |
+
+Each handler sends the skill file's text and the command's arguments into the
+session as a user message, because a notification reaches only the person
+and never the model (REQ-4122).
+
+### The loop command
+
+The `meow-loop` extension registers `meow-loop:run` (REQ-4616). The person
+typing it starts the run through the runner's `prompt` subcommand, and the
+extension sends the `additionalContext` the subcommand returns into the
+session as a user message. Every other submitted input reaches the same
+subcommand, so the person's next prompt ends an active run `cancelled` the
+way the `UserPromptSubmit` hook does on Claude Code. At the settle boundary
+the extension runs the runner's `stop` subcommand and, when it answers
+`block` with the frozen prompt, appends that prompt as one message and
+continues the session once; an answer that reports an ending or an unresolved
+state continues nothing, and a turn the person escaped continues nothing, so
+it reads as an interrupted run. The bounds stay outside the model, because
+the runner decides every ending from the record.
 
 ### Binaries and templates
 
