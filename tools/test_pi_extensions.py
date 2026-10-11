@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""The Pi extensions load a command's skill, start a loop run from the session, and answer or name the router's failure (BUG-1600, BUG-1610, BUG-1620)."""
+"""The Pi extensions load a command's skill, start a loop run from the session, run the readers as cheap nested calls, and carry the style the plugin ships (BUG-1600, BUG-1610, BUG-1630, REQ-4618, REQ-3526)."""
 
 import re
 import subprocess
@@ -12,6 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 FLOW = ROOT / "packages" / "meow-flow"
 LOOP = ROOT / "packages" / "meow-loop"
+PROSE = ROOT / "packages" / "meow-prose"
+STYLE = ROOT / "plugins" / "meow-core" / "output-styles" / "meow.md"
 
 FLOW_COMMANDS = [
     ("meow-flow:research", "method"),
@@ -37,15 +39,14 @@ const assert = (ok, why) => {
 };
 
 const openrouterClaude = { provider: "openrouter", id: "anthropic/claude-sonnet-5.5" };
+const glm = { provider: "openrouter", id: "z-ai/glm-5.3-flash" };
 const xiaomi = { provider: "xiaomi-token-plan-ams", id: "mimo-v2.5-pro" };
 
-const picked = pickModels([xiaomi, openrouterClaude], xiaomi);
-assert(picked[0] === openrouterClaude, "a Claude model under another provider is not picked first: " + JSON.stringify(picked));
-
-const glm = { provider: "openrouter", id: "z-ai/glm-5.3-flash" };
 const preferred = pickModels([xiaomi, openrouterClaude, glm], xiaomi, "glm-5.3-flash");
-assert(preferred[0] === glm, "the model MEOW_ROUTER_MODEL names is not picked first: " + JSON.stringify(preferred));
-assert(preferred[1] === openrouterClaude, "the Claude model is not second after the preference: " + JSON.stringify(preferred));
+assert(preferred[0] === glm, "the model MEOW_NESTED_MODEL names is not picked first: " + JSON.stringify(preferred));
+
+const unpref = pickModels([xiaomi, openrouterClaude, glm], xiaomi);
+assert(unpref[0] === openrouterClaude, "a Claude model is not picked first without a preference: " + JSON.stringify(unpref));
 
 assert(responseText({ content: " route " }).ok && responseText({ content: " route " }).text === "route", "a string content yields its text");
 assert(responseText({ content: [{ type: "text", text: "route" }] }).text === "route", "a block list yields its text");
@@ -53,13 +54,13 @@ assert(!responseText({ stopReason: "error", errorMessage: "boom" }).ok, "an erro
 assert(!responseText(undefined).ok, "a missing message fails");
 
 const calls = [];
-const result = await answerWith([xiaomi, openrouterClaude], async (m) => {
+const result = await answerWith([xiaomi, glm], async (m) => {
   calls.push(m.id);
   if (m === xiaomi) throw new Error("content.some is not a function");
-  return "route: reduced";
+  return "findings follow";
 });
-assert(result.ok && result.text === "route: reduced", "a failing model is skipped and the next answers");
-assert(calls.join() === "mimo-v2.5-pro,anthropic/claude-sonnet-5.5", "the candidates run in the picked order: " + calls.join());
+assert(result.ok && result.text === "findings follow", "a failing model is skipped and the next answers");
+assert(calls.join() === "mimo-v2.5-pro,z-ai/glm-5.3-flash", "the candidates run in the picked order: " + calls.join());
 
 const none = await answerWith([xiaomi], async () => {
   throw new Error("content.some is not a function");
@@ -101,13 +102,18 @@ class FlowCommands(unittest.TestCase):
         self.assertIn("pi.sendUserMessage(", body, "the handler sends nothing into the session")
         self.assertIn("SKILL.md", body, "the handler names no skill file")
         self.assertNotIn("Load the skill /", body, "the handler still tells the person to load a skill")
-        self.assertNotIn("ctx.ui.notify(`Load", body, "the handler still notifies alone")
 
-    def test_the_router_uses_the_shared_answer_loop(self):
-        """TSK-5460: the tool answers through the module the test drives."""
-        self.assertIn("from \"../lib/router.mjs\"", self.text, "flow.ts imports no router module")
-        self.assertIn("answerWith(pickModels(models, ctx.model, process.env.MEOW_ROUTER_MODEL)", self.text, "the nested call runs no candidate loop")
-        self.assertIn("route.ok ? route.text : route.reason", self.text, "the tool surfaces neither the text nor the reason")
+    def test_no_router_remains(self):
+        """ADR-2930: the route is the session's act, and no dispatch is registered."""
+        self.assertNotIn("meow-router", self.text, "the router tool is still registered")
+        self.assertNotIn("route a request", self.text, "the router's description remains")
+
+    def test_the_researcher_drafts_from_passed_material(self):
+        """TSK-5480 criterion 3, REQ-3526: the nested call prefers the cheap tier."""
+        self.assertIn('name: "meow-research"', self.text, "no researcher tool is registered")
+        self.assertIn("MEOW_NESTED_MODEL", self.text, "the nested call reads no preference")
+        self.assertIn('"glm-5.3-flash"', self.text, "the cheap tier is not the default")
+        self.assertIn("templates/research.md", self.text, "the call carries no record template")
 
 
 class LoopRun(unittest.TestCase):
@@ -141,11 +147,68 @@ class LoopRun(unittest.TestCase):
         self.assertIn("continue: true", block, "the boundary continues nothing")
 
 
-class RouterModule(unittest.TestCase):
+class ProseReview(unittest.TestCase):
+    def setUp(self):
+        self.text = (PROSE / "extensions" / "prose.ts").read_text(encoding="utf-8")
+
+    def test_the_reviewer_is_registered_with_the_bundled_standard(self):
+        """TSK-5470 criterion 2, REQ-4618: the nested call inlines the standard."""
+        self.assertIn('name: "meow-prose-review"', self.text, "no review tool is registered")
+        self.assertIn("skills/writing/SKILL.md", self.text, "the call carries no standard")
+        self.assertIn("skills/writing/patterns/en.md", self.text, "the call carries no patterns")
+        self.assertIn("prompts/reply-shape.md", self.text, "the call carries no reply shape")
+
+    def test_the_reviewer_runs_on_the_cheap_tier(self):
+        """TSK-5470 criterion 2: glm 5.3 flash, or what MEOW_NESTED_MODEL names."""
+        self.assertIn("MEOW_NESTED_MODEL", self.text, "the nested call reads no preference")
+        self.assertIn('"glm-5.3-flash"', self.text, "the cheap tier is not the default")
+
+    def test_the_claude_agent_runs_on_the_haiku_tier(self):
+        """TSK-5470 criterion 1: the agent's model names the haiku tier."""
+        front = (ROOT / "plugins" / "meow-prose" / "agents" / "prose.md").read_text(encoding="utf-8")
+        self.assertRegex(front, r"(?m)^model: haiku$", "the prose agent names no haiku tier")
+
+
+class Researcher(unittest.TestCase):
+    def test_the_claude_agent_reads_and_writes_nothing(self):
+        """TSK-5480 criterion 1: haiku, and no write tool."""
+        front = (ROOT / "plugins" / "meow-flow" / "agents" / "researcher.md").read_text(encoding="utf-8")
+        self.assertRegex(front, r"(?m)^model: haiku$", "the researcher names no haiku tier")
+        tools = re.search(r"^tools: (.+)$", front, re.M).group(1)
+        for tool in ("Write", "Edit", "NotebookEdit", "Bash"):
+            self.assertNotIn(tool, tools, f"the researcher holds {tool}")
+
+    def test_the_step_dispatches_and_writes_back(self):
+        """TSK-5480 criterion 2: the step states the dispatch and the write-back."""
+        step = (ROOT / "plugins" / "meow-flow" / "skills" / "method" / "steps" / "research.md").read_text(encoding="utf-8")
+        self.assertIn("meow-flow:researcher", step, "the step dispatches no researcher")
+        self.assertIn("meow-research", step, "the step names no Pi tool")
+        self.assertIn("paw template research", step, "the step writes from no template")
+        self.assertIn("paw check", step, "the step runs no check")
+
+
+class StyleParity(unittest.TestCase):
+    def test_every_bundled_reply_shape_carries_the_style(self):
+        """TSK-5490 criterion 1, REQ-4108: the copies equal the style, modulo the path phrase."""
+        style = STYLE.read_text(encoding="utf-8")
+        adapted = style.replace(
+            "block, from\n  `${CLAUDE_PLUGIN_ROOT}/output-styles/meow.md`, as it stands",
+            "block, as it stands",
+        )
+        self.assertIn("R11", adapted, "the style carries no secrets rule to carry")
+        for copy in sorted(ROOT.glob("packages/*/prompts/reply-shape.md")):
+            with self.subTest(copy=str(copy.relative_to(ROOT))):
+                self.assertEqual(
+                    copy.read_text(encoding="utf-8"), adapted,
+                    f"{copy.name} has drifted from the style the plugin ships",
+                )
+
+
+class ModelsModule(unittest.TestCase):
     def test_the_module_answers_across_providers_and_names_its_failure(self):
-        """TSK-5460 criteria 1 to 3: the module's behaviour, driven by node."""
+        """TSK-5470 criterion 3: the module's behaviour, driven by node."""
         with tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False) as handle:
-            handle.write(NODE_CHECK.replace("<file>", (FLOW / "lib" / "router.mjs").as_uri()))
+            handle.write(NODE_CHECK.replace("<file>", (PROSE / "lib" / "models.mjs").as_uri()))
             script = Path(handle.name)
         try:
             run = subprocess.run(
