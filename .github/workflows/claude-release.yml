@@ -1,10 +1,14 @@
 # Packs every Claude Code unit whose version has no release yet, and
 # publishes each as its own release beside a marketplace file that installs
-# every unit from its archive (SPC-1080). The binaries come from the last
-# successful Rust Tool run, so a plugin change starts no build (ADR-2810).
-# A person runs it by hand; a tag named `<unit>-v<version>` pushed from the
-# trunk releases that unit alone. Without `publish` it packs only, and
-# leaves the result as a workflow artifact.
+# every unit from its archive (SPC-1080). Each unit's notes come from the
+# section for its version in its own CHANGELOG.md, written for the person
+# whose repository changes, with the archive table below them (REQ-3002);
+# the check refuses a new version whose changelog has no section. The
+# binaries come from the last successful Rust Tool run, so a plugin change
+# starts no build (ADR-2810). A person runs it by hand; a tag named
+# `<unit>-v<version>` pushed from the trunk releases that unit alone.
+# Without `publish` it packs only, and leaves the result as a workflow
+# artifact.
 
 name: Claude Release
 
@@ -93,6 +97,13 @@ jobs:
             sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
             bytes=$(wc -c < "dist/$zip")
             printf '| %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$bytes" "$sha" >> dist/notes.md
+            # Each unit's notes open with the section its changelog carries
+            # for this version, and the archive table follows below it
+            # (REQ-3002). The check above refused a version with no section.
+            { awk -v ver="$version" '$0 ~ "^## "ver"($|[[:space:]])" {f=1; next} /^## / && f {exit} f' "$dir/CHANGELOG.md"; \
+              printf '| Unit | Version | Archive | Bytes | SHA-256 |\n'; \
+              printf '| ---- | ------- | ------- | ----- | ------- |\n'; \
+              printf '| %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$bytes" "$sha"; } > "dist/notes-$name.md"
             # A served entry is an archive, so the platform shows only its own
             # fields before an install; plugin.json is where they are written.
             jq --arg name "$name" --arg url "$BASE/$tag/$zip" --arg sha "$sha" \
@@ -121,7 +132,7 @@ jobs:
             name=${tag%-v*}
             version=${tag##*-v}
             gh release create "$tag" "dist/$name-$version.zip" --target "$GITHUB_SHA" \
-              --title "$name $version" --notes "$(head -2 dist/notes.md; grep "^| $name |" dist/notes.md)" --latest=false
+              --title "$name $version" --notes "$(cat "dist/notes-$name.md")" --latest=false
           done < dist/tags
           notes="$(printf 'Add the marketplace by its address, which serves this file:\n\n```bash\nclaude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json\n```\n\n' ; cat dist/notes.md)"
           if gh release view marketplace >/dev/null 2>&1; then
