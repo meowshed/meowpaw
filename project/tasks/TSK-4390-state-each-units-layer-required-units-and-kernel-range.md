@@ -57,7 +57,37 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests were written first and seen failing in `02af6df4`, and pass after
+`01f87d38`. Each criterion closes with the tests naming it:
+
+1. REQ-1482: `author::tests::a_unit_without_requires_toml_fails` in
+   `crates/meow/src/author.rs`, and
+   `test_a_unit_without_requires_toml_fails` in
+   `plugins/meow-author/tests/test_author.py`.
+2. REQ-2990: `author::tests::a_unit_without_a_version_fails`, and
+   `test_a_unit_without_a_version_fails`.
+3. REQ-2998: `author::tests::a_pack_without_a_kernel_range_fails`, and
+   `test_a_pack_without_a_kernel_range_fails`.
+4. The `lint` stage, whose `prompts` task runs `meow-author check` over every
+   unit, passed with the new rules in force.
+5. REQ-3006: `author::tests::a_unit_requiring_another_says_the_platform_enables_it`.
+
+The five stages passed at tree `f8a5c87d9119`, each bound by `meow-checks
+run` and confirmed by `meow-checks evidence`, exit 0: format record
+`2b209cd2636f`, check `b89e63499fbe`, lint `2b134470a25e`, test
+`d862724ea621`, build `8268c2d6ae4c`. The branch is
+`feat/each-unit-is-a-versioned-plugin`, carried by this epic's pull request.
+
+Along the way the branch also cleared what left the trunk's gate red before
+any change of this one: BUG-1650, by repointing BUG-1400's `violates:` off
+the withdrawn REQ-4110, and BUG-1660, by aligning the record suite's
+fixture; plus three residuals of the measurement removal and the stages
+rename, each in a commit of its own — the held `author cost` call in
+`crates/meow/tests/unit_help.rs`, the `test_loop.py` entry in `mise.toml`,
+the budget assertions in `plugins/meow-github/tests/`, the verbs wording in
+`plugins/meow-prose-gate/evals/hand_run.py`, and the REQ-1060 citation in
+this unit's README. BUG-1640's TSK-5500, which stops the checker walking a
+defect's `violates` as a provider at all, stays open.
 
 ## Left alone
 
