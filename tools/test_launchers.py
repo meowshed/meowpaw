@@ -13,7 +13,10 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ENV = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+ENV = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1",
+       # Pinned, so the launcher runs the fixture's own binary and never an
+       # installed release (REQ-2928).
+       "CLAUDE_PLUGIN_DATA": tempfile.mkdtemp(prefix="meow-pin-") + "/unit"}
 
 
 def system_cpu():
