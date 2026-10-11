@@ -1,7 +1,7 @@
 ---
 id: TSK-4410
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2340
 closes: [REQ-1738]
