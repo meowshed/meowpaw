@@ -290,6 +290,14 @@ it needs git and a base.
 It exits 0 when no check found anything, 1 when any did or the root doesn't
 exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
+## Tools
+
+The `router` agent holds three tools, each for one step of its procedure:
+
+- `Read`: step 2 reads the profile, the record's indexes and the files the request touches.
+- `Grep`: step 3 finds the files the request would touch where it names no path.
+- `Glob`: step 3 lists the paths that match a name the request gives.
+
 ## What it costs you
 
 The `method` and `route` skills' descriptions, the driver's and the `router`

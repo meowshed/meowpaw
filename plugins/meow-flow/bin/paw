@@ -49,8 +49,11 @@ if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   exec "$binary" record "$@"
 fi
 
-# At the start of a session, say nothing rather than a failure nobody asked about.
+# The session-start hook blocks nothing, so with no binary it says the record
+# wasn't checked and how to install the binary, and the session begins
+# (SPC-1240).
 if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
+  echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
   exit 0
 fi
 echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
