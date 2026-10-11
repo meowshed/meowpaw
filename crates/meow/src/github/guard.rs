@@ -169,7 +169,17 @@ fn governs(part: &[String]) -> Option<String> {
     {
         return None;
     }
-    let rest: Vec<&str> = words.collect();
+    let mut rest: Vec<&str> = words.collect();
+    // `gh` takes a repository flag before the subcommand, and it hides nothing.
+    while let Some(first) = rest.first() {
+        if matches!(*first, "-R" | "--repo") && rest.len() > 1 {
+            rest.drain(..2);
+        } else if first.starts_with("--repo=") {
+            rest.remove(0);
+        } else {
+            break;
+        }
+    }
     match rest.as_slice() {
         ["api", args @ ..] => api(args),
         [

@@ -192,6 +192,55 @@ class Workflows(unittest.TestCase):
             ],
         )
 
+    def governance_run(self, command):
+        text = GOOD.replace('              build "$TARGET"\n', f'              build "$TARGET"\n              {command}\n')
+        return self.run_check(self.tree({"gov.yml": text}))
+
+    def test_a_step_that_changes_governance_fails_naming_its_line(self):
+        """BUG-1562, REQ-2576, REQ-2712: a workflow runs no `gh` command the governance guard asks about, in any
+        spelling the guard reads."""
+        for command in (
+            "gh api -X PUT repos/o/r/branches/main/protection",
+            "gh api -X put repos/o/r/hooks/1",
+            "gh api -XPUT repos/o/r/hooks/1",
+            "gh api repos/o/r/hooks -f url=x",
+            "gh api -X PATCH repos/o/r",
+            "gh api repos/o/r/rulesets --method POST",
+            "gh repo edit o/r --visibility private",
+            "gh repo unarchive o/r",
+            "gh secret set TOKEN",
+            "gh variable remove NAME",
+            "gh workflow disable ci.yml",
+            "gh -R o/r api -X PUT repos/o/r/hooks/1",
+            "FOO=1 gh secret set TOKEN",
+        ):
+            status, out = self.governance_run(command)
+            self.assertEqual(status, 1, (command, out))
+            self.assertIn("changes how the repository is governed", out[0], command)
+            self.assertTrue(out[0].startswith(".github/workflows/gov.yml:31:"), (command, out))
+
+    def test_a_continued_command_is_one_command(self):
+        """BUG-1562: `gh api \\` with the method and the path on later lines is read as one command."""
+        text = GOOD.replace(
+            '              build "$TARGET"\n',
+            '              build "$TARGET"\n              gh api \\\n                -X PUT \\\n                repos/o/r/branches/main/protection\n',
+        )
+        status, out = self.run_check(self.tree({"gov.yml": text}))
+        self.assertEqual(status, 1, out)
+
+    def test_text_that_only_mentions_a_governance_command_passes(self):
+        """BUG-1562: a comment, an echo, a read and a comment on an issue are not changes."""
+        for command in (
+            "# never gh secret set here",
+            "echo 'do not gh repo edit'",
+            "gh api repos/o/r/branches/main/protection",
+            "gh api -X POST repos/o/r/issues/1/comments -f body='see /hooks docs'",
+            "gh api repos/o/r/hooks | jq . ; curl -X POST https://example.org/hooks",
+            "gh pr view 7",
+        ):
+            status, out = self.governance_run(command)
+            self.assertEqual(status, 0, (command, out))
+
     def test_a_model_credential_as_an_env_key_fails_naming_its_line(self):
         """TSK-5250 criterion 2, REQ-3035: a credential name under env: gives the job a way to call a model."""
         text = GOOD.replace(

@@ -94,6 +94,15 @@ directory, and `MEOWPAW_STATE=off` writes nothing outside the repository, in
 which case nothing is recorded. `evidence --all` adds
 the other work trees of the same repository, each by its path.
 
+Beside the ledger the unit keeps a revision counter for each work tree, which
+`meow-checks state` prints as `revision:`. A hook adds one to it after every
+Bash, Edit, Write and NotebookEdit tool use, and after one that failed, because
+a tool use that failed can still have changed the tree. A record stores the
+counter at its run, and `evidence` prints it beside the current one, as
+`revision 5, now 7`. The counter says how much happened since the run, and the
+tree id alone decides whether a result is current. The counter holds a number
+and nothing the hook read, and with `MEOWPAW_STATE=off` it writes nothing.
+
 To run a stage over part of the work, such as one test, declare the form it
 takes, with `{targets}` where the part goes:
 
@@ -156,6 +165,12 @@ The skill's description costs 332 characters in context on every turn. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, every
 stage is reported unresolved, as "no interpreter".
+
+## Hooks
+
+`meow-checks revision` stops nothing: it adds one to the revision counter after
+a tool use, and a binary missing for the machine makes the hook say so and let
+the session go on.
 
 ## Read a subcommand's help
 

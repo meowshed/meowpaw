@@ -75,7 +75,7 @@ fn fixture(name: &str) -> Dir {
     let dir = Dir::new(name);
     let root = dir.0.join("project");
     let done = Command::new("git")
-        .args(["init", "-q"])
+        .args(["init", "-q", "--template="])
         .current_dir(&dir.0)
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
         .env("GIT_CONFIG_NOSYSTEM", "1")

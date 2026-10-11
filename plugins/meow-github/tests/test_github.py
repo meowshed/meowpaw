@@ -1394,8 +1394,11 @@ class Guard(unittest.TestCase):
     def guard(self, command):
         """`meow-github governance-guard` run on a Bash tool call holding `command`, as the hook runs it."""
         event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": command}}
-        return subprocess.run([str(BIN), "governance-guard"], input=json.dumps(event), capture_output=True,
-                              text=True)
+        # An empty data directory, so the launcher runs the binary built beside it and not an installed one.
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {**os.environ, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}
+            return subprocess.run([str(BIN), "governance-guard"], input=json.dumps(event), capture_output=True,
+                                  text=True, env=env)
 
     def asked(self, done):
         """The reason of an `ask` answer, failing where the answer is anything else."""
@@ -1428,6 +1431,10 @@ class Guard(unittest.TestCase):
             ("gh api repos/o/r/rulesets -fname=x", "gh api POST repos/o/r/rulesets"),
             ("gh api 2>/dev/null -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
             ("gh api -X PUT /repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            # A global flag before the subcommand, which gh accepts, doesn't hide it (BUG-1562).
+            ("gh -R o/r api -X PUT repos/o/r/hooks/1", "gh api PUT repos/o/r/hooks/1"),
+            ("gh --repo o/r repo edit --visibility private", "gh repo edit"),
+            ("gh --repo=o/r secret set TOKEN", "gh secret set"),
             ("gh api /graphql -f query='mutation { x }'", "gh api POST graphql"),
             ("gh api https://api.github.com/graphql -f query='mutation { x }'", "gh api POST graphql"),
             ("gh api -X POST orgs/o/rulesets -f name=x", "gh api POST orgs/o/rulesets"),
@@ -1483,8 +1490,13 @@ class Guard(unittest.TestCase):
         self.assertEqual(len(entry["hooks"]), 1)
         self.assertEqual(entry["hooks"][0]["type"], "command")
         self.assertEqual(entry["hooks"][0]["command"], '"${CLAUDE_PLUGIN_ROOT}"/bin/meow-github governance-guard')
+        # The hook loads nothing; the unit's one skill's description is what it keeps in context
+        # (BUG-1562), so the budget is that description and no more.
         budget = tomllib.loads((UNIT / "budget.toml").read_text(encoding="utf-8"))
-        self.assertEqual(budget["permanent_characters"], 0)
+        skill = (UNIT / "skills" / "governance" / "SKILL.md").read_text(encoding="utf-8")
+        description = next(l for l in skill.splitlines() if l.startswith("description: "))[len("description: "):]
+        self.assertGreaterEqual(budget["permanent_characters"], len(description))
+        self.assertLess(budget["permanent_characters"], len(description) + 100)
 
 
 class Launcher(unittest.TestCase):
@@ -1503,9 +1515,10 @@ class Launcher(unittest.TestCase):
             self.assertIn(machine, done.stdout)
             self.assertIn("install meow-core", done.stdout)
 
-    def test_a_missing_binary_lets_every_bash_call_through(self):
-        """TSK-2980, REQ-2576: with no binary for the machine, the hook's `governance-guard` reads its input,
-        prints nothing and exits 0, because a hook that fails blocks every Bash call in the session."""
+    def test_a_missing_binary_denies_every_bash_call_and_says_how_to_install(self):
+        """TSK-5165, REQ-1426, ADR-2710: with no binary for the machine, the hook's `governance-guard` denies with
+        exit 2 and a reason naming the unit, the machine and the install command, because a launcher with no
+        binary can't tell which call its program would have let through."""
         with tempfile.TemporaryDirectory() as tmp:
             launcher = Path(tmp) / "bin" / "meow-github"
             launcher.parent.mkdir()
@@ -1514,7 +1527,11 @@ class Launcher(unittest.TestCase):
             event = json.dumps({"tool_input": {"command": "gh repo delete o/r"}})
             done = subprocess.run(["sh", str(launcher), "governance-guard"], input=event, cwd=tmp, env={"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"},
                                   capture_output=True, text=True)
-            self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
+            machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
+            self.assertEqual((done.returncode, done.stdout), (2, ""), done.stderr)
+            self.assertIn("meow-github", done.stderr)
+            self.assertIn(machine, done.stderr)
+            self.assertIn("claude plugin install meow-core@meowpaw", done.stderr)
 
 
 if __name__ == "__main__":

@@ -62,6 +62,11 @@ status)
   fi
   exit 0
   ;;
+revision)
+  cat >/dev/null 2>&1
+  echo "meow-checks revision: not counted (no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null)); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+  exit 0
+  ;;
 run)
   shift
   if [ $# -eq 0 ]; then

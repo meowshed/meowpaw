@@ -46,10 +46,12 @@ fi
 
 reason="no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
 if [ "$1" = "governance-guard" ]; then
-  # The hook runs on every Bash call, and a hook that fails blocks them all,
-  # so with no binary it lets every call through to the person's own rules.
+  # A launcher with no binary can't tell which call its program would have let
+  # through, so the hook denies every Bash call it matches and says how to
+  # install the binary (ADR-2710).
   cat >/dev/null
-  exit 0
+  echo "meow-github: denied $1 because $reason, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+  exit 2
 fi
 if [ "$1" = "history" ]; then
   echo "meow-github history: unread ($reason); nothing was read"

@@ -23,9 +23,13 @@ says why it happened and what fixes it.
 
 `no meow binary was found for this machine` means a unit's program couldn't
 find its binary for your operating system and processor. `meow-checks` then
-reports every stage unresolved, `meow-git` checks nothing, `meow-scm` reports
-the message unchecked and exits 3, `meow-github` names the machine and exits
-3, and `paw` reports the record as not checked.
+reports every stage unresolved, `meow-scm` reports the message unchecked and
+exits 3, `meow-github history` names the machine and exits 3, and `paw` reports
+the record as not checked. A hook that stops a call denies it instead, with
+exit 2: `meow-git`, `meow-github`, `meow-prose-gate` and `meow-loop`'s guard
+name the machine and the command that installs `meow-core`, to run in a
+terminal outside the session, because the same hook denies the command that
+would run it from inside.
 
 Each unit that runs a program ships a binary for macOS, Linux and Windows on
 arm64 and x86_64. If your machine is one of those six, the unit was installed
@@ -127,9 +131,10 @@ blocked too, apply the fix the reason names. If the span is inside code or a
 path the gate should have skipped, or a J finding names text that breaks no
 rule, that is a defect in the gate: report it with the command.
 
-If the gate prints `unrun` and `nothing was checked`, the unit carries no
-binary for your machine, so it let the publish through unchecked. Reinstall
-the unit.
+If the gate denies a command with `denied` and `no meow binary was found`, the
+unit carries no binary for your machine, so it stopped the command it would
+have checked, and that includes every `git` and `gh` command its hook matches.
+Reinstall `meow-core` from a terminal outside the session.
 
 If Claude Code shows `the judged rules were not checked`, the gate couldn't
 ask its judge, and the message names why: `claude` isn't on the path, a call

@@ -96,6 +96,26 @@ holds that rule.
 It exits 0 when it finds nothing, 1 on a finding, and 3 when there is nothing
 to check or its binary is missing for your machine.
 
+## What it checks in a hook
+
+For each `hooks/hooks.json` under `plugins/`, and each script a declaration
+runs, `meow-author check` fails a hook, naming the file and the event, that:
+
+- answers `allow` as its decision, or returns an `updatedInput`, because a
+  hook that approves skips the permission flow the repository owns and one
+  that rewrites a call runs something nobody asked for;
+- names a network command, such as `curl`, `wget`, `ssh`, `gh`, `git fetch`,
+  `git pull` or `claude -p`, except `meow-prose-gate check`, which is excused
+  by unit and subcommand and no other hook inherits;
+- is not the unit's launcher with one subcommand, on any event but
+  `SessionStart`, `SessionEnd`, `PostToolUse` and `PostToolUseFailure`, so an
+  event added later is held to the rule until the check lists it;
+- has no sentence under its unit's README `## Hooks` naming the subcommand in
+  code font.
+
+A hook that builds a network call at run time is invisible to the check, and
+review holds it.
+
 ## Report what each unit costs
 
 `meow-author cost` reports, for each plugin under `plugins/`, the characters it
