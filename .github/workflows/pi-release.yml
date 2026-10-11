@@ -104,13 +104,17 @@ jobs:
             # The registry's CDN lags a version it just published, so the
             # check above can miss it; a 403 naming the published version is
             # a publish that already happened, not a failure.
-            if ! (cd "$pkg" && npm publish --provenance --access public) 2>&1 | tee /tmp/publish.log; then
-              if grep -q 'cannot publish over the previously published' /tmp/publish.log; then
-                echo "$name@$version was published just now"
-              else
-                cat /tmp/publish.log
-                exit 1
-              fi
+            # npm's status decides, and no pipe stands between it and the
+            # step, because a pipeline's status is its last command's and a
+            # failed publish would read as passed (BUG-1590).
+            if (cd "$pkg" && npm publish --provenance --access public) > /tmp/publish.log 2>&1; then
+              echo "$name@$version published"
+            elif grep -q 'cannot publish over the previously published' /tmp/publish.log; then
+              cat /tmp/publish.log
+              echo "$name@$version was published just now"
+            else
+              cat /tmp/publish.log
+              exit 1
             fi
           done
 

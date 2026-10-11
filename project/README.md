@@ -902,6 +902,7 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1565](bugs/BUG-1565-no-check-in-the-gate-finds-a-run-whose-turn-ended-with-work-left.md)           | No check in the gate finds a run whose turn ended with work left, so `meow-loop`'s `stop` rule is held by the hook alone                                                                   |
 | [BUG-1570](bugs/BUG-1570-gotask-writes-a-scratch-directory-in-the-temporary-directory.md)               | `meow-gotask` writes a scratch directory in the temporary directory, outside the run state                                                                                                 |
 | [BUG-1580](bugs/BUG-1580-the-ledger-copies-the-index-into-the-temporary-directory.md)                   | The ledger copies the index into the temporary directory to bind a result to a tree                                                                                                        |
+| [BUG-1590](bugs/BUG-1590-the-pi-release-reads-a-failed-npm-publish-as-passed.md)                        | The Pi release reads a failed npm publish as passed, because the step's shell reads the pipe's status and not npm's                                                                        |
 
 BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
 the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100
@@ -913,4 +914,6 @@ refusals at start. BUG-1410 is closed by TSK-5260, BUG-1520 by TSK-5240 and
 BUG-1530 by TSK-5280, and BUG-1540 by TSK-5340. BUG-1550 routes to implement,
 because the requirement is right and a description didn't state the obligation,
 and is closed by TSK-5370. BUG-1560 to BUG-1565, BUG-1570 and BUG-1580 are open and route to design,
-because each names a hook whose rule no check in the gate holds.
+because each names a hook whose rule no check in the gate holds. BUG-1590
+routes to implement, because the requirement is right and the step's shell
+decides on the wrong command's status, and is closed by TSK-5430.

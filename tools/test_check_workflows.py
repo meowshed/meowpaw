@@ -66,6 +66,26 @@ class Workflows(unittest.TestCase):
             status = main(root)
         return status, out.getvalue().splitlines()
 
+    def test_an_npm_publish_inside_a_pipeline_fails_naming_its_line(self):
+        """BUG-1590: the shell reads a pipeline's status from its last command, so
+        `npm publish | tee` publishes nothing while the step stays green."""
+        bad = GOOD.replace(
+            '              # The target arrives through the environment.\n              build "$TARGET"',
+            '              if ! (npm publish --provenance --access public) 2>&1 | tee /tmp/publish.log; then\n                :\n              fi',
+        )
+        status, lines = self.run_check(self.tree({"a.yml": bad}))
+        self.assertEqual(status, 1, lines)
+        self.assertTrue(any("npm publish inside a pipeline" in line for line in lines), lines)
+
+    def test_an_npm_publish_whose_status_decides_passes(self):
+        """BUG-1590's companion: npm's own exit status decides, and no pipe stands between it and the step."""
+        good = GOOD.replace(
+            '              # The target arrives through the environment.\n              build "$TARGET"',
+            '              if (npm publish --provenance --access public) >"$log" 2>&1; then\n                echo published\n              fi',
+        )
+        status, lines = self.run_check(self.tree({"a.yml": good}))
+        self.assertEqual((status, lines), (0, ["1 workflow files, 0 findings"]), lines)
+
     def test_a_read_only_workflow_passes(self):
         """REQ-2196, REQ-2198, REQ-2200: a read-only top, a checkout under pull_request and env passes."""
         status, out = self.run_check(self.tree({"good.yml": GOOD}))
