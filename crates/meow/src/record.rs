@@ -1475,6 +1475,50 @@ fn relations(record: &Record) -> Vec<Finding> {
             }
         }
     }
+    // REQ-3900: an approved requirement names an approved decision that
+    // addresses or postpones it, and REQ-3902: an approved decision that
+    // addresses one names an approved epic or direct task that realises it.
+    // A decision that only postpones defers the work instead of authorising
+    // it, so it names no plan (ADR-2740).
+    let active = |status: &str| status == "approved" || status == "done";
+    let provided = |id: &str| {
+        of_kind(record, "decision").iter().any(|d| {
+            active(&bare(d.value("status")))
+                && (requirements_in(record, d.value("addresses")).contains(id)
+                    || requirements_in(record, d.value("postpones")).contains(id))
+        })
+    };
+    for requirement in of_kind(record, "requirement") {
+        let id = bare(requirement.id());
+        if !active(&bare(requirement.value("status"))) || provided(&id) {
+            continue;
+        }
+        out.push(Finding::at(
+            requirement,
+            None,
+            format!("{id} is in force and names no approved decision that addresses or postpones it (REQ-3900)"),
+        ));
+    }
+    for decision in of_kind(record, "decision") {
+        let id = bare(decision.id());
+        if !active(&bare(decision.value("status")))
+            || requirements_in(record, decision.value("addresses")).is_empty()
+        {
+            continue;
+        }
+        let planned = of_kind(record, "epic").iter().any(|e| {
+            active(&bare(e.value("status"))) && bare(e.value("realises")) == id
+        }) || of_kind(record, "task").iter().any(|t| {
+            active(&bare(t.value("status"))) && bare(t.value("realises")) == id
+        });
+        if !planned {
+            out.push(Finding::at(
+                decision,
+                None,
+                format!("{id} addresses work and names no approved epic or direct task that realises it (REQ-3902)"),
+            ));
+        }
+    }
     out
 }
 
@@ -4979,8 +5023,12 @@ mod tests {
                 ),
             );
         }
+        // Tests run in parallel and two ask for the same shape, so a counter
+        // keeps each directory its own.
+        static COUNT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let count = COUNT.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         let dir = std::env::temp_dir().join(format!(
-            "meow-gap-{requirement}-{decision}-{epic}-{postpones}-{}",
+            "meow-gap-{requirement}-{decision}-{epic}-{postpones}-{}-{count}",
             std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&dir);
