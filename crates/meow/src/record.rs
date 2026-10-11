@@ -4900,4 +4900,87 @@ mod tests {
                 .is_match(&today())
         );
     }
+
+    /// A fixture record: a live specification stating a requirement that
+    /// elaborates an approved defect, which violates a second requirement
+    /// whose statuses the test sets (BUG-1640, TSK-5500).
+    fn chain_fixture(first: &str, second: &str) -> (Record, std::path::PathBuf) {
+        // The layout is the record's, which the repository ships beside the
+        // crate, and the test names it where the binary's own copy doesn't
+        // exist.
+        // unsafe: a test sets the environment before the fixture reads it.
+        unsafe {
+            std::env::set_var(
+                "MEOW_LAYOUT",
+                concat!(env!("CARGO_MANIFEST_DIR"), "/../../plugins/meow-flow/lib/layout.toml"),
+            );
+        }
+        let dir = std::env::temp_dir().join(format!("meow-chain-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join(".meowpaw")).unwrap();
+        std::fs::create_dir_all(dir.join("project").join("specs")).unwrap();
+        std::fs::create_dir_all(dir.join("project").join("requirements")).unwrap();
+        std::fs::create_dir_all(dir.join("project").join("bugs")).unwrap();
+        std::fs::write(
+            dir.join(".meowpaw").join("profile.toml"),
+            "[record]\nroot = \"project\"\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.join("project")
+                .join("requirements")
+                .join("REQ-0001-first.md"),
+            format!("---\nid: REQ-0001\nstatus: {first}\nelaborates: [BUG-0001]\n---\n\n# REQ-0001\n"),
+        )
+        .unwrap();
+        std::fs::write(
+            dir.join("project")
+                .join("requirements")
+                .join("REQ-0002-second.md"),
+            format!("---\nid: REQ-0002\nstatus: {second}\n---\n\n# REQ-0002\n"),
+        )
+        .unwrap();
+        std::fs::write(
+            dir.join("project").join("bugs").join("BUG-0001-broke.md"),
+            "---\nid: BUG-0001\nstatus: approved\nviolates: [REQ-0002]\n---\n\n# BUG-0001\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.join("project").join("specs").join("SPC-0001-part.md"),
+            "---\nid: SPC-0001\nstatus: live\nstates: [REQ-0001]\n---\n\n# SPC-0001\n",
+        )
+        .unwrap();
+        let layout = load_layout().unwrap();
+        let record = read_record(layout, &dir, &dir.join("project"));
+        (record, dir)
+    }
+
+    #[test]
+    fn a_violation_behind_a_specification_is_no_provider() {
+        // TSK-5500 criterion 1, REQ-0139: a defect's violates names what it
+        // moved against, so a withdrawn requirement behind it flags nothing.
+        let (record, dir) = chain_fixture("approved", "withdrawn");
+        let known = known(&record);
+        let found = chains(&record, &known);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            found.iter().all(|f| !f.message.contains("REQ-0002")),
+            "the walk reached the withdrawn requirement: {:?}",
+            found.iter().map(|f| &f.message).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn a_draft_behind_a_specification_still_reports() {
+        // TSK-5500 criterion 2: the exclusion hides no draft finding.
+        let (record, dir) = chain_fixture("draft", "approved");
+        let known = known(&record);
+        let found = chains(&record, &known);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            found.iter().any(|f| f.message.contains("a draft")),
+            "the draft provider went unreported: {:?}",
+            found.iter().map(|f| &f.message).collect::<Vec<_>>()
+        );
+    }
 }
