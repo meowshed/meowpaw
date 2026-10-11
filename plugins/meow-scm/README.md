@@ -83,7 +83,7 @@ foreground, when you or the step that made it asks.
 
 ## What it costs you
 
-The skill's description costs 263 characters in context on every turn. The
+The skill's description costs 397 characters in context on every turn. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, the
 check reports the message as unchecked and exits 3.

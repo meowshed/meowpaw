@@ -42,7 +42,13 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where
+`test_the_description_names_each_operation_the_rules_bound` in
+`plugins/meow-scm/tests/test_scm.py` failed. It closes criterion 1
+(REQ-1146), and `test_the_description_keeps_the_message_obligation_and_the_closing_sentence`
+holds the earlier obligation and the closing sentence. `mise run budget`
+failed at 397 of 380 characters, and passed once the budget was raised to 450,
+which closes criterion 2. `mise run all` passed with exit status 0.
 
 ## Left alone
 
