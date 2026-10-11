@@ -58,7 +58,25 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests were written first and seen failing in `bac678ee`, and pass after
+`34db7ec7`. Each criterion closes with the test naming it, all in
+`tools/test_check_release.py`:
+
+1. REQ-2996: `test_a_changed_unit_at_its_released_version_is_refused`.
+2. REQ-2996: `test_an_unchanged_unit_at_its_released_version_passes`.
+3. REQ-3002: `test_a_new_version_without_a_changelog_section_is_refused`.
+4. REQ-3002: `test_the_release_notes_come_from_the_changelog_and_generate_nothing`.
+
+Each unit's `CHANGELOG.md` carries a section for its released version, and
+the branch ships every changed unit as a new minor version with a section
+for it (`0e2ea71e`), because REQ-2996's own rule refuses the branch until it
+does. The five stages passed at tree `dc741c41414b`, each bound by
+`meow-checks run` and confirmed by `meow-checks evidence`, exit 0: format
+`c97f46c46d07`, check `5fd194c8283c`, lint `48e163d2686b`, test
+`c82df3e51f2c`, build `dc756eb1f1ba`. Two fixtures that watched for a model
+call were corrected along the way, in commits of their own: the loop
+stand-in answers the version probe (REQ-1738) unlogged, and the layer stub
+answers it at once.
 
 ## Left alone
 
