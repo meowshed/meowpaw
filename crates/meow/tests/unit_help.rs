@@ -389,6 +389,7 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "verbs", &["evidence", "lint"], "");
     held(d, s, "verbs", &["state"], "");
     held(d, s, "verbs", &["tree", "HEAD"], "");
+    held(d, s, "verbs", &["revision"], "{}");
     held(d, s, "verbs", &["local", "lint", "true"], "");
     held(d, s, "scm", &["convention"], "");
     held(d, s, "scm", &["check-message"], "");
