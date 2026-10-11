@@ -2,7 +2,7 @@
 reader: someone installing or running meow-loop on Pi
 answers: what meow-loop provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-loop@0.15.0]
+describes: [@meowshed/meow-loop@0.16.0]
 ---
 
 # @meowshed/meow-loop
@@ -26,3 +26,16 @@ pi install npm:@meowshed/meow-core   # carries the binary the launchers run
 
 Installing from this repository's checkout is the development install: it
 loads the package in place and runs no lifecycle script.
+
+## Start a run
+
+A person starts a run by typing `/meow-loop:run --iterations 5 --hours 2` in
+the session. The run repeats the method's chain there, and typing any other
+prompt ends it `cancelled`. Each bound has a default, so `/meow-loop:run`
+alone runs up to 10 iterations and 4 hours.
+
+## Prepare a run for a terminal
+
+The `loop` skill writes the prompt file a run outside the session reads and
+prints the `meow-loop start` command for a terminal outside the session, such
+as a separate tmux window. Only a person starts a run, in either place.

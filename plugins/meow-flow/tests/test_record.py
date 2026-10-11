@@ -1759,7 +1759,7 @@ class Reported(unittest.TestCase):
         repository.edit("requirements/REQ-0001-an-obligation.md", "revised: 2026-01-01", "revised: 2026-02-01")
         done = repository.run("status")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("  RES-0002, rejected, under 5 approved artifacts: ADR-0001, BUG-0001, EPC-0001, REQ-0001, "
+        self.assertIn("  RES-0002, rejected, under 4 approved artifacts: ADR-0001, EPC-0001, REQ-0001, "
                       "TSK-0001\n", done.stdout)
         self.assertIn("  3 suspect citations in approved artifacts: ADR-0001 addresses REQ-0001, BUG-0001 violates "
                       "REQ-0001, TSK-0001 closes REQ-0001\n", done.stdout)
@@ -2163,45 +2163,6 @@ class MethodSkill(unittest.TestCase):
 
 
 AGENTS = UNIT / "agents"
-
-
-class AgentReports(unittest.TestCase):
-    """TSK-2702 criterion 3, REQ-0816, SPC-1030 "What an agent reports" and SPC-1090's rows for each agent:
-    `record-reviewer` and `router` state when they report each outcome and where the outcome and cause go, and
-    `record-reviewer` quotes no more than the span a finding names, 25 words at most."""
-
-    def agent(self, name):
-        return (AGENTS / f"{name}.md").read_text(encoding="utf-8").split("---\n", 2)[2]
-
-    def when(self, text, rows):
-        for word, pattern in rows:
-            with self.subTest(outcome=word):
-                self.assertTrue(together(text, word, pattern), f"no sentence says when {word} is reported ({pattern})")
-
-    def test_the_router_names_the_four_outcomes(self):
-        """TSK-2702 criterion 3, REQ-0816: router names DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT and BLOCKED."""
-        self.assertEqual(outcomes_named(self.agent("router")), set(OUTCOMES))
-
-    def test_the_router_says_when_it_reports_each_outcome(self):
-        """TSK-2702 criterion 3, REQ-0816, SPC-1090 "The route": DONE where every change has a size and a shape;
-        DONE_WITH_CONCERNS where a file or index its steps name couldn't be found; NEEDS_CONTEXT where the request
-        names no change it can route; BLOCKED where a tool call was denied."""
-        self.when(self.agent("router"), (
-            ("DONE", r"size and (a )?shape|every change"),
-            ("DONE_WITH_CONCERNS", r"could ?n.t (be )?f(ou)?nd|not found|missing"),
-            ("NEEDS_CONTEXT", r"no change|names nothing|nothing (it|you) can route"),
-            ("BLOCKED", r"denied"),
-        ))
-
-    def test_the_routers_first_field_is_outcome_and_cause_follows_it(self):
-        """TSK-2702 criterion 3, REQ-0816, SPC-1030 "What an agent reports": the router's first field is outcome:,
-        before size:, and a cause: field follows it."""
-        fields = re.findall(r"^\s*- `([a-z ]+):`", tagged(self.agent("router"), "rules"), re.MULTILINE)
-        self.assertTrue(fields, "the router's rules list no fields")
-        self.assertEqual(fields[0], "outcome", fields)
-        self.assertIn("cause", fields)
-        self.assertLess(fields.index("outcome"), fields.index("cause"))
-        self.assertLess(fields.index("outcome"), fields.index("size"))
 
 
 class RequirementState(unittest.TestCase):
@@ -3026,7 +2987,7 @@ class DeniedDispatch(unittest.TestCase):
     shipped agent carries the denial rule in the same words, and the review step ends a `BLOCKED` dispatch there."""
 
     AGENT_FILES = {
-        "router": AGENTS / "router.md",
+        "researcher": AGENTS / "researcher.md",
         "prose": REPOSITORY / "plugins" / "meow-prose" / "agents" / "prose.md",
     }
 

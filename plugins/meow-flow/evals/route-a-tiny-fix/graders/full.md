@@ -4,7 +4,7 @@ focus: last_message
 weight: 2
 ---
 
-Judge whether the router routed the request full.
+Judge whether the reply routed the request full.
 
 PASS when the reply gives the size `full` for the request.
 

@@ -9,7 +9,6 @@ states:
     REQ-4104,
     REQ-4106,
     REQ-4108,
-    REQ-4110,
     REQ-4112,
     REQ-4114,
     REQ-4120,
@@ -25,6 +24,8 @@ states:
     REQ-4610,
     REQ-4612,
     REQ-4614,
+    REQ-4616,
+    REQ-4618,
   ]
 ---
 
@@ -162,12 +163,14 @@ equivalent at runtime:
 Each `hooks.json` entry maps to an event handler registered with `pi.on()`
 (REQ-4104):
 
-| Claude Code event     | Pi event        | Handler returns                          |
-| --------------------- | --------------- | ---------------------------------------- |
-| `SessionStart`        | `session_start` | nothing (side effect only)               |
-| `PreToolUse` on Bash  | `user_bash`     | `{ block: true, reason }` or `undefined` |
-| `PreToolUse` on tools | `tool_call`     | `{ block: true, reason }` or `undefined` |
-| `PostToolUse`         | `tool_result`   | modified result or `undefined`           |
+| Claude Code event     | Pi event              | Handler returns                          |
+| --------------------- | --------------------- | ---------------------------------------- |
+| `SessionStart`        | `session_start`       | nothing (side effect only)               |
+| `UserPromptSubmit`    | `input`               | `{ action: "continue" }`                 |
+| `Stop`                | `agent_before_settle` | one continued request, or nothing        |
+| `PreToolUse` on Bash  | `user_bash`           | `{ block: true, reason }` or `undefined` |
+| `PreToolUse` on tools | `tool_call`           | `{ block: true, reason }` or `undefined` |
+| `PostToolUse`         | `tool_result`         | modified result or `undefined`           |
 
 The handler shells out to the same native binary the Claude Code hook runs
 (REQ-4106). It invokes the binary with `child_process.execFile`, interprets
@@ -193,28 +196,16 @@ its own system prompt.
 
 ### Agents
 
-The router agent (`plugins/meow-flow/agents/router.md`) becomes a tool
-registered by the method extension (REQ-4110):
-
-```typescript
-pi.registerTool("meow-router", {
-  description: "Route a request to change the repository before work starts",
-  parameters: RouterParametersSchema,
-  execute: async (args, ctx) => {
-    const result = await ctx.modelRegistry.streamSimple({
-      model: "sonnet",
-      messages: [
-        { role: "system", content: replyShape },
-        { role: "user", content: routerPrompt(args.request) },
-      ],
-      tools: ["Read", "Grep", "Glob"],
-    });
-    return { content: result.text, details: undefined };
-  },
-});
-```
-
-The skeptic agent follows the same pattern.
+An agent definition maps to a registered tool where the platform has no
+subagent to dispatch (REQ-4618, REQ-3526). The prose reviewer maps to
+`meow-prose-review`, registered by the `meow-prose` extension, and the
+researcher to `meow-research`, registered by the method extension. Both are
+nested model calls that carry the reply shape and run on the cheap tier:
+haiku 5.5 on Claude Code, and glm 5.3 flash on Pi, where a model the
+`MEOW_NESTED_MODEL` environment variable names goes first. The nested call
+reads no file and holds no skill, so each call inlines what it reviews or
+drafts against, read from the package's own bundled files at load. ADR-2930
+deletes the router agent and maps nothing in its place.
 
 ### The two-judge prose gate
 
@@ -228,20 +219,40 @@ program holds.
 ### Commands
 
 The method extension registers a command for each step and driver
-(REQ-4122):
+(REQ-4122). The seven steps share the method skill, because the unit ships
+no skill per step:
 
-| Command                   | Loads skill                    |
-| ------------------------- | ------------------------------ |
-| `/meow-flow:research`     | `skills/research/SKILL.md`     |
-| `/meow-flow:requirements` | `skills/requirements/SKILL.md` |
-| `/meow-flow:design`       | `skills/design/SKILL.md`       |
-| `/meow-flow:spec`         | `skills/spec/SKILL.md`         |
-| `/meow-flow:epic`         | `skills/epic/SKILL.md`         |
-| `/meow-flow:implement`    | `skills/implement/SKILL.md`    |
-| `/meow-flow:review`       | `skills/review/SKILL.md`       |
-| `/meow-flow:run`          | `skills/method/SKILL.md`       |
-| `/meow-flow:init`         | `skills/init/SKILL.md`         |
-| `/meow-flow:onboard`      | `skills/onboard/SKILL.md`      |
+| Command                   | Loads skill               |
+| ------------------------- | ------------------------- |
+| `/meow-flow:research`     | `skills/method/SKILL.md`  |
+| `/meow-flow:requirements` | `skills/method/SKILL.md`  |
+| `/meow-flow:design`       | `skills/method/SKILL.md`  |
+| `/meow-flow:spec`         | `skills/method/SKILL.md`  |
+| `/meow-flow:epic`         | `skills/method/SKILL.md`  |
+| `/meow-flow:implement`    | `skills/method/SKILL.md`  |
+| `/meow-flow:review`       | `skills/method/SKILL.md`  |
+| `/meow-flow:run`          | `skills/run/SKILL.md`     |
+| `/meow-flow:init`         | `skills/init/SKILL.md`    |
+| `/meow-flow:onboard`      | `skills/onboard/SKILL.md` |
+
+Each handler sends the skill file's text and the command's arguments into the
+session as a user message, because a notification reaches only the person
+and never the model (REQ-4122).
+
+### The loop command
+
+The `meow-loop` extension registers `meow-loop:run` (REQ-4616). The person
+typing it starts the run through the runner's `prompt` subcommand, and the
+extension sends the `additionalContext` the subcommand returns into the
+session as a user message. Every other submitted input reaches the same
+subcommand, so the person's next prompt ends an active run `cancelled` the
+way the `UserPromptSubmit` hook does on Claude Code. At the settle boundary
+the extension runs the runner's `stop` subcommand and, when it answers
+`block` with the frozen prompt, appends that prompt as one message and
+continues the session once; an answer that reports an ending or an unresolved
+state continues nothing, and a turn the person escaped continues nothing, so
+it reads as an interrupted run. The bounds stay outside the model, because
+the runner decides every ending from the record.
 
 ### Binaries and templates
 
@@ -271,7 +282,7 @@ in the Claude Code plugin.
 The `@meowshed/meow-core` extension alone injects the reply shape into the
 system prompt guidelines on `before_agent_start` (REQ-4108, REQ-4134). No
 other package's extension injects it. A package that makes a nested model
-call — the method's router, the prose gate's judge — carries its own
+call — the prose reviewer and the researcher — carries its own
 bundled copy of the reply shape into that call's messages, because a nested
 call runs its own prompt and never sees the session's.
 

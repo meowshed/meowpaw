@@ -368,10 +368,10 @@ preloads the skills it needs through `skills`, so the conversation that
 dispatches it doesn't carry them (REQ-2984). The agents the harness ships
 declare:
 
-| Agent              | `maxTurns` | `model`  | `effort` | `omitClaudeMd` | `skills`               | `tools`          |
-| ------------------ | ---------- | -------- | -------- | -------------- | ---------------------- | ---------------- |
-| `meow-flow:router` | 30         | `sonnet` | `high`   | `false`        | `[]`                   | Read, Grep, Glob |
-| `meow-prose:prose` | 20         | `sonnet` | `high`   | `true`         | `[meow-prose:writing]` | Read, Grep, Glob |
+| Agent                  | `maxTurns` | `model` | `effort` | `omitClaudeMd` | `skills`               | `tools`                    |
+| ---------------------- | ---------- | ------- | -------- | -------------- | ---------------------- | -------------------------- |
+| `meow-flow:researcher` | 30         | `haiku` | `medium` | `true`         | `[meow-prose:writing]` | Read, Grep, Glob, WebFetch |
+| `meow-prose:prose`     | 20         | `haiku` | `high`   | `true`         | `[meow-prose:writing]` | Read, Grep, Glob           |
 
 An agent that reaches its `maxTurns` returns its output marked partial, and
 whatever dispatched it reads that output as unfinished work (REQ-2974). The
@@ -405,10 +405,10 @@ what the brief lacked, or the tool denied and what it was called on. Each
 shipped agent places the two lines as follows, and any other agent puts the
 outcome line first:
 
-| Agent              | The outcome line                            | The cause                          |
-| ------------------ | ------------------------------------------- | ---------------------------------- |
-| `meow-prose:prose` | The first line, before the verdict          | The second line                    |
-| `meow-flow:router` | The first field, `outcome:`, before `size:` | A `cause:` field, after `outcome:` |
+| Agent                  | The outcome line                              | The cause                          |
+| ---------------------- | --------------------------------------------- | ---------------------------------- |
+| `meow-prose:prose`     | The first line, before the verdict            | The second line                    |
+| `meow-flow:researcher` | The first field, `outcome:`, before the draft | A `cause:` field, after `outcome:` |
 
 `prose` quotes nothing it reads beyond the span a finding names, 25 words at
 most, and caps no number of findings (REQ-0816). A finding names its line, so

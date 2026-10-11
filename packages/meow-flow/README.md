@@ -2,7 +2,7 @@
 reader: someone installing or running meow-flow on Pi
 answers: what meow-flow provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-flow@0.51.0]
+describes: [@meowshed/meow-flow@0.52.0]
 ---
 
 # @meowshed/meow-flow
@@ -26,3 +26,15 @@ pi install npm:@meowshed/meow-core   # carries the binary the launchers run
 
 Installing from this repository's checkout is the development install: it
 loads the package in place and runs no lifecycle script.
+
+## Commands
+
+Each command sends its skill's instructions into the session, so the step
+runs: the seven step commands load the method skill, `/meow-flow:run` the
+driver skill, and `/meow-flow:init` and `/meow-flow:onboard` their own. Type
+the command and its arguments, and the model carries out what the skill
+says.
+
+The researcher's nested call picks the model the `MEOW_NESTED_MODEL`
+environment variable names before any other, so you choose what the draft
+costs: it runs on glm 5.3 flash where the variable names nothing.
