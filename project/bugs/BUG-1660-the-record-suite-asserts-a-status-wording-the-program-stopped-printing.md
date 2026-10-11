@@ -58,7 +58,10 @@ The reproduction, now passing in a clean worktree of the trunk, in
 
 ## Tasks
 
-- [ ] T-001 Align the fixture of
+- [x] T-001 Align the fixture of
       `test_a_rejected_provider_and_a_frozen_suspect_citation_are_reported`
       in `plugins/meow-flow/tests/test_record.py` with what `paw status`
       prints, and show the suite green in an `origin/main` worktree
+      — done in the change that aligned it: the assertion reads the 5
+      approved artifacts the program prints, BUG-0001 included, and the
+      unit's 289 tests pass, failures 0.

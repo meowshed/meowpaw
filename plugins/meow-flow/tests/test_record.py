@@ -1759,7 +1759,7 @@ class Reported(unittest.TestCase):
         repository.edit("requirements/REQ-0001-an-obligation.md", "revised: 2026-01-01", "revised: 2026-02-01")
         done = repository.run("status")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("  RES-0002, rejected, under 4 approved artifacts: ADR-0001, EPC-0001, REQ-0001, "
+        self.assertIn("  RES-0002, rejected, under 5 approved artifacts: ADR-0001, BUG-0001, EPC-0001, REQ-0001, "
                       "TSK-0001\n", done.stdout)
         self.assertIn("  3 suspect citations in approved artifacts: ADR-0001 addresses REQ-0001, BUG-0001 violates "
                       "REQ-0001, TSK-0001 closes REQ-0001\n", done.stdout)
