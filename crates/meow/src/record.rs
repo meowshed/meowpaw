@@ -1483,14 +1483,14 @@ fn relations(record: &Record) -> Vec<Finding> {
     let active = |status: &str| status == "approved" || status == "done";
     let provided = |id: &str| {
         of_kind(record, "decision").iter().any(|d| {
-            active(&bare(d.value("status")))
+            active(bare(d.value("status")))
                 && (requirements_in(record, d.value("addresses")).contains(id)
                     || requirements_in(record, d.value("postpones")).contains(id))
         })
     };
     for requirement in of_kind(record, "requirement") {
         let id = bare(requirement.id());
-        if !active(&bare(requirement.value("status"))) || provided(&id) {
+        if !active(bare(requirement.value("status"))) || provided(id) {
             continue;
         }
         out.push(Finding::at(
@@ -1501,16 +1501,17 @@ fn relations(record: &Record) -> Vec<Finding> {
     }
     for decision in of_kind(record, "decision") {
         let id = bare(decision.id());
-        if !active(&bare(decision.value("status")))
+        if !active(bare(decision.value("status")))
             || requirements_in(record, decision.value("addresses")).is_empty()
         {
             continue;
         }
-        let planned = of_kind(record, "epic").iter().any(|e| {
-            active(&bare(e.value("status"))) && bare(e.value("realises")) == id
-        }) || of_kind(record, "task").iter().any(|t| {
-            active(&bare(t.value("status"))) && bare(t.value("realises")) == id
-        });
+        let planned = of_kind(record, "epic")
+            .iter()
+            .any(|e| active(bare(e.value("status"))) && bare(e.value("realises")) == id)
+            || of_kind(record, "task")
+                .iter()
+                .any(|t| active(bare(t.value("status"))) && bare(t.value("realises")) == id);
         if !planned {
             out.push(Finding::at(
                 decision,
@@ -5013,7 +5014,12 @@ mod tests {
     /// TSK-5140, REQ-3900, REQ-3902: an approved requirement, an approved
     /// decision addressing it, and an epic realising it, each written where
     /// `with` names it, so a test asks for exactly one gap.
-    fn gap_fixture(requirement: bool, decision: bool, epic: bool, postpones: bool) -> (Record, std::path::PathBuf) {
+    fn gap_fixture(
+        requirement: bool,
+        decision: bool,
+        epic: bool,
+        postpones: bool,
+    ) -> (Record, std::path::PathBuf) {
         unsafe {
             std::env::set_var(
                 "MEOW_LAYOUT",
@@ -5036,16 +5042,26 @@ mod tests {
         std::fs::create_dir_all(dir.join("project").join("requirements")).unwrap();
         std::fs::create_dir_all(dir.join("project").join("adrs")).unwrap();
         std::fs::create_dir_all(dir.join("project").join("epics")).unwrap();
-        std::fs::write(dir.join(".meowpaw").join("profile.toml"), "[record]\nroot = \"project\"\n").unwrap();
+        std::fs::write(
+            dir.join(".meowpaw").join("profile.toml"),
+            "[record]\nroot = \"project\"\n",
+        )
+        .unwrap();
         if requirement {
             std::fs::write(
-                dir.join("project").join("requirements").join("REQ-0001-first.md"),
+                dir.join("project")
+                    .join("requirements")
+                    .join("REQ-0001-first.md"),
                 "---\nid: REQ-0001\nstatus: approved\nrevised: 2026-01-01\n---\n\n# REQ-0001\n",
             )
             .unwrap();
         }
         if decision {
-            let relation = if postpones { "postpones: [REQ-0001]" } else { "addresses: [REQ-0001]" };
+            let relation = if postpones {
+                "postpones: [REQ-0001]"
+            } else {
+                "addresses: [REQ-0001]"
+            };
             std::fs::write(
                 dir.join("project").join("adrs").join("ADR-0001-a-choice.md"),
                 format!("---\nid: ADR-0001\nstatus: approved\nrevised: 2026-01-01\n{relation}\n---\n\n# 0001. A choice\n"),
@@ -5072,7 +5088,9 @@ mod tests {
         let found = relations(&record);
         let _ = std::fs::remove_dir_all(&dir);
         assert!(
-            found.iter().any(|f| f.message.contains("REQ-0001") && f.message.contains("REQ-3900")),
+            found
+                .iter()
+                .any(|f| f.message.contains("REQ-0001") && f.message.contains("REQ-3900")),
             "the providerless requirement went unreported: {:?}",
             found.iter().map(|f| &f.message).collect::<Vec<_>>()
         );
@@ -5100,7 +5118,9 @@ mod tests {
         let found = relations(&record);
         let _ = std::fs::remove_dir_all(&dir);
         assert!(
-            found.iter().any(|f| f.message.contains("ADR-0001") && f.message.contains("REQ-3902")),
+            found
+                .iter()
+                .any(|f| f.message.contains("ADR-0001") && f.message.contains("REQ-3902")),
             "the planless decision went unreported: {:?}",
             found.iter().map(|f| &f.message).collect::<Vec<_>>()
         );
