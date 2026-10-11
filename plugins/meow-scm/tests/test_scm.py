@@ -243,22 +243,34 @@ class ToolOperations(unittest.TestCase):
 class SkillLoading(unittest.TestCase):
     """TSK-5370, BUG-1550: the description routes the skill on every operation its rules bound."""
 
-    DESCRIPTION = next(
-        line for line in (UNIT / "skills/commit/SKILL.md").read_text(encoding="utf-8").splitlines()
-        if line.startswith("description:")
-    )
+    RAW = (UNIT / "skills/commit/SKILL.md").read_text(encoding="utf-8")
+    DESCRIPTION = " ".join(RAW.split("---")[1].split()).removeprefix("name: commit description: ")
+    OBLIGATION = DESCRIPTION[DESCRIPTION.index("It MUST be loaded before") : DESCRIPTION.index("It MUST NOT be skipped")]
 
-    def test_the_description_names_each_operation_the_rules_bound(self):
-        """Criterion 1, REQ-1146: merge, rebase and the creation and removal of a working tree."""
-        self.assertRegex(self.DESCRIPTION, r"MUST be loaded before[^.]{0,200}`wt merge`")
-        for verb in ("rebase", "working tree"):
-            self.assertIn(verb, self.DESCRIPTION)
-        self.assertRegex(self.DESCRIPTION, r"created or removed|created, removed|removes? a working tree")
+    def test_the_obligation_names_each_operation_the_rules_bound(self):
+        """Criterion 1, REQ-1146: each verb a request uses sits in the sentence that says it MUST be loaded."""
+        for words in (
+            r"commit message, squash message or pull request title is written",
+            r"`wt merge` is run",
+            r"merged",
+            r"rebased",
+            r"worktree",
+            r"working tree",
+            r"created",
+            r"removed",
+            r"deleted",
+        ):
+            self.assertRegex(self.OBLIGATION, words)
 
-    def test_the_description_keeps_the_message_obligation_and_the_closing_sentence(self):
-        """Criterion 1, REQ-1148: the earlier obligation and the MUST NOT be skipped stay."""
-        self.assertRegex(self.DESCRIPTION, r"commit message, squash message or pull request title")
-        self.assertRegex(self.DESCRIPTION, r"It MUST NOT be skipped")
+    def test_the_description_closes_with_the_skip_sentence(self):
+        """Criterion 1, REQ-1148: the closing sentence stays last."""
+        self.assertRegex(self.DESCRIPTION, r"It MUST NOT be skipped, however[^.]*\.$")
+        self.assertEqual(self.DESCRIPTION.count("It MUST be loaded before"), 1)
+
+    def test_it_is_in_the_third_person_and_names_no_work_the_skill_does_not_govern(self):
+        """Criterion 1, REQ-1144: no first or second person, and no tag, release or publish."""
+        self.assertNotRegex(self.DESCRIPTION, r"\b(you|your|I|we)\b")
+        self.assertNotRegex(self.OBLIGATION, r"\b(tag|release|publish)")
 
 
 class Launcher(unittest.TestCase):
