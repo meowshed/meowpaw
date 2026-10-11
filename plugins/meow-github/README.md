@@ -368,7 +368,7 @@ subcommand's output to those words.
 
 ## Hooks
 
-`governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them; BUG-1562 records that no gate check and no skill hold the rule yet.
+`governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them; no gate check and no skill hold the rule yet.
 
 ## What it needs
 
