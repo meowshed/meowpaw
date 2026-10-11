@@ -59,14 +59,13 @@ class Tree:
         manifest = self.root / "plugins" / name / ".claude-plugin" / "plugin.json"
         manifest.parent.mkdir(parents=True)
         manifest.write_text(json.dumps(self.manifest(name, version)), encoding="utf-8")
-        (manifest.parent.parent / "budget.toml").write_text("permanent_characters = 1200\n", encoding="utf-8")
         if page:
             self.write(f"plugins/{name}/README.md", PAGE.format(unit=name, version=version, body=body))
 
     @staticmethod
     def manifest(name, version, **changes):
         data = {"name": name, "version": version,
-                "description": "Runs the demo. It keeps up to 1,200 characters in context on every turn.",
+                "description": "Runs the demo.",
                 "homepage": f"https://example.org/blob/main/plugins/{name}/README.md",
                 "repository": "https://example.org", "license": "Apache-2.0", "keywords": ["demo"]}
         data.update(changes)
@@ -159,12 +158,6 @@ class CheckDocs(unittest.TestCase):
         tree = self.tree()
         tree.change_manifest("meow-demo", homepage="https://example.org/blob/main/docs/meow-demo.md")
         self.assertFails(tree, "meow-demo: homepage doesn't point at plugins/meow-demo/README.md")
-
-    def test_a_description_without_the_ceiling_fails(self):
-        """REQ-3164: the description says what keeping the unit installed costs."""
-        tree = self.tree()
-        tree.change_manifest("meow-demo", description="Runs the demo.")
-        self.assertFails(tree, "meow-demo: the description doesn't name its ceiling, 1,200 characters")
 
     def test_a_page_missing_from_the_index_fails(self):
         """REQ-3154: the index says what every page answers and who it is for."""

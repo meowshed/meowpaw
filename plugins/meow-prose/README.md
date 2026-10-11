@@ -88,8 +88,7 @@ The `prose` agent holds three tools, each for one step of its procedure:
 
 ## What it costs you
 
-The skill's description costs 299 characters in context on every turn, so that
-Claude Code knows when to load the skill, and the reviewer's description costs 277. Claude Code loads the skill whenever it writes, rewrites, edits or reviews
+Claude Code loads the skill whenever it writes, rewrites, edits or reviews
 prose, a one-line commit message included. Measured on 24 requests, three runs
 each, it loaded in every writing request on Sonnet 5 and Opus 5.5 and in none
 that only changes code. On Opus 5.5 it also loads for some answers in chat.

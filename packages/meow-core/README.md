@@ -7,7 +7,7 @@ describes: [@meowshed/meow-core@0.9.0]
 
 # @meowshed/meow-core
 
-Shapes every reply Claude Code makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It replaces your own output style while it is enabled, and keeps up to 4,200 characters in context on every turn. Distributed as a Pi package.
+Shapes every reply Claude Code makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It replaces your own output style while it is enabled. Distributed as a Pi package.
 
 ## Install it
 
