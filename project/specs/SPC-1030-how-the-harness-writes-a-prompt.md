@@ -15,11 +15,11 @@ states:
     REQ-1064,
     REQ-1066,
     REQ-2748,
+    REQ-2750,
     REQ-5000,
     REQ-1068,
     REQ-1070,
     REQ-1076,
-    REQ-1078,
     REQ-1110,
     REQ-1111,
     REQ-1112,
@@ -41,7 +41,6 @@ states:
     REQ-1144,
     REQ-1146,
     REQ-1148,
-    REQ-1150,
     REQ-1672,
     REQ-1678,
     REQ-2682,
@@ -95,8 +94,8 @@ that holds the form.
 The reader is someone writing or reviewing the prompts of a unit. You know
 Claude Code skills and agents, and you have not read the other specifications.
 
-It leaves what each prompt says to the specification of its unit, and it leaves
-to SPC-1020 how a change to a prompt is measured.
+It leaves what each prompt says to the specification of its unit, and it
+leaves to SPC-1020 what the harness stopped measuring.
 
 ADR-1020, ADR-1030 and ADR-1050 decide the form. ADR-1040 decides how the reply
 shape reaches a subordinate agent, and ADR-1450 how the capability ships and is
@@ -159,8 +158,9 @@ the corrected one (REQ-1126, REQ-1136). The material is written in the form it
 should produce, as prose that states reasons (REQ-1115). The rule carries its
 reason beside it only in the cases the section on when material loads names.
 
-An instruction stays while the loop in SPC-1020 shows it changes the result on
-Sonnet 5 or Opus 5.5, and goes when it does not (REQ-1138).
+An instruction stays while review shows it changes the result, and goes when
+it does not (REQ-1138, postponed by ADR-2980 until the evaluation is
+redesigned).
 
 No rule a unit ships depends on being read last, because the platform loads
 several instruction files and a repository's constitution in an order the unit
@@ -241,9 +241,9 @@ belongs to one discipline, split where it spans two (REQ-1068, REQ-1070).
 
 A rule carries its reason beside it where the rule is counter-intuitive or the
 model's default is wrong. Otherwise the reason lives in material loaded on
-demand (REQ-1076). The loop in SPC-1020 shows whether moving explanation out of
-always-loaded material changes behaviour, and nobody asserts that it does not
-(REQ-1078).
+demand (REQ-1076). A change moving explanation out of always-loaded material
+is reviewed against the behaviour the material produces, and nobody asserts
+that it does not change behaviour (REQ-2750).
 
 Instruction that applies only to certain files is a path-scoped rule.
 Splitting always-loaded material into imported files saves nothing, because the
@@ -279,10 +279,10 @@ is a request the unit misses. A description in the second person reads as a
 different voice from the platform's own prompt, and it loaded the writing skill
 in 24 of 60 runs against 45 of 53 for the third person (RES-0272, ADR-1050).
 
-The routing measurement counts how often such a unit loads. It runs on Sonnet 5
-and on Opus 5.5, on requests that should load the unit and on near misses
-including answers in chat. A change to a description is measured again before
-it ships (REQ-1150).
+The routing behaviour a description decides is held by review: a change to a
+description is reviewed against the requests it should load and the near
+misses it should not, and the routing measurement that counted it is
+postponed until the evaluation is redesigned (ADR-2980).
 
 ### Outside text
 
@@ -486,28 +486,28 @@ One check audits every unit, because the format is uniform across them
 
 ## Failure paths
 
-| Condition                                                                         | What happens                                                                           |
-| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| A prompt uses a heading or an unknown tag                                         | The check fails in the gate, naming the file and the line                              |
-| A prompt nests a tag inside another                                               | The check fails, because the vocabulary is top-level only                              |
-| A core names no supporting file for a kind of work                                | The model loads nothing for it, and the unit is defective against REQ-1124             |
-| An obligation sits past the first 5,000 tokens of a core                          | The platform drops it after compaction, which is a defect against REQ-1064             |
-| A description or a `when_to_use` sits over the platform's cap of 1,536 characters | `meow author check` fails, naming the file (REQ-1060)                                  |
-| The model does not load a unit that MUST be loaded                                | The routing measurement shows it, and the description is the thing that changes        |
-| A description loads its unit on a near miss                                       | The routing measurement shows it, and the wording is narrowed before it ships          |
-| An agent leaves out a declared field                                              | The check fails in the gate, naming the file and the field                             |
-| A unit grants a tool no step is named for                                         | The check fails, naming the unit, the tool and the agent or skill granting it          |
-| A method prompt names a language or a tool                                        | `tools/check_language.py` fails in the `test` stage, naming the file, line and word    |
-| A language name the list lacks                                                    | The check passes it, and review holds it until the word joins the list                 |
-| An agent's front matter doesn't parse                                             | The check fails, naming the file and the reason, and runs no field rule on it          |
-| A shipped agent lists `Agent`, `Task` or `*`                                      | The check fails, naming the file and the `tools` field                                 |
-| A shipped agent names a model the account lacks                                   | The dispatch fails to start, and a repository replaces the agent with its own          |
-| An agent reaches its `maxTurns`                                                   | Its output comes back marked partial, and the dispatcher reads it as unfinished        |
-| A unit's agent doesn't name all four outcomes                                     | The check fails, naming the file and each missing word                                 |
-| A shipped agent's tool call is denied                                             | The agent makes no other call for it and ends with `outcome: BLOCKED` and the tool     |
-| A shipped agent's report carries no outcome line                                  | Its dispatcher reads it as work that didn't run                                        |
-| A unit ships a `commands/` directory                                              | The check fails, naming the unit                                                       |
-| A skill's directory holds a file its `SKILL.md` never names                       | The check fails, naming the file, because the model never loads it                     |
-| A prompt writes a path into the unit without the directory variable               | The check fails, naming the file and the line, because the path breaks off the install |
-| A procedure has no step naming where it stops                                     | The check fails, naming the file                                                       |
-| A background agent's permission prompt in an interactive session                  | It waits in the main session for the person, with no timeout the harness sets          |
+| Condition                                                                         | What happens                                                                                       |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| A prompt uses a heading or an unknown tag                                         | The check fails in the gate, naming the file and the line                                          |
+| A prompt nests a tag inside another                                               | The check fails, because the vocabulary is top-level only                                          |
+| A core names no supporting file for a kind of work                                | The model loads nothing for it, and the unit is defective against REQ-1124                         |
+| An obligation sits past the first 5,000 tokens of a core                          | The platform drops it after compaction, which is a defect against REQ-1064                         |
+| A description or a `when_to_use` sits over the platform's cap of 1,536 characters | `meow author check` fails, naming the file (REQ-1060)                                              |
+| The model does not load a unit that MUST be loaded                                | Review shows it, and the description is the thing that changes, until the evaluation is redesigned |
+| A description loads its unit on a near miss                                       | Review shows it, and the wording is narrowed before it ships                                       |
+| An agent leaves out a declared field                                              | The check fails in the gate, naming the file and the field                                         |
+| A unit grants a tool no step is named for                                         | The check fails, naming the unit, the tool and the agent or skill granting it                      |
+| A method prompt names a language or a tool                                        | `tools/check_language.py` fails in the `test` stage, naming the file, line and word                |
+| A language name the list lacks                                                    | The check passes it, and review holds it until the word joins the list                             |
+| An agent's front matter doesn't parse                                             | The check fails, naming the file and the reason, and runs no field rule on it                      |
+| A shipped agent lists `Agent`, `Task` or `*`                                      | The check fails, naming the file and the `tools` field                                             |
+| A shipped agent names a model the account lacks                                   | The dispatch fails to start, and a repository replaces the agent with its own                      |
+| An agent reaches its `maxTurns`                                                   | Its output comes back marked partial, and the dispatcher reads it as unfinished                    |
+| A unit's agent doesn't name all four outcomes                                     | The check fails, naming the file and each missing word                                             |
+| A shipped agent's tool call is denied                                             | The agent makes no other call for it and ends with `outcome: BLOCKED` and the tool                 |
+| A shipped agent's report carries no outcome line                                  | Its dispatcher reads it as work that didn't run                                                    |
+| A unit ships a `commands/` directory                                              | The check fails, naming the unit                                                                   |
+| A skill's directory holds a file its `SKILL.md` never names                       | The check fails, naming the file, because the model never loads it                                 |
+| A prompt writes a path into the unit without the directory variable               | The check fails, naming the file and the line, because the path breaks off the install             |
+| A procedure has no step naming where it stops                                     | The check fails, naming the file                                                                   |
+| A background agent's permission prompt in an interactive session                  | It waits in the main session for the person, with no timeout the harness sets                      |

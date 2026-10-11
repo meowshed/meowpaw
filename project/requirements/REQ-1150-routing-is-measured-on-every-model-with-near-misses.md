@@ -3,8 +3,8 @@ id: REQ-1150
 artifact: requirement
 topic: prompt-format
 class: functional
-status: approved
-revised: 2026-09-23
+status: withdrawn
+revised: 2026-10-11
 elaborates: RES-0272
 verification: evaluation
 ---
@@ -12,6 +12,11 @@ verification: evaluation
 # REQ-1150
 
 How often a unit that has to be in context before the model acts is loaded
+**Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
+evaluation whole, because the owner will redesign it in future.
+
 MUST be measured on each model it serves, on requests that should load it and
 on near misses that should not, including answers in chat.
 

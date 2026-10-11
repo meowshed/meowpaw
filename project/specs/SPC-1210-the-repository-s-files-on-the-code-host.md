@@ -2,8 +2,8 @@
 id: SPC-1210
 artifact: spec
 status: live
-revised: 2026-10-10
-states: [REQ-2214, REQ-2216, REQ-2196, REQ-2198, REQ-2200, REQ-3035]
+revised: 2026-10-11
+states: [REQ-2214, REQ-2216, REQ-2196, REQ-2198, REQ-2200, REQ-5100]
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
@@ -78,9 +78,9 @@ other value of `${{ github.event.* }}`, `${{ github.head_ref }}` or
 environment variable (REQ-2200). A `run:` line holds no `${{` at all, so the
 check has no list of trusted contexts to keep.
 
-No workflow runs the measurement suite or names a model credential, because
-every run of the suite is a real model call and the owner keeps those out of
-continuous integration (REQ-3035).
+No workflow runs a model call, names a model credential, or runs the
+measurement of a prompt, because a model call costs money and the owner keeps
+it out of continuous integration (REQ-5100).
 
 `tools/check_workflows.py` reads every workflow file and fails, naming the
 file and the line, on a missing top-level `permissions`, a top-level

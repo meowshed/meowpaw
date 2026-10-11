@@ -3,189 +3,44 @@ id: SPC-1020
 artifact: spec
 status: live
 revised: 2026-10-11
-states:
-  [
-    REQ-0153,
-    REQ-0159,
-    REQ-0160,
-    REQ-0956,
-    REQ-1759,
-    REQ-3022,
-    REQ-3024,
-    REQ-3026,
-    REQ-3028,
-    REQ-3030,
-    REQ-3032,
-    REQ-3035,
-    REQ-3036,
-    REQ-3038,
-  ]
+states: [REQ-2750]
 ---
+
+<!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
 
 # Measuring the harness
 
 ## Scope
 
-Measuring a change to what the harness says is what this covers: the case set,
-the two arms, the judge, the thresholds, what counts as a regression, and the
-loop by which a prompt is optimised.
+The harness measures no prompt. ADR-2980 removed prompt evaluation — measuring
+a prompt's behaviour with model runs — whole: the runner, the case sets, the
+thresholds and the requirements that made a measurement obligatory, because
+the owner will redesign it in future. This page stands to say so, and to name
+what replaced the measurement: review.
 
-It leaves what the prompts say to the specification of the unit that ships
-them, because a contract names no unit and every unit's specification cites
-the contracts it follows.
+What the harness says is held by the review before publishing, which
+meow-prose runs on every text, and by the static and behavioural checks the
+other specifications state. ADR-2840's prohibition stands: no
+workflow under `.github/workflows/` runs a model call or holds a model
+credential, and `tools/check_workflows.py` fails the gate on one.
 
-ADR-1010 authorises it and EPC-1010 realises it. ADR-1500 settles what the
-loop reports and refuses, and EPC-1480 realises it. `tools/loop.py` implements
-it, through the platform's `claude plugin eval`, the one way the harness
-measures a change to its own material (REQ-1759).
-
-## Boundary
-
-| Surface                                | What it is                                                     |
-| -------------------------------------- | -------------------------------------------------------------- |
-| `plugins/<unit>/evals/<case>/`         | One case: the prompt a person might type, and its graders      |
-| The platform's eval runner             | Runs each case in both arms and scores it                      |
-| `plugins/<unit>/evals/results/`        | What a run wrote; no repository commits it                     |
-| `plugins/<unit>/evals/thresholds.toml` | What the styled arm must score on each case                    |
-| `tools/loop.py`                        | Runs the baseline and every candidate, and publishes one table |
-| The published delta                    | Per case and weighted, with the run count and the judge named  |
+What the redesign will settle — what measures a prompt after it, which cases
+survive it, and whether the prose gate's acceptance joins it — is unset, and
+ADR-2980 names the failure that would bring it back early: a shipped rule
+change whose behaviour a reader faulted and review had passed.
 
 ## Behaviour
 
-### Two arms, always
-
-Every measurement runs the same work with the harness and without it, in every
-mode of the loop, and the difference between the two is the result
-(REQ-3022). A case scoring the same in both arms measures the model and says
-nothing about the harness. The loop labels each case from its delta and twice
-its standard error, against a margin of 0.10 stated in its code: an interval
-within the margin of zero is `delete: scores the same without the unit`, one
-clearing zero separates, and any other is `undetermined: run more`
-(ADR-1500).
-
-### When a case earns its place
-
-A case belongs in the set when it separates the arms on the text being
-measured. A case set where the baseline already scores 1.00 cannot see a
-change, which the first measurement of SPC-1000 found on three cases of four.
-
-Cases come from what this method produces: a progress report with nothing to
-compute from, an error report, a gap list somebody asked to shorten, a summary
-under pressure to drop a stage.
-
-Each case carries its own threshold (REQ-3030). A threshold inherited from the
-suite says the same thing about a case nobody tuned and a case somebody did.
-
-### Routing before content
-
-The measurement asks whether a unit is chosen before it asks what the unit says
-(REQ-3032), because a unit nobody loads has no effect to measure. For a skill
-that means its description, and the question is whether the skill fires on
-natural phrasing and stays unloaded on a near miss. Routing is measured on
-each model the unit serves, because one description loaded the writing skill
-in 45 of 50 writing runs on Opus 5.5 and in 0 of 30 on Sonnet 5 (REQ-1150).
-
-The near misses include work close to the unit's own, such as fixing a typo in
-a README, and answers in chat, because a description stating an obligation
-could load its unit wherever text appears. Every wrong result keeps its
-transcript, so a miss can be read and not only counted.
-
-### Graders, and when to spend a judge
-
-The measurement prefers a grader that costs nothing: a pattern over the reply,
-a tool call, the order of two calls, a file that exists. It spends a judge last
-(REQ-3024), and only where the question needs reading: whether a summary
-rounded an unresolved stage into a pass, whether a report invented a state.
-
-Where the judge comes from the same family as the text under test, the
-measurement reports it as a smoke check and never as the result (REQ-3028).
-
-### What the run states
-
-A measurement states how many runs it used, and nobody assumes the platform's
-default of three is enough (REQ-3026). The one measured evaluation this corpus
-cites reported single-case variance above 0.9 at three trials.
-
-It states the judge, the case set, and the revision it ran at. Every rate and
-delta carries twice its standard error, and every case its run count
-(REQ-0160). The header
-names the judge's model and its family, computed from the identifier: a
-same-family judge makes every judged score, a verdict included, a smoke check;
-another family's judge is still no claim while which judge is stronger stays
-unsettled; and a run of 3 or fewer supports no claim.
-
-What counts is stated before a run (REQ-0159). The code states the delta
-rules above, and `evals/thresholds.toml` the minimum score each case must reach
-with the unit. The loop refuses to run while that file differs from the last
-commit, and the header names that commit and the run's time. A case with no
-threshold runs and gets no verdict, as `no threshold set before the run`.
-
-The loop refuses a case with a `type: baseline` grader, a judged comparison
-against the baseline arm whose order the runner doesn't document and the
-harness can't shuffle (REQ-0153). Every other grader judges one run's output
-alone, and the loop's own comparisons compare scores, never two outputs in one
-judge's view.
-
-A candidate lands on its overall delta, when that moves by more than twice its
-standard error. A gain in one case is read only from ten runs or more and only
-when it exceeds 0.2, because at five runs a single case moves by 0.2 through
-noise alone: two candidates for the writing skill each raised their target case
-by 0.4 or more, and neither gain held when the two were measured again
-together.
-
-### What a regression is
-
-A regression is a fall in the difference against the baseline, and never a fall
-in the absolute score (REQ-3036). A model that improved raises both arms, and
-reading the absolute score alone would call an unchanged prompt better.
-
-### The loop
-
-A change to a prompt is measured against the prompt it replaces (REQ-0956).
-Every prompt goes through one runner, which measures each candidate on Sonnet 5
-and on Opus 5.5 and judges with Opus 5.5, so a result for one prompt reads the same as a result for
-another. Opus 5.5 may also propose and refine the candidates: proposing is not
-judging, so the family rule in REQ-3028 does not reach it. The current text is
-the baseline. Each candidate changes one thing, so the delta
-can be attributed. Each candidate is measured on the same cases, with the same
-run count and the same judge.
-
-A candidate lands when the difference holds or rises on both models.
-
-Every candidate's delta is published, including the ones that lost. Where no
-candidate lands, the baseline stays and the loop reports that it found nothing
-better, which is a result and not a failure.
-
-### Measuring a gate
-
-A prompt that blocks is measured as a classifier and not as a delta. A hook
-on the shell never fires inside `claude plugin eval`, whose sessions have no
-shell, so `tools/measure_gate.py` runs each case as a real session in a fresh
-repository and reads the verdict from the hook's own answer. Its case
-set is labelled: texts carrying a named defect, which it must block, and clean
-texts, which it must pass. The result is how often it blocks each kind.
-
-A false block costs more than a miss. A gate that stops a good text teaches an
-author to work around it, and then it stops nothing; a gate that misses a
-defect leaves the deep reviewer and the reader where they already were.
-
-The same numbers decide the model. Haiku is named because these criteria sit
-inside what a small model settles, and a rise in false blocks is the evidence
-that they do not.
-
-### When the suite runs
-
-The suite runs by hand on the owner's machine, and no workflow runs it or
-holds a model credential (REQ-3035), because every run is a real model call.
-A model release is its own reason to run it again (REQ-3038).
+The harness states no measurement of a prompt, and keeps none: no runner, no
+case set, no threshold and no published rate. What a change to a shipped
+prompt produces is reviewed against the behaviour the material produced
+before the change (REQ-2750), and the review before publishing is the one
+check on the text.
 
 ## Failure paths
 
-| Condition                                     | What happens                                                                                    |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| A case scores the same in both arms           | The case is reported as unable to discriminate, and it is not counted as a pass                 |
-| The run hits a usage limit                    | The error is reported as a run error, and never as a plugin regression                          |
-| A cost ceiling aborts the run                 | The partial result is reported as partial, and arms graded under different rules print no delta |
-| The judge is from the candidate's family      | The result is reported as a smoke check                                                         |
-| A candidate improves the score and costs more | Both numbers are published and somebody decides                                                 |
-| A measurement contradicts the decision        | It is reported as it stands, and it is not rerun until it agrees                                |
+| Condition                                                                | What happens                                                                                  |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| A workflow under `.github/workflows/` names a model call or a credential | `tools/check_workflows.py` fails the gate (ADR-2840)                                          |
+| A change to a shipped prompt is asserted safe, not reviewed              | The move is reviewed against the behaviour the material produces, not asserted (REQ-2750)     |
+| A prompt's behaviour regresses and review passed it                      | The failure that would bring the measurement back early is recorded, and the redesign decides |
