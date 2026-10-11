@@ -142,7 +142,7 @@ fn find_meow_scm() -> Option<PathBuf> {
         let named = PathBuf::from(named);
         return named.is_file().then_some(named);
     }
-    // The binary sits at <pack>/bin/<target>/meow.
+    // The binary sits at <pack>/bin/<target>/paw.
     let pack = std::env::current_exe()
         .ok()?
         .canonicalize()

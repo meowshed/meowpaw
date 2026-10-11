@@ -100,7 +100,7 @@ fn no_subcommand_writes_outside_the_state_the_repository_and_the_record() {
     let tmp = Dir::new("tmp");
     let state = Dir::new("state");
     let run = |args: &[&str], input: &str| {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_meow"))
+        let mut child = Command::new(env!("CARGO_BIN_EXE_paw"))
             .args(args)
             .current_dir(&repo.0)
             .env("HOME", &home.0)

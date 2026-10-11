@@ -57,9 +57,9 @@ fn write(dir: &Path, path: &str, text: &str) {
     std::fs::write(file, text).unwrap();
 }
 
-/// `meow verbs <args>` in `dir`, with a state directory of the fixture's own.
+/// `paw verbs <args>` in `dir`, with a state directory of the fixture's own.
 fn checks(dir: &Path, state: &Path, args: &[&str]) -> (Output, String) {
-    let done = Command::new(env!("CARGO_BIN_EXE_meow"))
+    let done = Command::new(env!("CARGO_BIN_EXE_paw"))
         .arg("verbs")
         .args(args)
         .current_dir(dir)

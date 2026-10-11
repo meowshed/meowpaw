@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.50.1]
+describes: [meow-flow@0.51.0]
 ---
 
 # meow-flow
@@ -20,7 +20,7 @@ You run the record's command as `paw`, from the unit's `bin/` directory.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-flow@meowpaw
 ```
 

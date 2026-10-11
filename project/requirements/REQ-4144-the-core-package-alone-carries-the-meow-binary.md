@@ -3,24 +3,21 @@ id: REQ-4144
 artifact: requirement
 topic: pi-packages
 class: functional
-status: approved
-revised: 2026-10-04
+status: withdrawn
+revised: 2026-10-11
 elaborates: RES-0342, RES-0343
 verification: behavioural
 ---
 
-# The core package alone carries the meow binary
+# REQ-4144
 
-The `@meowshed/meow-core` npm tarball carries the all-features meow binary
-for every platform the build workflow builds, and the other five packages
-carry no binary and run no installer. Each package's launcher looks for
-its unit's binary beside itself first and falls back to `meow` on PATH,
-which the core extension resolves, and reports each check as unrun where
-neither holds.
+**Withdrawn by ADR-2920. Replaced by REQ-4612.**
 
-Rationale: five packages carrying the same binary are five redundant
-copies of it and five installers to keep in step, where the core package
-is the layer every install already includes and its extension is already
-the one putting directories on PATH. One distribution point for one
-binary, and a missing core install degrades to the wrappers' designed
-unrun report instead of breaking an install.
+It read: the `@meowshed/meow-core` npm tarball carries the all-features meow
+binary for every supported platform, while every other package carries none;
+each launcher looks beside itself and falls back to `meow` on PATH.
+
+ADR-2920 keeps the one all-features executable in `meow-core` and names it
+`paw`. REQ-4612 requires Claude launchers to resolve it through the core data
+marker and Pi launchers to use the absolute path exported by the core extension,
+which avoids resolving a package's own wrapper recursively.

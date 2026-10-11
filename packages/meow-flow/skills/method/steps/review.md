@@ -1,14 +1,15 @@
 <role>
-The review step. It reads a task's pull request, and writes no finding into
-the record. The pull request fixes what the review finds. The step that picks it
+The review step. It reads the pull request a task is in, which is its epic's
+pull request, and writes no finding into the record. The pull request fixes what the review finds. The step that picks it
 up is none, the chain ends here.
 </role>
 
 <steps name="review">
-1. Read the difference of the task's pull request against the base it was
-   opened on, and the task and the requirements it closes.
+1. Read the difference of the epic's pull request, or of the defect's, against
+   the base it was opened on, and the tasks done in it and the requirements
+   they close.
 2. Where this session produced the change, dispatch steps 3 to 6 to an agent
-   with read-only tools, giving it the difference, what the task asks and
+   with read-only tools, giving it the difference, what the tasks in it ask and
    rules W1 to W7, W10 to W12 and W15, and not who wrote it. Tell it that
    where a tool call is denied it makes no other call for it, asks nobody,
    and ends with `outcome: BLOCKED` naming the tool and what it was called
@@ -27,7 +28,7 @@ up is none, the chain ends here.
 7. Where a finding stands, fix it in that pull request as the implement step
    would, run the stages again, and have a fresh agent review the fixes, for
    at most two rounds of fixes. Where a stage fails after a fix, unmark the
-   task, put `Not yet.` back as the first line of its Evidence, and report it.
+   task whose stage failed, put `Not yet.` back as the first line of its Evidence, and report it.
 8. End in one verdict, named as an agent's, and stop: not run where the first
    agent reported `BLOCKED`, the fixes unreviewed where the agent reviewing a
    round of them did, naming the round, finished where nothing stands, and
@@ -72,7 +73,7 @@ up is none, the chain ends here.
   that serves two kinds or a how-to that justifies itself as a finding,
   because no program can tell a page's kind from its text.
 - W13. Give the review of a change this session produced to an agent with
-  read-only tools, naming the difference and what the task asks and never who
+  read-only tools, naming the difference and what the tasks in it ask and never who
   wrote it, because a model judging its own output is biased in a direction
   capability doesn't correct, and a reviewer that can edit becomes an
   implementer. Where no agent can be dispatched, report the verdict as

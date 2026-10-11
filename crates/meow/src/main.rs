@@ -92,7 +92,7 @@ fn main() -> ExitCode {
         "loop" => runloop::main(rest),
         _ => {
             eprintln!(
-                "usage: meow <subcommand> ..., where this build carries: {}",
+                "usage: paw <subcommand> ..., where this build carries: {}",
                 carried().join(", ")
             );
             2

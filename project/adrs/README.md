@@ -2,7 +2,7 @@
 id: index
 artifact: index
 status: live
-revised: 2026-09-28
+revised: 2026-10-11
 ---
 
 # Decisions
@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-134 decisions in all: 32 approved, 94 done, 8 superseded.
+135 decisions in all: 33 approved, 94 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -152,6 +152,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2890](ADR-2890-a-task-and-its-issue-are-synchronised-by-fingerprint.md)                                                                              | A task and its issue are synchronised by a fingerprint of each side                                                                        | done       |
 | [ADR-2900](ADR-2900-the-driver-is-the-one-action-the-model-may-invoke.md)                                                                                 | The driver is the one action the model may invoke                                                                                          | approved   |
 | [ADR-2910](ADR-2910-a-run-has-an-iteration-ceiling-and-a-time-limit-and-each-has-a-default.md)                                                            | A run has an iteration ceiling and a time limit, and each has a default                                                                    | done       |
+| [ADR-2920](ADR-2920-the-shared-executable-is-named-paw.md)                                                                                                | The shared executable is named `paw`                                                                                                       | approved   |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1140 by ADR-2770; ADR-1170 by ADR-2770; ADR-1210 by ADR-2770; ADR-1310 by ADR-2890; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310; ADR-2310 by ADR-2860.
 <!-- /meow-flow index -->

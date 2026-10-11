@@ -1208,7 +1208,7 @@ fn own_unit() -> Option<PathBuf> {
     unit_from(&program, named.as_deref())
 }
 
-/// The loop's unit for a program at `<unit>/bin/<target>/meow`: the directory
+/// The loop's unit for a program at `<unit>/bin/<target>/paw`: the directory
 /// `named` gives, then the program's own unit, then the `meow-loop` beside it,
 /// because the binary ships with the core package under ADR-2810. A candidate
 /// is the unit only where its manifest names `meow-loop`, because a call that
@@ -1393,7 +1393,9 @@ fn deny(reason: &str) {
 }
 
 /// Whether a command's text starts a run: a word ending in `meow-loop`
-/// followed by `start`, or a word ending in `meow` followed by `loop start`.
+/// followed by `start`, or a word ending in `paw` or the earlier `meow`
+/// followed by `loop start`, because an install older than ADR-2920 keeps
+/// the old spelling.
 /// It reads the text and not what the text expands to, so it catches a
 /// path-qualified runner and one inside `bash -c`, and misses a name hidden
 /// in a script, a variable or a command substitution, or split by quotes or
@@ -1409,7 +1411,11 @@ fn starts_a_run(command: &str) -> bool {
         // A runner's name is never taken as a redirect's target, because
         // a `>` the split separated from what follows it, as in `'>'; x`,
         // isn't one.
-        if std::mem::take(&mut target) && !word.ends_with("meow-loop") && !word.ends_with("meow") {
+        if std::mem::take(&mut target)
+            && !word.ends_with("meow-loop")
+            && !word.ends_with("meow")
+            && !word.ends_with("paw")
+        {
             continue;
         }
         match word.find(['<', '>']) {
@@ -1433,9 +1439,11 @@ fn starts_a_run(command: &str) -> bool {
     words
         .windows(2)
         .any(|pair| pair[0].ends_with("meow-loop") && pair[1] == "start")
-        || words
-            .windows(3)
-            .any(|three| three[0].ends_with("meow") && three[1] == "loop" && three[2] == "start")
+        || words.windows(3).any(|three| {
+            (three[0].ends_with("paw") || three[0].ends_with("meow"))
+                && three[1] == "loop"
+                && three[2] == "start"
+        })
 }
 
 // The run that lives in the session (SPC-1201, EPC-2300).
@@ -2042,13 +2050,13 @@ fn run_is_active(event: &Value) -> bool {
 }
 
 /// Whether a command's text names the runner at all: a word ending in
-/// `meow-loop`, or `meow` followed by `loop` (REQ-2660).
+/// `meow-loop`, or `paw` or the earlier `meow` followed by `loop` (REQ-2660).
 fn names_the_runner(command: &str) -> bool {
     let words = command_words(command);
     words.iter().any(|w| w.ends_with("meow-loop"))
-        || words
-            .windows(2)
-            .any(|pair| pair[0].ends_with("meow") && pair[1] == "loop")
+        || words.windows(2).any(|pair| {
+            (pair[0].ends_with("paw") || pair[0].ends_with("meow")) && pair[1] == "loop"
+        })
 }
 
 /// What each subcommand determines, what a person reads in its place, and its
@@ -2137,7 +2145,7 @@ mod tests {
     }
 
     /// A packages directory with each named unit's manifest, and the program's
-    /// path inside the first one, as `<unit>/bin/<target>/meow`.
+    /// path inside the first one, as `<unit>/bin/<target>/paw`.
     fn packages(case: &str, units: &[&str]) -> (PathBuf, PathBuf) {
         let base =
             std::env::temp_dir().join(format!("meow-loop-unit-{case}-{}", std::process::id()));
@@ -2151,7 +2159,7 @@ mod tests {
             )
             .unwrap();
         }
-        let program = base.join(units[0]).join("bin").join("target").join("meow");
+        let program = base.join(units[0]).join("bin").join("target").join("paw");
         std::fs::create_dir_all(program.parent().unwrap()).unwrap();
         std::fs::write(&program, "").unwrap();
         (base, program)

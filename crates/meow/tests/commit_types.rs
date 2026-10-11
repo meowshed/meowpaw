@@ -32,9 +32,9 @@ impl Drop for Dir {
     }
 }
 
-/// `meow scm check-message` in `dir`, given `message` on standard input.
+/// `paw scm check-message` in `dir`, given `message` on standard input.
 fn check(dir: &Path, message: &str) -> (Output, String) {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_meow"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_paw"))
         .args(["scm", "check-message"])
         .current_dir(dir)
         .env("GIT_CONFIG_GLOBAL", "/dev/null")

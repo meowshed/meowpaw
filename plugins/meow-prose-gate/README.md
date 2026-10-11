@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose-gate
 answers: what meow-prose-gate does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose-gate@0.5.0]
+describes: [meow-prose-gate@0.6.0]
 ---
 
 # meow-prose-gate
@@ -99,7 +99,7 @@ model, and nothing else should set it.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-prose-gate@meowpaw
 ```
 
