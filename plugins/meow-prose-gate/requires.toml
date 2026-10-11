@@ -5,3 +5,12 @@
 # manifest has no field for a minimum platform version, so the unit states it
 # here: the version its behaviour was last tested on, 2026-10-03.
 claude_code = "2.1.284"
+
+# The layer of the harness this unit ships in (SPC-1080 "Each unit is a
+# plugin"): it stops a text with a writing defect from being published.
+layer = "practice"
+
+# The units this one needs (REQ-1482), read from what it runs: its launcher
+# finds the shared binary meow-core ships, and nothing else it runs reaches
+# another unit's files.
+units = ["meow-core"]

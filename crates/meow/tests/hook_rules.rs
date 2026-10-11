@@ -67,6 +67,16 @@ fn unit(name: &str, event: &str, command: &str, script: Option<(&str, &str)>, re
     let dir = Dir::new(name);
     git(&dir.0, &["init", "-q", "--template="]);
     let root = dir.0.join("plugins").join(name);
+    // The manifest rules of SPC-1080 "Each unit is a plugin" read these, so a
+    // fixture unit carries them (REQ-1482, REQ-2990).
+    write(
+        &root.join(".claude-plugin/plugin.json"),
+        &format!("{{\"name\":\"{name}\",\"version\":\"0.1.0\"}}"),
+    );
+    write(
+        &root.join("requires.toml"),
+        "claude_code = \"2.0.0\"\nlayer = \"practice\"\nunits = []\n",
+    );
     write(
         &root.join("hooks/hooks.json"),
         &format!(

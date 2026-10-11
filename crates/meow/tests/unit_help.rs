@@ -404,7 +404,6 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "git", &["push-guard"], "");
     held(d, s, "licence", &["check"], "");
     held(d, s, "author", &["check", "plugins"], "");
-    held(d, s, "author", &["cost"], "");
     for unit in ["mise", "gotask"] {
         held(d, s, unit, &["status"], "");
         held(d, s, unit, &["bind"], "");

@@ -10,7 +10,7 @@ describes: [meow-author@0.8.0]
 `meow-author` holds how Claude Code writes skills, agents, output styles,
 commands and prompt hooks, and checks what you write, in a plugin or in your
 repository's own `.claude/`, for the form the `meowpaw` harness holds its own
-units to. It installs on its own, with no other part of the harness.
+units to. Its launcher runs the shared `paw` binary `meow-core` ships.
 
 ## Install it
 
@@ -20,6 +20,8 @@ Add the marketplace and install the unit:
 claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-author@meowpaw
 ```
+
+Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone.
 
 ## What it adds to a session
 
@@ -60,6 +62,14 @@ file and the line, on:
   no field can be read from it;
 - a plugin shipping a `commands/` directory, where a command is a skill only
   a person invokes;
+- a plugin with no version in its `.claude-plugin/plugin.json`, where every
+  unit the harness ships carries one;
+- a plugin with no `requires.toml`, no `layer`, no `units`, a pack with no
+  `kernel` range, or a layer outside kernel, method, practice and pack, where
+  the manifest states what the unit ships in and what it needs;
+- a README that names a unit in `units` and doesn't say the platform enables
+  that unit and keeps it enabled while the first stays on, because a
+  required unit can't be turned off alone;
 - a file in a skill's directory that its `SKILL.md` never names;
 - a path climbing out of a file with no directory variable in front of it,
   such as the platform's variable for the skill's or the plugin's directory;
@@ -128,7 +138,7 @@ README, so a tool no step needs is visible and removed.
 
 `meow-author check` also reads each unit's always-loaded material, and fails
 on a skill's or agent's description and its `when_to_use` together over the
-platform's cap of 1,536 characters, which the platform sets (REQ-1060). How
+platform's cap of 1,536 characters, which the platform sets. How
 often each skill is used comes from `/skill-doctor` in Claude Code; the unit
 reads none of Claude Code's own files.
 
