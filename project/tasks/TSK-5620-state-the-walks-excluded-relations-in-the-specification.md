@@ -1,7 +1,7 @@
 ---
 id: TSK-5620
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 epic: EPC-2840
 closes: [REQ-0139]

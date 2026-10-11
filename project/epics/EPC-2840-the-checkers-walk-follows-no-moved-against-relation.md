@@ -1,7 +1,7 @@
 ---
 id: EPC-2840
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-11
 realises: ADR-2960
 ---
@@ -33,7 +33,7 @@ A task is marked in the commit that advances it, never in a later pass.
 
 ## Tasks
 
-- [x] T-001 TSK-5620 state the walk's excluded relations in the specification
+- [x] T-001 TSK-5620 state the walk's excluded relations in the specification (done: pull request 1062)
       closes: REQ-0139
       — done in this pull request: the specification states the three
       exclusions, and the two crate tests the code carries pass by name.
