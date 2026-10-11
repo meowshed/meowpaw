@@ -19,7 +19,7 @@ instruction. For `push-guard`, which stops a push of a commit whose message or s
 
 ## Reproduction
 
-Seen at revision `224c9462`.
+Seen on the trunk after pull request 1046.
 
 1. Read the tasks of `mise.toml` and the jobs of `.github/workflows/ci.yml`
    for a check that finds a tree or a history that breaks the rule `push-guard`

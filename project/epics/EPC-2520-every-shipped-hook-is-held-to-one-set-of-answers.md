@@ -1,7 +1,7 @@
 ---
 id: EPC-2520
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2450
 ---
@@ -48,18 +48,18 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-4900 hold every hook to SPC-1240's check list in `meow-author check` and the crate's hook subcommands
+- [x] T-001 [P] TSK-4900 hold every hook to SPC-1240's check list in `meow-author check` and the crate's hook subcommands (done: pull request 1047)
       closes: REQ-2716, REQ-2718, REQ-2720, REQ-2722, REQ-2724, REQ-2726, REQ-2727
 
-- [ ] T-002 TSK-4905 write each hook unit's `## Hooks` section with its gate check and skill, and show a crashing hook abstains
+- [x] T-002 TSK-4905 write each hook unit's `## Hooks` section with its gate check and skill, and show a crashing hook abstains (done: pull request 1047)
       closes: REQ-2710, REQ-2712, REQ-2714
       depends: TSK-4900 (not blocking) - the check reads the section this task writes, and either can land first
 
-- [ ] T-003 TSK-4910 advance a revision counter in `meow-checks` on every tool use, failed ones included
+- [x] T-003 TSK-4910 advance a revision counter in `meow-checks` on every tool use, failed ones included (done: pull request 1047)
       closes: REQ-2728
       depends: TSK-4900 (not blocking) - the new hook must pass the check, and the check's rules can be met by hand before it lands
 
-- [ ] T-004 [P] TSK-4915 pin that `meow-flow`'s `SessionStart` output names a pending gate
+- [x] T-004 [P] TSK-4915 pin that `meow-flow`'s `SessionStart` output names a pending gate (done: pull request 1047)
       closes: REQ-2730
 
 ## Coverage

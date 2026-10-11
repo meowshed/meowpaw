@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-134 decisions in all: 34 approved, 92 done, 8 superseded.
+134 decisions in all: 33 approved, 93 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -105,7 +105,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2420](ADR-2420-a-tool-runs-operations-and-the-method-keeps-its-own-decisions.md)                                                                     | A tool runs operations, and the method keeps its own decisions                                                                             | done       |
 | [ADR-2430](ADR-2430-packing-the-repository-and-querying-the-corpus-are-postponed-until-a-step-needs-them.md)                                              | Packing the repository and querying the corpus are postponed until a step needs them                                                       | approved   |
 | [ADR-2440](ADR-2440-answering-a-symbol-question-through-a-language-server-is-postponed.md)                                                                | Answering a symbol question through a language server is postponed                                                                         | approved   |
-| [ADR-2450](ADR-2450-a-shipped-hook-only-denies-and-meow-author-check-holds-every-hook-to-the-rules.md)                                                    | A shipped hook only denies, and `meow-author check` holds every hook to the rules                                                          | approved   |
+| [ADR-2450](ADR-2450-a-shipped-hook-only-denies-and-meow-author-check-holds-every-hook-to-the-rules.md)                                                    | A shipped hook only denies, and `meow-author check` holds every hook to the rules                                                          | done       |
 | [ADR-2460](ADR-2460-each-unit-requests-only-the-permissions-a-step-names-and-writes-only-inside-the-repository.md)                                        | Each unit requests only the permissions a step names, and writes only inside the repository                                                | approved   |
 | [ADR-2470](ADR-2470-the-harness-keeps-one-threat-model-that-ranks-its-own-accidents-first.md)                                                             | The harness keeps one threat model, which ranks its own accidents first                                                                    | done       |
 | [ADR-2480](ADR-2480-each-unit-is-a-versioned-plugin-whose-contracts-are-files-and-commands.md)                                                            | Each unit is a versioned plugin whose contracts are files and commands                                                                     | approved   |

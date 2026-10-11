@@ -60,37 +60,35 @@ def defects():
 
 
 class Layering(unittest.TestCase):
-    def test_each_blocking_hook_names_an_existing_check_and_skill_or_a_defect(self):
-        """TSK-4905 criteria 1 and 2, REQ-2710, REQ-2712."""
+    def test_each_blocking_hook_names_an_existing_check_and_skill_or_says_there_is_none(self):
+        """TSK-4905 criteria 1 and 2, REQ-2710, REQ-2712. A shipped page cites no record, so a hook without a
+        check says so in plain words, and a defect in the record names the hook and the missing check."""
         tasks, jobs = gate_checks()
         known_skills = skills()
-        known_defects = defects()
         for unit, subcommand in BLOCKING:
             sentence = readme_sentence(unit, subcommand)
             where = f"{unit} `{subcommand}`"
-            named_defects = set(re.findall(r"\bBUG-\d{4}\b", sentence))
-            unknown = named_defects - known_defects
-            self.assertFalse(unknown, f"{where} names a defect that doesn't exist: {sorted(unknown)}")
+            self.assertNotRegex(sentence, r"\b(BUG|REQ|ADR)-\d{4}\b", f"{where} cites a record on a shipped page")
             checks = re.findall(r"`mise run ([A-Za-z0-9_-]+)`", sentence) + re.findall(r"`CI job ([A-Za-z0-9_-]+)`", sentence)
-            if not named_defects:
-                self.assertTrue(checks, f"{where} names no gate check and no defect: {sentence}")
+            if not checks:
+                self.assertRegex(sentence, r"no gate check", f"{where} names no gate check and doesn't say there is none")
             for check in checks:
                 self.assertTrue(check in tasks or check in jobs, f"{where} names a gate check that doesn't exist: {check}")
             named_skills = re.findall(r"`([a-z0-9-]+:[a-z0-9-]+)` skill", sentence)
-            if not named_defects:
-                self.assertTrue(named_skills, f"{where} names no skill and no defect: {sentence}")
+            if not named_skills:
+                self.assertRegex(sentence, r"no skill", f"{where} names no skill and doesn't say there is none")
             for skill in named_skills:
                 self.assertIn(skill, known_skills, f"{where} names a skill that doesn't exist")
 
-    def test_a_hook_whose_rule_has_no_gate_check_is_a_finding_against_the_unit(self):
+    def test_a_hook_whose_rule_has_no_gate_check_has_a_defect_naming_it(self):
         """TSK-4905 criterion 2, REQ-2712: the defect names the hook and the missing check."""
+        bugs = [p.read_text(encoding="utf-8") for p in (ROOT / "project" / "bugs").glob("BUG-*.md")]
         for unit, subcommand in BLOCKING:
             sentence = readme_sentence(unit, subcommand)
-            for ident in re.findall(r"\bBUG-\d{4}\b", sentence):
-                path = next((ROOT / "project" / "bugs").glob(f"{ident}-*.md"))
-                text = path.read_text(encoding="utf-8")
-                self.assertIn("violates: REQ-2712", text, f"{ident} doesn't violate REQ-2712")
-                self.assertIn(f"`{subcommand}`", text, f"{ident} doesn't name the hook `{subcommand}`")
+            if re.findall(r"`mise run ([A-Za-z0-9_-]+)`", sentence):
+                continue
+            found = [t for t in bugs if "violates: REQ-2712" in t and f"`{subcommand}`" in t and unit in t]
+            self.assertTrue(found, f"{unit} `{subcommand}` has no gate check and no defect against REQ-2712 names it")
 
 
 class Abstention(unittest.TestCase):

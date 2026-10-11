@@ -1,7 +1,7 @@
 ---
 id: TSK-4900
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2520
 closes: [REQ-2716, REQ-2718, REQ-2720, REQ-2722, REQ-2724, REQ-2726, REQ-2727]
@@ -62,7 +62,32 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where seven of the nine in
+`crates/meow/tests/hook_rules.rs` failed. Criteria 1 to 4 are closed by
+`a_hook_that_answers_allow_fails`, `a_hook_that_rewrites_its_input_fails`
+(REQ-2720, REQ-2718), `a_hook_that_reaches_the_network_fails`,
+`a_blocking_hook_that_is_a_pipeline_fails` and
+`only_the_prose_gate_may_call_the_judge` (REQ-2727, REQ-2716), and
+`a_hook_with_no_sentence_in_its_readme_fails` (REQ-2726). The last of those
+also holds that the prose gate's exception is one subcommand and no other of
+its unit. `this_repositorys_units_pass` runs the check on this repository, and
+it passes with the prose gate's judge.
+
+Criterion 5 is closed by `every_hook_subcommand_keeps_the_rules`, which passed
+before the change, because the hooks already held it: it runs nine hook
+subcommands on a fixture input and fails an `allow`, an `updatedInput`, a hook
+that changes the work tree, a hook whose input reaches a file in the state
+directory, and an asking hook that doesn't answer `ask`. Two readings of the
+approved text differ from the repository, and the work followed the
+requirement. The launcher rule is held for events that can stop a call or the
+turn, because REQ-2716 says a blocking hook and `meow-core`'s `SessionStart`
+hook is a script that stops nothing; SPC-1240 now says so. The criterion's
+"opens no file for writing except the counter" can't hold for `meow-loop`,
+whose hooks write the run's own state, so the test holds REQ-2724, that the
+input is never written, and SPC-1240 says what each hook writes.
+
+`cargo test --all-features`, `cargo clippy --all-features --all-targets
+-- -D warnings` and `mise run all` passed, each with exit status 0.
 
 ## Left alone
 

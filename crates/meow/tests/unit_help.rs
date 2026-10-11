@@ -111,7 +111,7 @@ fn git(dir: &Path, args: &[&str]) {
 /// state directory of its own.
 fn fixture(name: &str) -> (Dir, PathBuf) {
     let dir = Dir::new(name);
-    git(&dir.0, &["init", "-q"]);
+    git(&dir.0, &["init", "-q", "--template="]);
     std::fs::create_dir_all(dir.0.join(".meowpaw")).unwrap();
     std::fs::write(
         dir.0.join(".meowpaw/profile.toml"),

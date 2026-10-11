@@ -896,6 +896,7 @@ whether the repository can be worked on. None of the three is started.
 | [BUG-1562](bugs/BUG-1562-no-check-in-the-gate-finds-a-change-to-how-the-repository-is.md)               | No check in the gate finds a change to how the repository is governed, and the unit ships no skill that explains the rule, so `meow-github`'s `governance-guard` is held by the hook alone |
 | [BUG-1563](bugs/BUG-1563-no-check-in-the-gate-finds-a-run-s-own-state-edited-by-hand.md)                | No check in the gate finds a run's own state edited by hand, so `meow-loop`'s `guard` rule is held by the hook alone                                                                       |
 | [BUG-1564](bugs/BUG-1564-no-check-in-the-gate-finds-text-that-breaks-the-prose-rules.md)                | No check in the gate finds text that breaks the prose rules the gate holds, so `meow-prose-gate`'s `check` rule is held by the hook and by review alone                                    |
+| [BUG-1570](bugs/BUG-1570-a-blocking-hook-with-no-binary-lets-the-call-through.md)                       | A blocking hook whose launcher finds no binary exits 0 and lets the call through                                                                                                           |
 
 BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
 the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100
@@ -907,4 +908,6 @@ refusals at start. BUG-1410 is closed by TSK-5260, BUG-1520 by TSK-5240 and
 BUG-1530 by TSK-5280, and BUG-1540 by TSK-5340. BUG-1550 routes to implement,
 because the requirement is right and a description didn't state the obligation,
 and is closed by TSK-5370. BUG-1560 to BUG-1564 are open and route to design,
-because each names a hook whose rule no check in the gate holds.
+because each names a hook whose rule no check in the gate holds. BUG-1570 is
+open and routes to implement, because the launchers do the opposite of what
+ADR-2710 decides.

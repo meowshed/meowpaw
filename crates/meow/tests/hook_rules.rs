@@ -28,8 +28,13 @@ impl Dir {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let path =
-            std::env::temp_dir().join(format!("meow-hooks-{name}-{}-{stamp}", std::process::id()));
+        // Tests run in parallel and share names, so a counter keeps each directory its own.
+        static COUNT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let count = COUNT.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        let path = std::env::temp_dir().join(format!(
+            "meow-hooks-{name}-{}-{stamp}-{count}",
+            std::process::id()
+        ));
         std::fs::create_dir_all(&path).unwrap();
         Dir(path)
     }
@@ -60,7 +65,7 @@ fn git(dir: &Path, args: &[&str]) {
 /// A repository holding one unit named `name` with one hook.
 fn unit(name: &str, event: &str, command: &str, script: Option<(&str, &str)>, readme: &str) -> Dir {
     let dir = Dir::new(name);
-    git(&dir.0, &["init", "-q"]);
+    git(&dir.0, &["init", "-q", "--template="]);
     let root = dir.0.join("plugins").join(name);
     write(
         &root.join("hooks/hooks.json"),
@@ -297,7 +302,7 @@ fn files_of(dir: &Path, out: &mut Vec<(PathBuf, Vec<u8>)>) {
 #[test]
 fn every_hook_subcommand_keeps_the_rules() {
     let repo = Dir::new("answers");
-    git(&repo.0, &["init", "-q"]);
+    git(&repo.0, &["init", "-q", "--template="]);
     std::fs::create_dir_all(repo.0.join(".meowpaw")).unwrap();
     std::fs::write(
         repo.0.join(".meowpaw/profile.toml"),

@@ -19,7 +19,7 @@ instruction. For `commit-guard`, which stops a commit on the declared trunk, the
 
 ## Reproduction
 
-Seen at revision `224c9462`.
+Seen on the trunk after pull request 1046.
 
 1. Read the tasks of `mise.toml` and the jobs of `.github/workflows/ci.yml`
    for a check that finds a tree or a history that breaks the rule `commit-guard`

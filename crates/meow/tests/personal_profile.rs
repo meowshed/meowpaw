@@ -47,7 +47,7 @@ fn git(dir: &Path, args: &[&str]) -> Output {
 
 /// A git repository at `dir`, so the root is the top of a working tree.
 fn init(dir: &Path) {
-    let done = git(dir, &["init", "-q"]);
+    let done = git(dir, &["init", "-q", "--template="]);
     assert!(done.status.success(), "git init failed: {done:?}");
 }
 

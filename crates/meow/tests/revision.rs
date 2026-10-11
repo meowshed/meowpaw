@@ -50,7 +50,7 @@ fn git(dir: &Path, args: &[&str]) {
 /// with one commit, and a state directory beside it.
 fn fixture(name: &str) -> (Dir, Dir) {
     let dir = Dir::new(name);
-    git(&dir.0, &["init", "-q"]);
+    git(&dir.0, &["init", "-q", "--template="]);
     std::fs::create_dir_all(dir.0.join(".meowpaw")).unwrap();
     std::fs::write(
         dir.0.join(".meowpaw/profile.toml"),
