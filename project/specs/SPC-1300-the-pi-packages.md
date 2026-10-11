@@ -2,7 +2,7 @@
 id: SPC-1300
 artifact: spec
 status: live
-revised: 2026-10-04
+revised: 2026-10-11
 states:
   [
     REQ-4100,
@@ -20,10 +20,11 @@ states:
     REQ-4130,
     REQ-4132,
     REQ-4134,
-    REQ-4136,
     REQ-4138,
-    REQ-4144,
     REQ-4146,
+    REQ-4610,
+    REQ-4612,
+    REQ-4614,
   ]
 ---
 
@@ -44,27 +45,27 @@ decision. A Pi package that exploits dynamic tool registration, virtual models
 or structured output has no specification yet, because no decision asks for
 one.
 
-ADR-2780 decides this part, and ADR-2790 decides what a package does at
-install time and how it finds its own files, added after four defects
-(BUG-1400 to BUG-1403) showed the packages working only beside a checkout of
-this repository.
+ADR-2780 decides this part, ADR-2790 decides what a package does at
+install time and how it finds its own files, and ADR-2920 sets the shared
+executable name and parallel Claude/Pi update rule. BUG-1400 to BUG-1403 showed
+the packages working only beside a checkout of this repository.
 
 ## Boundary
 
-| Surface                                                                   | What it is                                                |
-| ------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `packages/meow-core/`                                                     | The kernel Pi package                                     |
-| `packages/meow-flow/`                                                     | The method Pi package                                     |
-| `packages/meow-code/`                                                     | The practice Pi package                                   |
-| `packages/meow-mise/`, `packages/meow-gotask/`, `packages/meow-markdown/` | The pack Pi packages                                      |
-| `packages/meow-core/extensions/kernel.ts`                                 | The kernel extension                                      |
-| `packages/meow-flow/extensions/method.ts`                                 | The method extension                                      |
-| `packages/meow-code/extensions/practice.ts`                               | The practice extension                                    |
-| `packages/<name>/prompts/`                                                | The prompt files each extension loads, bundled (REQ-4130) |
-| `packages/<name>/install-meow.mjs`                                        | The installer that downloads the meow binary (REQ-4136)   |
-| `plugins/<name>/`                                                         | The existing Claude Code plugins, unchanged               |
-| `project/research/RES-0340-pi-as-a-platform.md`                           | The platform research                                     |
-| `project/research/RES-0341-mapping-each-plugin-to-pi.md`                  | The per-plugin mapping                                    |
+| Surface                                                                   | What it is                                                      |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `packages/meow-core/`                                                     | The kernel Pi package                                           |
+| `packages/meow-flow/`                                                     | The method Pi package                                           |
+| `packages/meow-code/`                                                     | The practice Pi package                                         |
+| `packages/meow-mise/`, `packages/meow-gotask/`, `packages/meow-markdown/` | The pack Pi packages                                            |
+| `packages/meow-core/extensions/kernel.ts`                                 | The kernel extension                                            |
+| `packages/meow-flow/extensions/method.ts`                                 | The method extension                                            |
+| `packages/meow-code/extensions/practice.ts`                               | The practice extension                                          |
+| `packages/<name>/prompts/`                                                | The prompt files each extension loads, bundled (REQ-4130)       |
+| `packages/meow-core/install-meow.mjs`                                     | The core installer that downloads the paw executable (REQ-4610) |
+| `plugins/<name>/`                                                         | The existing Claude Code plugins, unchanged                     |
+| `project/research/RES-0340-pi-as-a-platform.md`                           | The platform research                                           |
+| `project/research/RES-0341-mapping-each-plugin-to-pi.md`                  | The per-plugin mapping                                          |
 
 ## Behaviour
 
@@ -133,7 +134,7 @@ the skill's own directory, never through `${CLAUDE_SKILL_DIR}` or
 `${CLAUDE_PLUGIN_ROOT}`, which Pi never sets (REQ-4132). The
 package's extension puts its `bin/` directory on the session's PATH at
 load, so the plain command resolves the wrapper, which resolves the
-platform meow binary. Claude Code puts a plugin's `bin/` on PATH natively,
+platform paw executable. Claude Code puts a plugin's `bin/` on PATH natively,
 so the same phrasing serves both platforms once the plugins adopt it.
 
 A skill's name is unique across the units, and it names the tool or the
@@ -245,13 +246,13 @@ The method extension registers a command for each step and driver
 ### Binaries and templates
 
 The shell wrappers ship in the package's `bin/` directory as committed
-source; the platform meow binary is not committed. Each package's
+source; the platform paw executable is not committed. The core package's
 `install-meow.mjs` runs after install, downloads the meow-full release
-archive — the one meow binary built once with every unit's feature, because
+archive — the one paw executable built once with every unit's feature, because
 a unit's own release carries only its unit's feature and a package bundles
 several — extracts the binary for the machine it runs on into
-`bin/<cpu>-<system>/meow`, removes the archive and exits 0 on any failure
-(REQ-4136). A failed download breaks no install, because the
+`bin/<cpu>-<system>/paw`, removes the archive and exits 0 on any failure
+(REQ-4610). A failed download breaks no install, because the
 wrappers report each check as unrun, which is the designed behaviour for a
 missing binary. The repository ignores `packages/*/bin/*-*/`, so no
 download is ever committed (REQ-4138).
@@ -291,12 +292,12 @@ that runs them.
 
 A package installs from npm, which is the distribution install:
 `pi install npm:@meowshed/<unit>`. The core tarball carries the
-all-features meow binary for every platform the build workflow builds,
+all-features paw executable for every platform the build workflow builds,
 placed in the package's `bin/` before packing, so an npm install copies
 the whole package and makes no request at install or load time. The other
-five tarballs carry no binary: their launchers fall back to `meow` on
-PATH, which the core extension resolves, so the core package is the
-install every other layer sits beside (REQ-4144). A tag named
+packages carry no binary: their launchers use the absolute `MEOWPAW_BINARY`
+path set by the core extension, so the core package is required alongside
+them (REQ-4612). A tag named
 `<unit>-pi-v<version>` publishes that one package; the workflow run by
 hand publishes every one whose version npm does not hold yet. The
 `postinstall` runs for a git-source install of the core package, where
@@ -322,14 +323,14 @@ them: the prose gate's handlers in `meow-prose-gate`, the git guards in
 `meow-loop`. The reply-shape injection stays in `meow-core`, and the
 router and the step commands in `meow-flow`.
 
-The meow binary still ships with `meow-core` alone (REQ-4144), and every
-other package's launcher falls back to `meow` on PATH. The prose gate's
+The paw executable still ships with `meow-core` alone (REQ-4612), and every
+other package's launcher falls back to `paw` on PATH. The prose gate's
 fragments sit in its package at `fragments/`, where the binary resolves
 them from its own unit root.
 
 ## Failure paths
 
-Where the meow binary is missing, the shell wrappers report each check as
+Where the paw executable is missing, the shell wrappers report each check as
 unrun and let the command through, because blocking every command for a
 missing binary would punish the person for something the package cannot
 check (ADR-1600). Where a download fails, the installer exits 0 and the

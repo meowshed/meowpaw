@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.7.0]
+describes: [meow-author@0.8.0]
 ---
 
 # meow-author
@@ -17,7 +17,7 @@ units to. It installs on its own, with no other part of the harness.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-author@meowpaw
 ```
 

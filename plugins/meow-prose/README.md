@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose
 answers: what meow-prose does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose@0.5.2]
+describes: [meow-prose@0.6.0]
 ---
 
 # meow-prose
@@ -17,7 +17,7 @@ part of the `meowpaw` harness.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-prose@meowpaw
 ```
 

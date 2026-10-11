@@ -8,7 +8,8 @@ picks it up is epic.
 
 <steps name="spec">
 1. Update the specification document whose subject the decision changes, or
-   write a new one where no document has that subject.
+   write a new one, as the identifier `paw new specification` prints, where no
+   document has that subject.
 2. State what the system does now: what the part is, how it behaves, what it
    offers and requires, and its failure paths. Never why, which lives in the
    decision.

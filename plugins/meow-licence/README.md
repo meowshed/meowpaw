@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-licence
 answers: what meow-licence does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-licence@0.4.0]
+describes: [meow-licence@0.5.0]
 ---
 
 # meow-licence
@@ -18,7 +18,7 @@ part of the `meowpaw` harness.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-licence@meowpaw
 ```
 

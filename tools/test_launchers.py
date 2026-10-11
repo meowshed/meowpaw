@@ -57,7 +57,7 @@ class Launchers(unittest.TestCase):
                "CLAUDE_PLUGIN_DATA": str(data / "unit-test")}
         if shared:
             root = self.base / "core"
-            binary = root / "bin" / target() / "meow"
+            binary = root / "bin" / target() / "paw"
             binary.parent.mkdir(parents=True)
             binary.write_text('#!/bin/sh\necho "shared: $* layout=$MEOW_LAYOUT unit=$MEOW_LOOP_UNIT"\n')
             binary.chmod(0o755)
@@ -102,7 +102,7 @@ class Launchers(unittest.TestCase):
                 copy = plugins / launcher.parent.parent.name / "bin" / launcher.name
                 shutil.copy(launcher, copy)
                 copy.chmod(0o755)
-                binary = plugins / "meow-core" / "bin" / target() / "meow"
+                binary = plugins / "meow-core" / "bin" / target() / "paw"
                 binary.parent.mkdir(parents=True)
                 binary.write_text('#!/bin/sh\necho "shared: $*"\n')
                 binary.chmod(0o755)

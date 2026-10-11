@@ -53,7 +53,7 @@ jobs:
           cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
             --all-features --target "$BUILD_TARGET" --target-dir target
           mkdir -p "dist/$BUILD_TARGET"
-          cp "target/$BUILD_TARGET/release/meow" "dist/$BUILD_TARGET/meow"
+          cp "target/$BUILD_TARGET/release/paw" "dist/$BUILD_TARGET/paw"
         shell: bash
         env:
           BUILD_TARGET: ${{ matrix.target }}
@@ -120,7 +120,7 @@ jobs:
         env:
           BUILD_TARGET: ${{ matrix.target }}
           RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
-      - run: find plugins/*/bin/"$BUILD_TARGET" -name 'meow*' -exec ldid -S {} +
+      - run: find plugins/*/bin/"$BUILD_TARGET" -name 'paw*' -exec ldid -S {} +
         env:
           BUILD_TARGET: ${{ matrix.target }}
       - name: Build the full binary for every subcommand
@@ -128,8 +128,8 @@ jobs:
           cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
             --all-features --target "$BUILD_TARGET" --target-dir target
           mkdir -p "dist/$BUILD_TARGET"
-          cp "target/$BUILD_TARGET/release/meow" "dist/$BUILD_TARGET/meow"
-          ldid -S "dist/$BUILD_TARGET/meow"
+          cp "target/$BUILD_TARGET/release/paw" "dist/$BUILD_TARGET/paw"
+          ldid -S "dist/$BUILD_TARGET/paw"
         shell: bash
         env:
           BUILD_TARGET: ${{ matrix.target }}
@@ -171,7 +171,7 @@ jobs:
           mkdir -p "dist/$BUILD_TARGET"
           ext=""
           case "$BUILD_TARGET" in *-windows-*) ext=.exe ;; esac
-          cp "target/$BUILD_TARGET/release/meow$ext" "dist/$BUILD_TARGET/meow$ext"
+          cp "target/$BUILD_TARGET/release/paw$ext" "dist/$BUILD_TARGET/paw$ext"
         shell: bash
         env:
           BUILD_TARGET: ${{ matrix.target }}
@@ -212,19 +212,19 @@ jobs:
         run: |
           tag="meow-full-v$full_version"
           mkdir -p dist-full
-          # The full artifacts hold their meow under a directory named for
+          # The full artifacts hold their paw under a directory named for
           # the triple, whatever depth the artifact layout adds above it.
-          find bin-full -type f -name 'meow*' | while read -r f; do
+          find bin-full -type f -name 'paw*' | while read -r f; do
             triple=$(basename "$(dirname "$f")")
             case $triple in full-*) triple=${triple#full-} ;; esac
             ext=""
             case $triple in *-windows-*) ext=.exe ;; esac
-            cp "$f" "dist-full/meow-$triple$ext"
+            cp "$f" "dist-full/paw-$triple$ext"
           done
           ls dist-full
           (cd dist-full && zip -q -X "../meow-full-$full_version.zip" ./*)
           sha=$(sha256sum "meow-full-$full_version.zip" | cut -d' ' -f1)
-          notes="The one meow binary with every subcommand, built for six platforms. The core Pi package carries it; the core installer downloads it for a git-source install. SHA-256: \`$sha\`"
+          notes="The one paw executable with every subcommand, built for six platforms. The core Pi package carries it; the core installer downloads it for a git-source install. SHA-256: \`$sha\`"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" "meow-full-$full_version.zip" --clobber
             gh release edit "$tag" --notes "$notes"

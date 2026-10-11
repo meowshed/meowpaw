@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-checks
 answers: what meow-checks does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-checks@0.12.0]
+describes: [meow-checks@0.13.0]
 ---
 
 # meow-checks
@@ -17,7 +17,7 @@ installs on its own, with no other part of the `meowpaw` harness.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-checks@meowpaw
 ```
 

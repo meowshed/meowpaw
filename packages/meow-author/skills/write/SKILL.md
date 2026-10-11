@@ -76,8 +76,7 @@ procedure states where it stops.
   teaches a judgement, because a judgement shown only right is learnt as a
   rule of thumb.
 - B6. Name every supporting file in the body of the material's own file with
-  when to read it, and reach it through this skill's own directory, because
-  a file nothing names is never loaded and a
+  when to read it, and reach it through its relative path from this file, because a file nothing names is never loaded and a
   fixed path breaks wherever the material is installed.
 - B7. Say whether a script is run or read, and never summarise in prose a
   script that is run, because a summary drifts from the script it describes.

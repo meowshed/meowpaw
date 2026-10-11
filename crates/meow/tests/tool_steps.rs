@@ -67,7 +67,7 @@ fn unit(readme: &str, files: &[(&str, String)]) -> Dir {
 }
 
 fn check(dir: &Path) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_meow"))
+    Command::new(env!("CARGO_BIN_EXE_paw"))
         .args(["author", "check", "plugins/u"])
         .current_dir(dir)
         .output()
@@ -184,7 +184,7 @@ fn a_tool_named_with_no_step_text_fails() {
 #[test]
 fn this_repositorys_units_name_a_step_for_each_tool() {
     let repository = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let done = Command::new(env!("CARGO_BIN_EXE_meow"))
+    let done = Command::new(env!("CARGO_BIN_EXE_paw"))
         .args(["author", "check"])
         .current_dir(&repository)
         .output()

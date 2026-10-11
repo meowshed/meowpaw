@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-mise
 answers: what meow-mise does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-mise@0.3.0]
+describes: [meow-mise@0.4.0]
 ---
 
 # meow-mise
@@ -18,7 +18,7 @@ on its own, with no other part of the `meowpaw` harness.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-mise@meowpaw
 ```
 

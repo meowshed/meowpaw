@@ -451,7 +451,7 @@ class TheSharedBinary(unittest.TestCase):
     def test_the_judge_reads_the_gate_units_fragments_when_the_binary_is_in_the_core_unit(self):
         system = {"Darwin": "apple-darwin", "Linux": "unknown-linux-musl"}[os.uname().sysname]
         target = f"{os.uname().machine.replace('arm64', 'aarch64')}-{system}"
-        core = UNIT.parent / "meow-core" / "bin" / target / "meow"
+        core = UNIT.parent / "meow-core" / "bin" / target / "paw"
         with tempfile.TemporaryDirectory() as tmp:
             plugins = Path(tmp) / "plugins"
             gate_unit = plugins / "meow-prose-gate"
@@ -459,7 +459,7 @@ class TheSharedBinary(unittest.TestCase):
             shutil.copy(UNIT / "bin" / "meow-prose-gate", gate_unit / "bin" / "meow-prose-gate")
             shutil.copytree(UNIT / "fragments", gate_unit / "fragments")
             (plugins / "meow-core" / "bin" / target).mkdir(parents=True)
-            shutil.copy(core, plugins / "meow-core" / "bin" / target / "meow")
+            shutil.copy(core, plugins / "meow-core" / "bin" / target / "paw")
             event = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": {"command": 'git commit -m "Add the parser for the profile"'}}
             env = dict(os.environ, MEOW_PROSE_GATE_JUDGE=QUIET, CLAUDE_PLUGIN_DATA=str(Path(tmp) / "data" / "x"))
             env.pop("MEOW_PROSE_GATE_UNIT", None)

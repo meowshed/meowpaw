@@ -35,7 +35,7 @@ class Kernel(unittest.TestCase):
     def test_a_binary_the_core_unit_ships_is_not_read_as_text(self):
         """TSK-5300, REQ-4500: the shared binary sits in the kernel unit and is build output, not shipped text."""
         plugins = self.plugins({"meow-core/README.md": "The kernel.\n",
-                                "meow-core/bin/x86_64-unknown-linux-musl/meow": b"\xcf\xfa\xed\xfe\x00meow-a\x00"})
+                                "meow-core/bin/x86_64-unknown-linux-musl/paw": b"\xcf\xfa\xed\xfe\x00meow-a\x00"})
         status, said = self.run_check(plugins)
         self.assertEqual(status, 0, said)
         self.assertIn("1 kernel files, 0 names outside the kernel", said)

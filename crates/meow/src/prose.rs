@@ -266,7 +266,7 @@ fn in_prose(text: &str, rule: &str, span: &str) -> bool {
 /// A file in the unit's `fragments/`. The launcher names the unit in
 /// `MEOW_PROSE_GATE_UNIT`, because the shared binary sits in the core unit and
 /// not in this one. Without it the unit is three directories above the binary,
-/// which sits at `bin/<target>/meow`.
+/// which sits at `bin/<target>/paw`.
 fn fragment(name: &str) -> Result<String, String> {
     let unit = match std::env::var_os("MEOW_PROSE_GATE_UNIT") {
         Some(named) => std::path::PathBuf::from(named),

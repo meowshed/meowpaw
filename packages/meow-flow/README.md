@@ -2,7 +2,7 @@
 reader: someone installing or running meow-flow on Pi
 answers: what meow-flow provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-flow@0.50.1]
+describes: [@meowshed/meow-flow@0.51.0]
 ---
 
 # @meowshed/meow-flow
@@ -15,7 +15,7 @@ Runs the method's seven steps from research to review, each refused by a native 
 pi install npm:@meowshed/meow-flow
 ```
 
-The meow binary ships with `@meowshed/meow-core` alone (REQ-4144): this
+The paw executable ships with `@meowshed/meow-core` alone (REQ-4612): this
 package's launchers run their subcommands through it, so install the core
 package beside this one for the binary-backed checks. Without it, every
 check reports unrun and lets the command through.

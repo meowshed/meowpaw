@@ -2,7 +2,7 @@
 reader: someone installing or running meow-prose-gate on Pi
 answers: what meow-prose-gate provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-prose-gate@0.4.0]
+describes: [@meowshed/meow-prose-gate@0.6.0]
 ---
 
 # @meowshed/meow-prose-gate
@@ -15,7 +15,7 @@ Stops Claude Code from publishing a commit message, pull request, issue, comment
 pi install npm:@meowshed/meow-prose-gate
 ```
 
-The meow binary ships with `@meowshed/meow-core` alone (REQ-4144): this
+The paw executable ships with `@meowshed/meow-core` alone (REQ-4612): this
 package's launchers run their subcommands through it, so install the core
 package beside this one for the binary-backed checks. Without it, every
 check reports unrun and lets the command through.
