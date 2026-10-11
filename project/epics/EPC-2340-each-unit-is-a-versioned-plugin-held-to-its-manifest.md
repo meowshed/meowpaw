@@ -43,8 +43,11 @@ number.
 
 ## Tasks
 
-- [ ] T-001 TSK-4390 state each unit's layer, required units and kernel range in `requires.toml`, and fail a unit missing one in `meow-author check`
+- [x] T-001 TSK-4390 state each unit's layer, required units and kernel range in `requires.toml`, and fail a unit missing one in `meow-author check`
       closes: REQ-1482, REQ-2990, REQ-2998, REQ-3006
+      — done in this pull request: the five stages passed at tree
+      `f8a5c87d9119`, each bound by `meow-checks run` and confirmed by
+      `meow-checks evidence`, exit 0.
 
 - [ ] T-002 [P] TSK-4400 refuse a changed unit at a released version and a version with no written notes, in the release
       closes: REQ-2996, REQ-3002
