@@ -48,3 +48,7 @@ Severity is minor, because the hook still stops the call in a session.
 
 A check in `mise.toml` or the CI workflow that fails a tree or a history
 breaking the rule, named in the unit's README sentence in place of this defect.
+
+## Tasks
+
+- [x] T-001 TSK-5420 run the prose gate's exact rules over each branch commit, in the gate (done: pull request 1047)

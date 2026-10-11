@@ -91,8 +91,8 @@ subcommand's output to those words.
 
 ## Hooks
 
-`commit-guard` stops a commit on the declared trunk; the `meow-scm:commit` skill says why, and no gate check holds the rule yet.
-`push-guard` stops a push of a commit whose message or signature fails the declared convention; the `meow-scm:commit` skill says why, and no gate check holds the rule yet.
+`commit-guard` stops a commit on the declared trunk; the `meow-scm:commit` skill says why, and `mise run layers` fails a trunk with a commit GitHub didn't make.
+`push-guard` stops a push of a commit whose message or signature fails the declared convention; the `meow-scm:commit` skill says why, and `mise run layers` fails a branch whose commits fail it.
 
 ## What it needs
 

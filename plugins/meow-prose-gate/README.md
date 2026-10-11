@@ -131,7 +131,7 @@ subcommand's output to those words.
 
 ## Hooks
 
-`check` stops a publish whose text breaks a rule the gate holds: the exact rules first, then a judge model asked twice, which is the one hook allowed to reach beyond local files; the `meow-prose:writing` skill says why, and no gate check holds the rule yet.
+`check` stops a publish whose text breaks a rule the gate holds: the exact rules first, then a judge model asked twice, which is the one hook allowed to reach beyond local files; the `meow-prose:writing` skill says why, and `mise run layers` runs the exact rules over the message of each commit a branch adds.
 
 ## What it needs
 

@@ -369,14 +369,15 @@ subcommand's output to those words.
 
 ## Hooks
 
-`governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them; no gate check and no skill hold the rule yet.
+`governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them; the `meow-github:governance` skill says why, and `mise run test-tools` fails a workflow that runs the same commands.
 
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-github/requires.toml`, and GitHub's client, `gh`, signed in.
 The hook runs a native program on every Bash command, which loads nothing into
-context, so the unit still keeps 0 characters in context on every turn. It
+context. The `governance` skill's description costs 313 characters in context on
+every turn, under the unit's ceiling of 353 characters. It
 relies on these platform behaviours, each documented by Claude Code:
 
 - a plugin's `bin/` programs on the Bash tool's `PATH`: [documentation](https://code.claude.com/docs/en/plugins-reference.md)

@@ -167,7 +167,7 @@ run = "plugins/meow-flow/bin/paw check"
 [tasks.test-tools]
 description = "Run the tests and the checks of tools/"
 depends = ["build"]
-run = """python3 -m unittest tools/test_hook_layering.py tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py tools/test_marketplace.py tools/test_no_kept_evidence.py tools/test_record_shape.py tools/test_check_community.py tools/test_trunk_gate.py tools/test_threat_model.py tools/test_check_workflows.py tools/test_check_terms.py tools/test_shared_binary.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py && python3 tools/check_community.py && python3 tools/check_workflows.py && python3 tools/check_terms.py && python3 tools/check_gate_covers_verbs.py"""
+run = """python3 -m unittest tools/test_hook_layering.py tools/test_check_layers.py tools/test_check_docs.py tools/test_loop.py tools/test_check_release.py tools/test_verb_bindings.py tools/test_shell_verbs.py tools/test_crate_verbs.py tools/test_shipped_agents.py tools/test_marketplace.py tools/test_no_kept_evidence.py tools/test_record_shape.py tools/test_check_community.py tools/test_trunk_gate.py tools/test_threat_model.py tools/test_check_workflows.py tools/test_check_terms.py tools/test_shared_binary.py && python3 tools/check_docs.py && python3 tools/check_index.py && python3 tools/check_links.py && python3 tools/check_subagent_shape.py && python3 tools/check_community.py && python3 tools/check_workflows.py && python3 tools/check_terms.py && python3 tools/check_gate_covers_verbs.py"""
 
 [tasks.test]
 description = "Run every unit's tests, the record's check and the repository's own checks, each as a task of its own"
@@ -175,7 +175,12 @@ depends = ["test-crate", "test-core", "test-checks", "test-scm", "test-git", "te
 
 [tasks.all]
 description = "The full gate, as CI runs it"
-depends = ["fmt-check", "shell-fmt", "crate-fmt", "lint", "style", "prompts", "kernel", "standalone", "budget", "licence", "mise-check", "markdown", "shell-lint", "crate-lint", "crate-check", "test", "build"]
+depends = ["fmt-check", "shell-fmt", "crate-fmt", "lint", "style", "prompts", "kernel", "standalone", "budget", "licence", "mise-check", "markdown", "layers", "shell-lint", "crate-lint", "crate-check", "test", "build"]
+
+[tasks.layers]
+description = "Check the history and the tree for what the hooks stop: a commit on the trunk, a message or a signature, and a run's state"
+depends = ["build"]
+run = "python3 tools/check_layers.py all"
 
 [tasks.mise-check]
 description = "Check the profile's stages name the tasks mise declares"
