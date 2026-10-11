@@ -4,7 +4,7 @@ answers: what each message a unit prints means, why it appeared and what fixes i
 kind: troubleshooting
 describes:
   [
-    meow-core@0.9.0,
+    meow-core@0.9.1,
     meow-git@0.5.0,
     meow-github@0.16.0,
     meow-flow@0.52.0,
