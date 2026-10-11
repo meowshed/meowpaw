@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-checks
 answers: what meow-checks does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-checks@0.13.0]
+describes: [meow-checks@0.14.0]
 ---
 
 # meow-checks

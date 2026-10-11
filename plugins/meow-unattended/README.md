@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what posture meow-unattended prints, what its deny rules stop and what they don't
 kind: reference
-describes: [meow-unattended@0.5.0]
+describes: [meow-unattended@0.6.0]
 ---
 
 # meow-unattended
