@@ -430,7 +430,6 @@ mise run all          # every task the profile's stages name, composed once in m
 | `prompts`    | A shipped prompt uses a heading or a tag outside the vocabulary |
 | `kernel`     | A file in the kernel names a unit outside it                    |
 | `standalone` | A unit's file runs a path outside the unit's own directory      |
-| `budget`     | A unit loads more on every turn than its `budget.toml` states   |
 | `licence`    | A file carries no licensing the corpus declares                 |
 
 The record is checked by `meow-flow`, a unit the harness ships, because a

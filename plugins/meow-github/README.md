@@ -376,8 +376,7 @@ subcommand's output to those words.
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-github/requires.toml`, and GitHub's client, `gh`, signed in.
 The hook runs a native program on every Bash command, which loads nothing into
-context. The `governance` skill's description costs 394 characters in context on
-every turn, under the unit's ceiling of 440 characters. It
+context. It
 relies on these platform behaviours, each documented by Claude Code:
 
 - a plugin's `bin/` programs on the Bash tool's `PATH`: [documentation](https://code.claude.com/docs/en/plugins-reference.md)

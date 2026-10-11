@@ -30,24 +30,15 @@ const DISPATCHING: [&str; 2] = ["Agent", "Task"];
 /// reports", REQ-0816).
 const OUTCOMES: [&str; 4] = ["DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED"];
 
-/// What each subcommand determines, what a person reads in its place, and its
+/// What the subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 2] = [
-    crate::help::Entry {
-        name: "check",
-        determines: "whether each skill, agent, output style and prompt hook follows the authoring rules",
-        by_hand: "read each file against the rules of the `write` skill of `meow-author`, and each `hooks/hooks.json` against the answer, network and launcher rules of SPC-1240",
-        lines: "meow-author <path> <count>",
-        json: "",
-    },
-    crate::help::Entry {
-        name: "cost",
-        determines: "the characters each unit loads on every turn against the budget it states",
-        by_hand: "count the characters of each skill and agent description and output style a unit loads, and compare with its `budget.toml`",
-        lines: "meow-author <unit>: <path> <count> How",
-        json: "",
-    },
-];
+const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
+    name: "check",
+    determines: "whether each skill, agent, output style and prompt hook follows the authoring rules",
+    by_hand: "read each file against the rules of the `write` skill of `meow-author`, and each `hooks/hooks.json` against the answer, network and launcher rules of SPC-1240",
+    lines: "meow-author <path> <count>",
+    json: "",
+}];
 
 pub fn main(args: &[String]) -> u8 {
     if let Some(code) = crate::help::answer("meow-author", &HELP, args) {
@@ -55,9 +46,8 @@ pub fn main(args: &[String]) -> u8 {
     }
     match args.split_first() {
         Some((command, paths)) if command == "check" => check(paths),
-        Some((command, rest)) if command == "cost" => cost(rest),
         _ => {
-            eprintln!("usage: meow-author check [path...] | meow-author cost");
+            eprintln!("usage: meow-author check [path...]");
             USAGE
         }
     }
@@ -132,6 +122,17 @@ fn check(paths: &[String]) -> u8 {
         }
         if shipped {
             failures.extend(tool_steps(&root, unit));
+            for (path, size) in permanent(&unit_root(unit)) {
+                if path.extension().is_some_and(|e| e == "md")
+                    && !path.to_string_lossy().contains("output-styles")
+                    && size > CAP
+                {
+                    failures.push(format!(
+                        "{}: description is {size} characters, over the cap of {CAP}",
+                        shown(&root, &path)
+                    ));
+                }
+            }
         }
         let (hooks, broken) = hook_rules(&root, unit);
         files += hooks;
@@ -152,6 +153,31 @@ fn check(paths: &[String]) -> u8 {
         if failures.len() == 1 { "" } else { "s" }
     );
     if failures.is_empty() { CLEAN } else { FOUND }
+}
+
+/// The directory a check on a unit's own file reads the unit from: the nearest
+/// ancestor that carries a plugin manifest, or the path itself where it is
+/// already a directory of one.
+fn unit_root(unit: &Path) -> PathBuf {
+    let mut dir = unit.to_path_buf();
+    if dir.is_file() {
+        dir = dir.parent().map(|p| p.to_path_buf()).unwrap_or(dir);
+    }
+    let mut walk = dir.clone();
+    loop {
+        if walk.join(".claude-plugin").join("plugin.json").is_file()
+            || walk
+                .parent()
+                .and_then(|p| p.file_name())
+                .is_some_and(|n| n == "plugins")
+        {
+            return walk;
+        }
+        match walk.parent() {
+            Some(parent) => walk = parent.to_path_buf(),
+            None => return dir,
+        }
+    }
 }
 
 /// Whether a directory is a unit the harness ships, rather than a
@@ -895,76 +921,6 @@ fn stops(text: &str) -> bool {
 /// The platform's cap on a skill's or agent's description, in characters.
 const CAP: usize = 1536;
 
-/// `meow-author cost`: what each unit keeps in context on every turn against
-/// its budget, with each skill's use left to the platform's `/skill-doctor`
-/// (ADR-1460).
-fn cost(args: &[String]) -> u8 {
-    if !args.is_empty() {
-        eprintln!("usage: meow-author cost");
-        return USAGE;
-    }
-    let root = profile::repository_root();
-    let mut units: Vec<PathBuf> = std::fs::read_dir(root.join("plugins"))
-        .map(|entries| {
-            entries
-                .flatten()
-                .map(|e| e.path())
-                .filter(|p| p.join(".claude-plugin").join("plugin.json").is_file())
-                .collect()
-        })
-        .unwrap_or_default();
-    units.sort();
-    if units.is_empty() {
-        println!("meow-author cost: unchecked: no unit was found under plugins/");
-        return UNCHECKED;
-    }
-    let mut failures = Vec::new();
-    for unit in &units {
-        let name = unit
-            .file_name()
-            .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_default();
-        let pieces = permanent(unit);
-        for (path, size) in &pieces {
-            if path.extension().is_some_and(|e| e == "md")
-                && !path.to_string_lossy().contains("output-styles")
-                && *size > CAP
-            {
-                failures.push(format!(
-                    "{}: description is {size} characters, over the cap of {CAP}",
-                    shown(&root, path)
-                ));
-            }
-        }
-        let total: usize = pieces.iter().map(|(_, size)| size).sum();
-        match ceiling(unit) {
-            Some(budget) => {
-                println!("{name}: {total} of {budget} characters on every turn");
-                if total > budget {
-                    failures.push(format!("{name}: loads {total} characters on every turn, {} over its budget of {budget}", total - budget));
-                }
-            }
-            None => {
-                println!("{name}: {total} characters on every turn, and no budget");
-                failures.push(format!("{name}: states no budget in budget.toml"));
-            }
-        }
-    }
-    for failure in &failures {
-        println!("{failure}");
-    }
-    println!(
-        "{} units, {} budget failure{}",
-        units.len(),
-        failures.len(),
-        if failures.len() == 1 { "" } else { "s" }
-    );
-    println!(
-        "How often each skill is used: run /skill-doctor in Claude Code, which reports each skill's cost and invocations."
-    );
-    if failures.is_empty() { CLEAN } else { FOUND }
-}
-
 /// Each piece of a unit that loads on every turn, with its characters: the
 /// description and `when_to_use` of each skill and agent the model can load,
 /// and the whole of each output style.
@@ -1013,15 +969,6 @@ fn permanent(unit: &Path) -> Vec<(PathBuf, usize)> {
         pieces.push((path, size));
     }
     pieces
-}
-
-fn ceiling(unit: &Path) -> Option<usize> {
-    let text = std::fs::read_to_string(unit.join("budget.toml")).ok()?;
-    let table: toml::Table = text.parse().ok()?;
-    table
-        .get("permanent_characters")?
-        .as_integer()
-        .map(|n| n as usize)
 }
 
 #[cfg(test)]

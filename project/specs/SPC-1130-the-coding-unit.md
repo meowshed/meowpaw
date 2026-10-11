@@ -2,7 +2,7 @@
 id: SPC-1130
 artifact: spec
 status: live
-revised: 2026-09-27
+revised: 2026-10-11
 states:
   [
     REQ-0090,
@@ -49,7 +49,6 @@ ADR-1420 and ADR-1430 decide this part.
 | `plugins/meow-code/skills/change/SKILL.md` | The skill, loaded before code is changed                 |
 | `plugins/meow-code/skills/debug/SKILL.md`  | The skill, loaded before the cause of a defect is sought |
 | `plugins/meow-code/README.md`              | The unit's page                                          |
-| `plugins/meow-code/budget.toml`            | The characters the unit keeps in context on each turn    |
 
 ## Behaviour
 

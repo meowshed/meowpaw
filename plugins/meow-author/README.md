@@ -124,25 +124,16 @@ that opens with the tool in code font, a colon and what the step does with it.
 A tool with no such item fails the check, naming the file, the tool and the
 README, so a tool no step needs is visible and removed.
 
-## Report what each unit costs
+## What each unit loads
 
-`meow-author cost` reports, for each plugin under `plugins/`, the characters it
-keeps in context on every turn against the budget its `budget.toml` states:
+`meow-author check` also reads each unit's always-loaded material, and fails
+on a skill's or agent's description and its `when_to_use` together over the
+platform's cap of 1,536 characters, which the platform sets (REQ-1060). How
+often each skill is used comes from `/skill-doctor` in Claude Code; the unit
+reads none of Claude Code's own files.
 
-```bash
-meow-author cost
-```
+## What it costs you The
 
-It counts each skill's and agent's description and `when_to_use`, and the
-whole of each output style, and fails on a plugin over its budget, a plugin
-with no `budget.toml`, and a description and its `when_to_use` together over
-the platform's cap of 1,536 characters. How often each skill is used comes
-from `/skill-doctor` in Claude Code, which the report names; the unit reads
-none of Claude Code's own files.
-
-## What it costs you
-
-The skill's description costs 293 characters in context on every turn. The
 check is a native binary shipped inside
 the unit, so it needs nothing installed on the machine.
 

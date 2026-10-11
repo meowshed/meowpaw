@@ -75,9 +75,8 @@ reports licensing alone, and never who wrote a file. It also names the
 profile's state, as `meow-licence check: profile: parsed`, and each key no
 unit reads, which changes no exit status.
 
-## What it costs you
+## What it costs you The
 
-The skill's description costs 281 characters in context on every turn. The
 check is a native binary shipped inside
 the unit, so it needs nothing installed on the machine except git, which it
 reads the tracked files through. On a machine the unit carries no binary for,

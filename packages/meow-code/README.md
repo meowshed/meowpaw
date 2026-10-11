@@ -7,7 +7,7 @@ describes: [@meowshed/meow-code@0.3.0]
 
 # @meowshed/meow-code
 
-Holds how Claude Code changes code, writes a check and debugs a defect: the smallest correct change, the most precise edit, checks seen failing, and a defect reproduced before any cause is offered. It keeps up to 600 characters in context on every turn. Distributed as a Pi package.
+Holds how Claude Code changes code, writes a check and debugs a defect: the smallest correct change, the most precise edit, checks seen failing, and a defect reproduced before any cause is offered. Distributed as a Pi package.
 
 ## Install it
 

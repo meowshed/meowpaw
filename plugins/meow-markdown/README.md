@@ -213,9 +213,8 @@ standard belongs to `meow-prose`, not to this pack.
 
 ## What it costs you
 
-The skill's description stays in context on every turn, within the 380
-characters the unit's budget states, and `reviewing.md` costs context only
-when a Markdown document is reviewed. The program is a native binary shipped
+The skill's description stays in context on every turn, and `reviewing.md`
+costs context only when a Markdown document is reviewed. The program is a native binary shipped
 inside the unit, and needs git on the machine. `links` reaches every remote
 address your documents cite on each run. On a machine the unit carries
 no binary for, it reports the repository as unresolved and exits 3.

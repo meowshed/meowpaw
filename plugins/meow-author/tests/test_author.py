@@ -66,10 +66,6 @@ class Repository:
         return subprocess.run([str(BIN), "check", *paths], cwd=self.root, capture_output=True, text=True,
                               env=self.env())
 
-    def run_cost(self):
-        return subprocess.run([str(BIN), "cost"], cwd=self.root, capture_output=True, text=True, env=self.env())
-
-
 def unit(skill=GOOD, extra=None):
     files = {"plugins/meow-demo/skills/demo/SKILL.md": skill, "plugins/meow-demo/skills/demo/notes.md": NOTES}
     files.update(extra or {})
@@ -131,6 +127,13 @@ class Check(unittest.TestCase):
     def test_a_procedure_without_a_stopping_point_fails(self):
         """REQ-1122: a procedure states where it stops."""
         self.fails(unit(GOOD.replace("report what it printed, and stop.", "and read its output.")), "has a procedure and no step naming where it stops")
+
+    def test_a_description_over_the_platform_cap_fails(self):
+        """ADR-2970, REQ-1060: the platform caps a description and its when_to_use together,
+        checked by `author check` where the cost subcommand used to hold it."""
+        long = GOOD.replace("description: The demo skill. It MUST be loaded before a demo is run.",
+                            "description: " + "x" * 1000 + "\nwhen_to_use: " + "y" * 600)
+        self.fails(unit(skill=long), "description is 1601 characters, over the cap of 1536")
 
     def test_a_repositorys_own_skills_are_checked(self):
         """REQ-1672, REQ-1678: a repository checks its own material with the shipped capability."""
@@ -351,50 +354,12 @@ class AgentOutcomes(unittest.TestCase):
         self.assertIn("0 authoring failures", done.stdout)
 
 
-class Cost(unittest.TestCase):
-    """ADR-1460: meow-author cost reports each unit's cost against its budget."""
-
-    def repo(self, budget="permanent_characters = 200\n", description="The demo skill. It MUST be loaded before a demo is run.", when=""):
-        skill = GOOD.replace("description: The demo skill. It MUST be loaded before a demo is run.", f"description: {description}" + (f"\nwhen_to_use: {when}" if when else ""))
-        files = unit(skill, {"plugins/meow-demo/.claude-plugin/plugin.json": '{"name": "meow-demo"}\n'})
-        if budget is not None:
-            files["plugins/meow-demo/budget.toml"] = budget
-        repository = Repository(files)
-        self.addCleanup(repository.tmp.cleanup)
-        return repository.run_cost()
-
-    def test_a_unit_within_its_budget_passes_and_names_skill_doctor(self):
-        """REQ-1072: the report gives each unit's cost, and names where its use is reported."""
-        done = self.repo()
-        self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertIn("meow-demo: 55 of 200 characters on every turn", done.stdout)
-        self.assertIn("/skill-doctor", done.stdout)
-
-    def test_a_unit_over_its_budget_fails(self):
-        """REQ-1072, REQ-1074: the cost report fails the gate on an overrun."""
-        done = self.repo(budget="permanent_characters = 10\n")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("meow-demo: loads 55 characters on every turn, 45 over its budget of 10", done.stdout)
-
-    def test_a_unit_with_no_budget_fails(self):
-        """REQ-1074: every unit states the budget it is held to."""
-        done = self.repo(budget=None)
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("meow-demo: states no budget in budget.toml", done.stdout)
-
-    def test_a_description_and_when_to_use_over_the_cap_fail(self):
-        """REQ-1072: the platform caps a description and its when_to_use together."""
-        done = self.repo(budget="permanent_characters = 5000\n", description="x" * 1000, when="y" * 600)
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("description is 1601 characters, over the cap of 1536", done.stdout)
-
-
 class Launcher(unittest.TestCase):
     """SPC-1080, BUG-1240: a launcher with no binary beside it reports each subcommand unchecked, never passed."""
 
     def test_a_missing_binary_is_unchecked_and_names_the_machine_and_the_reinstall(self):
         machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
-        for subcommand in ["check", "cost"]:
+        for subcommand in ["check"]:
             with self.subTest(subcommand=subcommand), tempfile.TemporaryDirectory() as tmp:
                 launcher = Path(tmp) / "bin" / "meow-author"
                 launcher.parent.mkdir()

@@ -7,7 +7,7 @@ describes: [@meowshed/meow-licence@0.5.0]
 
 # @meowshed/meow-licence
 
-Adds the licence header a repository declares to each file Claude Code creates, never rewrites one, and checks that every tracked file is covered by the licensing declared in REUSE.toml, in .meowpaw/profile.toml or in its files' headers. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.
+Adds the licence header a repository declares to each file Claude Code creates, never rewrites one, and checks that every tracked file is covered by the licensing declared in REUSE.toml, in .meowpaw/profile.toml or in its files' headers. Distributed as a Pi package.
 
 ## Install it
 
