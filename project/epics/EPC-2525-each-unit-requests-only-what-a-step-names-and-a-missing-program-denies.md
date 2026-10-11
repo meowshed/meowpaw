@@ -1,8 +1,8 @@
 ---
 id: EPC-2525
 artifact: epic
-status: approved
-revised: 2026-10-03
+status: done
+revised: 2026-10-11
 realises: ADR-2460
 ---
 
@@ -56,8 +56,8 @@ number.
 - [x] T-003 [P] TSK-4930 fail a subcommand that writes outside the run state and the record, in a crate test (done: pull request 1048)
       closes: REQ-1429
 
-- [>] T-004 [P] TSK-4935 state the secrets rule in `meow-core`'s output style, within its budget (the rule is written and held by a test; criterion 4, the measured cases on Sonnet 5 and Opus 5.5, is a hand run for the owner, so the task isn't done)
-  closes: REQ-1424
+- [x] T-004 [P] TSK-4935 state the secrets rule in `meow-core`'s output style, within its budget (done: pull request 1048; criterion 4, the measured cases on Sonnet 5 and Opus 5.5, each a model call, the owner closed on review on 2026-10-11 without re-running them)
+      closes: REQ-1424
 
 ## Coverage
 
