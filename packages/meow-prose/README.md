@@ -7,7 +7,7 @@ describes: [@meowshed/meow-prose@0.7.0]
 
 # @meowshed/meow-prose
 
-Holds everything Claude Code writes for you to one writing standard: the answer first, a reason for every rule, one term for one thing, and plain English for a reader who learned it as a second language. It keeps up to 700 characters in context on every turn, and loads a skill of about 5,000 tokens each time you write. Distributed as a Pi package.
+Holds everything Claude Code writes for you to one writing standard: the answer first, a reason for every rule, one term for one thing, and plain English for a reader who learned it as a second language. Distributed as a Pi package.
 
 ## Install it
 

@@ -2,7 +2,7 @@
 id: SPC-1201
 artifact: spec
 status: live
-revised: 2026-10-10
+revised: 2026-10-11
 states:
   [
     REQ-0870,
@@ -65,7 +65,6 @@ ADR-2380 decides this part.
 | `plugins/meow-loop/bin/meow-loop`                | The unit's program, which each hook runs with its subcommand          |
 | `plugins/meow-loop/README.md`                    | The unit's page                                                       |
 | `plugins/meow-loop/.claude-plugin/plugin.json`   | The unit's manifest                                                   |
-| `plugins/meow-loop/budget.toml`                  | What the unit loads on every turn: the skill's description            |
 | `plugins/meow-loop/requires.toml`                | The Claude Code version the unit needs                                |
 | `crates/meow`, feature `loop`                    | The unit's program, which compiles in the `record` and `profile` code |
 | `<state>/meowpaw/runs/<work tree key>/<run id>/` | One run's directory, outside the work tree                            |

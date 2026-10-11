@@ -81,9 +81,8 @@ the tool that owns it, signs again what a rebase changed, cites no
 model-written summary as evidence, and removes a working tree only in the
 foreground, when you or the step that made it asks.
 
-## What it costs you
+## What it costs you The
 
-The skill's description costs 419 characters in context on every turn. The
 program is a native binary shipped inside the unit, so it needs nothing
 installed on the machine. On a machine the unit carries no binary for, the
 check reports the message as unchecked and exits 3.

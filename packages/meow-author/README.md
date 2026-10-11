@@ -7,7 +7,7 @@ describes: [@meowshed/meow-author@0.8.0]
 
 # @meowshed/meow-author
 
-Holds how Claude Code writes skills, agents, output styles, commands and prompt hooks, checks them in a repository's plugins or its own .claude directory for fixed tags, a description, the six fields an agent declares, every supporting file named and a stated stopping point, and reports each unit's context cost. It keeps up to 400 characters in context on every turn. Distributed as a Pi package.
+Holds how Claude Code writes skills, agents, output styles, commands and prompt hooks, checks them in a repository's plugins or its own .claude directory for fixed tags, a description, the six fields an agent declares, every supporting file named and a stated stopping point. Distributed as a Pi package.
 
 ## Install it
 

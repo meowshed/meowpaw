@@ -7,7 +7,7 @@ describes: [@meowshed/meow-scm@0.7.0]
 
 # @meowshed/meow-scm
 
-Checks a commit message against the convention the repository declares in .meowpaw/profile.toml and against a ban on crediting a tool, before the message is used, and reports an undeclared convention as undeclared, never as met. It keeps up to 380 characters in context on every turn. Distributed as a Pi package.
+Checks a commit message against the convention the repository declares in .meowpaw/profile.toml and against a ban on crediting a tool, before the message is used, and reports an undeclared convention as undeclared, never as met. Distributed as a Pi package.
 
 ## Install it
 

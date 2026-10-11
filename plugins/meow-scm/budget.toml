@@ -1,8 +1,0 @@
-# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
-# SPDX-License-Identifier: Apache-2.0
-
-# What this unit may load on every turn, in characters (REQ-1056): the commit
-# skill's description, which routes it. Measured at 419 by the budget check on
-# 2026-10-11, after BUG-1550 added the operations its rules bound; the budget
-# adds about one sentence.
-permanent_characters = 450

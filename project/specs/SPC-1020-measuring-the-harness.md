@@ -2,7 +2,7 @@
 id: SPC-1020
 artifact: spec
 status: live
-revised: 2026-10-10
+revised: 2026-10-11
 states:
   [
     REQ-0153,
@@ -30,9 +30,9 @@ Measuring a change to what the harness says is what this covers: the case set,
 the two arms, the judge, the thresholds, what counts as a regression, and the
 loop by which a prompt is optimised.
 
-It leaves what the prompts say, and the size budget a unit carries, to the
-specification of the unit that ships them, because a contract names no unit
-and every unit's specification cites the contracts it follows.
+It leaves what the prompts say to the specification of the unit that ships
+them, because a contract names no unit and every unit's specification cites
+the contracts it follows.
 
 ADR-1010 authorises it and EPC-1010 realises it. ADR-1500 settles what the
 loop reports and refuses, and EPC-1480 realises it. `tools/loop.py` implements
@@ -106,9 +106,9 @@ A measurement states how many runs it used, and nobody assumes the platform's
 default of three is enough (REQ-3026). The one measured evaluation this corpus
 cites reported single-case variance above 0.9 at three trials.
 
-It states the judge, the case set, the revision it ran at, and the cost in
-tokens the unit under test loads on every turn. Every rate and delta carries
-twice its standard error, and every case its run count (REQ-0160). The header
+It states the judge, the case set, and the revision it ran at. Every rate and
+delta carries twice its standard error, and every case its run count
+(REQ-0160). The header
 names the judge's model and its family, computed from the identifier: a
 same-family judge makes every judged score, a verdict included, a smoke check;
 another family's judge is still no claim while which judge is stronger stays
@@ -150,10 +150,7 @@ the baseline. Each candidate changes one thing, so the delta
 can be attributed. Each candidate is measured on the same cases, with the same
 run count and the same judge.
 
-A candidate lands when the difference holds or rises on both models and the
-token cost falls.
-A candidate scoring better at a higher cost is a judgement, reported with both
-numbers.
+A candidate lands when the difference holds or rises on both models.
 
 Every candidate's delta is published, including the ones that lost. Where no
 candidate lands, the baseline stays and the loop reports that it found nothing

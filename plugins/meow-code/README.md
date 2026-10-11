@@ -59,9 +59,8 @@ wrong output, it loads the `meow-code:debug` skill, which has it:
 You don't invoke either skill yourself: Claude Code loads it from its
 description whenever it's about to change code.
 
-## What it costs you
+## What it costs you Each
 
-The two skills' descriptions cost 502 characters in context on every turn. Each
 skill's body loads only when Claude Code changes code or debugs. The unit ships
 no program.
 
