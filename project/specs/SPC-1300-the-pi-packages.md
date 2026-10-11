@@ -12,7 +12,6 @@ states:
     REQ-4112,
     REQ-4114,
     REQ-4122,
-    REQ-4124,
     REQ-4126,
     REQ-4128,
     REQ-4130,
@@ -283,12 +282,6 @@ other package's extension injects it. A package that makes a nested model
 call — the prose reviewer and the researcher — carries its own
 bundled copy of the reply shape into that call's messages, because a nested
 call runs its own prompt and never sees the session's.
-
-### Evals
-
-Eval suites remain in the `plugins/` directory and are not carried in the Pi
-packages (REQ-4124). A future extension may register a `paw eval` command
-that runs them.
 
 ### The install sources
 
