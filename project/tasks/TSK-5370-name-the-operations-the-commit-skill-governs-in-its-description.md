@@ -1,7 +1,7 @@
 ---
 id: TSK-5370
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 bug: BUG-1550
 closes: []

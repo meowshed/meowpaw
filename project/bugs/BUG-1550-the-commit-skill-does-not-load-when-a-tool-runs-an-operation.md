@@ -57,4 +57,4 @@ govern, and `mise run budget` passing with the longer description counted.
 
 ## Tasks
 
-- [ ] T-001 TSK-5370 name the operations the commit skill governs in its description
+- [x] T-001 TSK-5370 name the operations the commit skill governs in its description (done: pull request 1046)
