@@ -39,8 +39,7 @@ event handlers, the commands, the tools, the binary dispatch and the
 dual-platform contract.
 
 It leaves the implementation of each extension to its task, the eval runner
-design to a later decision (REQ-4124), and per-user configuration to a later
-decision. A Pi package that exploits dynamic tool registration, virtual models
+design to a later decision, and per-user configuration to a later decision. A Pi package that exploits dynamic tool registration, virtual models
 or structured output has no specification yet, because no decision asks for
 one.
 
