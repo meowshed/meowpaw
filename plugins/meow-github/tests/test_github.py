@@ -1483,8 +1483,13 @@ class Guard(unittest.TestCase):
         self.assertEqual(len(entry["hooks"]), 1)
         self.assertEqual(entry["hooks"][0]["type"], "command")
         self.assertEqual(entry["hooks"][0]["command"], '"${CLAUDE_PLUGIN_ROOT}"/bin/meow-github governance-guard')
+        # The hook loads nothing; the unit's one skill's description is what it keeps in context
+        # (BUG-1562), so the budget is that description and no more.
         budget = tomllib.loads((UNIT / "budget.toml").read_text(encoding="utf-8"))
-        self.assertEqual(budget["permanent_characters"], 0)
+        skill = (UNIT / "skills" / "governance" / "SKILL.md").read_text(encoding="utf-8")
+        description = next(l for l in skill.splitlines() if l.startswith("description: "))[len("description: "):]
+        self.assertGreaterEqual(budget["permanent_characters"], len(description))
+        self.assertLess(budget["permanent_characters"], len(description) + 100)
 
 
 class Launcher(unittest.TestCase):
