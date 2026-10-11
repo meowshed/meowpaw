@@ -67,7 +67,14 @@ class Repository:
                               env=self.env())
 
 def unit(skill=GOOD, extra=None):
-    files = {"plugins/meow-demo/skills/demo/SKILL.md": skill, "plugins/meow-demo/skills/demo/notes.md": NOTES}
+    files = {
+        "plugins/meow-demo/skills/demo/SKILL.md": skill,
+        "plugins/meow-demo/skills/demo/notes.md": NOTES,
+        # The manifest rules of SPC-1080 "Each unit is a plugin" read these, so
+        # a fixture unit carries them (REQ-1482, REQ-2990).
+        "plugins/meow-demo/.claude-plugin/plugin.json": '{"name":"meow-demo","version":"0.1.0"}',
+        "plugins/meow-demo/requires.toml": 'claude_code = "2.0.0"\nlayer = "practice"\nunits = []\n',
+    }
     files.update(extra or {})
     return files
 
@@ -127,6 +134,24 @@ class Check(unittest.TestCase):
     def test_a_procedure_without_a_stopping_point_fails(self):
         """REQ-1122: a procedure states where it stops."""
         self.fails(unit(GOOD.replace("report what it printed, and stop.", "and read its output.")), "has a procedure and no step naming where it stops")
+
+    def test_a_unit_without_requires_toml_fails(self):
+        """REQ-1482: each unit declares what it requires, in requires.toml."""
+        files = unit()
+        del files["plugins/meow-demo/requires.toml"]
+        self.fails(files, "has no plugins/meow-demo/requires.toml")
+
+    def test_a_unit_without_a_version_fails(self):
+        """REQ-2990: every unit the harness ships carries a version."""
+        self.fails(unit(extra={"plugins/meow-demo/.claude-plugin/plugin.json": '{"name":"meow-demo"}'}), "has no version")
+
+    def test_a_pack_without_a_kernel_range_fails(self):
+        """REQ-2998: a pack declares the range of the kernel it works with."""
+        self.fails(unit(extra={"plugins/meow-demo/requires.toml": 'claude_code = "2.0.0"\nlayer = "pack"\nunits = []\n'}), "has no kernel")
+
+    def test_a_unit_requiring_another_without_the_enabling_sentence_fails(self):
+        """REQ-3006: the README says the platform enables the required unit."""
+        self.fails(unit(extra={"plugins/meow-demo/requires.toml": 'claude_code = "2.0.0"\nlayer = "practice"\nunits = ["meow-scm"]\n'}), "doesn't say the platform enables it")
 
     def test_a_description_over_the_platform_cap_fails(self):
         """ADR-2970, REQ-1060: the platform caps a description and its when_to_use together,

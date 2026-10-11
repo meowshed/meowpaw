@@ -1028,6 +1028,18 @@ mod tests {
         let agents = dir.join(unit).join("agents");
         std::fs::create_dir_all(&agents).unwrap();
         std::fs::write(agents.join("reviewer.md"), outcome_agent(role)).unwrap();
+        std::fs::create_dir_all(dir.join(unit).join(".claude-plugin")).unwrap();
+        // A unit under `plugins/` carries the manifest files the manifest
+        // rules read; a repository's own `.claude/` carries none, because it
+        // ships no plugin.
+        if unit.ends_with("plugins/meow-demo") {
+            std::fs::write(
+                dir.join(unit).join(".claude-plugin").join("plugin.json"),
+                "{\"name\":\"meow-demo\",\"version\":\"0.1.0\"}",
+            )
+            .unwrap();
+            std::fs::write(dir.join(unit).join("requires.toml"), MANIFEST_REQUIRES).unwrap();
+        }
         std::fs::write(
             dir.join(unit).join("README.md"),
             "# demo\n\n## Tools\n\n- `Read`: the review reads the file.\n- `Grep`: the review finds a line.\n- `Glob`: the review lists paths.\n",
@@ -1039,6 +1051,127 @@ mod tests {
     }
 
     const ALL_FOUR: &str = "You review the demo and end with outcome: DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT or BLOCKED.";
+
+    /// The requires.toml a complete fixture unit carries.
+    const MANIFEST_REQUIRES: &str = "claude_code = \"2.0.0\"\nlayer = \"practice\"\nunits = []\n";
+
+    /// A fixture unit carrying the manifest files the manifest rules read: a
+    /// version in its plugin manifest, a requires.toml and a README. Each file
+    /// named is replaced; each left alone keeps its default.
+    fn manifest_check(case: &str, plugin: Option<&str>, requires: Option<&str>, readme: Option<&str>) -> u8 {
+        let root =
+            std::env::temp_dir().join(format!("meow-author-manifest-{case}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let unit = root.join("plugins").join("meow-demo");
+        std::fs::create_dir_all(unit.join(".claude-plugin")).unwrap();
+        std::fs::write(
+            unit.join(".claude-plugin").join("plugin.json"),
+            plugin.unwrap_or("{\"name\":\"meow-demo\",\"version\":\"0.1.0\"}"),
+        )
+        .unwrap();
+        if let Some(requires) = requires {
+            std::fs::write(unit.join("requires.toml"), requires).unwrap();
+        }
+        std::fs::write(unit.join("README.md"), readme.unwrap_or("# meow-demo\n")).unwrap();
+        let status = check(&[unit.display().to_string()]);
+        let _ = std::fs::remove_dir_all(&root);
+        status
+    }
+
+    #[test]
+    fn a_unit_without_requires_toml_fails() {
+        // TSK-4390 criterion 1, REQ-1482: a unit with no requires.toml fails.
+        assert_eq!(manifest_check("norequires", None, None, None), FOUND);
+    }
+
+    #[test]
+    fn a_unit_without_a_version_fails() {
+        // TSK-4390 criterion 2, REQ-2990: a plugin manifest with no version
+        // fails.
+        assert_eq!(
+            manifest_check(
+                "noversion",
+                Some("{\"name\":\"meow-demo\"}"),
+                Some(MANIFEST_REQUIRES),
+                None
+            ),
+            FOUND
+        );
+    }
+
+    #[test]
+    fn a_pack_without_a_kernel_range_fails() {
+        // TSK-4390 criterion 3, REQ-2998: a pack with no kernel fails.
+        assert_eq!(
+            manifest_check(
+                "nokernel",
+                None,
+                Some("claude_code = \"2.0.0\"\nlayer = \"pack\"\nunits = []\n"),
+                None
+            ),
+            FOUND
+        );
+    }
+
+    #[test]
+    fn a_unit_without_a_layer_or_units_fails() {
+        // SPC-1080 "Each unit is a plugin": the check fails a unit with no
+        // layer or no units, a pack with no kernel range included.
+        assert_eq!(
+            manifest_check(
+                "nolayer",
+                None,
+                Some("claude_code = \"2.0.0\"\nunits = []\n"),
+                None
+            ),
+            FOUND
+        );
+        assert_eq!(
+            manifest_check(
+                "nounits",
+                None,
+                Some("claude_code = \"2.0.0\"\nlayer = \"practice\"\n"),
+                None
+            ),
+            FOUND
+        );
+    }
+
+    #[test]
+    fn a_unit_requiring_another_says_the_platform_enables_it() {
+        // TSK-4390 criterion 5, REQ-3006: a README that doesn't state the
+        // enabling fails, and one that does passes.
+        assert_eq!(
+            manifest_check(
+                "requiressilent",
+                None,
+                Some("claude_code = \"2.0.0\"\nlayer = \"practice\"\nunits = [\"meow-scm\"]\n"),
+                Some("# meow-demo\n"),
+            ),
+            FOUND
+        );
+        assert_eq!(
+            manifest_check(
+                "requiresstated",
+                None,
+                Some("claude_code = \"2.0.0\"\nlayer = \"practice\"\nunits = [\"meow-scm\"]\n"),
+                Some(
+                    "# meow-demo\n\nInstalling this unit enables `meow-scm`, and the platform keeps `meow-scm` enabled while this unit is on.\n"
+                ),
+            ),
+            CLEAN
+        );
+    }
+
+    #[test]
+    fn a_unit_with_a_complete_manifest_passes() {
+        // TSK-4390 criteria 1 to 3: a unit carrying every key the rules read
+        // passes.
+        assert_eq!(
+            manifest_check("complete", None, Some(MANIFEST_REQUIRES), None),
+            CLEAN
+        );
+    }
 
     #[test]
     fn a_unit_agent_naming_no_outcome_fails() {
