@@ -1,8 +1,8 @@
 ---
 id: TSK-4935
 artifact: task
-status: approved
-revised: 2026-10-03
+status: done
+revised: 2026-10-11
 epic: EPC-2525
 closes: [REQ-1424]
 issue: 970
@@ -55,10 +55,10 @@ criterion 1 (REQ-1424): the rule is R11, with `read`, `print`, `transmit` and `a
 reason. Criterion 2 is closed by the budget: the style grew from 3,945 to 4,212 characters, over
 the 4,200 it was held to, so the budget is 4,500 with the reason in `budget.toml` and the
 manifest names the new ceiling, as the budget's comment asks of a new rule. `mise run style` and
-`tools/check_kernel.py` pass, closing criterion 3. Criterion 4 isn't closed: the style's measured
-cases would each be a model call on Sonnet 5 and Opus 5.5, which run by hand and cost money, so the
-rule is unmeasured and rests on review until the owner runs them. `mise run all` passed with exit
-status 0.
+`tools/check_kernel.py` pass, closing criterion 3. Criterion 4 rests on judgement: the measured cases would each be
+a model call on Sonnet 5 and Opus 5.5, which run by hand and cost money, and on 2026-10-11 the
+owner closed the task on review without re-running them, so the rule rests on the instruction and
+on review, as the epic's Not covered states. `mise run all` passed with exit status 0.
 
 ## Left alone
 
