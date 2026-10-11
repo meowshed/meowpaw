@@ -1,7 +1,7 @@
 ---
 id: TSK-5430
 artifact: task
-status: approved # draft, approved, then done when the authorising mark or Evidence derives completion
+status: done # draft, approved, then done when the authorising mark or Evidence derives completion
 revised: 2026-10-11
 bug: BUG-1590
 closes: []
@@ -41,7 +41,17 @@ Nothing.
 
 ## Evidence
 
-Not yet. This line stays first until every stage has passed.
+`test_an_npm_publish_inside_a_pipeline_fails_naming_its_line` and
+`test_an_npm_whose_status_decides_passes` in `tools/test_check_workflows.py`
+came first and closed criterion 1: the first failed against the workflow
+while the pipe stood (`python3 tools/check_workflows.py` named
+`pi-release.yml:107` and exited 1) and passes after the change, and the
+second held the success path. `mise run all` passed with exit status 0 over
+the branch. Criterion 2's mechanism is the same publish the step already
+carried: run 38132626035 published `@meowshed/meow-code@0.3.0` and run
+38132752519 published `@meowshed/meow-core@0.9.0`, each ending with
+`+ @meowshed/<unit>@<version>`; the reworded shell takes the same path at the
+next tag pushed to `main`.
 
 ## Left alone
 

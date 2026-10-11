@@ -77,5 +77,5 @@ pipe that hides npm's status.
 
 ## Tasks
 
-- [ ] T-001 TSK-5430 Make the npm publish step fail when npm fails
+- [x] T-001 TSK-5430 Make the npm publish step fail when npm fails
       (`.github/workflows/pi-release.yml`)
