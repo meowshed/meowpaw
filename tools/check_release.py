@@ -66,6 +66,20 @@ def breaking_commits(root, name, since):
     return found
 
 
+def changed_since(root, name, since):
+    """Whether any tracked file of the unit changed since its release tag."""
+    tag = f"{name}-v{'.'.join(map(str, since))}"
+    paths = [f"plugins/{name}"] + (["crates/meow"] if ships_binary(root, name) else [])
+    log = git(root, "log", "--oneline", f"{tag}..HEAD", "--", *paths)
+    return bool(log and log.strip())
+
+
+def has_notes(root, name, new):
+    """Whether the unit's CHANGELOG.md carries a section for the version (REQ-3002)."""
+    text = (root / "plugins" / name / "CHANGELOG.md").read_text(encoding="utf-8") if (root / "plugins" / name / "CHANGELOG.md").is_file() else ""
+    return bool(re.search(rf"(?m)^## {re.escape('.'.join(map(str, new)))}\b", text))
+
+
 def shows_breaking(old, new):
     """Whether a version raise shows a breaking change: the major, or the minor at zero."""
     if old[0] == 0:
@@ -80,8 +94,21 @@ def check(root):
         name = manifest.parent.parent.name
         new = version(json.loads(manifest.read_text(encoding="utf-8"))["version"])
         old = last_release(root, name)
-        if old is None or new == old:
+        if old is None:
+            if not has_notes(root, name, new):
+                problems.append(f"{name}: {'.'.join(map(str, new))} has no section in plugins/{name}/CHANGELOG.md, "
+                                "where the notes are written for the person whose repository changes (REQ-3002)")
             continue
+        if new == old:
+            if changed_since(root, name, old):
+                tag = f"{name}-v{'.'.join(map(str, old))}"
+                problems.append(f"{name}: tracked files changed since the tag {tag} while its version still equals "
+                                f"it, and a released version is never modified; the change ships as a new version "
+                                "(REQ-2996)")
+            continue
+        if not has_notes(root, name, new):
+            problems.append(f"{name}: {'.'.join(map(str, new))} has no section in plugins/{name}/CHANGELOG.md, "
+                            "where the notes are written for the person whose repository changes (REQ-3002)")
         commits = breaking_commits(root, name, old)
         if commits and not shows_breaking(old, new):
             need = "a minor or major" if old[0] == 0 else "a major"

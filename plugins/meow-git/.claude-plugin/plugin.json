@@ -1,6 +1,6 @@
 {
   "name": "meow-git",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Refuses a git commit on the trunk the repository declares, and checks every commit a push would publish for the declared commit convention and for a good signature, before the push runs. It keeps nothing in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",
@@ -9,6 +9,13 @@
   "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-git/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
-  "keywords": ["git", "signing", "hooks", "meowpaw"],
-  "dependencies": ["meow-core"]
+  "keywords": [
+    "git",
+    "signing",
+    "hooks",
+    "meowpaw"
+  ],
+  "dependencies": [
+    "meow-core"
+  ]
 }

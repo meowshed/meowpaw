@@ -39,6 +39,30 @@ done
   beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
   [ -f "$beside" ] && binary=$beside
 }
+# The platform version this unit was tested on, from its requires.toml
+# (REQ-1738): on an older one the launcher stops here without running the
+# binary, because the unit's behaviour was never seen on it. The version the
+# platform reports comes from `claude --version`, which the platform's CLI
+# reference documents.
+required=$(sed -n 's/^claude_code *= *"\([^"]*\)".*/\1/p' "$here/../requires.toml" 2>/dev/null)
+if [ -n "$required" ]; then
+  reported=$(claude --version 2>/dev/null | sed 's/^\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/')
+  if [ -z "$reported" ]; then
+    echo "paw: the platform's version is unknown, and this unit was tested on claude $required; it runs anyway" >&2
+  else
+    o1=$(printf '%s\n' "$reported" | cut -d. -f1)
+    o2=$(printf '%s\n' "$reported" | cut -d. -f2)
+    o3=$(printf '%s\n' "$reported" | cut -d. -f3)
+    n1=$(printf '%s\n' "$required" | cut -d. -f1)
+    n2=$(printf '%s\n' "$required" | cut -d. -f2)
+    n3=$(printf '%s\n' "$required" | cut -d. -f3)
+    if [ "${o1:-0}" -lt "${n1:-0}" ] || { [ "${o1:-0}" -eq "${n1:-0}" ] && [ "${o2:-0}" -lt "${n2:-0}" ]; } ||
+      { [ "${o1:-0}" -eq "${n1:-0}" ] && [ "${o2:-0}" -eq "${n2:-0}" ] && [ "${o3:-0}" -lt "${n3:-0}" ]; }; then
+      echo "paw: the platform reports claude $reported, and this unit was tested on claude $required, so it stops: install claude $required or later" >&2
+      exit 3
+    fi
+  fi
+fi
 if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
   exec "$binary" github "$@"

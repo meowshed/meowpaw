@@ -1,6 +1,6 @@
 {
   "name": "meow-licence",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Adds the licence header a repository declares to each file Claude Code creates, never rewrites one, and checks that every tracked file is covered by the licensing declared in REUSE.toml, in .meowpaw/profile.toml or in its files' headers.",
   "author": {
     "name": "Andrew Vasilyev",
@@ -9,6 +9,14 @@
   "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-licence/README.md",
   "repository": "https://github.com/meowshed/meowpaw",
   "license": "Apache-2.0",
-  "keywords": ["licence", "license", "reuse", "spdx", "meowpaw"],
-  "dependencies": ["meow-core"]
+  "keywords": [
+    "licence",
+    "license",
+    "reuse",
+    "spdx",
+    "meowpaw"
+  ],
+  "dependencies": [
+    "meow-core"
+  ]
 }

@@ -1,7 +1,7 @@
 ---
 id: TSK-4420
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2340
 closes:
@@ -70,10 +70,18 @@ the first check of a rule the tree was assumed to meet.
 
 ## Evidence
 
-Not yet.
-
-Criterion 6 rests on judgement for REQ-1483, because no program reads which
-hook a rule relies on running first.
+The tests live in `tools/test_plugin_contract.py` and
+`tools/test_marketplace.py`, and each names the requirement it proves. No
+unit broke a rule the tests hold, so there was nothing to fix and no
+criterion was seen failing: criterion 3's condition, where a unit writes
+under its own directory, never fired, and the read-only copy run is the
+check that would catch it. Criterion 6's REQ-1481 stays with
+`tools/check_standalone.py`, which the `lint` stage runs and which passed;
+REQ-1483 rests on review, as the task states. The profile's `test` stage
+lists both new files. The five stages passed at tree `dc741c41414b`, each
+bound by `meow-checks run` and confirmed by `meow-checks evidence`, exit 0:
+format `c97f46c46d07`, check `5fd194c8283c`, lint `48e163d2686b`, test
+`c82df3e51f2c`, build `dc756eb1f1ba`.
 
 ## Left alone
 
