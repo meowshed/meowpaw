@@ -1,8 +1,8 @@
 ---
 id: ADR-2460
 artifact: adr
-status: approved
-revised: 2026-10-03
+status: done
+revised: 2026-10-11
 addresses: [REQ-1424, REQ-1426, REQ-1429, REQ-1430, REQ-1432]
 supersedes: []
 ---
