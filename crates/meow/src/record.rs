@@ -4913,7 +4913,10 @@ mod tests {
         unsafe {
             std::env::set_var(
                 "MEOW_LAYOUT",
-                concat!(env!("CARGO_MANIFEST_DIR"), "/../../plugins/meow-flow/lib/layout.toml"),
+                concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/../../plugins/meow-flow/lib/layout.toml"
+                ),
             );
         }
         let dir = std::env::temp_dir().join(format!("meow-chain-{}", std::process::id()));
@@ -4931,7 +4934,9 @@ mod tests {
             dir.join("project")
                 .join("requirements")
                 .join("REQ-0001-first.md"),
-            format!("---\nid: REQ-0001\nstatus: {first}\nelaborates: [BUG-0001]\n---\n\n# REQ-0001\n"),
+            format!(
+                "---\nid: REQ-0001\nstatus: {first}\nelaborates: [BUG-0001]\n---\n\n# REQ-0001\n"
+            ),
         )
         .unwrap();
         std::fs::write(
