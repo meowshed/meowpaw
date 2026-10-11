@@ -44,16 +44,30 @@ class Repository:
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
+        files = dict(files)
+        # A unit that ships an agent names a step for each tool it grants (REQ-1432), so a fixture unit carries a
+        # README that does, unless the fixture writes its own.
+        for name in list(files):
+            parts = name.split("/")
+            if len(parts) == 4 and parts[0] == "plugins" and parts[2] == "agents":
+                readme = f"plugins/{parts[1]}/README.md"
+                files.setdefault(readme, "# demo\n\n## Tools\n\n" + "".join(
+                    f"- `{tool}`: the review step uses it.\n" for tool in ("Read", "Grep", "Glob", "Bash", "Edit", "Write")))
         for name, text in files.items():
             path = self.root / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")
 
+    def env(self):
+        # An empty data directory, so the launcher runs the binary built beside it and not an installed one.
+        return {**os.environ, "CLAUDE_PLUGIN_DATA": f"{self.tmp.name}-data/unit"}
+
     def check(self, *paths):
-        return subprocess.run([str(BIN), "check", *paths], cwd=self.root, capture_output=True, text=True)
+        return subprocess.run([str(BIN), "check", *paths], cwd=self.root, capture_output=True, text=True,
+                              env=self.env())
 
     def run_cost(self):
-        return subprocess.run([str(BIN), "cost"], cwd=self.root, capture_output=True, text=True)
+        return subprocess.run([str(BIN), "cost"], cwd=self.root, capture_output=True, text=True, env=self.env())
 
 
 def unit(skill=GOOD, extra=None):

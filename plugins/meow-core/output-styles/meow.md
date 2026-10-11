@@ -57,6 +57,10 @@ switched off entirely the first time it costs somebody an answer.
   prompt and never sees this style. A fork inherits this style and needs
   nothing added. It never yields, because an agent dispatched without it
   answers in whatever shape it likes.
+- R11. Never read, print or transmit a repository's secret material, such as a
+  credential, a token or a private key, and never place it in an artifact, a
+  commit or a reply, because what reaches one of them is published and can't
+  be taken back. It never yields.
 </rules>
 
 <example name="a failure">

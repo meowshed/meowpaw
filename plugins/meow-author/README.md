@@ -116,6 +116,14 @@ runs, `meow-author check` fails a hook, naming the file and the event, that:
 A hook that builds a network call at run time is invisible to the check, and
 review holds it.
 
+## What it checks in the tools a unit grants
+
+Each tool an agent's `tools` or a skill's `allowed-tools` grants must have a
+step named beside it in the unit's README, under `## Tools`, as a list item
+that opens with the tool in code font, a colon and what the step does with it.
+A tool with no such item fails the check, naming the file, the tool and the
+README, so a tool no step needs is visible and removed.
+
 ## Report what each unit costs
 
 `meow-author cost` reports, for each plugin under `plugins/`, the characters it
