@@ -1,7 +1,7 @@
 ---
 id: TSK-4390
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2340
 closes: [REQ-1482, REQ-2990, REQ-2998, REQ-3006]
