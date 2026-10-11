@@ -6,8 +6,10 @@ asks for check, test and build, TSK-2510 asks for format and lint, and
 ADR-1610 decides (REQ-1186, SPC-1080)."""
 
 import json
+import os
 import re
 import subprocess
+import tempfile
 import tomllib
 import unittest
 from pathlib import Path
@@ -22,6 +24,15 @@ CRATE_LINT = (
 CARGO_FMT = "cargo fmt --manifest-path crates/meow/Cargo.toml"
 
 
+def pinned_env(**more):
+    """The environment with the launcher's data directory pinned to an empty
+    directory, so the launcher runs the build beside the unit and never an
+    installed release (REQ-2928)."""
+    env = {**os.environ, "CLAUDE_PLUGIN_DATA": f"{tempfile.mkdtemp(prefix='meow-pin-')}/unit"}
+    env.update(more)
+    return env
+
+
 def mise_tasks():
     with open(ROOT / "mise.toml", "rb") as handle:
         return tomllib.load(handle)["tasks"]
@@ -30,7 +41,7 @@ def mise_tasks():
 def verbs():
     run = subprocess.run(
         [str(ROOT / "plugins/meow-checks/bin/meow-checks"), "status", "--json"],
-        cwd=ROOT, capture_output=True, text=True, check=True,
+        cwd=ROOT, capture_output=True, text=True, check=True, env=pinned_env(),
     )
     return json.loads(run.stdout)["verbs"]
 
@@ -109,7 +120,7 @@ class MiseCheck(unittest.TestCase):
         from the task runs the profile's verbs name, which are what it reads."""
         run = subprocess.run(
             [str(ROOT / "plugins/meow-mise/bin/meow-mise"), "check"],
-            cwd=ROOT, capture_output=True, text=True,
+            cwd=ROOT, capture_output=True, text=True, env=pinned_env(),
         )
         output = run.stdout + run.stderr
         self.assertEqual(run.returncode, 0, output)
@@ -175,7 +186,7 @@ class MiseCheckWithFormatAndLint(unittest.TestCase):
         """Criterion 2 (REQ-1186): 0 findings, over task runs that include crate-fmt, crate-lint, crate-check, crate and build."""
         run = subprocess.run(
             [str(ROOT / "plugins/meow-mise/bin/meow-mise"), "check"],
-            cwd=ROOT, capture_output=True, text=True,
+            cwd=ROOT, capture_output=True, text=True, env=pinned_env(),
         )
         output = run.stdout + run.stderr
         self.assertEqual(run.returncode, 0, output)

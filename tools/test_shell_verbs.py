@@ -26,6 +26,15 @@ UNFORMATTED = "\nif true; then\n      echo planted\nfi\n"
 SPACE_AFTER_EQUALS = "\nplanted= value\n"
 
 
+def pinned_env(**more):
+    """The environment with the launcher's data directory pinned to an empty
+    directory, so the launcher runs the build beside the unit and never an
+    installed release (REQ-2928)."""
+    env = {**os.environ, "CLAUDE_PLUGIN_DATA": f"{tempfile.mkdtemp(prefix='meow-pin-')}/unit"}
+    env.update(more)
+    return env
+
+
 def mise_tasks():
     with open(ROOT / "mise.toml", "rb") as handle:
         return tomllib.load(handle)["tasks"]
@@ -34,7 +43,7 @@ def mise_tasks():
 def verbs():
     run = subprocess.run(
         [str(ROOT / "plugins/meow-checks/bin/meow-checks"), "status", "--json"],
-        cwd=ROOT, capture_output=True, text=True, check=True,
+        cwd=ROOT, capture_output=True, text=True, check=True, env=pinned_env(),
     )
     return json.loads(run.stdout)["verbs"]
 

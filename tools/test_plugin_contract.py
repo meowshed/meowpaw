@@ -9,6 +9,7 @@ REQ-1484), the one configuration format (REQ-1494) and the secrets rule
 
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -85,6 +86,29 @@ class Configuration(unittest.TestCase):
                     text.lstrip().startswith("---") or name in ("LICENSE", "LICENCE"),
                     f"{path} ships configuration in no format the harness declares (REQ-1494)",
                 )
+
+
+class PinnedSuites(unittest.TestCase):
+    EXEMPT = {
+        # Their subject is how a launcher finds its binary, so the preference
+        # itself is what they measure.
+        "tools/test_launchers.py",
+        "tools/test_shared_binary.py",
+        "plugins/meow-unattended/tests/test_posture.py",
+        # It never executes a launcher; the paths it holds are fixture text.
+        "tools/test_check_standalone.py",
+    }
+
+    def test_every_launcher_running_suite_pins_the_data_directory(self):
+        """REQ-2928: a suite that runs a launcher pins the launcher's data directory, so it measures the checkout's build."""
+        for path in sorted((ROOT / "plugins").glob("*/tests/test_*.py")) + sorted((ROOT / "tools").glob("test_*.py")):
+            rel = str(path.relative_to(ROOT))
+            text = path.read_text(encoding="utf-8")
+            if "subprocess" not in text or not re.search(r"bin/meow-|bin/paw|MEOW_[A-Z]+_BIN", text):
+                continue
+            if rel in self.EXEMPT:
+                continue
+            self.assertIn("CLAUDE_PLUGIN_DATA", text, f"{rel} runs a launcher and pins no data directory (REQ-2928)")
 
 
 class Secrets(unittest.TestCase):
