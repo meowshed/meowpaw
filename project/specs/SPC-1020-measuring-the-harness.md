@@ -37,6 +37,13 @@ prompt produces is reviewed against the behaviour the material produced
 before the change (REQ-2750), and the review before publishing is the one
 check on the text.
 
+## Boundary
+
+The review before publishing is the one check on the text, and the harness
+states no measurement of a prompt. This page leaves what the prompts say to
+the specification of the unit that ships them, and what a redesign will
+measure to the decision that asks for it, which no record has yet.
+
 ## Failure paths
 
 | Condition                                                                | What happens                                                                                  |
