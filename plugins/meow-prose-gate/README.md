@@ -86,7 +86,9 @@ Each hook waits up to 120 seconds, so the judge's 45-second limit always fires
 first.
 
 The program is a native binary shipped inside the unit. On a machine the unit
-carries no binary for, it says it checked nothing and blocks nothing.
+carries no binary for, it denies each `git` and `gh` command its hook matches
+and names `claude plugin install meow-core@meowpaw`, to run in a terminal
+outside the session.
 
 `MEOW_PROSE_GATE_JUDGE` names a program to run in place of `claude`. It exists
 for the unit's fixtures, which set it to a stub judge so that no test calls a
@@ -127,6 +129,10 @@ python3 plugins/meow-prose-gate/evals/hand_run.py 3
 what it determines, what you read to reach the same answer without the tool,
 and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
+
+## Hooks
+
+`check` stops a publish whose text breaks a rule the gate holds: the exact rules first, then a judge model asked twice, which is the one hook allowed to reach beyond local files; the `meow-prose:writing` skill says why, and `mise run layers` runs the exact rules over the message of each commit a branch adds.
 
 ## What it needs
 

@@ -46,7 +46,7 @@ missing.
 | Surface                                | What it is                                                                 |
 | -------------------------------------- | -------------------------------------------------------------------------- |
 | `plugins/<unit>/hooks/hooks.json`      | The unit's hooks: the event, the matcher, the command and its timeout      |
-| `plugins/<unit>/bin/<unit>`            | The launcher each hook's command runs, with one subcommand                 |
+| `plugins/<unit>/bin/<launcher>`        | The launcher each hook's command runs, with one subcommand                 |
 | `plugins/<unit>/README.md`, `## Hooks` | One sentence per hook saying what it stops                                 |
 | `meow-author check`                    | The check that fails a hook breaking a rule below, run in the `lint` stage |
 
@@ -54,10 +54,13 @@ The hooks the units declare:
 
 | Unit              | Event                                  | Subcommand         | What it stops                                                  |
 | ----------------- | -------------------------------------- | ------------------ | -------------------------------------------------------------- |
+| `meow-core`       | `SessionStart`                         | `write-root`       | Nothing: it records where the unit is installed                |
 | `meow-flow`       | `SessionStart`                         | `status --waiting` | Nothing: it reports what waits at a gate                       |
 | `meow-git`        | `PreToolUse` on Bash                   | `commit-guard`     | A commit on the declared trunk                                 |
 | `meow-git`        | `PreToolUse` on Bash                   | `push-guard`       | A push of a commit whose message or signature fails            |
 | `meow-github`     | `PreToolUse` on Bash                   | `governance-guard` | A `gh` command that changes governance, until a person answers |
+| `meow-loop`       | `UserPromptSubmit`                     | `prompt`           | Nothing: it starts or cancels a run from the prompt typed      |
+| `meow-loop`       | `Stop`                                 | `stop`             | The end of a turn, while the run has work left                 |
 | `meow-loop`       | `PreToolUse` on Bash, Edit and Write   | `guard`            | A write into a run's own state, or a status the run can't give |
 | `meow-prose-gate` | `PreToolUse` on Bash                   | `check`            | A publish whose text breaks a rule the gate holds              |
 | `meow-checks`     | `PostToolUse` and `PostToolUseFailure` | `revision`         | Nothing: it advances the revision counter                      |
@@ -96,9 +99,10 @@ specification states. The
 exception covers that judge call alone, and `meow-author check` names it by
 unit and subcommand, so no other hook inherits it (ADR-2700).
 
-No hook writes its input to a file or a log (REQ-2724). The one hook that
-writes is `meow-checks revision`, which writes a count to the unit's run state
-and nothing it read.
+No hook writes its input to a file or a log (REQ-2724). `meow-checks revision`
+writes a count to the unit's run state and nothing it read, and `meow-loop`'s
+hooks write the run's own state, which records the session's identifier and the
+terms the person typed and no part of a tool's input.
 
 ### How a hook is declared
 
@@ -158,8 +162,8 @@ standard's specification states under REQ-3748.
 script a declaration runs, and fails, naming the file and the hook, on:
 
 - a hook that prints `allow` as its decision, or an `updatedInput`;
-- a hook command that is anything other than the unit's launcher with one
-  subcommand;
+- a hook command, on an event that can stop a call or the turn, that is
+  anything other than the unit's launcher with one subcommand;
 - a hook that names a network command, such as `curl`, `wget`, `ssh`, `gh`,
   `git fetch`, `git pull` or `claude -p`, other than the prose gate's judge;
 - a hook with no sentence under its unit's `## Hooks`.

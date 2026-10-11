@@ -356,8 +356,9 @@ and your own permission rules decide.
 The hook is a guard and not a barrier. It doesn't see a `gh` run inside a
 subshell, `bash -c`, `eval`, `xargs`, `sudo`, `timeout`, a script, a function
 or an alias, or a session with hooks turned off. Where the machine has no `meow-github` binary,
-it lets every command through, because a hook that fails blocks every Bash
-call.
+it denies every Bash command and names `claude plugin install meow-core@meowpaw`,
+because a launcher with no binary can't tell which command its program would
+have let through.
 
 ## Read a subcommand's help
 
@@ -366,12 +367,17 @@ what it determines, what you read to reach the same answer without the tool,
 and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
+## Hooks
+
+`governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them; the `meow-github:governance` skill says why, and `mise run test-tools` fails a workflow step that runs a `gh` command the guard asks about.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-github/requires.toml`, and GitHub's client, `gh`, signed in.
 The hook runs a native program on every Bash command, which loads nothing into
-context, so the unit still keeps 0 characters in context on every turn. It
+context. The `governance` skill's description costs 394 characters in context on
+every turn, under the unit's ceiling of 440 characters. It
 relies on these platform behaviours, each documented by Claude Code:
 
 - a plugin's `bin/` programs on the Bash tool's `PATH`: [documentation](https://code.claude.com/docs/en/plugins-reference.md)

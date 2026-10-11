@@ -411,8 +411,9 @@ The unit's one skill, `meow-loop:loop`, is invoked only by a person, so its
 description isn't loaded into context, and the unit keeps nothing in context
 on every turn; its budget states zero characters. Its hook runs the native
 program on every Bash command, Edit and Write, which loads nothing into
-context; on a machine the unit carries no binary for, the hook lets every
-command and write through. The program is a native binary shipped inside the unit. On a
+context; on a machine the unit carries no binary for, the guard denies every
+command and write and names `claude plugin install meow-core@meowpaw`, and the
+two hooks that start and end a run let the session go on. The program is a native binary shipped inside the unit. On a
 machine the unit carries no binary for, `start` reports the run as unresolved
 and exits 3. Each run leaves a directory of a few kilobytes in the state
 directory until a later run removes it.
@@ -423,6 +424,11 @@ directory until a later run removes it.
 what it determines, what you read to reach the same answer without the tool,
 and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
+
+## Hooks
+
+`prompt` starts or cancels a run from the prompt a person typed, and `stop` blocks the end of a turn while the run has work left; the `meow-loop:run` skill says why, and no gate check holds the rule yet.
+`guard` stops a write into a run's own state or a status the run can't give; the `meow-loop:run` skill says why, and no gate check holds the rule yet.
 
 ## What it needs
 

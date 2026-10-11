@@ -44,7 +44,7 @@ fn write_profile(dir: &Path, text: &str) {
 /// A git repository at `dir`, so the root is the top of a working tree.
 fn init(dir: &Path) {
     let done = Command::new("git")
-        .args(["init", "-q"])
+        .args(["init", "-q", "--template="])
         .current_dir(dir)
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
         .env("GIT_CONFIG_NOSYSTEM", "1")

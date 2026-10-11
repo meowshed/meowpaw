@@ -79,6 +79,10 @@ and only a run on the new model shows which rules those are.
 A usage limit or a cost ceiling shows up as a run error in the table, and never
 as a lower score.
 
+## Hooks
+
+`write-root` stops nothing: at the start of a session it records where the unit is installed, so the other units find the shared binary.
+
 ## What it needs
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared

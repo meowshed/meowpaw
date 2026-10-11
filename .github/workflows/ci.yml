@@ -16,7 +16,11 @@ jobs:
   gate:
     runs-on: ubuntu-26.04
     steps:
+      # The whole history, because `mise run layers` reads the commits a branch
+      # adds and the trunk's own line.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: jdx/mise-action@v5
         with:
           # The version meow-mise was tested on, in its crate: a newer mise

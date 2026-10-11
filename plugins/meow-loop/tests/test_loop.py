@@ -2027,5 +2027,36 @@ class Unchanged(Case):
         self.assertEqual(len(records), 1)
 
 
+class MissingBinary(unittest.TestCase):
+    """TSK-5165, REQ-1426, ADR-2710: with no binary for the machine the guard denies, and the two hooks that start
+    and end a run let the session go on, because a prompt hook that denies erases the person's prompt."""
+
+    def launcher(self, tmp):
+        launcher = Path(tmp) / "bin" / "meow-loop"
+        launcher.parent.mkdir()
+        shutil.copy(UNIT / "bin" / "meow-loop", launcher)
+        launcher.chmod(0o755)
+        return launcher
+
+    def run_hook(self, subcommand):
+        with tempfile.TemporaryDirectory() as tmp:
+            env = {"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}
+            return subprocess.run(["sh", str(self.launcher(tmp)), subcommand], cwd=tmp, env=env, input="{}",
+                                  capture_output=True, text=True, timeout=30)
+
+    def test_the_guard_denies_and_says_how_to_install(self):
+        machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
+        done = self.run_hook("guard")
+        self.assertEqual((done.returncode, done.stdout), (2, ""), done.stderr)
+        self.assertIn("meow-loop", done.stderr)
+        self.assertIn(machine, done.stderr)
+        self.assertIn("claude plugin install meow-core@meowpaw", done.stderr)
+
+    def test_the_prompt_and_stop_hooks_let_the_session_go_on(self):
+        for subcommand in ("prompt", "stop"):
+            done = self.run_hook(subcommand)
+            self.assertEqual(done.returncode, 0, f"{subcommand}: {done.stdout}{done.stderr}")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -399,9 +399,9 @@ class TheJudgedRules(unittest.TestCase):
 
 
 class TheHook(unittest.TestCase):
-    """ADR-1600: every hook is a command, and a missing binary blocks nothing."""
+    """ADR-1600: every hook is a command, and ADR-2710: a missing binary denies and says how to install it."""
 
-    def test_a_launcher_with_no_binary_lets_the_publish_through(self):
+    def test_a_launcher_with_no_binary_denies_the_publish_and_says_how_to_install(self):
         with tempfile.TemporaryDirectory() as tmp:
             launcher = Path(tmp) / "meow-prose-gate"
             shutil.copy(UNIT / "bin" / "meow-prose-gate", launcher)
@@ -409,8 +409,11 @@ class TheHook(unittest.TestCase):
             env = {"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"}
             done = subprocess.run(["sh", str(launcher), "check"], input=event, env=env, capture_output=True,
                                   text=True, timeout=30)
-        self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertIn("nothing was checked", done.stdout)
+        machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
+        self.assertEqual((done.returncode, done.stdout), (2, ""), done.stderr)
+        self.assertIn("meow-prose-gate", done.stderr)
+        self.assertIn(machine, done.stderr)
+        self.assertIn("claude plugin install meow-core@meowpaw", done.stderr)
 
     @staticmethod
     def hook_types(hooks):

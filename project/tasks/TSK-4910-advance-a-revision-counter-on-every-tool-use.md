@@ -1,7 +1,7 @@
 ---
 id: TSK-4910
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2520
 closes: [REQ-2728]
@@ -52,7 +52,22 @@ sentence, and hold the hook to SPC-1240. Document the counter on
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where all four in
+`crates/meow/tests/revision.rs` failed, and the two in
+`plugins/meow-checks/tests/test_hooks.py` failed for the missing hooks file and
+the missing launcher case. `a_failed_tool_use_advances_the_counter_and_so_does_a_successful_one`
+closes criterion 1 (REQ-2728): four tool uses read 4, a failed one reads 5, and
+a successful one reads 6. `Hooks.test_both_events_run_revision_on_the_four_tools`
+closes criterion 2.
+`evidence_prints_the_records_revision_and_the_current_one` closes criterion 3:
+a run at counter 5 and two tool uses after it print `revision 5, now 7`, and
+`current at tree` still decides. `state_off_writes_nothing_and_exits_zero`
+closes criterion 4, and `the_counter_holds_a_count_and_nothing_the_hook_read`
+holds REQ-2724. The fixture keeps its state directory outside the work tree,
+because a ledger inside the tree changes the tree the run is bound to.
+
+`cargo test --all-features`, `cargo clippy --all-features --all-targets
+-- -D warnings` and `mise run all` passed, each with exit status 0.
 
 ## Left alone
 

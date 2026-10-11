@@ -308,6 +308,10 @@ each documented by Claude Code:
 - a `SessionStart` command hook whose output reaches the model before its first reply: [documentation](https://code.claude.com/docs/en/hooks.md)
 - a plugin's `bin/` programs, run by path: [documentation](https://code.claude.com/docs/en/plugins-reference.md)
 
+## Hooks
+
+`status --waiting` stops nothing: at the start of a session it reports what waits at a gate, so the model sees a pending approval before it replies.
+
 ## Where it reads the record
 
 The layout it reads each kind by is `plugins/meow-flow/lib/layout.toml`.
