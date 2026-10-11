@@ -192,6 +192,26 @@ class Workflows(unittest.TestCase):
             ],
         )
 
+    def test_a_step_that_changes_governance_fails_naming_its_line(self):
+        """BUG-1562, REQ-2576, REQ-2712: a workflow runs no `gh` command the governance guard asks about."""
+        for command in (
+            "gh api -X PUT repos/o/r/branches/main/protection",
+            "gh api repos/o/r/rulesets --method POST",
+            "gh repo edit o/r --visibility private",
+            "gh secret set TOKEN",
+        ):
+            text = GOOD.replace('              build "$TARGET"\n', f'              build "$TARGET"\n              {command}\n')
+            status, out = self.run_check(self.tree({"gov.yml": text}))
+            self.assertEqual(status, 1, (command, out))
+            self.assertIn("changes how the repository is governed", out[0], command)
+            self.assertTrue(out[0].startswith(".github/workflows/gov.yml:31:"), out)
+
+    def test_a_step_that_only_reads_governance_passes(self):
+        """BUG-1562: a read of the same endpoints is not a change."""
+        text = GOOD.replace('              build "$TARGET"\n', '              build "$TARGET"\n              gh api repos/o/r/branches/main/protection\n              gh pr view 7\n')
+        status, out = self.run_check(self.tree({"read.yml": text}))
+        self.assertEqual(status, 0, out)
+
     def test_a_model_credential_as_an_env_key_fails_naming_its_line(self):
         """TSK-5250 criterion 2, REQ-3035: a credential name under env: gives the job a way to call a model."""
         text = GOOD.replace(
