@@ -46,7 +46,18 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The static test was written first and seen failing for four suites in
+`45c49a6e`, and passes after `fb3853e1`. Criterion 2 closes with
+`tools.test_plugin_contract.PinnedSuites.test_every_launcher_running_suite_pins_the_data_directory`,
+naming REQ-2928. Criterion 1 closes with the record suite and the three
+other suites passing while an installed `meow-core` 0.9.0 is present on this
+machine: the pin makes every launcher resolve the build beside the unit, so
+the suite is indifferent to the install. The suites whose subject is the
+resolution stay unpinned, as the task's Left alone states. The five stages
+passed at tree `9e0982c0c387`, each bound by `meow-checks run` and
+confirmed by `meow-checks evidence`, exit 0: format `d754141f52dc`, check
+`3b85d3cd898f`, lint `c2f4abc89f20`, test `63c3e6c338b7`, build
+`29d6a474fe7b`.
 
 ## Left alone
 
