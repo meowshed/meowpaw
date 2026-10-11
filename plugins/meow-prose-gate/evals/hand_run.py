@@ -17,11 +17,11 @@ import time
 from pathlib import Path
 
 GATE = str(Path(__file__).resolve().parent.parent / "bin" / "meow-prose-gate")
-PR = 'gh pr create --title "Bind the verbs to the crate" --body "{}"'
+PR = 'gh pr create --title "Bind the stages to the crate" --body "{}"'
 CASES = [
     ("bug1230-1", "pass", PR.format(
-        "The verbs now run through the crate, so a repository without Python still gets them.\n\n"
-        "Each verb resolves from the profile, and an undeclared one reports unresolved.\n\nCloses #12")),
+        "The stages now run through the crate, so a repository without Python still gets them.\n\n"
+        "Each stage resolves from the profile, and an undeclared one reports unresolved.\n\nCloses #12")),
     ("bug1230-2", "pass", PR.format(
         "I read the parser in depth and found two defects in how it reads a heredoc.\n\n"
         "Both are fixed here, each with a fixture seen failing first.")),

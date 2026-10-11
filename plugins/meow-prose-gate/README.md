@@ -103,6 +103,8 @@ claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-prose-gate@meowpaw
 ```
 
+Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone.
+
 The gate carries its own criteria and needs no other plugin: neither
 `meow-prose`, the writing standard, nor `meow-core`, the harness's kernel. With
 `meow-prose` installed as well, the writing skill shapes the text before it is

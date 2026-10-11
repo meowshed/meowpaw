@@ -58,7 +58,14 @@ The reproduction, now passing in a clean worktree of the trunk, in
 
 ## Tasks
 
-- [ ] T-001 Align the fixture of
+- [x] T-001 Align the fixture of
       `test_a_rejected_provider_and_a_frozen_suspect_citation_are_reported`
       in `plugins/meow-flow/tests/test_record.py` with what `paw status`
       prints, and show the suite green in an `origin/main` worktree
+      — done, then undone in the same pull request. The suite is green with
+      the fixture as it was: a fresh build of the checker excludes a
+      defect's `violates` from the provider walk (TSK-5500, ADR-2960), so it
+      prints 4 approved artifacts, which is what the fixture asserted. The
+      failure this defect records came from the installed `meow-core` 0.9.0
+      binary the launchers prefer, which walks `violates` and prints 5
+      (BUG-1680). The change to the fixture was reverted.

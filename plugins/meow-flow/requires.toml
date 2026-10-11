@@ -13,3 +13,11 @@ claude_code = "2.1.283"
 # foreground dispatch from `claude -p`; an interactive session is unmeasured.
 router_allowlist_observed = "2.1.283"
 router_allowlist_dispatch = "foreground, from claude -p"
+
+# The layer of the harness this unit ships in (SPC-1080 "Each unit is a
+# plugin"): the method's skills and steps are what the chain runs.
+layer = "method"
+
+# The units this one needs (REQ-1482), read from what it runs: its launcher
+# finds the shared binary meow-core ships, and it runs `meow-prose` at run time.
+units = ["meow-core", "meow-prose"]

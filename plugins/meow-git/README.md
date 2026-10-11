@@ -10,8 +10,8 @@ describes: [meow-git@0.5.0]
 `meow-git` is a pack for repositories that use `git`. It refuses a commit on
 the trunk you declare, and before a push runs it checks every commit the push
 would publish: the message against your commit convention, and the signature
-where you require one. It installs on its own, and it uses `meow-scm` for the
-message check where that unit is installed.
+where you require one. It installs on its own, and it checks the message with
+`meow-scm`, which installing this pack enables.
 
 ## Install it
 
@@ -21,6 +21,8 @@ Add the marketplace and install the unit:
 claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-git@meowpaw
 ```
+
+Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone. It also enables `meow-scm`, whose message check the push guard runs, and keeps `meow-scm` enabled while this pack is on.
 
 ## Declare your policy
 

@@ -21,6 +21,8 @@ claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-scm@meowpaw
 ```
 
+Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone.
+
 ## Declare your convention
 
 Put it under `[commits]` in `.meowpaw/profile.toml` at the repository's root:

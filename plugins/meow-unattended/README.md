@@ -23,6 +23,8 @@ claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
 claude plugin install meow-unattended@meowpaw
 ```
 
+Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone.
+
 ## Declare the posture
 
 A run's authority comes from this table and never from what a session would
