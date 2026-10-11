@@ -1,7 +1,7 @@
 ---
 id: BUG-1680
 artifact: bug
-status: draft
+status: approved
 severity: major
 enters: requirements
 found: 2026-10-11
