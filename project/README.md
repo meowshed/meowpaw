@@ -267,13 +267,13 @@ prose gate's judge as the one call to the network, what a hook does when its
 program is missing, and the revision counter. EPC-2520 and EPC-2525 realise
 it, and none of that work has started.
 
-[SPC-1020](specs/SPC-1020-measuring-the-harness.md) states how a change to what
-the harness says is measured,
+[SPC-1020](specs/SPC-1020-measuring-the-harness.md) states that the harness
+measures no prompt, which ADR-2980 decided,
 [SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
 prompt the harness ships is written, what an agent declares, which EPC-1650
 realises, and what an agent reports, which EPC-1651 realises, and
 [SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
-which follows both. The work realising them has landed, except what EPC-2525,
+which both follow. The work realising them has landed, except what EPC-2525,
 EPC-2530 and EPC-2550 realise: the tools a unit requests traced to a step,
 when a step delegates, and the check that the method names no language.
 
@@ -415,6 +415,11 @@ only reported.
 realises ADR-2970 in five tasks, TSK-5510 to TSK-5550: the harness budgets no
 characters and counts no tokens, the eight requirements naming a budget are
 withdrawn, and the platform cap keeps its check in `meow author check`.
+
+[EPC-2830](epics/EPC-2830-the-harness-measures-no-prompt.md) realises ADR-2980
+in five tasks, TSK-5560 to TSK-5600: the harness measures no prompt, the twenty
+requirements making a measurement obligatory are withdrawn, and the prose gate
+and its hand run stay.
 
 [EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
 tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either

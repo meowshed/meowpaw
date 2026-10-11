@@ -3,8 +3,8 @@ id: REQ-4804
 artifact: requirement
 topic: reviewer-coverage
 class: functional
-status: approved
-revised: 2026-10-10
+status: withdrawn
+revised: 2026-10-11
 elaborates: RES-0350
 source: BUG-1100
 verification: static
@@ -15,6 +15,11 @@ verification: static
 # REQ-4804
 
 The reviewer's labelled set MUST list each rule of the writing standard that no
+**Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
+evaluation whole, because the owner will redesign it in future.
+
 text can show, with the reason for each.
 
 A rule dropped from the list shows in the diff, and one silently skipped

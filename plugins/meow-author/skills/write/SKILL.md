@@ -105,9 +105,9 @@ procedure states where it stops.
   the model's default is wrong. Otherwise keep the reason in material loaded
   on demand, because an always-loaded reason is paid on every turn.
 - C6. Before shipping a change that moves explanation out of always-loaded
-  material, measure the behaviour the material produces once with the
-  explanation and once without, because a shorter prompt that changes
-  behaviour is a regression and no saving.
+  material, review the behaviour the material produces with the explanation
+  gone, because a shorter prompt that changes behaviour is a regression and
+  no saving.
 - C7. Carry instruction that applies only to certain files in a path-scoped
   rule, not in always-loaded material, because a path-scoped rule loads only
   when those files are touched.

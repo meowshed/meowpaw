@@ -22,9 +22,6 @@ states:
     REQ-3182,
     REQ-3183,
     REQ-3184,
-    REQ-4800,
-    REQ-4802,
-    REQ-4804,
     REQ-3740,
     REQ-3742,
     REQ-3744,
@@ -214,8 +211,9 @@ on a one-line commit message as well as on a document. `meow-prose` ships no
 hook for loading, because a `SessionStart` line naming the skill did not
 change what the model did.
 
-How often the skill is in context when a writing request arrives is measured on
-both models, beside near misses that should not load it (REQ-1150).
+Whether the skill is in context when a writing request arrives is held by
+review, and the measurement that counted it is postponed until the evaluation
+is redesigned (ADR-2980).
 
 ### Comments in code
 
@@ -259,28 +257,17 @@ reviewer's own prompt and the documentation page are held to the standard they
 carry (REQ-1674, REQ-5000), and a finding in them counts as readily
 as a finding anywhere else.
 
-### What the reviewer's cases cover
-
-The reviewer's labelled set holds at least one case for every rule of the
-standard that a reader can see broken in a text (REQ-4800). A case names its
-rule with a `rule-<ID>` tag, so a program can list the rules with no case. The
-rules no text can show, such as reading a sentence aloud, sit in
-`plugins/meow-prose/evals/rule-cases.toml` with the reason for each
-(REQ-4804). A check fails and names each rule that has neither a case nor an
-entry there (REQ-4802), so a rule added to the standard joins the set in the
-same change. A case says only that a rule is tested, and the rate it earns is an
-evaluation.
-
 ### How the prompts are written
 
-Every prompt either unit ships follows SPC-1030: its form, its content, how it
-is divided and loaded, and what it costs.
+Every prompt either unit ships follows SPC-1030: its form, its content, and
+how it is divided and loaded.
 
 ### Changing any of it
 
-A change to this standard, or to any prompt the harness ships, is measured
-against what it replaces. SPC-1020 states how: the case set, the two arms, the
-thresholds, the judge, and what counts as a regression.
+A change to this standard, or to any prompt the harness ships, is reviewed
+against what it replaces (REQ-2750). SPC-1020 states what the harness stopped
+measuring, and ADR-2980 names the failure that would bring the measurement
+back early.
 
 ## Failure paths
 

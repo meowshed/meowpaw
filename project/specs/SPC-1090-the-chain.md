@@ -380,9 +380,8 @@ marketplace ships no unit whose only purpose the chain no longer has
 
 The `route` skill classifies the request in the session and reports the route
 before any edit (ADR-2930). The method skill and this repository's
-`CLAUDE.md` name the skill. Its cases live in `plugins/meow-flow/evals/` and
-run by hand, so the gate doesn't measure whether the skill loads before work
-on each model.
+`CLAUDE.md` name the skill. Its behaviour on a request is held by review,
+because the case set that measured it went with ADR-2980.
 
 Each dispatched agent reports an outcome, and its dispatcher acts on it, as
 SPC-1030 states. The prose reviewer and the researcher do.

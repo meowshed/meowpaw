@@ -71,10 +71,6 @@ run = "cargo clippy --quiet --manifest-path crates/meow/Cargo.toml --all-feature
 description = "Run the native tool's own tests"
 run = "cargo test --quiet --manifest-path crates/meow/Cargo.toml --all-features"
 
-[tasks.eval]
-description = "Measure every unit on real models, by hand: it costs money, so `all` never runs it"
-run = "python3 tools/loop.py plugins/*/"
-
 [tasks.test-crate]
 description = "Run the native tool's own tests, after the units are built"
 depends = ["build"]
