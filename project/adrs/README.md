@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-134 decisions in all: 33 approved, 93 done, 8 superseded.
+134 decisions in all: 32 approved, 94 done, 8 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -131,7 +131,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2680](ADR-2680-the-diagnostic-answers-whether-the-repository-can-be-worked-on-and-writes-nothing.md)                                                 | The diagnostic answers whether the repository can be worked on, and writes nothing                                                         | approved   |
 | [ADR-2690](ADR-2690-the-harness-is-held-to-its-own-method-and-the-six-source-repositories-test-it.md)                                                     | The harness is held to its own method, and the six source repositories test it                                                             | approved   |
 | [ADR-2700](ADR-2700-the-prose-gate-is-the-one-hook-that-may-reach-the-network-and-wait-on-a-bounded-judge.md)                                             | The prose gate is the one hook that may reach the network, and it waits on a bounded judge                                                 | approved   |
-| [ADR-2710](ADR-2710-a-hook-whose-program-is-missing-denies-and-says-how-to-install-it.md)                                                                 | A hook whose program is missing denies the command and says how to install it                                                              | approved   |
+| [ADR-2710](ADR-2710-a-hook-whose-program-is-missing-denies-and-says-how-to-install-it.md)                                                                 | A hook whose program is missing denies the command and says how to install it                                                              | done       |
 | [ADR-2720](ADR-2720-the-interface-reference-page-is-generated-from-documentation-comments-and-checked-against-the-tool.md)                                | The interface reference page is generated from documentation comments, and checked against the tool                                        | approved   |
 | [ADR-2730](ADR-2730-a-delegated-artifact-s-pull-request-names-its-brief-and-its-record-and-never-an-agent.md)                                             | A delegated artifact's pull request names its brief and its record, and never an agent                                                     | approved   |
 | [ADR-2740](ADR-2740-an-active-obligation-keeps-a-decision-and-each-decision-keeps-a-plan.md)                                                              | An active obligation keeps a decision, and each decision keeps a plan                                                                      | approved   |

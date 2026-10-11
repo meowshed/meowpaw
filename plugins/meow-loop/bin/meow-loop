@@ -57,10 +57,18 @@ fi
 
 reason="no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
 case "$1" in
-guard | prompt | stop)
-  # A hook that fails blocks what it was meant to guard, so with no binary
-  # each lets the session go on: the guard lets each Bash command, Edit and
-  # Write through, the prompt hook starts no run and the stop hook ends none.
+guard)
+  # A launcher with no binary can't tell which call its program would have let
+  # through, so the guard denies every Bash command, Edit and Write it matches
+  # and says how to install the binary (ADR-2710).
+  cat >/dev/null
+  echo "meow-loop: denied $1 because $reason, with: claude plugin install meow-core@meowpaw" >&2
+  exit 2
+  ;;
+prompt | stop)
+  # These two start and end a run and stop no call, and a prompt hook that
+  # denies erases what the person typed, so with no binary the session goes on
+  # with no run started and none ended.
   cat >/dev/null
   exit 0
   ;;

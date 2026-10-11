@@ -71,8 +71,8 @@ nothing.
 Nothing in context: the pack is two hooks, and each runs only on its own
 command. A push takes one message check and one signature check per commit.
 The program is a native binary shipped inside the pack, so it needs nothing
-installed on the machine; on a machine the pack carries no binary for, it says
-it checked nothing and blocks nothing.
+installed on the machine; on a machine the pack carries no binary for, it denies the
+commit or the push and names `claude plugin install meow-core@meowpaw`.
 
 ## Branch names
 

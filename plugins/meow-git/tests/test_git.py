@@ -230,7 +230,8 @@ class GitPack(unittest.TestCase):
         self.assertEqual(done.returncode, 0)
         self.assertIn("checked nothing", done.stdout)
 
-    def test_no_interpreter_checks_nothing_and_blocks_nothing(self):
+    def test_no_program_denies_the_commit_and_says_how_to_install(self):
+        """TSK-5165, REQ-1426, ADR-2710: a launcher that can run nothing denies, with the install command."""
         repo = self.repo()
         run(repo.root, "git", "checkout", "-q", "main")
         fake = Path(repo.tmp.name) / "bin"
@@ -239,8 +240,9 @@ class GitPack(unittest.TestCase):
         old.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
         old.chmod(0o755)
         done = repo.guard("commit-guard", env={"PATH": str(fake), "HOME": repo.tmp.name})
-        self.assertEqual(done.returncode, 0)
-        self.assertIn("unrun", done.stdout)
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("denied commit-guard", done.stderr)
+        self.assertIn("claude plugin install meow-core@meowpaw", done.stderr)
 
 
 

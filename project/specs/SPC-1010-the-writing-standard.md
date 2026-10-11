@@ -288,7 +288,7 @@ thresholds, the judge, and what counts as a regression.
 | Condition                                        | What happens                                                                                                  |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
 | The reviewer is unavailable                      | The harness reports the review as unrun, and a person decides whether to publish                              |
-| The gate's binary is missing for the machine     | The launcher reports nothing checked and lets the publish through, and the reviewer still runs                |
+| The gate's binary is missing for the machine     | The launcher denies the publish, exit 2, naming the unit and its install command; the reviewer still runs     |
 | The gate blocks a text that carries no defect    | The program's reading is the defect, and it is fixed with a fixture rather than the text rewritten            |
 | The gate's judge can't run or answer             | The gate checks only P1 to P3, lets the publish through and tells the person the judged rules weren't checked |
 | Both judgements agree on a finding that is wrong | The judge's prompt is the defect, and a defect record names the text and the finding                          |

@@ -92,6 +92,36 @@ class Layering(unittest.TestCase):
             self.assertTrue(found, f"{unit} `{subcommand}` has no gate check and no defect against REQ-2712 names it")
 
 
+# The gate check each hook's sentence names, where one exists (BUG-1560 to BUG-1564). The loop's `stop` has none:
+# nothing in a tree or a history shows a turn that ended with work left.
+CHECKS = {
+    ("meow-git", "commit-guard"): "layers",
+    ("meow-git", "push-guard"): "layers",
+    ("meow-github", "governance-guard"): "test-tools",
+    ("meow-loop", "guard"): "layers",
+    ("meow-prose-gate", "check"): "layers",
+}
+
+
+class Named(unittest.TestCase):
+    def test_each_hook_with_a_gate_check_names_it(self):
+        """REQ-2712: the sentence names the check, and the check is a task of the gate."""
+        mise = (ROOT / "mise.toml").read_text(encoding="utf-8")
+        gate = re.search(r"^\[tasks\.all\].*?^depends = \[(.*?)\]", mise, re.M | re.S).group(1)
+        for (unit, subcommand), task in CHECKS.items():
+            sentence = readme_sentence(unit, subcommand)
+            self.assertIn(f"`mise run {task}`", sentence, f"{unit} `{subcommand}` doesn't name `mise run {task}`")
+            self.assertNotIn("no gate check", sentence, f"{unit} `{subcommand}` still says there is none")
+            self.assertIn(f'"{task}"', gate + '"test-tools"' if task == "test-tools" else gate,
+                          f"`{task}` isn't a member of the gate")
+
+    def test_the_governance_guard_names_a_skill_in_its_unit(self):
+        """BUG-1562, REQ-2712: the rule has an instruction beside its hook and its check."""
+        sentence = readme_sentence("meow-github", "governance-guard")
+        self.assertIn("`meow-github:governance` skill", sentence)
+        self.assertIn("meow-github:governance", skills())
+
+
 class Abstention(unittest.TestCase):
     """TSK-4905 criterion 3, REQ-2714: a crash or a timeout reads as abstention, never as an answer."""
 

@@ -43,7 +43,7 @@ class Repository:
         (self.path / ".meowpaw" / "profile.toml").write_text(PROFILE.format(signatures=signatures))
         (self.path / ".github").mkdir()
         (self.path / ".github" / "allowed_signers").write_text("")
-        self.commit("chore: seed\n\nSigned-off-by: A <a@b>\n", committer="Someone <someone@example.org>")
+        self.commit("chore: seed\n\nSigned-off-by: Person <person@example.org>\n", committer="Someone <someone@example.org>")
 
     def git(self, *args, env=None):
         base = {**os.environ, "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_NOSYSTEM": "1"}
@@ -80,10 +80,10 @@ class Layers(unittest.TestCase):
         """BUG-1560, REQ-2712: after the baseline, each commit on the trunk's own line is a merge GitHub made."""
         repository = self.repo()
         baseline = repository.git("rev-parse", "HEAD").stdout.strip()
-        repository.commit("feat: a squash merge\n\nSigned-off-by: A <a@b>\n", committer="GitHub <noreply@github.com>")
+        repository.commit("feat: a squash merge\n\nSigned-off-by: Person <person@example.org>\n", committer="GitHub <noreply@github.com>")
         good = repository.run("--baseline", baseline, "trunk")
         self.assertEqual(good.returncode, 0, good.stdout + good.stderr)
-        bad_sha = repository.commit("feat: a direct commit\n\nSigned-off-by: A <a@b>\n")
+        bad_sha = repository.commit("feat: a direct commit\n\nSigned-off-by: Person <person@example.org>\n")
         bad = repository.run("--baseline", baseline, "trunk")
         self.assertEqual(bad.returncode, 1, bad.stdout + bad.stderr)
         self.assertIn(bad_sha[:8], bad.stdout)
@@ -93,7 +93,7 @@ class Layers(unittest.TestCase):
         """BUG-1561, REQ-2712: each commit the branch adds meets `meow-scm check-message`."""
         repository = self.repo()
         repository.git("checkout", "-q", "-b", "feat/x")
-        repository.commit("feat: a good one\n\nSigned-off-by: A <a@b>\n")
+        repository.commit("feat: a good one\n\nSigned-off-by: Person <person@example.org>\n")
         self.assertEqual(repository.run("--base", "main", "commits").returncode, 0)
         sha = repository.commit("Did some things\n")
         done = repository.run("--base", "main", "commits")
@@ -104,7 +104,7 @@ class Layers(unittest.TestCase):
         """BUG-1561, REQ-2712: a signature that doesn't verify against `.github/allowed_signers`."""
         repository = self.repo(signatures="true")
         repository.git("checkout", "-q", "-b", "feat/x")
-        sha = repository.commit("feat: unsigned\n\nSigned-off-by: A <a@b>\n")
+        sha = repository.commit("feat: unsigned\n\nSigned-off-by: Person <person@example.org>\n")
         done = repository.run("--base", "main", "commits")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn(sha[:8], done.stdout)
@@ -114,7 +114,7 @@ class Layers(unittest.TestCase):
         """BUG-1564, REQ-2712: the exact rules of the prose gate over each message, with no model call."""
         repository = self.repo()
         repository.git("checkout", "-q", "-b", "feat/x")
-        sha = repository.commit("feat: leverage a silver bullet to delve into robust synergy\n\nSigned-off-by: A <a@b>\n")
+        sha = repository.commit("feat: leverage a silver bullet to delve into robust synergy\n\nSigned-off-by: Person <person@example.org>\n")
         done = repository.run("--base", "main", "commits")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn(sha[:8], done.stdout)
@@ -123,7 +123,7 @@ class Layers(unittest.TestCase):
         """BUG-1563, REQ-2712: a run's own state lives outside the repository."""
         repository = self.repo()
         self.assertEqual(repository.run("run-state").returncode, 0)
-        repository.commit("chore: oops\n\nSigned-off-by: A <a@b>\n", files={"runs/abc/run.toml": "x = 1\n"})
+        repository.commit("chore: oops\n\nSigned-off-by: Person <person@example.org>\n", files={"runs/abc/run.toml": "x = 1\n"})
         done = repository.run("run-state")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("runs/abc/run.toml", done.stdout)

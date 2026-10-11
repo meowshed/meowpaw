@@ -356,8 +356,9 @@ and your own permission rules decide.
 The hook is a guard and not a barrier. It doesn't see a `gh` run inside a
 subshell, `bash -c`, `eval`, `xargs`, `sudo`, `timeout`, a script, a function
 or an alias, or a session with hooks turned off. Where the machine has no `meow-github` binary,
-it lets every command through, because a hook that fails blocks every Bash
-call.
+it denies every Bash command and names `claude plugin install meow-core@meowpaw`,
+because a launcher with no binary can't tell which command its program would
+have let through.
 
 ## Read a subcommand's help
 

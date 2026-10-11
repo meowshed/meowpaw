@@ -32,6 +32,18 @@ WORKFLOWS = ".github/workflows"
 SUFFIXES = (".yml", ".yaml")
 ALLOWED = ("contents", "read")
 FORBIDDEN_TRIGGERS = ("pull_request_target", "workflow_run")
+# What `meow-github`'s governance guard asks a person about, as a tree check: a
+# workflow that runs it changes how the repository is governed unasked
+# (REQ-2576, REQ-2712, BUG-1562).
+GOVERNANCE = re.compile(
+    r"\bgh\s+api\b[^\n]*?(?:-X|--method)[ =]+(?:PUT|PATCH|POST|DELETE)\b"
+    r"[^\n]*?(?:/branches/[^\s/]+/protection|/rulesets|/actions/permissions|/actions/secrets|/actions/variables"
+    r"|/environments|/hooks|/collaborators)"
+    r"|\bgh\s+api\b[^\n]*?(?:/branches/[^\s/]+/protection|/rulesets|/actions/permissions|/actions/secrets"
+    r"|/actions/variables|/environments|/hooks|/collaborators)[^\n]*?(?:-X|--method)[ =]+(?:PUT|PATCH|POST|DELETE)\b"
+    r"|\bgh\s+(?:repo\s+(?:edit|delete|archive|rename|transfer)|secret\s+(?:set|delete|remove)"
+    r"|variable\s+(?:set|delete)|ruleset\s+(?:create|delete|edit))\b"
+)
 MODEL_CALL = re.compile(r"mise run eval\b|\b(?:ANTHROPIC_API_KEY|CLAUDE_CODE_OAUTH_TOKEN)\b")
 CHECKOUT = "actions/checkout"
 BLOCK_HEADER = re.compile(r"([|>])([1-9]?)([+-]?)([1-9]?)\s*(#.*)?")
@@ -458,6 +470,19 @@ def model_calls(name, doc):
     return [f"{name}:{line}: names {what}, and no workflow makes a model call" for line, what in sorted(found.items())]
 
 
+def governance(name, doc):
+    """A workflow that runs a `gh` command that changes how the repository is governed, by its line."""
+    found = {}
+    for node in walk(doc):
+        if isinstance(node, Mapping) and isinstance(node.get("run"), Scalar):
+            for line, text in node["run"].source:
+                match = GOVERNANCE.search(text)
+                if match:
+                    found.setdefault(line, match.group(0))
+    return [f"{name}:{line}: runs {what}, which changes how the repository is governed, and no workflow does that"
+            for line, what in sorted(found.items())]
+
+
 def findings(name, text):
     try:
         doc = Reader(text).document()
@@ -465,7 +490,8 @@ def findings(name, text):
         return [f"{name}: doesn't parse: {error}"]
     if not isinstance(doc, Mapping):
         return [f"{name}: doesn't parse: the top level isn't a mapping"]
-    return permissions(name, doc) + triggers(name, doc) + runs(name, doc) + model_calls(name, doc)
+    return (permissions(name, doc) + triggers(name, doc) + runs(name, doc) + model_calls(name, doc)
+            + governance(name, doc))
 
 
 def main(root: Path = ROOT) -> int:
