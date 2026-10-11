@@ -1503,9 +1503,10 @@ class Launcher(unittest.TestCase):
             self.assertIn(machine, done.stdout)
             self.assertIn("install meow-core", done.stdout)
 
-    def test_a_missing_binary_lets_every_bash_call_through(self):
-        """TSK-2980, REQ-2576: with no binary for the machine, the hook's `governance-guard` reads its input,
-        prints nothing and exits 0, because a hook that fails blocks every Bash call in the session."""
+    def test_a_missing_binary_denies_every_bash_call_and_says_how_to_install(self):
+        """TSK-5165, REQ-1426, ADR-2710: with no binary for the machine, the hook's `governance-guard` denies with
+        exit 2 and a reason naming the unit, the machine and the install command, because a launcher with no
+        binary can't tell which call its program would have let through."""
         with tempfile.TemporaryDirectory() as tmp:
             launcher = Path(tmp) / "bin" / "meow-github"
             launcher.parent.mkdir()
@@ -1514,7 +1515,11 @@ class Launcher(unittest.TestCase):
             event = json.dumps({"tool_input": {"command": "gh repo delete o/r"}})
             done = subprocess.run(["sh", str(launcher), "governance-guard"], input=event, cwd=tmp, env={"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"},
                                   capture_output=True, text=True)
-            self.assertEqual((done.returncode, done.stdout, done.stderr), (0, "", ""))
+            machine = subprocess.run(["uname", "-s"], capture_output=True, text=True).stdout.strip()
+            self.assertEqual((done.returncode, done.stdout), (2, ""), done.stderr)
+            self.assertIn("meow-github", done.stderr)
+            self.assertIn(machine, done.stderr)
+            self.assertIn("claude plugin install meow-core@meowpaw", done.stderr)
 
 
 if __name__ == "__main__":
