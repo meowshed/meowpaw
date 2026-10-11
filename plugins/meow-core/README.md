@@ -32,6 +32,13 @@ reaches it. If you write a prompt that dispatches one, include the style's
 subordinate answers in the same shape. A fork inherits the style and needs
 nothing.
 
+## The secrets rule
+
+The style's last rule says never to read, print or transmit a repository's
+secret material, and never to place it in an artifact, a commit or a reply,
+because what reaches one of them is published and can't be taken back. It
+never yields, and the block a subordinate agent is given carries it too.
+
 ## What it costs you
 
 The unit declares its style as one that replaces the output style you

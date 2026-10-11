@@ -78,6 +78,14 @@ the shipped standard: the replacement is total, because two standards that
 disagree leave an author no way to tell which one applies. `meow-prose` only
 reads the directory and never writes to it.
 
+## Tools
+
+The `prose` agent holds three tools, each for one step of its procedure:
+
+- `Read`: the set-up step reads the standard, the patterns file for the text's language and the text.
+- `Grep`: the review steps find a pattern across the text's lines.
+- `Glob`: the set-up step finds the `.meowpaw/prose/` files that replace the standard.
+
 ## What it costs you
 
 The skill's description costs 299 characters in context on every turn, so that

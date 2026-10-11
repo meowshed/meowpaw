@@ -55,6 +55,10 @@ What is observable from outside the part:
 | The style's rules block                | `<rules name="the reply shape">` in the style, which any unit includes in a subordinate agent's prompt |
 | The style check                        | A check that reads the front matter and the rules, and fails with a named reason                       |
 
+The rules block also carries the secrets rule, R11 (REQ-1424), beside the
+shape's own rules. It sits there because the block is what a subordinate agent
+is handed, so the agent that reads a file or runs a command holds the rule too.
+
 Everything behind those surfaces is prose loaded into a context window, and no
 program reads it.
 

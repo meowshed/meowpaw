@@ -58,6 +58,10 @@ procedure states where it stops.
 - A8. Propose the permissions the material needs in its own file, and leave
   the repository to declare them, because permissions are the repository's
   decision.
+- A9. Name in the unit's README, under `## Tools`, the step that uses each
+  tool an agent's `tools` or a skill's `allowed-tools` grants, as a list item
+  that opens with the tool in code font and a colon, because a tool no step
+  needs is invisible until a README says what it is for, and is then removed.
 </rules>
 
 <rules name="how the body is written">

@@ -1454,6 +1454,22 @@ class Launcher(unittest.TestCase):
             self.assertIn("install meow-core", done.stdout)
 
 
+    def test_a_missing_binary_at_session_start_says_so_and_lets_the_session_begin(self):
+        """TSK-4925 criterion 3, SPC-1240 "A hook whose program is missing": the `SessionStart` hook blocks
+        nothing, so with no binary it prints that the record wasn't checked and how to install, and exits 0."""
+        with tempfile.TemporaryDirectory() as tmp:
+            launcher = Path(tmp) / "bin" / "paw"
+            launcher.parent.mkdir()
+            launcher.write_text((UNIT / "bin" / "paw").read_text(encoding="utf-8"), encoding="utf-8")
+            launcher.chmod(0o755)
+            done = subprocess.run(["sh", str(launcher), "status", "--waiting"], cwd=tmp,
+                                  env={"PATH": os.environ["PATH"], "HOME": tmp, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit"},
+                                  capture_output=True, text=True, input="")
+            self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+            self.assertIn("not checked", done.stdout)
+            self.assertIn("claude plugin install meow-core@meowpaw", done.stdout)
+
+
 class Named(unittest.TestCase):
     """REQ-3168, REQ-3190, ADR-1390: the unit is meow-flow, and its command is paw."""
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-4920
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2525
 closes: [REQ-1430, REQ-1432]
@@ -49,7 +49,15 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests came first, in a commit of their own, where three of the five in
+`crates/meow/tests/tool_steps.rs` failed. `a_tool_with_no_step_fails_naming_the_unit_the_tool_and_the_agent`
+closes criterion 1 (REQ-1432), `a_skill_tool_with_no_step_fails_naming_the_skill` closes
+criterion 2 (REQ-1430, REQ-1432), and `this_repositorys_units_name_a_step_for_each_tool` closes
+criterion 3: the two agents of this repository, the router and the prose reviewer, are named in
+`## Tools` of their READMEs, one step for each of `Read`, `Grep` and `Glob`. No skill of the
+repository grants `allowed-tools`, so the skill half of the rule is held by its fixture only. The form is a
+list item under `## Tools` that opens with the tool in code font, a colon and the step; the write
+skill's A9 and the author README state it. `mise run all` passed with exit status 0.
 
 ## Left alone
 
