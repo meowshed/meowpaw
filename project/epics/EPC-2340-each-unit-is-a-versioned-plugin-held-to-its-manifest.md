@@ -1,7 +1,7 @@
 ---
 id: EPC-2340
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2480
 ---
@@ -49,14 +49,23 @@ number.
       `f8a5c87d9119`, each bound by `meow-checks run` and confirmed by
       `meow-checks evidence`, exit 0.
 
-- [ ] T-002 [P] TSK-4400 refuse a changed unit at a released version and a version with no written notes, in the release
+- [x] T-002 [P] TSK-4400 refuse a changed unit at a released version and a version with no written notes, in the release (done: pull request 1060)
       closes: REQ-2996, REQ-3002
+      — done in this pull request: the five stages passed at tree
+      `dc741c41414b`, each bound by `meow-checks run` and confirmed by
+      `meow-checks evidence`, exit 0.
 
-- [ ] T-003 [P] TSK-4410 stop a launcher on a platform older than its unit's `claude_code`
+- [x] T-003 [P] TSK-4410 stop a launcher on a platform older than its unit's `claude_code` (done: pull request 1060)
       closes: REQ-1738
+      — done in this pull request: the five stages passed at tree
+      `dc741c41414b`, each bound by `meow-checks run` and confirmed by
+      `meow-checks evidence`, exit 0.
 
-- [ ] T-004 [P] TSK-4420 hold the rest of the plugin contract with tests: the install, the contracts between units, the install root and the configuration format
+- [x] T-004 [P] TSK-4420 hold the rest of the plugin contract with tests: the install, the contracts between units, the install root and the configuration format (done: pull request 1060)
       closes: REQ-1480, REQ-1481, REQ-1483, REQ-1484, REQ-1488, REQ-1494, REQ-2994, REQ-3000
+      — done in this pull request: the five stages passed at tree
+      `dc741c41414b`, each bound by `meow-checks run` and confirmed by
+      `meow-checks evidence`, exit 0.
 
 ## Coverage
 

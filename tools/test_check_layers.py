@@ -39,11 +39,16 @@ class Repository:
         self.path = Path(self.tmp.name) / "repository"
         self.path.mkdir()
         self.git("init", "-q", "--template=", "-b", "main")
-        # A `claude` that records a call, so a model call shows as a marker file.
+        # A `claude` that records a call, so a model call shows as a marker
+        # file. A launcher's version probe (REQ-1738) is a platform call, so
+        # the stub answers it as the platform does, with a version newer than
+        # any unit names, and marks nothing.
         self.stub = Path(self.tmp.name) / "stub"
         self.stub.mkdir()
         self.called = Path(self.tmp.name) / "claude-was-called"
-        (self.stub / "claude").write_text(f"#!/bin/sh\ntouch {self.called}\nexit 1\n")
+        (self.stub / "claude").write_text(
+            f"#!/bin/sh\ncase \"$*\" in *--version*) echo '9.0.0 (Claude Code)'; exit 0;; esac\ntouch {self.called}\nexit 1\n"
+        )
         (self.stub / "claude").chmod(0o755)
         (self.path / ".meowpaw").mkdir()
         (self.path / ".meowpaw" / "profile.toml").write_text(PROFILE.format(signatures=signatures))

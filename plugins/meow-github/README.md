@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-github@0.16.0]
+describes: [meow-github@0.17.0]
 ---
 
 # meow-github
@@ -23,6 +23,8 @@ claude plugin install meow-github@meowpaw
 ```
 
 Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone.
+
+Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 It reads through GitHub's own client, so install `gh` and sign in with
 `gh auth login` first. The pack never sees your credential.

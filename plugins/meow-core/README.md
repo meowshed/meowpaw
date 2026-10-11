@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-core
 answers: what meow-core does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-core@0.9.1]
+describes: [meow-core@0.10.0]
 ---
 
 # meow-core

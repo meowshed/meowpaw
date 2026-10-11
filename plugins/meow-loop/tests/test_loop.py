@@ -33,6 +33,11 @@ BIN = Path(os.environ.get("MEOW_LOOP_BIN", UNIT / "bin" / "meow-loop"))
 
 STAND_IN = '''#!/usr/bin/env python3
 import json, os, sys, time
+# A launcher's version probe (REQ-1738) is a platform call, not a model call
+# a run made, so it answers as the platform does and logs nothing.
+if "--version" in sys.argv:
+    print("2.1.283 (Claude Code)")
+    sys.exit(0)
 config = json.load(open(os.environ["FAKE_CLAUDE"]))
 stdin = sys.stdin.buffer.read().decode()
 log = config["log"]

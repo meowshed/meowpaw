@@ -1,126 +1,118 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""A unit's launcher finds the shared binary through the core unit's data directory (TSK-5301, REQ-4504, REQ-4506)."""
+"""Fixtures for the launcher's platform stop (REQ-1738): a unit's launcher
+compares the platform version it runs under with the `claude_code` its
+`requires.toml` names, and on an older one prints both versions and exits 3
+without running the binary."""
 
 import os
-import platform
-import re
-import shutil
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-LAUNCHERS = sorted(p for p in (ROOT / "plugins").glob("*/bin/*")
-                   if p.is_file() and p.name in (f"meow-{n}" for n in (
-                       "author", "checks", "git", "github", "gotask", "licence", "loop", "markdown", "mise",
-                       "prose-gate", "scm", "unattended")) or p == ROOT / "plugins/meow-flow/bin/paw")
+ENV = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
 
 
-def target():
-    system = {"Darwin": "apple-darwin", "Linux": "unknown-linux-musl"}.get(platform.system(), "pc-windows-msvc")
-    cpu = "aarch64" if platform.machine().lower() in ("arm64", "aarch64") else "x86_64"
-    return f"{cpu}-{system}"
+def system_cpu():
+    system = {"Darwin": "apple-darwin", "Linux": "unknown-linux-musl"}.get(os.uname().sysname)
+    cpu = {"arm64": "aarch64", "aarch64": "aarch64", "x86_64": "x86_64"}.get(os.uname().machine)
+    return system, cpu
 
 
-class Launchers(unittest.TestCase):
-    def setUp(self):
+class Launcher:
+    """A scratch unit carrying the real launcher of `source`, a fake binary,
+    a requires.toml and a `claude` stub that reports the version asked for."""
+
+    def __init__(self, source="meow-scm", claude_code="2.1.283", reported=None, no_claude=False):
         self.tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.tmp.cleanup)
-        self.base = Path(self.tmp.name)
+        root = Path(self.tmp.name)
+        self.unit = root / "plugins" / "meow-demo"
+        (self.unit / "bin").mkdir(parents=True)
+        for name in os.listdir(ROOT / "plugins" / source / "bin"):
+            if name.startswith("meow-"):
+                launcher = ROOT / "plugins" / source / "bin" / name
+                self.launcher = self.unit / "bin" / name
+                self.launcher.write_text(launcher.read_text(encoding="utf-8"))
+                self.launcher.chmod(0o755)
+                break
+        self.write_requires(claude_code)
+        system, cpu = system_cpu()
+        self.bin_dir = self.unit / "bin" / f"{cpu}-{system}"
+        self.bin_dir.mkdir()
+        self.binary = self.bin_dir / "paw"
+        self.binary.write_text("#!/bin/sh\necho the-binary-ran\n")
+        self.binary.chmod(0o755)
+        stubs = root / "stubs"
+        stubs.mkdir()
+        if reported is not None:
+            claude = stubs / "claude"
+            claude.write_text(f"#!/bin/sh\necho '{reported} (Claude Code)'\n")
+            claude.chmod(0o755)
+        if no_claude:
+            # A stub that fails, so the machine's own claude, if any, never
+            # answers and the version the launcher reads stays unknown.
+            claude = stubs / "claude"
+            claude.write_text("#!/bin/sh\nexit 1\n")
+            claude.chmod(0o755)
+        self.env = {**ENV, "PATH": f"{stubs}:{os.environ['PATH']}" if reported is not None or no_claude else ENV["PATH"]}
 
-    def unit_with(self, launcher):
-        """The launcher alone in a unit directory, with no binary of its own beside it."""
-        shutil.rmtree(self.base, ignore_errors=True)
-        unit = self.base / "unit"
-        (unit / "bin").mkdir(parents=True)
-        copy = unit / "bin" / launcher.name
-        shutil.copy(launcher, copy)
-        copy.chmod(0o755)
-        return copy
+    def write_requires(self, claude_code):
+        (self.unit / "requires.toml").write_text(f'claude_code = "{claude_code}"\n', encoding="utf-8")
 
-    def subcommands(self, launcher):
-        """The subcommands the launcher's own `case "$1"` names, in order."""
-        text = launcher.read_text()
-        found = []
-        for label in re.findall(r"^([a-z][a-z-]*(?: \| [a-z][a-z-]*)*)\)", text, re.M):
-            found += label.split(" | ")
-        found += re.findall(r'"\$1" = "([a-z][a-z-]*)"', text)
-        return found or ["status"]
+    def run(self, *args):
+        return subprocess.run([str(self.launcher), *args], capture_output=True, text=True, env=self.env)
 
-    def run_launcher(self, launcher, shared=False, sub="status"):
-        copy = self.unit_with(launcher)
-        data = self.base / "data"
-        env = {"PATH": os.environ["PATH"], "HOME": str(self.base / "home"),
-               "CLAUDE_PLUGIN_DATA": str(data / "unit-test")}
-        if shared:
-            root = self.base / "core"
-            binary = root / "bin" / target() / "paw"
-            binary.parent.mkdir(parents=True)
-            binary.write_text('#!/bin/sh\necho "shared: $* layout=$MEOW_LAYOUT unit=$MEOW_LOOP_UNIT"\n')
-            binary.chmod(0o755)
-            (data / "meow-core-test").mkdir(parents=True)
-            (data / "meow-core-test" / "meow-root").write_text(f"{root}\n")
-        return subprocess.run([str(copy), sub], input="", capture_output=True, text=True, env=env)
 
-    def test_every_unit_has_a_launcher_to_test(self):
-        """TSK-5301 criterion 2, REQ-4504: the fixture finds the 12 units' launchers and the record's."""
-        self.assertEqual(len(LAUNCHERS), 13, [p.name for p in LAUNCHERS])
+class Stop(unittest.TestCase):
+    def launcher(self, **kwargs):
+        done = Launcher(**kwargs)
+        self.addCleanup(done.tmp.cleanup)
+        return done
 
-    def test_a_launcher_runs_the_binary_the_data_file_names(self):
-        """TSK-5301 criterion 2, REQ-4504: with the core unit's data file, each launcher runs the shared binary."""
-        for launcher in LAUNCHERS:
-            with self.subTest(launcher=launcher.name):
-                done = self.run_launcher(launcher, shared=True)
-                self.assertIn("shared:", done.stdout + done.stderr, done.stdout + done.stderr)
+    def test_an_older_platform_stops_the_launcher(self):
+        """REQ-1738: on a platform older than requires.toml names, the launcher prints both versions and exits 3."""
+        done = self.launcher(reported="2.1.200")
+        self.assertEqual(done.run("check").returncode, 3)
+        # The binary never ran, so its output is absent from both streams.
+        self.assertNotIn("the-binary-ran", done.run("check").stdout)
 
-    def test_a_unit_that_ships_a_layout_hands_it_to_the_shared_binary(self):
-        """TSK-5301 criterion 2, REQ-4504: the shared binary sits in another unit, so it can't find the layout."""
-        for launcher in LAUNCHERS:
-            if not (launcher.parent.parent / "lib" / "layout.toml").is_file():
+    def test_an_older_platform_names_both_versions(self):
+        """REQ-1738: the stop names the version the platform reports and the one the unit was tested on."""
+        done = self.launcher(reported="2.1.200")
+        finished = done.run("check")
+        self.assertIn("2.1.200", finished.stderr + finished.stdout)
+        self.assertIn("2.1.283", finished.stderr + finished.stdout)
+
+    def test_the_tested_platform_runs_the_binary(self):
+        """REQ-1738: on the tested version the launcher runs the binary as before."""
+        done = self.launcher(reported="2.1.283")
+        self.assertIn("the-binary-ran", done.run("check").stdout)
+
+    def test_a_newer_platform_runs_the_binary(self):
+        """REQ-1738: a platform newer than the one tested runs the binary too."""
+        done = self.launcher(reported="2.2.0")
+        self.assertIn("the-binary-ran", done.run("check").stdout)
+
+    def test_an_unknown_version_runs_the_binary(self):
+        """REQ-1738: where the platform's version can't be read, the launcher says so and runs the binary."""
+        done = self.launcher(no_claude=True)
+        finished = done.run("check")
+        self.assertIn("the-binary-ran", finished.stdout)
+        self.assertIn("unknown", finished.stderr + finished.stdout)
+
+    def test_every_binary_unit_ships_the_stop(self):
+        """REQ-1738: every unit with a launcher reads the platform version its requires.toml names."""
+        for launcher in sorted((ROOT / "plugins").glob("*/bin/meow-*")) + sorted((ROOT / "plugins").glob("*/bin/paw")):
+            if not launcher.is_file():
                 continue
-            with self.subTest(launcher=launcher.name):
-                done = self.run_launcher(launcher, shared=True, sub=self.subcommands(launcher)[0])
-                self.assertRegex(done.stdout, r"layout=\S*/lib/layout\.toml", done.stdout + done.stderr)
-
-    def test_the_loop_launcher_names_its_own_unit_to_the_shared_binary(self):
-        """TSK-5301, BUG-1410, REQ-4504: the shared binary sits in another unit, so the loop's unit is named to it."""
-        launcher = ROOT / "plugins/meow-loop/bin/meow-loop"
-        done = self.run_launcher(launcher, shared=True, sub="guard")
-        unit = (self.base / "unit").resolve()
-        self.assertIn(f"unit={unit}", done.stdout, done.stdout + done.stderr)
-
-    def test_a_launcher_finds_the_core_unit_beside_it_in_a_checkout(self):
-        """TSK-5302, REQ-4504: loaded in place, a unit finds `plugins/meow-core` beside it with no data file."""
-        for launcher in LAUNCHERS:
-            with self.subTest(launcher=launcher.name):
-                shutil.rmtree(self.base, ignore_errors=True)
-                plugins = self.base / "plugins"
-                (plugins / launcher.parent.parent.name / "bin").mkdir(parents=True)
-                copy = plugins / launcher.parent.parent.name / "bin" / launcher.name
-                shutil.copy(launcher, copy)
-                copy.chmod(0o755)
-                binary = plugins / "meow-core" / "bin" / target() / "paw"
-                binary.parent.mkdir(parents=True)
-                binary.write_text('#!/bin/sh\necho "shared: $*"\n')
-                binary.chmod(0o755)
-                sub = self.subcommands(launcher)[0]
-                env = {"PATH": os.environ["PATH"], "HOME": str(self.base / "home")}
-                done = subprocess.run([str(copy), sub], input="", capture_output=True, text=True, env=env)
-                self.assertIn("shared:", done.stdout + done.stderr, done.stdout + done.stderr)
-
-    def test_a_launcher_with_no_binary_names_the_core_unit(self):
-        """TSK-5301 criterion 3, REQ-4506: with no data file and no binary, each reports and names meow-core."""
-        for launcher in LAUNCHERS:
-            with self.subTest(launcher=launcher.name):
-                said = []
-                for sub in self.subcommands(launcher):
-                    done = self.run_launcher(launcher, shared=False, sub=sub)
-                    self.assertNotIn("shared:", done.stdout + done.stderr)
-                    said.append(done.stdout + done.stderr)
-                self.assertTrue(any("meow-core" in text for text in said), said)
+            unit = launcher.parent.parent
+            with self.subTest(unit=unit.name):
+                text = launcher.read_text(encoding="utf-8")
+                self.assertIn("requires.toml", text, f"{unit.name}'s launcher reads no requires.toml")
+                self.assertIn("claude --version", text, f"{unit.name}'s launcher reads no platform version")
 
 
 if __name__ == "__main__":

@@ -172,5 +172,23 @@ class ReleasedFile(unittest.TestCase):
         self.assertLess(text.index("marketplace_release.py check"), text.index("- name: Publish"))
 
 
+class TheContract(unittest.TestCase):
+    def test_every_unit_has_an_entry(self):
+        """REQ-1480: each unit installs through the platform's plugin mechanism, so the marketplace lists it."""
+        listed = {p["name"] for p in json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())["plugins"]}
+        tree = {p.name for p in (ROOT / "plugins").iterdir() if p.is_dir()}
+        self.assertEqual(listed, tree)
+
+    def test_no_unit_ships_an_installer(self):
+        """REQ-1480: no unit ships a file named as an install script or a postinstall step."""
+        for unit in sorted(p for p in (ROOT / "plugins").iterdir() if p.is_dir()):
+            for name in ("install", "install.sh", "setup", "setup.sh", "postinstall", "uninstall", "uninstall.sh"):
+                self.assertFalse((unit / name).exists(), f"{unit.name} ships {name}")
+            manifest = unit / ".claude-plugin" / "plugin.json"
+            if manifest.is_file():
+                text = manifest.read_text(encoding="utf-8")
+                self.assertNotIn("postinstall", text, f"{unit.name}'s manifest names a postinstall step")
+
+
 if __name__ == "__main__":
     unittest.main()

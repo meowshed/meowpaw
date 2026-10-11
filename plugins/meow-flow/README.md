@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-flow@0.52.0]
+describes: [meow-flow@0.53.0]
 ---
 
 # meow-flow
@@ -25,6 +25,8 @@ claude plugin install meow-flow@meowpaw
 ```
 
 Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone. It also enables `meow-prose`, whose writing skill the researcher agent preloads, and keeps `meow-prose` enabled while this unit is on.
+
+Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Bring a repository in
 

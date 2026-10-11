@@ -515,7 +515,16 @@ class State(unittest.TestCase):
             f.write(self.old_line() + "\n")
         lock = repo.state / f"meowpaw-{ledger.stem}.lock"
         lock.write_text("1", encoding="utf-8")
-        env = {**os.environ, "XDG_STATE_HOME": str(repo.state), "XDG_RUNTIME_DIR": str(repo.state),
+        # A `claude` that answers the launcher's version probe at once
+        # (REQ-1738): the probe is a platform call, and the real one costs more
+        # than the second this test's window holds.
+        stub = Path(repo.state) / "stubs"
+        stub.mkdir(exist_ok=True)
+        claude = stub / "claude"
+        claude.write_text("#!/bin/sh\ncase \"$*\" in *--version*) echo '9.0.0 (Claude Code)'; exit 0;; esac\nexit 1\n")
+        claude.chmod(0o755)
+        env = {**os.environ, "PATH": f"{stub}{os.pathsep}{os.environ['PATH']}",
+               "XDG_STATE_HOME": str(repo.state), "XDG_RUNTIME_DIR": str(repo.state),
                "XDG_CONFIG_HOME": str(repo.state), "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
         running = subprocess.Popen([str(BIN), "run", "test"], cwd=repo.root, env=env, stdout=subprocess.PIPE, text=True)
         import time

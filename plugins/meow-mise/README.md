@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-mise
 answers: what meow-mise does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-mise@0.4.0]
+describes: [meow-mise@0.5.0]
 ---
 
 # meow-mise
@@ -23,6 +23,8 @@ claude plugin install meow-mise@meowpaw
 ```
 
 Installing this unit also enables `meow-core`, which ships the shared `paw` binary its launcher runs, and the platform keeps `meow-core` enabled while this unit is on, so you can't disable `meow-core` alone.
+
+Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
 
