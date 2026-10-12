@@ -52,7 +52,7 @@ pub(crate) struct Posture {
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
 #[cfg_attr(not(feature = "unattended"), allow(dead_code))]
-const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
+pub(crate) const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
     name: "plan",
     determines: "the posture and deny rules an unattended run is held to, from the profile",
     by_hand: "read the `[unattended]` table of `.meowpaw/profile.toml` and each default the specification states",

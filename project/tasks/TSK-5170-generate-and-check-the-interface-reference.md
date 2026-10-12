@@ -1,7 +1,7 @@
 ---
 id: TSK-5170
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2615
 closes: [REQ-2992]
@@ -30,7 +30,11 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 closes with the generator and drift fixtures in
+`crates/meow/src/interface.rs`: the drift test
+`the_committed_page_is_current` fails a stale page, and
+`a_key_without_a_comment_fails_the_page` names a key whose documentation
+comment is empty (REQ-2992).
 
 ## Left alone
 

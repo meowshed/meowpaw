@@ -31,6 +31,8 @@ mod gotask;
     feature = "verbs",
 ))]
 mod help;
+#[cfg(feature = "interface")]
+mod interface;
 #[cfg(feature = "licence")]
 mod licence;
 #[cfg(feature = "markdown")]
@@ -74,6 +76,8 @@ fn main() -> ExitCode {
         "record" => record::main(rest),
         #[cfg(feature = "github")]
         "github" => github::main(rest),
+        #[cfg(feature = "interface")]
+        "interface" => interface::main(rest),
         #[cfg(feature = "licence")]
         "licence" => licence::main(rest),
         #[cfg(feature = "author")]

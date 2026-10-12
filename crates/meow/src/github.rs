@@ -30,7 +30,7 @@ const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] |
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 4] = [
+pub(crate) const HELP: [crate::help::Entry; 4] = [
     crate::help::Entry {
         name: "history",
         determines: "the issues, pull requests and comments of one repository on the code host, read back",

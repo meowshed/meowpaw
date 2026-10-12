@@ -49,7 +49,7 @@ fn binding(task: &str) -> String {
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 3] = [
+pub(crate) const HELP: [crate::help::Entry; 3] = [
     crate::help::Entry {
         name: "status",
         determines: "which mise tasks resolve in this work tree",

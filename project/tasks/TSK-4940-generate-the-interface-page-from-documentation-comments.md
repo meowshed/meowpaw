@@ -1,7 +1,7 @@
 ---
 id: TSK-4940
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2490
 closes: [REQ-2992]
@@ -61,7 +61,13 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests were written with the generator and pass: criterion 1 closes with
+`the_committed_page_is_current`, which regenerates the page and compares it
+with the committed one byte for byte, and names the six parts REQ-2992
+lists. Criterion 2 closes with the same test, where a stale page fails at
+the first line that differs, naming its entry. Criterion 3 closes with
+`a_key_without_a_comment_fails_the_page`, naming the key. Criterion 4 closes
+with `tools/check_docs.py` reporting 0 failures over the page.
 
 ## Left alone
 

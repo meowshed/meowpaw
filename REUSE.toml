@@ -26,6 +26,7 @@ SPDX-License-Identifier = "Apache-2.0"
 path = [
   "mise.toml",
   ".markdownlint-cli2.yaml",
+  ".prettierignore",
   ".gitignore",
   ".github/**",
   "tools/**",

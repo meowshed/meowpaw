@@ -39,6 +39,7 @@ SKIPPED_PREFIXES = {
 SKIPPED_FILES = {
     "project/README.md": "the index quotes the titles of frozen records",
     "plugins/meow-flow/lib/layout.toml": "the onboarding section name `Verbs` is record shape and needs a migration",
+    "docs/interface.md": "the page is generated from the tool's own keys, and the profile's stage keys carry the old word until a decision renames them",
     "packages/meow-flow/lib/layout.toml": "the mirror of the onboarding section name `Verbs`",
     "plugins/meow-loop/lib/layout.toml": "the onboarding section name `Verbs` is record shape and needs a migration",
     "packages/meow-loop/lib/layout.toml": "the mirror of the onboarding section name `Verbs`",
