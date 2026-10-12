@@ -1,7 +1,7 @@
 ---
 id: TSK-5630
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 realises: ADR-2990
 closes: []

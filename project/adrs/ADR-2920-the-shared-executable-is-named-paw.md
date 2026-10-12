@@ -1,7 +1,7 @@
 ---
 id: ADR-2920
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-11
 addresses: [REQ-4610, REQ-4612, REQ-4614, REQ-4500, REQ-4504]
 supersedes: [ADR-1350, ADR-2810, ADR-2820, ADR-2870]
