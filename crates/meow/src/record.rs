@@ -1475,6 +1475,51 @@ fn relations(record: &Record) -> Vec<Finding> {
             }
         }
     }
+    // REQ-3900: an approved requirement names an approved decision that
+    // addresses or postpones it, and REQ-3902: an approved decision that
+    // addresses one names an approved epic or direct task that realises it.
+    // A decision that only postpones defers the work instead of authorising
+    // it, so it names no plan (ADR-2740).
+    let active = |status: &str| status == "approved" || status == "done";
+    let provided = |id: &str| {
+        of_kind(record, "decision").iter().any(|d| {
+            active(bare(d.value("status")))
+                && (requirements_in(record, d.value("addresses")).contains(id)
+                    || requirements_in(record, d.value("postpones")).contains(id))
+        })
+    };
+    for requirement in of_kind(record, "requirement") {
+        let id = bare(requirement.id());
+        if !active(bare(requirement.value("status"))) || provided(id) {
+            continue;
+        }
+        out.push(Finding::at(
+            requirement,
+            None,
+            format!("{id} is in force and names no approved decision that addresses or postpones it (REQ-3900)"),
+        ));
+    }
+    for decision in of_kind(record, "decision") {
+        let id = bare(decision.id());
+        if !active(bare(decision.value("status")))
+            || requirements_in(record, decision.value("addresses")).is_empty()
+        {
+            continue;
+        }
+        let planned = of_kind(record, "epic")
+            .iter()
+            .any(|e| active(bare(e.value("status"))) && bare(e.value("realises")) == id)
+            || of_kind(record, "task")
+                .iter()
+                .any(|t| active(bare(t.value("status"))) && bare(t.value("realises")) == id);
+        if !planned {
+            out.push(Finding::at(
+                decision,
+                None,
+                format!("{id} addresses work and names no approved epic or direct task that realises it (REQ-3902)"),
+            ));
+        }
+    }
     out
 }
 
@@ -4964,6 +5009,148 @@ mod tests {
         let layout = load_layout().unwrap();
         let record = read_record(layout, &dir, &dir.join("project"));
         (record, dir)
+    }
+
+    /// TSK-5140, REQ-3900, REQ-3902: an approved requirement, an approved
+    /// decision addressing it, and an epic realising it, each written where
+    /// `with` names it, so a test asks for exactly one gap.
+    fn gap_fixture(
+        requirement: bool,
+        decision: bool,
+        epic: bool,
+        postpones: bool,
+    ) -> (Record, std::path::PathBuf) {
+        unsafe {
+            std::env::set_var(
+                "MEOW_LAYOUT",
+                concat!(
+                    env!("CARGO_MANIFEST_DIR"),
+                    "/../../plugins/meow-flow/lib/layout.toml"
+                ),
+            );
+        }
+        // Tests run in parallel and two ask for the same shape, so a counter
+        // keeps each directory its own.
+        static COUNT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let count = COUNT.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        let dir = std::env::temp_dir().join(format!(
+            "meow-gap-{requirement}-{decision}-{epic}-{postpones}-{}-{count}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join(".meowpaw")).unwrap();
+        std::fs::create_dir_all(dir.join("project").join("requirements")).unwrap();
+        std::fs::create_dir_all(dir.join("project").join("adrs")).unwrap();
+        std::fs::create_dir_all(dir.join("project").join("epics")).unwrap();
+        std::fs::write(
+            dir.join(".meowpaw").join("profile.toml"),
+            "[record]\nroot = \"project\"\n",
+        )
+        .unwrap();
+        if requirement {
+            std::fs::write(
+                dir.join("project")
+                    .join("requirements")
+                    .join("REQ-0001-first.md"),
+                "---\nid: REQ-0001\nstatus: approved\nrevised: 2026-01-01\n---\n\n# REQ-0001\n",
+            )
+            .unwrap();
+        }
+        if decision {
+            let relation = if postpones {
+                "postpones: [REQ-0001]"
+            } else {
+                "addresses: [REQ-0001]"
+            };
+            std::fs::write(
+                dir.join("project").join("adrs").join("ADR-0001-a-choice.md"),
+                format!("---\nid: ADR-0001\nstatus: approved\nrevised: 2026-01-01\n{relation}\n---\n\n# 0001. A choice\n"),
+            )
+            .unwrap();
+        }
+        if epic {
+            std::fs::write(
+                dir.join("project").join("epics").join("EPC-0001-a-plan.md"),
+                "---\nid: EPC-0001\nstatus: approved\nrevised: 2026-01-01\nrealises: ADR-0001\n---\n\n# A plan\n",
+            )
+            .unwrap();
+        }
+        let layout = load_layout().unwrap();
+        let record = read_record(layout, &dir, &dir.join("project"));
+        (record, dir)
+    }
+
+    #[test]
+    fn an_active_requirement_without_a_provider_is_reported() {
+        // TSK-5140 criterion 1, REQ-3900: an approved requirement names an
+        // approved decision that addresses or postpones it.
+        let (record, dir) = gap_fixture(true, false, false, false);
+        let found = relations(&record);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            found
+                .iter()
+                .any(|f| f.message.contains("REQ-0001") && f.message.contains("REQ-3900")),
+            "the providerless requirement went unreported: {:?}",
+            found.iter().map(|f| &f.message).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn a_provider_clears_the_requirement() {
+        // TSK-5140 criterion 1, REQ-3900: the addressing decision is the
+        // provider, so no finding.
+        let (record, dir) = gap_fixture(true, true, false, false);
+        let found = relations(&record);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            found.iter().all(|f| !f.message.contains("REQ-3900")),
+            "a provided requirement was reported: {:?}",
+            found.iter().map(|f| &f.message).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn an_addressing_decision_without_a_plan_is_reported() {
+        // TSK-5140 criterion 1, REQ-3902: an approved decision that addresses
+        // a requirement names an approved epic or direct task.
+        let (record, dir) = gap_fixture(true, true, false, false);
+        let found = relations(&record);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            found
+                .iter()
+                .any(|f| f.message.contains("ADR-0001") && f.message.contains("REQ-3902")),
+            "the planless decision went unreported: {:?}",
+            found.iter().map(|f| &f.message).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn an_approved_epic_clears_the_decision() {
+        // TSK-5140 criterion 1, REQ-3902: the realising epic is the plan.
+        let (record, dir) = gap_fixture(true, true, true, false);
+        let found = relations(&record);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            found.iter().all(|f| !f.message.contains("REQ-3902")),
+            "a planned decision was reported: {:?}",
+            found.iter().map(|f| &f.message).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn a_postponing_only_decision_needs_no_plan() {
+        // TSK-5140 criterion 1, REQ-3902: a decision that only postpones
+        // defers the work instead of authorising it, so it names no plan.
+        let (record, dir) = gap_fixture(true, true, false, true);
+        let found = relations(&record);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            found.iter().all(|f| !f.message.contains("REQ-3902")),
+            "a postponing decision was held to a plan: {:?}",
+            found.iter().map(|f| &f.message).collect::<Vec<_>>()
+        );
     }
 
     #[test]

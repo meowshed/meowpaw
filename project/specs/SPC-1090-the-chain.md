@@ -921,7 +921,9 @@ record a person names (REQ-3202). It runs that item's next step through the
 `method` skill, and stops where the step ends at an approval gate, as the step
 would (REQ-0204). Where the step ends without one, it runs `status` again and
 continues. At every stop it reports which step it reached, why it stopped and
-what the next invocation will do (REQ-0208).
+what the next invocation will do (REQ-0208). The model may invoke the driver,
+and it is the one unit with side effects so opened: the loop's own skill
+stays person-only (REQ-4900, ADR-2900).
 
 The command keeps no state of its own. When you run it again after an
 approval, it continues from the step after the approved one. When you run it
