@@ -9,7 +9,7 @@
 format = "mise run fmt-check && mise run shell-fmt && mise run crate-fmt"
 check = "mise run crate-check"
 lint = "mise run lint && mise run style && mise run prompts && mise run kernel && mise run standalone && plugins/meow-licence/bin/meow-licence check && plugins/meow-mise/bin/meow-mise check && mise run shell-lint && plugins/meow-markdown/bin/meow-markdown check && mise run layers && mise run crate-lint"
-test = "mise run test"
+test = { command = "mise run test", subset = "mise run test-{targets}" }
 build = "mise run build"
 
 # The commit convention: each type with what it means for a release, the

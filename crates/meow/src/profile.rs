@@ -19,6 +19,7 @@ pub const PROFILE: &str = ".meowpaw/profile.toml";
 /// (REQ-2944).
 pub const PERSONAL: &str = ".meowpaw/profile.local.toml";
 
+#[derive(Debug)]
 pub enum Profile {
     Absent,
     /// The parser's message, after the line it gives where it gives one.
@@ -442,6 +443,20 @@ mod tests {
                 out.push(path);
             }
         }
+    }
+
+    /// TSK-5145, REQ-3800: comments before a table, beside a value and after
+    /// it stay valid TOML the parser reads.
+    #[test]
+    fn a_profile_with_comments_parses() {
+        let text = "# the stages the repository declares\n\n[stages]\n# one stage per line\ntest = \"true\" # the command the shell runs\n\n# the record lives here\n[record]\nroot = \"project\"\n";
+        let (_dir, profile) = with_profile(Some(text));
+        let Profile::Parsed(table, unknown) = &profile else {
+            panic!("the profile with comments didn't parse: {profile:?}");
+        };
+        assert!(unknown.is_empty(), "{unknown:?}");
+        let declared = stages(table).and_then(toml::Value::as_table).unwrap();
+        assert!(declared.contains_key("test"));
     }
 
     /// TSK-5270, criterion 1, REQ-4202: a `[stages]` table is the declaration,

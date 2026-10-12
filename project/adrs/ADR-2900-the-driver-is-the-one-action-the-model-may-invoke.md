@@ -1,7 +1,7 @@
 ---
 id: ADR-2900
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-10
 addresses: [REQ-3704, REQ-4900, REQ-4902]
 supersedes: []

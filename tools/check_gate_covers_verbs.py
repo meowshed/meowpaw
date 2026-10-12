@@ -17,7 +17,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 def members(command):
-    """Each command one stage runs, splitting on `&&` at the top level."""
+    """Each command one stage runs, splitting on `&&` at the top level. A stage
+    declared as a table carries its command under `command` (SPC-1040)."""
+    if isinstance(command, dict):
+        command = command.get("command", "")
     return [part.strip() for part in command.split("&&") if part.strip()]
 
 
