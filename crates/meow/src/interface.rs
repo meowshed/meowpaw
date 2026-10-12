@@ -44,6 +44,8 @@ type Subcommand = (&'static str, &'static str, &'static str);
 /// Every unit's program with its subcommand table, so the page names each
 /// subcommand of the tool from the documentation that unit carries.
 fn tables() -> Vec<(&'static str, Vec<Subcommand>)> {
+    // The pushes are gated per feature, so a literal doesn't serve.
+    #[allow(clippy::vec_init_then_push)]
     let mut out: Vec<(&'static str, Vec<Subcommand>)> = Vec::new();
     #[cfg(feature = "author")]
     out.push(("meow-author", entries(&crate::author::HELP)));
