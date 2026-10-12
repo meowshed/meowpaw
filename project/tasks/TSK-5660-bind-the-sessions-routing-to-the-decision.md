@@ -39,7 +39,15 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 closes with `plugins/meow-flow/tests/test_route.py`, which
+holds that no router agent ships and the `route` skill does. Criterion 2
+closes with SPC-1090's "The route" section, which states the session
+classifies the request itself and reports the route before any tool that
+writes runs.
+
+The five stages passed at tree `4364d882ff98`, each bound by `meow-checks run` and
+confirmed by `meow-checks evidence`, exit 0: format `fcdc5ab700f0`, check
+`c6bd6909315a`, lint `19fafec9381e`, test `fb6e4836449c`, build `a982d16b0043`.
 
 ## Left alone
 

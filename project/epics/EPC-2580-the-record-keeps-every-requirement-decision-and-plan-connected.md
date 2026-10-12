@@ -32,11 +32,17 @@ missing relation, the current record has neither, and TOML comments are pinned.
 
 ## Tasks
 
-- [ ] T-001 TSK-5140 report an active requirement without a provider and an
+- [x] T-001 TSK-5140 report an active requirement without a provider and an
       active decision without a plan, in the `record` feature
       closes: REQ-3900, REQ-3902
-- [ ] T-002 [P] TSK-5145 pin comments in the profile parser
+      — done in this pull request: the five stages passed at tree
+      `4364d882ff98`, each bound by `meow-checks run` and confirmed by
+      `meow-checks evidence`, exit 0.
+- [x] T-002 [P] TSK-5145 pin comments in the profile parser
       closes: REQ-3800
+      — done in this pull request: the five stages passed at tree
+      `4364d882ff98`, each bound by `meow-checks run` and confirmed by
+      `meow-checks evidence`, exit 0.
 
 ## Coverage
 

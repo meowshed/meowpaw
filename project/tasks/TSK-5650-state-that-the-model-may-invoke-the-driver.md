@@ -39,7 +39,15 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 closes with
+`plugins/meow-flow/tests/test_run_skill.py::Invocable::test_the_driver_is_invokable_and_the_loop_is_not`,
+which reads both run skills' front matter. Criterion 2 closes with SPC-1090's
+"The driver" section, which states the model may invoke the driver and the
+loop stays person-only.
+
+The five stages passed at tree `4364d882ff98`, each bound by `meow-checks run` and
+confirmed by `meow-checks evidence`, exit 0: format `fcdc5ab700f0`, check
+`c6bd6909315a`, lint `19fafec9381e`, test `fb6e4836449c`, build `a982d16b0043`.
 
 ## Left alone
 

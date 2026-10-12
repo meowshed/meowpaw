@@ -70,7 +70,18 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The tests were written first and seen failing in `8941de27`, and pass after
+`3990875c`. Criterion 1 closes with the five crate tests: the providerless
+requirement and the planless decision are reported, a provider clears the
+requirement, an approved epic clears the decision, and a postponing-only
+decision names no plan, each naming REQ-3900 or REQ-3902. Criterion 2 closes
+with `paw check relations` reporting 0 findings on this repository, after
+ADR-2990 gave the ten stray requirements their providers and the three
+decisions their direct tasks.
+
+The five stages passed at tree `4364d882ff98`, each bound by `meow-checks run` and
+confirmed by `meow-checks evidence`, exit 0: format `fcdc5ab700f0`, check
+`c6bd6909315a`, lint `19fafec9381e`, test `fb6e4836449c`, build `a982d16b0043`.
 
 ## Left alone
 

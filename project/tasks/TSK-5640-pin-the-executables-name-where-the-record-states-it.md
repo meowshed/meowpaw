@@ -37,7 +37,14 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 closes with `tools/test_shared_binary.py`, which resolves the
+binary at `plugins/meow-core/bin/<target>/paw` and passes. Criterion 2
+closes with SPC-1080's "The native tool" section, which states the crate
+builds one binary, `paw`.
+
+The five stages passed at tree `4364d882ff98`, each bound by `meow-checks run` and
+confirmed by `meow-checks evidence`, exit 0: format `fcdc5ab700f0`, check
+`c6bd6909315a`, lint `19fafec9381e`, test `fb6e4836449c`, build `a982d16b0043`.
 
 ## Left alone
 

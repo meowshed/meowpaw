@@ -31,7 +31,14 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 closes with the crate test `a_profile_with_comments_parses`,
+which reads a profile carrying comments before a table, beside a value and
+after it, and parses to the declared stages with no unknown key. Seen
+failing in `8941de27` only as a missing fixture name; the behaviour held.
+
+The five stages passed at tree `4364d882ff98`, each bound by `meow-checks run` and
+confirmed by `meow-checks evidence`, exit 0: format `fcdc5ab700f0`, check
+`c6bd6909315a`, lint `19fafec9381e`, test `fb6e4836449c`, build `a982d16b0043`.
 
 ## Left alone
 

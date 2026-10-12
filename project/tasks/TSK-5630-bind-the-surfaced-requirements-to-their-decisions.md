@@ -36,7 +36,14 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 closes with `paw check relations` reporting 0 findings on this
+repository, the provider rule included. Criterion 2 closes with the record
+check's shape rules passing over ADR-2990, which names this task as its
+plan.
+
+The five stages passed at tree `4364d882ff98`, each bound by `meow-checks run` and
+confirmed by `meow-checks evidence`, exit 0: format `fcdc5ab700f0`, check
+`c6bd6909315a`, lint `19fafec9381e`, test `fb6e4836449c`, build `a982d16b0043`.
 
 ## Left alone
 
