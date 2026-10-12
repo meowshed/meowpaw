@@ -2061,7 +2061,7 @@ fn names_the_runner(command: &str) -> bool {
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 5] = [
+pub(crate) const HELP: [crate::help::Entry; 5] = [
     crate::help::Entry {
         name: "start",
         determines: "the whole run of a step from a terminal, which the session's `/meow-loop:run` replaces",

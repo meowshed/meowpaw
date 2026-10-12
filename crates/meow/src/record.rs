@@ -50,32 +50,32 @@ const UNCHECKED: u8 = 3;
 /// sample records name identifiers that don't exist on purpose.
 const SKIP: [&str; 5] = ["node_modules", "target", "templates", "_archive", "evals"];
 
-struct Kind {
-    name: String,
-    artifact: String,
-    prefix: Option<String>,
-    dir: Option<String>,
-    file: Option<String>,
-    fields: Vec<String>,
-    statuses: Vec<String>,
-    index: Option<String>,
-    sections: Vec<String>,
-    draft_sections: Vec<String>,
-    first_section: Option<String>,
-    required_values: Vec<String>,
-    forbidden_fields: Vec<String>,
-    rules: Vec<String>,
-    draft_rules: Vec<String>,
+pub(crate) struct Kind {
+    pub(crate) name: String,
+    pub(crate) artifact: String,
+    pub(crate) prefix: Option<String>,
+    pub(crate) dir: Option<String>,
+    pub(crate) file: Option<String>,
+    pub(crate) fields: Vec<String>,
+    pub(crate) statuses: Vec<String>,
+    pub(crate) index: Option<String>,
+    pub(crate) sections: Vec<String>,
+    pub(crate) draft_sections: Vec<String>,
+    pub(crate) first_section: Option<String>,
+    pub(crate) required_values: Vec<String>,
+    pub(crate) forbidden_fields: Vec<String>,
+    pub(crate) rules: Vec<String>,
+    pub(crate) draft_rules: Vec<String>,
 }
 
-struct Layout {
-    fields: Vec<String>,
-    relations: Vec<String>,
-    index_name: String,
-    kinds: Vec<Kind>,
-    retired_fields: BTreeMap<String, String>,
-    retired_statuses: BTreeMap<String, String>,
-    retired_sections: BTreeMap<String, String>,
+pub(crate) struct Layout {
+    pub(crate) fields: Vec<String>,
+    pub(crate) relations: Vec<String>,
+    pub(crate) index_name: String,
+    pub(crate) kinds: Vec<Kind>,
+    pub(crate) retired_fields: BTreeMap<String, String>,
+    pub(crate) retired_statuses: BTreeMap<String, String>,
+    pub(crate) retired_sections: BTreeMap<String, String>,
 }
 
 struct Field {
@@ -136,17 +136,17 @@ pub(crate) struct Record {
 /// answer by hand, and the first word of each kind of line it prints
 /// (SPC-1080, REQ-1176, REQ-1184). A subcommand is dispatched through this
 /// table only, so one can't be added without all three.
-struct Command {
-    name: &'static str,
-    run: fn(&[String]) -> u8,
-    determines: &'static str,
-    by_hand: &'static str,
+pub(crate) struct Command {
+    pub(crate) name: &'static str,
+    pub(crate) run: fn(&[String]) -> u8,
+    pub(crate) determines: &'static str,
+    pub(crate) by_hand: &'static str,
     /// Whitespace-separated. A word in angle brackets stands for a kind of
     /// word: `<id>` an identifier, `<count>` a number, anything else any word.
-    lines: &'static str,
+    pub(crate) lines: &'static str,
 }
 
-const COMMANDS: [Command; 13] = [
+pub(crate) const COMMANDS: [Command; 13] = [
     Command {
         name: "check",
         run: check,
@@ -907,7 +907,7 @@ fn without_retired(layout: &Layout, text: &str, gone: &BTreeSet<String>) -> Stri
 }
 
 /// The layout from `MEOW_LAYOUT`, or from the unit this binary ships in.
-fn load_layout() -> Result<Layout, String> {
+pub(crate) fn load_layout() -> Result<Layout, String> {
     let path = layout_path()?;
     let text = std::fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
     let data: toml::Table = text

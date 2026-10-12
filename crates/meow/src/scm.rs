@@ -452,7 +452,7 @@ fn check_message(root: &Path, source: Option<&str>) -> u8 {
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 2] = [
+pub(crate) const HELP: [crate::help::Entry; 2] = [
     crate::help::Entry {
         name: "convention",
         determines: "the commit convention the profile declares",
