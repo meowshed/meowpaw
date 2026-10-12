@@ -32,7 +32,7 @@ const OUTCOMES: [&str; 4] = ["DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLO
 
 /// What the subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
+pub(crate) const HELP: [crate::help::Entry; 1] = [crate::help::Entry {
     name: "check",
     determines: "whether each skill, agent, output style and prompt hook follows the authoring rules",
     by_hand: "read each file against the rules of the `write` skill of `meow-author`, and each `hooks/hooks.json` against the answer, network and launcher rules of SPC-1240",

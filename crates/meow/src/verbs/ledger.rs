@@ -4,6 +4,12 @@
 //! The ledger of recorded stage results, outside the repository, each bound to
 //! the tree it ran on (ADR-1480).
 //!
+//! A recorded result is one line of JSON whose keys name what ran and what it
+//! ran on: `record` the record's own identifier, `verb` the stage, `command`
+//! the exact command, `outcome` one of the four outcomes, `status` the exit
+//! status, `time` when it ran, `before` and `after` the tree ids either side,
+//! `output` the stage's own last lines, and `targets` the part of the work.
+//!
 //! A tree id is git's hash of the working state as a tree object, untracked
 //! files included and ignored ones left out, built through a temporary index
 //! so the repository's own index is untouched. It equals the tree of a commit
@@ -678,3 +684,10 @@ fn pair(lines: Vec<Value>) -> Vec<Value> {
 pub fn short(tree: &str) -> &str {
     &tree[..tree.len().min(12)]
 }
+
+/// What one recorded result states, as the ledger's own documentation names
+/// it, which the interface page carries (REQ-2992).
+pub(crate) const EVIDENCE: &str = "A piece of evidence is one line of the ledger's JSON, whose keys are record, \
+verb, command, outcome, status, time, before, after, output and targets: what ran, what it printed, and the \
+trees either side of it. Cite the line `evidence` prints, which names the stage, the outcome, the record and \
+the tree, and never restate it.";

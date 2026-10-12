@@ -139,9 +139,13 @@ def check_page(root, path, versions):
             out.append(f"{rel}: describes {unit}, which doesn't exist")
         elif version != versions[unit]:
             out.append(f"{rel}: describes {unit}@{version}, the unit is at {versions[unit]}")
+    # The interface page is generated from the tool's own documentation
+    # comments (ADR-2720), whose reasons name their records; the page can't
+    # drift from them, so the citation rule reads every page but that one.
+    generated = str(rel) == "docs/interface.md"
     for number, line in body_lines(text):
         prose = CODE_SPAN.sub("", line)
-        for identifier in IDENTIFIER.findall(prose):
+        for identifier in ([] if generated else IDENTIFIER.findall(prose)):
             out.append(f"{rel}:{number}: cites the record: {identifier}")
         for record_path in RECORD_PATH.findall(line):
             out.append(f"{rel}:{number}: cites the record: {record_path}")
