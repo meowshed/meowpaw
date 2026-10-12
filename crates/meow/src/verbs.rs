@@ -21,6 +21,10 @@ use std::process::{Command, Stdio};
 use std::time::Instant;
 
 pub(crate) const VERBS: [&str; 5] = ["format", "lint", "check", "test", "build"];
+/// The outcomes a stage's run records, as SPC-1040 states them: passed and
+/// failed from the exit status, interrupted from a signal, and unresolved
+/// where the profile declares no command.
+pub(crate) const OUTCOMES: [&str; 4] = ["passed", "failed", "unresolved", "interrupted"];
 const TAIL: usize = 20;
 const PASSED: u8 = 0;
 const FAILED: u8 = 1;
@@ -1096,7 +1100,7 @@ fn local(root: &Path, args: &[&str]) -> u8 {
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 7] = [
+pub(crate) const HELP: [crate::help::Entry; 7] = [
     crate::help::Entry {
         name: "status",
         determines: "how each of the five stages resolves from the profile, and from where",

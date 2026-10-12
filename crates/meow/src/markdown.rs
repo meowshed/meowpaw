@@ -52,7 +52,7 @@ const TASKFILES: [&str; 8] = [
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-const HELP: [crate::help::Entry; 4] = [
+pub(crate) const HELP: [crate::help::Entry; 4] = [
     crate::help::Entry {
         name: "status",
         determines: "how Markdown is configured in this repository",
