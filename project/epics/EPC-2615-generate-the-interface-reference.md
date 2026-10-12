@@ -24,7 +24,7 @@ Realises ADR-2720 in TSK-5170.
 
 ## Tasks
 
-- [ ] T-001 TSK-5170 generate and check the interface reference
+- [x] T-001 TSK-5170 generate and check the interface reference
       closes: REQ-2992
 
 ## Coverage
