@@ -1,7 +1,7 @@
 ---
 id: TSK-5170
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2615
 closes: [REQ-2992]

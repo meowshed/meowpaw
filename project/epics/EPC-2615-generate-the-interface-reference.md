@@ -1,7 +1,7 @@
 ---
 id: EPC-2615
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2720
 ---
@@ -24,7 +24,7 @@ Realises ADR-2720 in TSK-5170.
 
 ## Tasks
 
-- [x] T-001 TSK-5170 generate and check the interface reference
+- [x] T-001 TSK-5170 generate and check the interface reference (done: pull request 1064)
       closes: REQ-2992
 
 ## Coverage
