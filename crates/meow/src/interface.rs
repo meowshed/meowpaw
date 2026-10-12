@@ -7,8 +7,8 @@
 
 use crate::help::Entry;
 use crate::profile::{KEYS, Key};
-use regex::Regex;
 use crate::record::{Layout, load_layout};
+use regex::Regex;
 use std::path::Path;
 
 const CLEAN: u8 = 0;
@@ -23,17 +23,17 @@ fn core_version() -> String {
         Ok(exe) => exe,
         Err(_) => return String::new(),
     };
-    let unit = exe
-        .parent()
-        .and_then(Path::parent)
-        .and_then(Path::parent);
+    let unit = exe.parent().and_then(Path::parent).and_then(Path::parent);
     let manifest = unit
         .map(|u| u.join(".claude-plugin").join("plugin.json"))
         .unwrap_or_default();
     std::fs::read_to_string(manifest)
         .ok()
         .and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok())
-        .and_then(|v| v.get("version").and_then(|v| v.as_str().map(str::to_string)))
+        .and_then(|v| {
+            v.get("version")
+                .and_then(|v| v.as_str().map(str::to_string))
+        })
         .unwrap_or_default()
 }
 
@@ -273,14 +273,17 @@ mod tests {
             "/../../plugins/meow-core/.claude-plugin/plugin.json"
         ))
         .unwrap();
-        let version = serde_json::from_str::<serde_json::Value>(&manifest)
-            .unwrap()["version"]
+        let version = serde_json::from_str::<serde_json::Value>(&manifest).unwrap()["version"]
             .as_str()
             .unwrap()
             .to_string();
-        let page = page(&layout(), tables(), KEYS, &version).expect("every item carries its comment");
-        let committed =
-            std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/interface.md")).unwrap();
+        let page =
+            page(&layout(), tables(), KEYS, &version).expect("every item carries its comment");
+        let committed = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../docs/interface.md"
+        ))
+        .unwrap();
         assert_eq!(page, committed);
         for part in [
             "stages",
