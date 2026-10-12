@@ -144,3 +144,14 @@ class EpicOnOneBranch(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Invocable(unittest.TestCase):
+    """ADR-2900, REQ-4900: the model may invoke the driver, and the loop stays person-only."""
+
+    def test_the_driver_is_invokable_and_the_loop_is_not(self):
+        """ADR-2900 criterion 1, REQ-4900: the run skill carries no `disable-model-invocation`, and the loop's does."""
+        run = Path(__file__).resolve().parent.parent / "skills" / "run" / "SKILL.md"
+        loop = run.parent.parent.parent.parent / "meow-loop" / "skills" / "run" / "SKILL.md"
+        self.assertNotIn("disable-model-invocation", run.read_text(encoding="utf-8"))
+        self.assertIn("disable-model-invocation: true", loop.read_text(encoding="utf-8"))

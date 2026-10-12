@@ -170,6 +170,9 @@ class Checks(unittest.TestCase):
     def test_relations_reports_an_identifier_that_does_not_resolve(self):
         repository = self.repo()
         repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: ADR-0001, ADR-0009")
+        # ADR-0001 keeps a plan, so the only finding is the unresolvable one.
+        repository.write("tasks/TSK-0002-direct.md", record(
+            "task", "TSK-0002", {"realises": "ADR-0001"}, ["Evidence"]))
         self.found(repository.run("check", "relations"), "relations",
                    "project/epics/EPC-0001-a-plan.md:6: realises names ADR-0009, which has no file")
 
@@ -1708,7 +1711,11 @@ class Connections(unittest.TestCase):
         self.assertIn("project/adrs/ADR-0001-a-choice.md:6: addresses REQ-0001, revised 2026-02-01, "
                       "after this record's 2026-01-01, so the citation is suspect", done.stdout)
         self.assertIn("project/specs/SPC-0001-a-part.md:6: states REQ-0001, revised 2026-02-01", done.stdout)
-        self.assertIn("relations: 2 findings", done.stdout)
+        # With the provider a draft, the requirement's provider rule also fires
+        # (REQ-3900), so the count is three.
+        self.assertIn("project/requirements/REQ-0001-an-obligation.md: REQ-0001 is in force and names no "
+                      "approved decision that addresses or postpones it (REQ-3900)", done.stdout)
+        self.assertIn("relations: 3 findings", done.stdout)
 
     def test_an_approved_record_citing_a_later_revision_is_marked_by_show(self):
         """REQ-0141: a frozen record can't be revised, so show marks its suspect citation and check passes."""
