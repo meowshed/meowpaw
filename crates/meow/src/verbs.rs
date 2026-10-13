@@ -552,6 +552,156 @@ fn status(root: &Path, scope: &Scope, as_json: bool) -> u8 {
     PASSED
 }
 
+/// The words the shell runs itself, which no `PATH` has to hold.
+const SHELL_WORDS: [&str; 45] = [
+    ":", ".", "[", "!", "alias", "bg", "break", "case", "cd", "command", "continue", "do", "done",
+    "echo", "elif", "else", "esac", "eval", "exec", "exit", "export", "false", "fg", "fi", "for",
+    "getopts", "hash", "if", "jobs", "kill", "printf", "pwd", "read", "readonly", "return", "set",
+    "shift", "test", "then", "times", "trap", "true", "type", "umask", "unset",
+];
+
+/// What a resolved command needs that isn't here: each program it starts that
+/// no `PATH` directory holds, which is this machine's (REQ-3084), and each
+/// relative path that names nothing in `directory`, which is the repository's.
+/// It reads the command and runs none of it.
+fn missing(command: &str, directory: &Path) -> Vec<(bool, String)> {
+    let path: Vec<PathBuf> = std::env::var_os("PATH")
+        .map(|p| std::env::split_paths(&p).collect())
+        .unwrap_or_default();
+    let mut found = Vec::new();
+    for segment in command.split(['&', '|', ';', '\n']) {
+        let words = segment
+            .trim()
+            .trim_start_matches(['(', '{'])
+            .split_whitespace()
+            .skip_while(|w| {
+                w.split_once('=')
+                    .is_some_and(|(name, _)| !name.is_empty() && !name.contains('/'))
+            });
+        let Some(word) = words.map(|w| w.trim_matches(['"', '\''])).next() else {
+            continue;
+        };
+        if word.is_empty() || SHELL_WORDS.contains(&word) || word.starts_with('$') {
+            continue;
+        }
+        if word.contains('/') {
+            let at = Path::new(word);
+            let here = if at.is_absolute() {
+                at.to_path_buf()
+            } else {
+                directory.join(at)
+            };
+            if !here.exists() {
+                found.push((at.is_absolute(), word.to_string()));
+            }
+        } else if !path.iter().any(|dir| dir.join(word).is_file()) {
+            found.push((true, word.to_string()));
+        }
+    }
+    found
+}
+
+/// Whether this repository can be worked on here: the profile's state, each
+/// stage's resolution in each part, and each installed pack's markers, with
+/// each finding marked `machine` where it depends on this machine (REQ-3080,
+/// REQ-3084, REQ-3090). It runs no stage and writes nothing, the ledger
+/// included (REQ-3086). It exits 0 with no finding, 1 where a finding
+/// concerns the repository, and 3 where every finding is the machine's.
+fn doctor(root: &Path) -> u8 {
+    println!("meow-checks doctor, whether this repository can be worked on here");
+    let mut scopes = vec![Scope::repository(root)];
+    scopes.extend(
+        declared_parts(root)
+            .into_iter()
+            .map(|part| Scope::of(root, part)),
+    );
+    let mut findings: Vec<(bool, String)> = Vec::new();
+    for (n, scope) in scopes.iter().enumerate() {
+        let report = resolve(root, scope);
+        println!();
+        if n == 0 {
+            for line in &report.profile {
+                println!("{line}");
+            }
+            if report.state != "parsed" {
+                findings.push((false, format!("the profile is {}", report.state)));
+            }
+            for key in &report.unknown {
+                findings.push((false, format!("the profile holds an unknown key, {key}")));
+            }
+        }
+        println!("{}", scope.line());
+        let label = scope.label();
+        for (verb, entry) in &report.verbs {
+            match entry {
+                Entry::Resolved {
+                    command, source, ..
+                } => {
+                    println!("{verb:<10} resolved    {command}   (from {source})");
+                    for (machine, word) in missing(command, &scope.directory) {
+                        findings.push(if machine {
+                            (
+                                true,
+                                format!("{verb} in {label} runs {word}, which isn't on this machine's PATH"),
+                            )
+                        } else {
+                            (
+                                false,
+                                format!("{verb} in {label} runs {word}, which the repository doesn't hold"),
+                            )
+                        });
+                    }
+                }
+                Entry::Unresolved { kind, detail } => {
+                    println!("{verb:<10} unresolved  {kind}: {detail}");
+                    findings.push((false, format!("{verb} in {label} is unresolved: {kind}")));
+                }
+            }
+        }
+    }
+    println!();
+    let tracked = crate::detect::tracked(root);
+    let parts = declared_parts(root);
+    for pack in crate::detect::PACKS {
+        if crate::detect::installed(pack.unit).is_none() {
+            continue;
+        }
+        let markers = (pack.markers)(&tracked);
+        if markers.is_empty() {
+            println!("pack: {} installed, matched no marker", pack.unit);
+        }
+        for marker in markers {
+            let scope = crate::detect::scope(&parts, &marker.directory);
+            let part = scope
+                .strip_prefix("scope: ")
+                .and_then(|rest| rest.strip_suffix(&format!(" {}", marker.directory)))
+                .map(|name| format!(", part {name}"))
+                .unwrap_or_default();
+            println!(
+                "pack: {} matched {} in {}{part}",
+                pack.unit, marker.file, marker.directory
+            );
+        }
+    }
+    println!();
+    for (machine, text) in &findings {
+        let kind = if *machine { "machine" } else { "repository" };
+        println!("finding: {kind}: {text}");
+    }
+    let marked = findings.iter().filter(|(machine, _)| *machine).count();
+    println!(
+        "summary: {} findings, {marked} marked machine",
+        findings.len()
+    );
+    if findings.is_empty() {
+        PASSED
+    } else if marked == findings.len() {
+        UNRESOLVED
+    } else {
+        FAILED
+    }
+}
+
 /// Runs a declared command through the shell, with standard output and
 /// standard error interleaved in the order they arrive.
 fn execute(root: &Path, command: &str) -> (i32, String) {
@@ -1239,7 +1389,7 @@ fn local(root: &Path, args: &[&str]) -> u8 {
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-pub(crate) const HELP: [crate::help::Entry; 7] = [
+pub(crate) const HELP: [crate::help::Entry; 8] = [
     crate::help::Entry {
         name: "status",
         determines: "how each of the five stages resolves from the profile, and from where",
@@ -1289,6 +1439,13 @@ pub(crate) const HELP: [crate::help::Entry; 7] = [
         lines: ".meowpaw/profile.local.toml: excluded",
         json: "",
     },
+    crate::help::Entry {
+        name: "doctor",
+        determines: "whether this repository can be worked on here: each stage's resolution in each part, each installed pack's markers, and which findings are this machine's",
+        by_hand: "read `.meowpaw/profile.toml` and each part's profile, look up each stage's program on `PATH`, and list the marker files git tracks for each installed pack",
+        lines: "meow-checks profile: unknown personal scope: format lint check test build pack: finding: summary:",
+        json: "",
+    },
 ];
 
 pub fn main(args: &[String]) -> u8 {
@@ -1319,6 +1476,7 @@ pub fn main(args: &[String]) -> u8 {
             &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
         ),
         ["revision"] => revision(&root),
+        ["doctor"] => doctor(&root),
         ["state", rest @ ..] => state(&root, rest),
         ["local", rest @ ..] => local(&root, rest),
         ["tree", commit] => match ledger::tree_of_commit(&root, commit) {
@@ -1338,7 +1496,7 @@ pub fn main(args: &[String]) -> u8 {
         ),
         _ => {
             eprintln!(
-                "usage: meow-checks status [--json] [--part <name>] | meow-checks run <stage>... [--part <name>] [-- <target>...] | meow-checks evidence [--all] [--part <name>] [verb...] | meow-checks state [--purge] | meow-checks tree <commit> | meow-checks local <stage> <command>"
+                "usage: meow-checks status [--json] [--part <name>] | meow-checks run <stage>... [--part <name>] [-- <target>...] | meow-checks evidence [--all] [--part <name>] [verb...] | meow-checks state [--purge] | meow-checks tree <commit> | meow-checks local <stage> <command> | meow-checks doctor"
             );
             USAGE
         }
@@ -1400,5 +1558,25 @@ mod tests {
         let here = std::env::temp_dir();
         let failing = if cfg!(windows) { "exit /b 3" } else { "exit 3" };
         assert_eq!(try_execute(&here, failing).map(|(code, _)| code), Ok(3));
+    }
+
+    /// TSK-4965, REQ-3084: a program no `PATH` holds is this machine's, a
+    /// relative path that names nothing is the repository's, and the shell's
+    /// own words and a leading assignment are never looked up.
+    #[test]
+    fn a_missing_program_is_the_machines_and_a_missing_path_the_repositorys() {
+        let here = std::env::temp_dir();
+        let found = missing(
+            "LANG=C true && no-such-tool-4965 -x | ./no/such/script; echo ok",
+            &here,
+        );
+        assert_eq!(
+            found,
+            [
+                (true, "no-such-tool-4965".to_string()),
+                (false, "./no/such/script".to_string()),
+            ]
+        );
+        assert_eq!(missing("sh -c 'exit 0'", &here), []);
     }
 }

@@ -146,6 +146,8 @@ person reads in its place:
   By hand: run `git rev-parse <commit>^{tree}`
 - `local` — that the command of a stage is written to the personal profile and excluded from version control
   By hand: write the command under `[stages]` in `.meowpaw/profile.local.toml` and add the file to `.git/info/exclude`
+- `doctor` — whether this repository can be worked on here: each stage's resolution in each part, each installed pack's markers, and which findings are this machine's
+  By hand: read `.meowpaw/profile.toml` and each part's profile, look up each stage's program on `PATH`, and list the marker files git tracks for each installed pack
 
 ### meow-github
 

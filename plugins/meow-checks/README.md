@@ -199,6 +199,33 @@ gives, and leaves every stage unresolved. A parsed one adds
 had no effect. The key is ignored and the exit status stays what it would be
 without it.
 
+## Find out whether you can work here
+
+`meow-checks doctor` answers one question: can this repository be worked on on
+this machine. Where the work stands is `paw status`'s question, and neither
+command answers the other's.
+
+```fish
+meow-checks doctor
+```
+
+It prints the profile's state, then each stage's resolution for the
+repository and for each part, then one line for each pack installed beside
+this unit, naming the marker file it matched and its directory:
+
+```text
+pack: meow-markdown matched .markdownlint-cli2.yaml in .
+pack: meow-mise matched mise.toml in .
+```
+
+A pack you haven't installed can't report its marker, so it isn't named. Each
+finding follows on a `finding:` line, marked `machine` where it depends on
+this machine, such as a stage whose program isn't on your `PATH`, and
+`repository` where the repository has to change, such as an unresolved stage.
+`doctor` exits 0 with no finding, 1 where a finding concerns the repository,
+and 3 where every finding is marked `machine`. It runs no stage, repairs
+nothing and writes nothing, the ledger included.
+
 ## What it costs you The
 
 program is a native binary shipped inside the unit, so it needs nothing
