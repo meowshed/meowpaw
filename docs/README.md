@@ -40,6 +40,18 @@ with. Claude Code then runs that command when it tests, and reports every
 check you didn't declare as unresolved. The [tutorial](tutorial.md) walks
 through the same steps in an empty repository.
 
+A provisioning script runs the same two commands, which ask nothing and need no
+terminal. Run the first once for the marketplace, then the second once for each
+unit:
+
+```bash
+claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin install <unit>@meowpaw
+```
+
+Add `--json` to either command for one machine-readable result line, and run
+`claude plugin list --json` to see each unit as enabled.
+
 ## Pages
 
 Every page, who it is for and what it answers:
