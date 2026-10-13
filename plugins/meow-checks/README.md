@@ -40,6 +40,27 @@ test = "./scripts/run-tests"
 Declare only the stages your repository has. A stage you leave out is reported
 as unresolved, which is the honest answer: nothing ran, so nothing passed.
 
+### Declare the parts of a repository
+
+If your repository is built from parts that are checked differently, such as
+a crate and a site, name each part and its directory under `[parts]` in the
+root profile:
+
+```toml
+[parts]
+site = "site"
+engine = "crates/engine"
+```
+
+Give a part its own stages in `.meowpaw/profile.toml` inside its directory.
+The program reads that file over the root's: a key the part declares replaces
+the root's for that part, and a stage the part leaves out is unresolved there,
+because the root's command was written for the root and never for the part.
+A part with no profile of its own takes the root's. A part's profile can't
+move the record or declare parts, so `[record]` or `[parts]` in it is named as
+`unknown key: record (in site/.meowpaw/profile.toml)` and the root's stands.
+A repository that declares no `[parts]` is one part, its root.
+
 ## What Claude Code does with them
 
 When Claude Code formats, lints, type-checks, tests or builds, the

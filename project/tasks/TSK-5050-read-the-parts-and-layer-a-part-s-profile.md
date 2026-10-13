@@ -54,7 +54,20 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The crate tests in `crates/meow/src/profile.rs` close the criteria, each seen
+failing against the reader without `parts` in the table of keys and without
+the layering. `the_root_profile_declares_its_parts` and
+`a_part_outside_the_repository_is_reported` close criterion 1 (REQ-0343).
+`a_part_declares_its_own_stages_and_takes_none_from_the_root` and
+`a_parts_broken_profile_is_unparseable_and_names_its_file` close criterion 2
+(REQ-3040). `a_parts_record_and_parts_are_unknown_and_the_roots_stand` closes
+criterion 3 (REQ-3046). The crate's existing profile tests, unchanged and
+passing, close criterion 4.
+
+A part whose directory holds no profile of its own reads the root's, a choice
+I made because SPC-1080 layers a part's profile only where one exists.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 
