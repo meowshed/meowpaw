@@ -182,6 +182,11 @@ unresolved, and 0 where every checked link resolved. A skipped address counts
 towards no exit status. A site that is down therefore never makes a finding,
 and never makes a pass either.
 
+`links` compares `git status --porcelain` before and after lychee runs, and
+prints `left in the working tree: <path>` for each file the run added, such as
+a `.lycheecache` no ignore file covers. That line doesn't change the exit
+status, because `check` already reports an unignored cache as a finding.
+
 `meow-checks` reads a `test` stage's exit status alone, so it reports a `links`
 run that exits 3 as failed, and the lines it quotes say `unreachable`.
 

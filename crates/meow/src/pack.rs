@@ -14,8 +14,20 @@
 //! [`Binding::after`] performs a build's prerequisite, [`Pin::against`]
 //! compares a pinned toolchain with the installed one, and [`host`] with
 //! [`waiting`] leaves every stage unresolved until the host is known.
+//!
+//! What a pack reports it didn't check: [`Binding::short_of`] names what a
+//! narrower tool stops checking, [`Binding::requiring`] refuses a runner that
+//! leaves out what the language runs as tests, [`Binding::with_detector`]
+//! turns a defect detector on, [`Clean`] names the rule groups and level of a
+//! clean run, and [`SupplyChain`] states a supply-chain check's reach.
+//!
+//! What a pack never changes: [`apply`] applies no fix its tool marks unsafe
+//! and no suggestion during a check, and [`run`] points a tool's output
+//! outside the working tree and names any file the run left in it.
 
 #![allow(dead_code)]
+
+use std::path::{Path, PathBuf};
 
 /// The five stages a pack binds, in the order `bind` prints them (SPC-1040).
 pub(crate) const STAGES: [&str; 5] = ["format", "lint", "check", "test", "build"];
@@ -491,6 +503,261 @@ impl SupplyChain {
     }
 }
 
+/// Whether the tool producing a fix calls it safe to apply mechanically.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Safety {
+    Safe,
+    Unsafe,
+}
+
+/// What a fix is: a repair of a finding, or a suggestion to use a newer
+/// language feature, which is a kind of finding of its own (REQ-2440).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Kind {
+    Repair,
+    Modernise,
+}
+
+/// One fix a tool proposed: in `path`, at `line`, replace `from` with `to`.
+#[derive(Clone, Debug)]
+pub(crate) struct Fix {
+    pub path: String,
+    pub line: usize,
+    /// The tool's own words for it.
+    pub said: String,
+    pub from: String,
+    pub to: String,
+    pub safety: Safety,
+    pub kind: Kind,
+}
+
+/// Whether the run checks or was asked to fix.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Mode {
+    Check,
+    Fix,
+}
+
+/// Applies the fixes the run may apply, under `root`, and returns a line for
+/// each fix. A check applies none and reports each, a suggestion to use a
+/// newer feature among them (REQ-2440). A fixing run applies the safe ones
+/// and reports each fix its tool marks unsafe as not applied (REQ-2430).
+pub(crate) fn apply(root: &Path, fixes: &[Fix], mode: Mode) -> Vec<String> {
+    let mut lines = Vec::new();
+    for fix in fixes {
+        let at = format!("{}:{}: {}", fix.path, fix.line, fix.said);
+        let line = match (mode, fix.kind, fix.safety) {
+            (Mode::Check, Kind::Modernise, _) => {
+                format!("suggestion: {at}; a check applies none")
+            }
+            (Mode::Check, Kind::Repair, _) => format!("finding: {at}"),
+            (Mode::Fix, _, Safety::Unsafe) => format!("unsafe, not applied: {at}"),
+            (Mode::Fix, _, Safety::Safe) => {
+                let path = root.join(&fix.path);
+                match std::fs::read_to_string(&path) {
+                    Ok(text) if text.contains(&fix.from) => {
+                        match std::fs::write(&path, text.replacen(&fix.from, &fix.to, 1)) {
+                            Ok(()) => format!("fixed: {at}"),
+                            Err(error) => format!("not applied, {error}: {at}"),
+                        }
+                    }
+                    Ok(_) => format!("not applied, the text changed since the tool read it: {at}"),
+                    Err(error) => format!("not applied, {error}: {at}"),
+                }
+            }
+        };
+        lines.push(line);
+    }
+    lines
+}
+
+/// How a tool is told where to write.
+#[derive(Clone, Debug)]
+pub(crate) enum Ask {
+    /// A flag followed by the path as the next word, such as `--out <dir>`.
+    Flag(String),
+    /// A flag joined to the path by `=`, such as `--out=<dir>`.
+    Joined(String),
+    /// An environment variable holding the path.
+    Env(String),
+}
+
+/// One run of a stage's tool.
+#[derive(Clone, Debug)]
+pub(crate) struct Invocation {
+    pub stage: String,
+    pub program: String,
+    pub args: Vec<String>,
+    /// How to point the output the tool writes into the working directory by
+    /// default somewhere else; `None` where it writes none.
+    pub output: Option<Ask>,
+}
+
+impl Invocation {
+    pub(crate) fn new(stage: &str, program: &str, args: &[&str]) -> Invocation {
+        Invocation {
+            stage: stage.to_string(),
+            program: program.to_string(),
+            args: args.iter().map(|a| a.to_string()).collect(),
+            output: None,
+        }
+    }
+
+    /// The tool writes output into the working directory unless told
+    /// otherwise, and `ask` tells it.
+    pub(crate) fn writing(mut self, ask: Ask) -> Invocation {
+        self.output = Some(ask);
+        self
+    }
+}
+
+/// What a run produced.
+#[derive(Debug)]
+pub(crate) struct Ran {
+    pub status: Option<i32>,
+    pub stdout: Vec<u8>,
+    pub stderr: Vec<u8>,
+    /// Each path `git status --porcelain` shows after the run and didn't
+    /// before, which the run left in the working tree (REQ-2442).
+    pub left: Vec<String>,
+    /// The lines the pack prints about the run: where its output went.
+    pub lines: Vec<String>,
+}
+
+/// The directory outside the working tree where the runs of `pack` in the
+/// repository at `root` keep their output: under the harness's state
+/// directory, `$MEOWPAW_STATE_DIR`, or `$XDG_STATE_HOME/meowpaw`, or
+/// `~/.local/state/meowpaw` (SPC-1080), or why there is none.
+pub(crate) fn outside(pack: &str, root: &Path) -> Result<PathBuf, String> {
+    let set = |name: &str| {
+        std::env::var_os(name)
+            .filter(|v| !v.is_empty())
+            .map(PathBuf::from)
+    };
+    if std::env::var("MEOWPAW_STATE").is_ok_and(|v| v == "off") {
+        return Err("state writing is off (MEOWPAW_STATE=off)".into());
+    }
+    let state = set("MEOWPAW_STATE_DIR")
+        .or_else(|| set("XDG_STATE_HOME").map(|base| base.join("meowpaw")))
+        .or_else(|| {
+            if cfg!(windows) {
+                set("LOCALAPPDATA").map(|base| base.join("meowpaw"))
+            } else {
+                set("HOME").map(|home| home.join(".local").join("state").join("meowpaw"))
+            }
+        })
+        .ok_or("no state directory: set XDG_STATE_HOME, MEOWPAW_STATE_DIR or HOME")?;
+    // One directory per work tree, so two checkouts never share a tool's output.
+    let mut hasher = std::hash::DefaultHasher::new();
+    std::hash::Hash::hash(root, &mut hasher);
+    let tree = format!("{:016x}", std::hash::Hasher::finish(&hasher));
+    Ok(state.join("packs").join(pack).join(tree))
+}
+
+/// Runs the invocation from `root` and keeps the working tree as it was:
+/// output the tool writes there by default goes to a directory outside it,
+/// and each file the run left anyway is named in `left` (REQ-2442). It
+/// returns `tool absent: <program>` where the program isn't on `PATH`, and
+/// `tool broken: <program> ...` where it didn't start.
+pub(crate) fn run(pack: &str, root: &Path, invocation: &Invocation) -> Result<Ran, String> {
+    let needs = invocation.output.is_some();
+    let place = if needs {
+        Some(outside(pack, root).map_err(|reason| {
+            format!(
+                "unresolved: nowhere outside the working tree for {}'s output: {reason}",
+                invocation.program
+            )
+        })?)
+    } else {
+        None
+    };
+    run_in(root, invocation, place.as_deref())
+}
+
+/// [`run`], with the directory outside the tree given.
+pub(crate) fn run_in(
+    root: &Path,
+    invocation: &Invocation,
+    outside: Option<&Path>,
+) -> Result<Ran, String> {
+    let program = &invocation.program;
+    let mut command = std::process::Command::new(program);
+    command
+        .args(&invocation.args)
+        .current_dir(root)
+        .stdin(std::process::Stdio::null());
+    let mut lines = Vec::new();
+    if let Some(ask) = &invocation.output {
+        let Some(outside) = outside else {
+            return Err(format!(
+                "unresolved: nowhere outside the working tree for {program}'s output"
+            ));
+        };
+        let dir = outside.join(&invocation.stage).join("output");
+        std::fs::create_dir_all(&dir)
+            .map_err(|error| format!("unresolved: {} can't be made: {error}", dir.display()))?;
+        point(&mut command, ask, &dir);
+        lines.push(format!(
+            "output: {program} writes to {}, outside the working tree",
+            dir.display()
+        ));
+    }
+    let before = changed(root);
+    let done = match command.output() {
+        Ok(done) => done,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Err(format!("tool absent: {program}"));
+        }
+        Err(error) => return Err(format!("tool broken: {program} didn't start: {error}")),
+    };
+    let left = changed(root)
+        .into_iter()
+        .filter(|entry| !before.contains(entry))
+        .map(|entry| entry.get(3..).unwrap_or("").to_string())
+        .collect();
+    Ok(Ran {
+        status: done.status.code(),
+        stdout: done.stdout,
+        stderr: done.stderr,
+        left,
+        lines,
+    })
+}
+
+/// Tells the command where to write, as `ask` says the tool takes it.
+fn point(command: &mut std::process::Command, ask: &Ask, dir: &Path) {
+    match ask {
+        Ask::Flag(flag) => {
+            command.arg(flag).arg(dir);
+        }
+        Ask::Joined(flag) => {
+            command.arg(format!("{flag}={}", dir.display()));
+        }
+        Ask::Env(name) => {
+            command.env(name, dir);
+        }
+    }
+}
+
+/// Each entry `git status --porcelain` prints for the work tree at `root`,
+/// untracked files listed one by one, so a file a run adds shows as itself.
+fn changed(root: &Path) -> std::collections::BTreeSet<String> {
+    crate::profile::reading_git()
+        .args(["status", "--porcelain=v1", "-z", "--untracked-files=all"])
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|done| done.status.success())
+        .map(|done| {
+            done.stdout
+                .split(|b| *b == 0)
+                .filter(|entry| !entry.is_empty())
+                .map(|entry| String::from_utf8_lossy(entry).into_owned())
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 #[cfg(test)]
 mod tests {
     //! Each rule held by a fixture pack: a made-up ecosystem whose tools are
@@ -791,5 +1058,195 @@ mod tests {
         .line();
         assert!(reach.contains("direct dependencies only"), "{reach}");
         assert!(reach.contains("reachab"), "{reach}");
+    }
+
+    /// A scratch directory of its own, removed when the test ends.
+    struct Scratch(PathBuf);
+
+    impl Scratch {
+        fn new() -> Scratch {
+            static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+            let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let stamp = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos();
+            let path =
+                std::env::temp_dir().join(format!("meow-pack-{}-{n}-{stamp}", std::process::id()));
+            std::fs::create_dir_all(&path).unwrap();
+            Scratch(std::fs::canonicalize(&path).unwrap())
+        }
+
+        fn write(&self, name: &str, text: &str) -> PathBuf {
+            let path = self.0.join(name);
+            std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+            std::fs::write(&path, text).unwrap();
+            path
+        }
+
+        fn read(&self, name: &str) -> String {
+            std::fs::read_to_string(self.0.join(name)).unwrap()
+        }
+    }
+
+    impl Drop for Scratch {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn fix(from: &str, to: &str, safety: Safety, kind: Kind) -> Fix {
+        Fix {
+            path: "src/main.fix".into(),
+            line: 1,
+            said: format!("replace {from} with {to}"),
+            from: from.into(),
+            to: to.into(),
+            safety,
+            kind,
+        }
+    }
+
+    #[test]
+    fn tsk_5130_criterion_1_a_fix_marked_unsafe_is_reported_and_not_applied() {
+        // TSK-5130 criterion 1, REQ-2430: the fixture tool marks one of its
+        // two fixes unsafe; the fixing run applies the other and reports it.
+        let tree = Scratch::new();
+        tree.write("src/main.fix", "let a = old_safe;\nlet b = old_unsafe;\n");
+        let lines = apply(
+            &tree.0,
+            &[
+                fix("old_safe", "new_safe", Safety::Safe, Kind::Repair),
+                fix("old_unsafe", "new_unsafe", Safety::Unsafe, Kind::Repair),
+            ],
+            Mode::Fix,
+        );
+        assert_eq!(
+            tree.read("src/main.fix"),
+            "let a = new_safe;\nlet b = old_unsafe;\n"
+        );
+        assert!(
+            lines
+                .iter()
+                .any(|l| l.starts_with("unsafe, not applied:") && l.contains("old_unsafe")),
+            "{lines:?}"
+        );
+    }
+
+    #[test]
+    fn tsk_5130_criterion_2_a_suggestion_is_reported_and_the_file_unchanged() {
+        // TSK-5130 criterion 2, REQ-2440: the fixture tool suggests a newer
+        // language feature; a check reports it and leaves the file alone.
+        let tree = Scratch::new();
+        let text = "for i in range(len(xs)):\n";
+        tree.write("src/main.fix", text);
+        let lines = apply(
+            &tree.0,
+            &[fix(
+                "for i in range(len(xs))",
+                "for i, x in enumerate(xs)",
+                Safety::Safe,
+                Kind::Modernise,
+            )],
+            Mode::Check,
+        );
+        assert_eq!(tree.read("src/main.fix"), text);
+        assert!(
+            lines.iter().any(|l| l.starts_with("suggestion:")),
+            "{lines:?}"
+        );
+    }
+
+    /// A git work tree in a scratch directory, and a fixture tool beside it
+    /// that writes `result.txt` into `$FIX_OUT`, or into `out/` in the working
+    /// directory where that is unset.
+    #[cfg(unix)]
+    fn tree_and_tool() -> (Scratch, Scratch, String) {
+        use std::os::unix::fs::PermissionsExt;
+        let tree = Scratch::new();
+        let done = crate::profile::reading_git()
+            .args(["init", "-q"])
+            .current_dir(&tree.0)
+            .output()
+            .unwrap();
+        assert!(done.status.success());
+        let tools = Scratch::new();
+        let tool = tools.write(
+            "fixtool",
+            "#!/bin/sh\nout=${FIX_OUT:-out}\nmkdir -p \"$out\"\necho checked > \"$out/result.txt\"\n",
+        );
+        std::fs::set_permissions(&tool, std::fs::Permissions::from_mode(0o755)).unwrap();
+        (tree, tools, tool.to_string_lossy().into_owned())
+    }
+
+    #[cfg(unix)]
+    fn porcelain(root: &Path) -> String {
+        let done = crate::profile::reading_git()
+            .args(["status", "--porcelain", "--untracked-files=all"])
+            .current_dir(root)
+            .output()
+            .unwrap();
+        String::from_utf8_lossy(&done.stdout).into_owned()
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn tsk_5130_criterion_3_output_goes_outside_and_the_tree_stays_clean() {
+        // TSK-5130 criterion 3, REQ-2442: the fixture tool writes into the
+        // working directory by default; run through the layer, the tree's
+        // `git status --porcelain` is empty and the output sits outside it.
+        let (tree, _tools, tool) = tree_and_tool();
+        let state = Scratch::new();
+        let invocation = Invocation::new("test", &tool, &[]).writing(Ask::Env("FIX_OUT".into()));
+        let ran = run_in(&tree.0, &invocation, Some(&state.0)).unwrap();
+        assert_eq!(ran.status, Some(0));
+        assert_eq!(porcelain(&tree.0), "");
+        assert!(ran.left.is_empty(), "{:?}", ran.left);
+        let written: Vec<PathBuf> = walk(&state.0);
+        assert!(
+            written.iter().any(|p| p.ends_with("result.txt")),
+            "{written:?}"
+        );
+        assert!(
+            ran.lines.iter().any(|l| l.starts_with("output:")),
+            "{:?}",
+            ran.lines
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn tsk_5130_criterion_3_a_file_left_in_the_tree_is_named() {
+        // TSK-5130 criterion 3, REQ-2442: where the pack doesn't point the
+        // output away, the layer names the file the run left in the tree.
+        let (tree, _tools, tool) = tree_and_tool();
+        let ran = run_in(&tree.0, &Invocation::new("test", &tool, &[]), None).unwrap();
+        assert_eq!(ran.left, ["out/result.txt"]);
+    }
+
+    #[test]
+    fn tsk_5130_an_absent_tool_is_reported_as_absent() {
+        // TSK-5130, SPC-1190's failure paths: a tool not on `PATH` is absent.
+        let tree = Scratch::new();
+        let absent = run_in(
+            &tree.0,
+            &Invocation::new("test", "meow-no-such-tool-anywhere", &[]),
+            None,
+        )
+        .unwrap_err();
+        assert_eq!(absent, "tool absent: meow-no-such-tool-anywhere");
+    }
+
+    fn walk(dir: &Path) -> Vec<PathBuf> {
+        let mut out = Vec::new();
+        for entry in std::fs::read_dir(dir).into_iter().flatten().flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                out.extend(walk(&path));
+            } else {
+                out.push(path);
+            }
+        }
+        out
     }
 }

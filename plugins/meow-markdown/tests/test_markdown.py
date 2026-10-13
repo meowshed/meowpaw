@@ -586,6 +586,18 @@ class Links(Fixture):
                 args = (repository.root.parent / "bin" / "lychee.args").read_text(encoding="utf-8").splitlines()
                 self.assertEqual(args, ["--format", "json", "--no-progress", "--", *expected])
 
+    def test_tsk_5130_a_file_lychee_leaves_in_the_tree_is_named(self):
+        """TSK-5130 criterion 3, REQ-2442: a file lychee leaves in the working tree is named, and the clean run still exits 0."""
+        repository, done = self.links(report(), 0)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("left in the working tree", done.stdout)
+        script = repository.root.parent / "bin" / "lychee"
+        script.write_text(script.read_text(encoding="utf-8").replace("cat ", "touch stray.cache\ncat ", 1),
+                          encoding="utf-8")
+        done = repository.run("links")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("left in the working tree: stray.cache", done.stdout)
+
     def test_criterion_2_a_404_and_a_missing_file_are_findings(self):
         """TSK-3120 criterion 2, REQ-2438: a 404 and a missing relative file print as `finding`, exiting 1."""
         for name, make in (("404", lambda root: (*GONE, 3)),

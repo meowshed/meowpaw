@@ -80,7 +80,7 @@ pub(crate) const HELP: [crate::help::Entry; 4] = [
         name: "links",
         determines: "whether each link in the given files resolves",
         by_hand: "open each link in the files, with `lychee` where it is installed",
-        lines: "meow-markdown profile: unresolved: tool skipped, every no findings: unreachable, unresolved, <path>",
+        lines: "meow-markdown profile: unresolved: tool skipped, every no findings: unreachable, unresolved, <path> left",
         json: "",
     },
 ];
@@ -741,36 +741,37 @@ fn links(inputs: &[&str]) -> u8 {
     } else {
         inputs.to_vec()
     };
-    let ran = std::process::Command::new("lychee")
-        .args(["--format", "json", "--no-progress", "--"])
-        .args(&inputs)
-        .current_dir(&corpus.root)
-        .stdin(std::process::Stdio::null())
-        .output();
-    let done = match ran {
+    let args: Vec<&str> = ["--format", "json", "--no-progress", "--"]
+        .into_iter()
+        .chain(inputs.iter().copied())
+        .collect();
+    let invocation = pack::Invocation::new("test", "lychee", &args);
+    let done = match pack::run("meow-markdown", &corpus.root, &invocation) {
         Ok(done) => done,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            println!("tool absent: lychee");
-            return UNRESOLVED;
-        }
-        Err(error) => {
-            println!("tool broken: lychee didn't start: {error}");
+        Err(line) => {
+            println!("{line}");
             return UNRESOLVED;
         }
     };
-    if !matches!(done.status.code(), Some(0 | 2)) {
+    for line in &done.lines {
+        println!("{line}");
+    }
+    // lychee writes its cache at the root where it is on, and `check` reports
+    // the cache where no ignore file covers it, so the run names it and
+    // leaves its exit status to the links (SPC-1195).
+    for path in &done.left {
+        println!("left in the working tree: {path}");
+    }
+    if !matches!(done.status, Some(0 | 2)) {
         let said = String::from_utf8_lossy(&done.stderr);
         let said = said
             .lines()
             .find(|l| !l.trim().is_empty())
             .unwrap_or("")
             .trim();
-        let status = done
-            .status
-            .code()
-            .map_or("no exit status".to_string(), |code| {
-                format!("exit status {code}")
-            });
+        let status = done.status.map_or("no exit status".to_string(), |code| {
+            format!("exit status {code}")
+        });
         println!("tool broken: lychee ended with {status}, checking nothing: {said}");
         return UNRESOLVED;
     }

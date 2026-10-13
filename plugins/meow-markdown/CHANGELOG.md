@@ -6,6 +6,7 @@
 - Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions.
 - `bind` names under a stage each other tool configured for it, such as a `.mdformat.toml` beside a `.prettierrc`, so you can see which one runs.
 - A clean `check` names the groups of settings it checked after `no findings`.
+- `links` names each file lychee's run left in the working tree.
 
 ## 0.8.0
 
