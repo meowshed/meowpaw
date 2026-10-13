@@ -99,6 +99,9 @@ Each stage takes the first binding that applies:
 | `build`  | nothing, printed as unbound    | A `mkdocs.yml`, `book.toml`, `hugo.toml` or `docusaurus.config.*`, which it names |
 
 A stage with no binding is a comment naming what the program looked for.
+Where you configured two tools for one stage, such as a `.prettierrc` beside
+a `.mdformat.toml`, the stage binds the first in this table, and a comment
+under it names the other with its file, so you can see which one runs.
 `build` stays unbound where a site generator is configured, because nobody has
 yet watched a generator's build fail on a broken page. `bind` prints nothing
 for a stage your profile already declares. It names a `.remarkrc*` or

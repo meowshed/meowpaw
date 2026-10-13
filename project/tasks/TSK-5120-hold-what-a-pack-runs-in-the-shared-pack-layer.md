@@ -57,7 +57,32 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The shared layer is `crates/meow/src/pack.rs`, behind the crate's `pack`
+feature, which the `markdown` feature turns on. Each criterion closes with a
+crate test in that file's tests, each seen failing against stubbed bodies
+before the layer was written:
+
+1. `tsk_5120_criterion_1_the_configured_tool_binds_and_none_is_unbound` and
+   `tsk_5120_criterion_1_a_second_configured_tool_is_named_and_not_run`
+   (REQ-2420). `meow-markdown bind` binds `format`, `lint` and `test` through
+   the layer's `choose`, and `test_tsk_5120_two_configured_formatters_bind_the_first_and_name_the_other`
+   in `plugins/meow-markdown/tests/test_markdown.py` holds the comment naming
+   a second configured formatter.
+2. `tsk_5120_criterion_2_a_lint_group_nobody_asked_for_is_refused` (REQ-2422).
+3. `tsk_5120_criterion_3_each_command_runs_through_the_declared_package_manager`
+   (REQ-2426).
+4. `tsk_5120_criterion_4_a_pinned_version_unlike_the_installed_one_names_both`
+   (REQ-2428).
+5. `tsk_5120_criterion_5_with_no_host_detected_every_stage_waits_on_it` and
+   `tsk_5120_criterion_5_one_host_detected_is_the_one_and_two_are_unknown`
+   (REQ-2446).
+6. `tsk_5120_criterion_6_the_build_runs_its_prerequisite_first` (REQ-2448).
+
+Markdown has no package manager, pinned toolchain, host or build
+prerequisite of its own, so `meow-markdown` uses `choose` alone of these
+rules, and its other behaviour SPC-1195 states is unchanged.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

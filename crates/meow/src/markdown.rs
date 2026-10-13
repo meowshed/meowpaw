@@ -10,6 +10,7 @@
 //! they name. `links` runs lychee and classifies each result from its JSON.
 
 use crate::detect::{self, Marker};
+use crate::pack::{self, Binding, Candidate};
 use crate::profile::{self, Profile};
 use std::collections::BTreeSet;
 use std::path::PathBuf;
@@ -384,56 +385,76 @@ fn bind() -> u8 {
     };
     println!("# meow-markdown bind: paste what follows into .meowpaw/profile.toml");
     println!("[stages]");
-    if !corpus.declared("format") {
-        if !corpus.prettier().is_empty() {
-            println!("format = \"prettier --check '**/*.md'\"");
-        } else if !corpus.mdformat().is_empty() {
-            println!("format = \"mdformat --check .\"");
-        } else {
-            println!(
-                "# format: unbound, looked for .prettierrc*, prettier.config.*, a prettier key in package.json and .mdformat.toml"
-            );
-        }
-    }
+    let owned = |files: Vec<&str>| files.into_iter().map(str::to_string).collect::<Vec<_>>();
+    let format = pack::choose(
+        "format",
+        &[
+            Candidate::new(
+                "prettier",
+                "prettier --check '**/*.md'",
+                owned(corpus.prettier()),
+            ),
+            Candidate::new("mdformat", "mdformat --check .", owned(corpus.mdformat())),
+        ],
+        ".prettierrc*, prettier.config.*, a prettier key in package.json and .mdformat.toml",
+    );
     let others: Vec<(&str, &str)> = corpus
         .remark()
         .into_iter()
         .map(|file| (file, "remark-lint"))
         .chain(corpus.textlint().into_iter().map(|file| (file, "textlint")))
         .collect();
-    if !corpus.declared("lint") {
-        if !corpus.markdownlint().is_empty() {
-            println!("lint = \"markdownlint-cli2 '**/*.md'\"");
-            println!("# meow-markdown check runs the settings checks; this lint command doesn't");
-        } else if !corpus.at_root(|n| n == ".markdownlintrc").is_empty() {
-            println!("lint = \"markdownlint '**/*.md'\"");
-            println!("# meow-markdown check runs the settings checks; this lint command doesn't");
-        } else if others.is_empty() {
-            println!("lint = \"meow-markdown check\"");
-        } else {
-            println!(
-                "# lint: unbound, looked for .markdownlint-cli2.*, .markdownlint.* and .markdownlintrc, and found only a linter this pack binds no command for"
-            );
+    let front_ends = [
+        Candidate::new(
+            "markdownlint-cli2",
+            "markdownlint-cli2 '**/*.md'",
+            owned(corpus.markdownlint()),
+        ),
+        Candidate::new(
+            "markdownlint",
+            "markdownlint '**/*.md'",
+            owned(corpus.at_root(|n| n == ".markdownlintrc")),
+        ),
+    ];
+    let lint = if front_ends.iter().any(|c| !c.configured_by.is_empty()) {
+        pack::choose("lint", &front_ends, "")
+            .note("meow-markdown check runs the settings checks; this lint command doesn't")
+    } else if others.is_empty() {
+        Binding::bound("lint", "meow-markdown", "meow-markdown check")
+    } else {
+        Binding::unbound(
+            "lint",
+            "looked for .markdownlint-cli2.*, .markdownlint.* and .markdownlintrc, and found only a linter this pack binds no command for",
+        )
+    };
+    let check = Binding::unresolved("check", "Markdown has no types");
+    let test = pack::choose(
+        "test",
+        &[Candidate::new(
+            "lychee",
+            "meow-markdown links",
+            corpus.lychee().into_iter().map(str::to_string).collect(),
+        )],
+        "lychee.toml",
+    );
+    let build = match corpus.sites().first() {
+        Some((file, _)) => Binding::unbound("build", &format!("{file} configures a site build")),
+        None => Binding::unbound(
+            "build",
+            "looked for mkdocs.yml, book.toml, hugo.toml and docusaurus.config.*",
+        ),
+    };
+    for binding in [format, lint] {
+        if !corpus.declared(&binding.stage) {
+            binding.lines().iter().for_each(|line| println!("{line}"));
         }
     }
     for (file, linter) in &others {
         println!("# {file} configures {linter}, which this pack binds no command for");
     }
-    if !corpus.declared("check") {
-        println!("# check: unresolved, Markdown has no types");
-    }
-    if !corpus.declared("test") {
-        match corpus.lychee() {
-            Some(_) => println!("test = \"meow-markdown links\""),
-            None => println!("# test: unbound, looked for lychee.toml"),
-        }
-    }
-    if !corpus.declared("build") {
-        match corpus.sites().first() {
-            Some((file, _)) => println!("# build: unbound, {file} configures a site build"),
-            None => println!(
-                "# build: unbound, looked for mkdocs.yml, book.toml, hugo.toml and docusaurus.config.*"
-            ),
+    for binding in [check, test, build] {
+        if !corpus.declared(&binding.stage) {
+            binding.lines().iter().for_each(|line| println!("{line}"));
         }
     }
     for (file, runner, pack) in corpus.runners() {

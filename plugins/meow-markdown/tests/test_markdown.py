@@ -125,6 +125,16 @@ class Bind(Fixture):
         """TSK-3100 criterion 2, REQ-2352: a `.prettierrc` binds format to prettier."""
         self.assertIn("format = \"prettier --check '**/*.md'\"", self.bind({**TWO, ".prettierrc": "{}\n"}))
 
+    def test_tsk_5120_two_configured_formatters_bind_the_first_and_name_the_other(self):
+        """TSK-5120 criterion 1, REQ-2420: prettier binds format, and the `.mdformat.toml` also configured is named."""
+        lines = self.bind({**TWO, ".prettierrc": "{}\n", ".mdformat.toml": "wrap = 80\n"})
+        line = "format = \"prettier --check '**/*.md'\""
+        self.assertIn(line, lines)
+        comment = self.following(lines, line)
+        self.assertTrue(comment.startswith("#"), lines)
+        self.assertIn(".mdformat.toml", comment)
+        self.assertNotIn("format = \"mdformat --check .\"", lines)
+
     def test_criterion_2_check_is_unresolved_with_its_reason(self):
         """TSK-3100 criterion 2, REQ-2352: Markdown has no types, so check is unresolved."""
         self.assertIn("# check: unresolved, Markdown has no types", self.bind(TWO))

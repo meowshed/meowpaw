@@ -46,6 +46,8 @@ mod licence;
 mod markdown;
 #[cfg(feature = "mise")]
 mod mise;
+#[cfg(feature = "pack")]
+mod pack;
 mod profile;
 #[cfg(feature = "prose")]
 mod prose;
