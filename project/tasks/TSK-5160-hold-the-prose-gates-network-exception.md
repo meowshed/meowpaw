@@ -1,7 +1,7 @@
 ---
 id: TSK-5160
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2605
 closes: [REQ-2716, REQ-2727, REQ-2728]
@@ -67,7 +67,7 @@ advances no revision counter. TSK-4910 left that gap, and this task, which
 names `meow-author check` and the Claude Code hook subcommands, doesn't close
 it.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

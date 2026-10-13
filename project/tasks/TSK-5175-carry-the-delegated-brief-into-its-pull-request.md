@@ -1,7 +1,7 @@
 ---
 id: TSK-5175
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2620
 closes: [REQ-1764]
@@ -42,7 +42,7 @@ and `test_the_steps_example_passes_the_message_check` in
 fixture passed when written, because TSK-4945 had already put the pull request
 line into the brief, so it was not seen failing.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

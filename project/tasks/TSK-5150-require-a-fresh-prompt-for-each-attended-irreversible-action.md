@@ -1,7 +1,7 @@
 ---
 id: TSK-5150
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2590
 closes: [REQ-1420, REQ-1422]
@@ -84,7 +84,7 @@ Whether Claude Code's prompt for a hook's `ask` offers a choice that approves
 later calls is the platform's own prompt text, which the task leaves alone,
 and only a session shows it.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

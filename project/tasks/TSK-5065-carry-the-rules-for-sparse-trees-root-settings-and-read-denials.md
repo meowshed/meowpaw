@@ -1,7 +1,7 @@
 ---
 id: TSK-5065
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2555
 closes: [REQ-3052, REQ-3054, REQ-3056]
@@ -59,7 +59,7 @@ copy, and each was seen failing before the rules were added. Whether a run
 actually keeps to I36 rests on judgement, because REQ-3056 is verified by an
 agent and no program can see what a shell search returned.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-5060
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2555
 closes: [REQ-0133, REQ-3048]
@@ -63,7 +63,7 @@ unchanged.
 `status` reports per directory, and `bind` and `check` read the root alone,
 because they read the root profile's stages; each pack's page says so.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

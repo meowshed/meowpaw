@@ -1,7 +1,7 @@
 ---
 id: TSK-4630
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2420
 closes: [REQ-2218]
@@ -87,7 +87,7 @@ repository's settings allow the attestation and that `gh attestation verify`
 succeeds on a published archive. ADR-2520's second criterion waits on that
 run, which the owner starts.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

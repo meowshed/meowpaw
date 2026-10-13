@@ -1,7 +1,7 @@
 ---
 id: TSK-5055
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2555
 closes: [REQ-0078, REQ-3042, REQ-3043, REQ-3044]
@@ -72,7 +72,7 @@ as the repository's, so the ledger stays readable. The personal profile a part
 reads sits beside the shared profile its stages came from, a choice I made
 because SPC-1040 names no place for it.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

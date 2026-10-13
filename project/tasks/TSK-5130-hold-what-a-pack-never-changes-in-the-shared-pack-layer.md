@@ -1,7 +1,7 @@
 ---
 id: TSK-5130
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2565
 closes: [REQ-2430, REQ-2440, REQ-2442]
@@ -70,7 +70,7 @@ the run left. Markdown proposes no fixes, so `apply` has no caller in
 move it, so `links` names it where it shows in `git status` and `check`
 keeps reporting an unignored cache, as SPC-1195 states.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

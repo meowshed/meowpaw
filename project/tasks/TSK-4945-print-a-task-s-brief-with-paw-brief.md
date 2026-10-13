@@ -1,7 +1,7 @@
 ---
 id: TSK-4945
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2530
 closes: [REQ-0810, REQ-0812, REQ-0814, REQ-1764]
@@ -69,7 +69,7 @@ I chose `general-purpose` as the `--agent` default, because no unit ships an
 implementer and the implement step dispatches the platform's own agent; the
 help and `plugins/meow-flow/README.md` state it.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

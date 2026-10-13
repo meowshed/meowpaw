@@ -1,7 +1,7 @@
 ---
 id: TSK-4965
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2680
 closes: [REQ-3080, REQ-3084, REQ-3086, REQ-3090]
@@ -77,7 +77,7 @@ holds `doctor`'s lines to its help.
 pack and no pack's tool. A pack counts as installed where its launcher sits
 beside the core unit in a checkout or in the platform's plugin cache.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

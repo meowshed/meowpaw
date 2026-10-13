@@ -1,7 +1,7 @@
 ---
 id: TSK-5070
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2330, REQ-2358, REQ-2360, REQ-2364]
@@ -82,7 +82,7 @@ The planned rows name each pack `meow-<language>`, a name this task chose
 because no pack's own document names it yet; each pack's task moves its row
 to `shipped` under the name its document gives.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

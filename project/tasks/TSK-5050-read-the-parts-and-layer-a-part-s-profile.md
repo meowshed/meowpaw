@@ -1,7 +1,7 @@
 ---
 id: TSK-5050
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2555
 closes: [REQ-0343, REQ-3040, REQ-3046]
@@ -67,7 +67,7 @@ passing, close criterion 4.
 A part whose directory holds no profile of its own reads the root's, a choice
 I made because SPC-1080 layers a part's profile only where one exists.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

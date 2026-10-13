@@ -1,7 +1,7 @@
 ---
 id: TSK-5135
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2565
 closes: [REQ-2416, REQ-2418, REQ-2450]
@@ -69,7 +69,7 @@ seen failing against stubbed bodies before the rule was written:
 
 lychee deletes no file a run would keep, so `meow-markdown` asks for none.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

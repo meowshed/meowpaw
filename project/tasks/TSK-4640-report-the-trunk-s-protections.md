@@ -1,7 +1,7 @@
 ---
 id: TSK-4640
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2420
 closes: [REQ-2194]
@@ -93,7 +93,7 @@ answers 404 to a credential without administration access, which would print
 `absent` where the truth is unread, only a run against this repository with
 such a credential shows.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

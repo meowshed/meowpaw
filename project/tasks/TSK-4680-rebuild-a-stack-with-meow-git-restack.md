@@ -1,7 +1,7 @@
 ---
 id: TSK-4680
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2430
 closes: [REQ-1824, REQ-1826, REQ-1828]
@@ -67,7 +67,7 @@ hold what SPC-1060 adds: a branch checked out in another working tree stops the
 restack, and a branch whose base hasn't moved is left as it is. The help and
 its pinned first words are held by `crates/meow/tests/unit_help.rs`.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

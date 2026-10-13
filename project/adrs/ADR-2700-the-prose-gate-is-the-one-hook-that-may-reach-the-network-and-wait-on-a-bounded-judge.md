@@ -1,7 +1,7 @@
 ---
 id: ADR-2700
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses: [REQ-2716, REQ-2727, REQ-2728]
 supersedes: []

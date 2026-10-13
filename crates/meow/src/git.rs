@@ -405,7 +405,7 @@ fn run_check(
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-pub(crate) const HELP: [crate::help::Entry; 3] = [
+pub(crate) const HELP: [crate::help::Entry; 4] = [
     crate::help::Entry {
         name: "commit-guard",
         determines: "whether a commit is made on the trunk",

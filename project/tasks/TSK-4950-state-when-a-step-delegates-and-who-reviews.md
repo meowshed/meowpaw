@@ -1,7 +1,7 @@
 ---
 id: TSK-4950
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2530
 closes: [REQ-0818, REQ-0824, REQ-0826, REQ-0828, REQ-2980]
@@ -75,7 +75,7 @@ positions and the brief. One run per case is a smoke check and not a
 measurement, and the case isn't kept, because ADR-2980 removed the case sets
 after this task was approved and review holds the step instead.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

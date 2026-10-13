@@ -1,7 +1,7 @@
 ---
 id: TSK-5120
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2565
 closes: [REQ-2420, REQ-2422, REQ-2426, REQ-2428, REQ-2446, REQ-2448]
@@ -82,7 +82,7 @@ Markdown has no package manager, pinned toolchain, host or build
 prerequisite of its own, so `meow-markdown` uses `choose` alone of these
 rules, and its other behaviour SPC-1195 states is unchanged.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1072.
 
 ## Left alone
 

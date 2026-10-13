@@ -1,7 +1,7 @@
 ---
 id: EPC-2590
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2750
 ---
@@ -26,7 +26,7 @@ once per invocation and no approval carries to the next.
 
 ## Tasks
 
-- [ ] T-001 TSK-5150 require a fresh prompt for each attended irreversible
+- [x] T-001 TSK-5150 require a fresh prompt for each attended irreversible (done: pull request 1072)
       action, in the permission hooks and method
       closes: REQ-1420, REQ-1422
 
