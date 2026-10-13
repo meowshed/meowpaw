@@ -1727,6 +1727,13 @@ class Connections(unittest.TestCase):
         shown = repository.run("show", "ADR-0001").stdout
         self.assertIn("  addresses: REQ-0001 (suspect: revised 2026-02-01, after this record)", shown)
 
+    def test_a_kinds_index_revised_later_is_never_a_suspect_citation(self):
+        """A kind's index is rewritten as its kind grows, so a record citing it is never suspect by its date."""
+        repository = self.repo()
+        repository.edit("research/RES-0001-synthesis.md", "revised: 2026-01-01", "revised: 2026-02-01")
+        self.assertNotIn("suspect", repository.run("show", "RES-0002").stdout)
+        self.assertNotIn("RES-0002 elaborates RES-0001", repository.run("status").stdout)
+
     def test_an_epic_is_suspect_by_its_status_and_not_its_date(self):
         """REQ-0141: an epic changes as its tasks close, so only its withdrawal makes a citation suspect."""
         repository = self.repo()
