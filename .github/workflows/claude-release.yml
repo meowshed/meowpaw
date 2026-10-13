@@ -133,7 +133,7 @@ jobs:
       # downloaded from an earlier release keeps that release's attestation.
       - name: Attest the archives this run built
         if: (inputs.publish || env.publish == 'true') && hashFiles('dist/attest.sha256') != ''
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-checksums: dist/attest.sha256
       - name: Publish
