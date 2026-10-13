@@ -1110,6 +1110,20 @@ class Indexes(unittest.TestCase):
         self.assertIn("1 decision in all: 1 approved.", text)
         self.assertEqual(repository.run("check", "index").returncode, 0)
 
+    def test_index_writes_its_table_aligned_as_the_formatter_leaves_it(self):
+        """A written index passes the Markdown format check unchanged: each column is padded to its widest cell
+        and each separator fills its column, so `paw done` never leaves the gate's fmt-check red."""
+        repository = self.repo()
+        repository.write("adrs/ADR-0002-a-much-longer-name.md",
+                         CLEAN["adrs/ADR-0001-a-choice.md"].replace("ADR-0001", "ADR-0002"))
+        repository.run("index", "adr", "--write")
+        text = (repository.root / "adrs" / "README.md").read_text(encoding="utf-8")
+        rows = [line for line in text.splitlines() if line.startswith("|")]
+        self.assertEqual(len(rows), 4, text)
+        self.assertEqual(len({len(row) for row in rows}), 1, "\n".join(rows))
+        for cell in rows[1].strip("|").split("|"):
+            self.assertRegex(cell, r"^ -+ $")
+
     def test_an_index_left_behind_is_reported_and_rewriting_clears_it(self):
         repository = self.repo()
         repository.run("index", "adr", "--write")
