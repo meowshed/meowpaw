@@ -2316,6 +2316,26 @@ class RequirementState(unittest.TestCase):
         self.assertIn("Postponed\n  REQ-0002 by ADR-0002, until: A second repository asks for it.\n\n",
                       repository.run("status").stdout)
 
+    def test_brief_status_keeps_what_moves_and_counts_the_rest(self):
+        """`--brief` keeps the drafts, each open decision and the requirement counts, and counts closed decisions,
+        postponements and frozen findings, because a session reads it and the full list costs its context."""
+        repository = self.repo()
+        self.postpone(repository, "- A second repository asks for it.")
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
+        open_status = repository.run("status", "--brief")
+        self.assertEqual(open_status.returncode, 0, open_status.stderr)
+        self.assertIn("RES-0002 research, draft", open_status.stdout)
+        self.assertIn("  ADR-0001 ", open_status.stdout)
+        self.assertIn("Requirements\n  2 in force:", open_status.stdout)
+        self.assertIn("Postponed\n  1 requirement, listed by `paw status`\n", open_status.stdout)
+        self.assertNotIn("until:", open_status.stdout)
+        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.assertIn("closed: EPC-0001", repository.run("status").stdout)
+        closed = repository.run("status", "--brief").stdout
+        self.assertNotIn("closed: EPC-0001", closed)
+        self.assertIn("1 closed, listed by `paw status`", closed)
+        self.assertIn("Only a new record can fix\n", closed)
+
     def test_a_numbered_condition_is_read_to_its_first_item(self):
         """REQ-3622: a numbered list with no blank lines is read to its first item."""
         repository = self.repo()

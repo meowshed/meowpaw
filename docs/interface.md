@@ -169,7 +169,7 @@ person reads in its place:
 - `check` — whether the record meets each rule its layout declares
   By hand: read each artifact's front matter, required sections and index table against `lib/layout.toml`, follow each cited identifier to the file that carries it, and for `frozen` compare each approved record with `git show <rev>:<path>`
 - `status` — where each approved decision stands in the chain, as the record says
-  By hand: list every artifact whose `status:` is draft, then for each approved decision read the epics that `realises:` it and each epic's tasks, count each requirement's state from the tasks that `closes:` it, and with `--waiting` list the drafts alone
+  By hand: list every artifact whose `status:` is draft, then for each approved decision read the epics that `realises:` it and each epic's tasks, count each requirement's state from the tasks that `closes:` it, with `--waiting` list the drafts alone, and with `--brief` count the closed decisions, the postponements and the frozen findings in place of listing them
 - `ready` — whether the input a step names is approved and complete
   By hand: read each named artifact's `status:`, for `epic` the `states:` of its specifications, and for `implement` the authority's `status:` and each `depends:` task's completion
 - `template` — which template is in force for a kind
