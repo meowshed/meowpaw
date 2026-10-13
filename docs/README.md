@@ -97,14 +97,42 @@ and x86_64, so it needs nothing else installed. A later release reaches you
 when you run `claude plugin marketplace update meowpaw`, or by itself once you
 turn on auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.
 
+## Supported set
+
+Each language and tool the harness supports, with the unit that serves it and
+that unit's state. A `shipped` row is a claim you can test by installing the
+unit on a repository of that kind. A `planned` row names the pack that will
+serve it, and a `postponed` row one nobody is building yet.
+
+| Language or tool               | Pack                 | State     |
+| ------------------------------ | -------------------- | --------- |
+| Rust                           | `meow-rust`          | planned   |
+| TypeScript and JavaScript      | `meow-typescript`    | planned   |
+| Python                         | `meow-python`        | planned   |
+| Go                             | `meow-go`            | planned   |
+| C#                             | `meow-csharp`        | planned   |
+| Lua                            | `meow-lua`           | planned   |
+| Neovim plugins                 | `meow-lua`           | planned   |
+| Godot and GDScript             | `meow-godot`         | planned   |
+| Starlark                       | `meow-starlark`      | planned   |
+| Scheme                         | `meow-scheme`        | planned   |
+| Markdown                       | `meow-markdown`      | shipped   |
+| mise                           | `meow-mise`          | shipped   |
+| Task                           | `meow-gotask`        | shipped   |
+| git                            | `meow-git`           | shipped   |
+| Version control other than git | a pack for each tool | postponed |
+| GitHub                         | `meow-github`        | shipped   |
+| GitHub Issues                  | `meow-github`        | shipped   |
+| worktrunk                      | `meow-scm`           | shipped   |
+
 ## Planned
 
 These parts are planned, and no unit ships them yet, so no page describes
 them:
 
-- packs that resolve the five stages `meow-checks` runs, `format`, `lint`,
-  `check`, `test` and `build`, for a language or a task runner without
-  your declaring each command;
+- the language packs the supported set lists as planned, which resolve the
+  five stages `meow-checks` runs, `format`, `lint`, `check`, `test` and
+  `build`, without your declaring each command;
 - packs for version control tools other than git, and for trackers other than
   GitHub;
 - runs that carry the method forward unattended, within the gates a

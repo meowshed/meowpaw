@@ -4,6 +4,7 @@
 
 - Every unit's `requires.toml` now states its layer, the units it needs and, in a pack, the range of `meow-core` versions it works with, and the check fails a unit missing one.
 - Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions.
+- The commit skill uses worktrunk only for operations whose result it then reads from git.
 
 ## 0.7.0
 

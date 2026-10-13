@@ -7,11 +7,16 @@ describes: [meow-github@0.17.0]
 
 # meow-github
 
-`meow-github` reads a GitHub repository's history: every issue and pull
-request, whether each pull request merged, and every conversation and review
-comment. It prints them as one JSON document and writes nothing to GitHub.
-`/meow-flow:onboard` reads a repository's history through it, and it installs
-on its own, with no other part of the `meowpaw` harness.
+`meow-github` serves GitHub as your code host and GitHub Issues as your
+tracker. `project` creates the issue each task of an approved epic projects
+onto, links it to the task and reads it back, and the record keeps the
+projection as a mapping from each task to its issue, in the task's own
+`issue:` field, so nothing but the repository holds the link. `history` reads
+a GitHub repository's history: every issue and pull request, whether each
+pull request merged, and every conversation and review comment. It prints them
+as one JSON document and writes nothing to GitHub. `/meow-flow:onboard` reads a
+repository's history through it, and the unit installs on its own, with no
+other part of the `meowpaw` harness.
 
 ## Install it
 

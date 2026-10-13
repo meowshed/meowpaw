@@ -239,6 +239,12 @@ class ToolOperations(unittest.TestCase):
         self.assertRegex(self.README, r"only in the foreground")
         self.assertRegex(self.README, r"no message a tool generated|never uses a message a tool generated")
 
+    def test_tsk_5070_worktrunk_runs_only_operations_whose_result_git_reports(self):
+        """TSK-5070 criterion 3, REQ-2364: the skill and its page say worktrunk runs only operations whose result is read from git."""
+        for name, text in (("SKILL.md", self.TEXT), ("README.md", self.README)):
+            with self.subTest(file=name):
+                self.assertRegex(text, r"worktrunk[^.]{0,200}only[^.]{0,120}result[^.]{0,80}from git")
+
 
 class SparseTrees(unittest.TestCase):
     """TSK-5065, ADR-2650: the commit skill carries the rules for parallel agents in working trees, in both copies."""

@@ -123,6 +123,10 @@ project gained and when, so every message is written for that question.
 - T9. Put settings that must apply inside a working tree in the root's
   `.claude/settings.json`, which every tree checks out, because a session
   started in a tree loads the settings at that tree's root and none above it.
+- T10. Use worktrunk, `wt`, to work several branches at once, and only for
+  operations whose result you then read from git, such as
+  `git worktree list --porcelain`, because worktrunk's own listing is written
+  for people and git documents the one a program reads.
 </rules>
 
 <example name="a subject">

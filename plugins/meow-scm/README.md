@@ -87,6 +87,9 @@ foreground, when you or the step that made it asks. Where agents work in
 parallel in sparse working trees, the sparse paths list every directory any
 of them reads, `.meowpaw/` and `.claude/` included, and settings that must
 apply in a tree live in the root's `.claude/settings.json`.
+It works several branches at once with worktrunk, `wt`, using it only for
+operations whose result it then reads from git, such as
+`git worktree list --porcelain`.
 
 ## What it costs you The
 
