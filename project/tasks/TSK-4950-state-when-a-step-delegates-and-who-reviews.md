@@ -57,7 +57,23 @@ delegated work and doesn't repeat it.
 
 ## Evidence
 
-Not yet.
+Criteria 1, 2 and 4 are closed by `plugins/meow-flow/tests/test_delegation.py`:
+`test_two_reasons_to_delegate_and_never_because_a_task_is_large` names
+REQ-0826 and REQ-0828,
+`test_a_parallel_dispatch_declares_a_worktree_and_carries_the_brief` names
+REQ-2980, and `test_a_delegated_pull_request_names_the_task_and_the_brief_and_no_agent`
+with `test_the_steps_example_passes_the_message_check` close criterion 4, the
+second running `meow-scm check-message` on the step's example. Each was seen
+failing before the step changed, and `test_the_pi_step_says_the_same` holds
+the Pi tree's copy to it.
+
+Criterion 3 rests on judgement, because a program can't read which agent a
+session chooses to dispatch. `plugins/meow-flow/evals/delegation.py` is its
+hand-run case, run once on `sonnet` and once on `opus`: 4 of 4 runs as wanted,
+each review a fresh dispatch and never a fork, and each disagreement sent to a
+fresh agent whose prompt held both positions and the brief.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

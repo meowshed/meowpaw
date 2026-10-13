@@ -159,3 +159,52 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
   keep what an agent must not read out of its working tree, because a shell
   search over a directory holding denied files still returns them.
 </rules>
+
+<rules name="delegated work">
+- I36. Delegate a task to another agent only to keep this context clean or to
+  run independent tracks at once (REQ-0826), and never because the task is
+  large (REQ-0828), because a large task split across agents shares a context
+  nobody isolated.
+- I37. Give a delegated agent the output of `paw brief <task>` as its brief,
+  built from the record and never from this conversation (REQ-0810), because
+  a constraint retold from a conversation loses the clause the work turns on.
+  Pass `--agent <unit>:<agent>` where you dispatch an agent definition a unit
+  ships.
+- I38. Where agents implement in parallel, declare `isolation: worktree` in
+  each dispatch and never have one arrange a working directory for itself
+  (REQ-2980), because the platform makes and removes the tree it declares.
+- I39. Have delegated work reviewed by a fresh agent, dispatched on its own
+  with the brief and the difference, and never forked from the conversation
+  that produced the work (REQ-0818), because a fork has already seen whose
+  work it is. The review step's rules hold for that review.
+- I40. Where the implementer and the reviewer disagree, dispatch a third
+  fresh agent with both positions and the brief, and act on what it decides
+  (REQ-0824), because an argument settled inside itself favours whoever spoke
+  last.
+- I41. Name in a delegated task's pull request the task and the command that
+  prints its brief, `paw brief <task>`, and name no agent, model or vendor
+  (REQ-1764, REQ-1294), because the brief names the agent definition and the
+  repository's attribution ban holds for every pull request.
+</rules>
+
+<example>
+A delegated task's pull request, failing because it names who wrote the work
+and not the record that asked for it:
+
+```text
+feat(meow-flow): print a task's brief
+
+Written by the general-purpose agent.
+```
+
+Corrected, naming the task and the command that prints its brief:
+
+```text
+feat(meow-flow): print a task's brief
+
+Implements TSK-4945, delegated with the brief `paw brief TSK-4945` prints.
+
+Signed-off-by: A Person <person@example.com>
+```
+
+</example>

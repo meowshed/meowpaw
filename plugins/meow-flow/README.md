@@ -235,6 +235,15 @@ was denied, the step reports the review as not run, and doesn't resume the
 agent, send another under the same permissions or review the change itself. No agent reviews a record: you read it when you approve its
 pull request.
 
+The implement step hands a task to another agent only to keep its own context
+clean or to run independent tracks at once, never because the task is large.
+It gives that agent the output of `paw brief <task>`, and declares
+`isolation: worktree` where agents implement in parallel. A fresh agent, never
+a fork of the session that did the work, reviews delegated work, and a third
+fresh agent settles a disagreement between the two, given both positions and
+the brief. The pull request names the task and `paw brief <task>`, and names
+no agent, model or vendor.
+
 ## Write a status change in one command
 
 A status change that touches several files is one command, so none of the
