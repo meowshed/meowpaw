@@ -481,6 +481,10 @@ fn tool_steps(root: &Path, unit: &Path) -> Vec<String> {
     out
 }
 
+/// The longest timeout, in seconds, a prose gate hook may wait on its judge
+/// under ADR-2390's bound.
+const JUDGE_BOUND: f64 = 120.0;
+
 /// Events whose hook can't stop a call or the turn, and so are free of the
 /// launcher rule: one that runs when a session opens or closes, and one that
 /// runs after a tool already ran (REQ-2716). Every other event, a new one
@@ -532,7 +536,8 @@ fn command_tokens(command: &str) -> Vec<String> {
 ///
 /// The prose gate's `check` is excused from one network word, `claude -p`, the
 /// judge's call, on `PreToolUse`, named here by unit and subcommand so no other
-/// hook inherits it (ADR-2700).
+/// hook inherits it, and only while its hook's timeout is at most
+/// `JUDGE_BOUND` seconds (ADR-2700).
 fn hook_rules(root: &Path, unit: &Path) -> (usize, Vec<String>) {
     let path = unit.join("hooks").join("hooks.json");
     let Ok(text) = std::fs::read_to_string(&path) else {
@@ -655,9 +660,23 @@ fn hook_rules(root: &Path, unit: &Path) -> (usize, Vec<String>) {
                         "{where_}: `{name}` returns an `updatedInput`, where it denies with the reason and lets the model redo the call (REQ-2718)"
                     ));
                 }
+                // The judge waits inside the hook's timeout, which ADR-2390
+                // bounds at 120 seconds, so an unbounded gate loses the
+                // exception (ADR-2700).
+                let bounded = hook
+                    .get("timeout")
+                    .and_then(|t| t.as_f64())
+                    .is_some_and(|t| t > 0.0 && t <= JUDGE_BOUND);
                 for found in network.find_iter(&haystack) {
                     if judge_call && judge.is_match(found.as_str().trim()) {
-                        continue;
+                        if bounded {
+                            continue;
+                        }
+                        out.push(format!(
+                            "{where_}: `{name}` waits on the judge `{}` without a timeout of at most {JUDGE_BOUND} seconds, the bound ADR-2390 sets (REQ-2716, REQ-2727)",
+                            found.as_str().trim()
+                        ));
+                        break;
                     }
                     out.push(format!(
                         "{where_}: `{name}` names the network command `{}`, and no hook reaches the network (REQ-2727)",

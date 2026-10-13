@@ -118,7 +118,8 @@ runs, `meow-author check` fails a hook, naming the file and the event, that:
   that rewrites a call runs something nobody asked for;
 - names a network command, such as `curl`, `wget`, `ssh`, `gh`, `git fetch`,
   `git pull` or `claude -p`, except `meow-prose-gate check`, which is excused
-  by unit and subcommand and no other hook inherits;
+  by unit and subcommand and no other hook inherits, and only for its judge's
+  `claude -p` while its hook declares a `timeout` of at most 120 seconds;
 - is not the unit's launcher with one subcommand, on any event but
   `SessionStart`, `SessionEnd`, `PostToolUse` and `PostToolUseFailure`, so an
   event added later is held to the rule until the check lists it;

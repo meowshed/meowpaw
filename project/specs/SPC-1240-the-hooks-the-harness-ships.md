@@ -97,7 +97,9 @@ rules pass, it asks a model twice through `claude -p`, each call bounded at 45
 seconds, under a hook timeout of 120 seconds, as the writing standard's
 specification states. The
 exception covers that judge call alone, and `meow-author check` names it by
-unit and subcommand, so no other hook inherits it (ADR-2700).
+unit and subcommand, so no other hook inherits it (ADR-2700). The check
+excuses the judge only where the gate's hook declares a `timeout` of at most
+120 seconds, because that timeout is the bound the exception rests on.
 
 No hook writes its input to a file or a log (REQ-2724). `meow-checks revision`
 writes a count to the unit's run state and nothing it read, and `meow-loop`'s
