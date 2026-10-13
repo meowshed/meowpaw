@@ -598,6 +598,12 @@ class Links(Fixture):
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("left in the working tree: stray.cache", done.stdout)
 
+    def test_tsk_5135_links_names_the_format_its_evidence_is_read_from(self):
+        """TSK-5135 criterion 1, REQ-2416: `links` says its result is read from lychee's JSON report."""
+        _, done = self.links(report(), 0)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("evidence: lychee's JSON report, read from lychee's standard output", done.stdout)
+
     def test_criterion_2_a_404_and_a_missing_file_are_findings(self):
         """TSK-3120 criterion 2, REQ-2438: a 404 and a missing relative file print as `finding`, exiting 1."""
         for name, make in (("404", lambda root: (*GONE, 3)),

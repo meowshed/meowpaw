@@ -213,7 +213,7 @@ const WRITES: [(&str, usize, &str); 12] = [
     (
         "pack.rs",
         2,
-        "a safe fix a fixing run applies, in the file its tool named, and the directory under the run state where a stage's tool writes its output (REQ-2430, REQ-2442)",
+        "a safe fix a fixing run applies, in the file its tool named, and the directories under the run state where a stage's tool writes its output, its report and the files it keeps (REQ-2430, REQ-2442, REQ-2416, REQ-2418)",
     ),
     (
         "github/project.rs",

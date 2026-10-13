@@ -182,6 +182,10 @@ unresolved, and 0 where every checked link resolved. A skipped address counts
 towards no exit status. A site that is down therefore never makes a finding,
 and never makes a pass either.
 
+`links` prints `evidence: lychee's JSON report, read from lychee's standard
+output`, because it reads lychee's machine-readable report and not the text
+lychee writes for people.
+
 `links` compares `git status --porcelain` before and after lychee runs, and
 prints `left in the working tree: <path>` for each file the run added, such as
 a `.lycheecache` no ignore file covers. That line doesn't change the exit
@@ -189,6 +193,13 @@ status, because `check` already reports an unignored cache as a finding.
 
 `meow-checks` reads a `test` stage's exit status alone, so it reports a `links`
 run that exits 3 as failed, and the lines it quotes say `unreachable`.
+
+## Generated files
+
+Commit no generated file: Markdown's tools generate nothing that is project
+state, and the configuration files `bind` reads are files you write. Ignore
+`.lycheecache`, the cache lychee writes at the root where `lychee.toml` sets
+`cache = true`, because it is regenerated on the next run.
 
 ## What it reports instead of a table
 

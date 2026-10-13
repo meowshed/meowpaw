@@ -80,7 +80,7 @@ pub(crate) const HELP: [crate::help::Entry; 4] = [
         name: "links",
         determines: "whether each link in the given files resolves",
         by_hand: "open each link in the files, with `lychee` where it is installed",
-        lines: "meow-markdown profile: unresolved: tool skipped, every no findings: unreachable, unresolved, <path> left",
+        lines: "meow-markdown profile: unresolved: tool skipped, every no findings: unreachable, unresolved, <path> left evidence:",
         json: "",
     },
 ];
@@ -745,7 +745,10 @@ fn links(inputs: &[&str]) -> u8 {
         .into_iter()
         .chain(inputs.iter().copied())
         .collect();
-    let invocation = pack::Invocation::new("test", "lychee", &args);
+    let invocation =
+        pack::Invocation::new("test", "lychee", &args).reporting(pack::Format::Stdout {
+            name: "lychee's JSON report".into(),
+        });
     let done = match pack::run("meow-markdown", &corpus.root, &invocation) {
         Ok(done) => done,
         Err(line) => {

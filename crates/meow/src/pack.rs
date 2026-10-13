@@ -24,6 +24,12 @@
 //! What a pack never changes: [`apply`] applies no fix its tool marks unsafe
 //! and no suggestion during a check, and [`run`] points a tool's output
 //! outside the working tree and names any file the run left in it.
+//!
+//! What a pack keeps: [`run`] collects the result in the ecosystem's
+//! machine-readable [`Format`] or says the evidence is captured output, and
+//! asks for the files its tool deletes unless asked; and
+//! [`states_generated_files`] holds a pack's page to naming the generated
+//! files to commit and the ones to ignore.
 
 #![allow(dead_code)]
 
@@ -591,6 +597,27 @@ pub(crate) struct Invocation {
     /// How to point the output the tool writes into the working directory by
     /// default somewhere else; `None` where it writes none.
     pub output: Option<Ask>,
+    /// The machine-readable format the ecosystem reports the stage in;
+    /// `None` where it has none, so the evidence is captured output.
+    pub format: Option<Format>,
+    /// How to ask the tool for files it deletes unless asked, and what they
+    /// are, such as `the test binaries`.
+    pub keep: Option<(Ask, String)>,
+}
+
+/// Where a run's machine-readable result comes from (REQ-2416).
+#[derive(Clone, Debug)]
+pub(crate) enum Format {
+    /// The tool prints the format on standard output, as the invocation's
+    /// own words ask it to; `name` names the format.
+    Stdout { name: String },
+    /// The tool writes the format to the file `ask` names, which the layer
+    /// puts outside the working tree under `file`.
+    File {
+        name: String,
+        ask: Ask,
+        file: String,
+    },
 }
 
 impl Invocation {
@@ -600,6 +627,8 @@ impl Invocation {
             program: program.to_string(),
             args: args.iter().map(|a| a.to_string()).collect(),
             output: None,
+            format: None,
+            keep: None,
         }
     }
 
@@ -608,6 +637,58 @@ impl Invocation {
     pub(crate) fn writing(mut self, ask: Ask) -> Invocation {
         self.output = Some(ask);
         self
+    }
+
+    /// The result is collected in `format`.
+    pub(crate) fn reporting(mut self, format: Format) -> Invocation {
+        self.format = Some(format);
+        self
+    }
+
+    /// The tool deletes `what` unless `ask` asks it to keep them.
+    pub(crate) fn keeping(mut self, ask: Ask, what: &str) -> Invocation {
+        self.keep = Some((ask, what.to_string()));
+        self
+    }
+}
+
+/// Whether a pack's document states which of the ecosystem's generated files
+/// are project state to commit and which are cache to ignore: a section
+/// headed `Generated files` that says what to commit and what to ignore
+/// (REQ-2450). It returns what the document lacks.
+pub(crate) fn states_generated_files(document: &str) -> Result<(), String> {
+    let mut section: Option<(usize, Vec<&str>)> = None;
+    let mut fenced = false;
+    for line in document.lines() {
+        if line.trim_start().starts_with("```") {
+            fenced = !fenced;
+        }
+        let depth = line.chars().take_while(|c| *c == '#').count();
+        let heading = !fenced && depth > 0 && line[depth..].starts_with(' ');
+        match &mut section {
+            Some((level, _)) if heading && depth <= *level => break,
+            Some((_, body)) => body.push(line),
+            None if heading && line[depth..].trim().eq_ignore_ascii_case("generated files") => {
+                section = Some((depth, Vec::new()));
+            }
+            None => {}
+        }
+    }
+    let Some((_, body)) = section else {
+        return Err("no section headed `Generated files`".into());
+    };
+    let text = body.join("\n").to_lowercase();
+    let missing: Vec<&str> = ["commit", "ignore"]
+        .into_iter()
+        .filter(|word| !text.contains(word))
+        .collect();
+    if missing.is_empty() {
+        Ok(())
+    } else {
+        Err(format!(
+            "the `Generated files` section doesn't say what to {}",
+            missing.join(" or ")
+        ))
     }
 }
 
@@ -620,8 +701,11 @@ pub(crate) struct Ran {
     /// Each path `git status --porcelain` shows after the run and didn't
     /// before, which the run left in the working tree (REQ-2442).
     pub left: Vec<String>,
-    /// The lines the pack prints about the run: where its output went.
+    /// The lines the pack prints about the run: where its output went, where
+    /// its evidence is and where its kept files are.
     pub lines: Vec<String>,
+    /// The file holding the machine-readable result, where the tool wrote one.
+    pub report: Option<PathBuf>,
 }
 
 /// The directory outside the working tree where the runs of `pack` in the
@@ -657,10 +741,15 @@ pub(crate) fn outside(pack: &str, root: &Path) -> Result<PathBuf, String> {
 /// Runs the invocation from `root` and keeps the working tree as it was:
 /// output the tool writes there by default goes to a directory outside it,
 /// and each file the run left anyway is named in `left` (REQ-2442). It
-/// returns `tool absent: <program>` where the program isn't on `PATH`, and
+/// collects the result in the format the invocation names, or says the
+/// evidence is captured output (REQ-2416), and asks for the files the tool
+/// deletes unless asked, naming where they are (REQ-2418). It returns
+/// `tool absent: <program>` where the program isn't on `PATH`, and
 /// `tool broken: <program> ...` where it didn't start.
 pub(crate) fn run(pack: &str, root: &Path, invocation: &Invocation) -> Result<Ran, String> {
-    let needs = invocation.output.is_some();
+    let needs = invocation.output.is_some()
+        || invocation.keep.is_some()
+        || matches!(invocation.format, Some(Format::File { .. }));
     let place = if needs {
         Some(outside(pack, root).map_err(|reason| {
             format!(
@@ -686,21 +775,47 @@ pub(crate) fn run_in(
         .args(&invocation.args)
         .current_dir(root)
         .stdin(std::process::Stdio::null());
-    let mut lines = Vec::new();
-    if let Some(ask) = &invocation.output {
+    // Each directory outside the tree the run writes to, made before it runs.
+    let place = |name: &str| -> Result<PathBuf, String> {
         let Some(outside) = outside else {
             return Err(format!(
-                "unresolved: nowhere outside the working tree for {program}'s output"
+                "unresolved: nowhere outside the working tree for {program}'s {name}"
             ));
         };
-        let dir = outside.join(&invocation.stage).join("output");
+        let dir = outside.join(&invocation.stage).join(name);
         std::fs::create_dir_all(&dir)
             .map_err(|error| format!("unresolved: {} can't be made: {error}", dir.display()))?;
+        Ok(dir)
+    };
+    let mut lines = Vec::new();
+    if let Some(ask) = &invocation.output {
+        let dir = place("output")?;
         point(&mut command, ask, &dir);
         lines.push(format!(
             "output: {program} writes to {}, outside the working tree",
             dir.display()
         ));
+    }
+    let mut report = None;
+    match &invocation.format {
+        Some(Format::Stdout { name }) => lines.push(format!(
+            "evidence: {name}, read from {program}'s standard output"
+        )),
+        Some(Format::File { name, ask, file }) => {
+            let path = place("report")?.join(file);
+            point(&mut command, ask, &path);
+            lines.push(format!("evidence: {name} at {}", path.display()));
+            report = Some(path);
+        }
+        None => lines.push(format!(
+            "evidence: captured output; {program} has no machine-readable report for {}",
+            invocation.stage
+        )),
+    }
+    if let Some((ask, what)) = &invocation.keep {
+        let dir = place("kept")?;
+        point(&mut command, ask, &dir);
+        lines.push(format!("kept: {what} at {}", dir.display()));
     }
     let before = changed(root);
     let done = match command.output() {
@@ -721,6 +836,7 @@ pub(crate) fn run_in(
         stderr: done.stderr,
         left,
         lines,
+        report,
     })
 }
 
@@ -1235,6 +1351,147 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(absent, "tool absent: meow-no-such-tool-anywhere");
+    }
+
+    /// A fixture tool in its own scratch directory, running `body`.
+    #[cfg(unix)]
+    fn tool(body: &str) -> (Scratch, String) {
+        use std::os::unix::fs::PermissionsExt;
+        let tools = Scratch::new();
+        let path = tools.write("fixtool", &format!("#!/bin/sh\n{body}"));
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
+        (tools, path.to_string_lossy().into_owned())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn tsk_5135_criterion_1_a_result_is_collected_in_the_ecosystems_format() {
+        // TSK-5135 criterion 1, REQ-2416: the fixture ecosystem reports tests
+        // as XML to the file `--report` names; the run collects the result
+        // there, outside the tree, and the report names the format and path.
+        let tree = Scratch::new();
+        let state = Scratch::new();
+        let (_tools, tool) = tool("[ \"$1\" = --report ] && echo '<suite ok=\"1\"/>' > \"$2\"\n");
+        let invocation = Invocation::new("test", &tool, &[]).reporting(Format::File {
+            name: "fixture XML".into(),
+            ask: Ask::Flag("--report".into()),
+            file: "report.xml".into(),
+        });
+        let ran = run_in(&tree.0, &invocation, Some(&state.0)).unwrap();
+        let report = ran.report.clone().expect("no report path");
+        assert!(report.starts_with(&state.0), "{report:?}");
+        assert_eq!(
+            std::fs::read_to_string(&report).unwrap(),
+            "<suite ok=\"1\"/>\n"
+        );
+        assert!(
+            ran.lines
+                .iter()
+                .any(|l| l.starts_with("evidence: fixture XML at")
+                    && l.contains(&*report.to_string_lossy())),
+            "{:?}",
+            ran.lines
+        );
+        let printed = Invocation::new("lint", &tool, &[]).reporting(Format::Stdout {
+            name: "fixture JSON".into(),
+        });
+        let ran = run_in(&tree.0, &printed, None).unwrap();
+        assert!(
+            ran.lines
+                .iter()
+                .any(|l| l.starts_with("evidence: fixture JSON") && l.contains("standard output")),
+            "{:?}",
+            ran.lines
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn tsk_5135_criterion_1_with_no_format_the_evidence_is_captured_output() {
+        // TSK-5135 criterion 1, REQ-2416: an ecosystem with no
+        // machine-readable format for the stage says so.
+        let tree = Scratch::new();
+        let (_tools, tool) = tool("echo all good\n");
+        let ran = run_in(&tree.0, &Invocation::new("build", &tool, &[]), None).unwrap();
+        assert!(
+            ran.lines
+                .iter()
+                .any(|l| l.starts_with("evidence: captured output")),
+            "{:?}",
+            ran.lines
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn tsk_5135_criterion_2_files_the_tool_deletes_are_kept_and_named() {
+        // TSK-5135 criterion 2, REQ-2418: the fixture tool deletes its test
+        // binaries unless `FIX_KEEP` names a directory; the run asks for them
+        // and the report names where they are.
+        let tree = Scratch::new();
+        let state = Scratch::new();
+        let (_tools, tool) = tool(
+            "scratch=$(mktemp -d)\necho binary > \"$scratch/unit.bin\"\n\
+             [ -n \"$FIX_KEEP\" ] && cp \"$scratch/unit.bin\" \"$FIX_KEEP/\"\nrm -r \"$scratch\"\n",
+        );
+        let invocation = Invocation::new("test", &tool, &[])
+            .keeping(Ask::Env("FIX_KEEP".into()), "the test binaries");
+        let ran = run_in(&tree.0, &invocation, Some(&state.0)).unwrap();
+        let kept = ran
+            .lines
+            .iter()
+            .find_map(|l| l.strip_prefix("kept: the test binaries at "))
+            .unwrap_or_else(|| panic!("{:?}", ran.lines));
+        assert!(Path::new(kept).join("unit.bin").is_file(), "{kept}");
+        assert!(Path::new(kept).starts_with(&state.0), "{kept}");
+    }
+
+    #[test]
+    fn tsk_5135_criterion_3_a_document_without_the_generated_files_fails() {
+        // TSK-5135 criterion 3, REQ-2450: a pack's document that doesn't
+        // state which generated files to commit and which to ignore fails.
+        let silent = "# meow-fix\n\n## Run it\n\nRun `meow-fix status`.\n";
+        assert!(states_generated_files(silent).is_err());
+        let half = "# meow-fix\n\n## Generated files\n\nCommit `fix.lock`.\n\n## Run it\n\nIgnore nothing here.\n";
+        assert!(states_generated_files(half).is_err());
+        let stated = "# meow-fix\n\n## Generated files\n\nCommit `fix.lock`, which is project state.\nIgnore `.fixcache/`, which is cache.\n";
+        assert_eq!(states_generated_files(stated), Ok(()));
+    }
+
+    #[test]
+    fn tsk_5135_criterion_3_every_language_pack_states_its_generated_files() {
+        // TSK-5135 criterion 3, REQ-2450: every language pack the repository
+        // ships, a unit whose manifest carries the `language` keyword, states
+        // its generated files on its page.
+        let plugins = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plugins");
+        let mut packs = Vec::new();
+        for entry in std::fs::read_dir(&plugins).unwrap().flatten() {
+            let manifest = entry.path().join(".claude-plugin/plugin.json");
+            let Ok(text) = std::fs::read_to_string(&manifest) else {
+                continue;
+            };
+            let json: serde_json::Value = serde_json::from_str(&text).unwrap();
+            let language = json["keywords"]
+                .as_array()
+                .is_some_and(|words| words.iter().any(|w| w == "language"));
+            if language {
+                packs.push(entry.path());
+            }
+        }
+        assert!(
+            !packs.is_empty(),
+            "no language pack found under {plugins:?}"
+        );
+        let failing: Vec<String> = packs
+            .iter()
+            .filter_map(|pack| {
+                let page = std::fs::read_to_string(pack.join("README.md")).unwrap_or_default();
+                states_generated_files(&page)
+                    .err()
+                    .map(|why| format!("{}: {why}", pack.display()))
+            })
+            .collect();
+        assert!(failing.is_empty(), "{failing:#?}");
     }
 
     fn walk(dir: &Path) -> Vec<PathBuf> {
