@@ -2,7 +2,7 @@
 id: vision
 artifact: vision
 status: live
-revised: 2026-09-20
+revised: 2026-10-13
 ---
 
 # meowpaw
@@ -78,7 +78,7 @@ research -> requirements -> design -> spec -> epic
          -> implement -> review
 ```
 
-`/meow:run` drives all seven and stops at every gate. It changes how many times
+`/meow-flow:run` drives all seven and stops at every gate. It changes how many times
 you type a command, and it never changes how many times you decide.
 
 Three documents live and everything else is a record. The vision, the
@@ -112,9 +112,9 @@ stop names the command that resumes it.
 
 A published suite measured a shape like this one against an unshaped baseline
 and found correctness improving alongside brevity, with the largest gains on
-progress reports and error reports. Our own measurement is thinner: a gain on
-one case of four, with the two arms overlapping run by run. TSK-1050 carries
-both numbers and what neither supports.
+progress reports and error reports. The harness measures none of its own
+prompts now: ADR-2980 removed its runs and case sets, and review holds a
+change to what a prompt says until a redesigned evaluation exists.
 
 The chain, the record, the packs and the tools are all opt-in, and this rule is
 meant to be the exception: the reply shape ships in the kernel and applies to
@@ -172,10 +172,11 @@ documents, a regulator's evidence files - with a prefix, a lifetime and a
 template, and a declared kind inherits every obligation a built-in kind
 carries, so declaring one buys no exemptions.
 
-Beside it, `meow-book` - a separate Rust tool - makes the same record cheap to
-query and projects tasks onto GitHub or Linear, for people who want that.
-Nothing requires it: where it's missing, the harness syncs by hand and says so,
-and the method works either way.
+The record stays plain files, and `paw`, the one native tool every unit
+shares, makes it cheap to query and write (ADR-2880). `meow-github` projects
+an epic's tasks onto GitHub issues for people who want that (ADR-2890).
+Nothing requires it: where it's missing, you sync by hand, and the method
+works either way.
 
 One specific test decides whether this succeeded: **the six repositories it
 came from drop their private copies and lose nothing.** Not that it's elegant,
@@ -183,10 +184,10 @@ not that it's complete. Six real projects, in five languages, with five
 different ideas of what counts, each install a subset and keep working the way
 they already work, with the method written down where everyone can see it.
 
-We mean to run that test rather than assert it, and the smaller ones too: put a
-change to how the harness reports, or to what a skill says, to a case set with
-a rubric and a blind judge, and publish the delta. A harness that asks for
-evidence everywhere else holds its own claims to the same standard.
+I mean to run that test rather than assert it, one repository at a time,
+with each repository's own gate run before and after the move (ADR-2690). A
+harness that asks for evidence everywhere else holds its own claims to the
+same standard.
 
 This document gets rewritten when a decision contradicts it. A decision that
 conflicts with what's written here means one of the two is stale, and the
