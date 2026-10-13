@@ -97,6 +97,19 @@ and x86_64, so it needs nothing else installed. A later release reaches you
 when you run `claude plugin marketplace update meowpaw`, or by itself once you
 turn on auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.
 
+Each archive a release publishes carries a build provenance attestation, which
+names the workflow run and the commit that built it. To check an archive you
+downloaded without trusting the publisher, run this with the GitHub CLI, `gh`:
+
+```bash
+gh attestation verify meow-core-0.9.0.zip --repo meowshed/meowpaw
+```
+
+Replace `meow-core-0.9.0.zip` with the archive's file name. The command exits 0
+and prints the run that built the archive when it verifies, and fails
+otherwise. Releases published before the attestation existed carry none, so
+the command fails for them.
+
 ## Supported set
 
 Each language and tool the harness supports, with the unit that serves it and
