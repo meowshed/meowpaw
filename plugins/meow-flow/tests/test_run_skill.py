@@ -62,7 +62,7 @@ class RunSkill(unittest.TestCase):
 
     def test_outside_a_run_the_attended_steps_stay(self):
         """TSK-4130 criterion 7 rests on the evals; here the attended steps are still in the file."""
-        self.assertIn("Run `${CLAUDE_SKILL_DIR}/../../bin/paw status` and show its output.", TEXT)
+        self.assertIn("Run `${CLAUDE_SKILL_DIR}/../../bin/paw status --brief` and show its output.", TEXT)
         self.assertIn("Stop where that step ends at an approval gate.", TEXT)
 
 
