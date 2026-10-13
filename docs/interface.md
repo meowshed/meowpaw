@@ -118,6 +118,7 @@ Each key the profile may carry, with the reason the key exists:
 - `unattended.amend_approved` — Whether a run may edit an approved record is a person's grant, and the record can't grant it to itself
 - `prose.language` — The language the repository's prose is written in is its choice, and the files already written may mix several
 - `method.principles` — Which files hold the repository's principles is its choice, and no file name says a document is one
+- `parts` — Only the project knows what it is built from, and a marker says which tool a directory uses, not which part it is
 
 ## The subcommands
 
@@ -259,4 +260,4 @@ person reads in its place:
 
 ## The form of a piece of evidence
 
-A piece of evidence is one line of the ledger's JSON, whose keys are record, verb, command, outcome, status, time, before, after, output and targets: what ran, what it printed, and the trees either side of it. Cite the line `evidence` prints, which names the stage, the outcome, the record and the tree, and never restate it.
+A piece of evidence is one line of the ledger's JSON, whose keys are record, verb, command, outcome, status, time, before, after, output, targets, scope and directory: what ran, what it printed, the trees either side of it, the part it covered and the directory it started in. Cite the line `evidence` prints, which names the stage, the outcome, the record and the tree, and never restate it.

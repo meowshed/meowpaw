@@ -54,7 +54,25 @@ the new lines in each subcommand's output test. Document the scope line and
 
 ## Evidence
 
-Not yet.
+The crate tests in `crates/meow/tests/parts.rs` close the criteria, each seen
+failing before the change. `each_part_runs_its_own_test` closes criterion 1
+(REQ-0078, REQ-3042): `--part` and the current directory each pick the part's
+command, which runs in the part's directory. `every_report_names_its_scope`
+closes criterion 2 (REQ-3043) for `status`, `status --json`, `run` and
+`evidence`, with and without `[parts]`, and pins the new line in each
+subcommand's output. `a_parts_evidence_counts_its_own_runs` holds `evidence`
+to the part's own runs (REQ-3042).
+`a_record_carries_the_directory_the_run_started_in` closes criterion 3
+(REQ-3044). `an_undeclared_part_runs_nothing` closes criterion 4.
+`output_opens_with_stated_first_words` in `crates/meow/tests/unit_help.rs`
+holds the `scope:` line to each subcommand's help.
+
+A record written before this change carries no scope, and `evidence` reads it
+as the repository's, so the ledger stays readable. The personal profile a part
+reads sits beside the shared profile its stages came from, a choice I made
+because SPC-1040 names no place for it.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

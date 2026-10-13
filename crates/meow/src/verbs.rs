@@ -16,7 +16,7 @@ pub(crate) mod ledger;
 use crate::profile::{self, PERSONAL, PROFILE, Personal, Profile};
 use serde_json::{Map, Value, json};
 use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Instant;
 
@@ -63,9 +63,119 @@ struct Report {
     notices: Vec<String>,
 }
 
-fn resolve(root: &Path) -> Report {
-    let mut report = resolve_shared(root);
-    apply_personal(root, &mut report);
+/// What a report or a run covers: one part the root profile declares, or the
+/// whole repository (REQ-3042, REQ-3043).
+pub(crate) struct Scope {
+    part: Option<profile::Part>,
+    /// Where the scope's commands run: the part's directory, or the root.
+    directory: PathBuf,
+}
+
+impl Scope {
+    pub(crate) fn repository(root: &Path) -> Scope {
+        Scope {
+            part: None,
+            directory: root.to_path_buf(),
+        }
+    }
+
+    fn of(root: &Path, part: profile::Part) -> Scope {
+        Scope {
+            directory: root.join(&part.directory),
+            part: Some(part),
+        }
+    }
+
+    /// The line every report prints, naming what it ran for.
+    fn line(&self) -> String {
+        match &self.part {
+            Some(part) => format!("scope: {} {}", part.name, part.directory),
+            None => "scope: repository".to_string(),
+        }
+    }
+
+    /// The name a ledger record keeps, which `evidence` reads back.
+    fn label(&self) -> &str {
+        self.part.as_ref().map_or("repository", |p| p.name.as_str())
+    }
+}
+
+/// The parts the root profile declares, or none where it declares none or
+/// doesn't parse.
+fn declared_parts(root: &Path) -> Vec<profile::Part> {
+    match profile::read(root) {
+        Profile::Parsed(table, _) => profile::parts(&table).0,
+        _ => Vec::new(),
+    }
+}
+
+/// The scope `--part <name>` names, and the arguments without it. With no
+/// `--part`, it is the part whose directory holds the current directory, and
+/// the repository where none does. Arguments after `--` are targets and stay.
+fn scope_of(root: &Path, command: &str, args: &[String]) -> Result<(Scope, Vec<String>), u8> {
+    let end = args.iter().position(|a| a == "--").unwrap_or(args.len());
+    let mut rest = Vec::new();
+    let mut named = None;
+    let mut i = 0;
+    while i < args.len() {
+        if i < end && args[i] == "--part" {
+            let Some(name) = args.get(i + 1).filter(|_| i + 1 < end) else {
+                eprintln!("meow-checks {command}: --part names no part; write --part <name>");
+                return Err(USAGE);
+            };
+            named = Some(name.clone());
+            i += 2;
+            continue;
+        }
+        rest.push(args[i].clone());
+        i += 1;
+    }
+    let parts = declared_parts(root);
+    if let Some(name) = named {
+        return match parts.iter().find(|part| part.name == name) {
+            Some(part) => Ok((Scope::of(root, part.clone()), rest)),
+            None => {
+                let names: Vec<&str> = parts.iter().map(|p| p.name.as_str()).collect();
+                let declared = if names.is_empty() {
+                    "the profile declares no [parts]".to_string()
+                } else {
+                    format!("the profile declares: {}", names.join(", "))
+                };
+                eprintln!(
+                    "meow-checks {command}: --part {name} names no declared part, so nothing ran; {declared}"
+                );
+                Err(USAGE)
+            }
+        };
+    }
+    let here = std::env::current_dir()
+        .ok()
+        .and_then(|d| std::fs::canonicalize(d).ok());
+    let top = std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
+    let inside = here
+        .as_deref()
+        .and_then(|here| here.strip_prefix(&top).ok())
+        .map(Path::to_path_buf);
+    let holding = inside.and_then(|relative| {
+        parts
+            .into_iter()
+            .filter(|part| relative.starts_with(&part.directory))
+            .max_by_key(|part| part.directory.len())
+    });
+    Ok((
+        holding.map_or_else(|| Scope::repository(root), |part| Scope::of(root, part)),
+        rest,
+    ))
+}
+
+fn resolve(root: &Path, scope: &Scope) -> Report {
+    let mut report = resolve_shared(root, scope);
+    // The personal profile sits beside the shared profile the stages came from.
+    let personal = match &scope.part {
+        Some(part) if profile::part_profile(root, part).is_file() => scope.directory.clone(),
+        _ => root.to_path_buf(),
+    };
+    apply_personal(root, &personal, &mut report);
     report
 }
 
@@ -128,11 +238,11 @@ fn machine_path<'a>(root: &Path, command: &'a str) -> Option<&'a str> {
 /// Lets the personal profile's stages replace the shared ones on this machine
 /// (REQ-2944). A personal profile that doesn't parse replaces nothing, and an
 /// unparseable shared profile resolves nothing for it to replace (REQ-2948).
-fn apply_personal(root: &Path, report: &mut Report) {
+fn apply_personal(root: &Path, beside: &Path, report: &mut Report) {
     if report.state == "unparseable" {
         return;
     }
-    match profile::read_personal(root) {
+    match profile::read_personal(beside) {
         Personal::Absent => {}
         Personal::Unparseable(error) => {
             report
@@ -204,8 +314,16 @@ fn apply_personal(root: &Path, report: &mut Report) {
     }
 }
 
-fn resolve_shared(root: &Path) -> Report {
-    let path = root.join(PROFILE).display().to_string();
+fn resolve_shared(root: &Path, scope: &Scope) -> Report {
+    let (read, path) = match &scope.part {
+        Some(part) if profile::part_profile(root, part).is_file() => (
+            profile::read_part(root, part),
+            profile::part_profile(root, part),
+        ),
+        Some(part) => (profile::read_part(root, part), root.join(PROFILE)),
+        None => (profile::read(root), root.join(PROFILE)),
+    };
+    let path = path.display().to_string();
     let every = |kind: &'static str, detail: String| {
         VERBS
             .iter()
@@ -220,8 +338,10 @@ fn resolve_shared(root: &Path) -> Report {
             })
             .collect()
     };
-    let read = profile::read(root);
-    let lines = profile::report(&read);
+    let mut lines = profile::report(&read);
+    if let Profile::Parsed(table, _) = &read {
+        lines.extend(profile::parts(table).1);
+    }
     match read {
         Profile::Absent => Report {
             path,
@@ -301,7 +421,7 @@ fn resolve_shared(root: &Path) -> Report {
 /// that holds the command itself (SPC-1201).
 #[cfg(feature = "loop")]
 pub(crate) fn command_of(root: &Path, verb: &str) -> std::result::Result<String, String> {
-    match resolve(root)
+    match resolve(root, &Scope::repository(root))
         .verbs
         .into_iter()
         .find(|(name, _)| *name == verb)
@@ -356,8 +476,8 @@ fn quoted(target: &str) -> String {
     }
 }
 
-fn status(root: &Path, as_json: bool) -> u8 {
-    let report = resolve(root);
+fn status(root: &Path, scope: &Scope, as_json: bool) -> u8 {
+    let report = resolve(root, scope);
     if as_json {
         let mut verbs = Map::new();
         for (verb, entry) in &report.verbs {
@@ -380,9 +500,12 @@ fn status(root: &Path, as_json: bool) -> u8 {
         } else {
             Value::from(report.path.clone())
         };
+        let directory = scope.part.as_ref().map(|part| part.directory.as_str());
+        let part = scope.part.as_ref().map(|part| part.name.as_str());
         let out = json!({
             "profile": profile,
             "profile_state": report.state,
+            "scope": {"part": part, "directory": directory},
             "error": report.error,
             "verbs": verbs,
             "unknown": report.unknown,
@@ -400,6 +523,7 @@ fn status(root: &Path, as_json: bool) -> u8 {
     for line in &report.profile {
         println!("{line}");
     }
+    println!("{}", scope.line());
     println!();
     for (verb, entry) in &report.verbs {
         match entry {
@@ -504,7 +628,7 @@ pub(crate) fn run_recorded(
     command: &str,
 ) -> std::result::Result<Ran, String> {
     let before = ledger::tree_id(root);
-    let started = ledger::start(root, verb, command, None, &before);
+    let started = ledger::start(root, verb, command, None, &before, "repository");
     let ran = try_execute(root, command);
     let after = ledger::tree_id(root);
     let (outcome, status, output) = match &ran {
@@ -526,6 +650,7 @@ pub(crate) fn run_recorded(
             after: &after,
             output,
             targets: None,
+            scope: "repository",
         },
         started.as_deref(),
     );
@@ -538,7 +663,7 @@ pub(crate) fn run_recorded(
     })
 }
 
-fn run(root: &Path, args: &[String]) -> u8 {
+fn run(root: &Path, scope: &Scope, args: &[String]) -> u8 {
     // Everything after `--` is the part of the work to run over (ADR-1520).
     let (names, targets): (&[String], Option<&[String]>) = match args.iter().position(|a| a == "--")
     {
@@ -572,10 +697,11 @@ fn run(root: &Path, args: &[String]) -> u8 {
         return USAGE;
     }
 
-    let report = resolve(root);
+    let report = resolve(root, scope);
     for line in &report.profile {
         println!("{line}");
     }
+    println!("{}", scope.line());
     println!();
     for notice in &report.notices {
         println!("notice: {notice}\n");
@@ -618,6 +744,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
                         after: &tree,
                         output: "",
                         targets,
+                        scope: scope.label(),
                     },
                     None,
                 );
@@ -652,6 +779,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
                             after: &tree,
                             output: "",
                             targets,
+                            scope: scope.label(),
                         },
                         None,
                     );
@@ -661,9 +789,9 @@ fn run(root: &Path, args: &[String]) -> u8 {
         };
         let command = &command;
         let before = ledger::tree_id(root);
-        let record = ledger::start(root, name, command, targets, &before);
+        let record = ledger::start(root, name, command, targets, &before, scope.label());
         let started = Instant::now();
-        let (code, output) = execute(root, command);
+        let (code, output) = execute(&scope.directory, command);
         let after = ledger::tree_id(root);
         // A stage ended by an interrupt or a termination signal says the run
         // stopped, and nothing about the work (REQ-2969).
@@ -682,6 +810,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
                 after: &after,
                 output: &output,
                 targets,
+                scope: scope.label(),
             },
             record.as_deref(),
         );
@@ -737,7 +866,7 @@ fn run(root: &Path, args: &[String]) -> u8 {
 /// now: 0 when every one passed on it, 1 when one failed, went stale or
 /// changed during its run, and 3 when one has no record, was unresolved or is
 /// bound to no tree (REQ-0146, REQ-0148).
-fn evidence(root: &Path, args: &[String]) -> u8 {
+fn evidence(root: &Path, scope: &Scope, args: &[String]) -> u8 {
     // The repository keeps no run output (REQ-3614), so the two flags that
     // kept and listed it are refused, naming the decision, for one release.
     if args.iter().any(|a| a == "--keep" || a == "--kept") {
@@ -767,7 +896,17 @@ fn evidence(root: &Path, args: &[String]) -> u8 {
         );
         return USAGE;
     }
-    let records = ledger::records(root);
+    println!("{}", scope.line());
+    // A record from before scopes were kept covered the repository.
+    let records: Vec<Value> = ledger::records(root)
+        .into_iter()
+        .filter(|r| {
+            r.get("scope")
+                .and_then(Value::as_str)
+                .unwrap_or("repository")
+                == scope.label()
+        })
+        .collect();
     let text = |record: &Value, key: &str| {
         record
             .get(key)
@@ -1105,21 +1244,21 @@ pub(crate) const HELP: [crate::help::Entry; 7] = [
         name: "status",
         determines: "how each of the five stages resolves from the profile, and from where",
         by_hand: "read the `[stages]` table of `.meowpaw/profile.toml`, then `.meowpaw/profile.local.toml` for a command it overrides",
-        lines: "meow-checks profile: unknown personal format lint check test build subset notice:",
-        json: "profile profile_state error notices unknown verbs",
+        lines: "meow-checks profile: unknown personal scope: format lint check test build subset notice:",
+        json: "profile profile_state scope error notices unknown verbs",
     },
     crate::help::Entry {
         name: "run",
         determines: "the result of each stage the profile binds, run in order, and records it",
         by_hand: "run each stage's command from the profile's `[stages]` table from the repository's root and read its exit status",
-        lines: "profile: unknown personal == -- passed, failed, interrupted summary: recorded: notice: pruned not",
+        lines: "profile: unknown personal scope: == -- passed, failed, interrupted summary: recorded: notice: pruned not",
         json: "",
     },
     crate::help::Entry {
         name: "evidence",
         determines: "whether each stage has a record of a whole run that is current at this tree",
         by_hand: "read the ledger file `meow-checks state` names, where each line is one record with its stage, its result and the tree it ran at, and compare that tree with `meow-checks tree HEAD`",
-        lines: "format: lint: check: test: build: no ==",
+        lines: "scope: format: lint: check: test: build: no ==",
         json: "",
     },
     crate::help::Entry {
@@ -1157,12 +1296,26 @@ pub fn main(args: &[String]) -> u8 {
         return code;
     }
     let root = profile::repository_root();
+    // `status`, `run` and `evidence` take `--part <name>` (REQ-3042).
+    let scoped = matches!(
+        args.first().map(String::as_str),
+        Some("status" | "run" | "evidence")
+    );
+    let (scope, args) = if scoped {
+        match scope_of(&root, &args[0], &args[1..]) {
+            Ok((scope, rest)) => (scope, [&args[..1], &rest[..]].concat()),
+            Err(code) => return code,
+        }
+    } else {
+        (Scope::repository(&root), args.to_vec())
+    };
     let args: Vec<&str> = args.iter().map(String::as_str).collect();
     match args.as_slice() {
-        ["status"] => status(&root, false),
-        ["status", "--json"] => status(&root, true),
+        ["status"] => status(&root, &scope, false),
+        ["status", "--json"] => status(&root, &scope, true),
         ["run", rest @ ..] => run(
             &root,
+            &scope,
             &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
         ),
         ["revision"] => revision(&root),
@@ -1180,11 +1333,12 @@ pub fn main(args: &[String]) -> u8 {
         },
         ["evidence", rest @ ..] => evidence(
             &root,
+            &scope,
             &rest.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
         ),
         _ => {
             eprintln!(
-                "usage: meow-checks status [--json] | meow-checks run <stage>... [-- <target>...] | meow-checks evidence [--all] [verb...] | meow-checks state [--purge] | meow-checks tree <commit> | meow-checks local <stage> <command>"
+                "usage: meow-checks status [--json] [--part <name>] | meow-checks run <stage>... [--part <name>] [-- <target>...] | meow-checks evidence [--all] [--part <name>] [verb...] | meow-checks state [--purge] | meow-checks tree <commit> | meow-checks local <stage> <command>"
             );
             USAGE
         }
@@ -1214,10 +1368,11 @@ mod tests {
     /// from `[stages]`, and from `[verbs]` with the table to use named.
     #[test]
     fn a_stage_resolves_from_either_table() {
-        let stages = resolve(&profile_in("stages", "[stages]\ntest = \"run-tests\"\n"));
+        let resolve = |dir: std::path::PathBuf| super::resolve(&dir, &Scope::repository(&dir));
+        let stages = resolve(profile_in("stages", "[stages]\ntest = \"run-tests\"\n"));
         assert_eq!(resolved(&stages, "test").as_deref(), Some("run-tests"));
         assert_eq!(stages.profile, ["profile: parsed"]);
-        let verbs = resolve(&profile_in("verbs", "[verbs]\ntest = \"run-tests\"\n"));
+        let verbs = resolve(profile_in("verbs", "[verbs]\ntest = \"run-tests\"\n"));
         assert_eq!(resolved(&verbs, "test").as_deref(), Some("run-tests"));
         assert!(
             verbs.profile.iter().any(|line| line.contains("[stages]")),

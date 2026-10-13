@@ -61,6 +61,21 @@ move the record or declare parts, so `[record]` or `[parts]` in it is named as
 `unknown key: record (in site/.meowpaw/profile.toml)` and the root's stands.
 A repository that declares no `[parts]` is one part, its root.
 
+`status`, `run` and `evidence` take `--part <name>`. With no `--part`, they
+work on the part whose directory holds your current directory, and on the
+root where none does. A part's stages run from the part's directory:
+
+```fish
+meow-checks run test --part site
+```
+
+Every report names what it covered on a line of its own, `scope: site site`
+for a part, its name and its directory, or `scope: repository`. `evidence`
+for a part reads only that part's runs, because a pass at the root says
+nothing about the part. Each ledger record keeps its scope and the directory
+the run started in. A `--part` that names no declared part exits 2, names the
+parts the profile declares and runs nothing.
+
 ## What Claude Code does with them
 
 When Claude Code formats, lints, type-checks, tests or builds, the
