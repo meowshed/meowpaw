@@ -118,6 +118,7 @@ Each key the profile may carry, with the reason the key exists:
 - `unattended.amend_approved` — Whether a run may edit an approved record is a person's grant, and the record can't grant it to itself
 - `prose.language` — The language the repository's prose is written in is its choice, and the files already written may mix several
 - `method.principles` — Which files hold the repository's principles is its choice, and no file name says a document is one
+- `parts` — Only the project knows what it is built from, and a marker says which tool a directory uses, not which part it is
 
 ## The subcommands
 
@@ -145,6 +146,8 @@ person reads in its place:
   By hand: run `git rev-parse <commit>^{tree}`
 - `local` — that the command of a stage is written to the personal profile and excluded from version control
   By hand: write the command under `[stages]` in `.meowpaw/profile.local.toml` and add the file to `.git/info/exclude`
+- `doctor` — whether this repository can be worked on here: each stage's resolution in each part, each installed pack's markers, and which findings are this machine's
+  By hand: read `.meowpaw/profile.toml` and each part's profile, look up each stage's program on `PATH`, and list the marker files git tracks for each installed pack
 
 ### meow-github
 
@@ -154,8 +157,12 @@ person reads in its place:
   By hand: read each task's `issue:` and the tracker's issue it names, and create the issue a task lacks
 - `sync` — what changed on the tracker since the last projection, written back into the record
   By hand: compare each issue's title, state and body with its task's record, and copy a change to the record
+- `protections` — which of six protections are in force on the declared trunk, read and never changed
+  By hand: read `gh api repos/{owner}/{repo}/branches/{trunk}/protection` and `gh api repos/{owner}/{repo}/rules/branches/{trunk}`, and look in each for blocked force pushes, blocked deletion, required reviews, required checks, signed commits and linear history
 - `governance-guard` — whether a tool call would change the repository's governance on the code host
   By hand: read the command a hook is about to run for a call that edits branch protection, rulesets or secrets
+- `irreversible-guard` — whether a tool call merges, releases or writes an issue or a pull request from a session a person attends, which the person confirms for that one call
+  By hand: read the command a hook is about to run for `gh pr merge`, `gh release`, an issue or pull request write, a `gh api` write or `meow-github project` without `--check`, and the session's permission mode for `dontAsk`
 
 ### meow-git
 
@@ -163,6 +170,10 @@ person reads in its place:
   By hand: read `git branch --show-current` and compare it with `[git] trunk` in `.meowpaw/profile.toml`
 - `push-guard` — whether each commit a push would publish meets the convention, and where `require_signatures` is true carries a good signature, and whether a branch name carries a stored credential
   By hand: run `git log` over the commits the push would publish and read each against `meow-scm check-message`, `git log --show-signature` and the branch's name
+- `restack` — which branches of a stack, given from the bottom up, were rebased onto the layer below, which weren't reached, and the lease push that publishes each, pushing nothing
+  By hand: for each branch from the bottom up, run `git rebase --onto <new tip below> <old tip below> <branch>`, the first onto the trunk, read `git rev-parse origin/<branch>` before it, and push with `git push --force-with-lease=<branch>:<that revision> origin <branch>`
+- `irreversible-guard` — whether a tool call pushes from a session a person attends, which the person confirms for that one push
+  By hand: read the command a hook is about to run for `git push`, and the session's permission mode for `dontAsk`
 
 ### meow-flow
 
@@ -176,6 +187,8 @@ person reads in its place:
   By hand: look for the kind's file in `.meowpaw/templates/`, then in the unit's `templates/` directory
 - `show` — what one artifact says, what it names and what cites it
   By hand: open the artifact's file, read its front matter relations, and search the record for its identifier to find what cites it
+- `brief` — the brief a delegated agent gets for one task, from the task, its epic or decision and the requirements it closes; `--agent <unit>:<agent>` names the agent definition it is written for, and without it the brief names `general-purpose`, the platform's agent the implement step dispatches
+  By hand: copy the task's opening, What to do, Acceptance criteria, Left alone and Depends on, its epic's entry for it or its decision's Decision, the body of each requirement it closes, and the specifications that state them, word for word
 - `index` — the index table of one kind of artifact
   By hand: list the kind's directory and write one row for each file from its front matter and its conclusion, and with `--write` replace the table between the index's markers
 - `new` — the next free identifier of a kind
@@ -259,4 +272,4 @@ person reads in its place:
 
 ## The form of a piece of evidence
 
-A piece of evidence is one line of the ledger's JSON, whose keys are record, verb, command, outcome, status, time, before, after, output and targets: what ran, what it printed, and the trees either side of it. Cite the line `evidence` prints, which names the stage, the outcome, the record and the tree, and never restate it.
+A piece of evidence is one line of the ledger's JSON, whose keys are record, verb, command, outcome, status, time, before, after, output, targets, scope and directory: what ran, what it printed, the trees either side of it, the part it covered and the directory it started in. Cite the line `evidence` prints, which names the stage, the outcome, the record and the tree, and never restate it.

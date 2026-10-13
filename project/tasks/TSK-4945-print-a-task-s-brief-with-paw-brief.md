@@ -1,7 +1,7 @@
 ---
 id: TSK-4945
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2530
 closes: [REQ-0810, REQ-0812, REQ-0814, REQ-1764]
@@ -54,7 +54,22 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by
+`a_brief_states_four_parts_and_copies_each_constraint_byte_for_byte` in
+`crates/meow/tests/record_brief.rs`, naming REQ-0810, REQ-0812 and REQ-0814,
+criterion 2 by `a_task_realising_a_decision_reads_the_decision_in_the_epics_place`,
+criterion 3 by `the_first_line_names_the_agent_the_brief_is_written_for`,
+naming REQ-1764, and criterion 4 by
+`an_unresolved_task_exits_1_and_prints_no_brief`, each seen failing before
+`paw brief` existed. `read_only_output_opens_with_stated_first_words` in
+`crates/meow/tests/record_help.rs` holds the brief's lines to the first words
+its help states, as SPC-1080 asks. No criterion rests on judgement.
+
+I chose `general-purpose` as the `--agent` default, because no unit ships an
+implementer and the implement step dispatches the platform's own agent; the
+help and `plugins/meow-flow/README.md` state it.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

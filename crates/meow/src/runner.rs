@@ -8,6 +8,7 @@
 //! this module decides how that is reported, so the packs can't drift apart on
 //! what exit 3 or a blocked task means.
 
+use crate::detect::{self, Marker};
 use crate::profile;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -49,29 +50,39 @@ pub struct Runner {
     /// The binding for a task, such as `mise run --force test`.
     pub binding: fn(&str) -> String,
     pub skip: &'static str,
+    /// What a work tree with no marker is not, such as `a mise repository`.
+    pub repository: &'static str,
+    /// The pack's markers among the paths git tracks (SPC-1190).
+    pub markers: fn(&BTreeSet<String>) -> Vec<Marker>,
 }
 
-/// The work tree: its canonical root and the files git tracks in it.
+/// The directory a pack reads, its canonical path and the files git tracks
+/// under it, relative to it, with the work tree's own root and files.
 pub struct Tree {
     pub root: PathBuf,
     pub tracked: BTreeSet<String>,
+    top: PathBuf,
+    everything: BTreeSet<String>,
 }
 
 impl Tree {
+    /// The work tree's root.
     pub fn read() -> Tree {
-        let root = profile::repository_root();
-        let root = std::fs::canonicalize(&root).unwrap_or(root);
-        let mut tracked = BTreeSet::new();
-        if let Ok(done) = profile::reading_git()
-            .args(["ls-files", "-z"])
-            .current_dir(&root)
-            .output()
-        {
-            for path in done.stdout.split(|b| *b == 0).filter(|p| !p.is_empty()) {
-                tracked.insert(String::from_utf8_lossy(path).into_owned());
-            }
+        Tree::read_in(&profile::repository_root())
+    }
+
+    /// One directory of the work tree, which a pack activates for when it
+    /// holds a marker (REQ-3048).
+    pub fn read_in(directory: &Path) -> Tree {
+        let top = profile::repository_root();
+        let top = std::fs::canonicalize(&top).unwrap_or(top);
+        let root = std::fs::canonicalize(directory).unwrap_or(directory.to_path_buf());
+        Tree {
+            tracked: detect::tracked(&root),
+            everything: detect::tracked(&top),
+            root,
+            top,
         }
-        Tree { root, tracked }
     }
 
     /// A path relative to the root where it lies inside it.
@@ -88,9 +99,14 @@ impl Tree {
     }
 
     /// Where a file a task came from lies: committed, in the work tree only, or outside (REQ-2465).
-    pub fn origin(&self, relative: Option<&str>) -> &'static str {
+    pub fn origin(&self, path: &Path) -> &'static str {
+        let path = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+        let relative = path
+            .strip_prefix(&self.top)
+            .ok()
+            .map(|p| p.to_string_lossy().into_owned());
         match relative {
-            Some(r) if self.tracked.contains(r) => "repository",
+            Some(r) if self.everything.contains(&r) => "repository",
             Some(_) => "work tree only",
             None => "outside",
         }
@@ -122,9 +138,36 @@ fn print_unresolved(Unresolved { report, reason }: Unresolved) -> u8 {
     UNRESOLVED
 }
 
-pub fn status(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved>) -> u8 {
+/// What the runner resolves in each directory holding its marker, each
+/// opened by its scope and markers, starting no runner where there is none
+/// (REQ-3048). It exits 3 where a directory's listing is unresolved.
+pub fn status(runner: &Runner, resolve: impl Fn(&Path) -> Result<Resolved, Unresolved>) -> u8 {
     println!("{} status", runner.unit);
-    let resolved = match resolve() {
+    let top = Tree::read();
+    let markers = (runner.markers)(&top.tracked);
+    if markers.is_empty() {
+        println!("unresolved: not {}", runner.repository);
+        return UNRESOLVED;
+    }
+    let parts = detect::parts(&top.root);
+    let mut code = 0;
+    for (directory, files) in detect::by_directory(&markers) {
+        println!("{}", detect::scope(&parts, &directory));
+        for file in files {
+            println!("marker: {file}");
+        }
+        if directory_status(&resolve, &top.root.join(&directory)) != 0 {
+            code = UNRESOLVED;
+        }
+    }
+    code
+}
+
+fn directory_status(
+    resolve: &impl Fn(&Path) -> Result<Resolved, Unresolved>,
+    directory: &Path,
+) -> u8 {
+    let resolved = match resolve(directory) {
         Ok(resolved) => resolved,
         Err(unresolved) => return print_unresolved(unresolved),
     };
@@ -155,8 +198,8 @@ pub fn status(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved
 /// A `[stages]` table binding each stage to the task of exactly its name, never
 /// a near one and never by what a task runs (REQ-2474, REQ-2492). It prints
 /// and never writes, because the profile is the repository's (ADR-1070).
-pub fn bind(runner: &Runner, resolve: impl Fn() -> Result<Resolved, Unresolved>) -> u8 {
-    let resolved = match resolve() {
+pub fn bind(runner: &Runner, resolve: impl Fn(&Path) -> Result<Resolved, Unresolved>) -> u8 {
+    let resolved = match resolve(&profile::repository_root()) {
         Ok(resolved) => resolved,
         Err(Unresolved { reason, .. }) => {
             println!("{} bind", runner.unit);
@@ -220,7 +263,7 @@ pub fn bound_tasks(command: &str, runs: &[&str]) -> Vec<(String, bool)> {
 pub fn check(
     runner: &Runner,
     early: Vec<String>,
-    resolve: impl Fn() -> Result<Resolved, Unresolved>,
+    resolve: impl Fn(&Path) -> Result<Resolved, Unresolved>,
 ) -> u8 {
     println!("{} check", runner.unit);
     let root = profile::repository_root();
@@ -273,7 +316,7 @@ pub fn check(
         );
         return 0;
     }
-    let resolved = match resolve() {
+    let resolved = match resolve(&root) {
         Ok(resolved) => resolved,
         Err(Unresolved { reason, .. }) => {
             println!("unresolved: {reason}");

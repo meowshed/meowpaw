@@ -61,6 +61,35 @@ as passed. The words after it say why:
   say on which line and what the parser found, such as
   ``line 3: unclosed table, expected `]` ``. Fix the file.
 
+## doctor reports a finding
+
+`meow-checks doctor` ends each finding with what it concerns, and exits 1
+where one concerns the repository and 3 where every one is this machine's:
+
+- `finding: machine:` and a program that isn't on this machine's `PATH`: the
+  stage's command starts a program your machine doesn't have. The repository
+  isn't broken. Install the program, through the toolchain declaration the
+  repository keeps where it keeps one, and run `doctor` again.
+- `finding: repository:` and a stage that is unresolved: the profile declares
+  no command for the stage there. A part's profile declares every stage the
+  part needs, because a part never takes the root's. The kinds are those
+  under [A stage is unresolved](#a-stage-is-unresolved).
+- `finding: repository:` and a path the repository doesn't hold: the command
+  names a relative path that doesn't exist, such as a script nobody
+  committed. Commit it or correct the command.
+- `finding: repository:` and an unknown key: see
+  [A setting has no effect](#a-setting-has-no-effect).
+
+A pack missing from the `pack:` lines isn't installed beside `meow-checks`,
+so it couldn't report its marker. Install it to see what it detects.
+
+## --part names no declared part
+
+`meow-checks run: --part <name> names no declared part, so nothing ran` means
+the root profile's `[parts]` has no part of that name. The message lists the
+parts it does declare. Run again with one of them, or declare the part under
+`[parts]` as `<name> = "<directory>"`.
+
 ## A setting has no effect
 
 `unknown key: stages.tset` means `.meowpaw/profile.toml` holds a key that no

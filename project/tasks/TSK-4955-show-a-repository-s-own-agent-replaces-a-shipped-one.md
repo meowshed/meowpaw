@@ -47,6 +47,21 @@ Nothing.
 
 Not yet.
 
+Criterion 1 rests on judgement, because a fixture in CI can't read which
+definition the platform dispatches, and it can't be met as written: it names
+`.claude/agents/router.md`, and `meow-flow` stopped shipping the router agent
+when routing moved into the session. A case run by hand once on `sonnet`, for
+the researcher agent the unit does ship, and not kept, as ADR-2980 asks, found that
+the platform keeps both definitions: a dispatch of `meow-flow:researcher`
+reached the unit's, and only `researcher` reached the repository's. That is
+the case What to do names, so REQ-2986 needs a defect, which isn't recorded
+yet.
+
+Criterion 2 is checked by `ReplacingAnAgent` in
+`tools/test_shipped_agents.py`, which holds each page to saying how to
+replace its agent and which name reaches which definition. Neither page says
+the repository's definition wins, because the run shows it doesn't.
+
 ## Left alone
 
 The shipped agents' definitions, which stay as SPC-1030 states.

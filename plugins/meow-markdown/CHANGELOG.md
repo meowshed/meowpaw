@@ -4,6 +4,10 @@
 
 - Every unit's `requires.toml` now states its layer, the units it needs and, in a pack, the range of `meow-core` versions it works with, and the check fails a unit missing one.
 - Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions.
+- `bind` names under a stage each other tool configured for it, such as a `.mdformat.toml` beside a `.prettierrc`, so you can see which one runs.
+- A clean `check` names the groups of settings it checked after `no findings`.
+- `links` names each file lychee's run left in the working tree.
+- `links` says its result is read from lychee's JSON report, and the page states which generated files to commit and which to ignore.
 
 ## 0.8.0
 

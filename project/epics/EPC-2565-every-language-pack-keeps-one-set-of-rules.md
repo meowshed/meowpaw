@@ -1,7 +1,7 @@
 ---
 id: EPC-2565
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2670
 ---
@@ -48,18 +48,18 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-5120 hold what a pack runs in the shared pack layer of `crates/meow/`
+- [x] T-001 [P] TSK-5120 hold what a pack runs in the shared pack layer of `crates/meow/` (done: pull request 1072)
       closes: REQ-2420, REQ-2422, REQ-2426, REQ-2428, REQ-2446, REQ-2448
 
-- [ ] T-002 [P] TSK-5125 hold what a pack reports it didn't check in the shared pack layer
+- [x] T-002 [P] TSK-5125 hold what a pack reports it didn't check in the shared pack layer (done: pull request 1072)
       closes: REQ-2410, REQ-2412, REQ-2414, REQ-2432, REQ-2436, REQ-2444
       depends: TSK-5120 (not blocking) - both add rules to the same shared layer, and either can land first
 
-- [ ] T-003 [P] TSK-5130 hold what a pack never changes in the shared pack layer
+- [x] T-003 [P] TSK-5130 hold what a pack never changes in the shared pack layer (done: pull request 1072)
       closes: REQ-2430, REQ-2440, REQ-2442
       depends: TSK-5120 (not blocking) - both add rules to the same shared layer, and either can land first
 
-- [ ] T-004 [P] TSK-5135 hold what a pack keeps in the shared pack layer
+- [x] T-004 [P] TSK-5135 hold what a pack keeps in the shared pack layer (done: pull request 1072)
       closes: REQ-2416, REQ-2418, REQ-2450
       depends: TSK-5120 (not blocking) - both add rules to the same shared layer, and either can land first
 

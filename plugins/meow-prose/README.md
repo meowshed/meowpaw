@@ -78,6 +78,15 @@ the shipped standard: the replacement is total, because two standards that
 disagree leave an author no way to tell which one applies. `meow-prose` only
 reads the directory and never writes to it.
 
+## Replace the reviewer
+
+To use a reviewer of your own, put its definition in `.claude/agents/prose.md`
+in your repository. Claude Code loads it under the bare name `prose`, beside
+the unit's `meow-prose:prose`, and keeps both: a dispatch that names
+`meow-prose:prose` still gets the unit's reviewer, and only one that names
+`prose` gets yours. So your definition doesn't win over the unit's name, and
+you ask for `prose` by name when you want yours.
+
 ## Tools
 
 The `prose` agent holds three tools, each for one step of its procedure:

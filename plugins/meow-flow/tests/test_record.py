@@ -2875,6 +2875,20 @@ class EpicIsOnePullRequest(unittest.TestCase):
         self.assertRegex(text, r"mark(ed)? (it |each |the task )?in the commit that")
 
 
+class ReadDenial(unittest.TestCase):
+    """TSK-5065, ADR-2650: the implement step relies on no read denial to keep a file from an agent."""
+
+    ROOT = Path(__file__).resolve().parents[3]
+
+    def test_no_step_relies_on_a_read_denial(self):
+        """Criterion 3, REQ-3056: a read denial is a default and never a boundary, in both copies, with its reason."""
+        for where in ("plugins", "packages"):
+            with self.subTest(copy=where):
+                text = " ".join((self.ROOT / where / "meow-flow/skills/method/steps/implement.md")
+                                .read_text(encoding="utf-8").split())
+                self.assertRegex(text, r"I\d+\. [^.]{0,200}read denial[^.]{0,200}because[^.]{0,200}shell search")
+
+
 class WriteCommands(unittest.TestCase):
     """TSK-5310, TSK-5311, ADR-2880: a status change that crosses files is one command, and nothing else moves."""
 
