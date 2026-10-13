@@ -377,6 +377,8 @@ the Markdown pack within it. `meow-markdown` implements both, which EPC-1800
 realised, verified under issue 624. The supported packs in their order, which
 EPC-2560 realises, the rules every pack keeps, which EPC-2565 realises, and
 the diagram check, which EPC-2540 realises, aren't built yet.
+[SPC-1360](specs/SPC-1360-the-c-sharp-pack.md) states the C# pack, which
+`meow-csharp` implements.
 
 [SPC-1310](specs/SPC-1310-the-rust-pack.md) states the Rust pack within
 SPC-1190: its detection, its bindings, its findings and its toolchain check.
