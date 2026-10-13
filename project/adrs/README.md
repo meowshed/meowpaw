@@ -161,4 +161,5 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2990](ADR-2990-the-requirements-the-measurements-surfaced-keep-their-decisions.md)                                                                   | The requirements the measurements surfaced keep the decisions their behaviour came from                                                    | done       |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1140 by ADR-2770; ADR-1170 by ADR-2770; ADR-1210 by ADR-2770; ADR-1310 by ADR-2890; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310; ADR-2310 by ADR-2860.
+
 <!-- /meow-flow index -->

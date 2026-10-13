@@ -4158,23 +4158,30 @@ fn generate_index(record: &Record, k: usize) -> Option<String> {
         count(docs.len(), &kind.name),
         counted.join(", ")
     ));
-    out.push_str(&format!(
-        "| Identifier | What it {} | Status |\n| --- | --- | --- |\n",
-        if kind.name == "requirement" {
-            "requires"
-        } else {
-            "concluded"
-        }
-    ));
-    for doc in &docs {
-        let id = bare(doc.id());
-        out.push_str(&format!(
-            "| [{id}]({}) | {} | {} |\n",
-            relative_link(index, &doc.relative),
-            conclusion(record, doc),
-            bare(doc.value("status"))
-        ));
-    }
+    let header = [
+        "Identifier".to_string(),
+        format!(
+            "What it {}",
+            if kind.name == "requirement" {
+                "requires"
+            } else {
+                "concluded"
+            }
+        ),
+        "Status".to_string(),
+    ];
+    let rows: Vec<[String; 3]> = docs
+        .iter()
+        .map(|doc| {
+            let id = bare(doc.id());
+            [
+                format!("[{id}]({})", relative_link(index, &doc.relative)),
+                conclusion(record, doc),
+                bare(doc.value("status")).to_string(),
+            ]
+        })
+        .collect();
+    out.push_str(&aligned_table(&header, &rows));
     let amended = Regex::new(r"\*\*Amended by ((?:ADR|BUG|EPC)-\d{4})").expect("amendment pattern");
     let amendments: Vec<String> = docs
         .iter()
@@ -4205,6 +4212,32 @@ fn generate_index(record: &Record, k: usize) -> Option<String> {
         }
     }
     Some(out)
+}
+
+/// A table padded as the Markdown formatter leaves it, each column as wide as
+/// its widest cell, so a written index passes the format check unchanged.
+fn aligned_table(header: &[String; 3], rows: &[[String; 3]]) -> String {
+    let mut widths: [usize; 3] = std::array::from_fn(|i| header[i].chars().count().max(3));
+    for row in rows {
+        for (width, cell) in widths.iter_mut().zip(row) {
+            *width = (*width).max(cell.chars().count());
+        }
+    }
+    let line = |cells: [&str; 3]| {
+        let padded: Vec<String> = cells
+            .iter()
+            .zip(widths)
+            .map(|(cell, width)| format!("{cell}{}", " ".repeat(width - cell.chars().count())))
+            .collect();
+        format!("| {} |\n", padded.join(" | "))
+    };
+    let mut out = line([&header[0], &header[1], &header[2]]);
+    let rules = widths.map(|width| "-".repeat(width));
+    out.push_str(&line([&rules[0], &rules[1], &rules[2]]));
+    for row in rows {
+        out.push_str(&line([&row[0], &row[1], &row[2]]));
+    }
+    out
 }
 
 /// A block's text as a formatter leaves its meaning: blank lines, the padding
@@ -4283,8 +4316,10 @@ fn index_command(rest: &[String]) -> u8 {
         return FOUND;
     };
     // Writing moves an index still carrying the old markers onto the new ones.
+    // The blank line before the closing marker is where the formatter puts it
+    // after a list.
     let updated = format!(
-        "{}{INDEX_OPEN}\n\n{}\n{INDEX_CLOSE}{}",
+        "{}{INDEX_OPEN}\n\n{}\n\n{INDEX_CLOSE}{}",
         &text[..start],
         block.trim_end(),
         &text[end..]
