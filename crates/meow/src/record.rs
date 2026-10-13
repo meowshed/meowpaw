@@ -2035,10 +2035,16 @@ fn walk_up<'a>(
 
 /// Why a citation of `target` from `doc` is suspect, where it is: the target
 /// was revised after the citing record, or, for a kind that changes after
-/// approval, was withdrawn or superseded (REQ-0141).
+/// approval or a kind's index, which is rewritten as its kind grows, was
+/// withdrawn or superseded (REQ-0141).
 fn suspect(record: &Record, doc: &Doc, target: &Doc) -> Option<String> {
     let status = bare(target.value("status"));
-    if CHANGE_AFTER_APPROVAL.contains(&kind_of(record, target)) {
+    let is_index = record
+        .layout
+        .kinds
+        .iter()
+        .any(|kind| kind.index.as_deref() == Some(target.relative.as_str()));
+    if is_index || CHANGE_AFTER_APPROVAL.contains(&kind_of(record, target)) {
         return matches!(status, "withdrawn" | "superseded").then(|| format!("is {status}"));
     }
     let (theirs, ours) = (bare(target.value("revised")), bare(doc.value("revised")));
