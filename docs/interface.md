@@ -157,6 +157,8 @@ person reads in its place:
   By hand: read each task's `issue:` and the tracker's issue it names, and create the issue a task lacks
 - `sync` — what changed on the tracker since the last projection, written back into the record
   By hand: compare each issue's title, state and body with its task's record, and copy a change to the record
+- `protections` — which of six protections are in force on the declared trunk, read and never changed
+  By hand: read `gh api repos/{owner}/{repo}/branches/{trunk}/protection` and `gh api repos/{owner}/{repo}/rules/branches/{trunk}`, and look in each for blocked force pushes, blocked deletion, required reviews, required checks, signed commits and linear history
 - `governance-guard` — whether a tool call would change the repository's governance on the code host
   By hand: read the command a hook is about to run for a call that edits branch protection, rulesets or secrets
 

@@ -486,6 +486,7 @@ fn the_tracker_commands_refuse_with_stated_first_words() {
     held(d, s, "github", &["history"], "");
     held(d, s, "github", &["project", "EPC-0001"], "");
     held(d, s, "github", &["sync", "EPC-0001"], "");
+    held(d, s, "github", &["protections"], "");
     none_missing();
 }
 

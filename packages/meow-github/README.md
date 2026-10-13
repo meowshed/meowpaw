@@ -7,7 +7,7 @@ describes: [@meowshed/meow-github@0.16.0]
 
 # @meowshed/meow-github
 
-Reads a GitHub repository's issues, pull requests and comments through gh as one JSON document, projects an approved epic's tasks onto issues and writes nothing else, and asks before a Bash command's gh changes how the repository is governed. It keeps nothing in context on every turn. Distributed as a Pi package.
+Reads a GitHub repository's issues, pull requests and comments through gh as one JSON document, projects an approved epic's tasks onto issues and writes nothing else, reports which protections are in force on the declared trunk, and asks before a Bash command's gh changes how the repository is governed. It keeps nothing in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

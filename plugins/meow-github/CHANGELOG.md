@@ -5,6 +5,7 @@
 - Every unit's `requires.toml` now states its layer, the units it needs and, in a pack, the range of `meow-core` versions it works with, and the check fails a unit missing one.
 - Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions.
 - Its page opens with how it serves GitHub as the code host and GitHub Issues as the tracker.
+- `meow-github protections` prints which of six protections are in force on the trunk the profile declares, and changes none of them.
 
 ## 0.16.0
 

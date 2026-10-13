@@ -14,6 +14,7 @@ use serde_json::{Value, json};
 
 mod guard;
 mod project;
+mod protections;
 mod request;
 mod sync;
 
@@ -26,11 +27,11 @@ const LISTINGS: [(&str, &str); 4] = [
     ("review comments", "pulls/comments?per_page=100"),
 ];
 
-const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | sync <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | governance-guard";
+const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | sync <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | protections [--wait] [<owner>/<name>] | governance-guard";
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-pub(crate) const HELP: [crate::help::Entry; 4] = [
+pub(crate) const HELP: [crate::help::Entry; 5] = [
     crate::help::Entry {
         name: "history",
         determines: "the issues, pull requests and comments of one repository on the code host, read back",
@@ -50,6 +51,13 @@ pub(crate) const HELP: [crate::help::Entry; 4] = [
         determines: "what changed on the tracker since the last projection, written back into the record",
         by_hand: "compare each issue's title, state and body with its task's record, and copy a change to the record",
         lines: "credential: meow-github primary secondary content spacing: partial: <id>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "protections",
+        determines: "which of six protections are in force on the declared trunk, read and never changed",
+        by_hand: "read `gh api repos/{owner}/{repo}/branches/{trunk}/protection` and `gh api repos/{owner}/{repo}/rules/branches/{trunk}`, and look in each for blocked force pushes, blocked deletion, required reviews, required checks, signed commits and linear history",
+        lines: "credential: meow-github force deletion required signed linear refused: throttled: unauthenticated: primary secondary content spacing:",
         json: "",
     },
     crate::help::Entry {
@@ -91,6 +99,8 @@ pub fn main(args: &[String]) -> u8 {
         ("sync", [record, repository], _) => {
             synchronise(&mut layer, record, Some(repository), check)
         }
+        ("protections", [], false) => protect(&mut layer, None),
+        ("protections", [repository], false) => protect(&mut layer, Some(repository)),
         _ => {
             eprintln!("{USAGE_LINE}");
             USAGE
@@ -115,6 +125,18 @@ fn project(layer: &mut Layer, record: &str, repository: Option<&str>, check: boo
 fn synchronise(layer: &mut Layer, record: &str, repository: Option<&str>, check: bool) -> u8 {
     println!("credential: {}", credential());
     let code = sync::run(layer, record, repository, check);
+    for line in layer.budget() {
+        println!("{line}");
+    }
+    code
+}
+
+/// Reports the trunk's protections, with the credential's form as the
+/// report's first line and the budget as its last lines, as `project` does
+/// (REQ-2194).
+fn protect(layer: &mut Layer, repository: Option<&str>) -> u8 {
+    println!("credential: {}", credential());
+    let code = protections::run(layer, repository);
     for line in layer.budget() {
         println!("{line}");
     }
