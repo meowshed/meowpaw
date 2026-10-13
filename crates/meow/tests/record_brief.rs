@@ -250,3 +250,28 @@ fn an_unresolved_task_exits_1_and_prints_no_brief() {
     let usage = paw(&dir.0, &["brief"]);
     assert_eq!(usage.status.code(), Some(2), "{usage:?}");
 }
+
+/// TSK-5175, REQ-1764, REQ-1294, ADR-2730: the brief tells the delegated
+/// agent that its pull request names the task and the command that prints the
+/// brief, and names no agent, model or vendor.
+#[test]
+fn the_brief_asks_the_pull_request_for_the_task_and_the_brief_command() {
+    let dir = fixture("pull-request");
+    let brief = stdout(&paw(
+        &dir.0,
+        &["brief", "TSK-0001", "--agent", "meow-flow:researcher"],
+    ));
+    let report = part(&brief, "Report back")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    assert!(
+        report.contains("pull request carrying this work names the task, TSK-0001, and the command that prints this brief, `paw brief TSK-0001`"),
+        "{report}"
+    );
+    assert!(
+        report.contains("names no agent, model or vendor"),
+        "{report}"
+    );
+    assert_eq!(brief.lines().next(), Some("agent: meow-flow:researcher"));
+}
