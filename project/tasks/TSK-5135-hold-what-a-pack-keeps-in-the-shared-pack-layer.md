@@ -1,7 +1,7 @@
 ---
 id: TSK-5135
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2565
 closes: [REQ-2416, REQ-2418, REQ-2450]
@@ -49,7 +49,27 @@ reports.
 
 ## Evidence
 
-Not yet.
+Each criterion closes with a crate test in `crates/meow/src/pack.rs`, each
+seen failing against stubbed bodies before the rule was written:
+
+1. `tsk_5135_criterion_1_a_result_is_collected_in_the_ecosystems_format` and
+   `tsk_5135_criterion_1_with_no_format_the_evidence_is_captured_output`
+   (REQ-2416), through `run_in` with a `Format`. `meow-markdown links` names
+   lychee's JSON report as its evidence, which
+   `test_tsk_5135_links_names_the_format_its_evidence_is_read_from` in
+   `plugins/meow-markdown/tests/test_markdown.py` holds.
+2. `tsk_5135_criterion_2_files_the_tool_deletes_are_kept_and_named`
+   (REQ-2418), through `Invocation::keeping`.
+3. `tsk_5135_criterion_3_a_document_without_the_generated_files_fails` and
+   `tsk_5135_criterion_3_every_language_pack_states_its_generated_files`
+   (REQ-2450), through `states_generated_files`; the second reads the page of
+   every unit whose manifest carries the `language` keyword, and
+   `plugins/meow-markdown/README.md` gains its `Generated files` section, as
+   the Pi package's page does.
+
+lychee deletes no file a run would keep, so `meow-markdown` asks for none.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

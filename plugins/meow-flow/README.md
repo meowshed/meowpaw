@@ -188,6 +188,17 @@ artifact that cites it, grouped by the field that cites it, and for a
 requirement each task closing it with its mark and its epic.
 It marks a citation as suspect where its target was revised after the citing
 artifact, which is how an approved artifact's suspect citations are reported.
+`paw brief <task> [--agent <unit>:<agent>]` prints the brief a delegated
+agent gets for a task, built from the record and never from a conversation:
+what to build, the constraints, the interfaces it touches and what to report
+back, each under its own heading. It copies each constraint word for word,
+inside a fence, from the requirements the task closes and from the task's
+Acceptance criteria and Left alone. Its first line names the agent definition
+the brief is written for, `general-purpose` unless you pass `--agent`, because
+that's the platform's agent the implement step dispatches, and no unit ships an
+implementer. A task naming `realises:` has its decision read where an epic
+would be. It writes nothing, and it exits 1 for an identifier that names no
+task.
 `paw count` prints each kind's number of artifacts by status and the number of
 identifiers, which a migration runs before and after to show it lost nothing.
 `paw find <word>...` lists the artifacts whose identifier, title or conclusion
@@ -223,6 +234,15 @@ implementation. Where the agent reports `BLOCKED`, because a tool it needed
 was denied, the step reports the review as not run, and doesn't resume the
 agent, send another under the same permissions or review the change itself. No agent reviews a record: you read it when you approve its
 pull request.
+
+The implement step hands a task to another agent only to keep its own context
+clean or to run independent tracks at once, never because the task is large.
+It gives that agent the output of `paw brief <task>`, and declares
+`isolation: worktree` where agents implement in parallel. A fresh agent, never
+a fork of the session that did the work, reviews delegated work, and a third
+fresh agent settles a disagreement between the two, given both positions and
+the brief. The pull request names the task and `paw brief <task>`, and names
+no agent, model or vendor.
 
 ## Write a status change in one command
 
@@ -297,6 +317,16 @@ it needs git and a base.
 
 It exits 0 when no check found anything, 1 when any did or the root doesn't
 exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
+
+## Replace the researcher
+
+To use a researcher of your own, put its definition in
+`.claude/agents/researcher.md` in your repository. Claude Code loads it under
+the bare name `researcher`, beside the unit's `meow-flow:researcher`, and
+keeps both. The research step dispatches `meow-flow:researcher`, so it still
+gets the unit's definition, and only a dispatch that names `researcher` gets
+yours. So your definition doesn't win over the unit's name, and you ask for
+`researcher` by name when you want yours.
 
 ## Tools
 

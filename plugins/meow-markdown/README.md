@@ -50,11 +50,15 @@ every repository has one.
    the skill knows it: `github`, `gitlab`, `mkdocs`, `docusaurus`, `hugo`,
    `mdbook` and `obsidian` are known, and another string is reported as
    declared and unknown to the skill.
-3. Each markdownlint configuration file git tracks, by directory, with the
-   front ends that read it. markdownlint-cli2 alone reads a
+3. One report for each directory holding a markdownlint file git tracks,
+   opened by `scope: <directory>`, or `scope: <part> <directory>` where your
+   profile's `[parts]` declares a part holding it. Each file follows as
+   `marker: <file>: read by <front ends>`. markdownlint-cli2 alone reads a
    `.markdownlint-cli2.*` file, markdownlint-cli2 and markdownlint-cli both
    read a `.markdownlint.*` file, and markdownlint-cli alone reads a
-   `.markdownlintrc`, when it runs in that file's directory.
+   `.markdownlintrc`, when it runs in that file's directory. Where git tracks
+   no markdownlint file, the root is the one directory, and its marker is
+   `*.md, <count> tracked`.
 4. Each other tool it recognises: prettier, mdformat, remark-lint, textlint,
    lychee and a site generator's configuration.
 5. Where `lychee.toml` sets `cache = true`, a line saying lychee writes
@@ -95,6 +99,9 @@ Each stage takes the first binding that applies:
 | `build`  | nothing, printed as unbound    | A `mkdocs.yml`, `book.toml`, `hugo.toml` or `docusaurus.config.*`, which it names |
 
 A stage with no binding is a comment naming what the program looked for.
+Where you configured two tools for one stage, such as a `.prettierrc` beside
+a `.mdformat.toml`, the stage binds the first in this table, and a comment
+under it names the other with its file, so you can see which one runs.
 `build` stays unbound where a site generator is configured, because nobody has
 yet watched a generator's build fail on a broken page. `bind` prints nothing
 for a stage your profile already declares. It names a `.remarkrc*` or
@@ -134,7 +141,10 @@ tool your `lint` stage names, so a linter run through a runner's task, such as
 suffix, so `npx markdownlint-cli2@0.23.2` counts as markdownlint-cli2. Write
 markdownlint-cli2's `--config` with the path as the next word, because
 markdownlint-cli2 reads `--config=<path>` as a glob and applies no
-configuration from it. With no finding it prints `no findings` and exits 0.
+configuration from it. With no finding it prints `no findings`, followed on
+the same line by the groups of settings it checked: the render target, the
+markdownlint settings and the link check's settings, so a clean result says
+what it covers. It then exits 0.
 
 To run the checks with your linter, append the command to your `lint` stage,
 naming the program by its path so a CI job without the unit's `bin/` on
@@ -172,8 +182,24 @@ unresolved, and 0 where every checked link resolved. A skipped address counts
 towards no exit status. A site that is down therefore never makes a finding,
 and never makes a pass either.
 
+`links` prints `evidence: lychee's JSON report, read from lychee's standard
+output`, because it reads lychee's machine-readable report and not the text
+lychee writes for people.
+
+`links` compares `git status --porcelain` before and after lychee runs, and
+prints `left in the working tree: <path>` for each file the run added, such as
+a `.lycheecache` no ignore file covers. That line doesn't change the exit
+status, because `check` already reports an unignored cache as a finding.
+
 `meow-checks` reads a `test` stage's exit status alone, so it reports a `links`
 run that exits 3 as failed, and the lines it quotes say `unreachable`.
+
+## Generated files
+
+Commit no generated file: Markdown's tools generate nothing that is project
+state, and the configuration files `bind` reads are files you write. Ignore
+`.lycheecache`, the cache lychee writes at the root where `lychee.toml` sets
+`cache = true`, because it is regenerated on the next run.
 
 ## What it reports instead of a table
 

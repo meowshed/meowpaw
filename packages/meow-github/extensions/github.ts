@@ -6,7 +6,10 @@
  *
  * Asks a person before a gh command changes how the repository is
  * governed, relaying the guard binary's decision (SPC-1300). Where there
- * is no one to ask, the command is denied.
+ * is no one to ask, the command is denied. It also asks before each merge,
+ * release or issue or pull request write the model runs, once for that
+ * call (ADR-2750); with no one to ask, the run's own posture decides, as
+ * ADR-2380 says.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -63,11 +66,24 @@ export default async function (pi: ExtensionAPI) {
     return asked.reason;
   }
 
+  /** The person's answer about one irreversible call, as a reason to block. */
+  async function irreversible(command: string, ctx: { hasUI: boolean; ui: { confirm(q: string): Promise<boolean> } }): Promise<string | undefined> {
+    if (!ctx.hasUI || !/\b(?:gh|meow-github)\s/.test(command)) return undefined;
+
+    const { stdout } = await runGuard(
+      join(binDir, "meow-github"), ["irreversible-guard"],
+      { tool_name: "Bash", tool_input: { command } }, 10_000,
+    );
+    const asked = decision(stdout);
+    if (asked?.decision !== "ask") return undefined;
+    return (await ctx.ui.confirm(`${asked.reason}\n\nAllow?`)) ? undefined : asked.reason;
+  }
+
   pi.on("tool_call", async (event, ctx) => {
     if (event.toolName !== "bash") return undefined;
 
     const command = typeof event.input?.command === "string" ? event.input.command : "";
-    const reason = await governance(command, ctx);
+    const reason = (await governance(command, ctx)) ?? (await irreversible(command, ctx));
     if (reason === undefined) return undefined;
     return { block: true, reason };
   });

@@ -125,6 +125,16 @@ class Bind(Fixture):
         """TSK-3100 criterion 2, REQ-2352: a `.prettierrc` binds format to prettier."""
         self.assertIn("format = \"prettier --check '**/*.md'\"", self.bind({**TWO, ".prettierrc": "{}\n"}))
 
+    def test_tsk_5120_two_configured_formatters_bind_the_first_and_name_the_other(self):
+        """TSK-5120 criterion 1, REQ-2420: prettier binds format, and the `.mdformat.toml` also configured is named."""
+        lines = self.bind({**TWO, ".prettierrc": "{}\n", ".mdformat.toml": "wrap = 80\n"})
+        line = "format = \"prettier --check '**/*.md'\""
+        self.assertIn(line, lines)
+        comment = self.following(lines, line)
+        self.assertTrue(comment.startswith("#"), lines)
+        self.assertIn(".mdformat.toml", comment)
+        self.assertNotIn("format = \"mdformat --check .\"", lines)
+
     def test_criterion_2_check_is_unresolved_with_its_reason(self):
         """TSK-3100 criterion 2, REQ-2352: Markdown has no types, so check is unresolved."""
         self.assertIn("# check: unresolved, Markdown has no types", self.bind(TWO))
@@ -262,6 +272,15 @@ class RenderTarget(Check):
                 done = self.check({**TWO, ".meowpaw/profile.toml": verbs(None, f'"{target}"')})
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                 self.assertNotIn(NO_TARGET, done.stdout + done.stderr)
+
+    def test_tsk_5125_a_clean_check_names_what_it_checked(self):
+        """TSK-5125 criterion 4, REQ-2432: a clean `check` names each group of settings it checked."""
+        done = self.check(TWO)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        clean = [line for line in done.stdout.splitlines() if line.startswith("no findings")]
+        self.assertEqual(len(clean), 1, done.stdout)
+        for group in ("render target", "markdownlint settings", "link check's settings"):
+            self.assertIn(group, clean[0])
 
 
 class MarkdownlintSettings(Check):
@@ -566,6 +585,24 @@ class Links(Fixture):
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                 args = (repository.root.parent / "bin" / "lychee.args").read_text(encoding="utf-8").splitlines()
                 self.assertEqual(args, ["--format", "json", "--no-progress", "--", *expected])
+
+    def test_tsk_5130_a_file_lychee_leaves_in_the_tree_is_named(self):
+        """TSK-5130 criterion 3, REQ-2442: a file lychee leaves in the working tree is named, and the clean run still exits 0."""
+        repository, done = self.links(report(), 0)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("left in the working tree", done.stdout)
+        script = repository.root.parent / "bin" / "lychee"
+        script.write_text(script.read_text(encoding="utf-8").replace("cat ", "touch stray.cache\ncat ", 1),
+                          encoding="utf-8")
+        done = repository.run("links")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("left in the working tree: stray.cache", done.stdout)
+
+    def test_tsk_5135_links_names_the_format_its_evidence_is_read_from(self):
+        """TSK-5135 criterion 1, REQ-2416: `links` says its result is read from lychee's JSON report."""
+        _, done = self.links(report(), 0)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("evidence: lychee's JSON report, read from lychee's standard output", done.stdout)
 
     def test_criterion_2_a_404_and_a_missing_file_are_findings(self):
         """TSK-3120 criterion 2, REQ-2438: a 404 and a missing relative file print as `finding`, exiting 1."""

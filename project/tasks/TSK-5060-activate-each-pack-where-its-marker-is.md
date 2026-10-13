@@ -1,7 +1,7 @@
 ---
 id: TSK-5060
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2555
 closes: [REQ-0133, REQ-3048]
@@ -48,7 +48,22 @@ Document the change on each pack's page; SPC-1190's failure rows stay as they ar
 
 ## Evidence
 
-Not yet.
+The crate tests in `crates/meow/tests/detection.rs` close the criteria, each
+seen failing before the change, with stand-in `mise` and `task` programs on
+`PATH`. `mise_reports_for_the_directory_holding_its_marker_alone` closes
+criterion 1 (REQ-3048, REQ-0133), and
+`mise_with_no_marker_reports_no_directory` shows a tree with no marker starts
+no mise. `markdown_reports_once_per_directory` closes criterion 2 (REQ-0133).
+`gotask_names_the_part_and_its_directory` closes criterion 3.
+`each_configuration_marks_its_directory` in `crates/meow/src/mise.rs` and the
+tests in `crates/meow/src/detect.rs` hold the marker forms and the scope line.
+The Python tests of `meow-mise`, `meow-gotask` and `meow-markdown` pass
+unchanged.
+
+`status` reports per directory, and `bind` and `check` read the root alone,
+because they read the root profile's stages; each pack's page says so.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

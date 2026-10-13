@@ -4,6 +4,7 @@
 
 - Every unit's `requires.toml` now states its layer, the units it needs and, in a pack, the range of `meow-core` versions it works with, and the check fails a unit missing one.
 - Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions.
+- `meow-author check` excuses the prose gate's judge only where the gate's hook declares a timeout of at most 120 seconds.
 
 ## 0.8.0
 

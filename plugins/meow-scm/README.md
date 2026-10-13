@@ -83,7 +83,13 @@ a message, commits, rebases and removes a working tree together, and it never
 uses a message a tool generated. It reads state from the documented output of
 the tool that owns it, signs again what a rebase changed, cites no
 model-written summary as evidence, and removes a working tree only in the
-foreground, when you or the step that made it asks.
+foreground, when you or the step that made it asks. Where agents work in
+parallel in sparse working trees, the sparse paths list every directory any
+of them reads, `.meowpaw/` and `.claude/` included, and settings that must
+apply in a tree live in the root's `.claude/settings.json`.
+It works several branches at once with worktrunk, `wt`, using it only for
+operations whose result it then reads from git, such as
+`git worktree list --porcelain`.
 
 ## What it costs you The
 

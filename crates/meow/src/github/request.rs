@@ -40,6 +40,8 @@ const CREATES_A_MINUTE: usize = 80;
 const CREATES_AN_HOUR: usize = 500;
 /// The least time between one write and the next.
 const SPACING: f64 = 1.0;
+/// How a 404 on an unmapped object opens its `Failed` line.
+const NOT_FOUND: &str = "HTTP 404: ";
 const MONTHS: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
@@ -262,6 +264,17 @@ impl Layer {
     pub(crate) fn get_mapped(&mut self, endpoint: &str) -> Result<Value, Failure> {
         self.exchange("GET", endpoint, &[], false, true)
             .map(|r| r.body)
+    }
+
+    /// Reads `endpoint` fresh, with `None` where GitHub answers 404, for an
+    /// object whose absence is itself the answer, such as a branch's
+    /// protection.
+    pub(crate) fn get_unless_missing(&mut self, endpoint: &str) -> Result<Option<Value>, Failure> {
+        match self.exchange("GET", endpoint, &[], false, false) {
+            Ok(response) => Ok(Some(response.body)),
+            Err(Failure::Failed(line)) if line.starts_with(NOT_FOUND) => Ok(None),
+            Err(other) => Err(other),
+        }
     }
 
     /// Creates an issue in `repository` with each field as `-f name=value`.
@@ -530,6 +543,7 @@ impl Layer {
                         reason(quoted)
                     ))
                 }
+                404 => Failure::Failed(format!("{NOT_FOUND}{}", one_line(&why))),
                 status => Failure::Failed(format!("HTTP {status}: {}", one_line(&why))),
             });
         }

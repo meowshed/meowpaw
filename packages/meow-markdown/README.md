@@ -26,3 +26,10 @@ pi install npm:@meowshed/meow-core   # carries the binary the launchers run
 
 Installing from this repository's checkout is the development install: it
 loads the package in place and runs no lifecycle script.
+
+## Generated files
+
+Commit no generated file: Markdown's tools generate nothing that is project
+state, and the configuration files `meow-markdown bind` reads are files you
+write. Ignore `.lycheecache`, the cache lychee writes at the root where
+`lychee.toml` sets `cache = true`, because it is regenerated on the next run.

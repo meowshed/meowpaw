@@ -391,6 +391,7 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "verbs", &["tree", "HEAD"], "");
     held(d, s, "verbs", &["revision"], "{}");
     held(d, s, "verbs", &["local", "lint", "true"], "");
+    held(d, s, "verbs", &["doctor"], "");
     held(d, s, "scm", &["convention"], "");
     held(d, s, "scm", &["check-message"], "");
     held(
@@ -402,6 +403,7 @@ fn output_opens_with_stated_first_words() {
     );
     held(d, s, "git", &["commit-guard"], "");
     held(d, s, "git", &["push-guard"], "");
+    held(d, s, "git", &["restack", "no-such-branch"], "");
     held(d, s, "licence", &["check"], "");
     held(d, s, "author", &["check", "plugins"], "");
     for unit in ["mise", "gotask"] {
@@ -484,6 +486,7 @@ fn the_tracker_commands_refuse_with_stated_first_words() {
     held(d, s, "github", &["history"], "");
     held(d, s, "github", &["project", "EPC-0001"], "");
     held(d, s, "github", &["sync", "EPC-0001"], "");
+    held(d, s, "github", &["protections"], "");
     none_missing();
 }
 

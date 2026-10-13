@@ -1480,15 +1480,17 @@ class Guard(unittest.TestCase):
 
     def test_the_hook_runs_the_guard_on_bash(self):
         """TSK-2980 criterion 7: `hooks.json` declares one `PreToolUse` command hook matching Bash that runs
-        `meow-github governance-guard`."""
+        `meow-github governance-guard`. TSK-5150 adds `irreversible-guard` beside it (ADR-2750), so the unit
+        declares those two command hooks and no other."""
         hooks = json.loads((UNIT / "hooks" / "hooks.json").read_text(encoding="utf-8"))["hooks"]
         self.assertEqual(list(hooks), ["PreToolUse"])
         self.assertEqual(len(hooks["PreToolUse"]), 1)
         entry = hooks["PreToolUse"][0]
         self.assertEqual(entry["matcher"], "Bash")
-        self.assertEqual(len(entry["hooks"]), 1)
-        self.assertEqual(entry["hooks"][0]["type"], "command")
-        self.assertEqual(entry["hooks"][0]["command"], '"${CLAUDE_PLUGIN_ROOT}"/bin/meow-github governance-guard')
+        self.assertEqual([hook["type"] for hook in entry["hooks"]], ["command", "command"])
+        self.assertEqual([hook["command"] for hook in entry["hooks"]],
+                         ['"${CLAUDE_PLUGIN_ROOT}"/bin/meow-github governance-guard',
+                          '"${CLAUDE_PLUGIN_ROOT}"/bin/meow-github irreversible-guard'])
 
 
 class Launcher(unittest.TestCase):

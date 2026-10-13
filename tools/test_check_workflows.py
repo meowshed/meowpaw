@@ -13,7 +13,7 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from check_workflows import ROOT, main  # noqa: E402
+from check_workflows import ROOT, Reader, main  # noqa: E402
 
 GOOD = """\
     name: Good
@@ -334,6 +334,90 @@ class Workflows(unittest.TestCase):
         self.assertEqual(status, 0, out)
         self.assertEqual(len(out), 1, out)
         self.assertRegex(out[0], r"^[1-9]\d* workflow files, 0 findings$")
+
+
+# The three workflows that publish an archive: each unit's Claude Code zip, each Pi package's zip and the
+# meow-full zip. TSK-4630 names `release.yml`, which ADR-2810's build split replaced with these.
+RELEASES = ("claude-release.yml", "pi-release.yml", "rust-tool.yml")
+ATTEST = "actions/attest-build-provenance"
+EXPRESSION = re.compile(r"\$\{\{\s*env\.(\w+)\s*\}\}")
+
+
+def release_jobs(name):
+    doc = Reader((ROOT / ".github/workflows" / name).read_text(encoding="utf-8")).document()
+    return doc, doc["jobs"]
+
+
+def publishes_archives(step):
+    return isinstance(step.get("run"), str) and "gh release create" in step["run"]
+
+
+def attests(step):
+    return isinstance(step.get("uses"), str) and step["uses"].startswith(ATTEST + "@")
+
+
+class Attestation(unittest.TestCase):
+    """TSK-4630: the job that publishes a release attests each archive it publishes (REQ-2218, ADR-2520)."""
+
+    def test_the_publishing_job_attests_every_archive_it_publishes_and_only_when_it_publishes(self):
+        """TSK-4630 criterion 1, REQ-2218: a consumer checks what an archive was built from with
+        `gh attestation verify`, so the job that publishes runs `actions/attest-build-provenance`, pinned to a
+        released major version, after the archives exist and before any `gh release` publishes one, whose
+        subject names each archive the job publishes, and which runs only when the run publishes."""
+        for name in RELEASES:
+            with self.subTest(workflow=name):
+                _, jobs = release_jobs(name)
+                publishing = {job: spec for job, spec in jobs.items() if any(map(publishes_archives, spec["steps"]))}
+                self.assertTrue(publishing, "some job publishes an archive")
+                for job, spec in publishing.items():
+                    steps = spec["steps"]
+                    attesting = [i for i, step in enumerate(steps) if attests(step)]
+                    self.assertEqual(len(attesting), 1, f"{job} attests in one step")
+                    at = attesting[0]
+                    step = steps[at]
+                    self.assertRegex(step["uses"], r"@v[1-9]\d*$", "pinned to a released major version")
+                    first_publish = min(i for i, s in enumerate(steps) if publishes_archives(s))
+                    self.assertLess(at, first_publish, "attests before it publishes")
+                    publish_if = steps[first_publish].get("if")
+                    attest_if = step.get("if")
+                    if publish_if is None:
+                        self.assertIsNone(attest_if, "the job's own condition is the publishing one")
+                        self.assertIn("if", spec, f"{job} runs only when the run publishes")
+                    else:
+                        self.assertIsNotNone(attest_if, "runs only when the run publishes")
+                        self.assertTrue(attest_if == publish_if or attest_if.startswith(f"({publish_if}) && "),
+                                        attest_if)
+                    subject = step.get("with", {})
+                    if "subject-checksums" in subject:
+                        # Each archive joins the list the publishing step reads beside its own checksum line.
+                        listed = subject["subject-checksums"]
+                        packing = [s for s in steps[:at] if isinstance(s.get("run"), str) and ">> dist/tags" in s["run"]]
+                        self.assertEqual(len(packing), 1, "one step lists what the job publishes")
+                        lines = packing[0]["run"].split("\n")
+                        for i, line in enumerate(lines):
+                            if ">> dist/tags" in line:
+                                near = lines[max(i - 1, 0):i + 2]
+                                self.assertTrue(any("sha256sum" in n and f">> {listed}" in n for n in near), line)
+                    else:
+                        self.assertIn("subject-path", subject, "the step names its subject")
+                        path = EXPRESSION.sub(r"$\1", subject["subject-path"])
+                        self.assertIn(path, steps[first_publish]["run"], "the subject is the archive published")
+
+    def test_only_the_publishing_job_holds_the_attestation_permissions(self):
+        """TSK-4630 criterion 2, REQ-2218, REQ-2196: the attestation needs `id-token: write` and
+        `attestations: write`, so the job that publishes holds both, no other job holds either, and the top
+        level still holds `contents: read` alone."""
+        for name in RELEASES:
+            with self.subTest(workflow=name):
+                doc, jobs = release_jobs(name)
+                self.assertEqual(dict(doc["permissions"]), {"contents": "read"})
+                for job, spec in jobs.items():
+                    granted = dict(spec.get("permissions") or {})
+                    held = {key for key in ("id-token", "attestations") if granted.get(key) == "write"}
+                    if any(map(publishes_archives, spec["steps"])):
+                        self.assertEqual(held, {"id-token", "attestations"}, job)
+                    else:
+                        self.assertEqual(held, set(), job)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 ---
 id: TSK-5065
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2555
 closes: [REQ-3052, REQ-3054, REQ-3056]
@@ -48,7 +48,18 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+`SparseTrees` in `plugins/meow-scm/tests/test_scm.py` closes criterion 1
+(REQ-3052) with `test_sparse_paths_list_every_directory_any_agent_reads` and
+criterion 2 (REQ-3054) with
+`test_settings_that_must_apply_live_in_the_roots_settings_file`, rules T8 and
+T9 of the `commit` skill. `ReadDenial` in
+`plugins/meow-flow/tests/test_record.py` closes criterion 3 (REQ-3056), rule
+I36 of the implement step. Each test reads both the Claude Code and the Pi
+copy, and each was seen failing before the rules were added. Whether a run
+actually keeps to I36 rests on judgement, because REQ-3056 is verified by an
+agent and no program can see what a shell search returned.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

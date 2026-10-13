@@ -239,6 +239,33 @@ class ToolOperations(unittest.TestCase):
         self.assertRegex(self.README, r"only in the foreground")
         self.assertRegex(self.README, r"no message a tool generated|never uses a message a tool generated")
 
+    def test_tsk_5070_worktrunk_runs_only_operations_whose_result_git_reports(self):
+        """TSK-5070 criterion 3, REQ-2364: the skill and its page say worktrunk runs only operations whose result is read from git."""
+        for name, text in (("SKILL.md", self.TEXT), ("README.md", self.README)):
+            with self.subTest(file=name):
+                self.assertRegex(text, r"worktrunk[^.]{0,200}only[^.]{0,120}result[^.]{0,80}from git")
+
+
+class SparseTrees(unittest.TestCase):
+    """TSK-5065, ADR-2650: the commit skill carries the rules for parallel agents in working trees, in both copies."""
+
+    TEXTS = {where: " ".join((UNIT.parent.parent / where / "meow-scm/skills/commit/SKILL.md")
+                             .read_text(encoding="utf-8").split())
+             for where in ("plugins", "packages")}
+
+    def test_sparse_paths_list_every_directory_any_agent_reads(self):
+        """Criterion 1, REQ-3052: the sparse paths list every directory, `.meowpaw/` and `.claude/` included."""
+        for where, text in self.TEXTS.items():
+            with self.subTest(copy=where):
+                self.assertRegex(text, r"T\d+\. [^.]{0,80}sparse[^.]{0,120}every directory any (agent|of them) reads")
+                self.assertRegex(text, r"sparse[^.]{0,200}`\.meowpaw/` and `\.claude/`[^.]{0,200}because")
+
+    def test_settings_that_must_apply_live_in_the_roots_settings_file(self):
+        """Criterion 2, REQ-3054: settings that must apply in a working tree live in the root's settings file."""
+        for where, text in self.TEXTS.items():
+            with self.subTest(copy=where):
+                self.assertRegex(text, r"T\d+\. [^.]{0,200}settings[^.]{0,120}root's `\.claude/settings\.json`[^.]{0,200}because")
+
 
 class SkillLoading(unittest.TestCase):
     """TSK-5370, BUG-1550: the description routes the skill on every operation its rules bound."""

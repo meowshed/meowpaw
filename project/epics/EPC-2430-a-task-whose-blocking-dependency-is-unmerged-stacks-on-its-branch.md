@@ -52,7 +52,7 @@ number.
       closes: REQ-1818, REQ-1820, REQ-1822, REQ-1830, REQ-1842
       depends: TSK-4660 (blocking) - it extends the stacking rules TSK-4660 writes into the same file
 
-- [ ] T-003 [P] TSK-4680 rebuild a stack with `meow-git restack`, in the `git` feature of `crates/meow/`
+- [x] T-003 [P] TSK-4680 rebuild a stack with `meow-git restack`, in the `git` feature of `crates/meow/` (done: pull request 1072)
       closes: REQ-1824, REQ-1826, REQ-1828
 
 - [ ] T-004 [P] TSK-4690 print each stack and the layer that merges next in `paw status`, in the `record` feature of `crates/meow/`

@@ -5,7 +5,9 @@
  * meow-git extension for Pi.
  *
  * Holds the commit and push guards over every git command the model runs,
- * relaying the guard binary's verdict (SPC-1300).
+ * relaying the guard binary's verdict (SPC-1300), and asks the person before
+ * each push the model runs, once for that push (ADR-2750). With no one to
+ * ask, the run's own posture decides, as ADR-2380 says.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -41,13 +43,20 @@ function runGuard(
 const GIT_COMMIT_PATTERN = /\bgit\s+commit\b/;
 const GIT_PUSH_PATTERN = /\bgit\s+push\b/;
 
+/** Whether the guard printed an `ask`, and its reason. */
+function asked(stdout: string): string | undefined {
+  if (!/"permissionDecision":\s*"ask"/.test(stdout)) return undefined;
+  const reason = stdout.match(/"permissionDecisionReason":\s*"((?:[^"\\]|\\.)*)"/);
+  return reason?.[1] ?? "meow-git: a push publishes commits outside the repository";
+}
+
 export default async function (pi: ExtensionAPI) {
   process.env.PATH = `${binDir}:${process.env.PATH ?? ""}`;
   if (existsSync(scmLauncher)) {
     process.env.MEOW_SCM = scmLauncher;
   }
 
-  pi.on("tool_call", async (event, _ctx) => {
+  pi.on("tool_call", async (event, ctx) => {
     if (event.toolName !== "bash") return undefined;
 
     const command = typeof event.input?.command === "string" ? event.input.command : "";
@@ -70,6 +79,18 @@ export default async function (pi: ExtensionAPI) {
       );
       if (exitCode !== 0) {
         reason = stderr.trim() || stdout.trim() || "Push blocked by meow-git";
+      }
+    }
+
+    // Each push asks the person once, and an answer approves no other push.
+    if (reason === undefined && ctx.hasUI) {
+      const { stdout } = await runGuard(
+        join(binDir, "meow-git"), ["irreversible-guard"],
+        { tool_name: "Bash", tool_input: { command } }, 10_000,
+      );
+      const question = asked(stdout);
+      if (question !== undefined && !(await ctx.ui.confirm(`${question}\n\nAllow?`))) {
+        reason = question;
       }
     }
 
