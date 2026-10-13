@@ -133,7 +133,7 @@ subcommand's output to those words.
 
 `commit-guard` stops a commit on the declared trunk; the `meow-scm:commit` skill says why, and `mise run layers` fails a trunk with a commit GitHub didn't make.
 `push-guard` stops a push of a commit whose message or signature fails the declared convention; the `meow-scm:commit` skill says why, and `mise run layers` fails a branch whose commits fail it.
-`irreversible-guard` asks the person before each push in a session they attend, and never answers for them; ADR-2750 says why, and `crates/meow/tests/irreversible.rs` holds that a second push asks again.
+`irreversible-guard` asks the person before each push in a session they attend, and never answers for them; rule M25 of the `meow-flow:method` skill says why, and `mise run test-crate` fails a guard whose second push doesn't ask again.
 
 ## What it needs
 

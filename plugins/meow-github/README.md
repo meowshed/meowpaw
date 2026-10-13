@@ -445,7 +445,7 @@ subcommand's output to those words.
 ## Hooks
 
 `governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them; the `meow-github:governance` skill says why, and `mise run test-tools` fails a workflow step that runs a `gh` command the guard asks about.
-`irreversible-guard` stops a merge, a release or an issue or pull request write in a session a person attends, until the person answers for that one call, and never answers for them; ADR-2750 says why, and `crates/meow/tests/irreversible.rs` holds that a second call asks again.
+`irreversible-guard` stops a merge, a release or an issue or pull request write in a session a person attends, until the person answers for that one call, and never answers for them; rule M25 of the `meow-flow:method` skill says why, and `mise run test-crate` fails a guard whose second call doesn't ask again.
 
 ## What it needs
 
