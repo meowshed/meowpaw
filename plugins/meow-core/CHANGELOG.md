@@ -3,6 +3,7 @@
 ## 0.10.0
 
 - The tool gains `paw interface`, which generates the public-interface page from its own documentation.
+- The tool gains the shared layer every language pack builds on: it binds the tool the repository configured, reports what a stage leaves unchecked, applies no unsafe fix, points a tool's output outside the working tree and names the evidence a run keeps.
 - Every unit's `requires.toml` now states its layer, the units it needs and, in a pack, the range of `meow-core` versions it works with, and the check fails a unit missing one.
 
 ## 0.9.1
