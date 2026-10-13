@@ -123,5 +123,24 @@ class ShippedOutcomes(unittest.TestCase):
         self.assertIn(" 0 authoring failures", done.stdout)
 
 
+class ReplacingAnAgent(unittest.TestCase):
+    """TSK-4955 criterion 2, REQ-2986: each unit that ships an agent says on its page how a repository replaces
+    it, and which name a dispatch then reaches, because the platform keeps the unit's agent beside the
+    repository's."""
+
+    def test_each_page_says_how_to_replace_its_agent(self):
+        paths = sorted(ROOT.glob("plugins/*/agents/*.md"))
+        self.assertTrue(paths)
+        for path in paths:
+            unit, name = path.parent.parent.name, path.stem
+            with self.subTest(agent=f"{unit}:{name}"):
+                page = (path.parent.parent / "README.md").read_text(encoding="utf-8")
+                sections = [s for s in page.split("\n## ") if s.startswith("Replace the")]
+                section = " ".join(" ".join(sections).split())
+                self.assertIn(f"`.claude/agents/{name}.md`", section)
+                self.assertIn(f"`{unit}:{name}`", section)
+                self.assertIn(f"bare name `{name}`", section)
+
+
 if __name__ == "__main__":
     unittest.main()

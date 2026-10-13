@@ -318,6 +318,16 @@ it needs git and a base.
 It exits 0 when no check found anything, 1 when any did or the root doesn't
 exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
+## Replace the researcher
+
+To use a researcher of your own, put its definition in
+`.claude/agents/researcher.md` in your repository. Claude Code loads it under
+the bare name `researcher`, beside the unit's `meow-flow:researcher`, and
+keeps both. The research step dispatches `meow-flow:researcher`, so it still
+gets the unit's definition, and only a dispatch that names `researcher` gets
+yours. So your definition doesn't win over the unit's name, and you ask for
+`researcher` by name when you want yours.
+
 ## Tools
 
 The `researcher` agent holds four tools, each for one step of its procedure:
