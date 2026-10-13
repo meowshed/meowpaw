@@ -177,7 +177,10 @@ fix" it lists what `check` can't ask a change to clear, because the artifact is
 approved and frozen: an approved artifact over a rejected provider, a suspect
 citation in an approved artifact, and an approved or living artifact that cites
 nothing and that nothing cites. None of these makes it fail. Where the record's root is under no version control, it says the
-record is local to this machine. When a session starts, a hook runs `paw status
+record is local to this machine. `paw status --brief` prints the same
+sections, but counts the closed decisions, the postponements and the frozen
+findings in place of listing them, so `/meow-flow:run` reads a page and not
+the whole record. When a session starts, a hook runs `paw status
 --waiting`, so Claude opens with any draft waiting for you and says nothing
 when none is, except on a machine with no binary, where it says the record
 wasn't checked. `paw show <id>` prints what an identifier names and every

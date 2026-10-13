@@ -158,7 +158,7 @@ pub(crate) const COMMANDS: [Command; 13] = [
         name: "status",
         run: status,
         determines: "where each approved decision stands in the chain, as the record says",
-        by_hand: "list every artifact whose `status:` is draft, then for each approved decision read the epics that `realises:` it and each epic's tasks, count each requirement's state from the tasks that `closes:` it, and with `--waiting` list the drafts alone",
+        by_hand: "list every artifact whose `status:` is draft, then for each approved decision read the epics that `realises:` it and each epic's tasks, count each requirement's state from the tasks that `closes:` it, with `--waiting` list the drafts alone, and with `--brief` count the closed decisions, the postponements and the frozen findings in place of listing them",
         lines: "Waiting Decisions Tasks Requirements Postponed Only The nothing none <id> <count> waiting: next: closed: postponing: by unconnected, paw",
     },
     Command {
@@ -3597,11 +3597,12 @@ fn postponements(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<String>
 }
 
 fn status(rest: &[String]) -> u8 {
-    let waiting_only = match rest {
-        [] => false,
-        [flag] if flag == "--waiting" => true,
+    let (waiting_only, brief) = match rest {
+        [] => (false, false),
+        [flag] if flag == "--waiting" => (true, false),
+        [flag] if flag == "--brief" => (false, true),
         _ => {
-            eprintln!("usage: paw status [--waiting]");
+            eprintln!("usage: paw status [--waiting | --brief]");
             return USAGE;
         }
     };
@@ -3674,10 +3675,18 @@ fn status(rest: &[String]) -> u8 {
     if decisions.is_empty() {
         say!("  none approved");
     }
+    let mut closed = 0;
     for decision in decisions {
-        let id = bare(decision.id());
-        say!("  {id} {}", title(decision));
-        say!("    {}", position(&record, &known, decision));
+        let place = position(&record, &known, decision);
+        if brief && place.starts_with("closed:") {
+            closed += 1;
+            continue;
+        }
+        say!("  {} {}", bare(decision.id()), title(decision));
+        say!("    {place}");
+    }
+    if brief && closed > 0 {
+        say!("  {closed} closed, listed by `paw status`");
     }
     say!();
     say!("Tasks");
@@ -3738,9 +3747,23 @@ fn status(rest: &[String]) -> u8 {
     let postponements = postponements(&record, &known);
     if postponements.is_empty() {
         say!("  nothing");
-    }
-    for line in postponements {
-        say!("  {line}");
+    } else if brief {
+        // One requirement can be postponed by two decisions, so count each once.
+        let count = postponements
+            .iter()
+            .filter_map(|line| line.split_whitespace().next())
+            .collect::<BTreeSet<_>>()
+            .len();
+        let noun = if count == 1 {
+            "requirement"
+        } else {
+            "requirements"
+        };
+        say!("  {count} {noun}, listed by `paw status`");
+    } else {
+        for line in postponements {
+            say!("  {line}");
+        }
     }
     say!();
     say!("Only a new record can fix");
@@ -3749,7 +3772,12 @@ fn status(rest: &[String]) -> u8 {
         say!("  nothing");
     }
     for line in fixes {
-        say!("  {line}");
+        // A frozen finding's line lists every citation, which only the full
+        // status needs: the brief one keeps what comes before the list.
+        match line.split_once(": ") {
+            Some((head, _)) if brief => say!("  {head}, listed by `paw status`"),
+            _ => say!("  {line}"),
+        }
     }
     CLEAN
 }
