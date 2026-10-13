@@ -52,18 +52,20 @@ missing.
 
 The hooks the units declare:
 
-| Unit              | Event                                  | Subcommand         | What it stops                                                  |
-| ----------------- | -------------------------------------- | ------------------ | -------------------------------------------------------------- |
-| `meow-core`       | `SessionStart`                         | `write-root`       | Nothing: it records where the unit is installed                |
-| `meow-flow`       | `SessionStart`                         | `status --waiting` | Nothing: it reports what waits at a gate                       |
-| `meow-git`        | `PreToolUse` on Bash                   | `commit-guard`     | A commit on the declared trunk                                 |
-| `meow-git`        | `PreToolUse` on Bash                   | `push-guard`       | A push of a commit whose message or signature fails            |
-| `meow-github`     | `PreToolUse` on Bash                   | `governance-guard` | A `gh` command that changes governance, until a person answers |
-| `meow-loop`       | `UserPromptSubmit`                     | `prompt`           | Nothing: it starts or cancels a run from the prompt typed      |
-| `meow-loop`       | `Stop`                                 | `stop`             | The end of a turn, while the run has work left                 |
-| `meow-loop`       | `PreToolUse` on Bash, Edit and Write   | `guard`            | A write into a run's own state, or a status the run can't give |
-| `meow-prose-gate` | `PreToolUse` on Bash                   | `check`            | A publish whose text breaks a rule the gate holds              |
-| `meow-checks`     | `PostToolUse` and `PostToolUseFailure` | `revision`         | Nothing: it advances the revision counter                      |
+| Unit              | Event                                  | Subcommand           | What it stops                                                                                                |
+| ----------------- | -------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `meow-core`       | `SessionStart`                         | `write-root`         | Nothing: it records where the unit is installed                                                              |
+| `meow-flow`       | `SessionStart`                         | `status --waiting`   | Nothing: it reports what waits at a gate                                                                     |
+| `meow-git`        | `PreToolUse` on Bash                   | `commit-guard`       | A commit on the declared trunk                                                                               |
+| `meow-git`        | `PreToolUse` on Bash                   | `push-guard`         | A push of a commit whose message or signature fails                                                          |
+| `meow-git`        | `PreToolUse` on Bash                   | `irreversible-guard` | A push in an attended session, until a person answers for that push (ADR-2750)                               |
+| `meow-github`     | `PreToolUse` on Bash                   | `governance-guard`   | A `gh` command that changes governance, until a person answers                                               |
+| `meow-github`     | `PreToolUse` on Bash                   | `irreversible-guard` | A merge, a release or an issue write in an attended session, until a person answers for that call (ADR-2750) |
+| `meow-loop`       | `UserPromptSubmit`                     | `prompt`             | Nothing: it starts or cancels a run from the prompt typed                                                    |
+| `meow-loop`       | `Stop`                                 | `stop`               | The end of a turn, while the run has work left                                                               |
+| `meow-loop`       | `PreToolUse` on Bash, Edit and Write   | `guard`              | A write into a run's own state, or a status the run can't give                                               |
+| `meow-prose-gate` | `PreToolUse` on Bash                   | `check`              | A publish whose text breaks a rule the gate holds                                                            |
+| `meow-checks`     | `PostToolUse` and `PostToolUseFailure` | `revision`           | Nothing: it advances the revision counter                                                                    |
 
 ## Behaviour
 

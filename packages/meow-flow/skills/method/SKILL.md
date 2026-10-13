@@ -135,4 +135,9 @@ don't overrule it.
   tree, report both and never defer to the subcommand, because it reads only
   the files it reads, and the contradiction is as likely a defect in it as in
   the tree.
+- M25. In a session a person attends, run each push, merge, release, issue
+  write and governance change as its own command and let the platform ask for
+  it, and never ask for a standing approval or an allow rule that covers the
+  next one, because an approval carried to a later action approves an action
+  nobody saw (ADR-2750). A run `meow-loop` holds keeps ADR-2380's authority.
 </rules>

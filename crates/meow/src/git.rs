@@ -427,6 +427,13 @@ pub(crate) const HELP: [crate::help::Entry; 3] = [
         lines: "meow-git updated: not unchanged: conflict: git",
         json: "",
     },
+    crate::help::Entry {
+        name: "irreversible-guard",
+        determines: "whether a tool call pushes from a session a person attends, which the person confirms for that one push",
+        by_hand: "read the command a hook is about to run for `git push`, and the session's permission mode for `dontAsk`",
+        lines: "<json>",
+        json: "hookSpecificOutput",
+    },
 ];
 
 pub fn main(args: &[String]) -> u8 {
@@ -451,9 +458,10 @@ pub fn main(args: &[String]) -> u8 {
     }
     let name = match args {
         [name] if name == "commit-guard" || name == "push-guard" => name.as_str(),
+        [name] if name == "irreversible-guard" => return irreversible_guard(),
         _ => {
             eprintln!(
-                "usage: meow-git commit-guard | meow-git push-guard | meow-git restack <branch>..."
+                "usage: meow-git commit-guard | meow-git push-guard | meow-git irreversible-guard | meow-git restack <branch>..."
             );
             return 1;
         }
@@ -489,6 +497,26 @@ pub fn main(args: &[String]) -> u8 {
     } else {
         push_guard(&root)
     }
+}
+
+/// Asks the person about each push from a session they attend, once for
+/// that push, because a published commit can't be taken back from the
+/// working tree (ADR-2750, REQ-1420, REQ-1422). It reads the hook's input on
+/// standard input, prints the `ask` answer or nothing, and exits 0.
+fn irreversible_guard() -> u8 {
+    let mut text = String::new();
+    let _ = std::io::stdin().read_to_string(&mut text);
+    let event: serde_json::Value = serde_json::from_str(&text).unwrap_or_default();
+    let pushes = event
+        .pointer("/tool_input/command")
+        .and_then(|c| c.as_str())
+        .is_some_and(|command| invocation(command, "push").is_some());
+    if pushes && crate::attended::attended(&event) {
+        crate::attended::ask(
+            "meow-git: git push publishes commits outside the repository, which a person confirms for each push (REQ-1420)",
+        );
+    }
+    ALLOW
 }
 
 #[cfg(test)]

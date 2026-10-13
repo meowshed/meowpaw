@@ -409,6 +409,25 @@ with its flags, `nohup`, and a shell word such as `then`, `do` or `{`. It reads
 `gh` by name or by a path ending in `/gh`. For anything else it says nothing,
 and your own permission rules decide.
 
+A second `PreToolUse` hook, `irreversible-guard`, asks you before a Bash
+command publishes something on GitHub that can't be taken back, once for that
+command, in a session you attend. Approving one approves no other, so the next
+asks again. It asks about:
+
+- `gh pr merge`, and `gh pr` with `create`, `edit`, `comment`, `review`,
+  `close`, `reopen` or `ready`;
+- `gh issue` with `create`, `edit`, `comment`, `close`, `reopen`, `delete`,
+  `transfer`, `lock`, `unlock`, `pin` or `unpin`;
+- `gh release` with `create`, `edit`, `upload`, `delete` or `delete-asset`;
+- `gh api` with a method other than `GET`, or with a field or an `--input`
+  body, to anything the governance list above doesn't name;
+- `meow-github project` and `meow-github sync` without `--check`.
+
+A governance change is asked about once, by `governance-guard`. A session in
+`dontAsk`, or one a `meow-loop` run holds, gets no question from
+`irreversible-guard`, because nobody is there to answer it and the run's own
+posture decides what it may do.
+
 The hook is a guard and not a barrier. It doesn't see a `gh` run inside a
 subshell, `bash -c`, `eval`, `xargs`, `sudo`, `timeout`, a script, a function
 or an alias, or a session with hooks turned off. Where the machine has no `meow-github` binary,
@@ -426,6 +445,7 @@ subcommand's output to those words.
 ## Hooks
 
 `governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them; the `meow-github:governance` skill says why, and `mise run test-tools` fails a workflow step that runs a `gh` command the guard asks about.
+`irreversible-guard` stops a merge, a release or an issue or pull request write in a session a person attends, until the person answers for that one call, and never answers for them; ADR-2750 says why, and `crates/meow/tests/irreversible.rs` holds that a second call asks again.
 
 ## What it needs
 

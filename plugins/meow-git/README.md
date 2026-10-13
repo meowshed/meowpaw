@@ -65,6 +65,13 @@ has left the machine.
 Without a `[git]` table, the pack refuses nothing on commit, still checks
 messages on push, and says the trunk and the signing policy are undeclared.
 
+Once the push passes those checks, and in a session you attend, the pack asks
+you before the push runs, once for that push, because a published commit
+can't be taken back from your working tree. Approving one push approves no
+other, so the next push asks again. A session in `dontAsk`, or one a
+`meow-loop` run holds, gets no question, because nobody is there to answer
+it and the run's own posture decides what it may do.
+
 Each hook's report names the profile's state, as
 `meow-git push-guard: profile: parsed`, and each key no unit reads, as
 `meow-git push-guard: unknown key: git.trnk`. An unknown key refuses
@@ -72,8 +79,9 @@ nothing.
 
 ## What it costs you
 
-Nothing in context: the pack is two hooks, and each runs only on its own
-command. A push takes one message check and one signature check per commit.
+Nothing in context: the pack is three hooks. The two guards run only on their
+own command, and the one that asks before a push reads the text of every Bash
+command, which loads nothing into context. A push takes one message check and one signature check per commit.
 The program is a native binary shipped inside the pack, so it needs nothing
 installed on the machine; on a machine the pack carries no binary for, it denies the
 commit or the push and names `claude plugin install meow-core@meowpaw`.
@@ -125,6 +133,7 @@ subcommand's output to those words.
 
 `commit-guard` stops a commit on the declared trunk; the `meow-scm:commit` skill says why, and `mise run layers` fails a trunk with a commit GitHub didn't make.
 `push-guard` stops a push of a commit whose message or signature fails the declared convention; the `meow-scm:commit` skill says why, and `mise run layers` fails a branch whose commits fail it.
+`irreversible-guard` asks the person before each push in a session they attend, and never answers for them; ADR-2750 says why, and `crates/meow/tests/irreversible.rs` holds that a second push asks again.
 
 ## What it needs
 

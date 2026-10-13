@@ -6,6 +6,7 @@
 - Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions.
 - Its page opens with how it serves GitHub as the code host and GitHub Issues as the tracker.
 - `meow-github protections` prints which of six protections are in force on the trunk the profile declares, and changes none of them.
+- `irreversible-guard` asks before each merge, release and issue or pull request write in a session a person attends, and asks again for the next one.
 
 ## 0.16.0
 

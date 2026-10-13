@@ -7,7 +7,7 @@ describes: [@meowshed/meow-git@0.5.0]
 
 # @meowshed/meow-git
 
-Refuses a git commit on the trunk the repository declares, and checks every commit a push would publish for the declared commit convention and for a good signature, before the push runs. It keeps nothing in context on every turn. Distributed as a Pi package.
+Refuses a git commit on the trunk the repository declares, and checks every commit a push would publish for the declared commit convention and for a good signature, before the push runs, and asks the person before each push the model runs. It keeps nothing in context on every turn. Distributed as a Pi package.
 
 ## Install it
 

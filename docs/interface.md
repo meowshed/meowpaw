@@ -161,6 +161,8 @@ person reads in its place:
   By hand: read `gh api repos/{owner}/{repo}/branches/{trunk}/protection` and `gh api repos/{owner}/{repo}/rules/branches/{trunk}`, and look in each for blocked force pushes, blocked deletion, required reviews, required checks, signed commits and linear history
 - `governance-guard` — whether a tool call would change the repository's governance on the code host
   By hand: read the command a hook is about to run for a call that edits branch protection, rulesets or secrets
+- `irreversible-guard` — whether a tool call merges, releases or writes an issue or a pull request from a session a person attends, which the person confirms for that one call
+  By hand: read the command a hook is about to run for `gh pr merge`, `gh release`, an issue or pull request write, a `gh api` write or `meow-github project` without `--check`, and the session's permission mode for `dontAsk`
 
 ### meow-git
 
@@ -170,6 +172,8 @@ person reads in its place:
   By hand: run `git log` over the commits the push would publish and read each against `meow-scm check-message`, `git log --show-signature` and the branch's name
 - `restack` — which branches of a stack, given from the bottom up, were rebased onto the layer below, which weren't reached, and the lease push that publishes each, pushing nothing
   By hand: for each branch from the bottom up, run `git rebase --onto <new tip below> <old tip below> <branch>`, the first onto the trunk, read `git rev-parse origin/<branch>` before it, and push with `git push --force-with-lease=<branch>:<that revision> origin <branch>`
+- `irreversible-guard` — whether a tool call pushes from a session a person attends, which the person confirms for that one push
+  By hand: read the command a hook is about to run for `git push`, and the session's permission mode for `dontAsk`
 
 ### meow-flow
 

@@ -27,11 +27,11 @@ const LISTINGS: [(&str, &str); 4] = [
     ("review comments", "pulls/comments?per_page=100"),
 ];
 
-const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | sync <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | protections [--wait] [<owner>/<name>] | governance-guard";
+const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | sync <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | protections [--wait] [<owner>/<name>] | governance-guard | irreversible-guard";
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-pub(crate) const HELP: [crate::help::Entry; 5] = [
+pub(crate) const HELP: [crate::help::Entry; 6] = [
     crate::help::Entry {
         name: "history",
         determines: "the issues, pull requests and comments of one repository on the code host, read back",
@@ -67,6 +67,13 @@ pub(crate) const HELP: [crate::help::Entry; 5] = [
         lines: "<json>",
         json: "hookSpecificOutput",
     },
+    crate::help::Entry {
+        name: "irreversible-guard",
+        determines: "whether a tool call merges, releases or writes an issue or a pull request from a session a person attends, which the person confirms for that one call",
+        by_hand: "read the command a hook is about to run for `gh pr merge`, `gh release`, an issue or pull request write, a `gh api` write or `meow-github project` without `--check`, and the session's permission mode for `dontAsk`",
+        lines: "<json>",
+        json: "hookSpecificOutput",
+    },
 ];
 
 pub fn main(args: &[String]) -> u8 {
@@ -79,6 +86,9 @@ pub fn main(args: &[String]) -> u8 {
     };
     if command == "governance-guard" && rest.is_empty() {
         return guard::main();
+    }
+    if command == "irreversible-guard" && rest.is_empty() {
+        return guard::irreversible_main();
     }
     let flag = |name: &str| rest.iter().any(|a| a == name);
     let (check, wait) = (flag("--check"), flag("--wait"));
