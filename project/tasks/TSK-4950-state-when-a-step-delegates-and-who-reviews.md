@@ -68,10 +68,12 @@ failing before the step changed, and `test_the_pi_step_says_the_same` holds
 the Pi tree's copy to it.
 
 Criterion 3 rests on judgement, because a program can't read which agent a
-session chooses to dispatch. `plugins/meow-flow/evals/delegation.py` is its
-hand-run case, run once on `sonnet` and once on `opus`: 4 of 4 runs as wanted,
-each review a fresh dispatch and never a fork, and each disagreement sent to a
-fresh agent whose prompt held both positions and the brief.
+session chooses to dispatch. A case was run by hand once on `sonnet` and once
+on `opus`: 4 of 4 runs as wanted, each review a fresh dispatch and never a
+fork, and each disagreement sent to a fresh agent whose prompt held both
+positions and the brief. One run per case is a smoke check and not a
+measurement, and the case isn't kept, because ADR-2980 removed the case sets
+after this task was approved and review holds the step instead.
 
 Every stage passed in pull request #PR.
 

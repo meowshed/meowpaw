@@ -5,7 +5,7 @@
 "Delegation", SPC-1090 "Delegated work").
 
 A step is text a model follows, so each fixture reads the step for the instruction a requirement asks of it.
-Whether a model follows it is measured by the hand-run case in `evals/`.
+Whether a model follows it rests on review, because ADR-2980 keeps no case set.
 """
 
 import os
@@ -47,8 +47,8 @@ class Delegation(unittest.TestCase):
         self.assertRegex(rule(TEXT, "REQ-0810"), r"output of `paw brief <task>`")
 
     def test_review_is_a_fresh_agent_and_a_disagreement_goes_to_a_third(self):
-        """TSK-4950 criterion 3, REQ-0818, REQ-0824: what the step tells the dispatcher; the hand-run case in
-        `evals/delegation.py` measures whether a model does it."""
+        """TSK-4950 criterion 3, REQ-0818, REQ-0824: what the step tells the dispatcher; whether a model does
+        it rests on review (ADR-2980)."""
         review = rule(TEXT, "REQ-0818")
         self.assertRegex(review, r"fresh agent")
         self.assertRegex(review, r"never fork")

@@ -50,8 +50,8 @@ Not yet.
 Criterion 1 rests on judgement, because a fixture in CI can't read which
 definition the platform dispatches, and it can't be met as written: it names
 `.claude/agents/router.md`, and `meow-flow` stopped shipping the router agent
-when routing moved into the session. `plugins/meow-flow/evals/agent_override.py`
-runs the case for each agent the unit does ship, and on `sonnet` it found that
+when routing moved into the session. A case run by hand once on `sonnet`, for
+the researcher agent the unit does ship, and not kept, as ADR-2980 asks, found that
 the platform keeps both definitions: a dispatch of `meow-flow:researcher`
 reached the unit's, and only `researcher` reached the repository's. That is
 the case What to do names, so REQ-2986 needs a defect, which isn't recorded

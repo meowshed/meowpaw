@@ -155,7 +155,7 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
   after the last task's Evidence is written, so the issues take what the
   record now says, and never run it in the background, because a run no person
   starts writes into the record with nobody looking (REQ-4706).
-- I36. Rely on no read denial in settings to keep a file from an agent, and
+- I42. Rely on no read denial in settings to keep a file from an agent, and
   keep what an agent must not read out of its working tree, because a shell
   search over a directory holding denied files still returns them.
 </rules>
