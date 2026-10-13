@@ -302,6 +302,9 @@ fn stated(word: &str, kinds: &[&str]) -> bool {
         "<relation>:" => word.ends_with(':') && vocabulary().1.iter().any(|k| k == bare),
         // Free text, accepted only in the first block of lines `held` allows.
         "<text>" => false,
+        // A code fence's opening or closing line, whose quoted lines `held`
+        // reads past, because a copy is byte for byte (TSK-4945).
+        "<fence>" => word.starts_with("```"),
         placeholder if placeholder.starts_with('<') => {
             panic!("the help states a placeholder this test can't check: {placeholder}")
         }
@@ -324,7 +327,20 @@ fn held(dir: &Path, verb: &str, args: &[&str]) -> Vec<String> {
     );
     let free_first_block = kinds.contains(&"<text>");
     let mut in_first_block = true;
+    let mut fence: Option<String> = None;
     for (number, line) in printed.iter().enumerate() {
+        if kinds.contains(&"<fence>") {
+            let ticks: String = line.chars().take_while(|c| *c == '`').collect();
+            match &fence {
+                Some(open) if ticks == *open && line.trim_end() == open.as_str() => {
+                    fence = None;
+                    continue;
+                }
+                Some(_) => continue,
+                None if ticks.len() >= 3 => fence = Some(ticks),
+                None => {}
+            }
+        }
         let Some(word) = line.split_whitespace().next() else {
             in_first_block = false;
             continue;
@@ -361,6 +377,7 @@ fn every_subcommand_names_what_a_person_reads_in_its_place() {
         "withdraw",
         "done",
         "onboarding",
+        "brief",
     ] {
         assert!(
             verbs.iter().any(|v| v == expected),
@@ -417,6 +434,9 @@ fn read_only_output_opens_with_stated_first_words() {
     held(d, "index", &["index", "task"]);
     held(d, "find", &["find", "vision"]);
     held(d, "show", &["show", "vision"]);
+    let brief = held(d, "brief", &["brief", "TSK-0001"]);
+    assert!(brief.iter().any(|l| l == "# Constraints"), "{brief:?}");
+    held(d, "brief", &["brief", "TSK-9999"]);
 }
 
 /// REQ-1184: a finding's line, a draft's waiting line and a refused change

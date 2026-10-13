@@ -179,6 +179,8 @@ person reads in its place:
   By hand: look for the kind's file in `.meowpaw/templates/`, then in the unit's `templates/` directory
 - `show` — what one artifact says, what it names and what cites it
   By hand: open the artifact's file, read its front matter relations, and search the record for its identifier to find what cites it
+- `brief` — the brief a delegated agent gets for one task, from the task, its epic or decision and the requirements it closes; `--agent <unit>:<agent>` names the agent definition it is written for, and without it the brief names `general-purpose`, the platform's agent the implement step dispatches
+  By hand: copy the task's opening, What to do, Acceptance criteria, Left alone and Depends on, its epic's entry for it or its decision's Decision, the body of each requirement it closes, and the specifications that state them, word for word
 - `index` — the index table of one kind of artifact
   By hand: list the kind's directory and write one row for each file from its front matter and its conclusion, and with `--write` replace the table between the index's markers
 - `new` — the next free identifier of a kind

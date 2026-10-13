@@ -188,6 +188,17 @@ artifact that cites it, grouped by the field that cites it, and for a
 requirement each task closing it with its mark and its epic.
 It marks a citation as suspect where its target was revised after the citing
 artifact, which is how an approved artifact's suspect citations are reported.
+`paw brief <task> [--agent <unit>:<agent>]` prints the brief a delegated
+agent gets for a task, built from the record and never from a conversation:
+what to build, the constraints, the interfaces it touches and what to report
+back, each under its own heading. It copies each constraint word for word,
+inside a fence, from the requirements the task closes and from the task's
+Acceptance criteria and Left alone. Its first line names the agent definition
+the brief is written for, `general-purpose` unless you pass `--agent`, because
+that's the platform's agent the implement step dispatches, and no unit ships an
+implementer. A task naming `realises:` has its decision read where an epic
+would be. It writes nothing, and it exits 1 for an identifier that names no
+task.
 `paw count` prints each kind's number of artifacts by status and the number of
 identifiers, which a migration runs before and after to show it lost nothing.
 `paw find <word>...` lists the artifacts whose identifier, title or conclusion
