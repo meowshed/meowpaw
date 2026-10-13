@@ -68,8 +68,8 @@ all three. Each closes REQ-2218 for the archives it publishes.
    `id-token: write` and `attestations: write`, and every other job at
    neither. It failed first on all three publishing jobs.
 3. Criterion 3 rests on judgement, because the page's wording is read:
-   `docs/README.md` gives `gh attestation verify <archive> --repo
-   meowshed/meowpaw` after the paragraph on how a release reaches you. The
+   after the paragraph on how a release reaches you, `docs/README.md` gives
+   the command `gh attestation verify` with `--repo meowshed/meowpaw`. The
    example wasn't run, because no archive carries an attestation until the
    next release.
 
