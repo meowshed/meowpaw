@@ -1,7 +1,7 @@
 ---
 id: ADR-2500
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses: [REQ-1486, REQ-1490, REQ-1492]
 supersedes: []
