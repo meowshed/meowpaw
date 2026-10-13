@@ -166,6 +166,8 @@ person reads in its place:
   By hand: read `git branch --show-current` and compare it with `[git] trunk` in `.meowpaw/profile.toml`
 - `push-guard` — whether each commit a push would publish meets the convention, and where `require_signatures` is true carries a good signature, and whether a branch name carries a stored credential
   By hand: run `git log` over the commits the push would publish and read each against `meow-scm check-message`, `git log --show-signature` and the branch's name
+- `restack` — which branches of a stack, given from the bottom up, were rebased onto the layer below, which weren't reached, and the lease push that publishes each, pushing nothing
+  By hand: for each branch from the bottom up, run `git rebase --onto <new tip below> <old tip below> <branch>`, the first onto the trunk, read `git rev-parse origin/<branch>` before it, and push with `git push --force-with-lease=<branch>:<that revision> origin <branch>`
 
 ### meow-flow
 

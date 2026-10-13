@@ -10,7 +10,10 @@
 //! push would publish through `meow-scm check-message` where that unit is
 //! installed, and reports the check as unrun where it isn't (REQ-0079), and
 //! passes only a good signature from a trusted key where the repository
-//! requires one (REQ-1326, REQ-2530).
+//! requires one (REQ-1326, REQ-2530). `restack` rebuilds a stack of branches
+//! and pushes nothing (REQ-1824, REQ-1826, REQ-1828).
+
+mod restack;
 
 use crate::profile::{self, Profile};
 use std::io::{Read, Write};
@@ -402,7 +405,7 @@ fn run_check(
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-pub(crate) const HELP: [crate::help::Entry; 2] = [
+pub(crate) const HELP: [crate::help::Entry; 3] = [
     crate::help::Entry {
         name: "commit-guard",
         determines: "whether a commit is made on the trunk",
@@ -417,16 +420,41 @@ pub(crate) const HELP: [crate::help::Entry; 2] = [
         lines: "meow-git",
         json: "",
     },
+    crate::help::Entry {
+        name: "restack",
+        determines: "which branches of a stack, given from the bottom up, were rebased onto the layer below, which weren't reached, and the lease push that publishes each, pushing nothing",
+        by_hand: "for each branch from the bottom up, run `git rebase --onto <new tip below> <old tip below> <branch>`, the first onto the trunk, read `git rev-parse origin/<branch>` before it, and push with `git push --force-with-lease=<branch>:<that revision> origin <branch>`",
+        lines: "meow-git updated: not unchanged: conflict: git",
+        json: "",
+    },
 ];
 
 pub fn main(args: &[String]) -> u8 {
     if let Some(code) = crate::help::answer("meow-git", &HELP, args) {
         return code;
     }
+    if let Some((first, branches)) = args.split_first()
+        && first == "restack"
+        && !branches.is_empty()
+    {
+        let (ok, top) = git(Path::new("."), &["rev-parse", "--show-toplevel"]);
+        if !ok {
+            println!("meow-git restack: not inside a repository; rewrote nothing");
+            return 1;
+        }
+        let root = PathBuf::from(top.trim());
+        let policy = policy(&root);
+        for line in &policy.profile {
+            println!("meow-git restack: {line}");
+        }
+        return restack::restack(&root, policy.trunk.as_deref(), policy.signatures, branches);
+    }
     let name = match args {
         [name] if name == "commit-guard" || name == "push-guard" => name.as_str(),
         _ => {
-            eprintln!("usage: meow-git commit-guard | meow-git push-guard");
+            eprintln!(
+                "usage: meow-git commit-guard | meow-git push-guard | meow-git restack <branch>..."
+            );
             return 1;
         }
     };

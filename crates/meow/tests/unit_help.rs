@@ -403,6 +403,7 @@ fn output_opens_with_stated_first_words() {
     );
     held(d, s, "git", &["commit-guard"], "");
     held(d, s, "git", &["push-guard"], "");
+    held(d, s, "git", &["restack", "no-such-branch"], "");
     held(d, s, "licence", &["check"], "");
     held(d, s, "author", &["check", "plugins"], "");
     for unit in ["mise", "gotask"] {
