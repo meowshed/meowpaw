@@ -1,7 +1,7 @@
 ---
 id: TSK-4965
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2680
 closes: [REQ-3080, REQ-3084, REQ-3086, REQ-3090]
@@ -58,7 +58,26 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+The crate tests in `crates/meow/tests/doctor.rs` close the criteria, the
+first three seen failing before `doctor` existed.
+`doctor_names_each_pack_and_the_marker_it_matched` closes criterion 1
+(REQ-3090), with `meow-markdown` and `meow-mise` installed in the fixture's
+plugin cache and `meow-gotask` left out. `a_missing_tool_is_a_machine_finding`
+closes criterion 2 (REQ-3084), and shows an unresolved stage makes it exit 1.
+`doctor_writes_nothing` closes criterion 3 (REQ-3086) over the repository,
+its `.git`, the state directory holding a ledger, and the home.
+`doctor_and_paw_status_answer_different_questions` closes criterion 4
+(REQ-3080). `a_missing_program_is_the_machines_and_a_missing_path_the_repositorys`
+in `crates/meow/src/verbs.rs` holds the rule that marks a finding, and
+`output_opens_with_stated_first_words` in `crates/meow/tests/unit_help.rs`
+holds `doctor`'s lines to its help.
+
+`doctor` reads each pack's markers through the same function the pack's
+`status` prints its `marker:` lines from, in the one binary, so it starts no
+pack and no pack's tool. A pack counts as installed where its launcher sits
+beside the core unit in a checkout or in the platform's plugin cache.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

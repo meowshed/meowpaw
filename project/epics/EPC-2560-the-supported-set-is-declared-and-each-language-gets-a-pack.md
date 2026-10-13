@@ -40,7 +40,7 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-5070 list the supported set in `docs/README.md`, and document the code host, the tracker and the worktree manager
+- [x] T-001 [P] TSK-5070 list the supported set in `docs/README.md`, and document the code host, the tracker and the worktree manager (done: pull request 1072)
       closes: REQ-2330, REQ-2358, REQ-2360, REQ-2364
 - [ ] T-002 TSK-5075 the Rust pack, `meow-rust`, detected from `Cargo.toml`
       closes: REQ-2332

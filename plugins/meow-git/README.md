@@ -65,6 +65,13 @@ has left the machine.
 Without a `[git]` table, the pack refuses nothing on commit, still checks
 messages on push, and says the trunk and the signing policy are undeclared.
 
+Once the push passes those checks, and in a session you attend, the pack asks
+you before the push runs, once for that push, because a published commit
+can't be taken back from your working tree. Approving one push approves no
+other, so the next push asks again. A session in `dontAsk`, or one a
+`meow-loop` run holds, gets no question, because nobody is there to answer
+it and the run's own posture decides what it may do.
+
 Each hook's report names the profile's state, as
 `meow-git push-guard: profile: parsed`, and each key no unit reads, as
 `meow-git push-guard: unknown key: git.trnk`. An unknown key refuses
@@ -72,8 +79,9 @@ nothing.
 
 ## What it costs you
 
-Nothing in context: the pack is two hooks, and each runs only on its own
-command. A push takes one message check and one signature check per commit.
+Nothing in context: the pack is three hooks. The two guards run only on their
+own command, and the one that asks before a push reads the text of every Bash
+command, which loads nothing into context. A push takes one message check and one signature check per commit.
 The program is a native binary shipped inside the pack, so it needs nothing
 installed on the machine; on a machine the pack carries no binary for, it denies the
 commit or the push and names `claude plugin install meow-core@meowpaw`.
@@ -86,6 +94,34 @@ stores both. Name the branch for the change instead, such as
 `fix/1234-read-the-trunk`; an issue number followed by other numbers isn't
 read as a date.
 
+## Rebuild a stack
+
+When a branch low in a stack changes, run `meow-git restack` with the stack's
+branches from the bottom up to rebase each onto the one below it, the first
+onto the trunk you declare under `[git]`:
+
+```bash
+meow-git restack feat/read-the-base feat/report-the-checks feat/review-one-layer
+```
+
+It rebases a branch only where its base moved, and where you require
+signatures it signs every commit it writes again. It pushes nothing. For each
+branch it rewrote, it prints `updated:` and the push that publishes it, with
+the lease naming the remote-tracking revision it read before the rewrite, so
+the push replaces only the revision you last saw:
+
+```text
+updated: feat/read-the-base
+git push --force-with-lease=feat/read-the-base:3f2a91c... origin feat/read-the-base
+```
+
+A conflict aborts that rebase, so neither side is lost, prints `conflict:`
+with the branch and its files, and exits 1. Wherever it stops, it prints
+`updated:` for each branch it rewrote and `not updated:` for each it didn't
+reach, and it never runs again on its own. If a branch has uncommitted
+changes or is checked out in another working tree, it rewrites nothing and
+names that branch.
+
 ## Read a subcommand's help
 
 `meow-git --help` lists the subcommands, and `meow-git <subcommand> --help` names
@@ -97,6 +133,7 @@ subcommand's output to those words.
 
 `commit-guard` stops a commit on the declared trunk; the `meow-scm:commit` skill says why, and `mise run layers` fails a trunk with a commit GitHub didn't make.
 `push-guard` stops a push of a commit whose message or signature fails the declared convention; the `meow-scm:commit` skill says why, and `mise run layers` fails a branch whose commits fail it.
+`irreversible-guard` asks the person before each push in a session they attend, and never answers for them; rule M25 of the `meow-flow:method` skill says why, and `mise run test-crate` fails a guard whose second push doesn't ask again.
 
 ## What it needs
 

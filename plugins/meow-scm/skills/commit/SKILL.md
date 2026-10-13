@@ -116,6 +116,17 @@ project gained and when, so every message is written for that question.
 - T7. Never let working trees share tracked source: working trees share only
   ignored build output, and you report where the filesystem can't support the
   sharing, because shared source makes an edit in one tree an edit in all.
+- T8. Where agents work in parallel in sparse working trees, make the sparse
+  paths list every directory any agent reads, `.meowpaw/` and `.claude/`
+  included, because every tree in a session shares the same paths, and a
+  tree without them has neither the profile nor the settings.
+- T9. Put settings that must apply inside a working tree in the root's
+  `.claude/settings.json`, which every tree checks out, because a session
+  started in a tree loads the settings at that tree's root and none above it.
+- T10. Use worktrunk, `wt`, to work several branches at once, and only for
+  operations whose result you then read from git, such as
+  `git worktree list --porcelain`, because worktrunk's own listing is written
+  for people and git documents the one a program reads.
 </rules>
 
 <example name="a subject">

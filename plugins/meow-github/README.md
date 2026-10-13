@@ -7,11 +7,16 @@ describes: [meow-github@0.17.0]
 
 # meow-github
 
-`meow-github` reads a GitHub repository's history: every issue and pull
-request, whether each pull request merged, and every conversation and review
-comment. It prints them as one JSON document and writes nothing to GitHub.
-`/meow-flow:onboard` reads a repository's history through it, and it installs
-on its own, with no other part of the `meowpaw` harness.
+`meow-github` serves GitHub as your code host and GitHub Issues as your
+tracker. `project` creates the issue each task of an approved epic projects
+onto, links it to the task and reads it back, and the record keeps the
+projection as a mapping from each task to its issue, in the task's own
+`issue:` field, so nothing but the repository holds the link. `history` reads
+a GitHub repository's history: every issue and pull request, whether each
+pull request merged, and every conversation and review comment. It prints them
+as one JSON document and writes nothing to GitHub. `/meow-flow:onboard` reads a
+repository's history through it, and the unit installs on its own, with no
+other part of the `meowpaw` harness.
 
 ## Install it
 
@@ -196,6 +201,53 @@ The method runs `sync` before the first task of an epic and after the last
 task's Evidence, where a tracker is declared, and nothing runs it in the
 background.
 
+## Report the trunk's protections
+
+`protections` reads the protection of the trunk `.meowpaw/profile.toml`
+declares as `[git] trunk`, and the rules in force on that branch, and prints
+which of six protections are in force. It changes nothing, because which
+protections the trunk should have is the repository owner's decision. In a
+clone, or naming the repository:
+
+```bash
+meow-github protections
+meow-github protections meowshed/meowpaw
+```
+
+The report opens with the credential line and the profile's state, gives one
+line for each protection in this order, and ends with the four budget lines
+that [Credential and budgets](#credential-and-budgets) describes:
+
+```text
+credential: gh's stored credential
+meow-github protections: profile: parsed
+force pushes blocked: in force
+deletion blocked: in force
+required reviews: absent
+required checks: in force
+signed commits: absent
+linear history: in force
+primary requests: 3 sent; core limit 5,000, 4,997 remaining, resets 2026-09-29T15:30:37Z
+secondary points: 3 of 900 this minute
+content creation: 0 of 80 this minute, 0 of 500 this hour
+spacing: 0 writes, each at least one second after the previous one
+```
+
+A protection that the branch protection or a ruleset sets is `in force`. Where
+GitHub answers 404 for the branch protection, the branch has none, and the
+rules are still read. Where a read is refused or throttled, the report prints
+the `refused:` or `throttled:` line [When it can't read](#when-it-cant-read)
+describes, names each protection it couldn't read as `unread`, never as
+`absent`, and exits 3. Where the profile declares no trunk, the report says
+so and exits 3.
+
+To read the same thing without the pack, run the two reads it sends:
+
+```bash
+gh api repos/OWNER/REPO/branches/main/protection
+gh api repos/OWNER/REPO/rules/branches/main
+```
+
 ## Project a task by hand
 
 You can file a task's issue without the pack and get the same issue and the
@@ -357,6 +409,25 @@ with its flags, `nohup`, and a shell word such as `then`, `do` or `{`. It reads
 `gh` by name or by a path ending in `/gh`. For anything else it says nothing,
 and your own permission rules decide.
 
+A second `PreToolUse` hook, `irreversible-guard`, asks you before a Bash
+command publishes something on GitHub that can't be taken back, once for that
+command, in a session you attend. Approving one approves no other, so the next
+asks again. It asks about:
+
+- `gh pr merge`, and `gh pr` with `create`, `edit`, `comment`, `review`,
+  `close`, `reopen` or `ready`;
+- `gh issue` with `create`, `edit`, `comment`, `close`, `reopen`, `delete`,
+  `transfer`, `lock`, `unlock`, `pin` or `unpin`;
+- `gh release` with `create`, `edit`, `upload`, `delete` or `delete-asset`;
+- `gh api` with a method other than `GET`, or with a field or an `--input`
+  body, to anything the governance list above doesn't name;
+- `meow-github project` and `meow-github sync` without `--check`.
+
+A governance change is asked about once, by `governance-guard`. A session in
+`dontAsk`, or one a `meow-loop` run holds, gets no question from
+`irreversible-guard`, because nobody is there to answer it and the run's own
+posture decides what it may do.
+
 The hook is a guard and not a barrier. It doesn't see a `gh` run inside a
 subshell, `bash -c`, `eval`, `xargs`, `sudo`, `timeout`, a script, a function
 or an alias, or a session with hooks turned off. Where the machine has no `meow-github` binary,
@@ -374,6 +445,7 @@ subcommand's output to those words.
 ## Hooks
 
 `governance-guard` stops a `gh` command that changes how the repository is governed, until a person answers, by asking through the platform and never answering for them; the `meow-github:governance` skill says why, and `mise run test-tools` fails a workflow step that runs a `gh` command the guard asks about.
+`irreversible-guard` stops a merge, a release or an issue or pull request write in a session a person attends, until the person answers for that one call, and never answers for them; rule M25 of the `meow-flow:method` skill says why, and `mise run test-crate` fails a guard whose second call doesn't ask again.
 
 ## What it needs
 

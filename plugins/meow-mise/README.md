@@ -37,9 +37,16 @@ meow-mise status
 
 From your own shell, run the same launcher by its path in the installed unit.
 
-It prints mise's version and each directory's trust state, then every task
-mise resolves in this work tree, which may differ from what your repository
-declares. mise also reads parent directories, your own configuration and
+It reports once for each directory holding a mise configuration file git
+tracks, an environment's `mise.<env>.toml` or a task directory, and starts no
+mise where it finds none. Each report opens with `scope: <directory>`, or
+`scope: <part> <directory>` where your profile's `[parts]` declares a part
+holding it, and a `marker: <file>` line for each file that matched, with `.`
+for the root.
+
+Each report prints mise's version and each directory's trust state, then every
+task mise resolves in that directory, which may differ from what your
+repository declares. mise also reads parent directories, your own configuration and
 `mise.local.toml`, so each task carries its origin: `repository` for a file
 git tracks, `work tree only` for a file inside the work tree that git doesn't
 track, and `outside` for a file beyond it. A task a committed file declares
@@ -104,12 +111,14 @@ status.
 
 ## What it reports instead of a list
 
-`status` exits 0 when it reports the tasks and 3 when it can't, and no command
-ever reports a state it couldn't read as an empty list:
+`status` exits 0 when it reports the tasks in every directory and 3 when it
+can't in one, and no command ever reports a state it couldn't read as an
+empty list. `bind` and `check` read the root alone, because they read the
+root profile's stages:
 
 | Line                                  | Means                                                                     |
 | ------------------------------------- | ------------------------------------------------------------------------- |
-| `unresolved: not a mise repository`   | No mise configuration file or task directory; mise didn't run             |
+| `unresolved: not a mise repository`   | Git tracks no mise configuration file or task directory; mise didn't run  |
 | `unresolved: mise not found`          | mise isn't on `PATH`                                                      |
 | `unresolved: untrusted <directory>`   | mise needs the configuration trusted; read it, then run the command shown |
 | `unresolved: environment: ...`        | Your mise is older than 2026.9.11, the version the unit was tested on     |

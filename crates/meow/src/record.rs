@@ -146,7 +146,7 @@ pub(crate) struct Command {
     pub(crate) lines: &'static str,
 }
 
-pub(crate) const COMMANDS: [Command; 13] = [
+pub(crate) const COMMANDS: [Command; 14] = [
     Command {
         name: "check",
         run: check,
@@ -181,6 +181,13 @@ pub(crate) const COMMANDS: [Command; 13] = [
         determines: "what one artifact says, what it names and what cites it",
         by_hand: "open the artifact's file, read its front matter relations, and search the record for its identifier to find what cites it",
         lines: "<id> vision <text> Names State Cited <relation>: body: nothing open, closed postponed paw",
+    },
+    Command {
+        name: "brief",
+        run: brief,
+        determines: "the brief a delegated agent gets for one task, from the task, its epic or decision and the requirements it closes; `--agent <unit>:<agent>` names the agent definition it is written for, and without it the brief names `general-purpose`, the platform's agent the implement step dispatches",
+        by_hand: "copy the task's opening, What to do, Acceptance criteria, Left alone and Depends on, its epic's entry for it or its decision's Decision, the body of each requirement it closes, and the specifications that state them, word for word",
+        lines: "agent: task: # from spec: <fence> paw",
     },
     Command {
         name: "index",
@@ -265,7 +272,7 @@ pub fn main(args: &[String]) -> u8 {
         Some(command) => (command.run)(rest),
         None => {
             eprintln!(
-                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | approve <id>... | withdraw <id> --by <id> --replaced-by <id>... | done <task> --pr <number> | onboarding remove; paw <subcommand> --help names what a person reads in its place",
+                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | brief <task> [--agent <unit>:<agent>] | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | approve <id>... | withdraw <id> --by <id> --replaced-by <id>... | done <task> --pr <number> | onboarding remove; paw <subcommand> --help names what a person reads in its place",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -4106,6 +4113,209 @@ fn show(rest: &[String]) -> u8 {
             );
         }
     }
+    CLEAN
+}
+
+/// The agent a brief names where `--agent` names none: the platform's own
+/// agent, which the implement step dispatches because no unit ships an
+/// implementer (TSK-4945).
+const BRIEF_AGENT: &str = "general-purpose";
+
+/// What a delegated agent reports, as ADR-1710 and ADR-2730 state it.
+const BRIEF_REPORT: &str =
+    "Report on your first line `outcome:` and one of DONE, DONE_WITH_CONCERNS,
+NEEDS_CONTEXT or BLOCKED. Below it, name the test that closes each acceptance
+criterion, each stage you ran with its command and exit status, and each file
+you changed. If a tool call is denied, end with `outcome: BLOCKED`, naming the
+tool and what it was called on, and make no other call for it.
+
+A pull request carrying this work names the task, TASK, and the command that
+prints this brief, `paw brief TASK`, and names no agent, model or vendor.";
+
+/// Lines with the blank ones at either end removed, joined as they stood.
+fn trimmed(lines: &[&str]) -> String {
+    let start = lines.iter().position(|l| !l.trim().is_empty());
+    let end = lines.iter().rposition(|l| !l.trim().is_empty());
+    match (start, end) {
+        (Some(start), Some(end)) => lines[start..=end].join("\n"),
+        _ => String::new(),
+    }
+}
+
+/// A section's text, copied as it stands.
+fn section_text(doc: &Doc, name: &str) -> String {
+    let lines: Vec<&str> = section_lines(doc, name)
+        .into_iter()
+        .map(|(_, l)| l)
+        .collect();
+    trimmed(&lines)
+}
+
+/// The text under a document's title: up to its first section where `whole`
+/// is false, and to its end where it is true.
+fn under_title(doc: &Doc, whole: bool) -> String {
+    let lines: Vec<&str> = doc.text.lines().collect();
+    let Some(heading) = lines.iter().position(|l| l.starts_with("# ")) else {
+        return String::new();
+    };
+    let rest = &lines[heading + 1..];
+    let end = if whole {
+        rest.len()
+    } else {
+        rest.iter()
+            .position(|l| l.starts_with("## "))
+            .unwrap_or(rest.len())
+    };
+    trimmed(&rest[..end])
+}
+
+/// Prints one copy from the record inside a fence longer than any run of
+/// backticks in it, so the copy reaches the agent byte for byte (REQ-0814).
+fn quote(from: &str, text: &str) {
+    if text.is_empty() {
+        return;
+    }
+    let mut longest = 0;
+    let mut run = 0;
+    for c in text.chars() {
+        run = if c == '`' { run + 1 } else { 0 };
+        longest = longest.max(run);
+    }
+    let fence = "`".repeat((longest + 1).max(3));
+    say!("from {from}");
+    say!("{fence}text");
+    say!("{text}");
+    say!("{fence}");
+    say!();
+}
+
+/// Prints the brief a delegated agent gets for one task, built from the record
+/// alone (REQ-0810, REQ-0812, REQ-0814), naming the agent definition it is
+/// written for (REQ-1764). It writes nothing.
+fn brief(rest: &[String]) -> u8 {
+    let (id, agent) = match rest {
+        [id] => (id, BRIEF_AGENT),
+        [id, flag, agent] if flag == "--agent" && !agent.is_empty() => (id, agent.as_str()),
+        _ => {
+            eprintln!("usage: paw brief <task> [--agent <unit>:<agent>]");
+            return USAGE;
+        }
+    };
+    let (record, _, _) = match open_record("brief") {
+        Ok(opened) => opened,
+        Err(code) => return code,
+    };
+    let known = known(&record);
+    let Some(task) = known.get(id.as_str()) else {
+        say!("paw brief: {id} resolves to nothing in the record");
+        return FOUND;
+    };
+    if kind_of(&record, task) != "task" {
+        say!(
+            "paw brief: {id} is a {}, and only a task has a brief",
+            kind_of(&record, task)
+        );
+        return FOUND;
+    }
+    let authority = authority_of(task);
+    let parent = known.get(authority).copied();
+    say!("agent: {agent}");
+    if authority.is_empty() {
+        say!("task: {id}, authorised by no record");
+    } else {
+        say!("task: {id}, authorised by {authority}");
+    }
+    say!();
+
+    say!("# What to build");
+    say!();
+    quote(&format!("{id}, its title and opening: {}", task.shown), &{
+        let opening = under_title(task, false);
+        format!("{}\n\n{opening}", title(task))
+            .trim_end()
+            .to_string()
+    });
+    quote(
+        &format!("{id}, What to do"),
+        &section_text(task, "What to do"),
+    );
+    if let Some(parent) = parent {
+        match kind_of(&record, parent) {
+            "decision" => quote(
+                &format!("{authority}, Decision: {}", parent.shown),
+                &section_text(parent, "Decision"),
+            ),
+            "defect" => quote(
+                &format!("{authority}, What it should do, and why: {}", parent.shown),
+                &section_text(parent, "What it should do, and why"),
+            ),
+            _ => quote(
+                &format!("{authority}, its opening: {}", parent.shown),
+                &under_title(parent, false),
+            ),
+        }
+    }
+
+    say!("# Constraints");
+    say!();
+    let closes: Vec<String> = record
+        .ids
+        .find_iter(task.value("closes"))
+        .map(|m| m.as_str().to_string())
+        .collect();
+    for requirement in &closes {
+        match known.get(requirement.as_str()) {
+            Some(doc) => quote(
+                &format!("{requirement}: {}", doc.shown),
+                &under_title(doc, true),
+            ),
+            None => say!("from {requirement}, which resolves to nothing in the record"),
+        }
+    }
+    quote(
+        &format!("{id}, Acceptance criteria"),
+        &section_text(task, "Acceptance criteria"),
+    );
+    quote(
+        &format!("{id}, Left alone"),
+        &section_text(task, "Left alone"),
+    );
+
+    say!("# Interfaces");
+    say!();
+    if let Some(parent) = parent
+        && let Some(entry) = entries(parent).into_iter().find(|e| e.2 == id.as_str())
+    {
+        quote(&format!("{authority}, its entry for {id}"), &entry.3);
+    }
+    quote(
+        &format!("{id}, Depends on"),
+        &section_text(task, "Depends on"),
+    );
+    for spec in of_kind(&record, "specification") {
+        let stated: Vec<&str> = record
+            .ids
+            .find_iter(spec.value("states"))
+            .map(|m| m.as_str())
+            .filter(|r| closes.iter().any(|c| c == r))
+            .collect();
+        if !stated.is_empty() {
+            say!(
+                "spec: {} states {}: {}",
+                bare(spec.id()),
+                stated.join(", "),
+                spec.shown
+            );
+        }
+    }
+    say!();
+
+    say!("# Report back");
+    say!();
+    quote(
+        "the method, ADR-1710 and ADR-2730",
+        &BRIEF_REPORT.replace("TASK", id),
+    );
     CLEAN
 }
 

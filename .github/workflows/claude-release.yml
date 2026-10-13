@@ -37,6 +37,9 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       contents: write
+      # The attestation below signs with the run's identity (REQ-2218).
+      id-token: write
+      attestations: write
     env:
       GH_TOKEN: ${{ github.token }}
       BASE: https://github.com/${{ github.repository }}/releases/download
@@ -92,6 +95,7 @@ jobs:
               { git ls-files "$dir"; ls "$dir"/bin/*-*-*/paw* 2>/dev/null || true; } |
                 sed 's|^plugins/||' | (cd plugins && zip -q -X "../dist/$zip" -@)
               echo "$tag" >> dist/tags
+              (cd dist && sha256sum "$zip") >> dist/attest.sha256
               state=new
             fi
             sha=$(sha256sum "dist/$zip" | cut -d' ' -f1)
@@ -124,6 +128,14 @@ jobs:
         with:
           name: release
           path: dist/
+      # Each archive this run built gets a build provenance attestation, so a
+      # consumer checks it with `gh attestation verify` (REQ-2218). An archive
+      # downloaded from an earlier release keeps that release's attestation.
+      - name: Attest the archives this run built
+        if: (inputs.publish || env.publish == 'true') && hashFiles('dist/attest.sha256') != ''
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-checksums: dist/attest.sha256
       - name: Publish
         if: inputs.publish || env.publish == 'true'
         run: |

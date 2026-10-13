@@ -32,7 +32,10 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       contents: write
+      # npm's provenance and the archives' attestation both sign with the
+      # run's identity (REQ-2218).
       id-token: write
+      attestations: write
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -145,6 +148,7 @@ jobs:
             fi
             printf '| %s | %s | %s | %s | %s | `%s` |\n' "$name" "$version" "$state" "$zip" "$bytes" "$sha" >> dist/notes.md
             echo "$tag" >> dist/tags
+            gh release view "$tag" >/dev/null 2>&1 || (cd dist && sha256sum "$zip") >> dist/attest.sha256
           done
           cat dist/notes.md >> "$GITHUB_STEP_SUMMARY"
 
@@ -152,6 +156,15 @@ jobs:
         with:
           name: pi-release
           path: dist/
+
+      # Each archive the next step publishes gets a build provenance
+      # attestation, so a consumer checks it with `gh attestation verify`
+      # (REQ-2218).
+      - name: Attest the archives without a release
+        if: (inputs.publish || env.publish == 'true') && hashFiles('dist/attest.sha256') != ''
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-checksums: dist/attest.sha256
 
       - name: Publish the GitHub release archives
         if: inputs.publish || env.publish == 'true'

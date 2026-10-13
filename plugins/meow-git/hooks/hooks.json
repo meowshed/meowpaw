@@ -27,6 +27,11 @@
             "if": "Bash(git push *)",
             "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-git push-guard",
             "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/meow-git irreversible-guard",
+            "timeout": 10
           }
         ]
       }

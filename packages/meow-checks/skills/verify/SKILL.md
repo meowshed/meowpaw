@@ -62,6 +62,10 @@ report at all.
 - V7. Keep no run output in the repository, in a file or pasted into a
   record, because a stage's output holds whatever the tool printed, a token
   included, and a committed file reaches every clone and can't be taken back.
+- V8. Where the repository declares parts, run the stages for each part the
+  work touches with `--part <name>`, and report the `scope:` line beside each
+  result, because a pass in one part says nothing about another, and a result
+  with no scope reads as one for the whole repository.
 </rules>
 
 <example name="an unresolved stage">

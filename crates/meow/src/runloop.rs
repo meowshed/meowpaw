@@ -2038,7 +2038,7 @@ fn posture_denial(event: &Value) -> Option<String> {
 
 /// Whether the session the hook input names has an active run in the work
 /// tree the hook runs in.
-fn run_is_active(event: &Value) -> bool {
+pub(crate) fn run_is_active(event: &Value) -> bool {
     let Some(session) = event.get("session_id").and_then(Value::as_str) else {
         return false;
     };

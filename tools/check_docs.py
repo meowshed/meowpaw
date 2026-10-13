@@ -34,6 +34,10 @@ FENCE = re.compile(r"^\s*(```|~~~)")
 START = "<!-- check_docs index -->"
 END = "<!-- /check_docs index -->"
 NOT_WRITTEN = re.compile(r"^- `([a-z-]+)`:", re.M)
+# The languages and tools the supported set declares, each a row of its own.
+SUPPORTED = ("Rust", "TypeScript and JavaScript", "Python", "Go", "C#", "Lua", "Neovim plugins", "Godot and GDScript",
+             "Starlark", "Scheme", "Markdown", "GitHub", "GitHub Issues", "worktrunk")
+STATES = ("shipped", "planned", "postponed")
 WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
          "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")
 NUMBER = r"(?<![A-Za-z0-9])(" + "|".join(WORDS) + r"|\d+)"
@@ -204,11 +208,39 @@ def check_index(root):
             out.append("docs/README.md: the table is out of date; run --write")
     if section(text, "Planned") is None:
         out.append("docs/README.md: has no Planned section")
+    out += check_supported(root)
     carried = {(front_matter(path.read_text(encoding="utf-8")) or {}).get("kind") for path in pages(root)}
     listed = set(NOT_WRITTEN.findall(section(text, "Not written") or ""))
     for kind in KINDS:
         if kind not in carried and kind not in listed:
             out.append(f"docs/README.md: no page is {kind}, and Not written doesn't list it")
+    return out
+
+
+def check_supported(root):
+    """The index's supported set: a row for each language and tool the harness
+    declares, each naming its pack and a state of shipped, planned or
+    postponed, and each shipped row naming a unit that exists, because a
+    shipped row is a claim an install can falsify."""
+    text = (root / "docs" / "README.md").read_text(encoding="utf-8")
+    body = section(text, "Supported set")
+    if body is None:
+        return ["docs/README.md: has no Supported set section"]
+    rows = {}
+    for cells in normalise(body):
+        if len(cells) < 3 or cells[0] == "Language or tool":
+            continue
+        rows[cells[0]] = (cells[1].strip("`").strip(), cells[2])
+    present = set(units(root))
+    out = [f"docs/README.md: the supported set has no row for {name}" for name in SUPPORTED if name not in rows]
+    for name, (pack, state) in rows.items():
+        if not pack:
+            out.append(f"docs/README.md: the supported set names no pack for {name}")
+        if state not in STATES:
+            out.append(f"docs/README.md: the supported set gives {name} the state {state}, "
+                       f"which isn't shipped, planned or postponed")
+        elif state == "shipped" and pack and pack not in present:
+            out.append(f"docs/README.md: the supported set marks {name} shipped, and no unit {pack} exists")
     return out
 
 

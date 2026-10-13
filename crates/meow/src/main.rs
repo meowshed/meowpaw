@@ -8,8 +8,17 @@
 //! (REQ-0076). SPC-1080 states the crate; each subcommand's behaviour is its
 //! unit's specification.
 
+#[cfg(any(feature = "git", feature = "github"))]
+mod attended;
 #[cfg(feature = "author")]
 mod author;
+#[cfg(any(
+    feature = "verbs",
+    feature = "mise",
+    feature = "gotask",
+    feature = "markdown"
+))]
+mod detect;
 #[cfg(feature = "git")]
 mod git;
 #[cfg(feature = "github")]
@@ -39,6 +48,8 @@ mod licence;
 mod markdown;
 #[cfg(feature = "mise")]
 mod mise;
+#[cfg(feature = "pack")]
+mod pack;
 mod profile;
 #[cfg(feature = "prose")]
 mod prose;

@@ -37,8 +37,15 @@ meow-gotask status
 
 From your own shell, run the same launcher by its path in the installed unit.
 
-It prints Task's version, then every task Task resolves in this work tree,
-each with its origin: `repository` for a file git tracks, `work tree only` for
+It reports once for each directory holding a Taskfile git tracks, under any
+name Task accepts, and starts no Task where it finds none. Each report opens
+with `scope: <directory>`, or `scope: <part> <directory>` where your
+profile's `[parts]` declares a part holding it, and a `marker: <file>` line
+for each Taskfile that matched, with `.` for the root. `bind` and `check` read
+the root alone, because they read the root profile's stages.
+
+Each report prints Task's version, then every task Task resolves in that
+directory, each with its origin: `repository` for a file git tracks, `work tree only` for
 a file git doesn't track, such as a local `Taskfile.yml` beside a committed
 `Taskfile.dist.yml`, and `outside` for a file beyond the work tree.
 
@@ -112,7 +119,7 @@ No command ever reports a state it couldn't read as an empty list; each exits
 
 | Line                                                   | Means                                                               |
 | ------------------------------------------------------ | ------------------------------------------------------------------- |
-| `unresolved: not a Task repository`                    | No Taskfile at the root; Task didn't run                            |
+| `unresolved: not a Task repository`                    | Git tracks no Taskfile, at the root or below it; Task didn't run    |
 | `unresolved: task not found`                           | `task` isn't on `PATH`                                              |
 | `unresolved: <file> doesn't parse`                     | A Taskfile isn't valid YAML                                         |
 | `unresolved: remote include`                           | A Taskfile includes a remote one, named above it                    |
