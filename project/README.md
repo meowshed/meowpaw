@@ -379,6 +379,8 @@ EPC-2560 realises, the rules every pack keeps, which EPC-2565 realises, and
 the diagram check, which EPC-2540 realises, aren't built yet.
 [SPC-1360](specs/SPC-1360-the-c-sharp-pack.md) states the C# pack, which
 `meow-csharp` implements.
+[SPC-1370](specs/SPC-1370-the-lua-and-neovim-plugins-pack.md) states the Lua
+and Neovim plugins pack, which `meow-lua` implements.
 
 [SPC-1310](specs/SPC-1310-the-rust-pack.md) states the Rust pack within
 SPC-1190: its detection, its bindings, its findings and its toolchain check.
