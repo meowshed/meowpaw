@@ -9,6 +9,7 @@
 //! write nothing (SPC-1190), so detection and binding start none of the tools
 //! they name. `links` runs lychee and classifies each result from its JSON.
 
+use crate::detect::{self, Marker};
 use crate::profile::{self, Profile};
 use std::collections::BTreeSet;
 use std::path::PathBuf;
@@ -57,7 +58,7 @@ pub(crate) const HELP: [crate::help::Entry; 4] = [
         name: "status",
         determines: "how Markdown is configured in this repository",
         by_hand: "list the tracked `.md` files and the markdownlint, prettier and render-target files beside them",
-        lines: "meow-markdown profile: unresolved: markdown render markdownlint other lychee <path>",
+        lines: "meow-markdown profile: unresolved: markdown render markdownlint scope: marker: other lychee <path>",
         json: "",
     },
     crate::help::Entry {
@@ -258,6 +259,42 @@ fn detected(tracked: &BTreeSet<String>) -> bool {
             .any(|p| file_name(p).starts_with(".markdownlint"))
 }
 
+/// Each tracked markdownlint file, which makes its directory a linted corpus;
+/// where the repository tracks none, two tracked `*.md` files make the root
+/// one (REQ-2352, REQ-3048). It reads paths alone, so no tool starts.
+pub(crate) fn markers(tracked: &BTreeSet<String>) -> Vec<Marker> {
+    let linted: Vec<Marker> = tracked
+        .iter()
+        .filter(|path| file_name(path).starts_with(".markdownlint"))
+        .map(|path| Marker {
+            file: path.clone(),
+            directory: detect::directory_of(path),
+        })
+        .collect();
+    let count = tracked.iter().filter(|p| p.ends_with(".md")).count();
+    if linted.is_empty() && count >= 2 {
+        return vec![Marker {
+            file: format!("*.md, {count} tracked"),
+            directory: ".".to_string(),
+        }];
+    }
+    linted
+}
+
+/// Which markdownlint front end reads a configuration file, by its name.
+fn readers(path: &str) -> Option<&'static str> {
+    let name = file_name(path);
+    if name.starts_with(".markdownlint-cli2.") {
+        Some("markdownlint-cli2 alone")
+    } else if name == ".markdownlintrc" {
+        Some("markdownlint-cli alone, run in its directory")
+    } else if name.starts_with(".markdownlint.") {
+        Some("markdownlint-cli2 and markdownlint-cli")
+    } else {
+        None
+    }
+}
+
 fn status() -> u8 {
     println!("meow-markdown status");
     let corpus = match Corpus::read(|line| println!("{line}")) {
@@ -280,22 +317,19 @@ fn status() -> u8 {
         Some(t) => println!("render target: {t}, declared and unknown to the skill"),
         None => println!("render target: not declared in [markdown] target"),
     }
-    let mut configurations = corpus.markdownlint();
-    configurations.extend(corpus.markdownlintrc());
-    configurations.sort_by_key(|path| (path.rsplit_once('/').map_or("", |(dir, _)| dir), *path));
-    if configurations.is_empty() {
+    if corpus.markdownlint().is_empty() && corpus.markdownlintrc().is_empty() {
         println!("markdownlint configuration: none tracked");
-    } else {
-        println!("markdownlint configuration, by directory:");
-        for path in configurations {
-            let readers = if file_name(path).starts_with(".markdownlint-cli2.") {
-                "markdownlint-cli2 alone"
-            } else if file_name(path) == ".markdownlintrc" {
-                "markdownlint-cli alone, run in its directory"
-            } else {
-                "markdownlint-cli2 and markdownlint-cli"
-            };
-            println!("  {path}: read by {readers}");
+    }
+    // One report for each directory a marker activates, naming the part
+    // that holds it (REQ-3048).
+    let parts = detect::parts(&corpus.root);
+    for (directory, files) in detect::by_directory(&markers(&corpus.tracked)) {
+        println!("{}", detect::scope(&parts, &directory));
+        for file in files {
+            match readers(&file) {
+                Some(readers) => println!("marker: {file}: read by {readers}"),
+                None => println!("marker: {file}"),
+            }
         }
     }
     let mut tools = Vec::new();

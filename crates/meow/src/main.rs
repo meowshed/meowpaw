@@ -10,6 +10,13 @@
 
 #[cfg(feature = "author")]
 mod author;
+#[cfg(any(
+    feature = "verbs",
+    feature = "mise",
+    feature = "gotask",
+    feature = "markdown"
+))]
+mod detect;
 #[cfg(feature = "git")]
 mod git;
 #[cfg(feature = "github")]

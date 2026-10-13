@@ -50,11 +50,15 @@ every repository has one.
    the skill knows it: `github`, `gitlab`, `mkdocs`, `docusaurus`, `hugo`,
    `mdbook` and `obsidian` are known, and another string is reported as
    declared and unknown to the skill.
-3. Each markdownlint configuration file git tracks, by directory, with the
-   front ends that read it. markdownlint-cli2 alone reads a
+3. One report for each directory holding a markdownlint file git tracks,
+   opened by `scope: <directory>`, or `scope: <part> <directory>` where your
+   profile's `[parts]` declares a part holding it. Each file follows as
+   `marker: <file>: read by <front ends>`. markdownlint-cli2 alone reads a
    `.markdownlint-cli2.*` file, markdownlint-cli2 and markdownlint-cli both
    read a `.markdownlint.*` file, and markdownlint-cli alone reads a
-   `.markdownlintrc`, when it runs in that file's directory.
+   `.markdownlintrc`, when it runs in that file's directory. Where git tracks
+   no markdownlint file, the root is the one directory, and its marker is
+   `*.md, <count> tracked`.
 4. Each other tool it recognises: prettier, mdformat, remark-lint, textlint,
    lychee and a site generator's configuration.
 5. Where `lychee.toml` sets `cache = true`, a line saying lychee writes
