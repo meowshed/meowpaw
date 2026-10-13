@@ -141,7 +141,10 @@ tool your `lint` stage names, so a linter run through a runner's task, such as
 suffix, so `npx markdownlint-cli2@0.23.2` counts as markdownlint-cli2. Write
 markdownlint-cli2's `--config` with the path as the next word, because
 markdownlint-cli2 reads `--config=<path>` as a glob and applies no
-configuration from it. With no finding it prints `no findings` and exits 0.
+configuration from it. With no finding it prints `no findings`, followed on
+the same line by the groups of settings it checked: the render target, the
+markdownlint settings and the link check's settings, so a clean result says
+what it covers. It then exits 0.
 
 To run the checks with your linter, append the command to your `lint` stage,
 naming the program by its path so a CI job without the unit's `bin/` on

@@ -57,7 +57,27 @@ reports.
 
 ## Evidence
 
-Not yet.
+Each criterion closes with a crate test in `crates/meow/src/pack.rs`, each
+seen failing against stubbed bodies before the rule was written:
+
+1. `tsk_5125_criterion_1_a_narrower_tool_names_what_is_no_longer_checked`
+   (REQ-2410), through `Binding::short_of`.
+2. `tsk_5125_criterion_2_a_runner_leaving_out_documentation_examples_is_refused`
+   (REQ-2412), through `Binding::requiring`.
+3. `tsk_5125_criterion_3_the_detector_is_on_and_turning_it_off_is_named`
+   (REQ-2414), through `Binding::with_detector`.
+4. `tsk_5125_criterion_4_a_clean_report_names_its_groups_and_its_level`
+   (REQ-2432, REQ-2444), through `Clean::line`. `meow-markdown check` prints
+   its clean report through it, and `test_tsk_5125_a_clean_check_names_what_it_checked`
+   in `plugins/meow-markdown/tests/test_markdown.py` holds the line.
+5. `tsk_5125_criterion_5_a_supply_chain_check_states_its_reach` (REQ-2436),
+   through `SupplyChain::line`.
+
+Markdown has no documentation tests, defect detector, severity level or
+supply-chain check, so of these rules `meow-markdown` uses the clean report
+alone.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

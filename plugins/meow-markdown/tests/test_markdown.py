@@ -273,6 +273,15 @@ class RenderTarget(Check):
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                 self.assertNotIn(NO_TARGET, done.stdout + done.stderr)
 
+    def test_tsk_5125_a_clean_check_names_what_it_checked(self):
+        """TSK-5125 criterion 4, REQ-2432: a clean `check` names each group of settings it checked."""
+        done = self.check(TWO)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        clean = [line for line in done.stdout.splitlines() if line.startswith("no findings")]
+        self.assertEqual(len(clean), 1, done.stdout)
+        for group in ("render target", "markdownlint settings", "link check's settings"):
+            self.assertIn(group, clean[0])
+
 
 class MarkdownlintSettings(Check):
     """TSK-3110 criteria 2 to 4, REQ-2434: markdownlint settings the `lint` verb ignores, lacks or overrides."""

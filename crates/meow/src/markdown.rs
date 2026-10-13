@@ -481,7 +481,16 @@ fn check() -> u8 {
     };
     let findings = findings(&corpus);
     if findings.is_empty() {
-        println!("no findings");
+        let clean = pack::Clean {
+            said: "no findings".into(),
+            groups: CHECKS.iter().map(|c| c.to_string()).collect(),
+            hides_below_a_level: false,
+            level: None,
+        };
+        match clean.line() {
+            Ok(line) => println!("{line}"),
+            Err(reason) => println!("unresolved: {reason}"),
+        }
         return 0;
     }
     for finding in &findings {
@@ -489,6 +498,13 @@ fn check() -> u8 {
     }
     FOUND
 }
+
+/// What `check` checks, named in its clean report (REQ-2432).
+const CHECKS: [&str; 3] = [
+    "the render target",
+    "the markdownlint settings",
+    "the link check's settings",
+];
 
 fn findings(corpus: &Corpus) -> Vec<String> {
     let mut found = Vec::new();

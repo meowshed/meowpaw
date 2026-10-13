@@ -34,6 +34,9 @@ pub(crate) struct Candidate {
     pub enables: Vec<String>,
     /// Each of those the repository's configuration asks for.
     pub asked: Vec<String>,
+    /// What the command checks, in the words the pack's document uses, such
+    /// as `documentation examples`.
+    pub covers: Vec<String>,
 }
 
 impl Candidate {
@@ -44,7 +47,14 @@ impl Candidate {
             configured_by,
             enables: Vec::new(),
             asked: Vec::new(),
+            covers: Vec::new(),
         }
+    }
+
+    /// What the command checks.
+    pub(crate) fn covering(mut self, what: &[&str]) -> Candidate {
+        self.covers = what.iter().map(|w| w.to_string()).collect();
+        self
     }
 
     /// The groups the command turns on by its own words.
@@ -79,6 +89,8 @@ pub(crate) struct Binding {
     pub stage: String,
     pub state: State,
     pub notes: Vec<String>,
+    /// What the bound command checks.
+    pub covers: Vec<String>,
 }
 
 impl Binding {
@@ -105,12 +117,94 @@ impl Binding {
             stage: stage.to_string(),
             state,
             notes: Vec::new(),
+            covers: Vec::new(),
         }
     }
 
     /// A comment printed under the stage's line.
     pub(crate) fn note(mut self, note: &str) -> Binding {
         self.notes.push(note.to_string());
+        self
+    }
+
+    /// What the bound command checks.
+    pub(crate) fn covering(mut self, what: &[&str]) -> Binding {
+        self.covers = what.iter().map(|w| w.to_string()).collect();
+        self
+    }
+
+    /// The stage with a comment naming each thing the ecosystem's default
+    /// tool, `default`, checks and the bound command doesn't, since nothing
+    /// else in the stage checks it (REQ-2410). A binding that runs the rest
+    /// covers it all and gets no comment.
+    pub(crate) fn short_of(mut self, default: &str, checks: &[&str]) -> Binding {
+        let State::Bound { tool, .. } = &self.state else {
+            return self;
+        };
+        let missing: Vec<&str> = checks
+            .iter()
+            .copied()
+            .filter(|what| !self.covers.iter().any(|c| c == what))
+            .collect();
+        if !missing.is_empty() {
+            let note = format!(
+                "{tool} doesn't check {}, which {default} does; nothing in this stage checks it now",
+                missing.join(", ")
+            );
+            self.notes.push(note);
+        }
+        self
+    }
+
+    /// The stage refused where the bound command leaves out `what`, which the
+    /// language runs as tests, such as its documentation examples, so a runner
+    /// that silently skips them never binds (REQ-2412).
+    pub(crate) fn requiring(mut self, what: &str) -> Binding {
+        if let State::Bound { tool, .. } = &self.state
+            && !self.covers.iter().any(|c| c == what)
+        {
+            self.state = State::Unresolved(format!(
+                "{tool} leaves out {what}, which {} must run",
+                self.stage
+            ));
+        }
+        self
+    }
+
+    /// The stage with the language's defect detector on, or with a comment
+    /// naming the profile's setting that turns it off, which is the record
+    /// REQ-2414 asks for. `settings` is the profile's table for the language.
+    pub(crate) fn with_detector(
+        mut self,
+        detector: &Detector,
+        settings: Option<&toml::Table>,
+    ) -> Binding {
+        let State::Bound { command, .. } = &mut self.state else {
+            return self;
+        };
+        let off = settings
+            .and_then(|table| table.get(&detector.setting))
+            .and_then(toml::Value::as_bool)
+            == Some(false);
+        if off {
+            self.notes.push(format!(
+                "{} is off, as [{}] {} = false records",
+                detector.name, detector.language, detector.setting
+            ));
+            return self;
+        }
+        if !command
+            .split_whitespace()
+            .any(|word| word == detector.switch)
+        {
+            *command = match command.find(&detector.after) {
+                Some(at) => {
+                    let end = at + detector.after.len();
+                    format!("{} {}{}", &command[..end], detector.switch, &command[end..])
+                }
+                None => format!("{command} {}", detector.switch),
+            };
+        }
         self
     }
 
@@ -201,6 +295,7 @@ pub(crate) fn choose(stage: &str, candidates: &[Candidate], looked_for: &str) ->
         );
     }
     let mut binding = Binding::bound(stage, &first.tool, &first.command);
+    binding.covers = first.covers.clone();
     for other in &configured[1..] {
         binding = binding.note(&format!(
             "{} configures {} too; {stage} runs {}, the first this pack's document lists",
@@ -295,6 +390,105 @@ pub(crate) fn waiting(reason: &str) -> Vec<Binding> {
         .iter()
         .map(|stage| Binding::unresolved(stage, reason))
         .collect()
+}
+
+/// The detector a language ships for the defect class its programs most often
+/// have, such as a race detector, and how `test` turns it on.
+#[derive(Clone, Debug)]
+pub(crate) struct Detector {
+    pub name: String,
+    /// The words that turn it on, such as `-race`.
+    pub switch: String,
+    /// The words of the command the switch follows, such as `go test`; where
+    /// the command doesn't hold them, the switch goes at its end.
+    pub after: String,
+    /// The table the profile names for the language, such as `go`.
+    pub language: String,
+    /// The key in that table a repository sets to `false` to turn it off.
+    pub setting: String,
+}
+
+/// A clean report: what the stage said, the rule groups or analyses it ran,
+/// and the level it ran at where its tool hides findings below a level by
+/// default, because a clean result under a default configuration is a claim
+/// about the configuration (REQ-2432, REQ-2444).
+#[derive(Clone, Debug)]
+pub(crate) struct Clean {
+    /// The words the report opens with, such as `no findings`.
+    pub said: String,
+    pub groups: Vec<String>,
+    /// Whether the tool hides findings below a level unless told otherwise.
+    pub hides_below_a_level: bool,
+    pub level: Option<String>,
+}
+
+impl Clean {
+    /// The line reporting the clean run, or why the report is incomplete: no
+    /// rule group named, or no level named for a tool that hides findings
+    /// below one.
+    pub(crate) fn line(&self) -> Result<String, String> {
+        if self.groups.is_empty() {
+            return Err(format!(
+                "{}: the report names no rule group it ran",
+                self.said
+            ));
+        }
+        let mut line = format!(
+            "{}; rule groups enabled: {}",
+            self.said,
+            self.groups.join(", ")
+        );
+        match (&self.level, self.hides_below_a_level) {
+            (Some(level), _) => line.push_str(&format!("; ran at level {level}")),
+            (None, true) => {
+                return Err(format!(
+                    "{}: the tool hides findings below a level, and the report names none",
+                    self.said
+                ));
+            }
+            (None, false) => {}
+        }
+        Ok(line)
+    }
+}
+
+/// How far a supply-chain check reaches.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Reach {
+    /// It reports a vulnerable dependency because the project depends on it.
+    Presence,
+    /// It reports one only where the code calls what is vulnerable.
+    Reachability,
+}
+
+/// A supply-chain check, which states whether it covers transitive
+/// dependencies and whether it reports presence or reachability, because the
+/// two findings are different claims (REQ-2436).
+#[derive(Clone, Debug)]
+pub(crate) struct SupplyChain {
+    pub tool: String,
+    pub transitive: bool,
+    pub reach: Reach,
+}
+
+impl SupplyChain {
+    /// The line stating the check's reach.
+    pub(crate) fn line(&self) -> String {
+        let covers = if self.transitive {
+            "direct and transitive dependencies"
+        } else {
+            "direct dependencies only"
+        };
+        let reports = match self.reach {
+            Reach::Presence => {
+                "a vulnerable dependency's presence, whether or not the code calls it"
+            }
+            Reach::Reachability => {
+                "a vulnerable dependency only where the code reaches it, so reachability"
+            }
+        };
+        format!("{}: covers {covers}, and reports {reports}", self.tool)
+    }
 }
 
 #[cfg(test)]
@@ -469,5 +663,133 @@ mod tests {
         // another form of the step performs implicitly runs it first.
         let build = Binding::bound("build", "fixbuild", "fixbuild --release").after("fixgen");
         assert_eq!(build.command(), Some("fixgen && fixbuild --release"));
+    }
+
+    /// The fixture ecosystem's default test runner checks these three.
+    const DEFAULT_CHECKS: [&str; 3] = ["unit tests", "integration tests", "documentation examples"];
+
+    #[test]
+    fn tsk_5125_criterion_1_a_narrower_tool_names_what_is_no_longer_checked() {
+        // TSK-5125 criterion 1, REQ-2410: a fixture runner faster and narrower
+        // than the default names what nothing in the stage checks now.
+        let narrow = Binding::bound("test", "fastrun", "fastrun")
+            .covering(&["unit tests", "integration tests"])
+            .short_of("fixtest", &DEFAULT_CHECKS);
+        assert!(
+            narrow
+                .notes
+                .iter()
+                .any(|n| n.contains("documentation examples") && n.contains("fixtest")),
+            "{:?}",
+            narrow.notes
+        );
+        let whole = Binding::bound("test", "fastrun", "fastrun && fixtest --doc")
+            .covering(&DEFAULT_CHECKS)
+            .short_of("fixtest", &DEFAULT_CHECKS);
+        assert!(whole.notes.is_empty(), "{:?}", whole.notes);
+    }
+
+    #[test]
+    fn tsk_5125_criterion_2_a_runner_leaving_out_documentation_examples_is_refused() {
+        // TSK-5125 criterion 2, REQ-2412: the fixture language runs its
+        // documentation examples as tests, so `test` runs them, and a runner
+        // that leaves them out fails the layer's rule.
+        let runs = Binding::bound("test", "fixtest", "fixtest")
+            .covering(&DEFAULT_CHECKS)
+            .requiring("documentation examples");
+        assert_eq!(runs.command(), Some("fixtest"));
+        let skips = Binding::bound("test", "fastrun", "fastrun")
+            .covering(&["unit tests"])
+            .requiring("documentation examples");
+        assert!(
+            matches!(&skips.state, State::Unresolved(r) if r.contains("documentation examples")),
+            "{:?}",
+            skips.state
+        );
+    }
+
+    fn race() -> Detector {
+        Detector {
+            name: "the race detector".into(),
+            switch: "-race".into(),
+            after: "fixgo test".into(),
+            language: "fixgo".into(),
+            setting: "race".into(),
+        }
+    }
+
+    #[test]
+    fn tsk_5125_criterion_3_the_detector_is_on_and_turning_it_off_is_named() {
+        // TSK-5125 criterion 3, REQ-2414: `test` turns the fixture language's
+        // detector on, and a profile turning it off is named in the report.
+        let on = Binding::bound("test", "fixgo", "fixgo test ./...").with_detector(&race(), None);
+        assert_eq!(on.command(), Some("fixgo test -race ./..."));
+        let settings: toml::Table = "race = false".parse().unwrap();
+        let off = Binding::bound("test", "fixgo", "fixgo test ./...")
+            .with_detector(&race(), Some(&settings));
+        assert_eq!(off.command(), Some("fixgo test ./..."));
+        assert!(
+            off.notes
+                .iter()
+                .any(|n| n.contains("the race detector") && n.contains("[fixgo] race = false")),
+            "{:?}",
+            off.notes
+        );
+    }
+
+    #[test]
+    fn tsk_5125_criterion_4_a_clean_report_names_its_groups_and_its_level() {
+        // TSK-5125 criterion 4, REQ-2432, REQ-2444: a clean fixture run names
+        // the rule groups enabled and the level it ran at, and a report that
+        // omits either fails.
+        let clean = Clean {
+            said: "lint: no findings".into(),
+            groups: vec!["correctness".into(), "suspicious".into()],
+            hides_below_a_level: true,
+            level: Some("warning".into()),
+        };
+        let line = clean.line().unwrap();
+        assert!(line.starts_with("lint: no findings"), "{line}");
+        assert!(line.contains("correctness, suspicious"), "{line}");
+        assert!(line.contains("warning"), "{line}");
+        let no_groups = Clean {
+            groups: Vec::new(),
+            ..clean.clone()
+        };
+        assert!(no_groups.line().is_err());
+        let no_level = Clean {
+            level: None,
+            ..clean.clone()
+        };
+        assert!(no_level.line().is_err());
+        let shows_all = Clean {
+            hides_below_a_level: false,
+            level: None,
+            ..clean
+        };
+        assert!(shows_all.line().is_ok());
+    }
+
+    #[test]
+    fn tsk_5125_criterion_5_a_supply_chain_check_states_its_reach() {
+        // TSK-5125 criterion 5, REQ-2436: a fixture supply-chain check states
+        // whether it covers transitive dependencies and whether it reports
+        // presence or reachability.
+        let presence = SupplyChain {
+            tool: "fixaudit".into(),
+            transitive: true,
+            reach: Reach::Presence,
+        }
+        .line();
+        assert!(presence.contains("transitive"), "{presence}");
+        assert!(presence.contains("presence"), "{presence}");
+        let reach = SupplyChain {
+            tool: "fixvuln".into(),
+            transitive: false,
+            reach: Reach::Reachability,
+        }
+        .line();
+        assert!(reach.contains("direct dependencies only"), "{reach}");
+        assert!(reach.contains("reachab"), "{reach}");
     }
 }
