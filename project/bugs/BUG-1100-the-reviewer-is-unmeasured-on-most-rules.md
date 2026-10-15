@@ -53,3 +53,7 @@ them is an evaluation, and it waits with the evaluations the owner postponed.
 ## Closed by
 
 Open.
+
+## Tasks
+
+- [x] T-001 TSK-5330 give every visible rule a reviewer case and fail the gate on a gap (done: pull request 887)
