@@ -1,7 +1,7 @@
 ---
 name: unexpanded-acronym
 description: A text carrying a named defect.
-tags: [defect]
+tags: [defect, rule-H6]
 runs: 3
 max_turns: 10
 ---

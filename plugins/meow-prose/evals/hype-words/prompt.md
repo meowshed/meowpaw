@@ -1,7 +1,7 @@
 ---
 name: hype-words
 description: A text carrying a named defect.
-tags: [defect]
+tags: [defect, rule-B6]
 runs: 3
 max_turns: 10
 ---

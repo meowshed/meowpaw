@@ -23,6 +23,9 @@ states:
     REQ-3182,
     REQ-3183,
     REQ-3184,
+    REQ-4800,
+    REQ-4802,
+    REQ-4804,
     REQ-3740,
     REQ-3742,
     REQ-3744,
@@ -256,6 +259,18 @@ The unit's own material is the first text its reviewer reads. The skill, the
 reviewer's own prompt and the documentation page are held to the standard they
 carry (REQ-1674, REQ-1676), and a finding in them counts as readily
 as a finding anywhere else.
+
+### What the reviewer's cases cover
+
+The reviewer's labelled set holds at least one case for every rule of the
+standard that a reader can see broken in a text (REQ-4800). A case names its
+rule with a `rule-<ID>` tag, so a program can list the rules with no case. The
+rules no text can show, such as reading a sentence aloud, sit in
+`plugins/meow-prose/evals/rule-cases.toml` with the reason for each
+(REQ-4804). A check fails and names each rule that has neither a case nor an
+entry there (REQ-4802), so a rule added to the standard joins the set in the
+same change. A case says only that a rule is tested, and the rate it earns is an
+evaluation.
 
 ### How the prompts are written
 
