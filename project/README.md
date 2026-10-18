@@ -394,6 +394,9 @@ binds for the five stages and what its check finds.
 way for a project's environment. EPC-2560 realises both, and neither is built
 yet.
 
+[SPC-1380](specs/SPC-1380-the-godot-and-gdscript-pack.md) states the Godot
+and GDScript pack, which `meow-godot` implements.
+
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
 what this repository keeps under `.github/`: the community files, which
 TSK-4610 realises, and the rules every workflow holds, which EPC-2420
