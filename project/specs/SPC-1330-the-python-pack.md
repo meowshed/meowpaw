@@ -150,16 +150,16 @@ points `--cache-dir` at `${TMPDIR:-/tmp}/ruff-cache`, outside the tree, and
 mypy writes no cache under `--cache-dir=/dev/null`, the documented form for a
 Unix system (REQ-2442, RES-0363). The pytest binding stops the cache plugin
 and the interpreter's bytecode from writing into the tree for the same reason.
-Where the repository's tracked ignore files already cover the cache, the
-binding is the same, because it must not depend on a file the checkout may
-lack.
+The binding is the same where the repository's tracked ignore files cover the
+caches, because it must not depend on a file the checkout may lack.
 
-Where pytest is configured and its `addopts` holds neither `--doctest-modules`
-nor `--doctest-glob`, a comment under `test` says the stage doesn't run the
-examples in the project's documentation; where it holds one, the stage runs
-them, and `bind` prints no comment (REQ-2412, RES-0363). The comment appears
-for a project that has doctests only by name of the option, because the pack
-reads no source file.
+Where pytest is configured and the `addopts` of the configuration that applies
+holds neither `--doctest-modules` nor `--doctest-glob`, a comment under `test`
+says the stage doesn't run the examples in the project's documentation and
+names the option that runs them; where it holds one, the stage runs them, and
+`bind` prints no comment (REQ-2412, RES-0363). `check` reports no finding for
+this, because a project without doctests is not at fault and the pack reads no
+source file to tell.
 
 Where the environment is `uv`, a comment under the table says `uv run` brings
 the project environment up to date before it runs, so a stage may write into
@@ -174,23 +174,22 @@ prints the table.
 in `<directory>`, the root where none is given, and exits 1 on any finding,
 each on a line of its own:
 
-| Finding                                                                           | When                                                                                                                                    |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `<stage> runs <tool> outside <environment>: write <prefix> <tool>`                | A stage's command runs Ruff, mypy, pyright, pyrefly, ty or pytest by its bare name (REQ-2426)                                           |
-| `<file> and <file> both declare an environment`                                   | Two environment tools apply to the project (REQ-2426)                                                                                   |
-| `ruff would apply unsafe fixes: remove --unsafe-fixes`                            | A stage runs Ruff with `--unsafe-fixes` (REQ-2434, RES-0103)                                                                            |
-| `ruff applies fixes in a check: remove --fix`                                     | The `format` or `lint` stage runs Ruff with `--fix` (REQ-2442, RES-0103)                                                                |
-| `ruff format rewrites the tree: pass --check`                                     | The `format` stage runs `ruff format` with neither `--check` nor `--diff` (REQ-2442)                                                    |
-| `<tool> writes <cache> into the tree: pass <flag>`                                | A stage runs Ruff, mypy or pytest with no flag that moves or stops its cache, and no tracked ignore file covers it (REQ-2442, RES-0363) |
-| `pytest runs no doctests: <file> sets no --doctest-modules`                       | A stage runs pytest, and the pytest configuration's `addopts` holds no doctest option (REQ-2412)                                        |
-| `<file> holds [tool.<name>] and <other> configures <name>: <name> reads <winner>` | Two files of one tool configure it, and the tool reads one alone (REQ-2434, RES-0363)                                                   |
+| Finding                                                                        | When                                                                                                                                    |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `<stage> runs <tool> outside <environment>: write <prefix> <tool>`             | A stage's command runs Ruff, mypy, pyright, pyrefly, ty or pytest by its bare name (REQ-2426)                                           |
+| `<file> and <file> both declare an environment`                                | Two environment tools apply to the project (REQ-2426)                                                                                   |
+| `ruff would apply unsafe fixes: remove --unsafe-fixes`                         | A stage runs Ruff with `--unsafe-fixes` (REQ-2434, RES-0103)                                                                            |
+| `ruff applies fixes in a check: remove --fix`                                  | The `format` or `lint` stage runs Ruff with `--fix` (REQ-2442, RES-0103)                                                                |
+| `ruff format rewrites the tree: pass --check`                                  | The `format` stage runs `ruff format` with neither `--check` nor `--diff` (REQ-2442)                                                    |
+| `<tool> writes <cache> into the tree: pass <flag>`                             | A stage runs Ruff, mypy or pytest with no flag that moves or stops its cache, and no tracked ignore file covers it (REQ-2442, RES-0363) |
+| `<loser> configures <tool> and <winner> does too: <tool> reads <winner> alone` | Two files of one tool configure it, and the tool reads one alone (REQ-2434, RES-0363)                                                   |
 
 A command runs a tool where a word at the start of the command, or after
 `&&`, `||`, `;` or `|`, is the tool's name, or where the word after a
 `python -m` is. A word after `uv run`, `poetry run` or `pdm run` runs that
 tool through the environment. A command that runs a tool through a runner's
 task isn't read. With no finding, `check` prints `no findings; rule groups
-enabled: the environment, the fixes, the caches, the doctests` and exits 0
+enabled: the environment, the fixes, the caches, the configuration files` and exits 0
 (REQ-2432). Ruff's own rule groups aren't named, because `check` runs no Ruff;
 the clean report says what `check` covered and no more.
 

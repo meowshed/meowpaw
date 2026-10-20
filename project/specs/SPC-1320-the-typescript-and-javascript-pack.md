@@ -124,7 +124,8 @@ enabled (REQ-2428, RES-0104). With no `package.json` tracked, it prints
 is given. The root's package is bound into `.meowpaw/profile.toml`, and a
 declared part's package into the part's own profile, which the first line
 names. Each stage takes the first row that applies, and each tool's command
-runs through the package manager (REQ-2338, REQ-2420, REQ-2426, RES-0362):
+runs through the package manager, except `node --test`, because `node` is the
+runtime and no package (REQ-2338, REQ-2420, REQ-2426, RES-0362):
 
 | Stage    | Printed as                                                                                 | When                                                                                         |
 | -------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
@@ -209,12 +210,11 @@ provider.
 
 Each is printed as SPC-1190 states, by every command it applies to:
 
-| State                                                 | Reported as                                                       | Exit |
-| ----------------------------------------------------- | ----------------------------------------------------------------- | ---- |
-| No tracked `package.json`                             | `unresolved: not a TypeScript and JavaScript repository`          | 3    |
-| `<directory>` holds no tracked `package.json`         | `unresolved: <directory> holds no package.json; one is in <dirs>` | 3    |
-| `<directory>` is neither the root nor a declared part | `unresolved: <directory> is no part the profile declares`         | 3    |
-| `bind`: the profile doesn't parse                     | `unresolved: the profile doesn't parse: <message>`                | 3    |
-| `check`: no profile, or one that doesn't parse        | `unresolved: <what is wrong with the profile>`                    | 3    |
-| A `package.json` that doesn't parse                   | `unresolved: <file> doesn't parse as JSON: <message>`             | 3    |
-| An unknown argument                                   | the usage line                                                    | 2    |
+| State                                          | Reported as                                                       | Exit |
+| ---------------------------------------------- | ----------------------------------------------------------------- | ---- |
+| No tracked `package.json`                      | `unresolved: not a TypeScript and JavaScript repository`          | 3    |
+| `<directory>` holds no tracked `package.json`  | `unresolved: <directory> holds no package.json; one is in <dirs>` | 3    |
+| `bind`: the profile doesn't parse              | `unresolved: the profile doesn't parse: <message>`                | 3    |
+| `check`: no profile, or one that doesn't parse | `unresolved: <what is wrong with the profile>`                    | 3    |
+| A `package.json` that doesn't parse            | `unresolved: <file> doesn't parse as JSON: <message>`             | 3    |
+| An unknown argument                            | the usage line                                                    | 2    |
