@@ -397,6 +397,12 @@ yet.
 [SPC-1380](specs/SPC-1380-the-godot-and-gdscript-pack.md) states the Godot
 and GDScript pack, which `meow-godot` implements.
 
+[SPC-1385](specs/SPC-1385-the-starlark-pack.md) states the Starlark pack,
+which `meow-starlark` implements.
+
+[SPC-1390](specs/SPC-1390-the-scheme-pack.md) states the Scheme pack, which
+`meow-scheme` implements.
+
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
 what this repository keeps under `.github/`: the community files, which
 TSK-4610 realises, and the rules every workflow holds, which EPC-2420
