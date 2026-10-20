@@ -70,6 +70,16 @@ pub const PACKS: &[Pack] = &[
         unit: "meow-gotask",
         markers: crate::gotask::markers,
     },
+    #[cfg(feature = "csharp")]
+    Pack {
+        unit: "meow-csharp",
+        markers: crate::csharp::markers,
+    },
+    #[cfg(feature = "lua")]
+    Pack {
+        unit: "meow-lua",
+        markers: crate::lua::markers,
+    },
 ];
 
 /// The paths git tracks under `root`, relative to it.
@@ -118,6 +128,53 @@ pub fn by_directory(markers: &[Marker]) -> BTreeMap<String, Vec<String>> {
             .push(marker.file.clone());
     }
     grouped
+}
+
+/// `name` in `directory`, as a path relative to the root.
+pub fn join(directory: &str, name: &str) -> String {
+    if directory == "." {
+        name.to_string()
+    } else {
+        format!("{directory}/{name}")
+    }
+}
+
+/// `directory`, then each directory above it, ending with the root, `.`.
+pub fn ancestors(directory: &str) -> Vec<String> {
+    let mut out = vec![directory.to_string()];
+    while let Some(last) = out.last().filter(|d| *d != ".") {
+        let up = directory_of(last);
+        out.push(up);
+    }
+    out
+}
+
+/// The tracked file `name` nearest `directory`: in it, or else in the nearest
+/// directory above it, as a tool that searches upwards finds it.
+pub fn nearest(tracked: &BTreeSet<String>, directory: &str, name: &str) -> Option<String> {
+    ancestors(directory)
+        .iter()
+        .map(|d| join(d, name))
+        .find(|path| tracked.contains(path))
+}
+
+/// The names of the tracked files directly in `directory`.
+pub fn names_in<'a>(tracked: &'a BTreeSet<String>, directory: &str) -> Vec<&'a str> {
+    tracked
+        .iter()
+        .filter(|path| directory_of(path) == directory)
+        .map(|path| path.rsplit('/').next().unwrap_or(path))
+        .collect()
+}
+
+/// The tracked files at or below `directory`, every one for the root.
+pub fn under<'a>(tracked: &'a BTreeSet<String>, directory: &str) -> Vec<&'a str> {
+    let prefix = join(directory, "");
+    tracked
+        .iter()
+        .map(String::as_str)
+        .filter(|path| path.starts_with(&prefix))
+        .collect()
 }
 
 /// The parts the root profile declares, or none.
