@@ -17,19 +17,23 @@ mod author;
     feature = "mise",
     feature = "gotask",
     feature = "markdown",
-    feature = "rust"
+    feature = "rust",
+    feature = "go"
 ))]
 mod detect;
 #[cfg(feature = "git")]
 mod git;
 #[cfg(feature = "github")]
 mod github;
+#[cfg(feature = "go")]
+mod go;
 #[cfg(feature = "gotask")]
 mod gotask;
 #[cfg(any(
     feature = "author",
     feature = "git",
     feature = "github",
+    feature = "go",
     feature = "gotask",
     feature = "licence",
     feature = "loop",
@@ -107,6 +111,8 @@ fn main() -> ExitCode {
         "markdown" => markdown::main(rest),
         #[cfg(feature = "rust")]
         "rust" => rust::main(rest),
+        #[cfg(feature = "go")]
+        "go" => go::main(rest),
         #[cfg(feature = "unattended")]
         "unattended" => unattended::main(rest),
         #[cfg(feature = "loop")]
@@ -160,6 +166,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "rust") {
         names.push("rust");
+    }
+    if cfg!(feature = "go") {
+        names.push("go");
     }
     if cfg!(feature = "unattended") {
         names.push("unattended");

@@ -67,6 +67,7 @@ Every page, who it is for and what it answers:
 | [meow-flow](../plugins/meow-flow/README.md)             | someone choosing or running meow-flow                                                                 | what meow-flow does, what it adds to a session and how to run it                                | reference       |
 | [meow-git](../plugins/meow-git/README.md)               | someone choosing or running meow-git                                                                  | what meow-git does, what it adds to a session and how to run it                                 | reference       |
 | [meow-github](../plugins/meow-github/README.md)         | someone choosing or running meow-github                                                               | what meow-github does, what it adds to a session and how to run it                              | reference       |
+| [meow-go](../plugins/meow-go/README.md)                 | someone choosing or running meow-go                                                                   | what meow-go does, what it adds to a session and how to run it                                  | reference       |
 | [meow-gotask](../plugins/meow-gotask/README.md)         | someone choosing or running meow-gotask                                                               | what meow-gotask does, what it adds to a session and how to run it                              | reference       |
 | [meow-licence](../plugins/meow-licence/README.md)       | someone choosing or running meow-licence                                                              | what meow-licence does, what it adds to a session and how to run it                             | reference       |
 | [meow-loop](../plugins/meow-loop/README.md)             | someone choosing or running meow-loop                                                                 | how a person starts a run in the session, what bounds a run and what a run keeps                | reference       |
@@ -123,7 +124,7 @@ serve it, and a `postponed` row one nobody is building yet.
 | Rust                           | `meow-rust`          | shipped   |
 | TypeScript and JavaScript      | `meow-typescript`    | planned   |
 | Python                         | `meow-python`        | planned   |
-| Go                             | `meow-go`            | planned   |
+| Go                             | `meow-go`            | shipped   |
 | C#                             | `meow-csharp`        | planned   |
 | Lua                            | `meow-lua`           | planned   |
 | Neovim plugins                 | `meow-lua`           | planned   |

@@ -111,6 +111,7 @@ Each key the profile may carry, with the reason the key exists:
 - `record.root` — Where the record lives is the repository's layout, and a directory of Markdown doesn't say it is the record
 - `docs.style` — The documentation style is the repository's decision, and the pages already written can't name it
 - `markdown.target` — The renderer a document is written for is outside the repository, and the Markdown alone doesn't name it
+- `go.race` — Whether a repository accepts a test run without the race detector is its decision, and the tests alone can't show it
 - `licence.header` — The header each new file carries is the project's legal choice, and a tool never picks a licence for it
 - `unattended.permission_mode` — The permission an unattended run gets is a person's grant, and nothing in the repository can infer one
 - `unattended.release` — The command that releases a merged change is the repository's, and a run never guesses one
@@ -257,6 +258,17 @@ person reads in its place:
 
 - `check` — whether a command a hook is about to run carries text that breaks the prose rules
   By hand: read the commit message, pull request body or issue text in the command against the rules of the `writing` skill
+
+### meow-go
+
+- `status` — how Go is configured in this repository
+  By hand: list the tracked `go.mod` files and read each one's go line, toolchain line and tool directives
+- `bind` — the `[stages]` lines that bind each stage to the go command the module and its linter configuration call for
+  By hand: read the module, the golangci-lint configuration and the profile's go table, and write each stage's go command
+- `check` — whether the golangci-lint configuration is the version 2 shape and which supply-chain check the repository runs
+  By hand: read the golangci-lint configuration for its version and the linters it names, and the tool directives for govulncheck
+- `toolchain` — whether the toolchain the module pins is the one installed
+  By hand: read the toolchain line of go.mod and compare it with the output of `go version` run with GOTOOLCHAIN=local
 
 ### meow-rust
 

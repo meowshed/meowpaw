@@ -17,6 +17,7 @@
     feature = "prose",
     feature = "markdown",
     feature = "rust",
+    feature = "go",
     feature = "unattended",
     feature = "loop"
 ))]
@@ -58,7 +59,7 @@ fn without_groups(text: &str) -> String {
 }
 
 /// Each unit's subcommand of `paw`, and the name its usage line gives it.
-const UNITS: [(&str, &str); 13] = [
+const UNITS: [(&str, &str); 14] = [
     ("verbs", "meow-checks"),
     ("scm", "meow-scm"),
     ("git", "meow-git"),
@@ -70,6 +71,7 @@ const UNITS: [(&str, &str); 13] = [
     ("prose", "meow-prose-gate"),
     ("markdown", "meow-markdown"),
     ("rust", "meow-rust"),
+    ("go", "meow-go"),
     ("unattended", "meow-unattended"),
     ("loop", "meow-loop"),
 ];
@@ -417,8 +419,10 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "markdown", &["bind"], "");
     held(d, s, "markdown", &["check"], "");
     held(d, s, "markdown", &["links", "README.md"], "");
-    for command in ["status", "bind", "check", "toolchain"] {
-        held(d, s, "rust", &[command], "");
+    for unit in ["rust", "go"] {
+        for command in ["status", "bind", "check", "toolchain"] {
+            held(d, s, unit, &[command], "");
+        }
     }
     held(d, s, "unattended", &["plan"], "");
     held(d, s, "loop", &["purge"], "");

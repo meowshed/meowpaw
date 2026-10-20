@@ -30,9 +30,10 @@ prose = ["dep:regex"]
 pack = []
 markdown = ["dep:yaml-rust2", "pack"]
 rust = ["pack"]
+go = ["dep:yaml-rust2", "pack"]
 unattended = ["dep:sha2"]
 loop = ["dep:sha2", "dep:regex"]
-interface = ["author", "git", "github", "gotask", "licence", "loop", "markdown", "mise", "rust", "prose", "scm", "unattended", "verbs", "record"]
+interface = ["author", "git", "github", "gotask", "licence", "loop", "go", "markdown", "mise", "rust", "prose", "scm", "unattended", "verbs", "record"]
 
 [dependencies]
 toml = { version = "1.0", features = ["preserve_order"] }
