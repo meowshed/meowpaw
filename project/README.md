@@ -378,6 +378,12 @@ realised, verified under issue 624. The supported packs in their order, which
 EPC-2560 realises, the rules every pack keeps, which EPC-2565 realises, and
 the diagram check, which EPC-2540 realises, aren't built yet.
 
+[SPC-1310](specs/SPC-1310-the-rust-pack.md) states the Rust pack within
+SPC-1190: its detection, its bindings, its findings and its toolchain check.
+
+[SPC-1340](specs/SPC-1340-the-go-pack.md) states the Go pack within
+SPC-1190: its detection, its bindings, its findings and its toolchain check.
+
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
 what this repository keeps under `.github/`: the community files, which
 TSK-4610 realises, and the rules every workflow holds, which EPC-2420
