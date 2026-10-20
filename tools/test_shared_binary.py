@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SUBCOMMANDS = ("verbs", "scm", "git", "record", "github", "licence", "author", "mise", "gotask", "prose",
-               "markdown", "rust", "go", "unattended", "loop")
+               "markdown", "rust", "go", "typescript", "python", "unattended", "loop")
 
 
 def target():

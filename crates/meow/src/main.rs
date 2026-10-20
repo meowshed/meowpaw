@@ -18,7 +18,9 @@ mod author;
     feature = "gotask",
     feature = "markdown",
     feature = "rust",
-    feature = "go"
+    feature = "go",
+    feature = "python",
+    feature = "typescript"
 ))]
 mod detect;
 #[cfg(feature = "git")]
@@ -41,7 +43,9 @@ mod gotask;
     feature = "mise",
     feature = "prose",
     feature = "rust",
+    feature = "python",
     feature = "scm",
+    feature = "typescript",
     feature = "unattended",
     feature = "verbs",
 ))]
@@ -59,6 +63,8 @@ mod pack;
 mod profile;
 #[cfg(feature = "prose")]
 mod prose;
+#[cfg(feature = "python")]
+mod python;
 #[cfg(any(feature = "record", feature = "loop"))]
 #[cfg_attr(not(feature = "record"), allow(dead_code))]
 mod record;
@@ -70,6 +76,10 @@ mod runner;
 mod rust;
 #[cfg(feature = "scm")]
 mod scm;
+#[cfg(any(feature = "typescript", feature = "python"))]
+mod tree;
+#[cfg(feature = "typescript")]
+mod typescript;
 #[cfg(any(feature = "unattended", feature = "loop"))]
 mod unattended;
 #[cfg(any(feature = "verbs", feature = "loop"))]
@@ -113,6 +123,10 @@ fn main() -> ExitCode {
         "rust" => rust::main(rest),
         #[cfg(feature = "go")]
         "go" => go::main(rest),
+        #[cfg(feature = "typescript")]
+        "typescript" => typescript::main(rest),
+        #[cfg(feature = "python")]
+        "python" => python::main(rest),
         #[cfg(feature = "unattended")]
         "unattended" => unattended::main(rest),
         #[cfg(feature = "loop")]
@@ -169,6 +183,12 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "go") {
         names.push("go");
+    }
+    if cfg!(feature = "typescript") {
+        names.push("typescript");
+    }
+    if cfg!(feature = "python") {
+        names.push("python");
     }
     if cfg!(feature = "unattended") {
         names.push("unattended");

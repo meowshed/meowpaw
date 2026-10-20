@@ -56,7 +56,40 @@ states the toolchain versions it is current as of.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `status_reports_for_the_directory_holding_its_marker`,
+`with_no_marker_every_command_is_unresolved` and
+`status_reports_once_per_directory_and_names_a_part` in
+`crates/meow/tests/typescript.rs`, which name REQ-2338. The test file named the
+README the pack ships before it existed, so it failed to compile until the
+pack did.
+
+Criterion 2 is closed by `bind_prints_all_five_stages_from_what_the_fixture_commits`,
+`bind_prints_an_unconfigured_stage_as_unbound` and
+`bind_without_a_package_manager_leaves_every_stage_unresolved`, which name
+REQ-2338.
+
+Criterion 3 is closed, for the package manager the project declares
+(REQ-2426), by `each_tool_runs_through_the_manager_the_project_declares`,
+`a_manager_that_cannot_be_told_leaves_the_stages_unresolved`,
+`check_finds_a_tool_run_outside_the_declared_manager` and
+`check_finds_two_lockfiles`. It is closed, for the tool the repository
+configured (REQ-2420), by `the_configured_linter_binds_and_the_installed_one_never_does`
+and `an_eslintrc_binds_nothing_and_is_named`. It is closed, for output kept
+outside the tree (REQ-2442), by `tsc_writes_nothing_into_the_tree`, and for the
+settings behind the stages by `check_finds_eslint_settings_that_have_no_effect`
+and `check_finds_oxlint_passing_on_warnings` (REQ-2434), and
+`a_clean_check_names_what_it_covered` (REQ-2432). It is closed, for the
+generated files to commit and to ignore (REQ-2450), by
+`the_page_states_the_generated_files`, which reads both READMEs.
+
+Criterion 4 is closed by `tools/check_docs.py`, which reads the `shipped` row
+in `docs/README.md`.
+
+No criterion rests on judgement. One finding came with the work: Biome's
+documentation states no exit status for `biome format` without `--write`
+(RES-0362), so the pack binds no format command to Biome alone and says so.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

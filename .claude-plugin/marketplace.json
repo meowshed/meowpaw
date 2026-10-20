@@ -89,6 +89,16 @@
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-go/README.md"
     },
     {
+      "name": "meow-typescript",
+      "source": "./plugins/meow-typescript",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-typescript/README.md"
+    },
+    {
+      "name": "meow-python",
+      "source": "./plugins/meow-python",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-python/README.md"
+    },
+    {
       "name": "meow-code",
       "source": "./plugins/meow-code",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-code/README.md"

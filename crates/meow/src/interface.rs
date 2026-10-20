@@ -79,6 +79,10 @@ fn tables() -> Vec<(&'static str, Vec<Subcommand>)> {
     out.push(("meow-go", entries(&crate::go::HELP)));
     #[cfg(feature = "rust")]
     out.push(("meow-rust", entries(&crate::rust::HELP)));
+    #[cfg(feature = "typescript")]
+    out.push(("meow-typescript", entries(&crate::typescript::HELP)));
+    #[cfg(feature = "python")]
+    out.push(("meow-python", entries(&crate::python::HELP)));
     #[cfg(feature = "scm")]
     out.push(("meow-scm", entries(&crate::scm::HELP)));
     #[cfg(feature = "unattended")]

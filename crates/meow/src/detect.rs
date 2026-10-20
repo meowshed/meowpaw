@@ -50,6 +50,16 @@ pub const PACKS: &[Pack] = &[
         unit: "meow-rust",
         markers: crate::rust::markers,
     },
+    #[cfg(feature = "typescript")]
+    Pack {
+        unit: "meow-typescript",
+        markers: crate::typescript::markers,
+    },
+    #[cfg(feature = "python")]
+    Pack {
+        unit: "meow-python",
+        markers: crate::python::markers,
+    },
     #[cfg(feature = "mise")]
     Pack {
         unit: "meow-mise",

@@ -56,7 +56,43 @@ states the toolchain versions it is current as of.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `status_reports_for_the_directory_holding_its_marker`,
+`with_no_marker_every_command_is_unresolved` and
+`status_reports_once_per_directory_and_names_a_part` in
+`crates/meow/tests/python.rs`, which name REQ-2336. The test file named the
+README the pack ships before it existed, so it failed to compile until the
+pack did.
+
+Criterion 2 is closed by `bind_prints_all_five_stages_from_what_the_fixture_commits`,
+`bind_prints_an_unconfigured_stage_as_unbound` and
+`a_broken_project_is_unresolved_and_bind_takes_a_directory`, which name
+REQ-2336.
+
+Criterion 3 is closed, for the environment the project declares (REQ-2426), by
+`each_tool_runs_through_the_environment_the_project_declares`,
+`two_environments_leave_the_stages_unresolved`,
+`check_finds_a_tool_run_outside_the_declared_environment` and
+`check_finds_two_environments`. It is closed, for the tool the repository
+configured (REQ-2420), by `the_configured_type_checker_binds_and_the_other_is_named`
+and `bind_turns_on_no_rule_group_and_applies_no_fix`. It is closed, for
+documentation tests (REQ-2412), by `the_test_stage_says_whether_it_runs_documentation_examples`,
+and for output kept outside the tree (REQ-2442) by
+`check_finds_a_tool_writing_its_cache_into_the_tree` and
+`check_finds_ruff_applying_fixes`. The generated files (REQ-2450) are held by
+`the_page_states_the_generated_files`, and the settings behind the stages by
+`check_finds_two_files_configuring_one_tool` and
+`a_clean_check_names_what_it_covered` (REQ-2434, REQ-2432).
+
+Criterion 4 is closed by `tools/check_docs.py`, which reads the `shipped` row
+in `docs/README.md`.
+
+Criterion 3's documentation-test clause rests on judgement: the pack reads no
+source file, so it cannot tell a project with doctests from one without, and
+it states in a comment under `test` that the stage doesn't run them unless the
+pytest configuration's `addopts` asks for them. `check` reports no finding for
+it, because a project without doctests is not at fault.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

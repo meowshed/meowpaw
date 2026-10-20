@@ -76,7 +76,9 @@ Every page, who it is for and what it answers:
 | [meow-prose](../plugins/meow-prose/README.md)           | someone choosing or running meow-prose                                                                | what meow-prose does, what it adds to a session and how to run it                               | reference       |
 | [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
 | [meow-rust](../plugins/meow-rust/README.md)             | someone choosing or running meow-rust                                                                 | what meow-rust does, what it adds to a session and how to run it                                | reference       |
+| [meow-python](../plugins/meow-python/README.md)         | someone choosing or running meow-python                                                               | what meow-python does, what it adds to a session and how to run it                              | reference       |
 | [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
+| [meow-typescript](../plugins/meow-typescript/README.md) | someone choosing or running meow-typescript                                                           | what meow-typescript does, what it adds to a session and how to run it                          | reference       |
 | [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended                                                           | what posture meow-unattended prints, what its deny rules stop and what they don't               | reference       |
 | [interface](interface.md)                               | someone changing the harness or writing against it                                                    | what the harness's public interface is, and what a change to it breaks                          | reference       |
 | [troubleshooting](troubleshooting.md)                   | someone whose meowpaw unit just refused, blocked or reported something they didn't expect             | what each message a unit prints means, why it appeared and what fixes it                        | troubleshooting |
@@ -122,8 +124,8 @@ serve it, and a `postponed` row one nobody is building yet.
 | Language or tool               | Pack                 | State     |
 | ------------------------------ | -------------------- | --------- |
 | Rust                           | `meow-rust`          | shipped   |
-| TypeScript and JavaScript      | `meow-typescript`    | planned   |
-| Python                         | `meow-python`        | planned   |
+| TypeScript and JavaScript      | `meow-typescript`    | shipped   |
+| Python                         | `meow-python`        | shipped   |
 | Go                             | `meow-go`            | shipped   |
 | C#                             | `meow-csharp`        | planned   |
 | Lua                            | `meow-lua`           | planned   |

@@ -18,6 +18,8 @@
     feature = "markdown",
     feature = "rust",
     feature = "go",
+    feature = "typescript",
+    feature = "python",
     feature = "unattended",
     feature = "loop"
 ))]
@@ -72,6 +74,8 @@ const UNITS: [(&str, &str); 14] = [
     ("markdown", "meow-markdown"),
     ("rust", "meow-rust"),
     ("go", "meow-go"),
+    ("typescript", "meow-typescript"),
+    ("python", "meow-python"),
     ("unattended", "meow-unattended"),
     ("loop", "meow-loop"),
 ];
@@ -423,6 +427,11 @@ fn output_opens_with_stated_first_words() {
         for command in ["status", "bind", "check", "toolchain"] {
             held(d, s, unit, &[command], "");
         }
+    }
+    for unit in ["typescript", "python"] {
+        held(d, s, unit, &["status"], "");
+        held(d, s, unit, &["bind"], "");
+        held(d, s, unit, &["check"], "");
     }
     held(d, s, "unattended", &["plan"], "");
     held(d, s, "loop", &["purge"], "");

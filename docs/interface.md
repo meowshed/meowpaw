@@ -280,6 +280,23 @@ person reads in its place:
   By hand: read each manifest's package table and lints, and the ignore files beside the top manifest
 - `toolchain` — whether the toolchain the repository pins is the one installed
   By hand: read the `channel` of the toolchain file and compare it with the output of `rustc --version`
+### meow-typescript
+
+- `status` — which packages this repository holds, the package manager each declares and the tools each configured
+  By hand: list the tracked package.json files and the lockfile, config and pin files beside each
+- `bind` — the `[stages]` lines that bind each stage to a tool the package configured, run through its package manager
+  By hand: read the package manager's lockfile, then match each configuration file with the tool that reads it
+- `check` — whether the stages run their tools through the package manager and set what the tools need
+  By hand: read each stage's command against the lockfiles, the ESLint, oxlint and tsconfig settings
+
+### meow-python
+
+- `status` — which projects this repository holds, the environment tool each declares and the tools each configured
+  By hand: list the tracked pyproject.toml files and the lockfile, config and pin files beside each
+- `bind` — the `[stages]` lines that bind each stage to a tool the project configured, run through its environment tool
+  By hand: read the environment tool's lockfile, then match each configuration file with the tool that reads it
+- `check` — whether the stages run their tools through the environment, apply no fix and keep each tool's cache out of the tree
+  By hand: read each stage's command against the lockfiles, the tools' flags and the files each tool reads
 
 ### meow-scm
 
