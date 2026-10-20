@@ -201,6 +201,7 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "python") {
         names.push("python");
+    }
     if cfg!(feature = "csharp") {
         names.push("csharp");
     }
