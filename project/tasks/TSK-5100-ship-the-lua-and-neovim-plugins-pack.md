@@ -1,7 +1,7 @@
 ---
 id: TSK-5100
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2342, REQ-2344]
@@ -68,7 +68,7 @@ is closed by `the_runtime_is_detected_before_any_stage_binds` (REQ-2446) and
 closed by `tools/check_docs.py`, with the `meow-lua` rows of `docs/README.md`
 reading `shipped`. The pack is built on `pack.rs` and `detect.rs`.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1077.
 
 ## Left alone
 

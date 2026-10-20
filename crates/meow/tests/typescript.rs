@@ -605,9 +605,10 @@ fn a_broken_package_is_unresolved_and_bind_takes_a_directory() {
 /// commit and which to ignore, in both distributions.
 #[test]
 fn the_page_states_the_generated_files() {
-    let claude = include_str!("../../../plugins/meow-typescript/README.md");
-    let pi = include_str!("../../../packages/meow-typescript/README.md");
-    for page in [claude, pi] {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for tree in ["plugins", "packages"] {
+        let page =
+            std::fs::read_to_string(root.join(tree).join("meow-typescript/README.md")).unwrap();
         let section = page
             .split("## Generated files")
             .nth(1)

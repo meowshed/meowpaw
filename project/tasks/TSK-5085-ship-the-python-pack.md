@@ -1,7 +1,7 @@
 ---
 id: TSK-5085
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2336]
@@ -92,7 +92,7 @@ it states in a comment under `test` that the stage doesn't run them unless the
 pytest configuration's `addopts` asks for them. `check` reports no finding for
 it, because a project without doctests is not at fault.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1077.
 
 ## Left alone
 

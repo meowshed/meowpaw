@@ -1,7 +1,7 @@
 ---
 id: TSK-5115
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2350]
@@ -76,7 +76,7 @@ rests on judgement.
 `paw ready implement TSK-5115` refused only because TSK-5110, the earlier pack
 in the chain, isn't done on this branch.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1077.
 
 ## Left alone
 

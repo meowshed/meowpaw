@@ -595,9 +595,9 @@ fn a_broken_project_is_unresolved_and_bind_takes_a_directory() {
 /// commit and which to ignore, in both distributions.
 #[test]
 fn the_page_states_the_generated_files() {
-    let claude = include_str!("../../../plugins/meow-python/README.md");
-    let pi = include_str!("../../../packages/meow-python/README.md");
-    for page in [claude, pi] {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for tree in ["plugins", "packages"] {
+        let page = std::fs::read_to_string(root.join(tree).join("meow-python/README.md")).unwrap();
         let section = page
             .split("## Generated files")
             .nth(1)

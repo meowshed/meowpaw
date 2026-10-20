@@ -1,7 +1,7 @@
 ---
 id: TSK-5080
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2338]
@@ -89,7 +89,7 @@ No criterion rests on judgement. One finding came with the work: Biome's
 documentation states no exit status for `biome format` without `--write`
 (RES-0362), so the pack binds no format command to Biome alone and says so.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1077.
 
 ## Left alone
 

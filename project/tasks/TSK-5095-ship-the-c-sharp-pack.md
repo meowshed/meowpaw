@@ -1,7 +1,7 @@
 ---
 id: TSK-5095
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2340]
@@ -72,7 +72,7 @@ Criterion 3 is closed by `every_build_restores_explicitly_first` (REQ-2448),
 `shipped`. The pack is built on `pack.rs` and `detect.rs`, and the shared
 `pack::across` joins the stages of several directories (REQ-3048).
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1077.
 
 ## Left alone
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-5075
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2332]
@@ -65,7 +65,7 @@ Criterion 1 is closed by `tsk_5075_criterion_1_status_reports_the_directory_and_
 
 Criterion 3 is closed, one requirement at a time, by `tsk_5075_criterion_3_a_runner_without_doctests_is_followed_by_them` (REQ-2412, REQ-2420), `tsk_5075_criterion_3_a_pinned_toolchain_is_compared_with_the_installed_one` (REQ-2428), `tsk_5075_criterion_3_build_output_must_be_ignored` (REQ-2442), `tsk_5075_criterion_3_the_page_states_its_generated_files` with the shared layer's `tsk_5135_criterion_3_every_language_pack_states_its_generated_files` (REQ-2450), `tsk_5075_criterion_3_a_clean_report_names_the_clippy_groups_it_ran` (REQ-2432), and `tsk_5075_criterion_3_the_manifest_is_checked_for_what_it_leaves_unsaid` (REQ-2434). Criterion 4 is closed by `tools/check_docs.py`, which finds the Rust row `shipped` and the unit present.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1077.
 
 ## Left alone
 

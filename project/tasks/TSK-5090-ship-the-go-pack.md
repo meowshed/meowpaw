@@ -1,7 +1,7 @@
 ---
 id: TSK-5090
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2334]
@@ -62,7 +62,7 @@ Criterion 3 is closed, one requirement at a time, by `tsk_5090_criterion_3_the_r
 
 Part of criterion 3 rests on judgement. REQ-2412, documentation examples run as tests, is held by the same test that checks `test` binds `go test`, and that `go test` runs an example stating its output is a fact of the Go toolchain (RES-0364) that no test here can run without installing Go. The tests were written before the module, and run with the `go` subcommand left out of the dispatch, nine of the ten failed.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1077.
 
 ## Left alone
 

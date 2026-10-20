@@ -1,7 +1,7 @@
 ---
 id: TSK-5105
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2346]
@@ -75,7 +75,7 @@ reads the unit's page (REQ-2450). Criterion 4 is closed by
 `paw ready implement TSK-5105` refused only because TSK-5100, the earlier pack
 in the chain, isn't done on this branch.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1077.
 
 ## Left alone
 
