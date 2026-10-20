@@ -12,6 +12,8 @@
 mod attended;
 #[cfg(feature = "author")]
 mod author;
+#[cfg(feature = "csharp")]
+mod csharp;
 #[cfg(any(
     feature = "verbs",
     feature = "mise",
@@ -20,7 +22,9 @@ mod author;
     feature = "rust",
     feature = "go",
     feature = "python",
-    feature = "typescript"
+    feature = "typescript",
+    feature = "csharp",
+    feature = "lua"
 ))]
 mod detect;
 #[cfg(feature = "git")]
@@ -33,6 +37,8 @@ mod go;
 mod gotask;
 #[cfg(any(
     feature = "author",
+    feature = "csharp",
+    feature = "lua",
     feature = "git",
     feature = "github",
     feature = "go",
@@ -54,6 +60,8 @@ mod help;
 mod interface;
 #[cfg(feature = "licence")]
 mod licence;
+#[cfg(feature = "lua")]
+mod lua;
 #[cfg(feature = "markdown")]
 mod markdown;
 #[cfg(feature = "mise")]
@@ -127,6 +135,10 @@ fn main() -> ExitCode {
         "typescript" => typescript::main(rest),
         #[cfg(feature = "python")]
         "python" => python::main(rest),
+        #[cfg(feature = "csharp")]
+        "csharp" => csharp::main(rest),
+        #[cfg(feature = "lua")]
+        "lua" => lua::main(rest),
         #[cfg(feature = "unattended")]
         "unattended" => unattended::main(rest),
         #[cfg(feature = "loop")]
@@ -189,6 +201,11 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "python") {
         names.push("python");
+    if cfg!(feature = "csharp") {
+        names.push("csharp");
+    }
+    if cfg!(feature = "lua") {
+        names.push("lua");
     }
     if cfg!(feature = "unattended") {
         names.push("unattended");

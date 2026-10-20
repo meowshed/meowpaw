@@ -33,9 +33,11 @@ rust = ["pack"]
 go = ["dep:yaml-rust2", "pack"]
 typescript = ["pack"]
 python = ["pack"]
+csharp = ["pack"]
+lua = ["pack"]
 unattended = ["dep:sha2"]
 loop = ["dep:sha2", "dep:regex"]
-interface = ["author", "git", "github", "gotask", "licence", "loop", "go", "markdown", "mise", "prose", "python", "rust", "scm", "typescript", "unattended", "verbs", "record"]
+interface = ["author", "csharp", "git", "github", "gotask", "licence", "loop", "go", "lua", "markdown", "mise", "prose", "python", "rust", "scm", "typescript", "unattended", "verbs", "record"]
 
 [dependencies]
 toml = { version = "1.0", features = ["preserve_order"] }

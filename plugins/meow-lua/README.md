@@ -41,8 +41,10 @@ From your own shell, run the same launcher by its path in the installed unit.
 
 The program reports for each directory where git tracks a `*.rockspec` or a
 `.luarc.json`, or tracks files under both `lua/` and `plugin/`, which is how a
-Neovim plugin is laid out. For each directory, `status` prints the host, the
-formatter and the linter.
+Neovim plugin is laid out. Each directory's report opens with
+`scope: <directory>` and one `marker:` line for each marker, the layout as
+`lua/, plugin/`, and then `status` prints the host, the formatter and the
+linter.
 
 The host comes first, because Lua 5.1 to 5.4 and LuaJIT differ in ways that
 pass review and fail at run time. A Neovim plugin's host is Neovim. Otherwise
@@ -116,6 +118,15 @@ With no finding it prints `no findings` and exits 0.
 | `unresolved: the profile doesn't parse: ...`          | `check` found a profile that isn't valid TOML |
 
 Each exits 3.
+
+## Generated files
+
+Commit `.luarc.json`, `stylua.toml`, `selene.toml`, `.luacheckrc`, `.busted`
+and the rockspec, because they're the configuration every binding reads.
+Commit a Neovim plugin's generated help file under `doc/` as well, because
+`:help` reads it from the repository, and a generator such as panvimdoc
+rewrites it on each push. Ignore `log/`, which `lua-language-server --check`
+writes into the directory it runs from unless `--logpath` names another.
 
 ## Review Lua or a Neovim plugin
 

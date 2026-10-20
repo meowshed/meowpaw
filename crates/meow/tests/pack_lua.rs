@@ -54,8 +54,10 @@ fn status_reports_for_the_directory_holding_the_marker() {
     );
     let run = repo.run(&["lua", "status"], &[]);
     assert_eq!(run.code(), 0, "{}", run.out());
+    let lines = run.lines();
+    assert!(lines.iter().any(|l| l == "scope: tools"), "{}", run.out());
     assert!(
-        run.out().contains("for tools: .luarc.json"),
+        lines.iter().any(|l| l == "marker: tools/.luarc.json"),
         "{}",
         run.out()
     );
@@ -64,7 +66,7 @@ fn status_reports_for_the_directory_holding_the_marker() {
         "{}",
         run.out()
     );
-    assert!(!run.out().contains("for .:"), "{}", run.out());
+    assert!(!lines.iter().any(|l| l == "scope: ."), "{}", run.out());
 }
 
 #[test]
@@ -81,8 +83,10 @@ fn a_neovim_plugin_is_detected_from_its_layout() {
     );
     let run = repo.run(&["lua", "status"], &[]);
     assert_eq!(run.code(), 0, "{}", run.out());
+    let lines = run.lines();
+    assert!(lines.iter().any(|l| l == "scope: nvim"), "{}", run.out());
     assert!(
-        run.out().contains("for nvim: lua/, plugin/"),
+        lines.iter().any(|l| l == "marker: nvim/lua/, nvim/plugin/"),
         "{}",
         run.out()
     );

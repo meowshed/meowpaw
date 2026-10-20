@@ -50,8 +50,14 @@ fn status_reports_for_the_directory_holding_the_marker() {
     let repo = Repo::new("csharp-sub", &[PROFILE, ("app/App.csproj", PROJECT)]);
     let run = repo.run(&["csharp", "status"], &[]);
     assert_eq!(run.code(), 0, "{}", run.out());
-    assert!(run.out().contains("for app: App.csproj"), "{}", run.out());
-    assert!(!run.out().contains("for .:"), "{}", run.out());
+    let lines = run.lines();
+    assert!(lines.iter().any(|l| l == "scope: app"), "{}", run.out());
+    assert!(
+        lines.iter().any(|l| l == "marker: app/App.csproj"),
+        "{}",
+        run.out()
+    );
+    assert!(!lines.iter().any(|l| l == "scope: ."), "{}", run.out());
 }
 
 #[test]
@@ -76,8 +82,15 @@ fn a_project_under_a_solution_is_covered_by_the_solution() {
     // activate again on their own.
     let repo = configured("csharp-covered");
     let run = repo.run(&["csharp", "status"], &[]);
-    assert!(run.out().contains("for .: Shop.slnx"), "{}", run.out());
-    assert!(!run.out().contains("for src/Shop"), "{}", run.out());
+    let lines = run.lines();
+    assert!(lines.iter().any(|l| l == "scope: ."), "{}", run.out());
+    assert!(
+        lines.iter().any(|l| l == "marker: Shop.slnx"),
+        "{}",
+        run.out()
+    );
+    assert!(!run.out().contains("scope: src/Shop"), "{}", run.out());
+    assert!(!run.out().contains("Shop.csproj"), "{}", run.out());
 }
 
 #[test]

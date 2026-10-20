@@ -43,7 +43,8 @@ From your own shell, run the same launcher by its path in the installed unit.
 The program reports for each directory where git tracks a `*.sln`, `*.slnx`,
 `*.slnf` or `*.csproj` file, and names the files it found there. A project
 inside a directory holding a solution belongs to that solution and isn't
-reported again. For each directory, `status` prints:
+reported again. Each directory's report opens with `scope: <directory>` and
+one `marker: <file>` line for each file, and then `status` prints:
 
 1. The SDK `global.json` pins, its `rollForward` policy and the SDKs installed
    under `$DOTNET_ROOT`, or under the directory of the `dotnet` on your
@@ -128,6 +129,16 @@ none.
 Each exits 3. `bind` still prints its table where the pin isn't met, because
 `dotnet` applies the pin itself and the commands stand once the SDK is
 installed.
+
+## Generated files
+
+Commit your solution and project files, `global.json`,
+`Directory.Build.props` and `.config/dotnet-tools.json`, because they're the
+project state every binding reads. Ignore `bin/` and `obj/`, which
+`dotnet build` and `dotnet restore` write beside each project when no
+artifacts path is passed. The stages `bind` prints send that output and the
+TRX test results under `${TMPDIR:-/tmp}/meow-csharp/`, outside your working
+tree, so a run through them leaves neither directory behind.
 
 ## Review C# code
 

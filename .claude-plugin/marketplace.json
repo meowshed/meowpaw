@@ -107,6 +107,16 @@
       "name": "meow-author",
       "source": "./plugins/meow-author",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-author/README.md"
+    },
+    {
+      "name": "meow-csharp",
+      "source": "./plugins/meow-csharp",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-csharp/README.md"
+    },
+    {
+      "name": "meow-lua",
+      "source": "./plugins/meow-lua",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-lua/README.md"
     }
   ]
 }

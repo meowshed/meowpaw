@@ -306,6 +306,24 @@ person reads in its place:
 - `check-message` — whether a commit message meets the convention and credits no tool, agent or vendor
   By hand: read the message against each type, the subject limit and the trailers `meow-scm convention` lists, the sign-off against `git config user.name`, and the text for a credit to a tool, an agent or a vendor
 
+### meow-csharp
+
+- `status` — where this repository holds a .NET solution or project, and the SDK, target, runner, formatter and analysis level each uses
+  By hand: list the tracked .sln, .slnx, .slnf and .csproj files, then read global.json, Directory.Build.props and .csharpierrc beside them
+- `bind` — the `[stages]` lines that bind each stage to the dotnet command the repository's configuration names
+  By hand: restore explicitly, pass --no-restore and one --artifacts-path outside the tree to each dotnet command, and bind lint only where TreatWarningsAsErrors is set
+- `check` — whether Nullable, TreatWarningsAsErrors and AnalysisLevel are set where the compiler reads them
+  By hand: read Directory.Build.props and each project file for the three settings
+
+### meow-lua
+
+- `status` — where this repository holds Lua or a Neovim plugin, which host evaluates it, and the tools it configures
+  By hand: list the tracked rockspecs, .luarc.json files and lua/ beside plugin/ directories, then read runtime.version and the stylua, selene, luacheck and busted files
+- `bind` — the `[stages]` lines that bind each stage to the Lua tool the repository configures
+  By hand: match stylua.toml, selene.toml, .luacheckrc, .busted and the rockspec with the tool that reads each, once the runtime is known
+- `check` — whether a Neovim plugin declares its runtime and documents itself for :help
+  By hand: look for .luarc.json and doc/ beside the plugin's lua/ and plugin/
+
 ### meow-unattended
 
 - `plan` — the posture and deny rules an unattended run is held to, from the profile
