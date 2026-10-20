@@ -75,8 +75,26 @@ fn tables() -> Vec<(&'static str, Vec<Subcommand>)> {
     out.push(("meow-gotask", entries(&crate::gotask::HELP)));
     #[cfg(feature = "prose")]
     out.push(("meow-prose", entries(&crate::prose::HELP)));
+    #[cfg(feature = "go")]
+    out.push(("meow-go", entries(&crate::go::HELP)));
+    #[cfg(feature = "rust")]
+    out.push(("meow-rust", entries(&crate::rust::HELP)));
+    #[cfg(feature = "typescript")]
+    out.push(("meow-typescript", entries(&crate::typescript::HELP)));
+    #[cfg(feature = "python")]
+    out.push(("meow-python", entries(&crate::python::HELP)));
     #[cfg(feature = "scm")]
     out.push(("meow-scm", entries(&crate::scm::HELP)));
+    #[cfg(feature = "csharp")]
+    out.push(("meow-csharp", entries(&crate::csharp::HELP)));
+    #[cfg(feature = "lua")]
+    out.push(("meow-lua", entries(&crate::lua::HELP)));
+    #[cfg(feature = "godot")]
+    out.push(("meow-godot", entries(&crate::godot::HELP)));
+    #[cfg(feature = "starlark")]
+    out.push(("meow-starlark", entries(&crate::starlark::HELP)));
+    #[cfg(feature = "scheme")]
+    out.push(("meow-scheme", entries(&crate::scheme::HELP)));
     #[cfg(feature = "unattended")]
     out.push(("meow-unattended", entries(&crate::unattended::HELP)));
     out

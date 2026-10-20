@@ -1,7 +1,7 @@
 ---
 id: TSK-5090
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2334]
@@ -56,7 +56,13 @@ states the toolchain versions it is current as of.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `tsk_5090_criterion_1_status_reports_the_directory_and_names_the_marker` and `tsk_5090_criterion_1_with_no_marker_the_repository_is_not_go` in `crates/meow/tests/go_pack.rs` (REQ-2334). Criterion 2 is closed by `tsk_5090_criterion_2_bind_prints_all_five_stages_bound_or_with_a_reason` and `tsk_5090_criterion_2_a_module_below_the_root_is_reached_with_cd`, which check that each of the five stages is bound or printed unresolved or unbound with a reason, on a bare module, a module with golangci-lint formatters, a module below the root and two modules (REQ-2334).
+
+Criterion 3 is closed, one requirement at a time, by `tsk_5090_criterion_3_the_race_detector_is_on_and_turning_it_off_is_recorded` (REQ-2414), `tsk_5090_criterion_3_only_the_configured_linter_is_bound` (REQ-2420), `tsk_5090_criterion_3_a_pinned_toolchain_is_compared_with_the_installed_one` (REQ-2428), `tsk_5090_criterion_3_a_supply_chain_check_states_its_reach` (REQ-2436), `tsk_5090_criterion_3_a_v1_configuration_is_a_finding` (REQ-2434, REQ-2432) and `tsk_5090_criterion_3_the_page_states_its_generated_files` with the shared layer's `tsk_5135_criterion_3_every_language_pack_states_its_generated_files` (REQ-2450). Criterion 4 is closed by `tools/check_docs.py`, which finds the Go row `shipped` and the unit present.
+
+Part of criterion 3 rests on judgement. REQ-2412, documentation examples run as tests, is held by the same test that checks `test` binds `go test`, and that `go test` runs an example stating its output is a fact of the Go toolchain (RES-0364) that no test here can run without installing Go. The tests were written before the module, and run with the `go` subcommand left out of the dispatch, nine of the ten failed.
+
+Every stage passed in pull request #1077.
 
 ## Left alone
 
