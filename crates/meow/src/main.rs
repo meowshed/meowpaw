@@ -24,7 +24,10 @@ mod csharp;
     feature = "python",
     feature = "typescript",
     feature = "csharp",
-    feature = "lua"
+    feature = "lua",
+    feature = "godot",
+    feature = "starlark",
+    feature = "scheme"
 ))]
 mod detect;
 #[cfg(feature = "git")]
@@ -33,6 +36,8 @@ mod git;
 mod github;
 #[cfg(feature = "go")]
 mod go;
+#[cfg(feature = "godot")]
+mod godot;
 #[cfg(feature = "gotask")]
 mod gotask;
 #[cfg(any(
@@ -42,6 +47,7 @@ mod gotask;
     feature = "git",
     feature = "github",
     feature = "go",
+    feature = "godot",
     feature = "gotask",
     feature = "licence",
     feature = "loop",
@@ -50,8 +56,10 @@ mod gotask;
     feature = "prose",
     feature = "rust",
     feature = "python",
+    feature = "scheme",
     feature = "scm",
     feature = "typescript",
+    feature = "starlark",
     feature = "unattended",
     feature = "verbs",
 ))]
@@ -68,6 +76,8 @@ mod markdown;
 mod mise;
 #[cfg(feature = "pack")]
 mod pack;
+#[cfg(feature = "perdir")]
+mod perdir;
 mod profile;
 #[cfg(feature = "prose")]
 mod prose;
@@ -82,12 +92,16 @@ mod runloop;
 mod runner;
 #[cfg(feature = "rust")]
 mod rust;
+#[cfg(feature = "scheme")]
+mod scheme;
 #[cfg(feature = "scm")]
 mod scm;
 #[cfg(any(feature = "typescript", feature = "python"))]
 mod tree;
 #[cfg(feature = "typescript")]
 mod typescript;
+#[cfg(feature = "starlark")]
+mod starlark;
 #[cfg(any(feature = "unattended", feature = "loop"))]
 mod unattended;
 #[cfg(any(feature = "verbs", feature = "loop"))]
@@ -139,6 +153,12 @@ fn main() -> ExitCode {
         "csharp" => csharp::main(rest),
         #[cfg(feature = "lua")]
         "lua" => lua::main(rest),
+        #[cfg(feature = "godot")]
+        "godot" => godot::main(rest),
+        #[cfg(feature = "starlark")]
+        "starlark" => starlark::main(rest),
+        #[cfg(feature = "scheme")]
+        "scheme" => scheme::main(rest),
         #[cfg(feature = "unattended")]
         "unattended" => unattended::main(rest),
         #[cfg(feature = "loop")]
@@ -207,6 +227,15 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "lua") {
         names.push("lua");
+    }
+    if cfg!(feature = "godot") {
+        names.push("godot");
+    }
+    if cfg!(feature = "starlark") {
+        names.push("starlark");
+    }
+    if cfg!(feature = "scheme") {
+        names.push("scheme");
     }
     if cfg!(feature = "unattended") {
         names.push("unattended");

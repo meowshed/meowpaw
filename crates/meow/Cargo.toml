@@ -35,9 +35,14 @@ typescript = ["pack"]
 python = ["pack"]
 csharp = ["pack"]
 lua = ["pack"]
+godot = ["pack", "perdir"]
+starlark = ["pack", "perdir"]
+scheme = ["pack", "perdir"]
+# What the Godot, Starlark and Scheme packs share beyond `pack`.
+perdir = []
 unattended = ["dep:sha2"]
 loop = ["dep:sha2", "dep:regex"]
-interface = ["author", "csharp", "git", "github", "gotask", "licence", "loop", "go", "lua", "markdown", "mise", "prose", "python", "rust", "scm", "typescript", "unattended", "verbs", "record"]
+interface = ["author", "csharp", "git", "github", "gotask", "licence", "loop", "go", "godot", "lua", "markdown", "mise", "prose", "python", "rust", "scheme", "scm", "starlark", "typescript", "unattended", "verbs", "record"]
 
 [dependencies]
 toml = { version = "1.0", features = ["preserve_order"] }

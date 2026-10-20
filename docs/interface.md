@@ -323,6 +323,32 @@ person reads in its place:
   By hand: match stylua.toml, selene.toml, .luacheckrc, .busted and the rockspec with the tool that reads each, once the runtime is known
 - `check` — whether a Neovim plugin declares its runtime and documents itself for :help
   By hand: look for .luarc.json and doc/ beside the plugin's lua/ and plugin/
+### meow-godot
+
+- `status` — where this repository holds a Godot project, which engine version it names, and the tools it configures
+  By hand: list the tracked project.godot files, then read config/features in each and the gdformatrc, gdlintrc, .gutconfig.json and export_presets.cfg beside it
+- `bind` — the `[stages]` lines that bind each stage to the Godot tool the repository configures
+  By hand: match gdformatrc, gdlintrc, .gutconfig.json and export_presets.cfg with the tool that reads each, once the engine version is known
+- `check` — whether the engine's cache and identifier files are ignored and committed as they should be, and whether a stage exports without importing
+  By hand: read .gitignore against .godot/, *.import and *.uid, and each stage command for --export-release without --import
+
+### meow-starlark
+
+- `status` — where this repository holds a Bazel or Buck workspace, which build system evaluates it, and the tools it configures
+  By hand: list the tracked MODULE.bazel, REPO.bazel, WORKSPACE, WORKSPACE.bazel and .buckconfig files, then read the .buildifier.json beside each
+- `bind` — the `[stages]` lines that bind each stage to the Starlark tool the repository configures
+  By hand: match .buildifier.json and the workspace marker with buildifier and bazel, once the build system is known
+- `check` — whether a stage's command passes whatever it finds, rewrites files, or leaves Bazel's symlinks and Buck's output in the tree
+  By hand: read each stage command for buildifier with --format or without --mode=check and for bazel without --symlink_prefix=/, then .gitignore against bazel-* and buck-out/
+
+### meow-scheme
+
+- `status` — where this repository holds a Scheme project, which implementation runs it, and how its tests are discovered
+  By hand: list the tracked info.rkt, .egg and guix.scm files, then read info.rkt for test-omit-paths and test-include-paths
+- `bind` — the `[stages]` lines that bind each stage to the Scheme tool the repository configures
+  By hand: identify the implementation from its manifest, then write its test command; Racket binds raco test and nothing else
+- `check` — whether a stage's command writes bytecode into the tree, and whether compiled/ is ignored and untracked
+  By hand: read each stage command for raco make or --make, then .gitignore and the tracked files against compiled/
 
 ### meow-unattended
 

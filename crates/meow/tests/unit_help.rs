@@ -23,7 +23,10 @@
     feature = "unattended",
     feature = "loop",
     feature = "csharp",
-    feature = "lua"
+    feature = "lua",
+    feature = "godot",
+    feature = "starlark",
+    feature = "scheme"
 ))]
 
 use std::io::Write;
@@ -63,7 +66,7 @@ fn without_groups(text: &str) -> String {
 }
 
 /// Each unit's subcommand of `paw`, and the name its usage line gives it.
-const UNITS: [(&str, &str); 18] = [
+const UNITS: [(&str, &str); 21] = [
     ("verbs", "meow-checks"),
     ("scm", "meow-scm"),
     ("git", "meow-git"),
@@ -82,6 +85,9 @@ const UNITS: [(&str, &str); 18] = [
     ("loop", "meow-loop"),
     ("csharp", "meow-csharp"),
     ("lua", "meow-lua"),
+    ("godot", "meow-godot"),
+    ("starlark", "meow-starlark"),
+    ("scheme", "meow-scheme"),
 ];
 
 /// A scratch directory of its own, removed when the test ends.
@@ -440,6 +446,11 @@ fn output_opens_with_stated_first_words() {
     for command in ["status", "bind", "check"] {
         held(d, s, "csharp", &[command], "");
         held(d, s, "lua", &[command], "");
+    }
+    for unit in ["godot", "starlark", "scheme"] {
+        for command in ["status", "bind", "check"] {
+            held(d, s, unit, &[command], "");
+        }
     }
     held(d, s, "unattended", &["plan"], "");
     held(d, s, "loop", &["purge"], "");

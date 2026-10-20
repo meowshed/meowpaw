@@ -117,6 +117,21 @@
       "name": "meow-lua",
       "source": "./plugins/meow-lua",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-lua/README.md"
+    },
+    {
+      "name": "meow-godot",
+      "source": "./plugins/meow-godot",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-godot/README.md"
+    },
+    {
+      "name": "meow-starlark",
+      "source": "./plugins/meow-starlark",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-starlark/README.md"
+    },
+    {
+      "name": "meow-scheme",
+      "source": "./plugins/meow-scheme",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-scheme/README.md"
     }
   ]
 }

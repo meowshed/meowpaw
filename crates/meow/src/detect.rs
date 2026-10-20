@@ -60,6 +60,21 @@ pub const PACKS: &[Pack] = &[
         unit: "meow-python",
         markers: crate::python::markers,
     },
+    #[cfg(feature = "godot")]
+    Pack {
+        unit: "meow-godot",
+        markers: crate::godot::markers,
+    },
+    #[cfg(feature = "starlark")]
+    Pack {
+        unit: "meow-starlark",
+        markers: crate::starlark::markers,
+    },
+    #[cfg(feature = "scheme")]
+    Pack {
+        unit: "meow-scheme",
+        markers: crate::scheme::markers,
+    },
     #[cfg(feature = "mise")]
     Pack {
         unit: "meow-mise",

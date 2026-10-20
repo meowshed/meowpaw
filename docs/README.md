@@ -69,6 +69,7 @@ Every page, who it is for and what it answers:
 | [meow-git](../plugins/meow-git/README.md)               | someone choosing or running meow-git                                                                  | what meow-git does, what it adds to a session and how to run it                                 | reference       |
 | [meow-github](../plugins/meow-github/README.md)         | someone choosing or running meow-github                                                               | what meow-github does, what it adds to a session and how to run it                              | reference       |
 | [meow-go](../plugins/meow-go/README.md)                 | someone choosing or running meow-go                                                                   | what meow-go does, what it adds to a session and how to run it                                  | reference       |
+| [meow-godot](../plugins/meow-godot/README.md)           | someone choosing or running meow-godot                                                                | what meow-godot does, what it adds to a session and how to run it                               | reference       |
 | [meow-gotask](../plugins/meow-gotask/README.md)         | someone choosing or running meow-gotask                                                               | what meow-gotask does, what it adds to a session and how to run it                              | reference       |
 | [meow-licence](../plugins/meow-licence/README.md)       | someone choosing or running meow-licence                                                              | what meow-licence does, what it adds to a session and how to run it                             | reference       |
 | [meow-loop](../plugins/meow-loop/README.md)             | someone choosing or running meow-loop                                                                 | how a person starts a run in the session, what bounds a run and what a run keeps                | reference       |
@@ -77,9 +78,11 @@ Every page, who it is for and what it answers:
 | [meow-mise](../plugins/meow-mise/README.md)             | someone choosing or running meow-mise                                                                 | what meow-mise does, what it adds to a session and how to run it                                | reference       |
 | [meow-prose](../plugins/meow-prose/README.md)           | someone choosing or running meow-prose                                                                | what meow-prose does, what it adds to a session and how to run it                               | reference       |
 | [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
-| [meow-rust](../plugins/meow-rust/README.md)             | someone choosing or running meow-rust                                                                 | what meow-rust does, what it adds to a session and how to run it                                | reference       |
 | [meow-python](../plugins/meow-python/README.md)         | someone choosing or running meow-python                                                               | what meow-python does, what it adds to a session and how to run it                              | reference       |
+| [meow-rust](../plugins/meow-rust/README.md)             | someone choosing or running meow-rust                                                                 | what meow-rust does, what it adds to a session and how to run it                                | reference       |
+| [meow-scheme](../plugins/meow-scheme/README.md)         | someone choosing or running meow-scheme                                                               | what meow-scheme does, what it adds to a session and how to run it                              | reference       |
 | [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
+| [meow-starlark](../plugins/meow-starlark/README.md)     | someone choosing or running meow-starlark                                                             | what meow-starlark does, what it adds to a session and how to run it                            | reference       |
 | [meow-typescript](../plugins/meow-typescript/README.md) | someone choosing or running meow-typescript                                                           | what meow-typescript does, what it adds to a session and how to run it                          | reference       |
 | [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended                                                           | what posture meow-unattended prints, what its deny rules stop and what they don't               | reference       |
 | [interface](interface.md)                               | someone changing the harness or writing against it                                                    | what the harness's public interface is, and what a change to it breaks                          | reference       |
@@ -132,9 +135,9 @@ serve it, and a `postponed` row one nobody is building yet.
 | C#                             | `meow-csharp`        | shipped   |
 | Lua                            | `meow-lua`           | shipped   |
 | Neovim plugins                 | `meow-lua`           | shipped   |
-| Godot and GDScript             | `meow-godot`         | planned   |
-| Starlark                       | `meow-starlark`      | planned   |
-| Scheme                         | `meow-scheme`        | planned   |
+| Godot and GDScript             | `meow-godot`         | shipped   |
+| Starlark                       | `meow-starlark`      | shipped   |
+| Scheme                         | `meow-scheme`        | shipped   |
 | Markdown                       | `meow-markdown`      | shipped   |
 | mise                           | `meow-mise`          | shipped   |
 | Task                           | `meow-gotask`        | shipped   |

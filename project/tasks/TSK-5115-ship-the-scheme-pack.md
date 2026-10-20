@@ -56,7 +56,27 @@ states the toolchain versions it is current as of.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `status_reports_for_the_directory_holding_the_marker`
+and `a_directory_of_scm_files_is_not_a_scheme_repository` in
+`crates/meow/tests/pack_scheme.rs`, seen failing first against a stub
+(REQ-2350, REQ-3048). Criterion 2 is closed by
+`bind_prints_every_stage_for_a_racket_collection`, `chicken_binds_no_command`
+and `two_collections_bind_one_command_that_runs_each_in_its_directory`
+(REQ-2350). Criterion 3 is closed by
+`the_implementation_is_detected_before_any_stage_binds` (REQ-2446) and by
+`bind_prints_every_stage_for_a_racket_collection`, which holds that the only
+tool bound is the one `info.rkt` configures (REQ-2420). The
+`check_reports_a_stage_that_writes_bytecode_into_the_tree` test closes REQ-2442,
+and `status_names_the_generated_files_and_the_test_discovery`,
+`check_reports_bytecode_nobody_ignores_or_a_repository_tracks` and the crate
+test `tsk_5135_criterion_3_every_language_pack_states_its_generated_files`
+close REQ-2450. Criterion 4 is closed by `tools/check_docs.py`. No criterion
+rests on judgement.
+
+`paw ready implement TSK-5115` refused only because TSK-5110, the earlier pack
+in the chain, isn't done on this branch.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 
