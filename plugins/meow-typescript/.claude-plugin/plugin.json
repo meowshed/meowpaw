@@ -1,0 +1,14 @@
+{
+  "name": "meow-typescript",
+  "version": "0.1.0",
+  "description": "Detects a TypeScript and JavaScript package from the package.json git tracks, reads the package manager it declares, prints a stages table bound from the tools it configured and run through that manager, reports a stage that runs a tool outside the manager or leaves a linter or compiler setting without effect, and carries what a reviewer of TypeScript checks that no command reports, writing no file.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-typescript/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["typescript", "javascript", "language", "stages", "meowpaw"],
+  "dependencies": ["meow-core"]
+}

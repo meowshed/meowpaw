@@ -1,0 +1,80 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# Runs this unit's binary of the native tool for this machine (SPC-1080).
+# Where there is none, it reports the repository as unresolved, because a
+# report nobody could make must never read as one that found nothing.
+
+case $0 in
+*/*) here=${0%/*} ;;
+*) here=$(command -v "$0") && here=${here%/*} ;;
+esac
+system='' cpu='' exe=''
+case $(uname -s 2>/dev/null) in
+Darwin) system=apple-darwin ;;
+Linux) system=unknown-linux-musl ;;
+MINGW* | MSYS* | CYGWIN*) system=pc-windows-msvc exe=.exe ;;
+esac
+case $(uname -m 2>/dev/null) in
+arm64 | aarch64) cpu=aarch64 ;;
+x86_64 | amd64) cpu=x86_64 ;;
+esac
+binary="$here/$cpu-$system/paw$exe"
+# The shared binary the core unit ships, found through the core unit's data
+# directory, which the platform documents and the core unit's session start
+# writes (REQ-4504). The unit's own build beside it is the fallback.
+data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
+for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
+  [ -f "$core" ] || continue
+  read -r root <"$core" 2>/dev/null
+  if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/paw$exe" ]; then
+    binary="$root/bin/$cpu-$system/paw$exe"
+    break
+  fi
+done
+# Loaded in place from a checkout, the core unit sits beside this one.
+[ -f "$binary" ] || {
+  beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
+  [ -f "$beside" ] && binary=$beside
+}
+# The platform version this unit was tested on, from its requires.toml
+# (REQ-1738): on an older one the launcher stops here without running the
+# binary, because the unit's behaviour was never seen on it. The version the
+# platform reports comes from `claude --version`, which the platform's CLI
+# reference documents.
+required=$(sed -n 's/^claude_code *= *"\([^"]*\)".*/\1/p' "$here/../requires.toml" 2>/dev/null)
+if [ -n "$required" ]; then
+  reported=$(claude --version 2>/dev/null | sed 's/^\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/')
+  if [ -z "$reported" ]; then
+    echo "paw: the platform's version is unknown, and this unit was tested on claude $required; it runs anyway" >&2
+  else
+    o1=$(printf '%s\n' "$reported" | cut -d. -f1)
+    o2=$(printf '%s\n' "$reported" | cut -d. -f2)
+    o3=$(printf '%s\n' "$reported" | cut -d. -f3)
+    n1=$(printf '%s\n' "$required" | cut -d. -f1)
+    n2=$(printf '%s\n' "$required" | cut -d. -f2)
+    n3=$(printf '%s\n' "$required" | cut -d. -f3)
+    if [ "${o1:-0}" -lt "${n1:-0}" ] || { [ "${o1:-0}" -eq "${n1:-0}" ] && [ "${o2:-0}" -lt "${n2:-0}" ]; } ||
+      { [ "${o1:-0}" -eq "${n1:-0}" ] && [ "${o2:-0}" -eq "${n2:-0}" ] && [ "${o3:-0}" -lt "${n3:-0}" ]; }; then
+      echo "paw: the platform reports claude $reported, and this unit was tested on claude $required, so it stops: install claude $required or later" >&2
+      exit 3
+    fi
+  fi
+fi
+if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
+  [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
+  exec "$binary" rust "$@"
+fi
+
+reason="no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+case "$1" in
+status | bind | check | toolchain)
+  echo "meow-rust $1: unresolved: $reason"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-rust status | bind | check | toolchain" >&2
+  exit 2
+  ;;
+esac

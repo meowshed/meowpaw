@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-141 decisions in all: 18 approved, 114 done, 9 superseded.
+141 decisions in all: 17 approved, 115 done, 9 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -126,7 +126,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-2630](ADR-2630-the-specification-s-parts-are-the-architecture-and-a-fixed-question-list-shows-what-each-leaves-unanswered.md)                        | The specification's parts are the architecture, and a fixed question list shows what each leaves unanswered                                | approved   |
 | [ADR-2640](ADR-2640-a-check-holds-the-method-to-naming-no-language-and-every-pack-stays-optional.md)                                                      | A check holds the method to naming no language, and every pack stays optional                                                              | approved   |
 | [ADR-2650](ADR-2650-a-repository-declares-its-parts-and-each-verb-resolves-per-part-where-a-pack-s-marker-is.md)                                          | A repository declares its parts, and each verb resolves per part, where a pack's marker is                                                 | done       |
-| [ADR-2660](ADR-2660-the-supported-set-is-declared-and-each-language-gets-a-pack-in-a-stated-order.md)                                                     | The supported set is declared, and each language gets a pack in a stated order                                                             | approved   |
+| [ADR-2660](ADR-2660-the-supported-set-is-declared-and-each-language-gets-a-pack-in-a-stated-order.md)                                                     | The supported set is declared, and each language gets a pack in a stated order                                                             | done       |
 | [ADR-2670](ADR-2670-a-language-pack-runs-what-the-repository-configured-and-reports-what-it-left-unchecked.md)                                            | A language pack runs what the repository configured, and reports what it left unchecked                                                    | done       |
 | [ADR-2680](ADR-2680-the-diagnostic-answers-whether-the-repository-can-be-worked-on-and-writes-nothing.md)                                                 | The diagnostic answers whether the repository can be worked on, and writes nothing                                                         | done       |
 | [ADR-2690](ADR-2690-the-harness-is-held-to-its-own-method-and-the-six-source-repositories-test-it.md)                                                     | The harness is held to its own method, and the six source repositories test it                                                             | approved   |

@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SUBCOMMANDS = ("verbs", "scm", "git", "record", "github", "licence", "author", "mise", "gotask", "prose",
-               "markdown", "unattended", "loop")
+               "markdown", "rust", "go", "typescript", "python", "csharp", "lua", "godot", "starlark", "scheme", "unattended", "loop")
 
 
 def target():
@@ -21,7 +21,7 @@ def target():
 
 class SharedBinary(unittest.TestCase):
     def test_the_core_unit_binary_carries_every_units_program(self):
-        """TSK-5300 criterion 1, REQ-4500: `meow` in the core unit names all 13 subcommands as carried."""
+        """TSK-5300 criterion 1, REQ-4500: `meow` in the core unit names all 15 subcommands as carried."""
         binary = ROOT / "plugins/meow-core/bin" / target() / "paw"
         self.assertTrue(binary.is_file(), f"{binary} was not built")
         done = subprocess.run([str(binary)], capture_output=True, text=True)

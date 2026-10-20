@@ -325,6 +325,150 @@ pub(crate) fn choose(stage: &str, candidates: &[Candidate], looked_for: &str) ->
     binding
 }
 
+/// The stages of every directory a marker activates as one table, because a
+/// profile holds one `[stages]` table (REQ-3048). Each bound command runs from
+/// its own directory, the root's as it stands, and with several directories
+/// each stage another directory leaves unbound or unresolved is a comment
+/// naming that directory.
+pub(crate) fn across(directories: &[(String, Vec<Binding>)]) -> Vec<Binding> {
+    let several = directories.len() > 1;
+    STAGES
+        .iter()
+        .map(|stage| {
+            let mut bound: Vec<(String, String)> = Vec::new();
+            let mut others: Vec<(&str, &State)> = Vec::new();
+            let mut notes = Vec::new();
+            for (directory, bindings) in directories {
+                let Some(binding) = bindings.iter().find(|b| b.stage == *stage) else {
+                    continue;
+                };
+                match &binding.state {
+                    State::Bound { tool, command } => {
+                        bound.push((tool.clone(), in_directory(directory, command, several)))
+                    }
+                    state => others.push((directory, state)),
+                }
+                notes.extend(binding.notes.iter().map(|note| {
+                    if several {
+                        format!("{directory}: {note}")
+                    } else {
+                        note.clone()
+                    }
+                }));
+            }
+            let place = |directory: &str| {
+                if several {
+                    format!(" in {directory}")
+                } else {
+                    String::new()
+                }
+            };
+            let words = |state: &State| match state {
+                State::Unresolved(reason) => ("unresolved", reason.clone()),
+                State::Unbound(reason) => ("unbound", reason.clone()),
+                State::Bound { .. } => ("bound", String::new()),
+            };
+            let mut binding = match (bound.first(), others.first().copied()) {
+                (Some((tool, _)), _) => {
+                    let commands: Vec<&str> = bound.iter().map(|(_, c)| c.as_str()).collect();
+                    Binding::bound(stage, tool, &commands.join(" && "))
+                }
+                (None, Some((directory, state))) => {
+                    let (_, reason) = words(state);
+                    let reason = match several {
+                        true => format!("in {directory}, {reason}"),
+                        false => reason,
+                    };
+                    others.remove(0);
+                    Binding::of(
+                        stage,
+                        match state {
+                            State::Unresolved(_) => State::Unresolved(reason),
+                            _ => State::Unbound(reason),
+                        },
+                    )
+                }
+                (None, None) => Binding::unbound(stage, "the pack binds nothing for it"),
+            };
+            for (directory, state) in others {
+                let (word, reason) = words(state);
+                binding = binding.note(&format!("{stage}: {word}{}, {reason}", place(directory)));
+            }
+            for note in notes {
+                binding = binding.note(&note);
+            }
+            binding
+        })
+        .collect()
+}
+
+/// `command` run from `directory`, the root's as it stands, in a subshell of
+/// its own where several directories share the stage.
+fn in_directory(directory: &str, command: &str, several: bool) -> String {
+    let quoted = if directory
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || "./_-".contains(c))
+    {
+        directory.to_string()
+    } else {
+        format!("'{}'", directory.replace('\'', "'\\''"))
+    };
+    match (directory == ".", several) {
+        (true, false) => command.to_string(),
+        (true, true) => format!("({command})"),
+        (false, false) => format!("cd {quoted} && {command}"),
+        (false, true) => format!("(cd {quoted} && {command})"),
+    }
+}
+
+/// JSONC as JSON: comments and trailing commas outside strings removed, as
+/// the configuration files of several ecosystems allow them.
+pub(crate) fn plain_json(text: &str) -> String {
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = String::with_capacity(text.len());
+    let mut i = 0;
+    let mut in_string = false;
+    while i < chars.len() {
+        let c = chars[i];
+        let next = chars.get(i + 1).copied();
+        if in_string {
+            out.push(c);
+            if c == '\\' {
+                if let Some(n) = next {
+                    out.push(n);
+                    i += 1;
+                }
+            } else if c == '"' {
+                in_string = false;
+            }
+        } else if c == '"' {
+            in_string = true;
+            out.push(c);
+        } else if c == '/' && next == Some('/') {
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
+            }
+            continue;
+        } else if c == '/' && next == Some('*') {
+            i += 2;
+            while i < chars.len() && !(chars[i] == '*' && chars.get(i + 1) == Some(&'/')) {
+                i += 1;
+            }
+            i += 2;
+            continue;
+        } else if c == ',' {
+            let rest = chars[i + 1..].iter().find(|c| !c.is_whitespace());
+            if !matches!(rest, Some('}') | Some(']')) {
+                out.push(c);
+            }
+        } else {
+            out.push(c);
+        }
+        i += 1;
+    }
+    out
+}
+
 /// The environment or package manager a project declares, which every tool
 /// runs through.
 #[derive(Clone, Debug)]
@@ -1037,6 +1181,39 @@ mod tests {
         assert!(
             both.contains("fixhost") && both.contains("otherhost"),
             "{both}"
+        );
+    }
+
+    #[test]
+    fn several_directories_share_one_table_each_run_from_its_own() {
+        // REQ-3048: each directory's command runs from that directory, and
+        // a stage one directory leaves unbound is a comment naming it.
+        let one = vec![
+            Binding::bound("format", "fixfmt", "fixfmt --check"),
+            Binding::unbound("lint", "looked for .fixlint"),
+        ];
+        let alone = across(&[("app".to_string(), one.clone())]);
+        assert_eq!(alone[0].command(), Some("cd app && fixfmt --check"));
+        assert_eq!(alone[1].lines(), ["# lint: unbound, looked for .fixlint"]);
+        let two = vec![
+            Binding::bound("format", "fixfmt", "fixfmt --check"),
+            Binding::bound("lint", "fixlint", "fixlint"),
+        ];
+        let both = across(&[(".".to_string(), two), ("app".to_string(), one)]);
+        assert_eq!(
+            both[0].command(),
+            Some("(fixfmt --check) && (cd app && fixfmt --check)")
+        );
+        assert_eq!(
+            both[1].lines(),
+            [
+                "lint = \"(fixlint)\"",
+                "# lint: unbound in app, looked for .fixlint"
+            ]
+        );
+        assert_eq!(
+            both[2].lines(),
+            ["# check: unbound, the pack binds nothing for it"]
         );
     }
 

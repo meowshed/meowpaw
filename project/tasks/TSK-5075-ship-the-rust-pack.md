@@ -1,7 +1,7 @@
 ---
 id: TSK-5075
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2332]
@@ -61,7 +61,11 @@ states the toolchain versions it is current as of.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `tsk_5075_criterion_1_status_reports_the_directory_and_names_the_marker` and `tsk_5075_criterion_1_with_no_marker_the_repository_is_not_rust` in `crates/meow/tests/rust_pack.rs`, seen failing first (REQ-2332). Criterion 2 is closed by `tsk_5075_criterion_2_bind_matches_the_commands_this_repositorys_gate_runs`, which reads `mise.toml` and `crates/meow/build-units` and compares the words of each bound command with the gate's, leaving out `--quiet`, `--release` and `--target-dir`. This repository's profile declares every stage, and `bind` prints none of those, so the test runs `bind` on a fixture holding a copy of the crate's `Cargo.toml` and no declared stage (REQ-2332).
+
+Criterion 3 is closed, one requirement at a time, by `tsk_5075_criterion_3_a_runner_without_doctests_is_followed_by_them` (REQ-2412, REQ-2420), `tsk_5075_criterion_3_a_pinned_toolchain_is_compared_with_the_installed_one` (REQ-2428), `tsk_5075_criterion_3_build_output_must_be_ignored` (REQ-2442), `tsk_5075_criterion_3_the_page_states_its_generated_files` with the shared layer's `tsk_5135_criterion_3_every_language_pack_states_its_generated_files` (REQ-2450), `tsk_5075_criterion_3_a_clean_report_names_the_clippy_groups_it_ran` (REQ-2432), and `tsk_5075_criterion_3_the_manifest_is_checked_for_what_it_leaves_unsaid` (REQ-2434). Criterion 4 is closed by `tools/check_docs.py`, which finds the Rust row `shipped` and the unit present.
+
+Every stage passed in pull request #1077.
 
 ## Left alone
 

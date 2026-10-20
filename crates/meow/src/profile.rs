@@ -207,6 +207,10 @@ pub const KEYS: &[Key] = &[
         reason: "The renderer a document is written for is outside the repository, and the Markdown alone doesn't name it (REQ-2452)",
     },
     Key {
+        path: "go.race",
+        reason: "Whether a repository accepts a test run without the race detector is its decision, and the tests alone can't show it (REQ-2414)",
+    },
+    Key {
         path: "licence.header",
         reason: "The header each new file carries is the project's legal choice, and a tool never picks a licence for it (REQ-1022)",
     },
