@@ -383,6 +383,12 @@ SPC-1190: its detection, its bindings, its findings and its toolchain check.
 
 [SPC-1340](specs/SPC-1340-the-go-pack.md) states the Go pack within
 SPC-1190: its detection, its bindings, its findings and its toolchain check.
+[SPC-1320](specs/SPC-1320-the-typescript-and-javascript-pack.md) states the
+TypeScript and JavaScript pack: how it reads each package's manager, what it
+binds for the five stages and what its check finds.
+[SPC-1330](specs/SPC-1330-the-python-pack.md) states the Python pack the same
+way for a project's environment. EPC-2560 realises both, and neither is built
+yet.
 
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
 what this repository keeps under `.github/`: the community files, which
