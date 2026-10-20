@@ -16,7 +16,8 @@ mod author;
     feature = "verbs",
     feature = "mise",
     feature = "gotask",
-    feature = "markdown"
+    feature = "markdown",
+    feature = "rust"
 ))]
 mod detect;
 #[cfg(feature = "git")]
@@ -35,6 +36,7 @@ mod gotask;
     feature = "markdown",
     feature = "mise",
     feature = "prose",
+    feature = "rust",
     feature = "scm",
     feature = "unattended",
     feature = "verbs",
@@ -60,6 +62,8 @@ mod record;
 mod runloop;
 #[cfg(any(feature = "mise", feature = "gotask"))]
 mod runner;
+#[cfg(feature = "rust")]
+mod rust;
 #[cfg(feature = "scm")]
 mod scm;
 #[cfg(any(feature = "unattended", feature = "loop"))]
@@ -101,6 +105,8 @@ fn main() -> ExitCode {
         "prose" => prose::main(rest),
         #[cfg(feature = "markdown")]
         "markdown" => markdown::main(rest),
+        #[cfg(feature = "rust")]
+        "rust" => rust::main(rest),
         #[cfg(feature = "unattended")]
         "unattended" => unattended::main(rest),
         #[cfg(feature = "loop")]
@@ -151,6 +157,9 @@ fn carried() -> Vec<&'static str> {
     }
     if cfg!(feature = "markdown") {
         names.push("markdown");
+    }
+    if cfg!(feature = "rust") {
+        names.push("rust");
     }
     if cfg!(feature = "unattended") {
         names.push("unattended");

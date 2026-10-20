@@ -258,6 +258,17 @@ person reads in its place:
 - `check` — whether a command a hook is about to run carries text that breaks the prose rules
   By hand: read the commit message, pull request body or issue text in the command against the rules of the `writing` skill
 
+### meow-rust
+
+- `status` — how Rust is configured in this repository
+  By hand: list the tracked `Cargo.toml` files and read each one's edition, lint tables and workspace
+- `bind` — the `[stages]` lines that bind each stage to the cargo command the manifests call for
+  By hand: read the top manifest for a workspace, features and a library, and write each stage's cargo command
+- `check` — whether the manifests leave an edition, a lint inheritance or an ignore file unsaid
+  By hand: read each manifest's package table and lints, and the ignore files beside the top manifest
+- `toolchain` — whether the toolchain the repository pins is the one installed
+  By hand: read the `channel` of the toolchain file and compare it with the output of `rustc --version`
+
 ### meow-scm
 
 - `convention` — the commit convention the profile declares

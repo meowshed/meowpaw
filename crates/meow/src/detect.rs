@@ -40,6 +40,11 @@ pub const PACKS: &[Pack] = &[
         unit: "meow-markdown",
         markers: crate::markdown::markers,
     },
+    #[cfg(feature = "rust")]
+    Pack {
+        unit: "meow-rust",
+        markers: crate::rust::markers,
+    },
     #[cfg(feature = "mise")]
     Pack {
         unit: "meow-mise",

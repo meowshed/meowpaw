@@ -74,6 +74,7 @@ Every page, who it is for and what it answers:
 | [meow-mise](../plugins/meow-mise/README.md)             | someone choosing or running meow-mise                                                                 | what meow-mise does, what it adds to a session and how to run it                                | reference       |
 | [meow-prose](../plugins/meow-prose/README.md)           | someone choosing or running meow-prose                                                                | what meow-prose does, what it adds to a session and how to run it                               | reference       |
 | [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
+| [meow-rust](../plugins/meow-rust/README.md)             | someone choosing or running meow-rust                                                                 | what meow-rust does, what it adds to a session and how to run it                                | reference       |
 | [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
 | [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended                                                           | what posture meow-unattended prints, what its deny rules stop and what they don't               | reference       |
 | [interface](interface.md)                               | someone changing the harness or writing against it                                                    | what the harness's public interface is, and what a change to it breaks                          | reference       |
@@ -119,7 +120,7 @@ serve it, and a `postponed` row one nobody is building yet.
 
 | Language or tool               | Pack                 | State     |
 | ------------------------------ | -------------------- | --------- |
-| Rust                           | `meow-rust`          | planned   |
+| Rust                           | `meow-rust`          | shipped   |
 | TypeScript and JavaScript      | `meow-typescript`    | planned   |
 | Python                         | `meow-python`        | planned   |
 | Go                             | `meow-go`            | planned   |
