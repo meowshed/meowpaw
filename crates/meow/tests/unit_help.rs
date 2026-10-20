@@ -61,7 +61,7 @@ fn without_groups(text: &str) -> String {
 }
 
 /// Each unit's subcommand of `paw`, and the name its usage line gives it.
-const UNITS: [(&str, &str); 14] = [
+const UNITS: [(&str, &str); 16] = [
     ("verbs", "meow-checks"),
     ("scm", "meow-scm"),
     ("git", "meow-git"),

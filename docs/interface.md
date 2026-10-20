@@ -280,6 +280,7 @@ person reads in its place:
   By hand: read each manifest's package table and lints, and the ignore files beside the top manifest
 - `toolchain` — whether the toolchain the repository pins is the one installed
   By hand: read the `channel` of the toolchain file and compare it with the output of `rustc --version`
+
 ### meow-typescript
 
 - `status` — which packages this repository holds, the package manager each declares and the tools each configured
