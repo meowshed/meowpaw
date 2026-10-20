@@ -96,12 +96,12 @@ mod rust;
 mod scheme;
 #[cfg(feature = "scm")]
 mod scm;
+#[cfg(feature = "starlark")]
+mod starlark;
 #[cfg(any(feature = "typescript", feature = "python"))]
 mod tree;
 #[cfg(feature = "typescript")]
 mod typescript;
-#[cfg(feature = "starlark")]
-mod starlark;
 #[cfg(any(feature = "unattended", feature = "loop"))]
 mod unattended;
 #[cfg(any(feature = "verbs", feature = "loop"))]

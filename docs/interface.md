@@ -323,6 +323,7 @@ person reads in its place:
   By hand: match stylua.toml, selene.toml, .luacheckrc, .busted and the rockspec with the tool that reads each, once the runtime is known
 - `check` — whether a Neovim plugin declares its runtime and documents itself for :help
   By hand: look for .luarc.json and doc/ beside the plugin's lua/ and plugin/
+
 ### meow-godot
 
 - `status` — where this repository holds a Godot project, which engine version it names, and the tools it configures
