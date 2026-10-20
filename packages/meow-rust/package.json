@@ -1,0 +1,33 @@
+{
+  "name": "@meowshed/meow-rust",
+  "version": "0.1.0",
+  "description": "Detects Rust from the manifests git tracks, reports each manifest's edition, the pinned toolchain and the clippy groups a lint stage runs, prints a stages table bound from the cargo commands the manifests call for, reports an edition, a lint inheritance or an ignore file a manifest leaves unsaid, and compares the pinned toolchain with the installed one, writing no file, and carries what a reviewer of Rust checks that no command reports. Distributed as a Pi package.",
+  "keywords": [
+    "pi-package",
+    "meowpaw"
+  ],
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meowshed/meowpaw"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": [
+      "extensions/bin.ts"
+    ],
+    "skills": [
+      "skills"
+    ]
+  }
+}

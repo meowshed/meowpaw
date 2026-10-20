@@ -53,7 +53,7 @@ how it exits and what its skill carries. A pack's own document states its
 detection markers, its bindings and its findings, and refers here for the
 rest.
 
-`meow-markdown` is the one language pack so far, with a document of its own. The
+Each shipped language pack has a document of its own beside this one. The
 runner packs, SPC-1140 and SPC-1150, keep the same boundary for a runner and
 aren't restated here. Running a bound stage is SPC-1040's.
 

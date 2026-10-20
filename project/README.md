@@ -377,6 +377,31 @@ the Markdown pack within it. `meow-markdown` implements both, which EPC-1800
 realised, verified under issue 624. The supported packs in their order, which
 EPC-2560 realises, the rules every pack keeps, which EPC-2565 realises, and
 the diagram check, which EPC-2540 realises, aren't built yet.
+[SPC-1360](specs/SPC-1360-the-c-sharp-pack.md) states the C# pack, which
+`meow-csharp` implements.
+[SPC-1370](specs/SPC-1370-the-lua-and-neovim-plugins-pack.md) states the Lua
+and Neovim plugins pack, which `meow-lua` implements.
+
+[SPC-1310](specs/SPC-1310-the-rust-pack.md) states the Rust pack within
+SPC-1190: its detection, its bindings, its findings and its toolchain check.
+
+[SPC-1340](specs/SPC-1340-the-go-pack.md) states the Go pack within
+SPC-1190: its detection, its bindings, its findings and its toolchain check.
+[SPC-1320](specs/SPC-1320-the-typescript-and-javascript-pack.md) states the
+TypeScript and JavaScript pack: how it reads each package's manager, what it
+binds for the five stages and what its check finds.
+[SPC-1330](specs/SPC-1330-the-python-pack.md) states the Python pack the same
+way for a project's environment. EPC-2560 realises both, and neither is built
+yet.
+
+[SPC-1380](specs/SPC-1380-the-godot-and-gdscript-pack.md) states the Godot
+and GDScript pack, which `meow-godot` implements.
+
+[SPC-1385](specs/SPC-1385-the-starlark-pack.md) states the Starlark pack,
+which `meow-starlark` implements.
+
+[SPC-1390](specs/SPC-1390-the-scheme-pack.md) states the Scheme pack, which
+`meow-scheme` implements.
 
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
 what this repository keeps under `.github/`: the community files, which

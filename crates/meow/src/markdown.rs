@@ -982,7 +982,7 @@ fn cli2_sets_rules(path: &std::path::Path) -> bool {
                 _ => true,
             });
     }
-    serde_json::from_str::<serde_json::Value>(&plain_json(&text))
+    serde_json::from_str::<serde_json::Value>(&pack::plain_json(&text))
         .ok()
         .and_then(|json| json.get("config").cloned())
         .is_some_and(|config| match config {
@@ -990,53 +990,6 @@ fn cli2_sets_rules(path: &std::path::Path) -> bool {
             serde_json::Value::Null => false,
             _ => true,
         })
-}
-
-/// JSONC as JSON: comments and trailing commas outside strings removed.
-fn plain_json(text: &str) -> String {
-    let chars: Vec<char> = text.chars().collect();
-    let mut out = String::with_capacity(text.len());
-    let mut i = 0;
-    let mut in_string = false;
-    while i < chars.len() {
-        let c = chars[i];
-        let next = chars.get(i + 1).copied();
-        if in_string {
-            out.push(c);
-            if c == '\\' {
-                if let Some(n) = next {
-                    out.push(n);
-                    i += 1;
-                }
-            } else if c == '"' {
-                in_string = false;
-            }
-        } else if c == '"' {
-            in_string = true;
-            out.push(c);
-        } else if c == '/' && next == Some('/') {
-            while i < chars.len() && chars[i] != '\n' {
-                i += 1;
-            }
-            continue;
-        } else if c == '/' && next == Some('*') {
-            i += 2;
-            while i < chars.len() && !(chars[i] == '*' && chars.get(i + 1) == Some(&'/')) {
-                i += 1;
-            }
-            i += 2;
-            continue;
-        } else if c == ',' {
-            let rest = chars[i + 1..].iter().find(|c| !c.is_whitespace());
-            if !matches!(rest, Some('}') | Some(']')) {
-                out.push(c);
-            }
-        } else {
-            out.push(c);
-        }
-        i += 1;
-    }
-    out
 }
 
 #[cfg(test)]
@@ -1064,7 +1017,7 @@ mod tests {
     #[test]
     fn jsonc_loses_its_comments_and_trailing_commas() {
         let text = "{ // a comment\n \"config\": { \"MD013\": false, }, /* \"x\": 1 */ \"url\": \"a//b\", }";
-        let json: serde_json::Value = serde_json::from_str(&plain_json(text)).unwrap();
+        let json: serde_json::Value = serde_json::from_str(&pack::plain_json(text)).unwrap();
         assert_eq!(json["config"]["MD013"], false);
         assert_eq!(json["url"], "a//b");
     }

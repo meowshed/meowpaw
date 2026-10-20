@@ -79,6 +79,26 @@
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-markdown/README.md"
     },
     {
+      "name": "meow-rust",
+      "source": "./plugins/meow-rust",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-rust/README.md"
+    },
+    {
+      "name": "meow-go",
+      "source": "./plugins/meow-go",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-go/README.md"
+    },
+    {
+      "name": "meow-typescript",
+      "source": "./plugins/meow-typescript",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-typescript/README.md"
+    },
+    {
+      "name": "meow-python",
+      "source": "./plugins/meow-python",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-python/README.md"
+    },
+    {
       "name": "meow-code",
       "source": "./plugins/meow-code",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-code/README.md"
@@ -87,6 +107,31 @@
       "name": "meow-author",
       "source": "./plugins/meow-author",
       "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-author/README.md"
+    },
+    {
+      "name": "meow-csharp",
+      "source": "./plugins/meow-csharp",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-csharp/README.md"
+    },
+    {
+      "name": "meow-lua",
+      "source": "./plugins/meow-lua",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-lua/README.md"
+    },
+    {
+      "name": "meow-godot",
+      "source": "./plugins/meow-godot",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-godot/README.md"
+    },
+    {
+      "name": "meow-starlark",
+      "source": "./plugins/meow-starlark",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-starlark/README.md"
+    },
+    {
+      "name": "meow-scheme",
+      "source": "./plugins/meow-scheme",
+      "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-scheme/README.md"
     }
   ]
 }
