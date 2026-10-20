@@ -100,3 +100,28 @@ pub fn profile(stages: &[(&str, &str)]) -> String {
     }
     text
 }
+
+/// A `PATH` of the stand-in tools in `bin` and then the system directories,
+/// less every toolchain a test stands in for or expects to be absent, so a
+/// toolchain installed on the machine that runs the test is never found.
+pub fn isolated_path(bin: &Path) -> String {
+    const TOOLCHAINS: [&str; 12] = [
+        "go", "gofmt", "cargo", "rustc", "rustup", "node", "npm", "python", "python3", "dotnet",
+        "lua", "nvim",
+    ];
+    let system = bin.join(".system");
+    std::fs::create_dir_all(&system).unwrap();
+    for dir in ["/usr/bin", "/bin"] {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            if TOOLCHAINS.iter().any(|t| name == *t) {
+                continue;
+            }
+            let _ = std::os::unix::fs::symlink(entry.path(), system.join(&name));
+        }
+    }
+    format!("{}:{}", bin.display(), system.display())
+}

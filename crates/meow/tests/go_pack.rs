@@ -7,6 +7,9 @@
 
 #![cfg(feature = "go")]
 
+#[path = "packs_common/mod.rs"]
+mod packs_common;
+
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
@@ -70,7 +73,7 @@ fn fixture(name: &str, files: &[(&str, &str)], tools: &[(&str, &str)]) -> (Dir, 
 
 /// `paw go <args>` in `dir`, with the stand-in tools first on `PATH`.
 fn go(dir: &Path, bin: &Path, args: &[&str]) -> (Output, String) {
-    let path = format!("{}:/usr/bin:/bin", bin.display());
+    let path = packs_common::isolated_path(bin);
     let done = Command::new(env!("CARGO_BIN_EXE_paw"))
         .arg("go")
         .args(args)
