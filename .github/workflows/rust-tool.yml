@@ -121,6 +121,8 @@ jobs:
           BUILD_TARGET: ${{ matrix.target }}
           RUSTFLAGS: "-C linker=${{ matrix.linker }} -C link-arg=-undefined -C link-arg=dynamic_lookup"
       - run: find plugins/*/bin/"$BUILD_TARGET" -name 'meow*' -exec ldid -S {} +
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
       - name: Build the full binary for every subcommand
         run: |
           cargo build --quiet --release --manifest-path crates/meow/Cargo.toml \
