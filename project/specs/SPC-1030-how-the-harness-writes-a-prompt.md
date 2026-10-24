@@ -2,7 +2,7 @@
 id: SPC-1030
 artifact: spec
 status: live
-revised: 2026-10-11
+revised: 2026-10-24
 states:
   [
     REQ-0077,
@@ -74,7 +74,7 @@ states:
     REQ-0826,
     REQ-0828,
     REQ-2980,
-    REQ-2986,
+    REQ-3273,
     REQ-4900,
     REQ-4902,
   ]
@@ -428,9 +428,11 @@ independent tracks at once (REQ-0826). It never delegates because a task is
 large, because a large task split across agents shares a context nobody
 isolated (REQ-0828). An agent dispatched to implement in parallel declares
 `isolation: worktree` in its dispatch and arranges no working directory for
-itself (REQ-2980). A repository replaces any agent a unit ships by defining
-one of the same name in its own `.claude/agents/`, which the platform loads in
-place of the unit's, so a shipped definition is a starting point (REQ-2986).
+itself (REQ-2980). A repository defines an agent of its own in its own
+`.claude/agents/`, and the platform keeps it beside the unit's agent of the
+same name: a dispatch of `<unit>:<agent>` reaches the unit's definition and a
+dispatch of the bare name reaches the repository's, so a unit's page says
+which name reaches which (REQ-3273).
 The specification of the method's chain states the brief a delegated agent
 gets and who reviews its work.
 
