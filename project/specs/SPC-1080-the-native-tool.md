@@ -918,3 +918,37 @@ process uses, and maps each to the control that answers it, or says none does
 | A Bash command's `gh` changes governance         | The hook answers `ask`, naming the method and the endpoint                                                   |
 | `protections` can't read a protection            | The protection is named as unread, never as absent, exit 3                                                   |
 | The platform's command-line tool is missing      | The unattended install test reports itself skipped, never passed                                             |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Provides the one command-line tool every unit's program is a subcommand of, and ships it.
+
+### What it depends on
+
+`meow-core` lists no other unit in its `requires.toml`.
+
+### What depends on it
+
+Every other unit but 2 lists `meow-core` in its `requires.toml`.
+
+### Where its data lives
+
+The source is `crates/meow/`.
+
+### What crosses a trust boundary
+
+The harness keeps one threat model, in this document under "The threat model".
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-core` ships the shared binary, built from the `meow` crate and released as archives with an attestation.

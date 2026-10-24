@@ -458,3 +458,5 @@ relies on these platform behaviours, each documented by Claude Code:
 - a plugin's `bin/` programs on the Bash tool's `PATH`: [documentation](https://code.claude.com/docs/en/plugins-reference.md)
 - a `PreToolUse` command hook that answers `ask` through
   `hookSpecificOutput.permissionDecision`: [documentation](https://code.claude.com/docs/en/hooks.md)
+
+The pack is current as of gh 2.101.0, observed on 2026-10-24.

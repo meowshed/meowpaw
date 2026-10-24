@@ -228,3 +228,37 @@ Each is printed as SPC-1190 states, by every command it applies to:
 | `check`: no profile, or one that doesn't parse  | `unresolved: <what is wrong with the profile>`                      | 3    |
 | A `pyproject.toml` that doesn't parse           | `unresolved: <file> doesn't parse as TOML: <message>`               | 3    |
 | An unknown argument                             | the usage line                                                      | 2    |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Detects Python, binds its stages and checks its configuration, naming the environment each project runs its tools through.
+
+### What it depends on
+
+`meow-python` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-python` in its `requires.toml`.
+
+### Where its data lives
+
+It holds none of its own: it reads the files git tracks and the profile, and SPC-1190 states that a pack's program writes no file.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-python` installs as a plugin from the marketplace, `plugins/meow-python/`, and ships as the Pi package `packages/meow-python/`.

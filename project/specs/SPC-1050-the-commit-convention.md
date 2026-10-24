@@ -151,3 +151,37 @@ never reports a pass.
 | git reports no author identity                 | The sign-off route is reported as not compared, and nothing else changes        |
 | `may_name` isn't a list of strings             | The declaration is reported as malformed, and every named trailer fails         |
 | No binary for the machine's target             | Reported as unchecked, exit 3                                                   |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Checks a commit message against the repository's declared convention and against the attribution ban.
+
+### What it depends on
+
+`meow-scm` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+`meow-git` list `meow-scm` in their `requires.toml`.
+
+### Where its data lives
+
+The convention is the `[commits]` table of `.meowpaw/profile.toml`.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-scm` installs as a plugin from the marketplace, `plugins/meow-scm/`, and ships as the Pi package `packages/meow-scm/`.

@@ -37,10 +37,10 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-5035 pin the record's layout and the four kinds of check with tests in `crates/meow/`
+- [x] T-001 [P] TSK-5035 pin the record's layout and the four kinds of check with tests in `crates/meow/` (done: pull request 1078)
       closes: REQ-1660, REQ-1662, REQ-1668
 
-- [ ] T-002 [P] TSK-5040 state in the method skill that a missing capability becomes a defect or a postponement
+- [x] T-002 [P] TSK-5040 state in the method skill that a missing capability becomes a defect or a postponement (done: pull request 1078)
       closes: REQ-1670
 
 - [ ] T-003 TSK-5045 migrate the smallest of the six source repositories onto the harness, evaluated by hand

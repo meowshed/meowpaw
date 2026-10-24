@@ -1,7 +1,7 @@
 ---
 id: TSK-4970
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2535
 closes: [REQ-0666, REQ-0668, REQ-0670]
@@ -43,7 +43,26 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Every criterion is closed by a test seen failing before the change, all in
+`crates/meow/tests/record_kinds.rs` unless named otherwise.
+
+1. `a_declared_kinds_file_missing_its_status_is_reported_like_a_built_in_kinds`
+   (REQ-0666, REQ-0670), with `a_well_formed_declared_file_is_not_reported`
+   as its counterpart.
+2. `a_declaration_without_a_template_is_a_finding`,
+   `a_template_that_does_not_exist_is_a_finding` and
+   `a_declaration_without_a_prefix_or_a_lifetime_is_a_finding` (REQ-0668).
+3. `a_key_that_would_opt_out_is_unknown_and_the_file_stays_frozen`
+   (REQ-0670), and `a_declared_kinds_keys_are_known_and_an_opt_out_is_not`
+   in `crates/meow/src/profile.rs`.
+4. `the_kinds_table_is_not_an_unknown_key` and the profile test above.
+
+The template must sit under `.meowpaw/templates/`, as SPC-1070 states, and a
+kind that reuses a built-in kind's name or prefix is a finding; the task
+states neither, so both are choices made here. `docs/interface.md` is
+regenerated for the new profile key.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

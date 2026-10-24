@@ -1,7 +1,7 @@
 ---
 id: TSK-4980
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2535
 closes: [REQ-0660, REQ-0662, REQ-0664]
@@ -38,7 +38,23 @@ change to SPC-1030 and the unit's `budget.toml`, and document both fields on
 
 ## Evidence
 
-Not yet.
+Every criterion is closed by a test in `crates/meow/tests/record_kinds.rs`.
+
+1. `a_task_and_the_document_it_produces_name_each_other` (REQ-0660,
+   REQ-0662), seen failing before the change because `prompted-by-defect`
+   refused a task as the prompt. The rule now accepts a defect or a task.
+2. `a_produced_document_without_prompted_by_is_a_finding` and
+   `a_prompting_task_without_produces_is_a_finding` (REQ-0662).
+3. `a_produced_document_obeys_its_kind` (REQ-0664). The behaviour already
+   held, since the shape check reads a document by its kind, so the test pins
+   it and was not seen failing.
+
+`produces` is deliberately not in the layout's `relations`: that list is
+walked upward as a chain of providers, and a task does not rest on what it
+produces. `prompted-by` was already there. The `produces:` field is added to
+the task template, in both trees, as an optional line.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

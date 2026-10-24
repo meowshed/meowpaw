@@ -11,8 +11,9 @@ verification: evaluation
 
 # REQ-3026
 
-A measurement MUST state how many runs it used, and the platform's default of
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+A measurement MUST state how many runs it used, and the platform's default of
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

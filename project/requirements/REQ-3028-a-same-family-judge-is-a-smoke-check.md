@@ -11,8 +11,9 @@ verification: evaluation
 
 # REQ-3028
 
-A result judged by a model from the same family as the candidate MUST be
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+A result judged by a model from the same family as the candidate MUST be
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

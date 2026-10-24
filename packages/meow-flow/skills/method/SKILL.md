@@ -75,10 +75,12 @@ don't overrule it.
 - M10. Separate, in every report, what you verified from what you assumed, and
   name the command behind each verified claim, because an assumption reported
   beside a check reads as one.
-- M11. Write an insight only when the work taught something that holds past
-  its case, never because a step ended or a period passed, and report that
-  nothing was learned as an ordinary outcome, because a log written on a
-  schedule fills with activity and buries the few lessons in it.
+- M11. Write an insight as a draft, with no person's prompt, when the work
+  taught something that holds past its case, because the model that did the
+  work holds the numbers and is the one placed to see the lesson. Never write
+  one because a step ended or a period passed, and report that nothing was
+  learned as an ordinary outcome, because a log written on a schedule fills
+  with activity and buries the few lessons in it.
 - M12. Keep what happened, and when, in the version control history, and put
   only the lesson and its evidence in an insight, because the history already
   holds the activity and a second copy drifts from it.
@@ -140,4 +142,8 @@ don't overrule it.
   it, and never ask for a standing approval or an allow rule that covers the
   next one, because an approval carried to a later action approves an action
   nobody saw (ADR-2750). A run `meow-loop` holds keeps ADR-2380's authority.
+- M26. Where a step needs a capability the harness doesn't have, write a
+  defect or a postponement for the gap and never work round it unrecorded,
+  because a gap bridged in silence is one nobody sees, so the harness never
+  gains what it lacked.
 </rules>

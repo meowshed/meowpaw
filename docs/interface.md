@@ -32,6 +32,7 @@ profile declares no command, which is never a pass.
 
 - **vision** — `vision.md/`: 
   statuses: live
+  sections: Who it is for, Quality goals, What it will not do, Risks
 - **onboarding** — `onboarding.md/`: 
   statuses: draft, approved, superseded
   sections: Verbs, Conventions, Documents, Gaps, Adoption
@@ -109,7 +110,9 @@ Each key the profile may carry, with the reason the key exists:
 - `git.require_signatures` — Whether every pushed commit must be signed is the repository's policy, and no file git reads declares it
 - `tracker.kind` — Which tracker the record is projected onto is a choice, and a code host with issues doesn't make it one
 - `record.root` — Where the record lives is the repository's layout, and a directory of Markdown doesn't say it is the record
+- `record.kinds` — Which artifact kinds the record holds beyond the harness's own is the repository's choice, and a directory of Markdown doesn't say it is one
 - `docs.style` — The documentation style is the repository's decision, and the pages already written can't name it
+- `docs.diagrams` — The notation a repository draws diagrams in is its choice, and the blocks already written can't say which renderer it relies on
 - `markdown.target` — The renderer a document is written for is outside the repository, and the Markdown alone doesn't name it
 - `go.race` — Whether a repository accepts a test run without the race detector is its decision, and the tests alone can't show it
 - `licence.header` — The header each new file carries is the project's legal choice, and a tool never picks a licence for it
@@ -235,6 +238,8 @@ person reads in its place:
   By hand: read each markdownlint configuration and the render target against the skill's rules
 - `links` — whether each link in the given files resolves
   By hand: open each link in the files, with `lychee` where it is installed
+- `diagrams` — whether each `mermaid` block parses and no record document embeds an image
+  By hand: render each `mermaid` block with `mmdc`, and search the record's documents for image links to a `.png` or `.svg` file
 
 ### meow-mise
 

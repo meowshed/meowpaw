@@ -1,7 +1,7 @@
 ---
 id: TSK-4710
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2440
 closes: [REQ-2738, REQ-2740]
@@ -48,7 +48,17 @@ held to SPC-1030 and the unit's `budget.toml`.
 
 ## Evidence
 
-Not yet.
+Criteria 1, 2 and 3 are closed by the `Constitution` class in
+`plugins/meow-flow/tests/test_constitution_vision.py`, read against the Claude
+and the Pi tree: the template names no step and quotes no method rule
+(criterion 1, REQ-2740), the init skill's N6 copies nothing of the method
+(criterion 2, REQ-2740), and the design step's D25 asks whether a
+constitution rule pulls against another (criterion 3, REQ-2738). The tests for
+criteria 2 and 3 were seen failing first. The test for criterion 1 passed
+before the change, because the template already held no step, and it now
+holds that.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

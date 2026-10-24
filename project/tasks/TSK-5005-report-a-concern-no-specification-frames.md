@@ -1,7 +1,7 @@
 ---
 id: TSK-5005
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2545
 closes: [REQ-2254]
@@ -37,7 +37,11 @@ SPC-1070's failure table, which already names the finding.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `a_concern_no_specification_heading_names_is_a_finding` in `crates/meow/tests/concerns.rs` (REQ-2254), seen failing first. Criterion 2 is closed by `a_concern_a_specification_heading_names_is_no_finding` and `a_heading_inside_a_fence_frames_nothing`. Criterion 3 is closed by `a_decision_no_longer_in_force_is_not_asked_to_frame_its_concern`. `a_decision_with_no_concern_is_asked_for_nothing` holds that a decision without a concern is asked for nothing.
+
+The rule is the named check `concerns-framed` in the `rules` group, listed for the decision kind in `lib/layout.toml`. A `draft` or `done` decision is held to it as well as an `approved` one, which the task leaves open; `withdrawn`, `superseded` and `rejected` are not. SPC-1070's failure table already names the finding and needed no change.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 
