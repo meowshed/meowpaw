@@ -130,3 +130,70 @@ fn the_layout_names_concerns_as_an_optional_field_of_the_decision_kind() {
         "concerns is optional, so approved decisions with none still pass"
     );
 }
+
+/// TSK-5005 criterion 1, REQ-2254: a decision with `concerns: [upgrade]` and no
+/// specification heading naming it is a finding that names both, exit 1.
+#[test]
+fn a_concern_no_specification_heading_names_is_a_finding() {
+    let dir = fixture("unframed", "approved", "concerns: [upgrade]\n", "");
+    let done = paw(&dir.0, &["check", "rules"]);
+    assert_eq!(done.status.code(), Some(1), "{}", out(&done));
+    let line = out(&done)
+        .lines()
+        .find(|l| l.contains("ADR-0001") && l.contains("upgrade"))
+        .map(str::to_string);
+    assert!(line.is_some(), "no finding names both:\n{}", out(&done));
+}
+
+/// TSK-5005 criterion 2, REQ-2254: the same decision with a specification
+/// holding `### Upgrade` reports nothing about the concern, whatever the case.
+#[test]
+fn a_concern_a_specification_heading_names_is_no_finding() {
+    for heading in ["### Upgrade", "## How an UPGRADE runs"] {
+        let dir = fixture(
+            "framed",
+            "approved",
+            "concerns: [upgrade]\n",
+            &format!("{heading}\n\nIt is framed.\n"),
+        );
+        let done = paw(&dir.0, &["check", "rules"]);
+        assert_eq!(done.status.code(), Some(0), "{heading}: {}", out(&done));
+        assert!(!out(&done).contains("upgrade"), "{heading}: {}", out(&done));
+    }
+}
+
+/// TSK-5005 criterion 2, REQ-2254: a heading inside a fenced block is code and
+/// frames nothing.
+#[test]
+fn a_heading_inside_a_fence_frames_nothing() {
+    let dir = fixture(
+        "fenced",
+        "approved",
+        "concerns: [upgrade]\n",
+        "```text\n### Upgrade\n```\n",
+    );
+    let done = paw(&dir.0, &["check", "rules"]);
+    assert_eq!(done.status.code(), Some(1), "{}", out(&done));
+}
+
+/// TSK-5005 criterion 3, REQ-2254: a withdrawn or superseded decision is no
+/// longer in force, so its concern needs no framing.
+#[test]
+fn a_decision_no_longer_in_force_is_not_asked_to_frame_its_concern() {
+    for status in ["withdrawn", "superseded", "rejected"] {
+        let dir = fixture(status, status, "concerns: [upgrade]\n", "");
+        let done = paw(&dir.0, &["check", "rules"]);
+        assert!(!out(&done).contains("upgrade"), "{status}: {}", out(&done));
+    }
+}
+
+/// TSK-5005 criterion 1, REQ-2254: an empty `concerns:` and a decision with
+/// none ask for nothing.
+#[test]
+fn a_decision_with_no_concern_is_asked_for_nothing() {
+    for extra in ["concerns: []\n", ""] {
+        let dir = fixture("none", "approved", extra, "");
+        let done = paw(&dir.0, &["check", "rules"]);
+        assert_eq!(done.status.code(), Some(0), "{}", out(&done));
+    }
+}

@@ -112,7 +112,7 @@ statuses = ["draft", "approved", "done", "withdrawn", "rejected", "superseded"]
 index = "adrs/README.md"
 sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]
 draft_sections = ["How I will know it was realised", "What this does not settle"]
-rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect", "withdrawn-names-record"]
+rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect", "withdrawn-names-record", "concerns-framed"]
 
 [[kind]]
 name = "epic"

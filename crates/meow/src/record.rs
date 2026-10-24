@@ -57,6 +57,8 @@ pub(crate) struct Kind {
     pub(crate) dir: Option<String>,
     pub(crate) file: Option<String>,
     pub(crate) fields: Vec<String>,
+    /// Fields the kind may carry and no check requires (ADR-2630).
+    pub(crate) optional_fields: Vec<String>,
     pub(crate) statuses: Vec<String>,
     pub(crate) index: Option<String>,
     pub(crate) sections: Vec<String>,
@@ -987,6 +989,7 @@ pub(crate) fn load_layout() -> Result<Layout, String> {
             dir: string(table, "dir"),
             file: string(table, "file"),
             fields: strings(table, "fields"),
+            optional_fields: strings(table, "optional_fields"),
             statuses: strings(table, "statuses"),
             index: string(table, "index"),
             sections: strings(table, "sections"),
@@ -2594,6 +2597,47 @@ fn shape(record: &Record) -> Vec<Finding> {
 }
 
 /// The lines of a `## <name>` section, with their line numbers.
+/// The entries of a front matter list written `[a, b]` or as one bare word.
+fn listed(value: &str) -> Vec<String> {
+    bare(value)
+        .trim_matches(|c: char| c == '[' || c == ']' || c.is_whitespace())
+        .split(',')
+        .map(|item| item.trim().trim_matches('"').trim_matches('\'').to_string())
+        .filter(|item| !item.is_empty())
+        .collect()
+}
+
+/// The lower-case words of a text, split on anything not alphanumeric.
+fn words_of(text: &str) -> Vec<String> {
+    text.to_lowercase()
+        .split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
+/// Whether `words` occur in `heading` as a run of whole words.
+fn contains_run(heading: &[String], words: &[String]) -> bool {
+    !words.is_empty() && heading.windows(words.len()).any(|run| run == words)
+}
+
+/// The words of every heading in every specification, outside a fenced block
+/// (REQ-2254).
+fn framing_headings(record: &Record) -> Vec<Vec<String>> {
+    let mut out = Vec::new();
+    for spec in of_kind(record, "specification") {
+        let mut fenced = false;
+        for line in spec.text.lines() {
+            if line.trim_start().starts_with("```") || line.trim_start().starts_with("~~~") {
+                fenced = !fenced;
+            } else if !fenced && line.starts_with('#') {
+                out.push(words_of(line.trim_start_matches('#')));
+            }
+        }
+    }
+    out
+}
+
 fn section_lines<'a>(doc: &'a Doc, name: &str) -> Vec<(usize, &'a str)> {
     let mut out = Vec::new();
     let mut inside = false;
@@ -2795,6 +2839,26 @@ fn rules(record: &Record) -> Vec<Finding> {
                         .unwrap_or(0);
                     if named != 1 {
                         out.push(Finding::at(doc, field.map(|f| f.line), format!("realises {named} records, where an epic realises exactly one decision or defect")));
+                    }
+                }
+                "concerns-framed" => {
+                    if kind.optional_fields.iter().any(|f| f == "concerns")
+                        && matches!(bare(doc.value("status")), "draft" | "approved" | "done")
+                        && let Some(field) = doc.field("concerns")
+                    {
+                        let framed = framing_headings(record);
+                        for concern in listed(&field.value) {
+                            let wanted = words_of(&concern);
+                            if !framed.iter().any(|heading| contains_run(heading, &wanted)) {
+                                out.push(Finding::at(
+                                    doc,
+                                    Some(field.line),
+                                    format!(
+                                        "names the concern {concern}, which no specification section heading names (REQ-2254)"
+                                    ),
+                                ));
+                            }
+                        }
                     }
                 }
                 "alternatives-why-lost" => {
