@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-starlark",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Detects Bazel and Buck workspaces from what git tracks, names the build system that evaluates the Starlark before it binds anything, prints a stages table bound from the buildifier configuration and the workspace file the repository committed with Bazel's symlinks switched off, reports a stage that passes whatever buildifier finds, rewrites files or leaves output in the working tree, writing no file, and carries what a reviewer of Starlark checks that no command reports. Distributed as a Pi package.",
   "keywords": [
     "pi-package",

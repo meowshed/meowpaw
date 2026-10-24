@@ -2,7 +2,7 @@
 reader: someone changing the harness or writing against it
 answers: what the harness's public interface is, and what a change to it breaks
 kind: reference
-describes: [meow-core@0.10.0]
+describes: [meow-core@0.10.1]
 ---
 
 # The public interface
