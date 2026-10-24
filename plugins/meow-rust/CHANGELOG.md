@@ -1,5 +1,9 @@
 # meow-rust
 
+## 0.1.1
+
+- Its launcher runs the shared executable, which now carries `serde_json` 1.0.154 and `sha2` 0.11.1; the unit itself is unchanged.
+
 ## 0.1.0
 
 - Detects Rust from each tracked `Cargo.toml`, and reports a directory for each.

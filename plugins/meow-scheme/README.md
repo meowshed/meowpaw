@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-scheme
 answers: what meow-scheme does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-scheme@0.1.0]
+describes: [meow-scheme@0.1.1]
 description: "Detects Scheme projects from the manifests git tracks, names the implementation before it binds anything, prints a stages table that binds Racket's tests as raco test without writing bytecode and binds nothing for an implementation whose commands the repository doesn't commit, reports a stage that writes bytecode into the working tree and a compiled directory that isn't ignored, writing no file, and carries what a reviewer of Scheme checks that no command reports."
 ---
 
