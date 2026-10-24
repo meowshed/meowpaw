@@ -3,6 +3,7 @@ reader: someone choosing or running meow-git
 answers: what meow-git does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-git@0.6.0]
+description: "Refuses a git commit on the trunk the repository declares, and checks every commit a push would publish for the declared commit convention and for a good signature, before the push runs. It keeps nothing in context on every turn."
 ---
 
 # meow-git
@@ -37,6 +38,8 @@ require_signatures = true
 ```
 
 ## What it does
+
+<!-- host-specific: claude -->
 
 When Claude Code runs `git commit` on the trunk, the pack refuses it and says
 to take a branch. On any other branch the commit runs.
@@ -78,6 +81,8 @@ Each hook's report names the profile's state, as
 nothing.
 
 ## What it costs you
+
+<!-- host-specific: claude -->
 
 Nothing in context: the pack is three hooks. The two guards run only on their
 own command, and the one that asks before a push reads the text of every Bash
@@ -136,6 +141,8 @@ subcommand's output to those words.
 `irreversible-guard` asks the person before each push in a session they attend, and never answers for them; rule M25 of the `meow-flow:method` skill says why, and `mise run test-crate` fails a guard whose second push doesn't ask again.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-git/requires.toml`. It relies on these platform behaviours,

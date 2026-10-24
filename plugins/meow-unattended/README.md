@@ -3,6 +3,7 @@ reader: someone choosing or running meow-unattended
 answers: what posture meow-unattended prints, what its deny rules stop and what they don't
 kind: reference
 describes: [meow-unattended@0.6.0]
+description: "Prints the posture an unattended run is held to from the [unattended] table a repository declares: the permission mode, the gates the run may decide, its release command and whether it may amend an approved record, with each deny rule and what the rules don't stop. It writes nothing, starts nothing and keeps nothing in context on every turn."
 ---
 
 # meow-unattended
@@ -71,6 +72,8 @@ every key a repository has to fix.
 
 ## What the deny rules stop
 
+<!-- host-specific: claude -->
+
 While a run is active, `meow-loop`'s guard denies:
 
 - an Edit or a Write of `.meowpaw/**` and `.claude/**` in the work tree, so the
@@ -122,6 +125,8 @@ and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, declared in
 `plugins/meow-unattended/requires.toml`, git, and the `meow-core` unit.

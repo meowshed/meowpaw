@@ -3,6 +3,7 @@ reader: someone choosing or running meow-lua
 answers: what meow-lua does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-lua@0.1.0]
+description: "Detects Lua and Neovim plugins from what git tracks, names the runtime or the editor that evaluates the code before it binds anything, prints a stages table bound from the formatter, linter, test runner and rockspec the repository configured, reports a plugin with no runtime declared or no help file, writing no file, and carries what a reviewer of Lua or of a Neovim plugin checks that no command reports."
 ---
 
 # meow-lua
@@ -29,6 +30,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
+
+<!-- host-specific: claude -->
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
@@ -154,6 +157,8 @@ names what it determines, what you read to reach the same answer without the
 tool, and the first word of each kind of line it prints.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.280 or later, declared in `plugins/meow-lua/requires.toml`,
 and git. The pack is current as of luacheck 1.2.0 and Neovim 0.12, as the

@@ -2,9 +2,10 @@
 id: SPC-1240
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-24
 states:
   [
+    REQ-1426,
     REQ-2710,
     REQ-2712,
     REQ-2714,
@@ -17,7 +18,7 @@ states:
     REQ-2727,
     REQ-2728,
     REQ-2730,
-    REQ-1426,
+    REQ-2798,
   ]
 ---
 
@@ -114,7 +115,9 @@ A unit declares each hook in its `hooks/hooks.json`, and its README carries a
 `## Hooks` section with one sentence per hook naming the subcommand in code
 font and saying what the hook stops (REQ-2726). The hooks stay few: the table
 under Boundary lists every one, and a unit that adds a hook adds its row here
-in the same change.
+in the same change. A hook that asks a judge carries an `if` matcher naming a
+command that publishes text, such as `git commit` or `gh pr create`, and never
+fires on a command that publishes none (REQ-2798).
 
 ### How a rule is layered
 

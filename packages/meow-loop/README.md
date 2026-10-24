@@ -2,12 +2,12 @@
 reader: someone installing or running meow-loop on Pi
 answers: what meow-loop provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-loop@0.16.0]
+describes: [@meowshed/meow-loop@0.17.0]
 ---
 
 # @meowshed/meow-loop
 
-Repeats one prompt in fresh claude -p calls, bound to one step of the method, until the step's work is done and the verification stages a person names pass at one tree, the stated number of iterations has run, two iterations in a row change nothing or the stated number of iterations has run, with its bounds held outside the model, ends a run that changes its own terms, crosses a gate or leaves its step, and lets only a person start a run. It keeps nothing in context on every turn. Distributed as a Pi package.
+Runs the method's chain inside the Pi session where a person starts it: /meow-loop:run repeats /meow-flow:run until the record holds no open work, the iterations or the hours it was given (ten and four by default) are reached, two iterations change nothing or the person types anything else. Hooks hold the bounds outside the model, deny what would change a run's terms, and let only a person start a run. It keeps nothing in context on every turn. Distributed as a Pi package.
 
 ## Install it
 
@@ -33,6 +33,18 @@ A person starts a run by typing `/meow-loop:run --iterations 5 --hours 2` in
 the session. The run repeats the method's chain there, and typing any other
 prompt ends it `cancelled`. Each bound has a default, so `/meow-loop:run`
 alone runs up to 10 iterations and 4 hours.
+
+## Read a subcommand's help
+
+`meow-loop --help` lists the subcommands, and `meow-loop <subcommand> --help` names
+what it determines, what you read to reach the same answer without the tool,
+and the first word of each kind of line it prints. A test holds each
+subcommand's output to those words.
+
+## Hooks
+
+`prompt` starts or cancels a run from the prompt a person typed, and `stop` blocks the end of a turn while the run has work left; the `meow-loop:run` skill says why, and no gate check holds the rule yet.
+`guard` stops a write into a run's own state or a status the run can't give; the `meow-loop:run` skill says why, and no gate check holds the rule yet.
 
 ## Prepare a run for a terminal
 
