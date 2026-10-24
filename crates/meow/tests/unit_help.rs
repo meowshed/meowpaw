@@ -16,8 +16,17 @@
     feature = "gotask",
     feature = "prose",
     feature = "markdown",
+    feature = "rust",
+    feature = "go",
+    feature = "typescript",
+    feature = "python",
     feature = "unattended",
-    feature = "loop"
+    feature = "loop",
+    feature = "csharp",
+    feature = "lua",
+    feature = "godot",
+    feature = "starlark",
+    feature = "scheme"
 ))]
 
 use std::io::Write;
@@ -57,7 +66,7 @@ fn without_groups(text: &str) -> String {
 }
 
 /// Each unit's subcommand of `paw`, and the name its usage line gives it.
-const UNITS: [(&str, &str); 12] = [
+const UNITS: [(&str, &str); 21] = [
     ("verbs", "meow-checks"),
     ("scm", "meow-scm"),
     ("git", "meow-git"),
@@ -68,8 +77,17 @@ const UNITS: [(&str, &str); 12] = [
     ("gotask", "meow-gotask"),
     ("prose", "meow-prose-gate"),
     ("markdown", "meow-markdown"),
+    ("rust", "meow-rust"),
+    ("go", "meow-go"),
+    ("typescript", "meow-typescript"),
+    ("python", "meow-python"),
     ("unattended", "meow-unattended"),
     ("loop", "meow-loop"),
+    ("csharp", "meow-csharp"),
+    ("lua", "meow-lua"),
+    ("godot", "meow-godot"),
+    ("starlark", "meow-starlark"),
+    ("scheme", "meow-scheme"),
 ];
 
 /// A scratch directory of its own, removed when the test ends.
@@ -415,6 +433,26 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "markdown", &["bind"], "");
     held(d, s, "markdown", &["check"], "");
     held(d, s, "markdown", &["links", "README.md"], "");
+    held(d, s, "markdown", &["diagrams"], "");
+    for unit in ["rust", "go"] {
+        for command in ["status", "bind", "check", "toolchain"] {
+            held(d, s, unit, &[command], "");
+        }
+    }
+    for unit in ["typescript", "python"] {
+        held(d, s, unit, &["status"], "");
+        held(d, s, unit, &["bind"], "");
+        held(d, s, unit, &["check"], "");
+    }
+    for command in ["status", "bind", "check"] {
+        held(d, s, "csharp", &[command], "");
+        held(d, s, "lua", &[command], "");
+    }
+    for unit in ["godot", "starlark", "scheme"] {
+        for command in ["status", "bind", "check"] {
+            held(d, s, unit, &[command], "");
+        }
+    }
     held(d, s, "unattended", &["plan"], "");
     held(d, s, "loop", &["purge"], "");
     held(d, s, "loop", &["start", "--step", "implement"], "");

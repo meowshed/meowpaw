@@ -356,3 +356,37 @@ TypeScript or WASM; the eval runner design; npm publication versus a git
 source; per-user configuration on Pi; Pi's dynamic tool registration,
 virtual models or structured output; language packs beyond the ten the
 marketplace ships.
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States how the harness ships as Pi packages and how each Claude Code component maps to its Pi analogue.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+unanswered
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+As Pi packages, one for each unit, under `packages/`.

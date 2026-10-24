@@ -1,7 +1,7 @@
 ---
 id: TSK-4770
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2460
 closes: [REQ-0610, REQ-0612, REQ-0628, REQ-0632]
@@ -59,7 +59,23 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criteria 1, 2 and 3 are closed by the tests in
+`crates/meow/tests/record_living.rs`:
+`a_live_requirement_fails_and_a_live_index_passes` (criterion 1, REQ-0610),
+`a_specification_carrying_history_fails_naming_the_line` (criterion 2,
+REQ-0612, REQ-0632) and `a_withdrawal_naming_nothing_fails` (criterion 3,
+REQ-0628). The criterion 2 and 3 tests were seen failing first. The test for
+criterion 1 passed before the change, because the `front-matter` check already
+refused `status: live` outside the living kinds, and it now holds that.
+
+Criterion 4's prediction was wrong: 28 of the 68 withdrawn requirements did not
+open with an identifier, 21 because their withdrawal line sat after the
+statement and seven because it was missing. A separate commit moves the 21
+lines up and writes the seven that ADR-2970 states, and rewords six
+specifications that used "no longer" in present-tense prose. `paw check` then
+reports 0 findings.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

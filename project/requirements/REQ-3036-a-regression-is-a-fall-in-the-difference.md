@@ -11,8 +11,9 @@ verification: evaluation
 
 # REQ-3036
 
-A regression MUST be defined as a fall in the difference against the baseline
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+A regression MUST be defined as a fall in the difference against the baseline
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

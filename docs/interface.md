@@ -32,6 +32,7 @@ profile declares no command, which is never a pass.
 
 - **vision** — `vision.md/`: 
   statuses: live
+  sections: Who it is for, Quality goals, What it will not do, Risks
 - **onboarding** — `onboarding.md/`: 
   statuses: draft, approved, superseded
   sections: Verbs, Conventions, Documents, Gaps, Adoption
@@ -109,8 +110,11 @@ Each key the profile may carry, with the reason the key exists:
 - `git.require_signatures` — Whether every pushed commit must be signed is the repository's policy, and no file git reads declares it
 - `tracker.kind` — Which tracker the record is projected onto is a choice, and a code host with issues doesn't make it one
 - `record.root` — Where the record lives is the repository's layout, and a directory of Markdown doesn't say it is the record
+- `record.kinds` — Which artifact kinds the record holds beyond the harness's own is the repository's choice, and a directory of Markdown doesn't say it is one
 - `docs.style` — The documentation style is the repository's decision, and the pages already written can't name it
+- `docs.diagrams` — The notation a repository draws diagrams in is its choice, and the blocks already written can't say which renderer it relies on
 - `markdown.target` — The renderer a document is written for is outside the repository, and the Markdown alone doesn't name it
+- `go.race` — Whether a repository accepts a test run without the race detector is its decision, and the tests alone can't show it
 - `licence.header` — The header each new file carries is the project's legal choice, and a tool never picks a licence for it
 - `unattended.permission_mode` — The permission an unattended run gets is a person's grant, and nothing in the repository can infer one
 - `unattended.release` — The command that releases a merged change is the repository's, and a run never guesses one
@@ -234,6 +238,8 @@ person reads in its place:
   By hand: read each markdownlint configuration and the render target against the skill's rules
 - `links` — whether each link in the given files resolves
   By hand: open each link in the files, with `lychee` where it is installed
+- `diagrams` — whether each `mermaid` block parses and no record document embeds an image
+  By hand: render each `mermaid` block with `mmdc`, and search the record's documents for image links to a `.png` or `.svg` file
 
 ### meow-mise
 
@@ -258,12 +264,97 @@ person reads in its place:
 - `check` — whether a command a hook is about to run carries text that breaks the prose rules
   By hand: read the commit message, pull request body or issue text in the command against the rules of the `writing` skill
 
+### meow-go
+
+- `status` — how Go is configured in this repository
+  By hand: list the tracked `go.mod` files and read each one's go line, toolchain line and tool directives
+- `bind` — the `[stages]` lines that bind each stage to the go command the module and its linter configuration call for
+  By hand: read the module, the golangci-lint configuration and the profile's go table, and write each stage's go command
+- `check` — whether the golangci-lint configuration is the version 2 shape and which supply-chain check the repository runs
+  By hand: read the golangci-lint configuration for its version and the linters it names, and the tool directives for govulncheck
+- `toolchain` — whether the toolchain the module pins is the one installed
+  By hand: read the toolchain line of go.mod and compare it with the output of `go version` run with GOTOOLCHAIN=local
+
+### meow-rust
+
+- `status` — how Rust is configured in this repository
+  By hand: list the tracked `Cargo.toml` files and read each one's edition, lint tables and workspace
+- `bind` — the `[stages]` lines that bind each stage to the cargo command the manifests call for
+  By hand: read the top manifest for a workspace, features and a library, and write each stage's cargo command
+- `check` — whether the manifests leave an edition, a lint inheritance or an ignore file unsaid
+  By hand: read each manifest's package table and lints, and the ignore files beside the top manifest
+- `toolchain` — whether the toolchain the repository pins is the one installed
+  By hand: read the `channel` of the toolchain file and compare it with the output of `rustc --version`
+
+### meow-typescript
+
+- `status` — which packages this repository holds, the package manager each declares and the tools each configured
+  By hand: list the tracked package.json files and the lockfile, config and pin files beside each
+- `bind` — the `[stages]` lines that bind each stage to a tool the package configured, run through its package manager
+  By hand: read the package manager's lockfile, then match each configuration file with the tool that reads it
+- `check` — whether the stages run their tools through the package manager and set what the tools need
+  By hand: read each stage's command against the lockfiles, the ESLint, oxlint and tsconfig settings
+
+### meow-python
+
+- `status` — which projects this repository holds, the environment tool each declares and the tools each configured
+  By hand: list the tracked pyproject.toml files and the lockfile, config and pin files beside each
+- `bind` — the `[stages]` lines that bind each stage to a tool the project configured, run through its environment tool
+  By hand: read the environment tool's lockfile, then match each configuration file with the tool that reads it
+- `check` — whether the stages run their tools through the environment, apply no fix and keep each tool's cache out of the tree
+  By hand: read each stage's command against the lockfiles, the tools' flags and the files each tool reads
+
 ### meow-scm
 
 - `convention` — the commit convention the profile declares
   By hand: read the `[commits]` and `[commits.types]` tables of `.meowpaw/profile.toml`
 - `check-message` — whether a commit message meets the convention and credits no tool, agent or vendor
   By hand: read the message against each type, the subject limit and the trailers `meow-scm convention` lists, the sign-off against `git config user.name`, and the text for a credit to a tool, an agent or a vendor
+
+### meow-csharp
+
+- `status` — where this repository holds a .NET solution or project, and the SDK, target, runner, formatter and analysis level each uses
+  By hand: list the tracked .sln, .slnx, .slnf and .csproj files, then read global.json, Directory.Build.props and .csharpierrc beside them
+- `bind` — the `[stages]` lines that bind each stage to the dotnet command the repository's configuration names
+  By hand: restore explicitly, pass --no-restore and one --artifacts-path outside the tree to each dotnet command, and bind lint only where TreatWarningsAsErrors is set
+- `check` — whether Nullable, TreatWarningsAsErrors and AnalysisLevel are set where the compiler reads them
+  By hand: read Directory.Build.props and each project file for the three settings
+
+### meow-lua
+
+- `status` — where this repository holds Lua or a Neovim plugin, which host evaluates it, and the tools it configures
+  By hand: list the tracked rockspecs, .luarc.json files and lua/ beside plugin/ directories, then read runtime.version and the stylua, selene, luacheck and busted files
+- `bind` — the `[stages]` lines that bind each stage to the Lua tool the repository configures
+  By hand: match stylua.toml, selene.toml, .luacheckrc, .busted and the rockspec with the tool that reads each, once the runtime is known
+- `check` — whether a Neovim plugin declares its runtime and documents itself for :help
+  By hand: look for .luarc.json and doc/ beside the plugin's lua/ and plugin/
+
+### meow-godot
+
+- `status` — where this repository holds a Godot project, which engine version it names, and the tools it configures
+  By hand: list the tracked project.godot files, then read config/features in each and the gdformatrc, gdlintrc, .gutconfig.json and export_presets.cfg beside it
+- `bind` — the `[stages]` lines that bind each stage to the Godot tool the repository configures
+  By hand: match gdformatrc, gdlintrc, .gutconfig.json and export_presets.cfg with the tool that reads each, once the engine version is known
+- `check` — whether the engine's cache and identifier files are ignored and committed as they should be, and whether a stage exports without importing
+  By hand: read .gitignore against .godot/, *.import and *.uid, and each stage command for --export-release without --import
+
+### meow-starlark
+
+- `status` — where this repository holds a Bazel or Buck workspace, which build system evaluates it, and the tools it configures
+  By hand: list the tracked MODULE.bazel, REPO.bazel, WORKSPACE, WORKSPACE.bazel and .buckconfig files, then read the .buildifier.json beside each
+- `bind` — the `[stages]` lines that bind each stage to the Starlark tool the repository configures
+  By hand: match .buildifier.json and the workspace marker with buildifier and bazel, once the build system is known
+- `check` — whether a stage's command passes whatever it finds, rewrites files, or leaves Bazel's symlinks and Buck's output in the tree
+  By hand: read each stage command for buildifier with --format or without --mode=check and for bazel without --symlink_prefix=/, then .gitignore against bazel-* and buck-out/
+
+### meow-scheme
+
+- `status` — where this repository holds a Scheme project, which implementation runs it, and how its tests are discovered
+  By hand: list the tracked info.rkt, .egg and guix.scm files, then read info.rkt for test-omit-paths and test-include-paths
+- `bind` — the `[stages]` lines that bind each stage to the Scheme tool the repository configures
+  By hand: identify the implementation from its manifest, then write its test command; Racket binds raco test and nothing else
+- `check` — whether a stage's command writes bytecode into the tree, and whether compiled/ is ignored and untracked
+  By hand: read each stage command for raco make or --make, then .gitignore and the tracked files against compiled/
 
 ### meow-unattended
 

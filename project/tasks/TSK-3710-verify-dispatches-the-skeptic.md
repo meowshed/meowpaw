@@ -1,8 +1,8 @@
 ---
 id: TSK-3710
 artifact: task
-status: approved
-revised: 2026-09-28
+status: withdrawn
+revised: 2026-10-24
 epic: EPC-2100
 closes: [REQ-3520, REQ-3522, REQ-3524]
 issue: 924
@@ -11,6 +11,8 @@ tracked: db706ebee615
 ---
 
 # Make the verify step dispatch the skeptic and record each refutation it confirms
+
+Withdrawn by ADR-2300: ADR-2300 supersedes ADR-2200, so no step dispatches the skeptic, and its epic dropped the task. REQ-3520, REQ-3522 and REQ-3524 are withdrawn.
 
 The verify step dispatches `meow-flow:skeptic` before it writes
 `## Verified`, writes a draft defect for each refutation it confirms and a

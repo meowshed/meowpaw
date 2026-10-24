@@ -3,6 +3,7 @@ reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-author@0.9.0]
+description: "Holds how Claude Code writes skills, agents, output styles, commands and prompt hooks, checks them in a repository's plugins or its own .claude directory for fixed tags, a description, the six fields an agent declares, every supporting file named and a stated stopping point."
 ---
 
 # meow-author
@@ -27,6 +28,8 @@ Its launcher stops on a Claude Code older than the version its `requires.toml` n
 
 ## What it adds to a session
 
+<!-- host-specific: claude -->
+
 Before Claude Code creates or edits a skill, an agent definition, an output
 style, a command or a hook prompt, it loads the `meow-author:write` skill. The
 skill has it declare what the material is for and who invokes it, write the
@@ -44,6 +47,8 @@ that comes back marked partial is read as unfinished work.
 
 ## Run the check
 
+<!-- host-specific: claude -->
+
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`. Run
 the check on your repository's own material:
 
@@ -58,6 +63,9 @@ file and the line, on:
   `<example>` and `<input>`, a tag opened inside another, a tag never closed,
   or text outside every tag;
 - a skill or agent with no `description`;
+- a description whose first sentence carries none of the words its
+  `when_to_use` writes in code font, because a request reaches a unit through
+  those words; a unit with no `when_to_use` is not read by this rule;
 - an agent that leaves out one of the six fields below, or holds a value the
   table doesn't accept, naming the file and the field;
 - an agent whose front matter doesn't parse, with that reason alone, because
@@ -110,6 +118,8 @@ to check or its binary is missing for your machine.
 
 ## What it checks in a hook
 
+<!-- host-specific: claude -->
+
 For each `hooks/hooks.json` under `plugins/`, and each script a declaration
 runs, `meow-author check` fails a hook, naming the file and the event, that:
 
@@ -158,6 +168,8 @@ and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared in
 `plugins/meow-author/requires.toml`.

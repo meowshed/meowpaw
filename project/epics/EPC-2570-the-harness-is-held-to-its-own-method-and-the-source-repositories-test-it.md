@@ -1,7 +1,7 @@
 ---
 id: EPC-2570
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2690
 ---
@@ -37,15 +37,16 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-5035 pin the record's layout and the four kinds of check with tests in `crates/meow/`
+- [x] T-001 [P] TSK-5035 pin the record's layout and the four kinds of check with tests in `crates/meow/` (done: pull request 1078)
       closes: REQ-1660, REQ-1662, REQ-1668
 
-- [ ] T-002 [P] TSK-5040 state in the method skill that a missing capability becomes a defect or a postponement
+- [x] T-002 [P] TSK-5040 state in the method skill that a missing capability becomes a defect or a postponement (done: pull request 1078)
       closes: REQ-1670
 
-- [ ] T-003 TSK-5045 migrate the smallest of the six source repositories onto the harness, evaluated by hand
-      closes: REQ-1666
-      depends: TSK-5040 (not blocking) - a gap the migration finds is recorded by the rule that task states, and can be recorded by hand without it
+- [~] T-003 TSK-5045 migrate the smallest of the six source repositories onto the harness, evaluated by hand
+  closes: REQ-1666
+  dropped: ADR-3030 postpones REQ-1666, because the owner migrates the repositories outside this record
+  depends: TSK-5040 (not blocking) - a gap the migration finds is recorded by the rule that task states, and can be recorded by hand without it
 
 ## Coverage
 

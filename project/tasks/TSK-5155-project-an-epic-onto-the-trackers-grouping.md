@@ -1,8 +1,8 @@
 ---
 id: TSK-5155
 artifact: task
-status: approved
-revised: 2026-10-03
+status: withdrawn
+revised: 2026-10-24
 epic: EPC-2600
 closes:
   [
@@ -24,6 +24,8 @@ tracked: de767f69b45c
 ---
 
 # Project an epic onto the tracker's grouping
+
+Withdrawn by ADR-3010: the parent issue it writes is a grouping that REQ-3320 forbids, and ADR-3010 keeps the tracker projection flat and postpones the requirements it closes.
 
 Extend the GitHub projection through the request layer with a parent, task
 links, mechanism report, pending state and recursion guard.

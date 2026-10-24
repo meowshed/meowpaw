@@ -11,8 +11,9 @@ verification: evaluation
 
 # REQ-3030
 
-A measurement's threshold MUST be set per case rather than inherited.
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+A measurement's threshold MUST be set per case rather than inherited.
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

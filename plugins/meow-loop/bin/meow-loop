@@ -10,34 +10,56 @@ case $0 in
 */*) here=${0%/*} ;;
 *) here=$(command -v "$0") && here=${here%/*} ;;
 esac
-system='' cpu='' exe=''
-case $(uname -s 2>/dev/null) in
-Darwin) system=apple-darwin ;;
-Linux) system=unknown-linux-musl ;;
-MINGW* | MSYS* | CYGWIN*) system=pc-windows-msvc exe=.exe ;;
-esac
-case $(uname -m 2>/dev/null) in
-arm64 | aarch64) cpu=aarch64 ;;
-x86_64 | amd64) cpu=x86_64 ;;
-esac
-binary="$here/$cpu-$system/paw$exe"
-# The shared binary the core unit ships, found through the core unit's data
-# directory, which the platform documents and the core unit's session start
-# writes (REQ-4504). The unit's own build beside it is the fallback.
-data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
-for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
-  [ -f "$core" ] || continue
-  read -r root <"$core" 2>/dev/null
-  if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/paw$exe" ]; then
-    binary="$root/bin/$cpu-$system/paw$exe"
-    break
+# The path found on an earlier run, kept under the data directory the platform
+# gives this unit (REQ-4510), so a guarded call neither probes the machine nor
+# walks the core unit's data directory again. A cache that is missing,
+# unreadable, written for another place or another PATH (the tools it probes
+# with) or naming a binary that is gone means resolve again.
+binary='' cache=''
+if [ -n "${CLAUDE_PLUGIN_DATA:-}" ]; then
+  cache="$CLAUDE_PLUGIN_DATA/binary-meow-loop"
+  if [ -r "$cache" ]; then
+    { read -r cached_here && read -r cached_path && read -r cached_binary; } <"$cache" 2>/dev/null
+    if [ "$cached_here" = "$here" ] && [ "$cached_path" = "$PATH" ] && [ -f "$cached_binary" ]; then
+      binary=$cached_binary
+    fi
   fi
-done
-# Loaded in place from a checkout, the core unit sits beside this one.
-[ -f "$binary" ] || {
-  beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
-  [ -f "$beside" ] && binary=$beside
-}
+fi
+if [ -z "$binary" ]; then
+  system='' cpu='' exe=''
+  case $(uname -s 2>/dev/null) in
+  Darwin) system=apple-darwin ;;
+  Linux) system=unknown-linux-musl ;;
+  MINGW* | MSYS* | CYGWIN*) system=pc-windows-msvc exe=.exe ;;
+  esac
+  case $(uname -m 2>/dev/null) in
+  arm64 | aarch64) cpu=aarch64 ;;
+  x86_64 | amd64) cpu=x86_64 ;;
+  esac
+  binary="$here/$cpu-$system/paw$exe"
+  # The shared binary the core unit ships, found through the core unit's data
+  # directory, which the platform documents and the core unit's session start
+  # writes (REQ-4504). The unit's own build beside it is the fallback.
+  data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
+  for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
+    [ -f "$core" ] || continue
+    read -r root <"$core" 2>/dev/null
+    if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/paw$exe" ]; then
+      binary="$root/bin/$cpu-$system/paw$exe"
+      break
+    fi
+  done
+  # Loaded in place from a checkout, the core unit sits beside this one.
+  [ -f "$binary" ] || {
+    beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
+    [ -f "$beside" ] && binary=$beside
+  }
+  if [ -z "$system" ] || [ -z "$cpu" ] || [ ! -f "$binary" ]; then
+    binary=''
+  elif [ -n "$cache" ]; then
+    { mkdir -p "$CLAUDE_PLUGIN_DATA" && printf '%s\n%s\n%s\n' "$here" "$PATH" "$binary" >"$cache"; } 2>/dev/null
+  fi
+fi
 # The platform version this unit was tested on, from its requires.toml
 # (REQ-1738): on an older one the launcher stops here without running the
 # binary, because the unit's behaviour was never seen on it. The version the
@@ -62,7 +84,7 @@ if [ -n "$required" ]; then
     fi
   fi
 fi
-if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
+if [ -n "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
   # The binary may sit in another unit, so it is told where this unit's
   # layout is. A layout the caller named wins.

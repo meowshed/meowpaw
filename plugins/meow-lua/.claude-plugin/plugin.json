@@ -1,0 +1,22 @@
+{
+  "name": "meow-lua",
+  "version": "0.1.0",
+  "description": "Detects Lua and Neovim plugins from what git tracks, names the runtime or the editor that evaluates the code before it binds anything, prints a stages table bound from the formatter, linter, test runner and rockspec the repository configured, reports a plugin with no runtime declared or no help file, writing no file, and carries what a reviewer of Lua or of a Neovim plugin checks that no command reports.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-lua/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": [
+    "lua",
+    "neovim",
+    "language",
+    "stages",
+    "meowpaw"
+  ],
+  "dependencies": [
+    "meow-core"
+  ]
+}

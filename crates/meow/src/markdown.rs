@@ -18,7 +18,8 @@ use yaml_rust2::{Yaml, YamlLoader};
 
 const UNRESOLVED: u8 = 3;
 const FOUND: u8 = 1;
-const USAGE: &str = "usage: meow-markdown status | bind | check | links [<input>...]";
+const USAGE: &str =
+    "usage: meow-markdown status | bind | check | links [<input>...] | diagrams [<input>...]";
 const KNOWN_TARGETS: [&str; 7] = [
     "github",
     "gitlab",
@@ -54,7 +55,7 @@ const TASKFILES: [&str; 8] = [
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-pub(crate) const HELP: [crate::help::Entry; 4] = [
+pub(crate) const HELP: [crate::help::Entry; 5] = [
     crate::help::Entry {
         name: "status",
         determines: "how Markdown is configured in this repository",
@@ -83,6 +84,13 @@ pub(crate) const HELP: [crate::help::Entry; 4] = [
         lines: "meow-markdown profile: unresolved: tool skipped, every no findings: unreachable, unresolved, <path> left evidence:",
         json: "",
     },
+    crate::help::Entry {
+        name: "diagrams",
+        determines: "whether each `mermaid` block parses and no record document embeds an image",
+        by_hand: "render each `mermaid` block with `mmdc`, and search the record's documents for image links to a `.png` or `.svg` file",
+        lines: "meow-markdown profile: unresolved: tool no findings <path>",
+        json: "",
+    },
 ];
 
 pub fn main(args: &[String]) -> u8 {
@@ -99,6 +107,7 @@ pub fn main(args: &[String]) -> u8 {
         ["bind"] => bind(),
         ["check"] => check(),
         ["links", inputs @ ..] => links(inputs),
+        ["diagrams", inputs @ ..] => diagrams(inputs),
         _ => {
             eprintln!("{USAGE}");
             2
@@ -237,6 +246,27 @@ impl Corpus {
             }
         }
         found
+    }
+
+    /// Whether any tracked document holds a `mermaid` block (REQ-2292).
+    fn mermaid_blocks(&self) -> bool {
+        self.tracked
+            .iter()
+            .filter(|path| path.ends_with(".md"))
+            .filter_map(|path| std::fs::read_to_string(self.root.join(path)).ok())
+            .any(|text| !scan(&text).blocks.is_empty())
+    }
+
+    /// The directory the record lives in, `[record] root` or `project`.
+    fn record_root(&self) -> String {
+        self.profile
+            .get("record")
+            .and_then(|r| r.get("root"))
+            .and_then(toml::Value::as_str)
+            .unwrap_or("project")
+            .trim_matches('/')
+            .trim_start_matches("./")
+            .to_string()
     }
 
     fn declared(&self, verb: &str) -> bool {
@@ -427,7 +457,11 @@ fn bind() -> u8 {
             "looked for .markdownlint-cli2.*, .markdownlint.* and .markdownlintrc, and found only a linter this pack binds no command for",
         )
     };
-    let check = Binding::unresolved("check", "Markdown has no types");
+    let check = if corpus.mermaid_blocks() {
+        Binding::bound("check", "meow-markdown", "meow-markdown diagrams")
+    } else {
+        Binding::unresolved("check", "Markdown has no types")
+    };
     let test = pack::choose(
         "test",
         &[Candidate::new(
@@ -499,11 +533,232 @@ fn check() -> u8 {
     FOUND
 }
 
+/// The fenced `mermaid` blocks of a document, each with the line its fence
+/// opens on, and the image links it embeds, each with its line and target.
+#[derive(Default)]
+struct Scanned {
+    blocks: Vec<(usize, String)>,
+    images: Vec<(usize, String)>,
+}
+
+/// Reads a document's fences and image links. An image link inside a fence
+/// is code and not an image, so it is skipped.
+fn scan(text: &str) -> Scanned {
+    let mut found = Scanned::default();
+    let mut open: Option<(char, usize, bool)> = None;
+    let mut block = String::new();
+    let mut started = 0;
+    for (index, line) in text.lines().enumerate() {
+        let number = index + 1;
+        let trimmed = line.trim_start();
+        let indent = line.len() - trimmed.len();
+        let fence = trimmed.chars().next().filter(|c| matches!(c, '`' | '~'));
+        let run = fence.map_or(0, |c| trimmed.chars().take_while(|x| *x == c).count());
+        match open {
+            Some((mark, length, mermaid)) => {
+                let closes = fence == Some(mark)
+                    && run >= length
+                    && trimmed[run..].trim().is_empty()
+                    && indent < 4;
+                if closes {
+                    if mermaid {
+                        found.blocks.push((started, std::mem::take(&mut block)));
+                    }
+                    open = None;
+                } else if mermaid {
+                    block.push_str(line);
+                    block.push('\n');
+                }
+            }
+            None => {
+                if run >= 3 && indent < 4 {
+                    let word = trimmed[run..].split_whitespace().next().unwrap_or("");
+                    let mermaid = word.eq_ignore_ascii_case("mermaid");
+                    open = Some((fence.unwrap_or('`'), run, mermaid));
+                    started = number;
+                    block.clear();
+                } else {
+                    for target in image_targets(line) {
+                        found.images.push((number, target));
+                    }
+                }
+            }
+        }
+    }
+    found
+}
+
+/// The targets of the Markdown image links on a line that name a `.png` or
+/// `.svg` file, ignoring a query or a fragment (REQ-2290).
+fn image_targets(line: &str) -> Vec<String> {
+    let mut targets = Vec::new();
+    let mut rest = line;
+    while let Some(at) = rest.find("![") {
+        rest = &rest[at + 2..];
+        let Some(close) = rest.find("](") else {
+            break;
+        };
+        let after = &rest[close + 2..];
+        let Some(end) = after.find(')') else {
+            break;
+        };
+        let target = after[..end]
+            .split_whitespace()
+            .next()
+            .unwrap_or("")
+            .trim_matches(|c| c == '<' || c == '>');
+        let path = target.split(['?', '#']).next().unwrap_or("").to_lowercase();
+        if path.ends_with(".png") || path.ends_with(".svg") {
+            targets.push(target.to_string());
+        }
+        rest = &after[end..];
+    }
+    targets
+}
+
+/// Parses each `mermaid` block of the tracked Markdown, or of the inputs
+/// given, with `mmdc`, writing its files outside the working tree, and reports
+/// an image link to a `.png` or `.svg` file in a document under the record's
+/// root (REQ-2304, REQ-2290).
+fn diagrams(inputs: &[&str]) -> u8 {
+    println!("meow-markdown diagrams");
+    let corpus = match Corpus::read(|line| println!("{line}")) {
+        Ok(corpus) => corpus,
+        Err(reason) => {
+            println!("unresolved: {reason}");
+            return UNRESOLVED;
+        }
+    };
+    let files: Vec<String> = if inputs.is_empty() {
+        corpus
+            .tracked
+            .iter()
+            .filter(|path| path.ends_with(".md"))
+            .cloned()
+            .collect()
+    } else {
+        inputs.iter().map(|path| path.to_string()).collect()
+    };
+    let record = corpus.record_root();
+    let mut findings = Vec::new();
+    let mut blocks = Vec::new();
+    for file in &files {
+        let Ok(text) = std::fs::read_to_string(corpus.root.join(file)) else {
+            continue;
+        };
+        let scanned = scan(&text);
+        if !record.is_empty() && file.starts_with(&format!("{record}/")) {
+            for (line, target) in scanned.images {
+                findings.push(format!(
+                    "{file}:{line}: image {target} embedded; a diagram is a fenced block in the document"
+                ));
+            }
+        }
+        for (line, block) in scanned.blocks {
+            blocks.push((file.clone(), line, block));
+        }
+    }
+    let mut broken = None;
+    if !blocks.is_empty() {
+        match parse_blocks(&corpus, &blocks) {
+            Ok(failed) => findings.extend(failed),
+            Err(line) => broken = Some(line),
+        }
+    }
+    for finding in &findings {
+        println!("{finding}");
+    }
+    if !findings.is_empty() {
+        return FOUND;
+    }
+    if let Some(line) = broken {
+        println!("{line}");
+        return UNRESOLVED;
+    }
+    let clean = pack::Clean {
+        said: "no findings".into(),
+        groups: vec!["the mermaid blocks".into(), "the image links".into()],
+        hides_below_a_level: false,
+        level: None,
+    };
+    match clean.line() {
+        Ok(line) => println!("{line}"),
+        Err(reason) => println!("unresolved: {reason}"),
+    }
+    0
+}
+
+/// One line for each block `mmdc` rejects, or the line saying `mmdc` is absent
+/// or broken.
+fn parse_blocks(
+    corpus: &Corpus,
+    blocks: &[(String, usize, String)],
+) -> Result<Vec<String>, String> {
+    let place = pack::outside("meow-markdown", &corpus.root)
+        .map_err(|reason| {
+            format!("unresolved: nowhere outside the working tree for mmdc's output: {reason}")
+        })?
+        .join("diagrams");
+    std::fs::create_dir_all(&place)
+        .map_err(|error| format!("unresolved: {} can't be made: {error}", place.display()))?;
+    let mut failed = Vec::new();
+    for (number, (file, line, block)) in blocks.iter().enumerate() {
+        let input = place.join(format!("block-{number}.mmd"));
+        let output = place.join(format!("block-{number}.svg"));
+        std::fs::write(&input, block).map_err(|error| {
+            format!("unresolved: {} can't be written: {error}", input.display())
+        })?;
+        let (input_path, output_path) = (input.to_string_lossy(), output.to_string_lossy());
+        let invocation = pack::Invocation::new(
+            "check",
+            "mmdc",
+            &["--quiet", "-i", &input_path, "-o", &output_path],
+        );
+        let done = pack::run_in(&corpus.root, &invocation, None)?;
+        match done.status {
+            Some(0) => {}
+            Some(1) => {
+                let said = String::from_utf8_lossy(&done.stderr);
+                let said = said
+                    .lines()
+                    .map(str::trim)
+                    .find(|l| !l.is_empty())
+                    .unwrap_or("mmdc rejected the block");
+                failed.push(format!(
+                    "{file}:{line}: mermaid block doesn't parse: {said}"
+                ));
+            }
+            other => {
+                let status =
+                    other.map_or("no exit status".to_string(), |c| format!("exit status {c}"));
+                return Err(format!(
+                    "tool broken: mmdc ended with {status}, checking nothing"
+                ));
+            }
+        }
+    }
+    Ok(failed)
+}
+
 /// What `check` checks, named in its clean report (REQ-2432).
-const CHECKS: [&str; 3] = [
+const CHECKS: [&str; 4] = [
     "the render target",
     "the markdownlint settings",
     "the link check's settings",
+    "the diagram notation",
+];
+
+/// The notations that need a build step to render, which the record refuses
+/// (REQ-2294). A notation GitHub renders from the Markdown alone isn't here.
+const BUILD_STEP_NOTATIONS: [&str; 8] = [
+    "plantuml",
+    "graphviz",
+    "dot",
+    "d2",
+    "structurizr",
+    "tikz",
+    "latex",
+    "drawio",
 ];
 
 fn findings(corpus: &Corpus) -> Vec<String> {
@@ -566,6 +821,19 @@ fn findings(corpus: &Corpus) -> Vec<String> {
         if !found.contains(&finding) {
             found.push(finding);
         }
+    }
+    let notation = corpus
+        .profile
+        .get("docs")
+        .and_then(|d| d.get("diagrams"))
+        .and_then(toml::Value::as_str)
+        .unwrap_or("")
+        .trim()
+        .to_lowercase();
+    if BUILD_STEP_NOTATIONS.contains(&notation.as_str()) {
+        found.push(format!(
+            "[docs] diagrams = {notation} needs a build step; the record can't use it"
+        ));
     }
     found
 }
@@ -982,7 +1250,7 @@ fn cli2_sets_rules(path: &std::path::Path) -> bool {
                 _ => true,
             });
     }
-    serde_json::from_str::<serde_json::Value>(&plain_json(&text))
+    serde_json::from_str::<serde_json::Value>(&pack::plain_json(&text))
         .ok()
         .and_then(|json| json.get("config").cloned())
         .is_some_and(|config| match config {
@@ -990,53 +1258,6 @@ fn cli2_sets_rules(path: &std::path::Path) -> bool {
             serde_json::Value::Null => false,
             _ => true,
         })
-}
-
-/// JSONC as JSON: comments and trailing commas outside strings removed.
-fn plain_json(text: &str) -> String {
-    let chars: Vec<char> = text.chars().collect();
-    let mut out = String::with_capacity(text.len());
-    let mut i = 0;
-    let mut in_string = false;
-    while i < chars.len() {
-        let c = chars[i];
-        let next = chars.get(i + 1).copied();
-        if in_string {
-            out.push(c);
-            if c == '\\' {
-                if let Some(n) = next {
-                    out.push(n);
-                    i += 1;
-                }
-            } else if c == '"' {
-                in_string = false;
-            }
-        } else if c == '"' {
-            in_string = true;
-            out.push(c);
-        } else if c == '/' && next == Some('/') {
-            while i < chars.len() && chars[i] != '\n' {
-                i += 1;
-            }
-            continue;
-        } else if c == '/' && next == Some('*') {
-            i += 2;
-            while i < chars.len() && !(chars[i] == '*' && chars.get(i + 1) == Some(&'/')) {
-                i += 1;
-            }
-            i += 2;
-            continue;
-        } else if c == ',' {
-            let rest = chars[i + 1..].iter().find(|c| !c.is_whitespace());
-            if !matches!(rest, Some('}') | Some(']')) {
-                out.push(c);
-            }
-        } else {
-            out.push(c);
-        }
-        i += 1;
-    }
-    out
 }
 
 #[cfg(test)]
@@ -1064,7 +1285,7 @@ mod tests {
     #[test]
     fn jsonc_loses_its_comments_and_trailing_commas() {
         let text = "{ // a comment\n \"config\": { \"MD013\": false, }, /* \"x\": 1 */ \"url\": \"a//b\", }";
-        let json: serde_json::Value = serde_json::from_str(&plain_json(text)).unwrap();
+        let json: serde_json::Value = serde_json::from_str(&pack::plain_json(text)).unwrap();
         assert_eq!(json["config"]["MD013"], false);
         assert_eq!(json["url"], "a//b");
     }

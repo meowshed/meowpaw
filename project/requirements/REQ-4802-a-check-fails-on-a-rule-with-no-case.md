@@ -14,8 +14,9 @@ verification: static
 
 # REQ-4802
 
-A check MUST fail and name each rule of the writing standard that has neither a case in the reviewer's labelled set nor an entry in the list of rules no text can show.
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+A check MUST fail and name each rule of the writing standard that has neither a case in the reviewer's labelled set nor an entry in the list of rules no text can show.
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

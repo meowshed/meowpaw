@@ -11,8 +11,9 @@ verification: static
 
 # REQ-0159
 
-An evaluation MUST state the delta that counts before it is run.
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+An evaluation MUST state the delta that counts before it is run.
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

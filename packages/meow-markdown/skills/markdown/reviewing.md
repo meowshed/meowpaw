@@ -23,9 +23,15 @@ structure serves the reader. The writing standard stays with `meow-prose`.
   document or its target, and check each link a moved file carries, because
   whether a link survives a move is a property of the link's style, not of
   its target.
-- R6. Check that a diagram claims nothing the prose doesn't say, because a
-  diagram parser checks that the diagram parses, and only a reader sees an
-  arrow or a box that the text never states.
+- R6. Check that the prose beside a diagram states everything the diagram
+  asserts, and that the diagram claims nothing the prose doesn't say, because
+  a parser checks only that the diagram parses, a reader of the raw file gets
+  the source and not the picture, and only a reader sees an arrow or a box
+  that the text never states.
+- R7. Check that a diagram carries no obligation and no reason, because an
+  obligation belongs in a requirement and a reason in a decision, where each
+  is found by its identifier, and a diagram that holds one hides it from the
+  record.
 </rules>
 
 <example>

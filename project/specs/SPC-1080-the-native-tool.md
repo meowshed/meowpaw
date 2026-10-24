@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-10-11
+revised: 2026-10-24
 states:
   [
     REQ-0010,
@@ -20,27 +20,21 @@ states:
     REQ-0036,
     REQ-0038,
     REQ-0040,
-    REQ-1364,
-    REQ-1366,
-    REQ-1370,
-    REQ-1390,
-    REQ-1398,
-    REQ-2562,
-    REQ-2570,
-    REQ-2584,
-    REQ-2586,
-    REQ-2588,
-    REQ-2824,
-    REQ-3800,
-    REQ-3900,
-    REQ-3902,
-    REQ-4000,
-    REQ-4508,
-    REQ-4500,
-    REQ-4502,
-    REQ-4504,
-    REQ-4506,
+    REQ-0072,
+    REQ-0084,
+    REQ-0086,
+    REQ-0088,
+    REQ-0343,
+    REQ-1170,
+    REQ-1172,
+    REQ-1174,
+    REQ-1176,
+    REQ-1178,
+    REQ-1180,
+    REQ-1182,
+    REQ-1184,
     REQ-1186,
+    REQ-1190,
     REQ-1350,
     REQ-1351,
     REQ-1352,
@@ -48,22 +42,33 @@ states:
     REQ-1355,
     REQ-1356,
     REQ-1360,
+    REQ-1364,
+    REQ-1366,
     REQ-1368,
+    REQ-1370,
     REQ-1372,
     REQ-1376,
     REQ-1380,
     REQ-1382,
     REQ-1384,
     REQ-1386,
+    REQ-1390,
     REQ-1392,
-    REQ-4700,
-    REQ-4702,
-    REQ-4704,
-    REQ-4706,
     REQ-1396,
+    REQ-1398,
     REQ-1400,
     REQ-1402,
+    REQ-1424,
+    REQ-1429,
+    REQ-1480,
+    REQ-1481,
+    REQ-1482,
+    REQ-1483,
+    REQ-1484,
     REQ-1485,
+    REQ-1486,
+    REQ-1488,
+    REQ-1494,
     REQ-1720,
     REQ-1722,
     REQ-1724,
@@ -73,6 +78,7 @@ states:
     REQ-1732,
     REQ-1734,
     REQ-1736,
+    REQ-1738,
     REQ-1740,
     REQ-1742,
     REQ-1744,
@@ -85,17 +91,33 @@ states:
     REQ-1758,
     REQ-1762,
     REQ-1766,
+    REQ-2194,
+    REQ-2218,
+    REQ-2358,
+    REQ-2360,
     REQ-2556,
     REQ-2558,
     REQ-2560,
+    REQ-2562,
     REQ-2564,
     REQ-2566,
     REQ-2568,
+    REQ-2570,
     REQ-2572,
     REQ-2574,
     REQ-2576,
     REQ-2578,
     REQ-2582,
+    REQ-2584,
+    REQ-2586,
+    REQ-2588,
+    REQ-2784,
+    REQ-2786,
+    REQ-2788,
+    REQ-2790,
+    REQ-2792,
+    REQ-2800,
+    REQ-2824,
     REQ-2826,
     REQ-2832,
     REQ-2906,
@@ -105,61 +127,45 @@ states:
     REQ-2946,
     REQ-2948,
     REQ-2950,
-    REQ-3178,
-    REQ-3192,
-    REQ-3320,
-    REQ-3322,
-    REQ-3324,
-    REQ-3326,
-    REQ-1170,
-    REQ-1172,
-    REQ-1174,
-    REQ-1176,
-    REQ-1178,
-    REQ-1180,
-    REQ-1182,
-    REQ-1184,
-    REQ-1190,
-    REQ-2784,
-    REQ-2786,
-    REQ-2788,
-    REQ-2790,
-    REQ-2792,
-    REQ-1480,
-    REQ-1481,
-    REQ-1482,
-    REQ-1483,
-    REQ-1484,
-    REQ-1488,
-    REQ-1494,
-    REQ-1738,
     REQ-2990,
+    REQ-2992,
     REQ-2994,
     REQ-2996,
     REQ-2998,
     REQ-3000,
     REQ-3002,
     REQ-3006,
-    REQ-1486,
-    REQ-2194,
-    REQ-2218,
-    REQ-0072,
-    REQ-0084,
-    REQ-0086,
-    REQ-0088,
-    REQ-0343,
     REQ-3040,
-    REQ-1424,
-    REQ-1429,
-    REQ-2992,
-    REQ-2358,
-    REQ-2360,
+    REQ-3074,
+    REQ-3178,
+    REQ-3192,
+    REQ-3196,
+    REQ-3320,
+    REQ-3322,
+    REQ-3324,
+    REQ-3326,
+    REQ-3800,
+    REQ-3900,
+    REQ-3902,
+    REQ-4000,
     REQ-4142,
     REQ-4146,
     REQ-4148,
+    REQ-4500,
+    REQ-4502,
+    REQ-4504,
+    REQ-4506,
+    REQ-4508,
+    REQ-4510,
     REQ-4610,
     REQ-4612,
     REQ-4614,
+    REQ-4624,
+    REQ-4622,
+    REQ-4700,
+    REQ-4702,
+    REQ-4704,
+    REQ-4706,
   ]
 ---
 
@@ -313,7 +319,11 @@ the machine's target from the operating system and the processor, looks for
 and runs it with the unit's subcommand and the arguments it was given. Where no
 binary exists for the target, it reports every check as unrun and exits as the
 unit's specification says a missing program does, never with success on a
-check. A launcher that a blocking hook runs denies instead, with exit 2 and
+check. It resolves that binary's path once per machine and keeps the result in a
+file under the unit's data directory, so a later call reads the file and neither
+probes the machine nor walks the core unit's data directory, and where the
+file names a binary that is missing, it resolves again and replaces the
+file (REQ-4510). A launcher that a blocking hook runs denies instead, with exit 2 and
 the command that installs the unit again, as SPC-1240 states (REQ-1426).
 
 ### Each subcommand makes one determination
@@ -567,6 +577,17 @@ author wrote for the person whose repository changes, from the section for
 that version in the unit's `CHANGELOG.md`, and never notes generated from
 commits; the release refuses a new version whose changelog has no section for
 it (REQ-3002).
+
+A unit's launcher, and a Pi extension that only puts it on the path, are
+written from one template by a program of this repository and never by hand for
+each unit, and a check fails naming a unit whose committed copy differs from
+what the program writes (REQ-4624). A Pi extension that carries a host's hooks
+or commands stays hand-written. A
+unit's description agrees across its plugin manifest, its plugin page, its
+package manifest and its package page, and a package's page carries every
+section of its unit's page apart from the sections the unit's page marks as
+host-specific. One check holds both and names each copy that differs
+(REQ-3196, REQ-4622).
 
 ### What stays optional
 
@@ -832,7 +853,11 @@ unit's description states its job and cost (REQ-1750), the record uses no
 syntax of its own (REQ-1752), every check runs locally by the command CI runs
 (REQ-1754, REQ-1756, REQ-1758), tools come from `mise.toml` (REQ-1762), no
 spend happens without a person (REQ-1766), and every report separates what was
-verified from what was assumed (REQ-1734) (ADR-1200).
+verified from what was assumed (REQ-1734) (ADR-1200). A `paw` call on a record
+it has already read completes within a second and reads only what changed since
+the last call (REQ-2800). The trunk's gate passes, so a verification run
+records its results against the tree it ran on and no stage report stays
+stale for a finding a record can fix (REQ-3074).
 
 ### The threat model
 
@@ -918,3 +943,37 @@ process uses, and maps each to the control that answers it, or says none does
 | A Bash command's `gh` changes governance         | The hook answers `ask`, naming the method and the endpoint                                                   |
 | `protections` can't read a protection            | The protection is named as unread, never as absent, exit 3                                                   |
 | The platform's command-line tool is missing      | The unattended install test reports itself skipped, never passed                                             |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Provides the one command-line tool every unit's program is a subcommand of, and ships it.
+
+### What it depends on
+
+`meow-core` lists no other unit in its `requires.toml`.
+
+### What depends on it
+
+Every other unit but 2 lists `meow-core` in its `requires.toml`.
+
+### Where its data lives
+
+The source is `crates/meow/`.
+
+### What crosses a trust boundary
+
+The harness keeps one threat model, in this document under "The threat model".
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-core` ships the shared binary, built from the `meow` crate and released as archives with an attestation.
