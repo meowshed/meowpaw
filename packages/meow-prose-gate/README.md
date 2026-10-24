@@ -2,7 +2,7 @@
 reader: someone installing or running meow-prose-gate on Pi
 answers: what meow-prose-gate provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-prose-gate@0.7.0]
+describes: [@meowshed/meow-prose-gate@0.7.1]
 ---
 
 # @meowshed/meow-prose-gate

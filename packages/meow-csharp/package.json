@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-csharp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Detects a .NET solution or project from what git tracks, compares the SDK global.json pins with the ones installed, prints a stages table that restores explicitly and keeps every build's output outside the working tree, reports Nullable, TreatWarningsAsErrors and AnalysisLevel left unset, writing no file, and carries what a reviewer of C# checks that no command reports. Distributed as a Pi package.",
   "keywords": [
     "pi-package",

@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-core
 answers: what meow-core does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-core@0.10.0]
+describes: [meow-core@0.10.1]
 description: "Shapes every reply Claude Code makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It replaces your own output style while it is enabled."
 ---
 

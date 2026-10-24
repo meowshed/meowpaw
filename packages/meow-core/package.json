@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-core",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Shapes every reply Pi makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It replaces your own output style while it is enabled. Distributed as a Pi package.",
   "keywords": [
     "pi-package",
