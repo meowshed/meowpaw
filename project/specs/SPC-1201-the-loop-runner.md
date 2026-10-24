@@ -104,7 +104,7 @@ condition isn't a flag, because it's fixed: no requirement and no defect open
 in the record (REQ-3704).
 
 A command that names `--tokens` starts the run all the same, and the start
-context says that the token bound no longer exists and that the flag is
+context says that no token bound exists and that the flag is
 dropped in the release after this one (REQ-3730). The run holds no token bound,
 because the only total the hook can make from the transcript counts each cache
 read again (REQ-3724).
@@ -214,7 +214,7 @@ printed in the hook's `systemMessage` (REQ-2658):
 
 A session that ends while a run is active leaves a run with no ending, which
 reads as interrupted. The next start in that work tree replaces it, because
-its session id no longer matches the session.
+its session id doesn't match the session.
 
 ### `meow-loop start`
 

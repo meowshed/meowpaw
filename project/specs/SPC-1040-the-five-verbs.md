@@ -111,8 +111,7 @@ compiler checking the code without building it, `test` for tests and `build`
 for the build (REQ-0130, REQ-2908). A unit adds no sixth (REQ-0131), because a
 sixth stage is a command with no agreed meaning across repositories.
 
-From 0.4.0, under its earlier name, the program no longer reads the names the stages had
-before ADR-1410, `fmt` for `format` and `typecheck` for `check`: a profile key
+The program reads none of the names the stages had before ADR-1410, `fmt` for `format` and `typecheck` for `check`: a profile key
 under an old name is named as an unknown key, and an old name on the command line
 isn't a stage.
 

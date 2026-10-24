@@ -202,7 +202,7 @@ draft, naming the chain (REQ-0139). Where the artifact is itself a draft or
 living, it also reports a withdrawn, superseded or rejected provider
 (ADR-1470). Three relations name what a record moved away on or moved
 against, and the walk follows none of them: `supersedes` and `postpones`,
-because the record no longer rests on what they name, and a defect's
+because the record doesn't rest on what they name, and a defect's
 `violates`, because the violation is the accusation that prompted what it
 moved against, and not a dependency of the specification that reaches the
 defect through its descendants (ADR-2960).

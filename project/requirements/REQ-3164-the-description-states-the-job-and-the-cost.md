@@ -12,10 +12,10 @@ verifier: agent
 
 # REQ-3164
 
+**Withdrawn by ADR-2970 on 2026-10-11. Replaced by REQ-3194.**
+
 A unit's catalogue description MUST state what the unit does for the reader and
 what keeping it installed costs them.
-
-**Withdrawn by ADR-2970 on 2026-10-11. Replaced by REQ-3194.**
 
 It read: a unit's catalogue description MUST state what the unit does for the
 reader and what keeping it installed costs them.

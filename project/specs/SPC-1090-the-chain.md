@@ -375,7 +375,7 @@ The chain has seven steps: research, requirements, design, spec, epic,
 implement and review (REQ-3638). A requirement closes with the tasks that name
 it (REQ-3604). No agent reviews a record, and the repository keeps no run
 output. Every record meets the shape of the seven steps (REQ-3652), and the
-marketplace ships no unit whose only purpose the chain no longer has
+marketplace ships no unit whose only purpose is one the chain lacks
 (REQ-3654).
 
 The `route` skill classifies the request in the session and reports the route

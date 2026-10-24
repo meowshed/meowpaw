@@ -184,7 +184,7 @@ A pack runs what the repository configured, and nothing it chose:
 ### What a pack reports it didn't check
 
 - Where the bound tool covers less than the ecosystem's default, the pack
-  runs the rest as well, or names what is no longer checked (REQ-2410).
+  runs the rest as well, or names what it leaves unchecked (REQ-2410).
 - Where the language runs the examples in its documentation as tests, `test`
   runs them, and never resolves to a runner that leaves them out (REQ-2412).
 - Where the language ships a detector for the defect class its programs most
