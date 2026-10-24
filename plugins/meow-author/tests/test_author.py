@@ -467,6 +467,12 @@ class WriteSkill(unittest.TestCase):
             with self.subTest(rule=inverted):
                 self.assertFalse(self.matches(inverted, self.KNOWLEDGE))
 
+    def test_no_shipped_rule_depends_on_being_read_last(self):
+        """TSK-4720 criterion 1, REQ-2742: a rule forbids a shipped rule that leans on being read last, with the
+        reason that several instruction files load in an order the unit doesn't control."""
+        self.rule(r"\bread last\b", r"\bno rule\b", r"\bseveral instruction files load in an order\b",
+                  r"\bthe unit doesn't control\b")
+
     def test_a_delegated_agent_is_no_isolation_boundary(self):
         """TSK-2701 criterion 1, REQ-2976: no text treats a delegated agent as an isolation boundary, because it
         runs under the parent's sandbox configuration."""

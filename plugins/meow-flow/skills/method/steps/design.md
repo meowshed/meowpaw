@@ -90,4 +90,15 @@ picks it up is spec.
   as a preference.
 - D24. Run the adversarial pass over the draft before implementation, and
   write its findings against the draft rather than rewriting it.
+- D25. For each decision that adds a rule to the constitution, ask whether
+  the rule pulls against one already there, and write two that do as one rule
+  with its exception stated, in the same decision, because two rules that
+  pull against each other leave the reader to guess which wins.
+- D26. For a decision that changes the vision, ask whether a requirement makes
+  each claim it adds falsifiable, and remove a claim with no requirement,
+  because a claim nothing can fail settles no argument.
+- D27. Where a decision contradicts the vision, report that one of the two is
+  stale, ask which, and stop: the step writes no decision while both stand,
+  because a record that holds both leaves the contradiction for the next
+  reader to resolve.
 </rules>
