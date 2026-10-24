@@ -40,7 +40,11 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criteria 1 and 2 are closed by `test_tsk_4985_criterion_1_a_block_that_does_not_parse_is_a_finding`, `test_tsk_4985_criterion_1_inputs_limit_the_files_parsed` and `test_tsk_4985_criterion_2_a_block_that_parses_exits_0_and_leaves_the_tree_alone` in `plugins/meow-markdown/tests/test_markdown.py` (REQ-2304), seen failing first. Criterion 3 is closed by `test_tsk_4985_criterion_3_a_mermaid_block_binds_check_to_diagrams` and `test_tsk_4985_criterion_3_no_mermaid_block_keeps_the_unresolved_line` (REQ-2292). Criterion 4 is closed by `test_tsk_4985_criterion_4_no_mmdc_is_tool_absent`. `unit_help` holds the new subcommand's output to the words its help states.
+
+The fixtures run a stand-in `mmdc`, since none is installed on the machine that wrote this, so the real tool's wording and exit statuses are assumed from its documentation and not observed. The README says so and gives no version for `mmdc`. Pinning `mmdc` in `mise.toml` waits, as the task's Left alone says, until this repository's own `check` verb runs it.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

@@ -39,7 +39,11 @@ with its reason, as SPC-1080 states under "The profile". Document the key on
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `test_tsk_4990_criterion_1_an_image_in_a_record_document_is_a_finding`, `test_tsk_4990_criterion_1_an_svg_image_in_a_record_document_is_a_finding`, `test_tsk_4990_criterion_1_the_same_link_outside_the_record_prints_nothing` and `test_tsk_4990_criterion_1_the_declared_record_root_decides` in `plugins/meow-markdown/tests/test_markdown.py` (REQ-2290), seen failing first. Criterion 2 is closed by `test_tsk_4990_criterion_2_a_notation_with_a_build_step_is_refused_for_the_record` (REQ-2294). Criterion 3 is closed by `test_tsk_4990_criterion_3_mermaid_or_no_notation_is_no_finding_and_no_unknown_key` and the crate test `every_key_in_the_table_carries_a_reason`, which reads `docs.diagrams` in the table of keys (REQ-2296).
+
+The notations refused for the record are a list in `crates/meow/src/markdown.rs` (`plantuml`, `graphviz`, `dot`, `d2`, `structurizr`, `tikz`, `latex`, `drawio`), my choice, because the task names `plantuml` alone; any other string is accepted.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

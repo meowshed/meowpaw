@@ -207,6 +207,10 @@ pub const KEYS: &[Key] = &[
         reason: "The documentation style is the repository's decision, and the pages already written can't name it (SPC-1090)",
     },
     Key {
+        path: "docs.diagrams",
+        reason: "The notation a repository draws diagrams in is its choice, and the blocks already written can't say which renderer it relies on (REQ-2296)",
+    },
+    Key {
         path: "markdown.target",
         reason: "The renderer a document is written for is outside the repository, and the Markdown alone doesn't name it (REQ-2452)",
     },
