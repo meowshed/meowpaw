@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-mise",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Reports the tasks mise resolves in a repository, with where each came from and what stops a stage running it unattended, binds the stages to them, and never grants trust, answers a prompt or writes a file. Distributed as a Pi package.",
   "keywords": [
     "pi-package",

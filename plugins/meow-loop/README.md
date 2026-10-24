@@ -3,6 +3,7 @@ reader: someone choosing or running meow-loop
 answers: how a person starts a run in the session, what bounds a run and what a run keeps
 kind: reference
 describes: [meow-loop@0.17.0]
+description: "Runs the method's chain inside the Claude Code session where a person starts it: /meow-loop:run repeats /meow-flow:run until the record holds no open work, the iterations or the hours it was given (ten and four by default) are reached, two iterations change nothing or the person types anything else. Hooks hold the bounds outside the model, deny what would change a run's terms, and let only a person start a run. It keeps nothing in context on every turn."
 ---
 
 # meow-loop
@@ -107,6 +108,8 @@ denies what you didn't allow where another mode would ask a person who isn't
 there, or allow everything.
 
 ## What a run does
+
+<!-- host-specific: claude -->
 
 The runner resolves each named stage to the command your profile declares,
 holds that command for the whole run and records it in `run.toml`, so a call
@@ -303,6 +306,8 @@ installed, `meow-checks evidence` prints the run's last results.
 
 ## What a run keeps
 
+<!-- host-specific: claude -->
+
 A run writes nothing into your work tree. Its files go to
 `<state>/meowpaw/runs/<work tree key>/<run id>/`, where `<state>` is
 `$XDG_STATE_HOME`, or `~/.local/state` where that isn't set, and
@@ -324,6 +329,8 @@ the newest 20 runs of the work tree, counting the new one, and prints the id
 of each run it removes.
 
 ## What this version doesn't bound yet
+
+<!-- host-specific: claude -->
 
 The budget bounds the run before a call and not during one. A call that costs
 more than every call before it can take the spend past the budget by the
@@ -352,6 +359,8 @@ backslash, as in `st""art` or `st\art`, and it also denies a harmless command wh
 holds those words, such as a search for `meow-loop start`.
 
 ## What it reports instead of a run
+
+<!-- host-specific: claude -->
 
 A usage error exits 2 and prints `usage: <what>` for every error in the
 command, so one attempt names every flag to fix:
@@ -411,6 +420,8 @@ interrupted.
 
 ## What it costs you
 
+<!-- host-specific: claude -->
+
 The unit's one skill, `meow-loop:loop`, is invoked only by a person, so its
 description isn't loaded into context, and the unit keeps nothing in context
 on every turn; its budget states zero characters. Its hook runs the native
@@ -435,6 +446,8 @@ subcommand's output to those words.
 `guard` stops a write into a run's own state or a status the run can't give; the `meow-loop:run` skill says why, and no gate check holds the rule yet.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.280 or later, declared in `plugins/meow-loop/requires.toml`,
 with `claude` on your `PATH`, and git. It relies on a `PreToolUse` command

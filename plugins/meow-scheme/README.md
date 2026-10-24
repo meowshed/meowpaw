@@ -3,6 +3,7 @@ reader: someone choosing or running meow-scheme
 answers: what meow-scheme does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-scheme@0.1.0]
+description: "Detects Scheme projects from the manifests git tracks, names the implementation before it binds anything, prints a stages table that binds Racket's tests as raco test without writing bytecode and binds nothing for an implementation whose commands the repository doesn't commit, reports a stage that writes bytecode into the working tree and a compiled directory that isn't ignored, writing no file, and carries what a reviewer of Scheme checks that no command reports."
 ---
 
 # meow-scheme
@@ -30,6 +31,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
+
+<!-- host-specific: claude -->
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
@@ -130,6 +133,8 @@ names what it determines, what you read to reach the same answer without the
 tool, and the first word of each kind of line it prints.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.280 or later, declared in `plugins/meow-scheme/requires.toml`, and git.
 The pack is current as of Racket's documentation for `raco test`, `raco make` and `raco fmt` as read on 2026-10-13 and CHICKEN 5's extensions chapter, none observed running. Check a binding against a newer

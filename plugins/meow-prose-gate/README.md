@@ -3,6 +3,7 @@ reader: someone choosing or running meow-prose-gate
 answers: what meow-prose-gate does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-prose-gate@0.7.0]
+description: "Stops Claude Code from publishing a commit message, pull request, issue, comment or release note that carries a writing defect any reader can point to. A program blocks a stock idiom from a fixed list, a line of bold text in place of a heading and text hidden in a file, and a model judging twice blocks other idioms, unexpanded acronyms and a bold phrase opening a paragraph only where both judgements agree on a span the text holds. It keeps nothing in context."
 ---
 
 # meow-prose-gate
@@ -60,6 +61,8 @@ the text corrected.
 
 ## When the judge can't run
 
+<!-- host-specific: claude -->
+
 The gate lets the publish through and tells you so, in a message such as
 `meow-prose-gate: the judged rules were not checked: the judge ran past 45 seconds`.
 It does that when `claude` isn't on the path or can't be started, when a call
@@ -68,6 +71,8 @@ match the schema the unit ships. P1, P2 and P3 still apply then, because they
 need no model.
 
 ## What it costs you
+
+<!-- host-specific: claude -->
 
 Nothing in context. The gate is a command hook that runs when Claude Code runs
 a command that publishes text: `git commit`, and `gh` creating or editing a
@@ -133,9 +138,13 @@ subcommand's output to those words.
 
 ## Hooks
 
+<!-- host-specific: claude -->
+
 `check` stops a publish whose text breaks a rule the gate holds: the exact rules first, then a judge model asked twice, which is the one hook allowed to reach beyond local files; the `meow-prose:writing` skill says why, and `mise run layers` runs the exact rules over the message of each commit a branch adds.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.284 or later, the version this unit was tested on, declared in
 `plugins/meow-prose-gate/requires.toml`, and `claude` on the path for the

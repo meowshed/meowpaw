@@ -3,6 +3,7 @@ reader: someone choosing or running meow-typescript
 answers: what meow-typescript does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-typescript@0.1.0]
+description: "Detects a TypeScript and JavaScript package from the package.json git tracks, reads the package manager it declares, prints a stages table bound from the tools it configured and run through that manager, reports a stage that runs a tool outside the manager or leaves a linter or compiler setting without effect, and carries what a reviewer of TypeScript checks that no command reports, writing no file."
 ---
 
 # meow-typescript
@@ -30,6 +31,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
+
+<!-- host-specific: claude -->
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
@@ -215,6 +218,8 @@ answer without the tool, and the first word of each kind of line it prints. A
 test holds each subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.280 or later, declared in
 `plugins/meow-typescript/requires.toml`, and git. The pack is current as of

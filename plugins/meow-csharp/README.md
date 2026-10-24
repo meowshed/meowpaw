@@ -3,6 +3,7 @@ reader: someone choosing or running meow-csharp
 answers: what meow-csharp does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-csharp@0.1.0]
+description: "Detects a .NET solution or project from what git tracks, compares the SDK global.json pins with the ones installed, prints a stages table that restores explicitly and keeps every build's output outside the working tree, reports Nullable, TreatWarningsAsErrors and AnalysisLevel left unset, writing no file, and carries what a reviewer of C# checks that no command reports."
 ---
 
 # meow-csharp
@@ -30,6 +31,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
+
+<!-- host-specific: claude -->
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
@@ -166,6 +169,8 @@ unit carries no binary for, it reports the repository as unresolved and exits 3.
 without the tool, and the first word of each kind of line it prints.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.280 or later, declared in `plugins/meow-csharp/requires.toml`,
 and git. The pack is current as of the .NET 10 SDK and CSharpier's `check`

@@ -3,6 +3,7 @@ reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-github@0.17.0]
+description: "Reads a GitHub repository's issues, pull requests and comments through gh as one JSON document, projects an approved epic's tasks onto issues and writes nothing else, and asks before a Bash command's gh changes how the repository is governed."
 ---
 
 # meow-github
@@ -376,6 +377,8 @@ person using the same account can still meet GitHub's own throttle.
 
 ## What it writes, and what it asks about
 
+<!-- host-specific: claude -->
+
 The pack writes to GitHub only through two endpoints: `POST repos/{o}/{r}/issues`,
 which creates an issue, and `PATCH repos/{o}/{r}/issues/{n}`, which updates
 one. It sends any other method than `GET` to no other endpoint, and refuses
@@ -448,6 +451,8 @@ subcommand's output to those words.
 `irreversible-guard` stops a merge, a release or an issue or pull request write in a session a person attends, until the person answers for that one call, and never answers for them; rule M25 of the `meow-flow:method` skill says why, and `mise run test-crate` fails a guard whose second call doesn't ask again.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-github/requires.toml`, and GitHub's client, `gh`, signed in.

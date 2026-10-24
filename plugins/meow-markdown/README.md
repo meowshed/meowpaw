@@ -3,6 +3,7 @@ reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-markdown@0.9.0]
+description: "Detects a Markdown corpus from what git tracks, lists the tools a repository configured for it, and prints a stages table bound from that configuration, reports a missing render target, markdownlint settings the lint stage lacks, ignores or never applies and a link check that leaves its network behaviour undeclared, and runs lychee to report a link it couldn't reach as unreachable, never as a finding, writing no file, and carries what a reviewer of a Markdown document checks that no command reports."
 ---
 
 # meow-markdown
@@ -29,6 +30,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
+
+<!-- host-specific: claude -->
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
@@ -306,6 +309,8 @@ and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.280 or later, declared in
 `plugins/meow-markdown/requires.toml`, and git. `links` needs lychee on
