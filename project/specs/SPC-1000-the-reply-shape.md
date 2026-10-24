@@ -2,7 +2,7 @@
 id: SPC-1000
 artifact: spec
 status: live
-revised: 2026-09-21
+revised: 2026-10-24
 states:
   [
     REQ-0930,
@@ -38,9 +38,9 @@ because the shape governs the terminal and the standard governs the file. Stage
 resolution, the names of the harness's not-working states, and what a status
 command computes are all settled elsewhere and left out here.
 
-`meow-core` implements this, and EPC-1000 closed at #27 with one
-criterion unmet: the style applies when a person selects it and not on its own,
-which BUG-1040 records. REQ-0930 is unmet until that is resolved.
+`meow-core` implements this with the output style and with a session-start
+hook that hands the model the same text, so the shape does not depend on a
+person selecting the style (ADR-3050).
 
 ## Boundary
 
@@ -51,6 +51,7 @@ What is observable from outside the part:
 | `plugins/meow-core/output-styles/*.md` | The style file the platform loads, with its YAML front matter                                          |
 | `keep-coding-instructions`             | Set to true, so the platform's engineering guidance survives                                           |
 | `force-for-plugin`                     | Set to true, and not honoured on Claude Code 2.1.278; see BUG-1040                                     |
+| `hooks/reply-shape`                    | A `SessionStart` hook that prints the style's role and rules blocks as the model's context             |
 | The style's rules block                | `<rules name="the reply shape">` in the style, which any unit includes in a subordinate agent's prompt |
 | The style check                        | A check that reads the front matter and the rules, and fails with a named reason                       |
 
@@ -67,11 +68,14 @@ The kernel carries the shape, so a repository installing any part of the
 harness receives it (REQ-0932), and no plugin, skill or step is exempt
 (REQ-0930).
 
-Those two sentences state the obligation, and the harness does not yet meet
-it. On Claude Code 2.1.278 the style applies only when a person selects it,
-because `force-for-plugin` is not honoured, which BUG-1040 records with its
-reproduction. The shape is therefore opt-in per session and REQ-0930 is unmet,
-until the platform honours the field or a decision replaces the mechanism.
+Two mechanisms carry it. The output style carries it where a person selects
+the style. The `reply-shape` hook of `meow-core` prints the style's role and
+rules blocks as `additionalContext` at the start of every session, and again
+after a resume, a clear or a compaction, because Claude Code 2.1.278 does not
+honour `force-for-plugin`, which BUG-1040 records with its reproduction
+(ADR-3050). The hook reads the blocks from the style file at run time, so the
+style stays the one source of the text. No program reads a reply, so the
+obligation holds as far as an instruction in the model's context can hold it.
 
 A reply leads with the action: the command, the path or the line, and prose
 follows if it is needed at all (REQ-0934). A reply does not open by announcing
@@ -116,14 +120,15 @@ review is not repeated until it agrees.
 
 ## Failure paths
 
-| Condition                                                     | What happens                                                                                     |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `keep-coding-instructions` is false or absent                 | The style check fails, naming the field and the file, and the gate stops                         |
-| A rule is stated with no condition under which it yields      | The style check fails, naming the rule                                                           |
-| A person has selected their own output style                  | Nothing overrides it: the style is applied only when somebody selects it, which BUG-1040 records |
-| A unit dispatches a subordinate agent without the rules block | The subordinate answers in the platform's default shape, which is a defect against REQ-0954      |
-| A reply has nothing in the record to compute progress from    | The reply states that, and states no step count it cannot support                                |
-| The shape would require dropping a stage or a finding         | The shape yields and the item stays (REQ-0952)                                                   |
+| Condition                                                     | What happens                                                                                |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `keep-coding-instructions` is false or absent                 | The style check fails, naming the field and the file, and the gate stops                    |
+| A rule is stated with no condition under which it yields      | The style check fails, naming the rule                                                      |
+| A person has selected their own output style                  | Nothing overrides it, and the hook still hands the model the shape beside it                |
+| The style file is missing, unreadable or has no rules block   | The hook prints nothing and exits 0, and the session starts in the platform's default shape |
+| A unit dispatches a subordinate agent without the rules block | The subordinate answers in the platform's default shape, which is a defect against REQ-0954 |
+| A reply has nothing in the record to compute progress from    | The reply states that, and states no step count it cannot support                           |
+| The shape would require dropping a stage or a finding         | The shape yields and the item stays (REQ-0952)                                              |
 
 ## Questions
 

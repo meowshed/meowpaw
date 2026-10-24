@@ -456,6 +456,10 @@ realises ADR-3040 in five tasks, TSK-5680 to TSK-5684: ten requirements that no 
 named get one, two for behaviour that already holds and three that build a
 faster `paw`, generated launchers and a binary resolved once per machine.
 
+[EPC-2860](epics/EPC-2860-the-reply-shape-reaches-every-claude-code-session.md)
+realises ADR-3050 in one task, TSK-5690: `meow-core` prints the reply shape at the
+start of every Claude Code session, so BUG-1040 closes.
+
 [EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
 tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either
 from its research or from its approved records, and the readiness check reads a
