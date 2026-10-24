@@ -1,7 +1,7 @@
 ---
 id: TSK-5070
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2330, REQ-2358, REQ-2360, REQ-2364]
@@ -58,7 +58,31 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 2 rests on judgement, because a page's claim about behaviour is
+read and not matched, as the criterion states; the existing `project`
+fixtures under `plugins/meow-github/tests/` hold the behaviour.
+
+1. `tools/test_check_docs.py` closes criterion 1 (REQ-2330) with
+   `test_tsk_5070_an_index_without_the_supported_set_fails`,
+   `test_tsk_5070_a_language_missing_from_the_supported_set_fails`,
+   `test_tsk_5070_a_row_with_another_state_fails`,
+   `test_tsk_5070_a_row_with_no_pack_fails` and
+   `test_tsk_5070_a_shipped_row_names_a_unit_that_exists`, each seen failing
+   before `tools/check_docs.py` learnt the table. `docs/README.md` carries the
+   `Supported set` table, and `python3 tools/check_docs.py` passes on it.
+2. `plugins/meow-github/README.md` opens with how the unit serves GitHub as
+   the code host and GitHub Issues as the tracker, as a mapping from each
+   task to its issue (REQ-2358, REQ-2360).
+3. `test_tsk_5070_worktrunk_runs_only_operations_whose_result_git_reports` in
+   `plugins/meow-scm/tests/test_scm.py` closes criterion 3 (REQ-2364), seen
+   failing before rule T8 joined the commit skill in both trees and the
+   sentence joined `plugins/meow-scm/README.md`.
+
+The planned rows name each pack `meow-<language>`, a name this task chose
+because no pack's own document names it yet; each pack's task moves its row
+to `shipped` under the name its document gives.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

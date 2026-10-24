@@ -1,7 +1,7 @@
 ---
 id: TSK-5175
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2620
 closes: [REQ-1764]
@@ -31,7 +31,18 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by the record fixture
+`the_brief_asks_the_pull_request_for_the_task_and_the_brief_command` in
+`crates/meow/tests/record_brief.rs`, which reads that `paw brief` names the
+agent definition on its first line and asks the pull request for the task
+and `paw brief <task>` and no agent, model or vendor, and by the prompt
+fixtures `test_a_delegated_pull_request_names_the_task_and_the_brief_and_no_agent`
+and `test_the_steps_example_passes_the_message_check` in
+`plugins/meow-flow/tests/test_delegation.py`, each naming REQ-1764. The record
+fixture passed when written, because TSK-4945 had already put the pull request
+line into the brief, so it was not seen failing.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

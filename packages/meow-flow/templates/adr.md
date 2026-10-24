@@ -5,6 +5,7 @@ status: draft # draft, approved, done when its tasks are complete, then withdraw
 revised: YYYY-MM-DD
 addresses: [REQ-NNNN] # required: a decision that addresses nothing is a preference
 supersedes: []
+concerns: [] # optional: each concern the decision raises, such as performance, security or upgrade
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

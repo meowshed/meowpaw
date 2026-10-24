@@ -1,7 +1,7 @@
 ---
 id: TSK-5105
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2346]
@@ -56,7 +56,26 @@ states the toolchain versions it is current as of.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `status_reports_for_the_directory_holding_the_marker` and
+`a_work_tree_with_no_marker_is_not_a_godot_repository` in
+`crates/meow/tests/pack_godot.rs`, seen failing first against a stub (REQ-2346,
+REQ-3048). Criterion 2 is closed by `bind_prints_every_stage_bound_from_the_fixture`,
+`a_bare_project_names_the_reason_for_each_stage` and
+`two_projects_bind_one_command_that_runs_each_in_its_directory` (REQ-2346).
+Criterion 3 is closed by
+`the_engine_version_is_detected_before_any_stage_binds` (REQ-2446),
+`every_run_of_the_engine_imports_first` and
+`check_reports_an_export_that_imports_nothing` (REQ-2448), and
+`status_names_the_generated_files_to_commit_and_to_ignore`,
+`check_reports_generated_files_committed_or_ignored_wrongly` and the crate test
+`tsk_5135_criterion_3_every_language_pack_states_its_generated_files`, which
+reads the unit's page (REQ-2450). Criterion 4 is closed by
+`tools/check_docs.py`. No criterion rests on judgement.
+
+`paw ready implement TSK-5105` refused only because TSK-5100, the earlier pack
+in the chain, isn't done on this branch.
+
+Every stage passed in pull request #1077.
 
 ## Left alone
 

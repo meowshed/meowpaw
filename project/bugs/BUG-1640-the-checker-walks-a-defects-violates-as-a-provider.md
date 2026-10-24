@@ -60,5 +60,5 @@ states a requirement that elaborates the defect reports nothing.
 
 ## Tasks
 
-- [ ] T-001 TSK-5500 exclude `violates` from the provider walk, in
+- [x] T-001 TSK-5500 exclude `violates` from the provider walk, in (done: pull request 1053)
       `crates/meow/src/record.rs`

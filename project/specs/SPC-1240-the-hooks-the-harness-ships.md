@@ -2,9 +2,10 @@
 id: SPC-1240
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-24
 states:
   [
+    REQ-1426,
     REQ-2710,
     REQ-2712,
     REQ-2714,
@@ -17,7 +18,7 @@ states:
     REQ-2727,
     REQ-2728,
     REQ-2730,
-    REQ-1426,
+    REQ-2798,
   ]
 ---
 
@@ -52,18 +53,20 @@ missing.
 
 The hooks the units declare:
 
-| Unit              | Event                                  | Subcommand         | What it stops                                                  |
-| ----------------- | -------------------------------------- | ------------------ | -------------------------------------------------------------- |
-| `meow-core`       | `SessionStart`                         | `write-root`       | Nothing: it records where the unit is installed                |
-| `meow-flow`       | `SessionStart`                         | `status --waiting` | Nothing: it reports what waits at a gate                       |
-| `meow-git`        | `PreToolUse` on Bash                   | `commit-guard`     | A commit on the declared trunk                                 |
-| `meow-git`        | `PreToolUse` on Bash                   | `push-guard`       | A push of a commit whose message or signature fails            |
-| `meow-github`     | `PreToolUse` on Bash                   | `governance-guard` | A `gh` command that changes governance, until a person answers |
-| `meow-loop`       | `UserPromptSubmit`                     | `prompt`           | Nothing: it starts or cancels a run from the prompt typed      |
-| `meow-loop`       | `Stop`                                 | `stop`             | The end of a turn, while the run has work left                 |
-| `meow-loop`       | `PreToolUse` on Bash, Edit and Write   | `guard`            | A write into a run's own state, or a status the run can't give |
-| `meow-prose-gate` | `PreToolUse` on Bash                   | `check`            | A publish whose text breaks a rule the gate holds              |
-| `meow-checks`     | `PostToolUse` and `PostToolUseFailure` | `revision`         | Nothing: it advances the revision counter                      |
+| Unit              | Event                                  | Subcommand           | What it stops                                                                                                |
+| ----------------- | -------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `meow-core`       | `SessionStart`                         | `write-root`         | Nothing: it records where the unit is installed                                                              |
+| `meow-flow`       | `SessionStart`                         | `status --waiting`   | Nothing: it reports what waits at a gate                                                                     |
+| `meow-git`        | `PreToolUse` on Bash                   | `commit-guard`       | A commit on the declared trunk                                                                               |
+| `meow-git`        | `PreToolUse` on Bash                   | `push-guard`         | A push of a commit whose message or signature fails                                                          |
+| `meow-git`        | `PreToolUse` on Bash                   | `irreversible-guard` | A push in an attended session, until a person answers for that push (ADR-2750)                               |
+| `meow-github`     | `PreToolUse` on Bash                   | `governance-guard`   | A `gh` command that changes governance, until a person answers                                               |
+| `meow-github`     | `PreToolUse` on Bash                   | `irreversible-guard` | A merge, a release or an issue write in an attended session, until a person answers for that call (ADR-2750) |
+| `meow-loop`       | `UserPromptSubmit`                     | `prompt`             | Nothing: it starts or cancels a run from the prompt typed                                                    |
+| `meow-loop`       | `Stop`                                 | `stop`               | The end of a turn, while the run has work left                                                               |
+| `meow-loop`       | `PreToolUse` on Bash, Edit and Write   | `guard`              | A write into a run's own state, or a status the run can't give                                               |
+| `meow-prose-gate` | `PreToolUse` on Bash                   | `check`              | A publish whose text breaks a rule the gate holds                                                            |
+| `meow-checks`     | `PostToolUse` and `PostToolUseFailure` | `revision`           | Nothing: it advances the revision counter                                                                    |
 
 ## Behaviour
 
@@ -97,7 +100,9 @@ rules pass, it asks a model twice through `claude -p`, each call bounded at 45
 seconds, under a hook timeout of 120 seconds, as the writing standard's
 specification states. The
 exception covers that judge call alone, and `meow-author check` names it by
-unit and subcommand, so no other hook inherits it (ADR-2700).
+unit and subcommand, so no other hook inherits it (ADR-2700). The check
+excuses the judge only where the gate's hook declares a `timeout` of at most
+120 seconds, because that timeout is the bound the exception rests on.
 
 No hook writes its input to a file or a log (REQ-2724). `meow-checks revision`
 writes a count to the unit's run state and nothing it read, and `meow-loop`'s
@@ -110,7 +115,9 @@ A unit declares each hook in its `hooks/hooks.json`, and its README carries a
 `## Hooks` section with one sentence per hook naming the subcommand in code
 font and saying what the hook stops (REQ-2726). The hooks stay few: the table
 under Boundary lists every one, and a unit that adds a hook adds its row here
-in the same change.
+in the same change. A hook that asks a judge carries an `if` matcher naming a
+command that publishes text, such as `git commit` or `gh pr create`, and never
+fires on a command that publishes none (REQ-2798).
 
 ### How a rule is layered
 
@@ -184,3 +191,37 @@ declaration and the program's source is Rust.
 | A hook names a network command                  | `meow-author check` fails, unless it is the prose gate's judge              |
 | A hook has no sentence in its README            | `meow-author check` fails, naming the unit and the hook                     |
 | A hook builds a network call at run time        | The check can't see it, and review holds it                                 |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States the rules every hook the harness ships keeps.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+unanswered
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+With each unit that ships a hook, in its `hooks/` directory.

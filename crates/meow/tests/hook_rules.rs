@@ -385,6 +385,46 @@ fn the_exception_excuses_the_judge_and_nothing_else() {
     assert!(text.contains("curl"), "{text}");
 }
 
+/// TSK-5160, REQ-2716, REQ-2727: the prose gate's judge is excused only while
+/// its hook is bounded by a timeout of at most 120 seconds, the bound ADR-2390
+/// sets, so a gate hook with no timeout or a longer one fails naming the bound.
+#[test]
+fn the_judge_is_excused_only_inside_its_bound() {
+    for (timeout, passes) in [
+        (Some("120"), true),
+        (Some("60"), true),
+        (Some("121"), false),
+        (Some("0"), false),
+        (None, false),
+    ] {
+        let dir = unit(
+            "meow-prose-gate",
+            "PreToolUse",
+            &format!("{ROOT}/bin/meow-prose-gate check"),
+            Some(("bin/meow-prose-gate", "#!/bin/sh\nclaude -p judge\n")),
+            "# u\n\n## Hooks\n\n`check` stops a publish.\n",
+        );
+        let hooks = dir.0.join("plugins/meow-prose-gate/hooks/hooks.json");
+        let text = std::fs::read_to_string(&hooks).unwrap();
+        let bound = match timeout {
+            Some(seconds) => format!(",\"timeout\":{seconds}"),
+            None => String::new(),
+        };
+        write(&hooks, &text.replace(",\"timeout\":10", &bound));
+        let done = check(&dir.0, "meow-prose-gate");
+        let text = said(&done);
+        if passes {
+            assert_eq!(done.status.code(), Some(0), "{timeout:?}: {text}");
+        } else {
+            assert_eq!(done.status.code(), Some(1), "{timeout:?}: {text}");
+            assert!(
+                text.contains("`check` waits on the judge `claude -p` without a timeout of at most 120 seconds"),
+                "{timeout:?}: {text}"
+            );
+        }
+    }
+}
+
 /// A `hooks.json` that doesn't parse is a finding, not silence.
 #[test]
 fn a_hooks_file_that_does_not_parse_fails() {

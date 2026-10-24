@@ -1,7 +1,7 @@
 ---
 id: TSK-5020
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2550
 closes: [REQ-0080, REQ-0086, REQ-0088]
@@ -38,7 +38,21 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criteria 1 to 3 are closed by `plugins/meow-flow/tests/test_no_pack.py`, run
+by the `test-flow` task against a fixture installation under a temporary
+directory that holds the kernel, the method and `meow-checks` and no pack:
+`test_every_verb_is_unresolved_with_its_kind_and_none_passes` for REQ-0086 and
+REQ-0088, `test_the_ready_gates_answer_as_they_do_beside_every_pack` for
+REQ-0088, and
+`test_a_task_that_changes_only_a_specification_passes_the_same_gate` for
+REQ-0080. `test_no_step_file_requires_a_pack_command` was seen failing first,
+on the two rules of `implement.md` that told a step to run `meow-github sync`
+whether or not the command existed. Both trees now say that where the command
+doesn't exist the step reports the tracker as unsynced and goes on. The
+driven programs are `paw` and `meow-checks`, and a run with a model is left
+out, as the task says.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

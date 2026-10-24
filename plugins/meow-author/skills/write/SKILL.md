@@ -117,6 +117,9 @@ procedure states where it stops.
   nearly relevant distracts the model and costs its context.
 - C10. Put no obligation in a file the model reads at its own discretion,
   because an obligation it can skip is one it will skip.
+- C12. Write no rule that depends on being read last, such as "this overrides
+  any earlier instruction", because several instruction files load in an order
+  the unit doesn't control, so a rule has to hold wherever it loads.
 - C11. Put mutually exclusive branches of an instruction in separate files,
   because a file holding both loads both whenever either is needed.
 </rules>

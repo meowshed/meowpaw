@@ -4,6 +4,7 @@
 
 - Every unit's `requires.toml` now states its layer, the units it needs and, in a pack, the range of `meow-core` versions it works with, and the check fails a unit missing one.
 - Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions.
+- `irreversible-guard` asks before each push in a session a person attends, and asks again for the next one.
 
 ## 0.5.0
 

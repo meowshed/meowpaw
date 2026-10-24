@@ -39,7 +39,8 @@ def index(ident, names):
 
 
 CLEAN = {
-    "vision.md": "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n",
+    "vision.md": "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n\n" + "".join(
+        f"## {section}\n\nText.\n\n" for section in ("Who it is for", "Quality goals", "What it will not do", "Risks")),
     "README.md": index("index", ["SPC-0001", "EPC-0001", "BUG-0001"]),
     "specs/SPC-0001-a-part.md": record(
         "spec", "SPC-0001", {"status": "live", "states": "[REQ-0001]"},
@@ -1110,6 +1111,20 @@ class Indexes(unittest.TestCase):
         self.assertIn("1 decision in all: 1 approved.", text)
         self.assertEqual(repository.run("check", "index").returncode, 0)
 
+    def test_index_writes_its_table_aligned_as_the_formatter_leaves_it(self):
+        """A written index passes the Markdown format check unchanged: each column is padded to its widest cell
+        and each separator fills its column, so `paw done` never leaves the gate's fmt-check red."""
+        repository = self.repo()
+        repository.write("adrs/ADR-0002-a-much-longer-name.md",
+                         CLEAN["adrs/ADR-0001-a-choice.md"].replace("ADR-0001", "ADR-0002"))
+        repository.run("index", "adr", "--write")
+        text = (repository.root / "adrs" / "README.md").read_text(encoding="utf-8")
+        rows = [line for line in text.splitlines() if line.startswith("|")]
+        self.assertEqual(len(rows), 4, text)
+        self.assertEqual(len({len(row) for row in rows}), 1, "\n".join(rows))
+        for cell in rows[1].strip("|").split("|"):
+            self.assertRegex(cell, r"^ -+ $")
+
     def test_an_index_left_behind_is_reported_and_rewriting_clears_it(self):
         repository = self.repo()
         repository.run("index", "adr", "--write")
@@ -1727,6 +1742,13 @@ class Connections(unittest.TestCase):
         shown = repository.run("show", "ADR-0001").stdout
         self.assertIn("  addresses: REQ-0001 (suspect: revised 2026-02-01, after this record)", shown)
 
+    def test_a_kinds_index_revised_later_is_never_a_suspect_citation(self):
+        """A kind's index is rewritten as its kind grows, so a record citing it is never suspect by its date."""
+        repository = self.repo()
+        repository.edit("research/RES-0001-synthesis.md", "revised: 2026-01-01", "revised: 2026-02-01")
+        self.assertNotIn("suspect", repository.run("show", "RES-0002").stdout)
+        self.assertNotIn("RES-0002 elaborates RES-0001", repository.run("status").stdout)
+
     def test_an_epic_is_suspect_by_its_status_and_not_its_date(self):
         """REQ-0141: an epic changes as its tasks close, so only its withdrawal makes a citation suspect."""
         repository = self.repo()
@@ -2316,6 +2338,26 @@ class RequirementState(unittest.TestCase):
         self.assertIn("Postponed\n  REQ-0002 by ADR-0002, until: A second repository asks for it.\n\n",
                       repository.run("status").stdout)
 
+    def test_brief_status_keeps_what_moves_and_counts_the_rest(self):
+        """`--brief` keeps the drafts, each open decision and the requirement counts, and counts closed decisions,
+        postponements and frozen findings, because a session reads it and the full list costs its context."""
+        repository = self.repo()
+        self.postpone(repository, "- A second repository asks for it.")
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
+        open_status = repository.run("status", "--brief")
+        self.assertEqual(open_status.returncode, 0, open_status.stderr)
+        self.assertIn("RES-0002 research, draft", open_status.stdout)
+        self.assertIn("  ADR-0001 ", open_status.stdout)
+        self.assertIn("Requirements\n  2 in force:", open_status.stdout)
+        self.assertIn("Postponed\n  1 requirement, listed by `paw status`\n", open_status.stdout)
+        self.assertNotIn("until:", open_status.stdout)
+        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.assertIn("closed: EPC-0001", repository.run("status").stdout)
+        closed = repository.run("status", "--brief").stdout
+        self.assertNotIn("closed: EPC-0001", closed)
+        self.assertIn("1 closed, listed by `paw status`", closed)
+        self.assertIn("Only a new record can fix\n", closed)
+
     def test_a_numbered_condition_is_read_to_its_first_item(self):
         """REQ-3622: a numbered list with no blank lines is read to its first item."""
         repository = self.repo()
@@ -2468,6 +2510,8 @@ class SevenSteps(unittest.TestCase):
             for status, code in (("approved", 0), ("superseded", 0), ("withdrawn", 0), ("draft", 1)):
                 text = (repository.root / "bugs/BUG-0001-a-defect.md").read_text(encoding="utf-8")
                 text = re.sub(r"\nstatus: \w+", f"\nstatus: {status}", text, count=1)
+                if status == "withdrawn" and "**Withdrawn by" not in text:
+                    text = re.sub(r"(\n# [^\n]*\n)", r"\1\n**Withdrawn by ADR-0001. No replacement.**\n", text, count=1)
                 repository.write("bugs/BUG-0001-a-defect.md", text)
                 done = repository.run("check", "rules")
                 self.assertEqual(done.returncode, code, f"{step} {status}: {done.stdout}")
@@ -2822,9 +2866,8 @@ class EpicIsOnePullRequest(unittest.TestCase):
         self.assertEqual(found, [])
 
     def test_the_constitution_says_an_epic_is_one_pull_request(self):
-        """Criterion 2, REQ-4400: the layout row and the principle both name the epic as the unit."""
+        """Criterion 2, REQ-4400: the principle names the epic as the unit (TSK-4730 cut the layout table)."""
         text = (self.ROOT / "CLAUDE.md").read_text(encoding="utf-8")
-        self.assertRegex(text, r"project/epics/EPC-NNNN-<slug>\.md`\s*\|[^\n]*one pull request")
         self.assertRegex(text, r"An epic is one pull request")
 
     def test_the_implement_step_works_the_tasks_of_an_epic_on_one_branch(self):
@@ -2832,6 +2875,20 @@ class EpicIsOnePullRequest(unittest.TestCase):
         text = (self.ROOT / "plugins/meow-flow/skills/method/steps/implement.md").read_text(encoding="utf-8")
         self.assertRegex(text, r"tasks of (the|an) epic[^.]{0,200}one branch")
         self.assertRegex(text, r"mark(ed)? (it |each |the task )?in the commit that")
+
+
+class ReadDenial(unittest.TestCase):
+    """TSK-5065, ADR-2650: the implement step relies on no read denial to keep a file from an agent."""
+
+    ROOT = Path(__file__).resolve().parents[3]
+
+    def test_no_step_relies_on_a_read_denial(self):
+        """Criterion 3, REQ-3056: a read denial is a default and never a boundary, in both copies, with its reason."""
+        for where in ("plugins", "packages"):
+            with self.subTest(copy=where):
+                text = " ".join((self.ROOT / where / "meow-flow/skills/method/steps/implement.md")
+                                .read_text(encoding="utf-8").split())
+                self.assertRegex(text, r"I\d+\. [^.]{0,200}read denial[^.]{0,200}because[^.]{0,200}shell search")
 
 
 class WriteCommands(unittest.TestCase):

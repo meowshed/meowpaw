@@ -1,7 +1,7 @@
 ---
 id: EPC-2420
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2520
 ---
@@ -55,11 +55,11 @@ number.
       `python3 tools/check_workflows.py` reporting 0 findings on the three
       workflows, in the `test` verb.
 
-- [ ] T-002 [P] TSK-4630 attest each released archive in `.github/workflows/release.yml`
+- [x] T-002 [P] TSK-4630 attest each released archive in `.github/workflows/release.yml` (done: pull request 1072)
       closes: REQ-2218
       depends: TSK-4620 (not blocking) - both edit `release.yml`, and the second rebases on the first
 
-- [ ] T-003 [P] TSK-4640 report the trunk's protections with `meow-github protections`, in the `github` feature of `crates/meow/`
+- [x] T-003 [P] TSK-4640 report the trunk's protections with `meow-github protections`, in the `github` feature of `crates/meow/` (done: pull request 1072)
       closes: REQ-2194
 
 ## Coverage

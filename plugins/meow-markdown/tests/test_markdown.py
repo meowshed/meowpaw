@@ -125,6 +125,16 @@ class Bind(Fixture):
         """TSK-3100 criterion 2, REQ-2352: a `.prettierrc` binds format to prettier."""
         self.assertIn("format = \"prettier --check '**/*.md'\"", self.bind({**TWO, ".prettierrc": "{}\n"}))
 
+    def test_tsk_5120_two_configured_formatters_bind_the_first_and_name_the_other(self):
+        """TSK-5120 criterion 1, REQ-2420: prettier binds format, and the `.mdformat.toml` also configured is named."""
+        lines = self.bind({**TWO, ".prettierrc": "{}\n", ".mdformat.toml": "wrap = 80\n"})
+        line = "format = \"prettier --check '**/*.md'\""
+        self.assertIn(line, lines)
+        comment = self.following(lines, line)
+        self.assertTrue(comment.startswith("#"), lines)
+        self.assertIn(".mdformat.toml", comment)
+        self.assertNotIn("format = \"mdformat --check .\"", lines)
+
     def test_criterion_2_check_is_unresolved_with_its_reason(self):
         """TSK-3100 criterion 2, REQ-2352: Markdown has no types, so check is unresolved."""
         self.assertIn("# check: unresolved, Markdown has no types", self.bind(TWO))
@@ -262,6 +272,15 @@ class RenderTarget(Check):
                 done = self.check({**TWO, ".meowpaw/profile.toml": verbs(None, f'"{target}"')})
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                 self.assertNotIn(NO_TARGET, done.stdout + done.stderr)
+
+    def test_tsk_5125_a_clean_check_names_what_it_checked(self):
+        """TSK-5125 criterion 4, REQ-2432: a clean `check` names each group of settings it checked."""
+        done = self.check(TWO)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        clean = [line for line in done.stdout.splitlines() if line.startswith("no findings")]
+        self.assertEqual(len(clean), 1, done.stdout)
+        for group in ("render target", "markdownlint settings", "link check's settings"):
+            self.assertIn(group, clean[0])
 
 
 class MarkdownlintSettings(Check):
@@ -490,9 +509,14 @@ def report(errors=(), timeouts=(), excluded=(), source="README.md"):
     return {**counts, **maps, "duration": {"secs": 0, "nanos": 1}, "detailed_stats": False}
 
 
+def without_tool(path, tool):
+    """`PATH` with every directory holding `tool` left out, so only a stand-in answers."""
+    return os.pathsep.join(d for d in path.split(os.pathsep) if d and not (Path(d) / tool).exists())
+
+
 def without_lychee(path):
     """`PATH` with every directory holding a `lychee` left out, so only a stand-in answers."""
-    return os.pathsep.join(d for d in path.split(os.pathsep) if d and not (Path(d) / "lychee").exists())
+    return without_tool(path, "lychee")
 
 
 class Links(Fixture):
@@ -566,6 +590,24 @@ class Links(Fixture):
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                 args = (repository.root.parent / "bin" / "lychee.args").read_text(encoding="utf-8").splitlines()
                 self.assertEqual(args, ["--format", "json", "--no-progress", "--", *expected])
+
+    def test_tsk_5130_a_file_lychee_leaves_in_the_tree_is_named(self):
+        """TSK-5130 criterion 3, REQ-2442: a file lychee leaves in the working tree is named, and the clean run still exits 0."""
+        repository, done = self.links(report(), 0)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("left in the working tree", done.stdout)
+        script = repository.root.parent / "bin" / "lychee"
+        script.write_text(script.read_text(encoding="utf-8").replace("cat ", "touch stray.cache\ncat ", 1),
+                          encoding="utf-8")
+        done = repository.run("links")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("left in the working tree: stray.cache", done.stdout)
+
+    def test_tsk_5135_links_names_the_format_its_evidence_is_read_from(self):
+        """TSK-5135 criterion 1, REQ-2416: `links` says its result is read from lychee's JSON report."""
+        _, done = self.links(report(), 0)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("evidence: lychee's JSON report, read from lychee's standard output", done.stdout)
 
     def test_criterion_2_a_404_and_a_missing_file_are_findings(self):
         """TSK-3120 criterion 2, REQ-2438: a 404 and a missing relative file print as `finding`, exiting 1."""
@@ -774,6 +816,134 @@ class Skill(Prompt):
         for tool, version in (("lychee", "0.24.2"), ("markdownlint-cli2", "0.23.2"), ("markdownlint-cli", "0.49.1")):
             with self.subTest(tool=tool):
                 self.assertSaid("SKILL.md", rf"{re.escape(tool)}`? {re.escape(version)}")
+
+
+GOOD_BLOCK = "# A diagram\n\nThe client calls the server.\n\n```mermaid\nflowchart LR\n  client --> server\n```\n"
+BAD_BLOCK = "# A diagram\n\nThe client calls the server.\n\n```mermaid\nflowchart LR\n  BROKEN --> \n```\n"
+PARSE_ERROR = "Parse error on line 2: expecting a node"
+
+
+class Diagrams(Fixture):
+    """TSK-4985, TSK-4990 and ADR-2620: `diagrams` parses each `mermaid` block and refuses an embedded image.
+
+    A stand-in `mmdc` fails on a block holding `BROKEN`, printing a parser's words on standard error, and
+    writes the file `-o` names, as the real one does."""
+
+    def diagrams(self, files, *inputs, mmdc=True):
+        repository = self.repo({**TWO, **files})
+        path = without_tool(repository.env.get("PATH", ""), "mmdc")
+        if mmdc:
+            stand_in = repository.root.parent / "bin"
+            stand_in.mkdir()
+            script = stand_in / "mmdc"
+            script.write_text(
+                "#!/bin/sh\nwhile [ $# -gt 0 ]; do case $1 in -i) i=$2;; -o) o=$2;; esac; shift; done\n"
+                f"if grep -q BROKEN \"$i\"; then printf '%s\\n' '{PARSE_ERROR}' >&2; exit 1; fi\n"
+                "printf '<svg/>' > \"$o\"\n", encoding="utf-8")
+            script.chmod(0o755)
+            path = f"{stand_in}{os.pathsep}{path}"
+        repository.env["PATH"] = path
+        return repository, repository.run("diagrams", *inputs)
+
+    def test_tsk_4985_criterion_1_a_block_that_does_not_parse_is_a_finding(self):
+        """TSK-4985 criterion 1, REQ-2304: a `mermaid` block that fails to parse prints the file, line and words, exit 1."""
+        _, done = self.diagrams({"docs/flow.md": BAD_BLOCK})
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        line = next((l for l in done.stdout.splitlines() if "docs/flow.md" in l), "")
+        self.assertIn("docs/flow.md:5", line, done.stdout)
+        self.assertIn(PARSE_ERROR, line, done.stdout)
+
+    def test_tsk_4985_criterion_2_a_block_that_parses_exits_0_and_leaves_the_tree_alone(self):
+        """TSK-4985 criterion 2, REQ-2304: a parsing block exits 0, and the tree is as it was after."""
+        repository = self.repo({**TWO, "docs/flow.md": GOOD_BLOCK})
+        stand_in = repository.root.parent / "bin"
+        stand_in.mkdir()
+        script = stand_in / "mmdc"
+        script.write_text("#!/bin/sh\nwhile [ $# -gt 0 ]; do case $1 in -o) o=$2;; esac; shift; done\n"
+                          "printf '<svg/>' > \"$o\"\n", encoding="utf-8")
+        script.chmod(0o755)
+        repository.env["PATH"] = f"{stand_in}{os.pathsep}{without_tool(repository.env.get('PATH', ''), 'mmdc')}"
+        before = repository.tree()
+        done = repository.run("diagrams")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(repository.tree(), before)
+
+    def test_tsk_4985_criterion_1_inputs_limit_the_files_parsed(self):
+        """TSK-4985 criterion 1, REQ-2304: given inputs, only those files are parsed."""
+        _, done = self.diagrams({"docs/flow.md": BAD_BLOCK, "docs/ok.md": GOOD_BLOCK}, "docs/ok.md")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
+    def test_tsk_4985_criterion_3_a_mermaid_block_binds_check_to_diagrams(self):
+        """TSK-4985 criterion 3, REQ-2292: a `mermaid` block binds `check = "meow-markdown diagrams"`."""
+        lines = self.bind({**TWO, "docs/flow.md": GOOD_BLOCK})
+        self.assertIn('check = "meow-markdown diagrams"', lines)
+        self.assertNotIn("# check: unresolved, Markdown has no types", lines)
+
+    def test_tsk_4985_criterion_3_no_mermaid_block_keeps_the_unresolved_line(self):
+        """TSK-4985 criterion 3, REQ-2292: with no `mermaid` block `bind` prints the line it printed before."""
+        self.assertIn("# check: unresolved, Markdown has no types", self.bind(TWO))
+
+    def test_tsk_4985_criterion_4_no_mmdc_is_tool_absent(self):
+        """TSK-4985 criterion 4, REQ-2304: no `mmdc` on `PATH` prints `tool absent: mmdc`, exit 3."""
+        _, done = self.diagrams({"docs/flow.md": GOOD_BLOCK}, mmdc=False)
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertIn("tool absent: mmdc", done.stdout + done.stderr)
+
+    def test_tsk_4990_criterion_1_an_image_in_a_record_document_is_a_finding(self):
+        """TSK-4990 criterion 1, REQ-2290: an image link to `flow.png` under the record's root exits 1."""
+        _, done = self.diagrams({"project/specs/SPC-0001-x.md": "# X\n\nSee:\n\n![flow](flow.png)\n"}, mmdc=False)
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        line = next((l for l in done.stdout.splitlines() if "project/specs/SPC-0001-x.md" in l), "")
+        self.assertIn(":5", line, done.stdout)
+        self.assertIn("flow.png", line, done.stdout)
+
+    def test_tsk_4990_criterion_1_an_svg_image_in_a_record_document_is_a_finding(self):
+        """TSK-4990 criterion 1, REQ-2290: an `.svg` image under the record's root is a finding too."""
+        _, done = self.diagrams({"project/x.md": "# X\n\n![flow](img/flow.SVG?raw=1)\n"}, mmdc=False)
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+
+    def test_tsk_4990_criterion_1_the_same_link_outside_the_record_prints_nothing(self):
+        """TSK-4990 criterion 1, REQ-2290: the link in a document outside the record's root is no finding."""
+        _, done = self.diagrams({"docs/x.md": "# X\n\n![flow](flow.png)\n"}, mmdc=False)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertNotIn("flow.png", done.stdout)
+
+    def test_tsk_4990_criterion_1_the_declared_record_root_decides(self):
+        """TSK-4990 criterion 1, REQ-2290: `[record] root` names the directory the image rule reads."""
+        profile = PROFILE + '\n[record]\nroot = "records"\n'
+        link = "# X\n\n![flow](flow.png)\n"
+        _, inside = self.diagrams({".meowpaw/profile.toml": profile, "records/x.md": link}, mmdc=False)
+        _, outside = self.diagrams({".meowpaw/profile.toml": profile, "project/x.md": link}, mmdc=False)
+        self.assertEqual((inside.returncode, outside.returncode), (1, 0), inside.stdout + outside.stdout)
+
+    def test_tsk_4990_criterion_2_a_notation_with_a_build_step_is_refused_for_the_record(self):
+        """TSK-4990 criterion 2, REQ-2294: `[docs] diagrams = "plantuml"` makes `check` exit 1 with the finding."""
+        profile = PROFILE + '\n[docs]\ndiagrams = "plantuml"\n'
+        done = self.repo({**TWO, ".meowpaw/profile.toml": profile}).run("check")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("[docs] diagrams = plantuml needs a build step; the record can't use it", done.stdout)
+
+    def test_tsk_4990_criterion_3_mermaid_or_no_notation_is_no_finding_and_no_unknown_key(self):
+        """TSK-4990 criterion 3, REQ-2296: `mermaid` and no key report nothing, and `docs.diagrams` is a known key."""
+        for profile in (PROFILE + '\n[docs]\ndiagrams = "mermaid"\n', PROFILE):
+            with self.subTest(profile=profile):
+                done = self.repo({**TWO, ".meowpaw/profile.toml": profile}).run("check")
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                self.assertNotIn("unknown key", done.stdout + done.stderr)
+                self.assertNotIn("needs a build step", done.stdout)
+
+    def test_tsk_4995_criterion_1_reviewing_carries_both_diagram_rules_with_reasons(self):
+        """TSK-4995 criterion 1, REQ-2300, REQ-2302: `reviewing.md` states both rules, each with its reason."""
+        text = (UNIT / "skills" / "markdown" / "reviewing.md").read_text(encoding="utf-8")
+        rules = {n: re.sub(r"\s+", " ", body) for n, body in re.findall(r"- (R\d+)\. (.*?)(?=\n- R\d+\.|\n</rules>)", text, re.S)}
+        prose = [r for r in rules.values() if re.search(r"diagram", r) and re.search(r"prose|text", r)
+                 and re.search(r"everything|asserts|states", r)]
+        content = [r for r in rules.values() if re.search(r"diagram", r) and re.search(r"requirement", r)
+                   and re.search(r"decision", r)]
+        for name, found in (("prose rule", prose), ("content rule", content)):
+            with self.subTest(rule=name):
+                self.assertEqual(len(found), 1, rules)
+                self.assertRegex(found[0], r"because")
 
 
 if __name__ == "__main__":

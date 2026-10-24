@@ -11,6 +11,8 @@ elaborates: RES-0340, RES-0341
 
 # REQ-4120
 
+**Withdrawn by ADR-2970 on 2026-10-11. No replacement.**
+
 Each Pi package carries a `budget.toml` stating the permanent character cost
 its skills and commands add to the system prompt, as the Claude Code plugins
 do. Pi does not enforce this budget; the file documents the cost for the

@@ -3,6 +3,7 @@ reader: someone choosing or running meow-prose
 answers: what meow-prose does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-prose@0.8.0]
+description: "Holds everything Claude Code writes for you to one writing standard: the answer first, a reason for every rule, one term for one thing, and plain English for a reader who learned it as a second language."
 ---
 
 # meow-prose
@@ -78,6 +79,17 @@ the shipped standard: the replacement is total, because two standards that
 disagree leave an author no way to tell which one applies. `meow-prose` only
 reads the directory and never writes to it.
 
+## Replace the reviewer
+
+<!-- host-specific: claude -->
+
+To use a reviewer of your own, put its definition in `.claude/agents/prose.md`
+in your repository. Claude Code loads it under the bare name `prose`, beside
+the unit's `meow-prose:prose`, and keeps both: a dispatch that names
+`meow-prose:prose` still gets the unit's reviewer, and only one that names
+`prose` gets yours. So your definition doesn't win over the unit's name, and
+you ask for `prose` by name when you want yours.
+
 ## Tools
 
 The `prose` agent holds three tools, each for one step of its procedure:
@@ -101,6 +113,8 @@ text adds the patterns for its language: about 3,400 tokens for English and
 4,100 for Russian.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-prose/requires.toml`. It relies on these platform behaviours,

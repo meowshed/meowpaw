@@ -40,6 +40,18 @@ with. Claude Code then runs that command when it tests, and reports every
 check you didn't declare as unresolved. The [tutorial](tutorial.md) walks
 through the same steps in an empty repository.
 
+A provisioning script runs the same two commands, which ask nothing and need no
+terminal. Run the first once for the marketplace, then the second once for each
+unit:
+
+```bash
+claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
+claude plugin install <unit>@meowpaw
+```
+
+Add `--json` to either command for one machine-readable result line, and run
+`claude plugin list --json` to see each unit as enabled.
+
 ## Pages
 
 Every page, who it is for and what it answers:
@@ -52,17 +64,26 @@ Every page, who it is for and what it answers:
 | [meow-checks](../plugins/meow-checks/README.md)         | someone choosing or running meow-checks                                                               | what meow-checks does, what it adds to a session and how to run it                              | reference       |
 | [meow-code](../plugins/meow-code/README.md)             | someone choosing or running meow-code                                                                 | what meow-code does, what it adds to a session and how to use it                                | reference       |
 | [meow-core](../plugins/meow-core/README.md)             | someone choosing or running meow-core                                                                 | what meow-core does, what it adds to a session and how to run it                                | reference       |
+| [meow-csharp](../plugins/meow-csharp/README.md)         | someone choosing or running meow-csharp                                                               | what meow-csharp does, what it adds to a session and how to run it                              | reference       |
 | [meow-flow](../plugins/meow-flow/README.md)             | someone choosing or running meow-flow                                                                 | what meow-flow does, what it adds to a session and how to run it                                | reference       |
 | [meow-git](../plugins/meow-git/README.md)               | someone choosing or running meow-git                                                                  | what meow-git does, what it adds to a session and how to run it                                 | reference       |
 | [meow-github](../plugins/meow-github/README.md)         | someone choosing or running meow-github                                                               | what meow-github does, what it adds to a session and how to run it                              | reference       |
+| [meow-go](../plugins/meow-go/README.md)                 | someone choosing or running meow-go                                                                   | what meow-go does, what it adds to a session and how to run it                                  | reference       |
+| [meow-godot](../plugins/meow-godot/README.md)           | someone choosing or running meow-godot                                                                | what meow-godot does, what it adds to a session and how to run it                               | reference       |
 | [meow-gotask](../plugins/meow-gotask/README.md)         | someone choosing or running meow-gotask                                                               | what meow-gotask does, what it adds to a session and how to run it                              | reference       |
 | [meow-licence](../plugins/meow-licence/README.md)       | someone choosing or running meow-licence                                                              | what meow-licence does, what it adds to a session and how to run it                             | reference       |
 | [meow-loop](../plugins/meow-loop/README.md)             | someone choosing or running meow-loop                                                                 | how a person starts a run in the session, what bounds a run and what a run keeps                | reference       |
+| [meow-lua](../plugins/meow-lua/README.md)               | someone choosing or running meow-lua                                                                  | what meow-lua does, what it adds to a session and how to run it                                 | reference       |
 | [meow-markdown](../plugins/meow-markdown/README.md)     | someone choosing or running meow-markdown                                                             | what meow-markdown does, what it adds to a session and how to run it                            | reference       |
 | [meow-mise](../plugins/meow-mise/README.md)             | someone choosing or running meow-mise                                                                 | what meow-mise does, what it adds to a session and how to run it                                | reference       |
 | [meow-prose](../plugins/meow-prose/README.md)           | someone choosing or running meow-prose                                                                | what meow-prose does, what it adds to a session and how to run it                               | reference       |
 | [meow-prose-gate](../plugins/meow-prose-gate/README.md) | someone choosing or running meow-prose-gate                                                           | what meow-prose-gate does, what it adds to a session and how to run it                          | reference       |
+| [meow-python](../plugins/meow-python/README.md)         | someone choosing or running meow-python                                                               | what meow-python does, what it adds to a session and how to run it                              | reference       |
+| [meow-rust](../plugins/meow-rust/README.md)             | someone choosing or running meow-rust                                                                 | what meow-rust does, what it adds to a session and how to run it                                | reference       |
+| [meow-scheme](../plugins/meow-scheme/README.md)         | someone choosing or running meow-scheme                                                               | what meow-scheme does, what it adds to a session and how to run it                              | reference       |
 | [meow-scm](../plugins/meow-scm/README.md)               | someone choosing or running meow-scm                                                                  | what meow-scm does, what it adds to a session and how to run it                                 | reference       |
+| [meow-starlark](../plugins/meow-starlark/README.md)     | someone choosing or running meow-starlark                                                             | what meow-starlark does, what it adds to a session and how to run it                            | reference       |
+| [meow-typescript](../plugins/meow-typescript/README.md) | someone choosing or running meow-typescript                                                           | what meow-typescript does, what it adds to a session and how to run it                          | reference       |
 | [meow-unattended](../plugins/meow-unattended/README.md) | someone choosing or running meow-unattended                                                           | what posture meow-unattended prints, what its deny rules stop and what they don't               | reference       |
 | [interface](interface.md)                               | someone changing the harness or writing against it                                                    | what the harness's public interface is, and what a change to it breaks                          | reference       |
 | [troubleshooting](troubleshooting.md)                   | someone whose meowpaw unit just refused, blocked or reported something they didn't expect             | what each message a unit prints means, why it appeared and what fixes it                        | troubleshooting |
@@ -85,14 +106,55 @@ and x86_64, so it needs nothing else installed. A later release reaches you
 when you run `claude plugin marketplace update meowpaw`, or by itself once you
 turn on auto-update for `meowpaw` in the **Marketplaces** tab of `/plugin`.
 
+Each archive a release publishes carries a build provenance attestation, which
+names the workflow run and the commit that built it. To check an archive you
+downloaded without trusting the publisher, run this with the GitHub CLI, `gh`:
+
+```bash
+gh attestation verify meow-core-0.9.0.zip --repo meowshed/meowpaw
+```
+
+Replace `meow-core-0.9.0.zip` with the archive's file name. The command exits 0
+and prints the run that built the archive when it verifies, and fails
+otherwise. Releases published before the attestation existed carry none, so
+the command fails for them.
+
+## Supported set
+
+Each language and tool the harness supports, with the unit that serves it and
+that unit's state. A `shipped` row is a claim you can test by installing the
+unit on a repository of that kind. A `planned` row names the pack that will
+serve it, and a `postponed` row one nobody is building yet.
+
+| Language or tool               | Pack                 | State     |
+| ------------------------------ | -------------------- | --------- |
+| Rust                           | `meow-rust`          | shipped   |
+| TypeScript and JavaScript      | `meow-typescript`    | shipped   |
+| Python                         | `meow-python`        | shipped   |
+| Go                             | `meow-go`            | shipped   |
+| C#                             | `meow-csharp`        | shipped   |
+| Lua                            | `meow-lua`           | shipped   |
+| Neovim plugins                 | `meow-lua`           | shipped   |
+| Godot and GDScript             | `meow-godot`         | shipped   |
+| Starlark                       | `meow-starlark`      | shipped   |
+| Scheme                         | `meow-scheme`        | shipped   |
+| Markdown                       | `meow-markdown`      | shipped   |
+| mise                           | `meow-mise`          | shipped   |
+| Task                           | `meow-gotask`        | shipped   |
+| git                            | `meow-git`           | shipped   |
+| Version control other than git | a pack for each tool | postponed |
+| GitHub                         | `meow-github`        | shipped   |
+| GitHub Issues                  | `meow-github`        | shipped   |
+| worktrunk                      | `meow-scm`           | shipped   |
+
 ## Planned
 
 These parts are planned, and no unit ships them yet, so no page describes
 them:
 
-- packs that resolve the five stages `meow-checks` runs, `format`, `lint`,
-  `check`, `test` and `build`, for a language or a task runner without
-  your declaring each command;
+- the language packs the supported set lists as planned, which resolve the
+  five stages `meow-checks` runs, `format`, `lint`, `check`, `test` and
+  `build`, without your declaring each command;
 - packs for version control tools other than git, and for trackers other than
   GitHub;
 - runs that carry the method forward unattended, within the gates a

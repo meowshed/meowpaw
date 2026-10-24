@@ -1,7 +1,7 @@
 ---
 id: EPC-2620
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2730
 ---
@@ -24,7 +24,7 @@ Realises ADR-2730 in TSK-5175.
 
 ## Tasks
 
-- [ ] T-001 TSK-5175 carry the delegated brief into its pull request
+- [x] T-001 TSK-5175 carry the delegated brief into its pull request (done: pull request 1072)
       closes: REQ-1764
 
 ## Coverage

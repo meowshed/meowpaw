@@ -3,6 +3,7 @@ reader: someone choosing or running meow-licence
 answers: what meow-licence does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-licence@0.6.0]
+description: "Adds the licence header a repository declares to each file Claude Code creates, never rewrites one, and checks that every tracked file is covered by the licensing declared in REUSE.toml, in .meowpaw/profile.toml or in its files' headers."
 ---
 
 # meow-licence
@@ -60,6 +61,8 @@ carries, and where you declare nothing, writes nothing and says so.
 
 ## Run the check
 
+<!-- host-specific: claude -->
+
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs the check in your repository as:
 
@@ -94,6 +97,8 @@ and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-licence/requires.toml`, and git.

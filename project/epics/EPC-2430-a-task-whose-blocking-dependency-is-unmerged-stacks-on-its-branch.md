@@ -1,7 +1,7 @@
 ---
 id: EPC-2430
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2550
 ---
@@ -45,18 +45,21 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-4660 open a stack in the implement step: when to stack, the order, the branch name and the cross-repository refusal, in `plugins/meow-flow/skills/method/steps/implement.md`
-      closes: REQ-1810, REQ-1812, REQ-1814, REQ-1832, REQ-1834, REQ-1835, REQ-1836, REQ-1838, REQ-1840, REQ-1844
+- [~] T-001 [P] TSK-4660 open a stack in the implement step: when to stack, the order, the branch name and the cross-repository refusal, in `plugins/meow-flow/skills/method/steps/implement.md`
+  closes: REQ-1810, REQ-1812, REQ-1814, REQ-1832, REQ-1834, REQ-1835, REQ-1836, REQ-1838, REQ-1840, REQ-1844
+  dropped: ADR-3000 postpones the stacking requirements, because ADR-2860 makes an epic one pull request
 
-- [ ] T-002 TSK-4670 read a changed base back, report its checks as not run and review one layer's diff, in the implement and review step files
-      closes: REQ-1818, REQ-1820, REQ-1822, REQ-1830, REQ-1842
-      depends: TSK-4660 (blocking) - it extends the stacking rules TSK-4660 writes into the same file
+- [~] T-002 TSK-4670 read a changed base back, report its checks as not run and review one layer's diff, in the implement and review step files
+  closes: REQ-1818, REQ-1820, REQ-1822, REQ-1830, REQ-1842
+  dropped: ADR-3000 postpones the stacking requirements, because ADR-2860 makes an epic one pull request
+  depends: TSK-4660 (blocking) - it extends the stacking rules TSK-4660 writes into the same file
 
-- [ ] T-003 [P] TSK-4680 rebuild a stack with `meow-git restack`, in the `git` feature of `crates/meow/`
+- [x] T-003 [P] TSK-4680 rebuild a stack with `meow-git restack`, in the `git` feature of `crates/meow/` (done: pull request 1072)
       closes: REQ-1824, REQ-1826, REQ-1828
 
-- [ ] T-004 [P] TSK-4690 print each stack and the layer that merges next in `paw status`, in the `record` feature of `crates/meow/`
-      closes: REQ-1816, REQ-1830
+- [~] T-004 [P] TSK-4690 print each stack and the layer that merges next in `paw status`, in the `record` feature of `crates/meow/`
+  closes: REQ-1816, REQ-1830
+  dropped: ADR-3000 postpones the stacking requirements, because ADR-2860 makes an epic one pull request
 
 ## Coverage
 

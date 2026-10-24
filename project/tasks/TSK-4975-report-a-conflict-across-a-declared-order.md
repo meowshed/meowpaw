@@ -1,7 +1,7 @@
 ---
 id: TSK-4975
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2535
 closes: [REQ-0667]
@@ -37,7 +37,21 @@ existing check or a named one, and document it on
 
 ## Evidence
 
-Not yet.
+Every criterion is closed by a test in `crates/meow/tests/record_kinds.rs`,
+seen failing before the change.
+
+1. `a_conflict_across_a_declared_order_is_reported_and_nothing_is_changed`
+   (REQ-0667), which also reads both files back unchanged, and
+   `a_pair_that_does_not_cite_each_other_is_not_compared`.
+2. `a_pair_that_agrees_is_not_a_conflict`.
+3. `an_outranks_entry_naming_no_kind_is_reported`.
+
+The comparison leaves out the fields every artifact carries and the
+relations, because `status` and `revised` differ between any two artifacts
+and describe the artifact and not what it claims; that is a choice made
+here, and the README states it. The report sits in the `relations` check.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

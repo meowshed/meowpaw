@@ -1,7 +1,7 @@
 ---
 id: TSK-4600
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2500
 closes: [REQ-1486, REQ-1490, REQ-1492]
@@ -67,9 +67,17 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by
+`test_every_unit_installs_with_no_input_and_is_listed_enabled` and the two
+`Listing` tests in `tools/test_unattended_install.py` (REQ-1486), criterion 2
+by `test_the_install_test_is_skipped_and_never_passed_where_claude_is_absent`,
+and criterion 4 by both tests in `tools/test_agent_neutral.py` (REQ-1490,
+REQ-1492). The tests landed first, failing, in their own commit. The `test`
+stage runs both, and every stage passed in pull request #1067.
 
-Criterion 3 rests on judgement, for the reason it gives.
+Criterion 3 rests on judgement, for the reason it gives. `CLAUDE.md` lists the
+check scripts that stay in `tools/`, and these two are tests, so that list
+stays as it is.
 
 ## Left alone
 

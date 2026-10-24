@@ -1,7 +1,7 @@
 ---
 id: ADR-2520
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses: [REQ-2194, REQ-2196, REQ-2198, REQ-2200, REQ-2218]
 supersedes: []

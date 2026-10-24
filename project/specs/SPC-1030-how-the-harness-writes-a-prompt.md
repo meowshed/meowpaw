@@ -2,7 +2,7 @@
 id: SPC-1030
 artifact: spec
 status: live
-revised: 2026-10-11
+revised: 2026-10-24
 states:
   [
     REQ-0077,
@@ -74,7 +74,7 @@ states:
     REQ-0826,
     REQ-0828,
     REQ-2980,
-    REQ-2986,
+    REQ-3273,
     REQ-4900,
     REQ-4902,
   ]
@@ -428,9 +428,11 @@ independent tracks at once (REQ-0826). It never delegates because a task is
 large, because a large task split across agents shares a context nobody
 isolated (REQ-0828). An agent dispatched to implement in parallel declares
 `isolation: worktree` in its dispatch and arranges no working directory for
-itself (REQ-2980). A repository replaces any agent a unit ships by defining
-one of the same name in its own `.claude/agents/`, which the platform loads in
-place of the unit's, so a shipped definition is a starting point (REQ-2986).
+itself (REQ-2980). A repository defines an agent of its own in its own
+`.claude/agents/`, and the platform keeps it beside the unit's agent of the
+same name: a dispatch of `<unit>:<agent>` reaches the unit's definition and a
+dispatch of the bare name reaches the repository's, so a unit's page says
+which name reaches which (REQ-3273).
 The specification of the method's chain states the brief a delegated agent
 gets and who reviews its work.
 
@@ -511,3 +513,37 @@ One check audits every unit, because the format is uniform across them
 | A prompt writes a path into the unit without the directory variable               | The check fails, naming the file and the line, because the path breaks off the install             |
 | A procedure has no step naming where it stops                                     | The check fails, naming the file                                                                   |
 | A background agent's permission prompt in an interactive session                  | It waits in the main session for the person, with no timeout the harness sets                      |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States how a unit of the harness writes a prompt: its form, its size, when it loads and the check that holds them.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+In each unit's prompts: `skills/`, `agents/`, `output-styles/` and `hooks/` under `plugins/<unit>/`.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+unanswered

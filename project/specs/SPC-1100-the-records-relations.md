@@ -202,7 +202,7 @@ draft, naming the chain (REQ-0139). Where the artifact is itself a draft or
 living, it also reports a withdrawn, superseded or rejected provider
 (ADR-1470). Three relations name what a record moved away on or moved
 against, and the walk follows none of them: `supersedes` and `postpones`,
-because the record no longer rests on what they name, and a defect's
+because the record doesn't rest on what they name, and a defect's
 `violates`, because the violation is the accusation that prompted what it
 moved against, and not a dependency of the specification that reaches the
 defect through its descendants (ADR-2960).
@@ -263,3 +263,37 @@ run, which is where a deferral is looked at again (REQ-3622) (ADR-2300).
 | `new` for a kind it doesn't know                                 | Usage naming the kinds, exit 2                 |
 | `find` with no word                                              | Usage, exit 2                                  |
 | The record's root doesn't exist                                  | `show` says so and exits 1, as `check` does    |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States how artifacts name one another and how an identifier resolves to its artifact and to what cites it.
+
+### What it depends on
+
+`meow-flow` lists `meow-core`, `meow-prose` in its `requires.toml`.
+
+### What depends on it
+
+`meow-loop` list `meow-flow` in their `requires.toml`.
+
+### Where its data lives
+
+`relations` in `lib/layout.toml`, and the front matter of the record.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-flow` installs as a plugin from the marketplace, `plugins/meow-flow/`, and ships as the Pi package `packages/meow-flow/`.

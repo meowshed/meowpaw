@@ -170,3 +170,37 @@ start is refused with the same line:
 
 `plan` reports every refusal it finds before it exits, so one run names every
 key a repository has to fix.
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States what an unattended run may do and how it decides a gate, lands its work and releases it.
+
+### What it depends on
+
+`meow-unattended` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-unattended` in its `requires.toml`.
+
+### Where its data lives
+
+The `[unattended]` table of `.meowpaw/profile.toml`.
+
+### What crosses a trust boundary
+
+A run has the session's own permissions and nothing narrower: filesystem and network isolation, a host allowlist and removing credentials are postponed.
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-unattended` installs as a plugin from the marketplace, `plugins/meow-unattended/`, and ships as the Pi package `packages/meow-unattended/`.

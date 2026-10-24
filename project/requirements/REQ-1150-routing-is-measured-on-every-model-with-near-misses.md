@@ -11,8 +11,9 @@ verification: evaluation
 
 # REQ-1150
 
-How often a unit that has to be in context before the model acts is loaded
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+How often a unit that has to be in context before the model acts is loaded
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

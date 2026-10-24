@@ -11,5 +11,7 @@ verification: static
 
 # REQ-1676
 
+**Withdrawn by ADR-2970 on 2026-10-11. Replaced by REQ-5000.**
+
 The authoring capability MUST enforce the context budgets and the writing
 standard on what it produces.

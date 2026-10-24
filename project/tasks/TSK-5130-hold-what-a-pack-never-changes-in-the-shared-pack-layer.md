@@ -1,7 +1,7 @@
 ---
 id: TSK-5130
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2565
 closes: [REQ-2430, REQ-2440, REQ-2442]
@@ -49,7 +49,28 @@ reports.
 
 ## Evidence
 
-Not yet.
+Each criterion closes with a crate test in `crates/meow/src/pack.rs`, each
+seen failing against stubbed bodies before the rule was written:
+
+1. `tsk_5130_criterion_1_a_fix_marked_unsafe_is_reported_and_not_applied`
+   (REQ-2430), through `apply` in `Mode::Fix`.
+2. `tsk_5130_criterion_2_a_suggestion_is_reported_and_the_file_unchanged`
+   (REQ-2440), through `apply` in `Mode::Check`.
+3. `tsk_5130_criterion_3_output_goes_outside_and_the_tree_stays_clean` and
+   `tsk_5130_criterion_3_a_file_left_in_the_tree_is_named` (REQ-2442),
+   through `run_in`, with a fixture tool writing into the working directory
+   by default. `tsk_5130_an_absent_tool_is_reported_as_absent` holds
+   SPC-1190's `tool absent` line for a run.
+
+`meow-markdown links` runs lychee through `run`, and
+`test_tsk_5130_a_file_lychee_leaves_in_the_tree_is_named` in
+`plugins/meow-markdown/tests/test_markdown.py` holds the line naming a file
+the run left. Markdown proposes no fixes, so `apply` has no caller in
+`meow-markdown`; lychee writes `.lycheecache` at the root with no flag to
+move it, so `links` names it where it shows in `git status` and `check`
+keeps reporting an unignored cache, as SPC-1195 states.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 
