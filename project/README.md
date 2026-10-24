@@ -451,6 +451,11 @@ realises ADR-2960 in one task, TSK-5620: the checker's provider walk follows
 no relation a record moved away on, and the specification names the three
 exclusions.
 
+[EPC-2850](epics/EPC-2850-ten-requirements-without-a-task-get-one-epic.md)
+realises ADR-3040 in five tasks, TSK-5680 to TSK-5684: ten requirements that no task
+named get one, two for behaviour that already holds and three that build a
+faster `paw`, generated launchers and a binary resolved once per machine.
+
 [EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
 tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either
 from its research or from its approved records, and the readiness check reads a
