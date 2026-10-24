@@ -1,7 +1,7 @@
 ---
 id: TSK-4995
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2540
 closes: [REQ-2300, REQ-2302]
@@ -35,7 +35,11 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `test_tsk_4995_criterion_1_reviewing_carries_both_diagram_rules_with_reasons` in `plugins/meow-markdown/tests/test_markdown.py` (REQ-2300, REQ-2302), seen failing first. Criterion 2 is closed by the `prompts` and `budget` tasks of the `lint` verb.
+
+Whether a reviewer applies the two rules to a real document rests on judgement, because no fixture reads what a diagram claims.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

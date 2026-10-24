@@ -202,3 +202,37 @@ Each is printed as SPC-1190 states, by every command it applies to:
 | Two or more top manifests                   | each stage `# <stage>: unresolved, several Cargo manifests outside one workspace: <files>` | 0    |
 | A manifest that doesn't parse               | `unresolved: <file> doesn't parse as TOML: <message>`                                      | 3    |
 | `toolchain`: as its table states            | as its table states                                                                        | 3    |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Detects Rust, binds its stages and checks its configuration, and compares the toolchain.
+
+### What it depends on
+
+`meow-rust` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-rust` in its `requires.toml`.
+
+### Where its data lives
+
+It holds none of its own: it reads the files git tracks and the profile, and SPC-1190 states that a pack's program writes no file.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-rust` installs as a plugin from the marketplace, `plugins/meow-rust/`, and ships as the Pi package `packages/meow-rust/`.

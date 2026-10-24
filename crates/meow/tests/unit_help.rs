@@ -433,6 +433,7 @@ fn output_opens_with_stated_first_words() {
     held(d, s, "markdown", &["bind"], "");
     held(d, s, "markdown", &["check"], "");
     held(d, s, "markdown", &["links", "README.md"], "");
+    held(d, s, "markdown", &["diagrams"], "");
     for unit in ["rust", "go"] {
         for command in ["status", "bind", "check", "toolchain"] {
             held(d, s, unit, &[command], "");

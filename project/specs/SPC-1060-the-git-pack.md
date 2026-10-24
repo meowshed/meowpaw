@@ -250,3 +250,37 @@ skill and the implement step carry these rules.
 | A conflict during `restack`             | The rebase is aborted, the branch and its files named, the rest not updated, exit 1 |
 | A `restack` branch with local changes   | Nothing is rewritten; the branch is named, exit 1                                   |
 | No binary for the machine's target      | The commit or push is denied, exit 2, naming `meow-git` and its install command     |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Refuses a commit on the trunk and checks every commit on a branch before it is pushed.
+
+### What it depends on
+
+`meow-git` lists `meow-core`, `meow-scm` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-git` in its `requires.toml`.
+
+### Where its data lives
+
+The `[git]` table of `.meowpaw/profile.toml`.
+
+### What crosses a trust boundary
+
+A commit's signature is checked against a trusted key, and only a good signature from a trusted key passes.
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-git` installs as a plugin from the marketplace, `plugins/meow-git/`, and ships as the Pi package `packages/meow-git/`.

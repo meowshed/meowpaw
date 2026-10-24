@@ -1,7 +1,7 @@
 ---
 id: TSK-4750
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2450
 closes: [REQ-0611, REQ-0614, REQ-0616, REQ-0618, REQ-0620, REQ-2856, REQ-2857]
@@ -57,7 +57,18 @@ does today, and keep it in step with the layout. Document the rules on
 
 ## Evidence
 
-Not yet.
+Criteria 1 to 5 are closed by the tests in
+`crates/meow/tests/record_living.rs`, each seen failing first:
+`a_vision_missing_a_section_is_reported_naming_it` (criterion 1, REQ-0616,
+REQ-0618, REQ-0620), `a_vision_carrying_a_date_is_reported_with_its_line`
+(criterion 2, REQ-2856), `a_vision_stating_a_requirement_is_reported`
+(criterion 3, REQ-2857),
+`a_vision_over_two_thousand_words_is_reported_with_its_count` (criterion 4,
+REQ-0611) and `a_second_vision_is_reported_naming_both_files` (criterion 5,
+REQ-0614). Criterion 6: `paw check` reports 0 findings in each of its seven
+checks for this repository.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

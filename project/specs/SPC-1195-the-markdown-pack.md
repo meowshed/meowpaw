@@ -253,3 +253,37 @@ Each is printed as SPC-1190 states, by every command it applies to:
 | `links`: lychee isn't on `PATH`                        | `tool absent: lychee`                          | 3    |
 | `links`: lychee exits 3 or 1, or prints no JSON        | `tool broken: lychee ...`                      | 3    |
 | `links`: a map is missing or unknown                   | `tool broken: lychee printed <map>`            | 3    |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Detects a Markdown corpus, binds its stages, checks its configuration, its links and its diagrams, and carries what a reviewer of Markdown checks.
+
+### What it depends on
+
+`meow-markdown` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-markdown` in its `requires.toml`.
+
+### Where its data lives
+
+It reads the files git tracks and the profile. `links` leaves lychee's cache at the root where the cache is on, and `diagrams` writes outside the working tree.
+
+### What crosses a trust boundary
+
+`links` reaches every remote address the documents cite, and `diagrams` hands the text of a `mermaid` block to `mmdc`, which starts a headless browser.
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-markdown` installs as a plugin from the marketplace, `plugins/meow-markdown/`, and ships as the Pi package `packages/meow-markdown/`.

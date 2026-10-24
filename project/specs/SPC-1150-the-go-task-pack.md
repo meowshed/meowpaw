@@ -129,3 +129,37 @@ Each is reported as unresolved, with exit status 3, by all three commands:
 
 A listing is recognised as an object whose `tasks` is an array of objects each
 holding a string `name` and a `location` object holding a string `taskfile`.
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Binds the five stages to the tasks Task resolves in a work tree.
+
+### What it depends on
+
+`meow-gotask` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-gotask` in its `requires.toml`.
+
+### Where its data lives
+
+It reads the runner's configuration in the work tree, and the bindings it prints belong in `[stages]` of the profile.
+
+### What crosses a trust boundary
+
+A remote Taskfile crosses it: the pack passes none of `--yes`, `--trusted-hosts` and `--download`, and reports a listing it can't see.
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-gotask` installs as a plugin from the marketplace, `plugins/meow-gotask/`, and ships as the Pi package `packages/meow-gotask/`.

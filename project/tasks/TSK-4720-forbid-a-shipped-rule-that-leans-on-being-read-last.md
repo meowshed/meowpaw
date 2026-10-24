@@ -1,7 +1,7 @@
 ---
 id: TSK-4720
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2440
 closes: [REQ-2742]
@@ -44,9 +44,17 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `test_no_shipped_rule_depends_on_being_read_last` in
+`plugins/meow-author/tests/test_author.py`, seen failing first, which closes
+REQ-2742. The rule is C12 in the write skill of both trees.
 
-Criterion 2 rests on judgement, for the reason it gives.
+Criterion 2 rests on judgement, because no pattern tells a rule that leans on
+its place from one that doesn't. A search of `plugins/` and `packages/` for
+"override", "supersede", "outranks", "wins over", "above all", "ignore any",
+"regardless of" and "read last" in Markdown found no shipped rule that claims
+to override what was read before it, so no prompt changed.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

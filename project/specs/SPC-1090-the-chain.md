@@ -375,7 +375,7 @@ The chain has seven steps: research, requirements, design, spec, epic,
 implement and review (REQ-3638). A requirement closes with the tasks that name
 it (REQ-3604). No agent reviews a record, and the repository keeps no run
 output. Every record meets the shape of the seven steps (REQ-3652), and the
-marketplace ships no unit whose only purpose the chain no longer has
+marketplace ships no unit whose only purpose is one the chain lacks
 (REQ-3654).
 
 The `route` skill classifies the request in the session and reports the route
@@ -1028,3 +1028,37 @@ not gain this prompt.
 Where two of the route's rows apply, the report carries both, and the
 `route reduced` row decides the route over the row for a route given with the
 request.
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Runs the method's seven steps, the route that comes before them and the commands that bring an existing repository in.
+
+### What it depends on
+
+`meow-flow` lists `meow-core`, `meow-prose` in its `requires.toml`.
+
+### What depends on it
+
+`meow-loop` list `meow-flow` in their `requires.toml`.
+
+### Where its data lives
+
+In the record, `project/` by default, from which `status` computes the chain's state.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-flow` installs as a plugin from the marketplace, `plugins/meow-flow/`, and ships as the Pi package `packages/meow-flow/`.

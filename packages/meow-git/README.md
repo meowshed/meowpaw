@@ -47,3 +47,5 @@ files, and exits 1. Wherever it stops, it prints `updated:` for each branch it
 rewrote and `not updated:` for each it didn't reach. If a branch has
 uncommitted changes or is checked out in another working tree, it rewrites
 nothing and names that branch.
+
+The pack is current as of git 2.56.0, observed on 2026-10-24.

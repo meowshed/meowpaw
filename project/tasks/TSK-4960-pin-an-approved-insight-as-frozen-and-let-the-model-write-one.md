@@ -1,7 +1,7 @@
 ---
 id: TSK-4960
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2610
 closes: [REQ-2142, REQ-2662]
@@ -49,7 +49,18 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Both criteria are closed by tests seen failing first.
+
+1. `an_approved_insight_changed_since_the_base_is_reported` in
+   `crates/meow/tests/record_kinds.rs` (REQ-2662). The behaviour already
+   held; the same test runs the fixture against a layout without the insight
+   kind and expects exit 0, which is the failure the criterion asks to see.
+2. `test_the_model_writes_an_insight_as_a_draft_with_no_prompt` in
+   `plugins/meow-flow/tests/test_method_skill.py` (REQ-2142), failing before
+   M11 was reworded, and M11 is changed identically in
+   `packages/meow-flow/skills/method/SKILL.md`.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

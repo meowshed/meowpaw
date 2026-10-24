@@ -11,8 +11,9 @@ elaborates: RES-0340
 
 # REQ-4124
 
-The eval suites that Claude Code plugins carry (`meow-core/evals/`,
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+The eval suites that Claude Code plugins carry (`meow-core/evals/`,
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

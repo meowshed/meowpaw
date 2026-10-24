@@ -1,7 +1,7 @@
 ---
 id: EPC-2540
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2620
 ---
@@ -38,14 +38,14 @@ number.
 
 ## Tasks
 
-- [ ] T-001 TSK-4985 parse each Mermaid block with `meow-markdown diagrams`, and bind `check` to it, in `plugins/meow-markdown/` and the `markdown` feature of `crates/meow/`
+- [x] T-001 TSK-4985 parse each Mermaid block with `meow-markdown diagrams`, and bind `check` to it, in `plugins/meow-markdown/` and the `markdown` feature of `crates/meow/` (done: pull request 1078)
       closes: REQ-2292, REQ-2304
 
-- [ ] T-002 TSK-4990 report an image embedded in a record document and refuse a build-step notation for the record, with `[docs] diagrams` in the table of keys
+- [x] T-002 TSK-4990 report an image embedded in a record document and refuse a build-step notation for the record, with `[docs] diagrams` in the table of keys (done: pull request 1078)
       closes: REQ-2290, REQ-2294, REQ-2296
       depends: TSK-4985 (not blocking) - the image finding prints from `diagrams`, and either task can add the command's skeleton
 
-- [ ] T-003 [P] TSK-4995 carry the prose and content rules for a diagram in the skill and `reviewing.md`
+- [x] T-003 [P] TSK-4995 carry the prose and content rules for a diagram in the skill and `reviewing.md` (done: pull request 1078)
       closes: REQ-2300, REQ-2302
 
 ## Coverage

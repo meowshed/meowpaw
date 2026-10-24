@@ -2,7 +2,7 @@
 id: vision
 artifact: vision
 status: live
-revised: 2026-10-13
+revised: 2026-10-24
 ---
 
 # meowpaw
@@ -12,35 +12,26 @@ revised: 2026-10-13
 `meowpaw` is a harness for Claude Code: the instructions, skills, commands and
 hooks that turn a general coding agent into one that works a particular way. It
 packages one way of working - evidence-driven, traceable, human-gated - so you
-can install it in one command, where today you copy it by hand and watch it
-drift.
+install it in one command, where today you copy it by hand and watch it drift.
 
 It exists because six repositories here already run six copies of roughly the
-same harness, and the copies have diverged. `meowctl` and `meowg1k` share a
-specification loop, and `vlie` arrived at nearly the same sequence on its own.
-`meowhub` built it a third time under different names. `hephaestus` has
-edit-time quality hooks nobody else has, and `meowary` has durable memory
-nobody else has. Fix one of them and you've fixed one of them.
-
-They diverged because there was nothing to diverge _from_. Each documents its
-process in its own `CLAUDE.md`, and you can't install, version or upgrade a
-document.
+same harness, and the copies have diverged. Two of them share a specification
+loop, a third arrived at nearly the same sequence on its own, and a fourth built
+it again under different names. Two carry something nobody else has: edit-time
+quality hooks in one, durable memory in the other. Fix one copy and you've fixed
+one copy. They diverged because each documents its process in its own
+`CLAUDE.md`, and you can't install, version or upgrade a document.
 
 ## The problem
 
 Agents are now good enough that the bottleneck moved. The model writes the
 code, and nobody can tell **whether what came back is true.**
 
-Seven specific versions of that, each one observed here or in the survey:
-
 - A harness reports that the tests passed, having guessed a command that exited
-  zero. None of the ten public harnesses surveyed treats "I could not determine
-  how to test this" as an outcome separate from success.
+  zero.
 - "The tests pass" is said twenty edits after they last ran, and nothing in the
   sentence tells you which of the two you're reading.
-- A test is green and hollow. Model-generated tests score around 20% on
-  mutation testing, and mutants survive 15-25% more often on AI-generated code
-  at the same coverage.
+- A test is green and hollow: it passes whatever the code does.
 - A specification is quietly reworded to match what was built, and the
   reasoning behind the original is gone.
 - A plan says a task is done because somebody ticked it, and nothing records
@@ -52,13 +43,11 @@ Seven specific versions of that, each one observed here or in the survey:
   to help further, so the reviewer skims it and approves.
 
 All seven are one failure: **an answer that wasn't earned, delivered with the
-confidence of one that was.** The whole design exists to make that failure
-hard. The seventh is on the list because you can solve the first six and still
-lose everything through the sentence a reviewer actually reads.
+confidence of one that was.**
 
 ## Who it is for
 
-| Audience                                    | Wants                                                         | What they do today                                           |
+| Audience                                    | Wants                                                         | What they do today instead                                   |
 | ------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------ |
 | Someone running an agent on a real codebase | Work they can hand to review without reading every line first | Reads every line, or doesn't, and finds out later            |
 | A repository with an existing harness       | To stop maintaining a private copy of a method                | Copies a `CLAUDE.md` between projects and watches them drift |
@@ -78,53 +67,46 @@ research -> requirements -> design -> spec -> epic
          -> implement -> review
 ```
 
-`/meow-flow:run` drives all seven and stops at every gate. It changes how many times
-you type a command, and it never changes how many times you decide.
-
-Three documents live and everything else is a record. The vision, the
-constitution and the specifications describe the present, and you rewrite them
-freely. Research, requirements, decisions, epics, tasks and defects are
-records: open while a record is a draft, frozen when someone approves it, and
-from then on a later truth arrives as a new record. That's event sourcing
-applied to documents - an append-only journal and a projection over it - so
-rewriting the projection loses nothing, because the journal is still there.
-
-Two records authorise work, and the harness keeps no taxonomy of work types.
-Either somebody decided something, or something is broken. Every task traces to
-a decision or to a defect, and every kind of work in both taxonomies surveyed
-routes through one of the two. The harness derives what sort of work it is,
+Either somebody decided something, or something is broken, and every task traces
+to a decision or to a defect. The harness derives what sort of work it is,
 because a list of work types somebody maintains is a boundary argument that
 never ends.
 
-Five stages carry everything mechanical: `format`, `lint`, `check`, `test`,
-`build`. A stage resolves from the repository's own declaration, then from an
-installed language pack, and then it stops. The harness reports an unresolved
-stage as unresolved and never as passed, which no other harness surveyed does.
+## Quality goals
 
-Evidence expires. A claim cites the command, its output and the tree revision
-it ran at, and every edit advances the revision, so evidence gathered before a
-change can't satisfy a claim made after it.
+In priority order. Where two goals pull against each other, the higher one
+wins, and the tie-breaks below say how.
 
-Reports put the failure where you'll see it. The command and the path lead, and
-the harness computes the state from the artifacts instead of recalling it. A
-failure arrives as cause, location and fix with no drama in front of it, and a
-stop names the command that resumes it.
+1. **Earned answers.** The harness reports what it didn't do. Guessing a
+   command, substituting a text search for a language server and filling a
+   template section instead of leaving it empty each look helpful and each
+   produce a confident wrong result. An unresolved stage is reported as
+   unresolved and never as passed, and evidence expires: a claim cites the
+   command, its output and the tree revision it ran at.
+2. **A record that outlives the tool.** Plain Markdown in the repository,
+   readable with `cat` by someone who never installed any of this. No private
+   directory, no tracker, no database. Three documents are living and describe
+   the present. Everything else is a record, frozen on approval, and a later
+   truth arrives as a new record.
+3. **Approval is a stop.** Where a step ends in human approval, it produces its
+   artifact, reports, and ends the turn. Everything else can be made faster and
+   this can't, because the stopping is the value.
+4. **Adoptable in part.** The chain, the record, the packs and the tools are
+   opt-in, and each level of adoption is complete on its own.
+5. **Completeness over brevity.** Brevity is the default and a real
+   obligation, but it's presentation. The harness drops no stage from a
+   verification report, no finding from a review and no hedge that carries real
+   uncertainty.
+6. **Speed.** Five stages carry everything mechanical, and `/meow-flow:run`
+   changes how many times you type a command and never how many times you
+   decide.
 
-A published suite measured a shape like this one against an unshaped baseline
-and found correctness improving alongside brevity, with the largest gains on
-progress reports and error reports. The harness measures none of its own
-prompts now: ADR-2980 removed its runs and case sets, and review holds a
-change to what a prompt says until a redesigned evaluation exists.
-
-The chain, the record, the packs and the tools are all opt-in, and this rule is
-meant to be the exception: the reply shape ships in the kernel and applies to
-every reply of every plugin. The platform does not yet hold it that way, which
-BUG-1040 records, so today somebody selects it by hand.
-
-The rule is the last stage of every honest-failure rule in the harness, and a
-rule that only some replies follow shapes nothing, because the one report that
-hides the unresolved stage is
-the one that gets approved.
+Tie-breaks: earned answers beat adoptability, so a unit that can't be adopted
+without reporting a guess as a result isn't shipped. Adoptability beats the
+record's reach, so a repository that keeps no record still gets the stages.
+Where the method costs more than the change is worth, trivial work skips the
+chain, because a method costing seven steps for a one-line fix is one people
+route around, and then it reports a process it never performed.
 
 ## What it will not do
 
@@ -132,17 +114,16 @@ the one that gets approved.
   everything it needs arrives with it. A unit may carry a program, a server or
   a daemon of its own, because that costs you nothing past the install you
   chose. You never set up a second thing by hand, keep it running, or let it
-  write its configuration into the repository you are working on. Where the harness can use a tool you already have, it uses it,
-  and where that tool is missing it says so and does the work the expensive
-  way.
+  write its configuration into the repository you are working on. Where the
+  harness can use a tool you already have, it uses it, and where that tool is
+  missing it says so and does the work the expensive way.
 - **Demand the full method for a typo.** The harness classifies work first, and
-  trivial work skips the chain. A harness that costs seven steps for a one-line
-  fix is one you work around, and then it reports a process it never performed.
+  trivial work skips the chain.
 - **Oblige a repository to keep the record.** Three levels of adoption, each
   complete on its own.
 - **Know what you're building.** Nothing that carries the method names a
-  language, a framework or a build tool, and `grep` checks that instead of
-  taste.
+  language, a framework or a build tool, and review checks that, because no
+  program does yet.
 - **Invent the intent behind code it's given.** Onboarding an existing
   repository recovers the specification, the constitution and most of the
   vision, because those describe what is and the code is right there. It
@@ -152,17 +133,29 @@ the one that gets approved.
 - **Delete anything it hasn't placed.** Every existing document gets one of
   four outcomes - migrated, cited as a source, superseded, or discarded with
   the reason recorded - and a document with no outcome is one nobody read.
-  Moving material to a directory nobody opens again is deletion with extra
-  steps, and it's worse than deletion, because the tree goes on claiming the
-  material is maintained.
 - **Ship personas.** A role that changes neither the tool set, the context nor
   the stopping point changes only the prose.
-- **Put a dashboard in front of the record.** A dashboard renders what the
-  artifacts already say, and none of it lands in a context window, which is
-  what the harness is for. `claude-code-spec-workflow` ships one, WebSocket and
-  tunnel included. The artifacts are readable, a status command
-  prints them, and a separate tool beside the harness can render them as
-  elaborately as it likes, because none of that lands in a context window.
+- **Put a dashboard in front of the record.** The artifacts are readable and a
+  status command prints them. A separate tool beside the harness can render
+  them as elaborately as it likes.
+
+## Risks
+
+- **The reply shape is opt-in today.** It is meant to apply to every reply of
+  every plugin, and the platform doesn't yet hold it that way, which BUG-1040
+  records. A report that hides the unresolved stage is the one that gets
+  approved.
+- **No prompt is measured.** ADR-2980 removed the harness's own runs and case
+  sets, so review is all that holds a change to what a prompt says until a
+  redesigned evaluation exists.
+- **The test of success hasn't run.** The six repositories this came from are
+  meant to drop their private copies and lose nothing, and no repository has
+  yet been moved with its gate run before and after (ADR-2690).
+- **An unattended run decides its own gates.** A run `meow-loop` holds approves,
+  merges and releases without a person (ADR-2380), so the principles it decides
+  against are the only gate left.
+- **The catalogue of units isn't decided.** A claim about how many units exist
+  goes stale, so none is made here.
 
 ## Where it is going
 
@@ -173,45 +166,12 @@ template, and a declared kind inherits every obligation a built-in kind
 carries, so declaring one buys no exemptions.
 
 The record stays plain files, and `paw`, the one native tool every unit
-shares, makes it cheap to query and write (ADR-2880). `meow-github` projects
-an epic's tasks onto GitHub issues for people who want that (ADR-2890).
-Nothing requires it: where it's missing, you sync by hand, and the method
-works either way.
+shares, makes it cheap to query and write (ADR-2880). `meow-github` projects an
+epic's tasks onto GitHub issues for people who want that (ADR-2890), and where
+it's missing the method works the same.
 
-One specific test decides whether this succeeded: **the six repositories it
-came from drop their private copies and lose nothing.** Not that it's elegant,
-not that it's complete. Six real projects, in five languages, with five
-different ideas of what counts, each install a subset and keep working the way
-they already work, with the method written down where everyone can see it.
-
-I mean to run that test rather than assert it, one repository at a time,
-with each repository's own gate run before and after the move (ADR-2690). A
-harness that asks for evidence everywhere else holds its own claims to the
-same standard.
-
-This document gets rewritten when a decision contradicts it. A decision that
-conflicts with what's written here means one of the two is stale, and the
-design step asks which - a cheap question, because this document is short.
-
-## What it will not trade away
-
-An unearned answer is the enemy, and every convenience is measured against it.
-Guessing a command looks helpful. Substituting a text search for a language
-server looks helpful. Filling a template section instead of leaving it empty
-looks helpful. Each one produces a confident wrong result, so the harness
-reports what it didn't do.
-
-Completeness outranks brevity. Brevity is the default and a real obligation,
-but it's presentation. The harness drops no stage from a verification report, no
-finding from a review, no question from a gap list, and no hedge that carries
-real uncertainty, because deleting the last of those manufactures confidence.
-Where a rule of shape would delete part of an answer, the answer wins and the
-shape yields.
-
-The record outlives the tool. Plain Markdown in the repository, readable with
-`cat` by someone who never installed any of this. No private directory, no
-tracker, no database.
-
-Approval is a stop. Where a step ends in human approval, it produces its
-artifact, reports, and ends the turn. Everything else here can be made faster;
-this can't, because the stopping is the value.
+One test decides whether this succeeded: **the six repositories it came from
+drop their private copies and lose nothing.** Not that it's elegant, not that
+it's complete. Six real projects, in five languages, each install a subset and
+keep working the way they already work, with the method written down where
+everyone can see it.

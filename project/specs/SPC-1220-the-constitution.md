@@ -91,3 +91,37 @@ with its exception stated, written in the same decision (REQ-2738).
 | No `CLAUDE.md` at the root                   | `paw check` says nothing about the constitution                       |
 | `CLAUDE.md` can't be read                    | `paw check` prints that it couldn't count the constitution, exit kept |
 | A decision's rule pulls against one in force | The design step merges the two into one rule with its exception       |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States what a repository's constitution, `CLAUDE.md`, carries and leaves out.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+In `CLAUDE.md` at the repository's root.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`CLAUDE.md` sits at a repository's root, the only place the platform loads it from.
