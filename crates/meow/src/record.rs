@@ -76,6 +76,8 @@ pub(crate) struct Layout {
     pub(crate) retired_fields: BTreeMap<String, String>,
     pub(crate) retired_statuses: BTreeMap<String, String>,
     pub(crate) retired_sections: BTreeMap<String, String>,
+    /// Phrases that name an earlier version, which a specification doesn't carry.
+    pub(crate) history_phrases: Vec<String>,
 }
 
 struct Field {
@@ -93,6 +95,9 @@ struct Doc {
     fields: Option<Vec<Field>>,
     kind: Option<usize>,
     is_index: bool,
+    /// For an epic, the mark each unmarked task entry derives from its task,
+    /// by line (SPC-1090 "The gate").
+    derived: BTreeMap<usize, char>,
 }
 
 impl Doc {
@@ -422,7 +427,31 @@ fn check(rest: &[String]) -> u8 {
         );
         total += findings.len();
     }
+    constitution_length(&repository);
     if total == 0 { CLEAN } else { FOUND }
+}
+
+/// The constitution's target length in lines (SPC-1220 "Its length").
+const CONSTITUTION_TARGET: usize = 200;
+
+/// Prints advice, counted as no finding, when `CLAUDE.md` at the repository's
+/// root is over its target (REQ-2734).
+fn constitution_length(repository: &Path) {
+    let path = repository.join("CLAUDE.md");
+    if !path.exists() {
+        return;
+    }
+    match std::fs::read_to_string(&path) {
+        Ok(text) => {
+            let lines = text.lines().count();
+            if lines > CONSTITUTION_TARGET {
+                say!(
+                    "CLAUDE.md: over its target of {CONSTITUTION_TARGET} lines at {lines}; cut it"
+                );
+            }
+        }
+        Err(e) => say!("CLAUDE.md: couldn't count the constitution: {e}"),
+    }
 }
 
 /// Where the layout is: `MEOW_LAYOUT`, or `lib/layout.toml` in the unit this
@@ -620,6 +649,7 @@ fn check_frozen(rest: &[String]) -> u8 {
             text: before.clone(),
             kind: doc.kind,
             is_index: false,
+            derived: BTreeMap::new(),
         };
         if bare(old.value("status")) != "approved" {
             continue;
@@ -981,6 +1011,7 @@ pub(crate) fn load_layout() -> Result<Layout, String> {
         retired_fields: retired("fields"),
         retired_statuses: retired("statuses"),
         retired_sections: retired("sections"),
+        history_phrases: strings(&data, "history_phrases"),
     })
 }
 
@@ -1074,6 +1105,7 @@ fn read_doc(path: PathBuf, repository: &Path) -> Doc {
         fields,
         kind: None,
         is_index: false,
+        derived: BTreeMap::new(),
     }
 }
 
@@ -1098,6 +1130,7 @@ fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
         });
         docs.push(doc);
     }
+    derive_marks(&layout, &mut docs);
 
     let root_canonical = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
     let mut others = Vec::new();
@@ -1124,6 +1157,48 @@ fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
         docs,
         outside,
         ids,
+    }
+}
+
+/// The pattern of a task entry an epic lists with no mark.
+fn unmarked_entry() -> Regex {
+    Regex::new(r"^- T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern")
+}
+
+/// Gives each unmarked task entry of an epic the mark its task derives: done
+/// once its Evidence is written, dropped once it is withdrawn, rejected or
+/// superseded, and open otherwise (SPC-1090 "The gate").
+fn derive_marks(layout: &Layout, docs: &mut [Doc]) {
+    let head = unmarked_entry();
+    let epic = layout.kinds.iter().position(|k| k.name == "epic");
+    let tasks: BTreeMap<String, char> = docs
+        .iter()
+        .filter(|d| d.kind.is_some_and(|k| layout.kinds[k].name == "task"))
+        .map(|d| {
+            let mark = if matches!(
+                bare(d.value("status")),
+                "withdrawn" | "rejected" | "superseded"
+            ) {
+                '~'
+            } else if claims_done(d) {
+                'x'
+            } else {
+                ' '
+            };
+            (bare(d.id()).to_string(), mark)
+        })
+        .collect();
+    for doc in docs.iter_mut().filter(|d| d.kind == epic && epic.is_some()) {
+        let derived: BTreeMap<usize, char> = doc
+            .text
+            .lines()
+            .enumerate()
+            .filter_map(|(i, line)| {
+                let task = head.captures(line)?.get(1)?.as_str();
+                Some((i + 1, tasks.get(task).copied().unwrap_or(' ')))
+            })
+            .collect();
+        doc.derived = derived;
     }
 }
 
@@ -1318,6 +1393,21 @@ fn known(record: &Record) -> BTreeMap<String, &Doc> {
 
 fn identifiers(record: &Record) -> Vec<Finding> {
     let mut out = Vec::new();
+    // A project has one vision, wherever a second would sit (REQ-0614).
+    let mut visions = record
+        .docs
+        .iter()
+        .chain(&record.outside)
+        .filter(|d| bare(d.value("artifact")) == "vision" && bare(d.id()) == "vision");
+    if let Some(first) = visions.next() {
+        for other in visions {
+            out.push(Finding::at(
+                other,
+                None,
+                format!("vision is also allocated to {}", first.shown),
+            ));
+        }
+    }
     let mut seen: BTreeMap<String, &Doc> = BTreeMap::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
@@ -2229,11 +2319,16 @@ fn section_lines<'a>(doc: &'a Doc, name: &str) -> Vec<(usize, &'a str)> {
 /// entry with its continuation lines.
 fn entries(epic: &Doc) -> Vec<(usize, char, String, String)> {
     let head = Regex::new(r"^- \[(.)\] T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern");
+    let plain = unmarked_entry();
     let mut out: Vec<(usize, char, String, String)> = Vec::new();
     for (i, line) in epic.text.lines().enumerate() {
         if let Some(c) = head.captures(line) {
             let mark = c[1].chars().next().unwrap_or(' ');
             out.push((i + 1, mark, c[2].to_string(), line.to_string()));
+        } else if let Some(mark) = epic.derived.get(&(i + 1)).copied()
+            && let Some(c) = plain.captures(line)
+        {
+            out.push((i + 1, mark, c[1].to_string(), line.to_string()));
         } else if let Some(last) = out.last_mut()
             && line.starts_with(' ')
             && !line.trim().is_empty()
@@ -2282,6 +2377,36 @@ fn evidence_of(task: &Doc) -> String {
     paragraphs.collect::<Vec<_>>().join("\n\n")
 }
 
+/// The most words a vision runs to (SPC-1230).
+const VISION_WORDS: usize = 2000;
+
+/// The text with each fenced line blanked, so offsets and lines stay.
+fn without_fences(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut inside = false;
+    for line in text.split_inclusive('\n') {
+        let fence = line.trim_start().starts_with("```") || line.trim_start().starts_with("~~~");
+        if fence {
+            inside = !inside;
+        }
+        if fence || inside {
+            out.extend(line.chars().map(|c| if c == '\n' { '\n' } else { ' ' }));
+        } else {
+            out.push_str(line);
+        }
+    }
+    out
+}
+
+/// Whether `phrase` occurs in `text` as whole words.
+fn has_word(text: &str, phrase: &str) -> bool {
+    text.match_indices(phrase).any(|(at, found)| {
+        let before = text[..at].chars().next_back();
+        let after = text[at + found.len()..].chars().next();
+        !before.is_some_and(char::is_alphanumeric) && !after.is_some_and(char::is_alphanumeric)
+    })
+}
+
 /// The named rules a section or a field can't express (ADR-1140).
 fn rules(record: &Record) -> Vec<Finding> {
     let date = Regex::new(r"\d{4}-\d{2}-\d{2}").expect("date pattern");
@@ -2294,6 +2419,11 @@ fn rules(record: &Record) -> Vec<Finding> {
     let neighbour = Regex::new(r"(?i)\b(?:such an? \w+|the (?:above|previous|preceding|following) \w+|that (?:command|record|artifact|check|step|file|document|unit|requirement))\b").expect("neighbour pattern");
     let negated = Regex::new(r"\bNo\b[^.]*?\bMUST\b(?: NOT)?").expect("negation pattern");
     let numbered = Regex::new(r"^\d+\. ").expect("step pattern");
+    let dated = Regex::new(r"\d{4}-\d{2}-\d{2}|\b(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b|\bQ[1-4] \d{4}\b").expect("date pattern");
+    let sentences = Regex::new(r"[^.!?]*(?:[.!?]+(?:\s|$)|$)").expect("sentence pattern");
+    let struck = Regex::new(r"~~[^~\s][^~]*~~").expect("struck pattern");
+    let inline_code = Regex::new(r"`[^`]*`").expect("code span pattern");
+    let checkbox = Regex::new(r"^\s*- \[.\] ").expect("checkbox pattern");
     let mut out = Vec::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
@@ -2647,6 +2777,137 @@ fn rules(record: &Record) -> Vec<Finding> {
                         ));
                     }
                 }
+                "vision-no-date" | "vision-no-obligation" | "vision-length" => {
+                    let masked = without_fences(&doc.text);
+                    let start: usize = masked
+                        .split_inclusive('\n')
+                        .take(body_start(doc))
+                        .map(str::len)
+                        .sum();
+                    let body = &masked[start..];
+                    match rule.as_str() {
+                        "vision-no-date" => {
+                            for (i, text) in doc.text.lines().enumerate().skip(body_start(doc)) {
+                                for found in dated.find_iter(text) {
+                                    out.push(Finding::at(
+                                        doc,
+                                        Some(i + 1),
+                                        format!(
+                                            "carries the date {}, and a vision carries no dates",
+                                            found.as_str()
+                                        ),
+                                    ));
+                                }
+                            }
+                        }
+                        "vision-no-obligation" => {
+                            for sentence in sentences.find_iter(body) {
+                                let said = sentence.as_str();
+                                if let (Some(id), true) =
+                                    (requirement.find(said), keyword.is_match(said))
+                                {
+                                    out.push(Finding::at(
+                                        doc,
+                                        Some(line_of(&masked, start + sentence.start())),
+                                        format!("states {} as an obligation, and a vision restates no requirement", id.as_str()),
+                                    ));
+                                }
+                            }
+                        }
+                        _ => {
+                            let words = body.split_whitespace().count();
+                            if words > VISION_WORDS {
+                                out.push(Finding::at(
+                                    doc,
+                                    None,
+                                    format!("runs to {words} words, over the {VISION_WORDS} a vision runs to"),
+                                ));
+                            }
+                        }
+                    }
+                }
+                "spec-no-history" => {
+                    let masked = without_fences(&doc.text);
+                    for (i, text) in masked.lines().enumerate().skip(body_start(doc)) {
+                        // A phrase quoted in code is a mention and no use.
+                        let text = &inline_code.replace_all(text, "");
+                        if struck.is_match(text) {
+                            out.push(Finding::at(
+                                doc,
+                                Some(i + 1),
+                                "carries struck text, and a specification states only what the system does now".into(),
+                            ));
+                        }
+                        if text.starts_with('#')
+                            && let Some(heading) = text.trim_start_matches('#').strip_prefix(' ')
+                        {
+                            let heading = heading.trim();
+                            let lower = heading.to_lowercase();
+                            if lower.starts_with("withdrawn") || lower.contains("tombstone") {
+                                out.push(Finding::at(
+                                    doc,
+                                    Some(i + 1),
+                                    format!("carries the heading {heading}, and a specification carries no history"),
+                                ));
+                            }
+                        }
+                        let lower = text.to_lowercase();
+                        for phrase in &record.layout.history_phrases {
+                            if has_word(&lower, &phrase.to_lowercase()) {
+                                out.push(Finding::at(
+                                    doc,
+                                    Some(i + 1),
+                                    format!(
+                                        "says \"{phrase}\", and a specification carries no history"
+                                    ),
+                                ));
+                            }
+                        }
+                    }
+                }
+                "withdrawn-names-record" => {
+                    if bare(doc.value("status")) == "withdrawn" {
+                        let lines: Vec<&str> = doc.text.lines().collect();
+                        let first = lines
+                            .iter()
+                            .position(|l| l.starts_with("# "))
+                            .and_then(|h| {
+                                (h + 1..lines.len()).find(|&i| !lines[i].trim().is_empty())
+                            });
+                        if !first.is_some_and(|i| record.ids.is_match(lines[i])) {
+                            out.push(Finding::at(
+                                doc,
+                                first.map(|i| i + 1),
+                                "is withdrawn and its first line names no record that withdrew it"
+                                    .into(),
+                            ));
+                        }
+                    }
+                }
+                "no-task-status" => {
+                    let mut tasks = false;
+                    for (i, text) in doc.text.lines().enumerate() {
+                        if let Some(heading) = text.strip_prefix("## ") {
+                            tasks = heading.trim() == "Tasks";
+                        } else if tasks && checkbox.is_match(text) {
+                            out.push(Finding::at(
+                                doc,
+                                Some(i + 1),
+                                "marks a task with a checkbox, where an epic carries no status per task".into(),
+                            ));
+                        } else if tasks
+                            && text.trim_start().starts_with('|')
+                            && text.to_lowercase().contains("status")
+                        {
+                            out.push(Finding::at(
+                                doc,
+                                Some(i + 1),
+                                "has a Status column, where an epic carries no status per task"
+                                    .into(),
+                            ));
+                        }
+                    }
+                }
                 unknown => out.push(Finding::at(
                     doc,
                     None,
@@ -2699,14 +2960,9 @@ fn kind_of<'a>(record: &'a Record, doc: &Doc) -> &'a str {
 /// Each task an epic lists, with the mark it carries: `x` done, `~` dropped,
 /// and anything else open. A `[P]` marking a parallel task is read past.
 fn marks(epic: &Doc) -> Vec<(String, char)> {
-    let line = Regex::new(r"(?m)^- \[(.)\] T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("mark pattern");
-    line.captures_iter(&epic.text)
-        .filter_map(|c| {
-            Some((
-                c.get(2)?.as_str().to_string(),
-                c.get(1)?.as_str().chars().next()?,
-            ))
-        })
+    entries(epic)
+        .into_iter()
+        .map(|(_, mark, task, _)| (task, mark))
         .collect()
 }
 
@@ -4824,10 +5080,15 @@ fn with_field(text: &str, key: &str, value: &str) -> Option<String> {
 fn with_done_mark(text: &str, task: &str, pull_request: &str) -> Option<String> {
     let head =
         Regex::new(&format!(r"^- \[.\] (T-\d+ (?:\[P\] )?{task}\b)(.*)$")).expect("mark pattern");
+    let plain = Regex::new(&format!(r"^- T-\d+ (?:\[P\] )?{task}\b")).expect("entry pattern");
     let mut out = String::with_capacity(text.len() + 32);
     let mut marked = false;
     for line in text.split_inclusive('\n') {
         let content = line.trim_end_matches(['\n', '\r']);
+        // An entry with no mark takes its state from its task (SPC-1090).
+        if !marked && plain.is_match(content) {
+            marked = true;
+        }
         if !marked && let Some(c) = head.captures(content) {
             let note = if c[2].contains("(done:") {
                 String::new()

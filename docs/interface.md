@@ -32,6 +32,7 @@ profile declares no command, which is never a pass.
 
 - **vision** — `vision.md/`: 
   statuses: live
+  sections: Who it is for, Quality goals, What it will not do, Risks
 - **onboarding** — `onboarding.md/`: 
   statuses: draft, approved, superseded
   sections: Verbs, Conventions, Documents, Gaps, Adoption
