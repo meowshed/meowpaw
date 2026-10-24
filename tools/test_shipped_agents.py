@@ -124,7 +124,7 @@ class ShippedOutcomes(unittest.TestCase):
 
 
 class ReplacingAnAgent(unittest.TestCase):
-    """TSK-4955 criterion 2, REQ-2986: each unit that ships an agent says on its page how a repository replaces
+    """TSK-5670 criterion 1, REQ-3273: each unit that ships an agent says on its page how a repository replaces
     it, and which name a dispatch then reaches, because the platform keeps the unit's agent beside the
     repository's."""
 

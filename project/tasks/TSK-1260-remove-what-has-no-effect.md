@@ -1,14 +1,16 @@
 ---
 id: TSK-1260
 artifact: task
-status: approved
-revised: 2026-09-22
+status: withdrawn
+revised: 2026-10-24
 epic: EPC-1020
 closes: [REQ-1138]
 issue: 69
 ---
 
 # Remove every instruction the loop shows has no effect
+
+Withdrawn by ADR-2980: the harness measures no prompt, so no run can show an instruction has no effect, and ADR-1360 had postponed REQ-1138 before any run.
 
 One task, one branch, one pull request, one review.
 

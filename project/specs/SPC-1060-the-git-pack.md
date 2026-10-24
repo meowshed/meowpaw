@@ -2,7 +2,7 @@
 id: SPC-1060
 artifact: spec
 status: live
-revised: 2026-10-10
+revised: 2026-10-24
 states:
   [
     REQ-0079,
@@ -60,8 +60,8 @@ every commit on a branch before it is pushed. It states the `[git]` table, what
 each hook checks, how it finds `meow-scm`, and how it reports.
 
 It leaves the message convention to SPC-1050, which the pack uses through
-`meow-scm`, and when a task stacks on another to the method's chain. It states the
-restack that rebuilds a stack's branches, and the bounds ADR-2420 sets on a
+`meow-scm`, and the stacking of pull requests, which the method doesn't do (ADR-3000), to the
+method's chain. It states the restack that rebuilds a stack's branches, and the bounds ADR-2420 sets on a
 worktree manager or any other tool that runs source control operations.
 
 ADR-1090 decides it, EPC-1060 realises it, and `meow-git` implements it,
