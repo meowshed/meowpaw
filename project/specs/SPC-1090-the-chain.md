@@ -2,60 +2,15 @@
 id: SPC-1090
 artifact: spec
 status: live
-revised: 2026-10-10
+revised: 2026-10-24
 states:
   [
-    REQ-3600,
-    REQ-3602,
-    REQ-3604,
-    REQ-3606,
-    REQ-3608,
-    REQ-3610,
-    REQ-3612,
-    REQ-3614,
-    REQ-3616,
-    REQ-3618,
-    REQ-3620,
-    REQ-3622,
-    REQ-3624,
-    REQ-3626,
-    REQ-3628,
-    REQ-3630,
-    REQ-3632,
-    REQ-3638,
-    REQ-3640,
-    REQ-3642,
-    REQ-3644,
-    REQ-3646,
-    REQ-3648,
-    REQ-3650,
-    REQ-3652,
-    REQ-3654,
-    REQ-4400,
-    REQ-4402,
-    REQ-4404,
-    REQ-4406,
-    REQ-4408,
-    REQ-3656,
-    REQ-4410,
-    REQ-4412,
-    REQ-4414,
-    REQ-3658,
-    REQ-0583,
-    REQ-0595,
-    REQ-0596,
+    REQ-0080,
     REQ-0132,
-    REQ-0816,
-    REQ-0818,
     REQ-0147,
     REQ-0149,
     REQ-0151,
     REQ-0157,
-    REQ-1420,
-    REQ-1422,
-    REQ-3203,
-    REQ-3216,
-    REQ-1358,
     REQ-0192,
     REQ-0194,
     REQ-0196,
@@ -189,10 +144,19 @@ states:
     REQ-0544,
     REQ-0564,
     REQ-0566,
+    REQ-0583,
+    REQ-0595,
+    REQ-0596,
     REQ-0613,
+    REQ-0810,
+    REQ-0812,
+    REQ-0814,
+    REQ-0816,
+    REQ-0818,
     REQ-0819,
     REQ-0822,
     REQ-0823,
+    REQ-0824,
     REQ-1230,
     REQ-1231,
     REQ-1232,
@@ -213,6 +177,9 @@ states:
     REQ-1254,
     REQ-1256,
     REQ-1258,
+    REQ-1358,
+    REQ-1420,
+    REQ-1422,
     REQ-1540,
     REQ-1542,
     REQ-1544,
@@ -228,6 +195,27 @@ states:
     REQ-1562,
     REQ-1563,
     REQ-1564,
+    REQ-1660,
+    REQ-1666,
+    REQ-1668,
+    REQ-1670,
+    REQ-1764,
+    REQ-1810,
+    REQ-1812,
+    REQ-1814,
+    REQ-1816,
+    REQ-1818,
+    REQ-1820,
+    REQ-1822,
+    REQ-1830,
+    REQ-1832,
+    REQ-1834,
+    REQ-1835,
+    REQ-1836,
+    REQ-1838,
+    REQ-1840,
+    REQ-1842,
+    REQ-1844,
     REQ-1950,
     REQ-1952,
     REQ-1954,
@@ -244,7 +232,11 @@ states:
     REQ-2138,
     REQ-2139,
     REQ-2140,
+    REQ-2142,
     REQ-2202,
+    REQ-2250,
+    REQ-2252,
+    REQ-2254,
     REQ-2256,
     REQ-2258,
     REQ-2260,
@@ -326,36 +318,44 @@ states:
     REQ-3174,
     REQ-3180,
     REQ-3202,
-    REQ-1810,
-    REQ-1812,
-    REQ-1814,
-    REQ-1816,
-    REQ-1818,
-    REQ-1820,
-    REQ-1822,
-    REQ-1830,
-    REQ-1832,
-    REQ-1834,
-    REQ-1835,
-    REQ-1836,
-    REQ-1838,
-    REQ-1840,
-    REQ-1842,
-    REQ-1844,
-    REQ-0810,
-    REQ-0812,
-    REQ-0814,
-    REQ-0824,
-    REQ-1764,
-    REQ-2142,
-    REQ-2250,
-    REQ-2252,
-    REQ-2254,
-    REQ-0080,
-    REQ-1660,
-    REQ-1666,
-    REQ-1668,
-    REQ-1670,
+    REQ-3203,
+    REQ-3216,
+    REQ-3600,
+    REQ-3602,
+    REQ-3604,
+    REQ-3606,
+    REQ-3608,
+    REQ-3610,
+    REQ-3612,
+    REQ-3614,
+    REQ-3616,
+    REQ-3618,
+    REQ-3620,
+    REQ-3622,
+    REQ-3624,
+    REQ-3626,
+    REQ-3628,
+    REQ-3630,
+    REQ-3632,
+    REQ-3638,
+    REQ-3640,
+    REQ-3642,
+    REQ-3644,
+    REQ-3646,
+    REQ-3648,
+    REQ-3650,
+    REQ-3652,
+    REQ-3654,
+    REQ-3656,
+    REQ-3658,
+    REQ-4400,
+    REQ-4402,
+    REQ-4404,
+    REQ-4406,
+    REQ-4408,
+    REQ-4410,
+    REQ-4412,
+    REQ-4414,
   ]
 ---
 
@@ -389,9 +389,9 @@ SPC-1030 states. The prose reviewer and the researcher do.
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
 
-A task whose blocking dependency hasn't merged opens its pull request on that
-dependency's branch, as the section on stacked tasks states. ADR-2550 decides
-it, and EPC-2430 realises it. ADR-2590 decides that an epic carries no status
+A task never opens a pull request of its own, because an epic's tasks are
+groups of commits on its branch (ADR-2860). ADR-3000 postpones stacking an epic
+on an unmerged epic. ADR-2590 decides that an epic carries no status
 per task, which amends how ADR-2300 derives a task's state, and EPC-2460
 realises it.
 
@@ -690,49 +690,14 @@ record carries `## Cover`, `## Verified`, `## Open review findings` or
 `checked-at`: the layout retires them, and `paw check` reports one still
 carried (REQ-3652).
 
-### Stacked tasks
+### Stacking pull requests
 
-A task opens its pull request against the trunk, unless one of its blocking
-dependencies has a pull request that hasn't merged. Such a task opens its pull
-request against that dependency's branch, and starts from it, so the work it
-builds on is in its tree (REQ-1810, REQ-1812). `ready implement` reads the
-dependency's Evidence on that branch, where its gate passed. A stack's order is
-the order of the blocking dependencies the epic and its tasks declare, and no
-other (REQ-1814). An epic whose tasks block none of each other is never
-stacked, and the implement step says it declined to stack it and why
-(REQ-1840). A `(not blocking)` dependency never stacks a task.
-
-Where a blocking dependency lives in another repository, the implement step
-reports the stack as impossible, naming both tasks and both repositories, and
-opens nothing, because a chain across repositories can't merge (REQ-1836).
-
-The implement step builds a stack with `git` and `gh` alone, so no stack tool
-is needed: `gh pr create --base <dependency's branch>` opens a layer, and each
-layer's body names the layer below it and the one above it by number, the
-bases and links a stack tool would make (REQ-1838). Every task's branch carries
-its task identifier in lower case, as `feat/tsk-4660-open-a-stack`, and a
-task's pull request is found by that identifier in its head branch's name,
-never by a commit, because git has no stable change identifier and a rebase
-replaces every commit it touches (REQ-1834, REQ-1835). A rebase, a split or a
-reorder of the change behind a task keeps its branch and so its pull request,
-with its reviews and discussion (REQ-1832).
-
-After it changes a pull request's base, the step reads the base back with
-`gh pr view <n> --json baseRefName` and reports a base that didn't change as
-not changed (REQ-1818). It reports each required check as not run on the new
-base until a run of it that started after the change has completed, and never
-cites a check that passed on the old base as evidence for the new one
-(REQ-1820, REQ-1822). Where a layer's pull request is closed or ejected from a
-merge queue, the step reports every task above it as blocked, naming that
-layer (REQ-1830).
-
-Layers merge from the bottom. A stacked task's pull request merges into the
-branch it targets: when the layer below has merged, the step changes the
-layer's base to the trunk and reads it back, restacks it with `meow-git
-restack` as SPC-1060 states, and the layer reaches the trunk as its own
-squashed commit once every layer below it has merged (REQ-1844, REQ-1306). The
-person merges each layer, because the harness merges nothing without an
-instruction (REQ-1298).
+The harness builds no stack of pull requests. An epic is one branch and one
+pull request, and its tasks are groups of commits on that branch (ADR-2860),
+so a task has no pull request to stack on. ADR-3000 postpones the rules
+ADR-2550 wrote for task layers, REQ-1810 to REQ-1844 among them. An epic that
+depends on an unmerged epic waits for that epic's merge. `meow-git restack`,
+which SPC-1060 states, still rebuilds the branches of a stack a person makes.
 
 ### The state
 
@@ -765,13 +730,6 @@ and a requirement may be named by any number of tasks and epics (REQ-3646,
 REQ-3648). `status` lists every postponed requirement, one its decision
 postpones, under Postponed with the first entry of the decision's What would
 reverse it (REQ-3622).
-
-For each stack, the blocking chain among an epic's tasks that aren't done,
-`paw status` prints `stack: <task> <- <task> ...` from the bottom, then
-`next to merge: <task>` for the lowest layer, and for each layer above it
-`<task> waits on <task>, not merged` (REQ-1816). A layer whose task is dropped
-blocks every task above it, and `status` prints each as
-`<task> blocked by <dropped task>` (REQ-1830).
 
 Run twice with nothing changed, `paw status` prints the same text (REQ-0210).
 
@@ -824,8 +782,7 @@ reads it, and the method skill reports a record it wrote as unreviewed by a
 person.
 
 The review step reads a task's pull request against the base it was opened on
-(REQ-0311). For a layer of a stack, that base is the layer below, and the
-review reads that layer's own diff and never the whole stack's (REQ-1842). Where the session produced the change, the review step dispatches
+(REQ-0311). Where the session produced the change, the review step dispatches
 the review to an agent with read-only tools. It names what the task asks and
 not who wrote it, and reads the return as a verdict, named as an agent's
 (REQ-0149, REQ-0151, REQ-0157, REQ-0818, REQ-0819). Where the session didn't
@@ -1008,9 +965,6 @@ not gain this prompt.
 | `ready` names an input that doesn't exist                                                                                                   | Exit 1, the input named as missing                                                                                      |
 | `ready` for a step it doesn't know                                                                                                          | Exit 2, naming the seven steps in order, for `cover`, `document` and `verify` as for any other name                     |
 | `ready implement` on a task absent from the trunk, or a draft there                                                                         | Exit 1, naming the task and the trunk                                                                                   |
-| A blocking dependency lives in another repository                                                                                           | The stack is reported as impossible, naming both tasks and repositories, and nothing opens                              |
-| A pull request's base reads back unchanged                                                                                                  | The step reports the base as not changed and cites no check for it                                                      |
-| A layer's pull request is closed or ejected from a merge queue                                                                              | Every task above it is reported blocked, naming the layer                                                               |
 | No trunk declared, no git work tree, a trunk naming no branch, a record outside the repository, or a task reached through a link leaving it | `ready` refuses nothing for it, and `status` says an approval can't be told from one waiting on a merge                 |
 | `template` for a kind it doesn't know                                                                                                       | Exit 2, naming the kinds                                                                                                |
 | The record's root doesn't exist                                                                                                             | `status` and `ready` say so and exit 1, as `check` does                                                                 |
