@@ -1,7 +1,7 @@
 ---
 id: TSK-4780
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2460
 closes: [REQ-2897]
@@ -74,7 +74,7 @@ the approved epics, so no release of `meow-flow` is named for removing the
 reading of marks: removal waits for a decision that migrates them. A defect's
 `## Tasks` keeps its marks.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-5040
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2570
 closes: [REQ-1670]
@@ -48,7 +48,7 @@ does not come from this change, and the `budget` task criterion 2 names is not
 among the gate's tasks. Whether a session follows M26 rests on judgement, as
 the task says, and the hand-run cases are where it is measured.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

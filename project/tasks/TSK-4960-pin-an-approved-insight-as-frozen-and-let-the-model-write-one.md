@@ -1,7 +1,7 @@
 ---
 id: TSK-4960
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2610
 closes: [REQ-2142, REQ-2662]
@@ -60,7 +60,7 @@ Both criteria are closed by tests seen failing first.
    M11 was reworded, and M11 is changed identically in
    `packages/meow-flow/skills/method/SKILL.md`.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

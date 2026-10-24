@@ -1,7 +1,7 @@
 ---
 id: TSK-4975
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2535
 closes: [REQ-0667]
@@ -51,7 +51,7 @@ relations, because `status` and `revised` differ between any two artifacts
 and describe the artifact and not what it claims; that is a choice made
 here, and the README states it. The report sits in the `relations` check.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

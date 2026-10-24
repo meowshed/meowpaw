@@ -1,7 +1,7 @@
 ---
 id: TSK-5000
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2545
 closes: [REQ-2252]
@@ -44,7 +44,7 @@ Criterion 1 is closed by `test_tsk_5000_criterion_1_the_spec_template_lists_seve
 
 The layout's `fields` lists the fields a kind requires, so `concerns` sits in a new `optional_fields` key of the decision kind, which no check requires. That reading is mine, and the key is the layout's addition. The Pi package's README has no section on the steps, so it needs no matching text; its templates, layout and step files are copies of the Claude tree's.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

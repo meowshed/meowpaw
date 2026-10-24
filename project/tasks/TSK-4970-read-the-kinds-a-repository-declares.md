@@ -1,7 +1,7 @@
 ---
 id: TSK-4970
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2535
 closes: [REQ-0666, REQ-0668, REQ-0670]
@@ -62,7 +62,7 @@ kind that reuses a built-in kind's name or prefix is a finding; the task
 states neither, so both are choices made here. `docs/interface.md` is
 regenerated for the new profile key.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

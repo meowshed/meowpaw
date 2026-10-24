@@ -1,7 +1,7 @@
 ---
 id: TSK-5010
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2545
 closes: [REQ-2250]
@@ -42,7 +42,7 @@ Criterion 1 is closed by `tools/test_spec_questions.py` (REQ-2250): `test_each_s
 
 Whether an answer is right rests on judgement, because no program reads what a specification means. The answers are written from each specification's own scope and boundary, from `requires.toml` for what a unit depends on and what depends on it, and from `packages/` for the Pi package. A section the specification doesn't settle says `unanswered`: what crosses a trust boundary for 27 of the 34, and the data of SPC-1240 and SPC-1300.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-4740
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2450
 closes: [REQ-2850, REQ-2852, REQ-2854]
@@ -61,7 +61,7 @@ Criteria 2 and 3 rest on judgement, because the order of the goals and
 whether a requirement makes a claim falsifiable are read. The pull request
 body lists the six goals in order, the claims removed and the reasoning.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

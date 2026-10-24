@@ -1,7 +1,7 @@
 ---
 id: TSK-5030
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2550
 closes: [REQ-3050]
@@ -53,7 +53,7 @@ no list of verbs a program can read, and a word of the first sentence meets one
 where it starts with it, so `commit` is met by `commits`. A `when_to_use` with
 no word in code font is not read, the same as one that is absent.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

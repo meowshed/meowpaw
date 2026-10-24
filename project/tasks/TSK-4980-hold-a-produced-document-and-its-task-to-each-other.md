@@ -1,7 +1,7 @@
 ---
 id: TSK-4980
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2535
 closes: [REQ-0660, REQ-0662, REQ-0664]
@@ -54,7 +54,7 @@ walked upward as a chain of providers, and a task does not rest on what it
 produces. `prompted-by` was already there. The `produces:` field is added to
 the task template, in both trees, as an optional line.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

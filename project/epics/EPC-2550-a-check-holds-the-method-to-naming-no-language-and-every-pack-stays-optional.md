@@ -1,7 +1,7 @@
 ---
 id: EPC-2550
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2640
 ---
@@ -38,16 +38,16 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-5015 fail a method prompt, template or page that names a language or a tool, with `tools/check_language.py`, and rewrite CLAUDE.md's sentence
+- [x] T-001 [P] TSK-5015 fail a method prompt, template or page that names a language or a tool, with `tools/check_language.py`, and rewrite CLAUDE.md's sentence (done: pull request 1078)
       closes: REQ-0070, REQ-0072, REQ-0084
 
-- [ ] T-002 [P] TSK-5020 run the method's steps on a fixture repository with no pack installed
+- [x] T-002 [P] TSK-5020 run the method's steps on a fixture repository with no pack installed (done: pull request 1078)
       closes: REQ-0080, REQ-0086, REQ-0088
 
-- [ ] T-003 [P] TSK-5025 state each pack's toolchain versions and how it prints its tool's configuration, on each pack's README
+- [x] T-003 [P] TSK-5025 state each pack's toolchain versions and how it prints its tool's configuration, on each pack's README (done: pull request 1078)
       closes: REQ-0082, REQ-0085
 
-- [ ] T-004 [P] TSK-5030 hold a unit's description to the words a request contains, in `meow-author check`
+- [x] T-004 [P] TSK-5030 hold a unit's description to the words a request contains, in `meow-author check` (done: pull request 1078)
       closes: REQ-3050
 
 ## Coverage

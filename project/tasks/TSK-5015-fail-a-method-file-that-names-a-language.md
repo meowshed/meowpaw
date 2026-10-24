@@ -1,7 +1,7 @@
 ---
 id: TSK-5015
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2550
 closes: [REQ-0070, REQ-0072, REQ-0084]
@@ -62,7 +62,7 @@ also found the Pi packages' READMEs, which name the Pi host's package manager
 in their install command. Those pages are the host adapter's, so the check
 skips a Pi package's top-level README and says so in its docstring.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

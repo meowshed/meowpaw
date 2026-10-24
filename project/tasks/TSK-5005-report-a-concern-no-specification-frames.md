@@ -1,7 +1,7 @@
 ---
 id: TSK-5005
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2545
 closes: [REQ-2254]
@@ -41,7 +41,7 @@ Criterion 1 is closed by `a_concern_no_specification_heading_names_is_a_finding`
 
 The rule is the named check `concerns-framed` in the `rules` group, listed for the decision kind in `lib/layout.toml`. A `draft` or `done` decision is held to it as well as an `approved` one, which the task leaves open; `withdrawn`, `superseded` and `rejected` are not. SPC-1070's failure table already names the finding and needed no change.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

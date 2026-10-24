@@ -1,7 +1,7 @@
 ---
 id: TSK-5020
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2550
 closes: [REQ-0080, REQ-0086, REQ-0088]
@@ -52,7 +52,7 @@ doesn't exist the step reports the tracker as unsynced and goes on. The
 driven programs are `paw` and `meow-checks`, and a run with a model is left
 out, as the task says.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

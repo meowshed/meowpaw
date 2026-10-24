@@ -1,7 +1,7 @@
 ---
 id: TSK-4995
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2540
 closes: [REQ-2300, REQ-2302]
@@ -39,7 +39,7 @@ Criterion 1 is closed by `test_tsk_4995_criterion_1_reviewing_carries_both_diagr
 
 Whether a reviewer applies the two rules to a real document rests on judgement, because no fixture reads what a diagram claims.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

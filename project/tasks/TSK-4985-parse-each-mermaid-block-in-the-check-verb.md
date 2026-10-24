@@ -1,7 +1,7 @@
 ---
 id: TSK-4985
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2540
 closes: [REQ-2292, REQ-2304]
@@ -44,7 +44,7 @@ Criteria 1 and 2 are closed by `test_tsk_4985_criterion_1_a_block_that_does_not_
 
 The fixtures run a stand-in `mmdc`, since none is installed on the machine that wrote this, so the real tool's wording and exit statuses are assumed from its documentation and not observed. The README says so and gives no version for `mmdc`. Pinning `mmdc` in `mise.toml` waits, as the task's Left alone says, until this repository's own `check` verb runs it.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

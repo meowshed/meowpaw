@@ -1,7 +1,7 @@
 ---
 id: TSK-4720
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2440
 closes: [REQ-2742]
@@ -54,7 +54,7 @@ its place from one that doesn't. A search of `plugins/` and `packages/` for
 "regardless of" and "read last" in Markdown found no shipped rule that claims
 to override what was read before it, so no prompt changed.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-4750
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2450
 closes: [REQ-0611, REQ-0614, REQ-0616, REQ-0618, REQ-0620, REQ-2856, REQ-2857]
@@ -68,7 +68,7 @@ REQ-0611) and `a_second_vision_is_reported_naming_both_files` (criterion 5,
 REQ-0614). Criterion 6: `paw check` reports 0 findings in each of its seven
 checks for this repository.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

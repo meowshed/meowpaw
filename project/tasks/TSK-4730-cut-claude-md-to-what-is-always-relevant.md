@@ -1,7 +1,7 @@
 ---
 id: TSK-4730
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2440
 closes: [REQ-2732, REQ-2736, REQ-2744, REQ-2745, REQ-2746]
@@ -66,7 +66,7 @@ time is read, and the removal list belongs to the pull request body. This task
 did not count recurrences over the last ten merged tasks, so it proposes no
 removal under REQ-2746: the count is not measured here.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

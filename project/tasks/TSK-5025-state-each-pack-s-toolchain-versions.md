@@ -1,7 +1,7 @@
 ---
 id: TSK-5025
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2550
 closes: [REQ-0082, REQ-0085]
@@ -50,7 +50,7 @@ gh 2.101.0, mise 2026.10.7, Task 3.54.0, and the lychee and markdownlint
 versions the Markdown pack's skill already named. No unit's version changed,
 so no page's `describes` was restamped.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

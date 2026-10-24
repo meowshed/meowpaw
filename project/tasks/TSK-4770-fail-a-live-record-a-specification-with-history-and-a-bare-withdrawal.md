@@ -1,7 +1,7 @@
 ---
 id: TSK-4770
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2460
 closes: [REQ-0610, REQ-0612, REQ-0628, REQ-0632]
@@ -75,7 +75,7 @@ lines up and writes the seven that ADR-2970 states, and rewords six
 specifications that used "no longer" in present-tense prose. `paw check` then
 reports 0 findings.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

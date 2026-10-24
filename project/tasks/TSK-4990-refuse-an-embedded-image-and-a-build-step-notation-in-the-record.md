@@ -1,7 +1,7 @@
 ---
 id: TSK-4990
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2540
 closes: [REQ-2290, REQ-2294, REQ-2296]
@@ -43,7 +43,7 @@ Criterion 1 is closed by `test_tsk_4990_criterion_1_an_image_in_a_record_documen
 
 The notations refused for the record are a list in `crates/meow/src/markdown.rs` (`plantuml`, `graphviz`, `dot`, `d2`, `structurizr`, `tikz`, `latex`, `drawio`), my choice, because the task names `plantuml` alone; any other string is accepted.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

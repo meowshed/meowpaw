@@ -1,7 +1,7 @@
 ---
 id: TSK-4710
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2440
 closes: [REQ-2738, REQ-2740]
@@ -58,7 +58,7 @@ criteria 2 and 3 were seen failing first. The test for criterion 1 passed
 before the change, because the template already held no step, and it now
 holds that.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 

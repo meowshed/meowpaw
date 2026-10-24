@@ -1,7 +1,7 @@
 ---
 id: TSK-5035
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2570
 closes: [REQ-1660, REQ-1662, REQ-1668]
@@ -50,7 +50,7 @@ The program holds the verification rule in its `rules` check, not in
 `front-matter` as the task's wording says, so the test runs `paw check rules`
 and `paw check` and reads the finding from both. The rule itself is unchanged.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1078.
 
 ## Left alone
 
