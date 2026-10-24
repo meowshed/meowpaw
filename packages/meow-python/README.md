@@ -2,7 +2,7 @@
 reader: someone installing or running meow-python on Pi
 answers: what meow-python provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-python@0.1.0]
+describes: [@meowshed/meow-python@0.1.1]
 ---
 
 # @meowshed/meow-python

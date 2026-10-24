@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-csharp
 answers: what meow-csharp does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-csharp@0.1.0]
+describes: [meow-csharp@0.1.1]
 description: "Detects a .NET solution or project from what git tracks, compares the SDK global.json pins with the ones installed, prints a stages table that restores explicitly and keeps every build's output outside the working tree, reports Nullable, TreatWarningsAsErrors and AnalysisLevel left unset, writing no file, and carries what a reviewer of C# checks that no command reports."
 ---
 

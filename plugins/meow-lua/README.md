@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-lua
 answers: what meow-lua does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-lua@0.1.0]
+describes: [meow-lua@0.1.1]
 description: "Detects Lua and Neovim plugins from what git tracks, names the runtime or the editor that evaluates the code before it binds anything, prints a stages table bound from the formatter, linter, test runner and rockspec the repository configured, reports a plugin with no runtime declared or no help file, writing no file, and carries what a reviewer of Lua or of a Neovim plugin checks that no command reports."
 ---
 

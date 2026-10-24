@@ -1,6 +1,6 @@
 {
   "name": "meow-loop",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "Runs the method's chain inside the Claude Code session where a person starts it: /meow-loop:run repeats /meow-flow:run until the record holds no open work, the iterations or the hours it was given (ten and four by default) are reached, two iterations change nothing or the person types anything else. Hooks hold the bounds outside the model, deny what would change a run's terms, and let only a person start a run. It keeps nothing in context on every turn.",
   "author": {
     "name": "Andrew Vasilyev",

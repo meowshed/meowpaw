@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-godot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Detects Godot projects from what git tracks, reads the engine version from each project file before it binds anything, prints a stages table bound from the gdtoolkit, GUT and export preset files the repository committed with an import before every export and its output outside the working tree, reports an engine cache or identifier file ignored or committed wrongly, writing no file, and carries what a reviewer of GDScript and scenes checks that no command reports. Distributed as a Pi package.",
   "keywords": [
     "pi-package",

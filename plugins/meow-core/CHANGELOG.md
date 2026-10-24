@@ -1,5 +1,9 @@
 # meow-core
 
+## 0.10.1
+
+- The shared executable carries `serde_json` 1.0.154 and `sha2` 0.11.1, two patch releases of its dependencies.
+
 ## 0.10.0
 
 - The tool gains `paw interface`, which generates the public-interface page from its own documentation.

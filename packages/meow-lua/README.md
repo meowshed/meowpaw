@@ -2,7 +2,7 @@
 reader: someone installing or running meow-lua on Pi
 answers: what meow-lua provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-lua@0.1.0]
+describes: [@meowshed/meow-lua@0.1.1]
 ---
 
 # @meowshed/meow-lua
