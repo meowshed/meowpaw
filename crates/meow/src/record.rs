@@ -31,6 +31,7 @@ macro_rules! say {
 use regex::Regex;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 const CHECKS: [&str; 7] = [
     "front-matter",
@@ -521,7 +522,9 @@ fn closing_tasks(
 ) -> Vec<(String, char, String)> {
     let mut out = Vec::new();
     for task in of_kind(record, "task") {
-        if !requirements_in(record, task.value("closes")).contains(id) {
+        if !task.value("closes").contains(id)
+            || !requirements_in(record, task.value("closes")).contains(id)
+        {
             continue;
         }
         let epic_id = authority_of(task).to_string();
@@ -569,7 +572,10 @@ fn defect_open(record: &Record, defect: &Doc) -> bool {
 fn violated_by(record: &Record, id: &str) -> Vec<String> {
     of_kind(record, "defect")
         .into_iter()
-        .filter(|d| requirements_in(record, d.value("violates")).contains(id))
+        .filter(|d| {
+            d.value("violates").contains(id)
+                && requirements_in(record, d.value("violates")).contains(id)
+        })
         .filter(|d| defect_open(record, d))
         .map(|d| bare(d.id()).to_string())
         .collect()
@@ -1327,8 +1333,10 @@ fn read_record(mut layout: Layout, repository: &Path, root: &Path) -> Record {
 }
 
 /// The pattern of a task entry an epic lists with no mark.
-fn unmarked_entry() -> Regex {
-    Regex::new(r"^- T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern")
+fn unmarked_entry() -> &'static Regex {
+    static ENTRY: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^- T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern"));
+    &ENTRY
 }
 
 /// Gives each unmarked task entry of an epic the mark its task derives: done
@@ -1582,14 +1590,16 @@ fn identifiers(record: &Record) -> Vec<Finding> {
         }
     }
     let mut seen: BTreeMap<String, &Doc> = BTreeMap::new();
+    let mut name_patterns: BTreeMap<&str, Regex> = BTreeMap::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
             continue;
         };
         let Some(prefix) = &kind.prefix else { continue };
         let name = doc.path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        let named =
-            Regex::new(&format!(r"^({prefix}-\d{{4}})-[a-z0-9-]+\.md$")).expect("name pattern");
+        let named = name_patterns.entry(prefix.as_str()).or_insert_with(|| {
+            Regex::new(&format!(r"^({prefix}-\d{{4}})-[a-z0-9-]+\.md$")).expect("name pattern")
+        });
         let Some(from_name) = named.captures(name).map(|c| c[1].to_string()) else {
             out.push(Finding::at(
                 doc,
@@ -2657,7 +2667,10 @@ fn section_lines<'a>(doc: &'a Doc, name: &str) -> Vec<(usize, &'a str)> {
 /// Each task entry an epic lists: its line, its mark, its task and the whole
 /// entry with its continuation lines.
 fn entries(epic: &Doc) -> Vec<(usize, char, String, String)> {
-    let head = Regex::new(r"^- \[(.)\] T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern");
+    static HEAD: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^- \[(.)\] T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern")
+    });
+    let head = &*HEAD;
     let plain = unmarked_entry();
     let mut out: Vec<(usize, char, String, String)> = Vec::new();
     for (i, line) in epic.text.lines().enumerate() {
@@ -2763,6 +2776,7 @@ fn rules(record: &Record) -> Vec<Finding> {
     let struck = Regex::new(r"~~[^~\s][^~]*~~").expect("struck pattern");
     let inline_code = Regex::new(r"`[^`]*`").expect("code span pattern");
     let checkbox = Regex::new(r"^\s*- \[.\] ").expect("checkbox pattern");
+    let known = known(record);
     let mut out = Vec::new();
     for doc in &record.docs {
         let Some(kind) = doc.kind.map(|k| &record.layout.kinds[k]) else {
@@ -2876,7 +2890,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                     }
                 }
                 "done-has-evidence" | "added-says-why" | "dropped-says-why" => {
-                    let known = known(record);
                     for (line, mark, task, entry) in entries(doc) {
                         match (rule.as_str(), mark) {
                             ("done-has-evidence", 'x') => {
@@ -3008,7 +3021,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                     }
                 }
                 "defect-epic-ordered" => {
-                    let known = known(record);
                     let realises = bare(doc.value("realises"));
                     if known
                         .get(realises)
@@ -3030,7 +3042,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                     }
                 }
                 "prompted-by-defect" => {
-                    let known = known(record);
                     for id in doc
                         .value("prompted-by")
                         .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
@@ -3409,7 +3420,9 @@ const BLOCKING: &str = "(blocking)";
 /// leaving out each line marked `(not blocking)`. A line marked `(blocking)`,
 /// or marked neither way, blocks (SPC-1090 "The gate", REQ-1358).
 fn depends_on(task: &Doc) -> Vec<String> {
-    let id = Regex::new(r"TSK-\d{4}").expect("identifier pattern");
+    static ID: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"TSK-\d{4}").expect("identifier pattern"));
+    let id = &*ID;
     section_lines(task, "Depends on")
         .into_iter()
         .filter(|(_, line)| !line.contains(NOT_BLOCKING))
@@ -4050,6 +4063,8 @@ fn title(doc: &Doc) -> String {
 /// addresses that it leaves unnamed under Not covered. Empty where it lists
 /// tasks, or names every one, because its work was done elsewhere (BUG-1250).
 fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) -> Vec<String> {
+    static NOT_COVERED: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?ms)^## Not covered$(.*)").expect("section pattern"));
     if !marks(epic).is_empty() {
         return Vec::new();
     }
@@ -4062,8 +4077,7 @@ fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) ->
     if addressed.is_empty() {
         return vec![format!("{epic_id} lists no tasks")];
     }
-    let not_covered = Regex::new(r"(?ms)^## Not covered$(.*)").expect("section pattern");
-    let named = not_covered
+    let named = NOT_COVERED
         .captures(&epic.text)
         .map(|c| requirements_in(record, &c[1]))
         .unwrap_or_default();
