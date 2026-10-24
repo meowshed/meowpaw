@@ -17,6 +17,8 @@ picks it up is spec.
 4. Argue against it before you finish, and state the strongest objection.
 5. Say what works once it is accepted and what still doesn't, so a reader can
    tell an increment from a promise.
+6. Name each concern the decision raises, such as performance, security or
+   upgrade, in the decision's `concerns:` front matter.
 </steps>
 
 <rules name="design">
@@ -101,4 +103,7 @@ picks it up is spec.
   stale, ask which, and stop: the step writes no decision while both stand,
   because a record that holds both leaves the contradiction for the next
   reader to resolve.
+- D28. Name a concern as one word a specification heading can carry, because
+  `paw check` matches it against the headings, and a concern phrased as a
+  sentence is one no heading names.
 </rules>

@@ -12,7 +12,8 @@ fields = ["id", "artifact", "status", "revised"]
 # The front matter fields whose values name other artifacts.
 relations = ["elaborates", "addresses", "postpones", "supersedes", "realises", "epic", "bug", "closes", "states", "violates", "prompted-by"]
 
-# Per kind: `sections` every record carries, `draft_sections` a draft carries
+# Per kind: `optional_fields` it may carry and no check requires (ADR-2630),
+# `sections` every record carries, `draft_sections` a draft carries
 # as well, `first_section` it opens with, `required_values` fields it must
 # fill, `forbidden_fields` it must not carry, and the named checks of `rules`
 # for every record and `draft_rules` for drafts only (ADR-1140). A rule the
@@ -106,6 +107,7 @@ artifact = "adr"
 prefix = "ADR"
 dir = "adrs"
 fields = ["addresses"]
+optional_fields = ["concerns"]
 statuses = ["draft", "approved", "done", "withdrawn", "rejected", "superseded"]
 index = "adrs/README.md"
 sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]

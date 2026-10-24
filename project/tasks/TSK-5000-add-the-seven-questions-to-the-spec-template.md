@@ -40,7 +40,11 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `test_tsk_5000_criterion_1_the_spec_template_lists_seven_questions_each_unanswered` in `plugins/meow-flow/tests/test_questions.py` (REQ-2252), seen failing first. Criterion 2 is closed by `test_tsk_5000_criterion_2_the_decision_template_names_the_optional_concerns` in the same file and, in `crates/meow/tests/concerns.rs`, `a_decision_naming_a_concern_passes_the_front_matter_check` and `the_layout_names_concerns_as_an_optional_field_of_the_decision_kind`. Criterion 3 is closed by `test_tsk_5000_criterion_3_the_design_step_names_each_concern_in_concerns` and `test_tsk_5000_criterion_3_the_spec_step_frames_each_concern_in_a_section_it_names`.
+
+The layout's `fields` lists the fields a kind requires, so `concerns` sits in a new `optional_fields` key of the decision kind, which no check requires. That reading is mine, and the key is the layout's addition. The Pi package's README has no section on the steps, so it needs no matching text; its templates, layout and step files are copies of the Claude tree's.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

@@ -159,6 +159,15 @@ updates the threat model your specification keeps, so the new threats are
 ranked among those it already lists. Where your specification keeps none, the
 decision says so.
 
+The design step also names each concern a decision raises, such as
+performance, security or upgrade, in the decision's optional `concerns:` front
+matter, and the spec step frames each in a section of a specification whose
+heading names it. The `spec` template ends with a `Questions` section of seven
+questions: what the part is for, what it depends on, what depends on it, where
+its data lives, what crosses a trust boundary, how it fails and how it is
+deployed. Answer each from what the specification states, or leave it
+`unanswered`, so a reader sees the gap instead of missing it.
+
 An epic's pull request carries the whole epic, and each of its tasks is a
 group of commits on that branch: its tests first, in a commit of their own
 where they fail, then the implementation, the documentation it changes and its
