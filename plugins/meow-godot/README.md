@@ -3,6 +3,7 @@ reader: someone choosing or running meow-godot
 answers: what meow-godot does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-godot@0.1.0]
+description: "Detects Godot projects from what git tracks, reads the engine version from each project file before it binds anything, prints a stages table bound from the gdtoolkit, GUT and export preset files the repository committed with an import before every export and its output outside the working tree, reports an engine cache or identifier file ignored or committed wrongly, writing no file, and carries what a reviewer of GDScript and scenes checks that no command reports."
 ---
 
 # meow-godot
@@ -30,6 +31,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
+
+<!-- host-specific: claude -->
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
@@ -138,6 +141,8 @@ names what it determines, what you read to reach the same answer without the
 tool, and the first word of each kind of line it prints.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.280 or later, declared in `plugins/meow-godot/requires.toml`, and git.
 The pack is current as of Godot 4.7 and gdtoolkit 4.x as the research read them in September 2026, GUT's command line and Godot's command-line reference as read on 2026-10-13. Check a binding against a newer

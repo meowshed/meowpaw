@@ -1,0 +1,543 @@
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# The facts that differ per unit in its launcher, read by generate_launchers.py.
+# A key under [launcher.<unit>.pi] replaces the shared one for the Pi package.
+
+[launcher.meow-author]
+subcommand = 'author'
+comment = [
+  "Where there is none, it reports the material as unchecked, because material",
+  "nobody checked must never read as material that passed.",
+]
+tail = '''
+@REASON@
+case "$1" in
+check)
+  echo "meow-author check: unchecked: $reason"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-author check [path...]" >&2
+  exit 2
+  ;;
+esac
+'''
+[launcher.meow-author.pi]
+tail = '''
+@REASON@
+case "$1" in
+check)
+  echo "meow-author check: unchecked: $reason"
+  exit 3
+  ;;
+cost)
+  echo "meow-author cost: unchecked: $reason"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-author check [path...] | meow-author cost" >&2
+  exit 2
+  ;;
+esac
+'''
+
+[launcher.meow-checks]
+subcommand = 'verbs'
+comment = [
+  "Where there is none, it reports every verb unresolved itself, because a verb",
+  "that couldn't run must never read as passed.",
+]
+tail = '''
+verbs="format lint check test build"
+@REASON@
+case "$1" in
+status)
+  if [ "$2" = "--json" ]; then
+    printf '{"profile": null, "profile_state": "unknown", "error": "%s", "verbs": {' "$reason"
+    sep=""
+    for verb in $verbs; do
+      printf '%s"%s": {"state": "unresolved", "kind": "no interpreter", "detail": "%s"}' "$sep" "$verb" "$reason"
+      sep=", "
+    done
+    printf '}, "ignored": []}\n'
+  else
+    for verb in $verbs; do
+      printf '%-10s unresolved  no interpreter: %s\n' "$verb" "$reason"
+    done
+  fi
+  exit 0
+  ;;
+revision)
+  cat >/dev/null 2>&1
+  echo "meow-checks revision: not counted (no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null)); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+  exit 0
+  ;;
+run)
+  shift
+  if [ $# -eq 0 ]; then
+    echo "meow-checks run: name the verbs to run, from: $verbs" >&2
+    exit 2
+  fi
+  summary=""
+  for verb in "$@"; do
+    printf '== %s: unresolved (no interpreter: %s), not run\n' "$verb" "$reason"
+    summary="$summary${summary:+, }$verb unresolved"
+  done
+  printf '\nsummary: %s\n' "$summary"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-checks status [--json] | meow-checks run <verb>..." >&2
+  exit 2
+  ;;
+esac
+'''
+[launcher.meow-checks.pi]
+tail = '''
+verbs="format lint check test build"
+@REASON@
+case "$1" in
+status)
+  if [ "$2" = "--json" ]; then
+    printf '{"profile": null, "profile_state": "unknown", "error": "%s", "verbs": {' "$reason"
+    sep=""
+    for verb in $verbs; do
+      printf '%s"%s": {"state": "unresolved", "kind": "no interpreter", "detail": "%s"}' "$sep" "$verb" "$reason"
+      sep=", "
+    done
+    printf '}, "ignored": []}\n'
+  else
+    for verb in $verbs; do
+      printf '%-10s unresolved  no interpreter: %s\n' "$verb" "$reason"
+    done
+  fi
+  exit 0
+  ;;
+run)
+  shift
+  if [ $# -eq 0 ]; then
+    echo "meow-checks run: name the verbs to run, from: $verbs" >&2
+    exit 2
+  fi
+  summary=""
+  for verb in "$@"; do
+    printf '== %s: unresolved (no interpreter: %s), not run\n' "$verb" "$reason"
+    summary="$summary${summary:+, }$verb unresolved"
+  done
+  printf '\nsummary: %s\n' "$summary"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-checks status [--json] | meow-checks run <verb>..." >&2
+  exit 2
+  ;;
+esac
+'''
+
+[launcher.meow-csharp]
+subcommand = 'csharp'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-csharp status | bind | check'
+
+[launcher.meow-flow]
+file = 'paw'
+subcommand = 'record'
+comment = [
+  "Where there is none, it reports the record as not checked, because a record",
+  "nobody checked must never read as a clean one.",
+]
+prologue = '''
+  # A layout the caller named wins, because a test or a script pointing at
+  # another layout is asking the binary about that layout, not about this one.
+  if [ -z "$MEOW_LAYOUT" ]; then
+    MEOW_LAYOUT="$here/../lib/layout.toml"
+    export MEOW_LAYOUT
+  fi
+'''
+tail = '''
+# The session-start hook blocks nothing, so with no binary it says the record
+# wasn't checked and how to install the binary, and the session begins
+# (SPC-1240).
+if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
+  echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with: claude plugin install meow-core@meowpaw"
+  exit 0
+fi
+echo "paw: the record was not checked: no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+exit 3
+'''
+[launcher.meow-flow.pi]
+prologue = '''
+  MEOW_LAYOUT="$here/../lib/layout.toml"
+  export MEOW_LAYOUT
+'''
+tail = '''
+# At the start of a session, say nothing rather than a failure nobody asked about.
+if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
+  exit 0
+fi
+echo "paw: the record was not checked: no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"
+exit 3
+'''
+
+[launcher.meow-git]
+subcommand = 'git'
+comment = [
+  "Where there is none, it denies the command and says how to install the",
+  "binary, because a guard that lets a call through for a missing binary lets",
+  "through the call it exists to stop (ADR-2710).",
+]
+tail = '''
+# A hook that lets a call through for a missing binary lets through the call it
+# exists to stop (ADR-2710), so each guard denies and says how to install.
+cat >/dev/null 2>&1
+echo "meow-git: denied $1 because no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+exit 2
+'''
+[launcher.meow-git.pi]
+comment = [
+  "Where there is none, it reports the checks as unrun and lets the command",
+  "through, because blocking every commit for a missing binary would punish the",
+  "person for something the pack can't check.",
+]
+tail = '''
+cat >/dev/null 2>&1
+echo "meow-git $1: unrun (no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64); nothing was checked"
+exit 0
+'''
+
+[launcher.meow-github]
+subcommand = 'github'
+comment = [
+  "Where there is none, it reports the history as unread, because a history",
+  "nobody read must never read as one that holds nothing, and lets the hook's",
+  "guard pass every call.",
+]
+tail = '''
+@REASON@
+if [ "$1" = "governance-guard" ]; then
+  # A launcher with no binary can't tell which call its program would have let
+  # through, so the hook denies every Bash call it matches and says how to
+  # install the binary (ADR-2710).
+  cat >/dev/null
+  echo "meow-github: denied $1 because $reason, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+  exit 2
+fi
+if [ "$1" = "history" ]; then
+  echo "meow-github history: unread ($reason); nothing was read"
+  exit 3
+fi
+echo "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | sync <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | governance-guard" >&2
+exit 2
+'''
+[launcher.meow-github.pi]
+tail = '''
+@REASON@
+if [ "$1" = "governance-guard" ]; then
+  # The hook runs on every Bash call, and a hook that fails blocks them all,
+  # so with no binary it lets every call through to the person's own rules.
+  cat >/dev/null
+  exit 0
+fi
+if [ "$1" = "history" ]; then
+  echo "meow-github history: unread ($reason); nothing was read"
+  exit 3
+fi
+echo "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | sync <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | governance-guard" >&2
+exit 2
+'''
+
+[launcher.meow-go]
+subcommand = 'go'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check | toolchain'
+state = 'unresolved'
+usage = 'meow-go status | bind | check | toolchain'
+
+[launcher.meow-godot]
+subcommand = 'godot'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-godot status | bind | check'
+
+[launcher.meow-gotask]
+subcommand = 'gotask'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-gotask status | bind | check'
+
+[launcher.meow-licence]
+subcommand = 'licence'
+comment = [
+  "Where there is none, it reports the message as unchecked, because a message",
+  "nobody checked must never read as one that passed.",
+]
+tail = '''
+@REASON@
+case "$1" in
+check)
+  echo "meow-licence check: unchecked: $reason"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-licence check" >&2
+  exit 2
+  ;;
+esac
+'''
+
+[launcher.meow-loop]
+subcommand = 'loop'
+comment = [
+  "Where there is none, it reports the run as unresolved and starts nothing,",
+  "because a run nobody could start must never read as one that ended.",
+]
+prologue = '''
+  # The binary may sit in another unit, so it is told where this unit's
+  # layout is. A layout the caller named wins.
+  if [ -z "$MEOW_LAYOUT" ]; then
+    MEOW_LAYOUT="$here/../lib/layout.toml"
+    export MEOW_LAYOUT
+  fi
+  # The run's hooks load this unit, whose directory the binary can't derive
+  # from its own path where it ships in another unit.
+  if [ -z "$MEOW_LOOP_UNIT" ]; then
+    MEOW_LOOP_UNIT=$(cd "$here/.." 2>/dev/null && pwd -P)
+    export MEOW_LOOP_UNIT
+  fi
+'''
+tail = '''
+@REASON@
+case "$1" in
+guard)
+  # A launcher with no binary can't tell which call its program would have let
+  # through, so the guard denies every Bash command, Edit and Write it matches
+  # and says how to install the binary (ADR-2710).
+  cat >/dev/null
+  echo "meow-loop: denied $1 because $reason, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+  exit 2
+  ;;
+prompt | stop)
+  # These two start and end a run and stop no call, and a prompt hook that
+  # denies erases what the person typed, so with no binary the session goes on
+  # with no run started and none ended.
+  cat >/dev/null
+  exit 0
+  ;;
+start | purge)
+  echo "unresolved: $reason"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-loop start --prompt <file> --until verbs=<stage>[,<stage>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..." >&2
+  exit 2
+  ;;
+esac
+'''
+[launcher.meow-loop.pi]
+prologue = '''
+'''
+tail = '''
+@REASON@
+case "$1" in
+guard)
+  # The hook runs on every Bash command, Edit and Write, and a hook that
+  # fails blocks them all, so with no binary it lets each through: a write
+  # to the hash check, and a start to the refusal under CLAUDECODE.
+  cat >/dev/null
+  exit 0
+  ;;
+start)
+  echo "unresolved: $reason"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-loop start --prompt <file> --until verbs=<stage>[,<stage>...] --iterations <n> --budget-usd <amount> --permission-mode dontAsk [--allowed-tools <rule>]... [--plugin-dir <dir>]..." >&2
+  exit 2
+  ;;
+esac
+'''
+
+[launcher.meow-lua]
+subcommand = 'lua'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-lua status | bind | check'
+
+[launcher.meow-markdown]
+subcommand = 'markdown'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check | links'
+state = 'unresolved'
+usage = 'meow-markdown status | bind | check | links [<input>...]'
+
+[launcher.meow-mise]
+subcommand = 'mise'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-mise status | bind | check'
+
+[launcher.meow-prose-gate]
+subcommand = 'prose'
+comment = [
+  "Where there is none, it denies the publish and says how to install the",
+  "binary, because a guard that lets a call through for a missing binary lets",
+  "through the call it exists to stop (ADR-2710).",
+]
+prologue = '''
+  # The shared binary sits in another unit, so it is told where this one is.
+  if [ -z "$MEOW_PROSE_GATE_UNIT" ]; then
+    MEOW_PROSE_GATE_UNIT=$(cd "$here/.." 2>/dev/null && pwd -P)
+    export MEOW_PROSE_GATE_UNIT
+  fi
+'''
+tail = '''
+cat >/dev/null 2>&1
+echo "meow-prose-gate: denied $1 because no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+exit 2
+'''
+[launcher.meow-prose-gate.pi]
+comment = [
+  "Where there is none, it falls back to the paw executable the core package",
+  "carries (ADR-2810), and where neither exists, it reports the check as",
+  "unrun and lets the publish through, because blocking every publish for a",
+  "missing binary would teach people to uninstall the gate (ADR-1600).",
+]
+prologue = '''
+'''
+tail = '''
+cat >/dev/null 2>&1
+echo "meow-prose-gate $1: unrun (no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install @meowshed/meow-core, which carries one for macOS, Linux and Windows on arm64 and x86_64); nothing was checked"
+exit 0'''
+
+[launcher.meow-python]
+subcommand = 'python'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-python status | bind [<directory>] | check [<directory>]'
+
+[launcher.meow-rust]
+subcommand = 'rust'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check | toolchain'
+state = 'unresolved'
+usage = 'meow-rust status | bind | check | toolchain'
+
+[launcher.meow-scheme]
+subcommand = 'scheme'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-scheme status | bind | check'
+
+[launcher.meow-scm]
+subcommand = 'scm'
+comment = [
+  "Where there is none, it reports the message as unchecked, because a message",
+  "nobody checked must never read as one that passed.",
+]
+tail = '''
+@REASON@
+case "$1" in
+convention)
+  echo "meow-scm convention: unknown ($reason)"
+  exit 3
+  ;;
+check-message)
+  echo "meow-scm check-message: unchecked ($reason); the message was not checked"
+  exit 3
+  ;;
+*)
+  echo "usage: meow-scm convention | meow-scm check-message [FILE]" >&2
+  exit 2
+  ;;
+esac
+'''
+
+[launcher.meow-starlark]
+subcommand = 'starlark'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-starlark status | bind | check'
+
+[launcher.meow-typescript]
+subcommand = 'typescript'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'status | bind | check'
+state = 'unresolved'
+usage = 'meow-typescript status | bind [<directory>] | check [<directory>]'
+
+[launcher.meow-unattended]
+subcommand = 'unattended'
+comment = [
+  "Where there is none, it reports the repository as unresolved, because a",
+  "report nobody could make must never read as one that found nothing.",
+]
+commands = 'plan'
+state = 'unresolved'
+usage = 'meow-unattended plan'
+
+[extension]
+units = [
+  "meow-author",
+  "meow-checks",
+  "meow-csharp",
+  "meow-go",
+  "meow-godot",
+  "meow-gotask",
+  "meow-licence",
+  "meow-lua",
+  "meow-markdown",
+  "meow-mise",
+  "meow-python",
+  "meow-rust",
+  "meow-scheme",
+  "meow-scm",
+  "meow-starlark",
+  "meow-typescript",
+  "meow-unattended",
+]

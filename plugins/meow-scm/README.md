@@ -3,6 +3,7 @@ reader: someone choosing or running meow-scm
 answers: what meow-scm does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-scm@0.8.0]
+description: "Checks a commit message against the convention the repository declares in .meowpaw/profile.toml and against a ban on crediting a tool, before the message is used, and reports an undeclared convention as undeclared, never as met."
 ---
 
 # meow-scm
@@ -47,7 +48,9 @@ you name must appear on every message. `may_name` lists each person, as
 `Name <address>`, who agreed to be named in a trailer, and
 `meow-scm convention` prints the list.
 
-## What Claude Code does with it
+## What Pi does with it
+
+<!-- host-specific: claude -->
 
 Before Claude Code writes a commit message, a squash message or a pull
 request title, the `meow-scm:commit` skill has it read your convention, write
@@ -125,6 +128,8 @@ and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-scm/requires.toml`. It relies on these platform behaviours,

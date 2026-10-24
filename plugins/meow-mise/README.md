@@ -3,6 +3,7 @@ reader: someone choosing or running meow-mise
 answers: what meow-mise does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-mise@0.5.0]
+description: "Reports the tasks mise resolves in a repository, with where each came from and what stops a stage running it unattended, binds the stages to them, and never grants trust, answers a prompt or writes a file."
 ---
 
 # meow-mise
@@ -27,6 +28,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
+
+<!-- host-specific: claude -->
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
@@ -146,6 +149,8 @@ and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.280 or later, the version this unit was tested on, declared in
 `plugins/meow-mise/requires.toml`; mise 2026.9.11 or later; and git.

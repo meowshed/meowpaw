@@ -3,6 +3,7 @@ reader: someone choosing or running meow-core
 answers: what meow-core does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-core@0.10.0]
+description: "Shapes every reply Claude Code makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It replaces your own output style while it is enabled."
 ---
 
 # meow-core
@@ -24,6 +25,8 @@ hedge that carries real uncertainty stays, because deleting it manufactures
 confidence you have not earned.
 
 ## Subordinate agents
+
+<!-- host-specific: claude -->
 
 A subordinate agent runs its own system prompt, and an output style never
 reaches it. If you write a prompt that dispatches one, include the style's
@@ -67,6 +70,8 @@ claude plugin details meow-core@meowpaw
 
 ## Measure it
 
+<!-- host-specific: claude -->
+
 The shape is measured by running its cases with the plugin and without it. Each
 run is a real model call, so nothing runs it automatically. You run it by hand:
 
@@ -91,6 +96,8 @@ as a lower score.
 `write-root` stops nothing: at the start of a session it records where the unit is installed, so the other units find the shared binary.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-core/requires.toml`. It relies on these platform behaviours,

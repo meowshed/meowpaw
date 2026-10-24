@@ -3,6 +3,7 @@ reader: someone choosing or running meow-checks
 answers: what meow-checks does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-checks@0.14.0]
+description: "Runs a repository's five verification stages, format, lint, check, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a stage with no command as unresolved, never as passed."
 ---
 
 # meow-checks
@@ -76,7 +77,9 @@ nothing about the part. Each ledger record keeps its scope and the directory
 the run started in. A `--part` that names no declared part exits 2, names the
 parts the profile declares and runs nothing.
 
-## What Claude Code does with them
+## What Pi does with them
+
+<!-- host-specific: claude -->
 
 When Claude Code formats, lints, type-checks, tests or builds, the
 `meow-checks:verify` skill has it run the program in place of a command it
@@ -234,6 +237,8 @@ stage is reported unresolved, as "no interpreter".
 
 ## Hooks
 
+<!-- host-specific: claude -->
+
 `meow-checks revision` stops nothing: it adds one to the revision counter after
 a tool use, and a binary missing for the machine makes the hook say so and let
 the session go on.
@@ -246,6 +251,8 @@ and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-checks/requires.toml`. It relies on these platform behaviours,
