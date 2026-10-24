@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-11
 bug: BUG-1610
 closes: [REQ-4616]
-issue:
+issue: 1097
+projected: ddbde3111085
+tracked: 71f6c48b5833
 ---
 
 # Start a loop run from a Pi session

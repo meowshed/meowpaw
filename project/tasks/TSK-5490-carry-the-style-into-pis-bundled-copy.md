@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-11
 bug: BUG-1630
 closes: []
-issue:
+issue: 1100
+projected: f8bcd1fcede5
+tracked: 2bbd5388b490
 ---
 
 # Carry the style into Pi's bundled copy, and hold the copy to the source

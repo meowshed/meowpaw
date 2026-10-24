@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-11
 realises: ADR-2990
 closes: []
-issue:
+issue: 1114
+projected: e62cd679b787
+tracked: b0cb76ce8a23
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

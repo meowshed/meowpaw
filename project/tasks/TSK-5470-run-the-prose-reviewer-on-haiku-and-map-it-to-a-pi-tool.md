@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-11
 realises: ADR-2950
 closes: [REQ-4618]
-issue:
+issue: 1098
+projected: b24e01c7b878
+tracked: ef9a8feb5f67
 ---
 
 # Run the prose reviewer on haiku and map it to a Pi tool

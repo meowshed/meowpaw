@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-11
 bug: BUG-1600
 closes: []
-issue:
+issue: 1096
+projected: 9060af2d271a
+tracked: 6e3f72c610f1
 ---
 
 # Load each Pi command's skill, and answer nothing else
