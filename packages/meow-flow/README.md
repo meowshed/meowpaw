@@ -2,7 +2,7 @@
 reader: someone installing or running meow-flow on Pi
 answers: what meow-flow provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-flow@0.52.0]
+describes: [@meowshed/meow-flow@0.53.0]
 ---
 
 # @meowshed/meow-flow

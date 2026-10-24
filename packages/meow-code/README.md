@@ -2,7 +2,7 @@
 reader: someone installing or running meow-code on Pi
 answers: what meow-code provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-code@0.3.0]
+describes: [@meowshed/meow-code@0.4.0]
 ---
 
 # @meowshed/meow-code

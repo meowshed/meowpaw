@@ -333,6 +333,17 @@ class TheJudgedRules(unittest.TestCase):
         self.assertIn('P1 | "deep dive"', done.stderr)
         self.assertFalse(record.exists(), "the judge was called on a text an exact rule blocked")
 
+    def test_a_wrapper_form_that_publishes_nothing_calls_no_judge(self):
+        # TSK-5681 criterion 2, REQ-2798: the hook fires on `git -C`, `git -c`, `gh -R` and `gh --repo`, because a
+        # publishing command can hide behind them, and the gate calls its judge only when one does.
+        record = Path(SCRATCH.name) / "calls-wrapper"
+        for command in ("git -C . status", "git -c user.name=x log --oneline", "gh -R owner/repo pr list",
+                        "gh --repo owner/repo issue list", "git -C . diff --stat"):
+            with self.subTest(command=command):
+                done = gate(command, judge(record=record))
+                self.assertEqual((done.returncode, done.stderr, done.stdout), (0, "", ""), command)
+        self.assertFalse(record.exists(), "the judge was called on a command that publishes no text")
+
     def test_the_judge_reads_the_published_text(self):
         # REQ-3744: both calls judge the same text, the one the command publishes.
         record = Path(SCRATCH.name) / "calls-text"

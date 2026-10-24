@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-prose",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Holds everything Claude Code writes for you to one writing standard: the answer first, a reason for every rule, one term for one thing, and plain English for a reader who learned it as a second language. Distributed as a Pi package.",
   "keywords": [
     "pi-package",
