@@ -51,3 +51,37 @@ measure to the decision that asks for it, which no record has yet.
 | A workflow under `.github/workflows/` names a model call or a credential | `tools/check_workflows.py` fails the gate (ADR-2840)                                          |
 | A change to a shipped prompt is asserted safe, not reviewed              | The move is reviewed against the behaviour the material produces, not asserted (REQ-2750)     |
 | A prompt's behaviour regresses and review passed it                      | The failure that would bring the measurement back early is recorded, and the redesign decides |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States that the harness measures no prompt, and that review replaced measurement.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+It holds none: the page states no measurement.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+Nothing is deployed: the page states that the harness measures no prompt.

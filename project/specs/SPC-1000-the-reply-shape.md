@@ -124,3 +124,37 @@ review is not repeated until it agrees.
 | A unit dispatches a subordinate agent without the rules block | The subordinate answers in the platform's default shape, which is a defect against REQ-0954      |
 | A reply has nothing in the record to compute progress from    | The reply states that, and states no step count it cannot support                                |
 | The shape would require dropping a stage or a finding         | The shape yields and the item stays (REQ-0952)                                                   |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Fixes the shape of every reply the harness makes to a person, and the rules block that carries the shape into a subordinate agent.
+
+### What it depends on
+
+`meow-core` lists no other unit in its `requires.toml`.
+
+### What depends on it
+
+Every other unit but 2 lists `meow-core` in its `requires.toml`.
+
+### Where its data lives
+
+Prose in `plugins/meow-core/output-styles/*.md`; it holds no data.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-core` installs as a plugin from the marketplace, `plugins/meow-core/`, and ships as the Pi package `packages/meow-core/`.

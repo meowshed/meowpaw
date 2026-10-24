@@ -108,3 +108,37 @@ amendment and patches nothing (REQ-1902).
 | --------------------------------- | ---------------------------------------------------------------- |
 | No language server in the session | The answer comes from a text search, stating what it can't cover |
 | No mutation tool named            | The model says how to declare one and runs nothing in its place  |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Carries how the harness changes code, writes a check and debugs a defect.
+
+### What it depends on
+
+`meow-code` lists no other unit in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-code` in its `requires.toml`.
+
+### Where its data lives
+
+It holds none: it ships two skills and a page.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-code` installs as a plugin from the marketplace, `plugins/meow-code/`, and ships as the Pi package `packages/meow-code/`.

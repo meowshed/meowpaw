@@ -100,6 +100,7 @@ fn check(paths: &[String]) -> u8 {
                 if field(&text, "description").is_empty() {
                     failures.push(format!("{where_}: has no description in its front matter"));
                 }
+                failures.extend(description_leads(&text, &where_));
                 if has_steps(&text) && !stops(&text) {
                     failures.push(format!(
                         "{where_}: has a procedure and no step naming where it stops"
@@ -789,6 +790,49 @@ fn field(text: &str, key: &str) -> String {
         .find_map(|line| line.strip_prefix(&format!("{key}:")))
         .map(|v| v.trim().to_string())
         .unwrap_or_default()
+}
+
+/// The defect in a description that leads with none of the words its
+/// `when_to_use` names (REQ-3050): a request reaches a unit through those
+/// words. `when_to_use` names a word by writing it in code font, and a word
+/// matches when a word of the description's first sentence starts with it, so
+/// `commit` is met by `commits`. A unit with no `when_to_use`, or none in code
+/// font, has no word to read, so the rule passes it.
+fn description_leads(text: &str, where_: &str) -> Vec<String> {
+    let when = field(text, "when_to_use");
+    let named = Regex::new(r"`([A-Za-z][A-Za-z-]*)`").expect("code font pattern");
+    let mut words: Vec<String> = Vec::new();
+    for capture in named.captures_iter(&when) {
+        let word = capture[1].to_lowercase();
+        if !words.contains(&word) {
+            words.push(word);
+        }
+    }
+    let description = field(text, "description");
+    let description = description.trim_matches(|c| c == '"' || c == '\'');
+    if words.is_empty() || description.is_empty() {
+        return Vec::new();
+    }
+    let first = Regex::new(r"[.!?](\s|$)")
+        .expect("sentence end pattern")
+        .find(description)
+        .map_or(description, |end| &description[..end.start()])
+        .to_lowercase();
+    let carried = Regex::new(r"[a-z][a-z-]*")
+        .expect("word pattern")
+        .find_iter(&first)
+        .any(|w| {
+            words
+                .iter()
+                .any(|word| w.as_str().starts_with(word.as_str()))
+        });
+    if carried {
+        return Vec::new();
+    }
+    vec![format!(
+        "{where_}: description's first sentence carries none of the words when_to_use names: {}",
+        words.join(", ")
+    )]
 }
 
 /// Each defect in one prompt's form, as SPC-1030 states it (REQ-1112, REQ-1120).

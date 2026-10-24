@@ -13,8 +13,9 @@ verification: static
 
 # REQ-3035
 
-The measurement suite MUST run only by hand on the owner's machine, so that no
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+The measurement suite MUST run only by hand on the owner's machine, so that no
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

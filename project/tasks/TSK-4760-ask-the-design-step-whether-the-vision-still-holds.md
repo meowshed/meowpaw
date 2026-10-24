@@ -1,7 +1,7 @@
 ---
 id: TSK-4760
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2450
 closes: [REQ-0624, REQ-2852]
@@ -44,7 +44,11 @@ labelled rules, held to SPC-1030 and the unit's `budget.toml`.
 
 ## Evidence
 
-Not yet.
+Criteria 1 and 2 are closed by the `VisionQuestions` class in
+`plugins/meow-flow/tests/test_constitution_vision.py`, seen failing first,
+against D26 and D27 of the design step in both trees (REQ-2852, REQ-0624).
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

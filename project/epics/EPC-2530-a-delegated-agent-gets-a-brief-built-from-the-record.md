@@ -1,7 +1,7 @@
 ---
 id: EPC-2530
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2560
 ---
@@ -56,8 +56,9 @@ number.
       closes: REQ-0818, REQ-0824, REQ-0826, REQ-0828, REQ-2980
       depends: TSK-4945 (blocking) - the step names `paw brief`, which has to exist before the step tells anyone to run it
 
-- [ ] T-003 [P] TSK-4955 show that a repository's own agent replaces a shipped one of the same name
-      closes: REQ-2986
+- [~] T-003 [P] TSK-4955 show that a repository's own agent replaces a shipped one of the same name
+  closes: REQ-2986
+  dropped: ADR-3020 withdraws REQ-2986, because the platform keeps a repository's agent apart from the unit's
 
 ## Coverage
 

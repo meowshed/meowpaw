@@ -3,6 +3,7 @@ reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-flow@0.53.0]
+description: "Runs the method's seven steps from research to review, each refused by a native program until its input is approved, routes each request before work starts, drives the steps to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it."
 ---
 
 # meow-flow
@@ -29,6 +30,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Bring a repository in
+
+<!-- host-specific: claude -->
 
 Type `/meow-flow:init` in a repository with no `.meowpaw/profile.toml`. It
 reads the repository and writes the profile from the template
@@ -75,7 +78,60 @@ It goes to standard error because standard output is what a step reads, such
 as a template or an identifier. An unparseable profile stops the command with
 the parser's message, and an unknown key changes no exit status.
 
+## Declare your own kinds
+
+Declare a kind of artifact the harness doesn't ship under
+`[record.kinds.<name>]` in the same profile, and `paw check` holds its files to
+the same rules as the built-in kinds:
+
+```toml
+[record.kinds.narrative]
+prefix = "NAR"
+lifetime = "record"
+template = ".meowpaw/templates/narrative.md"
+outranks = ["research"]
+```
+
+`prefix`, `lifetime` and `template` are required. `lifetime` is `record`, which
+freezes a file on approval, or `living`, which you rewrite freely. `template`
+is a path under `.meowpaw/templates/` to a file that exists. Files of the kind
+sit in a directory named for the kind under the record's root, as
+`project/narrative/NAR-0001-<slug>.md`, with the front matter every artifact
+carries: `id`, `artifact` (the kind's name), `status` and `revised`.
+`paw check` reports a declaration that lacks one of the three, a template that
+doesn't exist and a prefix another kind uses. A key that would turn an
+obligation off, such as `frozen = false`, is an unknown key, because a
+declared kind is never exempt from the method. `paw index` writes no index
+for a declared kind.
+
+`outranks` is optional. Where two artifacts of kinds in that order cite each
+other and state different values for a field of their own, `paw check`
+reports the pair in `relations`, naming both files and the order. It doesn't
+choose between them, and the fields every artifact carries and the relations
+are left out of the comparison, because they describe the artifact and not
+what it claims.
+
+## Name the document a task produces
+
+A task's output can be a document. Name it in the task's `produces:` and name
+the task in the document's `prompted-by:`:
+
+```yaml
+# project/tasks/TSK-0001-write-the-finding.md
+produces: [RES-0002]
+# project/research/RES-0002-the-finding.md
+prompted-by: TSK-0001
+```
+
+`paw check relations` reports either side without the other, naming both
+artifacts, and a `produces:` that names no file. The document is held to its
+kind as one a step wrote is, so research still needs its Summary, Method,
+Conclusions and Sources. `prompted-by:` on research, a requirement or a
+decision names a defect or a task.
+
 ## Run the method
+
+<!-- host-specific: claude -->
 
 Type `/meow-flow:run` to be taken to the next approval gate. It reads where
 the record stands, runs the next step, and stops where that step waits for
@@ -108,6 +164,15 @@ updates the threat model your specification keeps, so the new threats are
 ranked among those it already lists. Where your specification keeps none, the
 decision says so.
 
+The design step also names each concern a decision raises, such as
+performance, security or upgrade, in the decision's optional `concerns:` front
+matter, and the spec step frames each in a section of a specification whose
+heading names it. The `spec` template ends with a `Questions` section of seven
+questions: what the part is for, what it depends on, what depends on it, where
+its data lives, what crosses a trust boundary, how it fails and how it is
+deployed. Answer each from what the specification states, or leave it
+`unanswered`, so a reader sees the gap instead of missing it.
+
 An epic's pull request carries the whole epic, and each of its tasks is a
 group of commits on that branch: its tests first, in a commit of their own
 where they fail, then the implementation, the documentation it changes and its
@@ -130,6 +195,12 @@ A defect authorises work as a decision does. Where the fix is one task, the
 defect record carries it under `## Tasks`, with the same marks an epic uses,
 and the task names `bug: BUG-NNNN` in place of `epic`. `paw status` counts the
 tasks decisions authorised and the tasks defects did.
+
+An epic's `## Tasks` entry carries no mark. A task is done once its Evidence
+is written past `Not yet.` and dropped once it is withdrawn, rejected or
+superseded. An approved epic that carries `[x]` and `[~]` marks keeps them, and
+`paw` reads both forms, so `paw check` fails a draft epic that marks a task and
+passes an approved one that does. The reading of marks stays until a decision migrates the approved epics.
 
 A task sits under its epic or its defect and nothing else, so `paw check`
 reports a task, an epic or a defect carrying a grouping field, `milestone`,
@@ -275,6 +346,8 @@ the decision's What would reverse it, so you see them on each run.
 
 ## Check the record
 
+<!-- host-specific: claude -->
+
 From the repository, run every check, or one by name:
 
 ```bash
@@ -297,15 +370,15 @@ shape: 0 findings
 rules: 0 findings
 ```
 
-| Check          | Reports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `front-matter` | A field the kind requires that's missing, a field the kind forbids, a status the kind doesn't store, a bad `revised`; a retired field or status, which `lib/layout.toml` lists with what replaced it; a decision, epic or task whose stored `done` disagrees with derived completion                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `identifiers`  | A file whose name and `id` disagree, an identifier used twice, a cited requirement not found                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `relations`    | An identifier in a relation field with no file, one in a draft's prose outside code, and a link in the record to a missing file; a suspect citation in a draft or living artifact, one whose target was revised after it, or an epic or defect it cites that is withdrawn or superseded                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `index`        | A file its kind's index doesn't list, and an index entry with no file; a specification listed before one it cites                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `coverage`     | A requirement a decision addresses that lands in no task, or in no specification; a task whose Evidence section says it's done while its epic leaves it unmarked; an open task closing a withdrawn requirement; an approved or living artifact resting on a draft anywhere up its chain, and a draft or living one resting on a withdrawn, superseded or rejected provider, each with the chain named. It also states how many requirements in force land in a task, and calls an empty record's coverage zero. Where an onboarding report exists, a document the repository has that the report doesn't place exactly once, with one of four outcomes and a destination or reason                  |
-| `shape`        | An artifact missing a section its kind carries, such as research without its conclusions; a section the layout retired, such as `## Cover`; a withdrawn requirement cited in a living document outside a Withdrawn section; a record kept in an archive directory                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `rules`        | An undated source or a cited requirement in draft research, a requirement whose `verification` isn't `static`, `behavioural`, `evaluation` or `judgement`, a judged draft requirement with no verifier, a draft requirement carrying two keywords, leaning on a neighbour or written as "No X MUST Y", an epic realising other than one record, a decision's alternatives with no reason they lost; an epic task marked done with no evidence, or added or dropped with no reason; an onboarding report whose Adoption section has no numbered steps; an insight whose title carries a date or runs under four words, whose evidence holds no number or block, or that doesn't end with The pattern |
+| Check          | Reports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `front-matter` | A field the kind requires that's missing, a field the kind forbids, a status the kind doesn't store, a bad `revised`; a retired field or status, which `lib/layout.toml` lists with what replaced it; a decision, epic or task whose stored `done` disagrees with derived completion; a kind declared under `[record.kinds]` that lacks a prefix, lifetime or template                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `identifiers`  | A file whose name and `id` disagree, an identifier used twice, a second file carrying `id: vision`, a cited requirement not found                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `relations`    | An identifier in a relation field with no file, one in a draft's prose outside code, and a link in the record to a missing file; a suspect citation in a draft or living artifact, one whose target was revised after it, or an epic or defect it cites that is withdrawn or superseded; two artifacts across a declared kind's `outranks` order that cite each other and disagree on a field; a task and the document it `produces` that don't name each other                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `index`        | A file its kind's index doesn't list, and an index entry with no file; a specification listed before one it cites                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `coverage`     | A requirement a decision addresses that lands in no task, or in no specification; a task whose Evidence section says it's done while its epic leaves it unmarked; an open task closing a withdrawn requirement; an approved or living artifact resting on a draft anywhere up its chain, and a draft or living one resting on a withdrawn, superseded or rejected provider, each with the chain named. It also states how many requirements in force land in a task, and calls an empty record's coverage zero. Where an onboarding report exists, a document the repository has that the report doesn't place exactly once, with one of four outcomes and a destination or reason                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `shape`        | An artifact missing a section its kind carries, such as research without its conclusions; a section the layout retired, such as `## Cover`; a withdrawn requirement cited in a living document outside a Withdrawn section; a record kept in an archive directory; a vision missing Who it is for, Quality goals, What it will not do or Risks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `rules`        | An undated source or a cited requirement in draft research, a requirement whose `verification` isn't `static`, `behavioural`, `evaluation` or `judgement`, a judged draft requirement with no verifier, a draft requirement carrying two keywords, leaning on a neighbour or written as "No X MUST Y", an epic realising other than one record, a decision's alternatives with no reason they lost, and a concern in an approved or draft decision's `concerns:` that no specification section heading names, matched by whole words without regard to case; an epic task marked done with no evidence, or added or dropped with no reason; an onboarding report whose Adoption section has no numbered steps; a vision carrying a date, a requirement stated as an obligation or a body over 2,000 words; a specification carrying struck text, a heading naming a tombstone or a withdrawal, or a phrase from `history_phrases` in `lib/layout.toml` such as "previously"; a withdrawn record whose first line under its title names no record; a draft epic marking a task with a checkbox or a Status column, because a task's state is read from the task; an insight whose title carries a date or runs under four words, whose evidence holds no number or block, or that doesn't end with The pattern |
 
 `paw check frozen --base <rev>` reports each record approved at
 `<rev>` and changed since, outside what its kind may change: a task's Evidence,
@@ -318,7 +391,16 @@ it needs git and a base.
 It exits 0 when no check found anything, 1 when any did or the root doesn't
 exist, 2 for a check it doesn't know, and 3 when the record wasn't checked.
 
+After the checks, `paw check` counts the lines of `CLAUDE.md` at the
+repository's root. Over 200 it prints
+`CLAUDE.md: over its target of 200 lines at <n>; cut it`. The line is advice:
+it changes no check's count and no exit status, because 200 lines is a target
+and a hard limit would cut rules to fit a number. A repository with no
+`CLAUDE.md` gets no line.
+
 ## Replace the researcher
+
+<!-- host-specific: claude -->
 
 To use a researcher of your own, put its definition in
 `.claude/agents/researcher.md` in your repository. Claude Code loads it under
@@ -339,6 +421,8 @@ The `researcher` agent holds four tools, each for one step of its procedure:
 
 ## What it costs you
 
+<!-- host-specific: claude -->
+
 The `method` and `route` skills' descriptions, the driver's and the
 `researcher` agent's, on every turn, so Claude knows when to load each. The
 program is a native binary shipped inside the unit, so it needs nothing
@@ -348,6 +432,8 @@ so and names `claude plugin install meow-core@meowpaw` and exits 0, so the
 session begins.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-flow/requires.toml`. It relies on these platform behaviours,

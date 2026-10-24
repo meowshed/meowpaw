@@ -1,7 +1,7 @@
 ---
 id: EPC-2460
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2590
 ---
@@ -41,10 +41,10 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-4770 fail a record that declares `status: live`, a specification that carries history and a withdrawal that names nothing, in the `record` feature of `crates/meow/`
+- [x] T-001 [P] TSK-4770 fail a record that declares `status: live`, a specification that carries history and a withdrawal that names nothing, in the `record` feature of `crates/meow/` (done: pull request 1078)
       closes: REQ-0610, REQ-0612, REQ-0628, REQ-0632
 
-- [ ] T-002 [P] TSK-4780 derive a task's state from the task and drop the per-task mark from a draft epic, in `crates/meow/` and the epic template
+- [x] T-002 [P] TSK-4780 derive a task's state from the task and drop the per-task mark from a draft epic, in `crates/meow/` and the epic template (done: pull request 1078)
       closes: REQ-2897
 
 ## Coverage

@@ -3,16 +3,17 @@ reader: someone choosing or running meow-markdown
 answers: what meow-markdown does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-markdown@0.9.0]
+description: "Detects a Markdown corpus from what git tracks, lists the tools a repository configured for it, and prints a stages table bound from that configuration, reports a missing render target, markdownlint settings the lint stage lacks, ignores or never applies and a link check that leaves its network behaviour undeclared, and runs lychee to report a link it couldn't reach as unreachable, never as a finding, writing no file, and carries what a reviewer of a Markdown document checks that no command reports."
 ---
 
 # meow-markdown
 
 `meow-markdown` tells you whether your repository holds a Markdown corpus,
 lists the tools you configured for it, prints a `[stages]` table bound from
-that configuration, checks the settings behind your stages, and runs your link
-check. Its skill tells Claude Code what a reviewer of a Markdown document
+that configuration, checks the settings behind your stages, runs your link
+check, and parses the Mermaid diagrams in your documents. Its skill tells Claude Code what a reviewer of a Markdown document
 checks that no command reports. It writes no file. `status`, `bind` and `check` read the files git
-tracks and run git alone, and `links` runs lychee. It installs on its own, with
+tracks and run git alone, `links` runs lychee and `diagrams` runs `mmdc`. It installs on its own, with
 no other part of the `meowpaw` harness.
 
 ## Install it
@@ -29,6 +30,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Run it
+
+<!-- host-specific: claude -->
 
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
@@ -73,7 +76,8 @@ status.
 ## Bind your stages
 
 `meow-markdown bind` prints a `[stages]` table for you to paste into
-`.meowpaw/profile.toml`, and never writes the profile itself:
+`.meowpaw/profile.toml`, and never writes the profile itself. Commit what it prints, so the stages run from
+the declaration the repository holds:
 
 ```toml
 [stages]
@@ -94,7 +98,8 @@ Each stage takes the first binding that applies:
 | `lint`   | `markdownlint-cli2 '**/*.md'`  | A `.markdownlint-cli2.*` or `.markdownlint.*` file                                |
 | `lint`   | `markdownlint '**/*.md'`       | A `.markdownlintrc` at the root, which markdownlint-cli2 ignores                  |
 | `lint`   | `meow-markdown check`          | No linter configuration of any kind                                               |
-| `check`  | nothing, printed as unresolved | Always, since Markdown has no types                                               |
+| `check`  | `meow-markdown diagrams`       | A tracked document holds a `mermaid` block                                        |
+| `check`  | nothing, printed as unresolved | No `mermaid` block, since Markdown has no types                                   |
 | `test`   | `meow-markdown links`          | A `lychee.toml`                                                                   |
 | `build`  | nothing, printed as unbound    | A `mkdocs.yml`, `book.toml`, `hugo.toml` or `docusaurus.config.*`, which it names |
 
@@ -118,16 +123,17 @@ runner's tasks.
 `meow-markdown check` reports each setting your stages depend on that is
 missing or has no effect, one line for each finding, and exits 1 on any:
 
-| Line                                                                     | When                                                                                                                                                                                            |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `no render target: declare [markdown] target`                            | Your profile's `[markdown] target` is missing or empty                                                                                                                                          |
-| `markdownlint-cli2 runs its defaults: no configuration file`             | Your `lint` stage runs `markdownlint-cli2`, names no `--config <file>`, and git tracks no markdownlint configuration                                                                            |
-| `markdownlint runs its defaults: no configuration file`                  | Your `lint` stage runs `markdownlint` or `markdownlint-cli`, names no `-c <file>`, `--config <file>` or `--config=<file>`, and git tracks no `.markdownlint.*` or `.markdownlintrc` at the root |
-| `markdownlint ignores <file>`                                            | Your `lint` stage runs `markdownlint` or `markdownlint-cli`, and git tracks a `.markdownlint-cli2.*` file                                                                                       |
-| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>` | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules                                                                                              |
-| `link check declares no <setting>`                                       | A stage runs `lychee` or `meow-markdown links`, and nothing it reads sets `offline`, `max_retries` or `cache`                                                                                   |
-| `<file> doesn't parse as TOML: <message>`                                | The link check's settings file isn't valid TOML                                                                                                                                                 |
-| `.lycheecache isn't ignored`                                             | The link check's cache is on, and no ignore file in your repository covers `.lycheecache`                                                                                                       |
+| Line                                                                       | When                                                                                                                                                                                            |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `no render target: declare [markdown] target`                              | Your profile's `[markdown] target` is missing or empty                                                                                                                                          |
+| `markdownlint-cli2 runs its defaults: no configuration file`               | Your `lint` stage runs `markdownlint-cli2`, names no `--config <file>`, and git tracks no markdownlint configuration                                                                            |
+| `markdownlint runs its defaults: no configuration file`                    | Your `lint` stage runs `markdownlint` or `markdownlint-cli`, names no `-c <file>`, `--config <file>` or `--config=<file>`, and git tracks no `.markdownlint.*` or `.markdownlintrc` at the root |
+| `markdownlint ignores <file>`                                              | Your `lint` stage runs `markdownlint` or `markdownlint-cli`, and git tracks a `.markdownlint-cli2.*` file                                                                                       |
+| `<dir>: <a> and <b> both configure rules; markdownlint-cli2 applies <a>`   | One directory holds a `.markdownlint.*` and a `.markdownlint-cli2.*` whose `config` sets any rules                                                                                              |
+| `link check declares no <setting>`                                         | A stage runs `lychee` or `meow-markdown links`, and nothing it reads sets `offline`, `max_retries` or `cache`                                                                                   |
+| `<file> doesn't parse as TOML: <message>`                                  | The link check's settings file isn't valid TOML                                                                                                                                                 |
+| `.lycheecache isn't ignored`                                               | The link check's cache is on, and no ignore file in your repository covers `.lycheecache`                                                                                                       |
+| `[docs] diagrams = <notation> needs a build step; the record can't use it` | Your profile's `[docs] diagrams` names `plantuml`, `graphviz`, `dot`, `d2`, `structurizr`, `tikz`, `latex` or `drawio`                                                                          |
 
 Any string in `[markdown] target` counts as a declaration. For a stage running
 `lychee`, `check` reads the file `--config` names, or `lychee.toml` at the root,
@@ -143,8 +149,8 @@ markdownlint-cli2's `--config` with the path as the next word, because
 markdownlint-cli2 reads `--config=<path>` as a glob and applies no
 configuration from it. With no finding it prints `no findings`, followed on
 the same line by the groups of settings it checked: the render target, the
-markdownlint settings and the link check's settings, so a clean result says
-what it covers. It then exits 0.
+markdownlint settings, the link check's settings and the diagram notation, so a
+clean result says what it covers. It then exits 0.
 
 To run the checks with your linter, append the command to your `lint` stage,
 naming the program by its path so a CI job without the unit's `bin/` on
@@ -194,6 +200,46 @@ status, because `check` already reports an unignored cache as a finding.
 `meow-checks` reads a `test` stage's exit status alone, so it reports a `links`
 run that exits 3 as failed, and the lines it quotes say `unreachable`.
 
+## Check your diagrams
+
+A diagram is text in a fenced block in the document that carries it, never an
+embedded image, because an image drifts from its source with no diff to show
+it. Mermaid is the notation unless your profile declares another under
+`[docs] diagrams`, because GitHub renders a `mermaid` block with no build step,
+no plugin and no generated file:
+
+```toml
+[docs]
+diagrams = "mermaid"
+```
+
+`meow-markdown diagrams [<input>...]` parses each `mermaid` block in the
+tracked Markdown, or in the inputs you give, with `mmdc`, the Mermaid
+command-line tool. It writes the blocks and the output `mmdc` renders outside
+your working tree. It prints one line for each block that doesn't parse, as
+`<file>:<line>: mermaid block doesn't parse: <mmdc's words>`, with the line
+the fence opens on. It also prints `<file>:<line>: image <target> embedded; ...`
+for each image link to a `.png` or `.svg` file in a document under the
+record's root, `[record] root` or `project`, and says nothing of the same link
+in a document outside it. It exits 1 on any finding, 3 where `mmdc` is
+missing or broken, and 0 otherwise. A repository with no `mermaid` block never
+runs `mmdc`.
+
+A notation that needs a build step is refused for the record: `check` reports
+`[docs] diagrams = plantuml needs a build step; the record can't use it`. In
+a document outside the record you may use one, and that document states its
+cost. No program reads whether it does, so review holds that.
+
+State in the prose beside a diagram everything the diagram asserts, because a
+reader of the raw file gets the source and not the picture. Put no obligation
+in a diagram, which belongs in a requirement, and no reason, which belongs in
+a decision. No parser reads whether the prose says what the diagram does, so
+review holds both rules.
+
+`mmdc` pulls a headless browser, so installing it costs download size and the
+run takes longer. This repository's fixtures run a stand-in `mmdc`, and the
+command wasn't observed against a release of the real one.
+
 ## Generated files
 
 Commit no generated file: Markdown's tools generate nothing that is project
@@ -203,7 +249,7 @@ state, and the configuration files `bind` reads are files you write. Ignore
 
 ## What it reports instead of a table
 
-Every command exits 0 when it reports what it was asked, `check` and `links`
+Every command exits 0 when it reports what it was asked, `check`, `links` and `diagrams`
 exit 1 on a finding, and every command exits 3 when it can't:
 
 | Line                                              | Means                                                                                       |
@@ -214,6 +260,8 @@ exit 1 on a finding, and every command exits 3 when it can't:
 | `tool absent: lychee`                             | `links` found no lychee on `PATH`                                                           |
 | `tool broken: lychee ended with exit status ...`  | lychee exited 3 on its configuration or 1 on its inputs                                     |
 | `tool broken: lychee printed ...`                 | lychee printed no JSON, or JSON missing a map `links` reads or carrying one it doesn't know |
+| `tool absent: mmdc`                               | `diagrams` found a `mermaid` block and no `mmdc` on `PATH`                                  |
+| `tool broken: mmdc ended with ...`                | `mmdc` ended with an exit status other than 0 or 1, checking nothing                        |
 
 `bind` exits 0 whatever comments its table holds, because a stage printed with
 its reason is settled.
@@ -221,7 +269,7 @@ its reason is settled.
 ## Review a document
 
 When Claude Code reviews a Markdown document, the skill has it read your
-render target first, and then load `reviewing.md`, which holds six points no
+render target first, and then load `reviewing.md`, which holds seven points no
 command reports:
 
 1. Whether the heading outline, read alone, is the document's argument.
@@ -230,7 +278,10 @@ command reports:
    any tag.
 4. Reference links for a source cited more than twice.
 5. Relative links written in a style that survives a move.
-6. Whether a diagram claims something the prose doesn't.
+6. Whether the prose beside a diagram states everything it asserts, and the
+   diagram claims nothing the prose doesn't.
+7. Whether a diagram carries an obligation or a reason, which belong in a
+   requirement and a decision.
 
 The skill carries what it knows of front matter, admonitions and diagram
 blocks for each known render target, and judges none of them for a target it
@@ -246,7 +297,8 @@ standard belongs to `meow-prose`, not to this pack.
 The skill's description stays in context on every turn, and `reviewing.md`
 costs context only when a Markdown document is reviewed. The program is a native binary shipped
 inside the unit, and needs git on the machine. `links` reaches every remote
-address your documents cite on each run. On a machine the unit carries
+address your documents cite on each run, and `diagrams` starts a headless
+browser through `mmdc` for each `mermaid` block. On a machine the unit carries
 no binary for, it reports the repository as unresolved and exits 3.
 
 ## Read a subcommand's help
@@ -258,7 +310,10 @@ subcommand's output to those words.
 
 ## What it needs
 
+<!-- host-specific: claude -->
+
 Claude Code 2.1.280 or later, declared in
 `plugins/meow-markdown/requires.toml`, and git. `links` needs lychee on
-`PATH`. The pack was observed against lychee 0.24.2, markdownlint-cli2 0.23.2
-and markdownlint-cli 0.49.1.
+`PATH`, and `diagrams` needs `mmdc` on `PATH` where a document holds a
+`mermaid` block. The pack is current as of lychee 0.24.2, markdownlint-cli2 0.23.2,
+markdownlint-cli 0.49.1 and git 2.56.0, observed on 2026-10-24.

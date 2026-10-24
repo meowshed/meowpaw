@@ -1,7 +1,7 @@
 ---
 id: TSK-5100
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2560
 closes: [REQ-2342, REQ-2344]
@@ -56,7 +56,19 @@ states the toolchain versions it is current as of.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `status_reports_for_the_directory_holding_the_marker`,
+`a_neovim_plugin_is_detected_from_its_layout` and
+`a_work_tree_with_no_marker_is_not_a_lua_repository` (REQ-2342, REQ-2344,
+REQ-3048). Criterion 2 is closed by `bind_prints_every_stage_for_a_library` and
+`bind_prints_every_stage_for_a_neovim_plugin` (REQ-2342, REQ-2344). Criterion 3
+is closed by `the_runtime_is_detected_before_any_stage_binds` (REQ-2446) and
+`the_linter_the_repository_configured_is_the_one_bound` (REQ-2420), with
+`check_reports_what_a_plugin_lacks` and `the_pack_leaves_the_tree_as_it_found_it`
+(REQ-2442) beside them, all in `crates/meow/tests/pack_lua.rs`. Criterion 4 is
+closed by `tools/check_docs.py`, with the `meow-lua` rows of `docs/README.md`
+reading `shipped`. The pack is built on `pack.rs` and `detect.rs`.
+
+Every stage passed in pull request #1077.
 
 ## Left alone
 

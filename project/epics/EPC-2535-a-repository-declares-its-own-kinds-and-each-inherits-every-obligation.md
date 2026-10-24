@@ -1,7 +1,7 @@
 ---
 id: EPC-2535
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2600
 ---
@@ -38,14 +38,14 @@ number.
 
 ## Tasks
 
-- [ ] T-001 TSK-4970 read `[record.kinds.<name>]` and hold a declared kind to every general obligation, in the `record` feature of `crates/meow/`
+- [x] T-001 TSK-4970 read `[record.kinds.<name>]` and hold a declared kind to every general obligation, in the `record` feature of `crates/meow/` (done: pull request 1078)
       closes: REQ-0666, REQ-0668, REQ-0670
 
-- [ ] T-002 TSK-4975 report a conflict across a declared kind's `outranks` order, in the `record` feature of `crates/meow/`
+- [x] T-002 TSK-4975 report a conflict across a declared kind's `outranks` order, in the `record` feature of `crates/meow/` (done: pull request 1078)
       closes: REQ-0667
       depends: TSK-4970 (blocking) - the order is read from the declaration TSK-4970 parses
 
-- [ ] T-003 [P] TSK-4980 check `produces:` on a task against `prompted-by:` on its artifact, in `crates/meow/` and the `task` template
+- [x] T-003 [P] TSK-4980 check `produces:` on a task against `prompted-by:` on its artifact, in `crates/meow/` and the `task` template (done: pull request 1078)
       closes: REQ-0660, REQ-0662, REQ-0664
       depends: TSK-4970 (not blocking) - a produced document may be of a declared kind, and the built-in kinds test the rule without one
 

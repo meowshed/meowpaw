@@ -29,3 +29,37 @@ history and no reasons, which live in the decisions.
 
 What happens when things go wrong, as precisely as the success path, because
 this is where defects gather when it's skipped.
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+unanswered
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+unanswered
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+unanswered
+
+### How it is deployed
+
+unanswered

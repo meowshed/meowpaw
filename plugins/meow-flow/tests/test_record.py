@@ -39,7 +39,8 @@ def index(ident, names):
 
 
 CLEAN = {
-    "vision.md": "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n",
+    "vision.md": "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n\n" + "".join(
+        f"## {section}\n\nText.\n\n" for section in ("Who it is for", "Quality goals", "What it will not do", "Risks")),
     "README.md": index("index", ["SPC-0001", "EPC-0001", "BUG-0001"]),
     "specs/SPC-0001-a-part.md": record(
         "spec", "SPC-0001", {"status": "live", "states": "[REQ-0001]"},
@@ -2509,6 +2510,8 @@ class SevenSteps(unittest.TestCase):
             for status, code in (("approved", 0), ("superseded", 0), ("withdrawn", 0), ("draft", 1)):
                 text = (repository.root / "bugs/BUG-0001-a-defect.md").read_text(encoding="utf-8")
                 text = re.sub(r"\nstatus: \w+", f"\nstatus: {status}", text, count=1)
+                if status == "withdrawn" and "**Withdrawn by" not in text:
+                    text = re.sub(r"(\n# [^\n]*\n)", r"\1\n**Withdrawn by ADR-0001. No replacement.**\n", text, count=1)
                 repository.write("bugs/BUG-0001-a-defect.md", text)
                 done = repository.run("check", "rules")
                 self.assertEqual(done.returncode, code, f"{step} {status}: {done.stdout}")
@@ -2863,9 +2866,8 @@ class EpicIsOnePullRequest(unittest.TestCase):
         self.assertEqual(found, [])
 
     def test_the_constitution_says_an_epic_is_one_pull_request(self):
-        """Criterion 2, REQ-4400: the layout row and the principle both name the epic as the unit."""
+        """Criterion 2, REQ-4400: the principle names the epic as the unit (TSK-4730 cut the layout table)."""
         text = (self.ROOT / "CLAUDE.md").read_text(encoding="utf-8")
-        self.assertRegex(text, r"project/epics/EPC-NNNN-<slug>\.md`\s*\|[^\n]*one pull request")
         self.assertRegex(text, r"An epic is one pull request")
 
     def test_the_implement_step_works_the_tasks_of_an_epic_on_one_branch(self):

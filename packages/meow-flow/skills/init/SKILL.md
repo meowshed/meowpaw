@@ -48,4 +48,8 @@ installed the harness agreed to that install and to nothing else.
 - N5. Where a profile exists, change nothing until the person agrees to the
   diff you showed, because a profile edited by hand holds decisions that
   reading the repository can't recover.
+- N6. Write `CLAUDE.md` from the template and the repository's own files, and
+  copy nothing from the method into it, no step, rule or template, because
+  the method loads from the harness and a copy in the constitution drifts from
+  it.
 </rules>

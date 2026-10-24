@@ -1,7 +1,7 @@
 ---
 id: ADR-2540
 artifact: adr
-status: approved
+status: superseded
 revised: 2026-10-03
 addresses:
   [
@@ -23,6 +23,8 @@ supersedes: []
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
 
 # 2540. An epic projects onto a grouping the tracker offers, and the harness reports the links it made
+
+**Superseded by ADR-3010.**
 
 ## Decision
 

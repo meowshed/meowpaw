@@ -1,7 +1,7 @@
 ---
 id: EPC-2545
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2630
 ---
@@ -37,14 +37,14 @@ number.
 
 ## Tasks
 
-- [ ] T-001 TSK-5000 add the seven questions to the `spec` template and the `concerns:` field to the design and spec steps, in `plugins/meow-flow/`
+- [x] T-001 TSK-5000 add the seven questions to the `spec` template and the `concerns:` field to the design and spec steps, in `plugins/meow-flow/` (done: pull request 1078)
       closes: REQ-2252
 
-- [ ] T-002 [P] TSK-5005 report a decision's concern that no specification section frames, in the `record` feature of `crates/meow/`
+- [x] T-002 [P] TSK-5005 report a decision's concern that no specification section frames, in the `record` feature of `crates/meow/` (done: pull request 1078)
       closes: REQ-2254
       depends: TSK-5000 (blocking) - the check reads the `concerns:` field TSK-5000 adds to the layout
 
-- [ ] T-003 [P] TSK-5010 add the question section to every specification under `project/specs/`
+- [x] T-003 [P] TSK-5010 add the question section to every specification under `project/specs/` (done: pull request 1078)
       closes: REQ-2250
       depends: TSK-5000 (blocking) - the section's wording is the template's
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-5025
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2550
 closes: [REQ-0082, REQ-0085]
@@ -37,7 +37,20 @@ SPC-1110 states.
 
 ## Evidence
 
-Not yet.
+Criteria 1 and 2 are closed by `tools/test_pack_readmes.py`, run by the
+`test-tools` task: `test_every_pack_readme_states_the_versions_it_is_current_as_of`
+for REQ-0085, and
+`test_a_pack_that_prints_configuration_says_the_repository_commits_it` for
+REQ-0082. Both were seen failing first, on all five READMEs and on the three
+that print a stages table. The test reads the five packs the task names from a
+list, because the `layer` key it would have read them by also marks the nine
+language packs, which state their toolchains in their own words and are left
+to a later task. The versions are the ones observed on 2026-10-24: git 2.56.0,
+gh 2.101.0, mise 2026.10.7, Task 3.54.0, and the lychee and markdownlint
+versions the Markdown pack's skill already named. No unit's version changed,
+so no page's `describes` was restamped.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

@@ -11,8 +11,9 @@ verification: evaluation
 
 # REQ-1078
 
-A change moving explanation out of always-loaded material MUST be shown not to
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+A change moving explanation out of always-loaded material MUST be shown not to
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

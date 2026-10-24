@@ -11,9 +11,9 @@ verification: static
 
 # REQ-1056
 
-Each unit of loadable material MUST have a stated size budget.
-
 **Withdrawn by ADR-2970 on 2026-10-11. No replacement.**
+
+Each unit of loadable material MUST have a stated size budget.
 
 It read: each unit of loadable material MUST have a stated size budget.
 

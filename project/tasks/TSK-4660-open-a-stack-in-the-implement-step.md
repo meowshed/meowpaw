@@ -1,8 +1,8 @@
 ---
 id: TSK-4660
 artifact: task
-status: approved
-revised: 2026-10-03
+status: withdrawn
+revised: 2026-10-24
 epic: EPC-2430
 closes:
   [
@@ -25,6 +25,8 @@ tracked: e5d2be77bbd5
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
 
 # Open a stack in the implement step
+
+Withdrawn by ADR-3000: ADR-2860 makes an epic one pull request, so a task has no pull request to stack on, and the requirements it closes are postponed.
 
 The implement step opens a task's pull request against its unmerged blocking
 dependency's branch, in the epic's dependency order, with `git` and `gh`

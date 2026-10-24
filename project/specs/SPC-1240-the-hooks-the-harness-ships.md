@@ -2,9 +2,10 @@
 id: SPC-1240
 artifact: spec
 status: live
-revised: 2026-10-03
+revised: 2026-10-24
 states:
   [
+    REQ-1426,
     REQ-2710,
     REQ-2712,
     REQ-2714,
@@ -17,7 +18,7 @@ states:
     REQ-2727,
     REQ-2728,
     REQ-2730,
-    REQ-1426,
+    REQ-2798,
   ]
 ---
 
@@ -114,7 +115,9 @@ A unit declares each hook in its `hooks/hooks.json`, and its README carries a
 `## Hooks` section with one sentence per hook naming the subcommand in code
 font and saying what the hook stops (REQ-2726). The hooks stay few: the table
 under Boundary lists every one, and a unit that adds a hook adds its row here
-in the same change.
+in the same change. A hook that asks a judge carries an `if` matcher naming a
+command that publishes text, such as `git commit` or `gh pr create`, and never
+fires on a command that publishes none (REQ-2798).
 
 ### How a rule is layered
 
@@ -188,3 +191,37 @@ declaration and the program's source is Rust.
 | A hook names a network command                  | `meow-author check` fails, unless it is the prose gate's judge              |
 | A hook has no sentence in its README            | `meow-author check` fails, naming the unit and the hook                     |
 | A hook builds a network call at run time        | The check can't see it, and review holds it                                 |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States the rules every hook the harness ships keeps.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+unanswered
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+With each unit that ships a hook, in its `hooks/` directory.

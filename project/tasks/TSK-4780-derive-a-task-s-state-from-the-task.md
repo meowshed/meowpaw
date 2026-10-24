@@ -1,7 +1,7 @@
 ---
 id: TSK-4780
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2460
 closes: [REQ-2897]
@@ -61,7 +61,20 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criteria 1, 2 and 3 are closed by the tests in
+`crates/meow/tests/record_living.rs`, each seen failing first:
+`a_draft_epic_with_a_status_per_task_fails` (criterion 1, REQ-2897),
+`an_unmarked_task_is_done_from_its_evidence_and_dropped_from_its_status`
+(criterion 2) and `a_marked_task_keeps_the_state_its_mark_gives` (criterion 3).
+Criterion 4: `paw status` printed 322 lines before the change, from a build of
+the previous `record.rs`, and the same 322 lines after, with no difference.
+
+`paw` reads both forms, and no migration is planned because ADR-2590 excuses
+the approved epics, so no release of `meow-flow` is named for removing the
+reading of marks: removal waits for a decision that migrates them. A defect's
+`## Tasks` keeps its marks.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

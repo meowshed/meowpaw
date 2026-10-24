@@ -189,3 +189,37 @@ standard error, and never an empty list.
 `check` with no profile, or a profile that doesn't parse, reports it as
 unresolved with exit status 3, because a check that read nothing hasn't
 passed.
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Binds the five stages to the tasks mise resolves in a work tree.
+
+### What it depends on
+
+`meow-mise` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-mise` in its `requires.toml`.
+
+### Where its data lives
+
+It reads the runner's configuration in the work tree, and the bindings it prints belong in `[stages]` of the profile.
+
+### What crosses a trust boundary
+
+It runs `mise` to list tasks, which evaluates a trusted file's templates. It never runs `mise trust` and never passes `--yes`, and an untrusted directory is reported as unresolved.
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-mise` installs as a plugin from the marketplace, `plugins/meow-mise/`, and ships as the Pi package `packages/meow-mise/`.

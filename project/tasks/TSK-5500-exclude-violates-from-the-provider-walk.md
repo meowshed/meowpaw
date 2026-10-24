@@ -1,7 +1,7 @@
 ---
 id: TSK-5500
 artifact: task
-status: approved
+status: done
 revised: 2026-10-11
 bug: BUG-1640
 closes: []
@@ -46,4 +46,12 @@ touch, and every other relation's provider semantics.
 
 ## Evidence
 
-Not yet.
+Criteria 1 and 2 are closed by `a_violation_behind_a_specification_is_no_provider` and
+`a_draft_behind_a_specification_still_reports` in `crates/meow/src/record.rs`,
+both named for TSK-5500. `cargo test --all-features -- a_violation_behind a_draft_behind`
+ran 2 tests and passed 2, at the trunk revision this record was closed on. The
+change itself, `violates` in `NOT_PROVIDERS`, landed with commit 6a7fd00d in
+pull request 1053, and this task's marks went unwritten until now.
+
+Criterion 3 rests on that pull request's gate, where every stage passed. Every
+stage passed in pull request #1053.

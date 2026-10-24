@@ -80,7 +80,8 @@ it first.
   and line length, and a document passing all of them can still say nothing.
 - M8. Load `reviewing.md` on review for what no command reports, because the
   linter sees that a fence has a language tag and not that it is the right
-  one.
+  one, and `meow-markdown diagrams` sees that a `mermaid` block parses and
+  not that the prose beside it says what it shows.
 </rules>
 
 <rules name="where prose linting stops">
