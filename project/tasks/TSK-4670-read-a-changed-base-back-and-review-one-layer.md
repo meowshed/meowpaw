@@ -1,8 +1,8 @@
 ---
 id: TSK-4670
 artifact: task
-status: approved
-revised: 2026-10-03
+status: withdrawn
+revised: 2026-10-24
 epic: EPC-2430
 closes: [REQ-1818, REQ-1820, REQ-1822, REQ-1830, REQ-1842]
 issue: 951
@@ -13,6 +13,8 @@ tracked: 5986beadb2c1
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
 
 # Read a changed base back, report its checks as not run, and review one layer's diff
+
+Withdrawn by ADR-3000: it extends the stacking rules of TSK-4660, which has no subject once an epic is one pull request, and the requirements it closes are postponed.
 
 After it changes a pull request's base, the implement step reads the base
 back, reports the required checks as not run until a run started after the

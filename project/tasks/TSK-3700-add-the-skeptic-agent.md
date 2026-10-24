@@ -1,8 +1,8 @@
 ---
 id: TSK-3700
 artifact: task
-status: approved
-revised: 2026-09-28
+status: withdrawn
+revised: 2026-10-24
 epic: EPC-2100
 closes: [REQ-0314, REQ-2070, REQ-2078]
 issue: 923
@@ -11,6 +11,8 @@ tracked: c4f43d652b1c
 ---
 
 # Add the `skeptic` agent to `meow-flow`
+
+Withdrawn by ADR-2300: ADR-2300 supersedes ADR-2200, so no step dispatches the skeptic, and its epic dropped the task. REQ-0314, REQ-2070 and REQ-2078 stay closed by TSK-1570 and TSK-2150.
 
 `meow-flow` ships `agents/skeptic.md`, a read-only agent that tries to show
 each requirement an epic's authorising record addresses is unmet, as ADR-2200

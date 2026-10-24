@@ -1,8 +1,8 @@
 ---
 id: TSK-4690
 artifact: task
-status: approved
-revised: 2026-10-03
+status: withdrawn
+revised: 2026-10-24
 epic: EPC-2430
 closes: [REQ-1816, REQ-1830]
 issue: 953
@@ -13,6 +13,8 @@ tracked: d8f36d94b0bf
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
 
 # Print each stack and the layer that merges next in `paw status`
+
+Withdrawn by ADR-3000: `paw status` has no stack of task pull requests to print once an epic is one pull request, and the requirements it closes are postponed.
 
 `paw status` prints each blocking chain among an epic's open tasks as a
 stack, the layer that merges next, why each layer above waits, and each task
