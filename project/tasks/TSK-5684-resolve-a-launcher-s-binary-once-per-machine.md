@@ -37,9 +37,12 @@ file is removed, so it neither probes nor walks. A second test deletes the
 binary between two runs and sees the launcher resolve again, run the new
 binary and replace the cache. Both failed against the launcher before the
 change. The cache is one file, `binary-<launcher>`, under
-`CLAUDE_PLUGIN_DATA`, holding the unit's directory and the resolved path; a
-cache written for another directory, empty or naming a missing binary means
-resolve again. The template in `tools/generate_launchers.py` carries it, so
+`CLAUDE_PLUGIN_DATA`, holding the unit's directory, the `PATH` it was written
+under and the resolved path; a cache written for another directory or another
+`PATH`, empty or naming a missing binary means resolve again. The `PATH` is
+part of the key because the probe's answer depends on the tools it finds, and
+the existing `meow-scm` test that removes them from `PATH` expects the
+launcher to stop. The template in `tools/generate_launchers.py` carries it, so
 every unit's launcher does. Criterion 3 rests on the gate of the pull request
 that carries this task.
 

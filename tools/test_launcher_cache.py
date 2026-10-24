@@ -99,6 +99,15 @@ class Cache(unittest.TestCase):
         self.assertIn(str(new), kept[0].read_text())
         self.assertNotIn(str(old), kept[0].read_text())
 
+    def test_a_changed_path_resolves_again(self):
+        """TSK-5684 criterion 2, REQ-4510: a cache written under another PATH is not trusted, because the probe's answer depends on the tools PATH finds."""
+        self.shared_binary("first")
+        self.run_launcher()
+        first = self.probes()
+        self.env["PATH"] = f"{self.env['PATH']}:{self.root}"
+        self.assertIn("ran-first", self.run_launcher().stdout)
+        self.assertGreater(self.probes(), first)
+
     def test_an_unreadable_cache_resolves_again(self):
         """TSK-5684 criterion 2, REQ-4510: a cache that holds nothing useful means resolve again."""
         self.shared_binary("first")

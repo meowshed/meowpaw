@@ -13,14 +13,14 @@ esac
 # The path found on an earlier run, kept under the data directory the platform
 # gives this unit (REQ-4510), so a guarded call neither probes the machine nor
 # walks the core unit's data directory again. A cache that is missing,
-# unreadable, written for another place or naming a binary that is gone means
-# resolve again.
+# unreadable, written for another place or another PATH (the tools it probes
+# with) or naming a binary that is gone means resolve again.
 binary='' cache=''
 if [ -n "${CLAUDE_PLUGIN_DATA:-}" ]; then
   cache="$CLAUDE_PLUGIN_DATA/binary-meow-python"
   if [ -r "$cache" ]; then
-    { read -r cached_here && read -r cached_binary; } <"$cache" 2>/dev/null
-    if [ "$cached_here" = "$here" ] && [ -f "$cached_binary" ]; then
+    { read -r cached_here && read -r cached_path && read -r cached_binary; } <"$cache" 2>/dev/null
+    if [ "$cached_here" = "$here" ] && [ "$cached_path" = "$PATH" ] && [ -f "$cached_binary" ]; then
       binary=$cached_binary
     fi
   fi
@@ -57,7 +57,7 @@ if [ -z "$binary" ]; then
   if [ -z "$system" ] || [ -z "$cpu" ] || [ ! -f "$binary" ]; then
     binary=''
   elif [ -n "$cache" ]; then
-    { mkdir -p "$CLAUDE_PLUGIN_DATA" && printf '%s\n%s\n' "$here" "$binary" >"$cache"; } 2>/dev/null
+    { mkdir -p "$CLAUDE_PLUGIN_DATA" && printf '%s\n%s\n%s\n' "$here" "$PATH" "$binary" >"$cache"; } 2>/dev/null
   fi
 fi
 # The platform version this unit was tested on, from its requires.toml
