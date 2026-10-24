@@ -1,7 +1,7 @@
 ---
 id: ADR-2690
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses: [REQ-1660, REQ-1662, REQ-1666, REQ-1668, REQ-1670]
 supersedes: []
