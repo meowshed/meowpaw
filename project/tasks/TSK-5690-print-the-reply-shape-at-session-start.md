@@ -1,7 +1,7 @@
 ---
 id: TSK-5690
 artifact: task
-status: approved
+status: done
 revised: 2026-10-24
 epic: EPC-2860
 closes: [REQ-0930, REQ-0932]
@@ -32,7 +32,13 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criteria 1 to 4 are closed by `plugins/meow-core/tests/test_reply_shape_hook.py`, whose docstrings name REQ-0930 and REQ-0932: the hook's JSON carries the role and rules blocks of `output-styles/meow.md` byte for byte and names rules R1 to R11, the encoding keeps quotes, backslashes and tabs, the hook prints nothing and exits 0 for a missing style file, a style without a rules block and an unset plugin root, and `hooks.json` lists it beside `write-root`. The six tests failed first with `FileNotFoundError` on `hooks/reply-shape`, in the commit before the hook, and pass with it. Run against the shipped style the hook prints 3,682 bytes of context.
+
+Criterion 5 is closed by `python3 tools/check_docs.py`, which reports 29 pages and 0 failures, and by `paw check`, which reports no finding apart from the length advice for `CLAUDE.md`.
+
+The hook was not run inside a live Claude Code session, so that the platform delivers `additionalContext` to the model rests on its documentation, which RES-0203 records, and a first real session shows it.
+
+Every stage passed in pull request #1087.
 
 ## Left alone
 

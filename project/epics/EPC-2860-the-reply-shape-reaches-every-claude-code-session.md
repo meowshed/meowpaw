@@ -1,7 +1,7 @@
 ---
 id: EPC-2860
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-24
 realises: ADR-3050
 ---

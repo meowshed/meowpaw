@@ -1,7 +1,7 @@
 ---
 id: ADR-3050
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-24
 addresses: [REQ-0930, REQ-0932]
 postpones: []
