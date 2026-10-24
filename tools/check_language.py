@@ -50,7 +50,7 @@ INSENSITIVE = (
     r"|lua|luarocks|gdscript|godot|racket|raco|neovim|angular|vue|svelte"
 )
 # Matched with their capital only, because each is also an ordinary word in lower
-# case; the lookahead drops the verb uses at a sentence start.
+# case; the lookahead drops the ordinary uses at a sentence start.
 SENSITIVE = {
     "Go": r"(?! to\b| on\b| back\b| through\b| ahead\b| and\b)",
     "Scheme": "",
