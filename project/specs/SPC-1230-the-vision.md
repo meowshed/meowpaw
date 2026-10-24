@@ -96,3 +96,37 @@ decision with both in force (REQ-0624).
 | A body over 2,000 words                     | `rules` reports it with the count                                    |
 | No `vision.md` at the record's root         | Nothing is reported for it, because a record may keep no vision      |
 | A decision contradicts the vision           | The design step reports one as stale and asks which, writing neither |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States what a project's vision carries and what `paw check` reports in it.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+In `vision.md` at the record's root.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`vision.md` sits at the record's root.

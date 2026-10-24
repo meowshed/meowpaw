@@ -9,10 +9,11 @@
 //! Every state that would otherwise read as "no tasks" is reported as itself
 //! and exits 3, because an empty list nobody could read is not a list.
 
+use crate::detect::{self, Marker};
 use crate::runner::{self, Resolved, Runner, Task, Tree, Unresolved, last_lines, version_of};
 use regex::Regex;
 use serde_json::Value;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
@@ -41,6 +42,8 @@ const RUNNER: Runner = Runner {
     runs: &["mise", "run"],
     binding,
     skip: "as fresh",
+    repository: "a mise repository",
+    markers,
 };
 
 fn binding(task: &str) -> String {
@@ -54,7 +57,7 @@ pub(crate) const HELP: [crate::help::Entry; 3] = [
         name: "status",
         determines: "which mise tasks resolve in this work tree",
         by_hand: "run `mise tasks ls` in the repository's root and read the `mise.toml` it names",
-        lines: "meow-mise mise: unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
+        lines: "meow-mise scope: marker: mise: unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
         json: "",
     },
     crate::help::Entry {
@@ -109,6 +112,63 @@ fn is_configuration(path: &str) -> bool {
         })
 }
 
+/// Each tracked file that makes its directory one mise configures: a
+/// configuration file, an environment's file, or a task or `conf.d` directory,
+/// named once (REQ-0133, REQ-3048). It reads paths alone, so no mise starts.
+pub(crate) fn markers(tracked: &BTreeSet<String>) -> Vec<Marker> {
+    let environment = Regex::new(r"^\.?mise\.[^/]+\.toml$").expect("environment pattern");
+    let mut files: Vec<&str> = CONFIGURATION.to_vec();
+    files.sort_by_key(|file| std::cmp::Reverse(file.len()));
+    let directories: Vec<&str> = TASK_DIRECTORIES
+        .iter()
+        .chain(CONF_D.iter())
+        .copied()
+        .collect();
+    let mut found: Vec<Marker> = Vec::new();
+    for path in tracked {
+        let at = |prefix: &str| {
+            if prefix.is_empty() {
+                ".".to_string()
+            } else {
+                prefix.trim_end_matches('/').to_string()
+            }
+        };
+        let file = files.iter().find_map(|file| {
+            let prefix = path.strip_suffix(file)?;
+            (prefix.is_empty() || prefix.ends_with('/')).then(|| Marker {
+                file: path.clone(),
+                directory: at(prefix),
+            })
+        });
+        let directory = || {
+            directories.iter().find_map(|d| {
+                let start = if path.starts_with(d) {
+                    0
+                } else {
+                    path.find(&format!("/{d}"))? + 1
+                };
+                Some(Marker {
+                    file: path[..start + d.len()].to_string(),
+                    directory: at(&path[..start]),
+                })
+            })
+        };
+        let named = || {
+            let name = path.rsplit('/').next().unwrap_or(path);
+            environment.is_match(name).then(|| Marker {
+                file: path.clone(),
+                directory: detect::directory_of(path),
+            })
+        };
+        if let Some(marker) = file.or_else(directory).or_else(named)
+            && !found.contains(&marker)
+        {
+            found.push(marker);
+        }
+    }
+    found
+}
+
 /// A static read for the markers, so a tree without one starts no mise (REQ-2472).
 fn detected(root: &Path) -> bool {
     let environment = Regex::new(r"^\.?mise\.[^/]+\.toml$").expect("environment pattern");
@@ -132,8 +192,8 @@ fn mise(root: &Path, args: &[&str]) -> std::io::Result<Output> {
         .output()
 }
 
-fn resolve() -> Result<Resolved, Unresolved> {
-    let tree = Tree::read();
+fn resolve(directory: &Path) -> Result<Resolved, Unresolved> {
+    let tree = Tree::read_in(directory);
     let mut report = Vec::new();
     let unresolved = |report: &Vec<String>, reason: String| Unresolved {
         report: report.clone(),
@@ -285,7 +345,7 @@ fn task(
     let name = entry["name"].as_str().unwrap_or_default().to_string();
     let source_path = PathBuf::from(entry["source"].as_str().unwrap_or_default());
     let relative = tree.relative(&source_path);
-    let origin = tree.origin(relative.as_deref());
+    let origin = tree.origin(&source_path);
     let source = tree.display(&source_path);
     let replaced = declared
         .get(&name)
@@ -550,4 +610,39 @@ fn idiomatic_files(tree: &Tree) -> Vec<String> {
         lines.push(format!("  {file}: {state}"));
     }
     lines
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// TSK-5060, REQ-0133, REQ-3048: each form of mise's configuration marks
+    /// the directory it configures, and a task directory is named once.
+    #[test]
+    fn each_configuration_marks_its_directory() {
+        let tracked: BTreeSet<String> = [
+            "mise.toml",
+            "a/.config/mise.toml",
+            "b/mise-tasks/build",
+            "b/mise-tasks/test",
+            "c/mise.ci.toml",
+            "d/README.md",
+        ]
+        .iter()
+        .map(|p| p.to_string())
+        .collect();
+        let found: Vec<(String, String)> = markers(&tracked)
+            .into_iter()
+            .map(|m| (m.directory, m.file))
+            .collect();
+        assert_eq!(
+            found,
+            [
+                ("a".to_string(), "a/.config/mise.toml".to_string()),
+                ("b".to_string(), "b/mise-tasks/".to_string()),
+                ("c".to_string(), "c/mise.ci.toml".to_string()),
+                (".".to_string(), "mise.toml".to_string()),
+            ]
+        );
+    }
 }

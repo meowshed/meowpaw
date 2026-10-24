@@ -14,8 +14,9 @@ verification: static
 
 # REQ-4804
 
-The reviewer's labelled set MUST list each rule of the writing standard that no
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+The reviewer's labelled set MUST list each rule of the writing standard that no
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

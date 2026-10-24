@@ -1,8 +1,8 @@
 ---
 id: TSK-5045
 artifact: task
-status: approved
-revised: 2026-10-03
+status: withdrawn
+revised: 2026-10-24
 epic: EPC-2570
 closes: [REQ-1666]
 issue: 1007
@@ -13,6 +13,8 @@ tracked: 194e29f98857
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
 
 # Migrate the smallest of the six source repositories onto the harness
+
+Withdrawn by ADR-3030: the owner migrates the source repositories by hand, in those repositories, and a task here can't build, test or review that work. REQ-1666 is postponed.
 
 The smallest of the six private harnesses RES-0002 describes drops its
 private copy and installs this harness, and its own gate runs before and

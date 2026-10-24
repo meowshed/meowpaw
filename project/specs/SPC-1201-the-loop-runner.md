@@ -104,7 +104,7 @@ condition isn't a flag, because it's fixed: no requirement and no defect open
 in the record (REQ-3704).
 
 A command that names `--tokens` starts the run all the same, and the start
-context says that the token bound no longer exists and that the flag is
+context says that no token bound exists and that the flag is
 dropped in the release after this one (REQ-3730). The run holds no token bound,
 because the only total the hook can make from the transcript counts each cache
 read again (REQ-3724).
@@ -214,7 +214,7 @@ printed in the hook's `systemMessage` (REQ-2658):
 
 A session that ends while a run is active leaves a run with no ending, which
 reads as interrupted. The next start in that work tree replaces it, because
-its session id no longer matches the session.
+its session id doesn't match the session.
 
 ### `meow-loop start`
 
@@ -244,3 +244,37 @@ During a run, a `Stop` hook that can't read `run.toml` or the record
 allows the stop, writes no ending and reports `unresolved: <what>`.
 The run then reads as interrupted and never continues past a bound it couldn't
 check. A `log.jsonl` line the hook can't write is reported the same way.
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Runs the chain inside the Claude Code session through three command hooks that start the run, continue it and guard it.
+
+### What it depends on
+
+`meow-loop` lists `meow-core`, `meow-flow` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-loop` in its `requires.toml`.
+
+### Where its data lives
+
+One run's directory, `<state>/meowpaw/runs/<work tree key>/<run id>/`, outside the work tree.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-loop` installs as a plugin from the marketplace, `plugins/meow-loop/`, and ships as the Pi package `packages/meow-loop/`.

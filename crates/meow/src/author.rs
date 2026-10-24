@@ -100,6 +100,7 @@ fn check(paths: &[String]) -> u8 {
                 if field(&text, "description").is_empty() {
                     failures.push(format!("{where_}: has no description in its front matter"));
                 }
+                failures.extend(description_leads(&text, &where_));
                 if has_steps(&text) && !stops(&text) {
                     failures.push(format!(
                         "{where_}: has a procedure and no step naming where it stops"
@@ -481,6 +482,10 @@ fn tool_steps(root: &Path, unit: &Path) -> Vec<String> {
     out
 }
 
+/// The longest timeout, in seconds, a prose gate hook may wait on its judge
+/// under ADR-2390's bound.
+const JUDGE_BOUND: f64 = 120.0;
+
 /// Events whose hook can't stop a call or the turn, and so are free of the
 /// launcher rule: one that runs when a session opens or closes, and one that
 /// runs after a tool already ran (REQ-2716). Every other event, a new one
@@ -532,7 +537,8 @@ fn command_tokens(command: &str) -> Vec<String> {
 ///
 /// The prose gate's `check` is excused from one network word, `claude -p`, the
 /// judge's call, on `PreToolUse`, named here by unit and subcommand so no other
-/// hook inherits it (ADR-2700).
+/// hook inherits it, and only while its hook's timeout is at most
+/// `JUDGE_BOUND` seconds (ADR-2700).
 fn hook_rules(root: &Path, unit: &Path) -> (usize, Vec<String>) {
     let path = unit.join("hooks").join("hooks.json");
     let Ok(text) = std::fs::read_to_string(&path) else {
@@ -655,9 +661,23 @@ fn hook_rules(root: &Path, unit: &Path) -> (usize, Vec<String>) {
                         "{where_}: `{name}` returns an `updatedInput`, where it denies with the reason and lets the model redo the call (REQ-2718)"
                     ));
                 }
+                // The judge waits inside the hook's timeout, which ADR-2390
+                // bounds at 120 seconds, so an unbounded gate loses the
+                // exception (ADR-2700).
+                let bounded = hook
+                    .get("timeout")
+                    .and_then(|t| t.as_f64())
+                    .is_some_and(|t| t > 0.0 && t <= JUDGE_BOUND);
                 for found in network.find_iter(&haystack) {
                     if judge_call && judge.is_match(found.as_str().trim()) {
-                        continue;
+                        if bounded {
+                            continue;
+                        }
+                        out.push(format!(
+                            "{where_}: `{name}` waits on the judge `{}` without a timeout of at most {JUDGE_BOUND} seconds, the bound ADR-2390 sets (REQ-2716, REQ-2727)",
+                            found.as_str().trim()
+                        ));
+                        break;
                     }
                     out.push(format!(
                         "{where_}: `{name}` names the network command `{}`, and no hook reaches the network (REQ-2727)",
@@ -770,6 +790,49 @@ fn field(text: &str, key: &str) -> String {
         .find_map(|line| line.strip_prefix(&format!("{key}:")))
         .map(|v| v.trim().to_string())
         .unwrap_or_default()
+}
+
+/// The defect in a description that leads with none of the words its
+/// `when_to_use` names (REQ-3050): a request reaches a unit through those
+/// words. `when_to_use` names a word by writing it in code font, and a word
+/// matches when a word of the description's first sentence starts with it, so
+/// `commit` is met by `commits`. A unit with no `when_to_use`, or none in code
+/// font, has no word to read, so the rule passes it.
+fn description_leads(text: &str, where_: &str) -> Vec<String> {
+    let when = field(text, "when_to_use");
+    let named = Regex::new(r"`([A-Za-z][A-Za-z-]*)`").expect("code font pattern");
+    let mut words: Vec<String> = Vec::new();
+    for capture in named.captures_iter(&when) {
+        let word = capture[1].to_lowercase();
+        if !words.contains(&word) {
+            words.push(word);
+        }
+    }
+    let description = field(text, "description");
+    let description = description.trim_matches(|c| c == '"' || c == '\'');
+    if words.is_empty() || description.is_empty() {
+        return Vec::new();
+    }
+    let first = Regex::new(r"[.!?](\s|$)")
+        .expect("sentence end pattern")
+        .find(description)
+        .map_or(description, |end| &description[..end.start()])
+        .to_lowercase();
+    let carried = Regex::new(r"[a-z][a-z-]*")
+        .expect("word pattern")
+        .find_iter(&first)
+        .any(|w| {
+            words
+                .iter()
+                .any(|word| w.as_str().starts_with(word.as_str()))
+        });
+    if carried {
+        return Vec::new();
+    }
+    vec![format!(
+        "{where_}: description's first sentence carries none of the words when_to_use names: {}",
+        words.join(", ")
+    )]
 }
 
 /// Each defect in one prompt's form, as SPC-1030 states it (REQ-1112, REQ-1120).

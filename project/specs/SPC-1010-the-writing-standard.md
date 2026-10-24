@@ -283,3 +283,37 @@ back early.
 | A repository declares a replacement standard     | The shipped standard is not loaded, and the replacement's own reviewer runs                                   |
 | A text is published with no review               | The omission is reported, because a silent skip is the substitution this harness exists to prevent            |
 | The reviewer passes a text a reader later faults | The finding goes against the reviewer's own prompt, which is the thing that changes                           |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States the writing standard every text the harness produces is held to, the reviewer that reads a finished text and the hook that blocks a publish.
+
+### What it depends on
+
+`meow-prose` lists no other unit in its `requires.toml`. `meow-prose-gate` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+`meow-flow` list `meow-prose` in their `requires.toml`. No unit lists `meow-prose-gate` in its `requires.toml`.
+
+### Where its data lives
+
+A repository's replacement standard lives in `.meowpaw/prose/`.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-prose` installs as a plugin from the marketplace, `plugins/meow-prose/`, and ships as the Pi package `packages/meow-prose/`. `meow-prose-gate` installs as a plugin from the marketplace, `plugins/meow-prose-gate/`, and ships as the Pi package `packages/meow-prose-gate/`.

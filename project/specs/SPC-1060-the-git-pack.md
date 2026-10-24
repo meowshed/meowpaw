@@ -2,7 +2,7 @@
 id: SPC-1060
 artifact: spec
 status: live
-revised: 2026-10-10
+revised: 2026-10-24
 states:
   [
     REQ-0079,
@@ -60,8 +60,8 @@ every commit on a branch before it is pushed. It states the `[git]` table, what
 each hook checks, how it finds `meow-scm`, and how it reports.
 
 It leaves the message convention to SPC-1050, which the pack uses through
-`meow-scm`, and when a task stacks on another to the method's chain. It states the
-restack that rebuilds a stack's branches, and the bounds ADR-2420 sets on a
+`meow-scm`, and the stacking of pull requests, which the method doesn't do (ADR-3000), to the
+method's chain. It states the restack that rebuilds a stack's branches, and the bounds ADR-2420 sets on a
 worktree manager or any other tool that runs source control operations.
 
 ADR-1090 decides it, EPC-1060 realises it, and `meow-git` implements it,
@@ -250,3 +250,37 @@ skill and the implement step carry these rules.
 | A conflict during `restack`             | The rebase is aborted, the branch and its files named, the rest not updated, exit 1 |
 | A `restack` branch with local changes   | Nothing is rewritten; the branch is named, exit 1                                   |
 | No binary for the machine's target      | The commit or push is denied, exit 2, naming `meow-git` and its install command     |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Refuses a commit on the trunk and checks every commit on a branch before it is pushed.
+
+### What it depends on
+
+`meow-git` lists `meow-core`, `meow-scm` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-git` in its `requires.toml`.
+
+### Where its data lives
+
+The `[git]` table of `.meowpaw/profile.toml`.
+
+### What crosses a trust boundary
+
+A commit's signature is checked against a trusted key, and only a good signature from a trusted key passes.
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-git` installs as a plugin from the marketplace, `plugins/meow-git/`, and ships as the Pi package `packages/meow-git/`.

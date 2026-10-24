@@ -10,7 +10,10 @@
 //! push would publish through `meow-scm check-message` where that unit is
 //! installed, and reports the check as unrun where it isn't (REQ-0079), and
 //! passes only a good signature from a trusted key where the repository
-//! requires one (REQ-1326, REQ-2530).
+//! requires one (REQ-1326, REQ-2530). `restack` rebuilds a stack of branches
+//! and pushes nothing (REQ-1824, REQ-1826, REQ-1828).
+
+mod restack;
 
 use crate::profile::{self, Profile};
 use std::io::{Read, Write};
@@ -402,7 +405,7 @@ fn run_check(
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-pub(crate) const HELP: [crate::help::Entry; 2] = [
+pub(crate) const HELP: [crate::help::Entry; 4] = [
     crate::help::Entry {
         name: "commit-guard",
         determines: "whether a commit is made on the trunk",
@@ -417,16 +420,49 @@ pub(crate) const HELP: [crate::help::Entry; 2] = [
         lines: "meow-git",
         json: "",
     },
+    crate::help::Entry {
+        name: "restack",
+        determines: "which branches of a stack, given from the bottom up, were rebased onto the layer below, which weren't reached, and the lease push that publishes each, pushing nothing",
+        by_hand: "for each branch from the bottom up, run `git rebase --onto <new tip below> <old tip below> <branch>`, the first onto the trunk, read `git rev-parse origin/<branch>` before it, and push with `git push --force-with-lease=<branch>:<that revision> origin <branch>`",
+        lines: "meow-git updated: not unchanged: conflict: git",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "irreversible-guard",
+        determines: "whether a tool call pushes from a session a person attends, which the person confirms for that one push",
+        by_hand: "read the command a hook is about to run for `git push`, and the session's permission mode for `dontAsk`",
+        lines: "<json>",
+        json: "hookSpecificOutput",
+    },
 ];
 
 pub fn main(args: &[String]) -> u8 {
     if let Some(code) = crate::help::answer("meow-git", &HELP, args) {
         return code;
     }
+    if let Some((first, branches)) = args.split_first()
+        && first == "restack"
+        && !branches.is_empty()
+    {
+        let (ok, top) = git(Path::new("."), &["rev-parse", "--show-toplevel"]);
+        if !ok {
+            println!("meow-git restack: not inside a repository; rewrote nothing");
+            return 1;
+        }
+        let root = PathBuf::from(top.trim());
+        let policy = policy(&root);
+        for line in &policy.profile {
+            println!("meow-git restack: {line}");
+        }
+        return restack::restack(&root, policy.trunk.as_deref(), policy.signatures, branches);
+    }
     let name = match args {
         [name] if name == "commit-guard" || name == "push-guard" => name.as_str(),
+        [name] if name == "irreversible-guard" => return irreversible_guard(),
         _ => {
-            eprintln!("usage: meow-git commit-guard | meow-git push-guard");
+            eprintln!(
+                "usage: meow-git commit-guard | meow-git push-guard | meow-git irreversible-guard | meow-git restack <branch>..."
+            );
             return 1;
         }
     };
@@ -461,6 +497,26 @@ pub fn main(args: &[String]) -> u8 {
     } else {
         push_guard(&root)
     }
+}
+
+/// Asks the person about each push from a session they attend, once for
+/// that push, because a published commit can't be taken back from the
+/// working tree (ADR-2750, REQ-1420, REQ-1422). It reads the hook's input on
+/// standard input, prints the `ask` answer or nothing, and exits 0.
+fn irreversible_guard() -> u8 {
+    let mut text = String::new();
+    let _ = std::io::stdin().read_to_string(&mut text);
+    let event: serde_json::Value = serde_json::from_str(&text).unwrap_or_default();
+    let pushes = event
+        .pointer("/tool_input/command")
+        .and_then(|c| c.as_str())
+        .is_some_and(|command| invocation(command, "push").is_some());
+    if pushes && crate::attended::attended(&event) {
+        crate::attended::ask(
+            "meow-git: git push publishes commits outside the repository, which a person confirms for each push (REQ-1420)",
+        );
+    }
+    ALLOW
 }
 
 #[cfg(test)]

@@ -1,7 +1,7 @@
 ---
 id: EPC-2605
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2700
 ---
@@ -24,7 +24,7 @@ Realises ADR-2700 in TSK-5160.
 
 ## Tasks
 
-- [ ] T-001 TSK-5160 hold the prose gate's network exception and revision
+- [x] T-001 TSK-5160 hold the prose gate's network exception and revision (done: pull request 1072)
       closes: REQ-2716, REQ-2727, REQ-2728
 
 ## Coverage

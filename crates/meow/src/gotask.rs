@@ -10,6 +10,7 @@
 //! that writes its checksums there makes the next run skip a task that never
 //! ran.
 
+use crate::detect::{self, Marker};
 use crate::runner::{self, Resolved, Runner, Task, Tree, Unresolved, last_lines, version_of};
 use regex::Regex;
 use serde_json::Value;
@@ -37,7 +38,15 @@ const RUNNER: Runner = Runner {
     runs: &["task"],
     binding,
     skip: "as up to date",
+    repository: "a Task repository",
+    markers,
 };
+
+/// Each tracked Taskfile, under any name Task accepts, which makes its
+/// directory one Task runs in (REQ-0133, REQ-3048).
+pub(crate) fn markers(tracked: &BTreeSet<String>) -> Vec<Marker> {
+    detect::by_name(tracked, &TASKFILES)
+}
 
 fn binding(task: &str) -> String {
     format!("task --force {task}")
@@ -50,7 +59,7 @@ pub(crate) const HELP: [crate::help::Entry; 3] = [
         name: "status",
         determines: "which Task tasks resolve in this work tree",
         by_hand: "run `task --list` in the repository's root and read the `Taskfile.yml` it names",
-        lines: "meow-gotask unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
+        lines: "meow-gotask scope: marker: unresolved: [stages] # format lint check test build <count> blocked: nothing profile: listing tasks trust: <path> <text>",
         json: "",
     },
     crate::help::Entry {
@@ -215,8 +224,8 @@ impl Drop for Temporary {
     }
 }
 
-fn resolve() -> Result<Resolved, Unresolved> {
-    let tree = Tree::read();
+fn resolve(directory: &Path) -> Result<Resolved, Unresolved> {
+    let tree = Tree::read_in(directory);
     let mut report = Vec::new();
     let unresolved = |report: &Vec<String>, reason: String| Unresolved {
         report: report.clone(),
@@ -480,8 +489,7 @@ fn blocks_through(
 fn task(tree: &Tree, known: &mut Definitions, entry: &serde_json::Map<String, Value>) -> Task {
     let name = entry["name"].as_str().unwrap_or_default().to_string();
     let source_path = PathBuf::from(entry["location"]["taskfile"].as_str().unwrap_or_default());
-    let relative = tree.relative(&source_path);
-    let origin = tree.origin(relative.as_deref());
+    let origin = tree.origin(&source_path);
     let source = tree.display(&source_path);
     let mut notes = Vec::new();
     let (mut blocks, can_skip) = match (

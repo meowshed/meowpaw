@@ -3,6 +3,7 @@ reader: someone choosing or running meow-scm
 answers: what meow-scm does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-scm@0.8.0]
+description: "Checks a commit message against the convention the repository declares in .meowpaw/profile.toml and against a ban on crediting a tool, before the message is used, and reports an undeclared convention as undeclared, never as met."
 ---
 
 # meow-scm
@@ -47,7 +48,9 @@ you name must appear on every message. `may_name` lists each person, as
 `Name <address>`, who agreed to be named in a trailer, and
 `meow-scm convention` prints the list.
 
-## What Claude Code does with it
+## What Pi does with it
+
+<!-- host-specific: claude -->
 
 Before Claude Code writes a commit message, a squash message or a pull
 request title, the `meow-scm:commit` skill has it read your convention, write
@@ -83,7 +86,13 @@ a message, commits, rebases and removes a working tree together, and it never
 uses a message a tool generated. It reads state from the documented output of
 the tool that owns it, signs again what a rebase changed, cites no
 model-written summary as evidence, and removes a working tree only in the
-foreground, when you or the step that made it asks.
+foreground, when you or the step that made it asks. Where agents work in
+parallel in sparse working trees, the sparse paths list every directory any
+of them reads, `.meowpaw/` and `.claude/` included, and settings that must
+apply in a tree live in the root's `.claude/settings.json`.
+It works several branches at once with worktrunk, `wt`, using it only for
+operations whose result it then reads from git, such as
+`git worktree list --porcelain`.
 
 ## What it costs you The
 
@@ -119,6 +128,8 @@ and the first word of each kind of line it prints. A test holds each
 subcommand's output to those words.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-scm/requires.toml`. It relies on these platform behaviours,

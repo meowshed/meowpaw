@@ -11,8 +11,9 @@ verification: evaluation
 
 # REQ-3022
 
-Every measurement of the harness MUST be made against the same work without
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+Every measurement of the harness MUST be made against the same work without
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

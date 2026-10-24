@@ -136,9 +136,9 @@ const LEADS: [&str; 12] = [
     "then", "do", "else", "elif", "if", "while", "until", "time", "!", "exec", "{", "nohup",
 ];
 
-/// What a part changes, as the method and the endpoint, where it runs `gh` to
-/// change governance; `None` otherwise.
-fn governs(part: &[String]) -> Option<String> {
+/// The words a part runs after any variable assignments, a leading `env` or
+/// `command` with its flags, and a shell word that runs what follows.
+fn command_of(part: &[String]) -> Vec<&str> {
     let mut words = part.iter().map(String::as_str).peekable();
     loop {
         match words.peek() {
@@ -163,13 +163,17 @@ fn governs(part: &[String]) -> Option<String> {
             _ => break,
         }
     }
-    if !words
-        .next()
-        .is_some_and(|w| w == "gh" || w.ends_with("/gh"))
-    {
+    words.collect()
+}
+
+/// The words after `gh` and its repository flag, where a part runs `gh`.
+fn gh_args(part: &[String]) -> Option<Vec<&str>> {
+    let words = command_of(part);
+    let (first, rest) = words.split_first()?;
+    if !(*first == "gh" || first.ends_with("/gh")) {
         return None;
     }
-    let mut rest: Vec<&str> = words.collect();
+    let mut rest = rest.to_vec();
     // `gh` takes a repository flag before the subcommand, and it hides nothing.
     while let Some(first) = rest.first() {
         if matches!(*first, "-R" | "--repo") && rest.len() > 1 {
@@ -180,6 +184,13 @@ fn governs(part: &[String]) -> Option<String> {
             break;
         }
     }
+    Some(rest)
+}
+
+/// What a part changes, as the method and the endpoint, where it runs `gh` to
+/// change governance; `None` otherwise.
+fn governs(part: &[String]) -> Option<String> {
+    let rest = gh_args(part)?;
     match rest.as_slice() {
         ["api", args @ ..] => api(args),
         [
@@ -209,6 +220,28 @@ const METHODS: [&str; 7] = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OP
 
 /// What a `gh api` call changes, where it changes governance.
 fn api(args: &[&str]) -> Option<String> {
+    let call = api_call(args)?;
+    if call.graphql {
+        return call
+            .mutates
+            .then(|| format!("gh api {} graphql", call.shown));
+    }
+    (call.method != "GET" && governance(&call.path))
+        .then(|| format!("gh api {} {}", call.shown, call.path))
+}
+
+/// A `gh api` call as read: its method, the method as a reason may name it,
+/// its path, and for a GraphQL call whether it may mutate.
+struct ApiCall {
+    method: String,
+    shown: String,
+    path: String,
+    graphql: bool,
+    mutates: bool,
+}
+
+/// Reads the method, the endpoint and the body of a `gh api` call.
+fn api_call(args: &[&str]) -> Option<ApiCall> {
     let (mut method, mut endpoint, mut body) = (None, None, false);
     let mut query: Vec<String> = Vec::new();
     let mut take = |flag: &str, value: &str, method: &mut Option<String>| match flag {
@@ -277,22 +310,95 @@ fn api(args: &[&str]) -> Option<String> {
         i += 1;
     }
     let endpoint = endpoint?.replace(EXPANDS, "");
-    let path = path_of(&endpoint);
+    let path = path_of(&endpoint).to_string();
     let method = method.unwrap_or_else(|| if body { "POST" } else { "GET" }.to_string());
     let shown = if METHODS.contains(&method.as_str()) {
         method.clone()
     } else {
         "a method other than GET".to_string()
     };
-    if path == "graphql" || path == "api/graphql" {
-        // A query from a file, from standard input or from the shell can't be
-        // read here, so it is asked about as a mutation would be.
-        let mutates = query
+    let graphql = path == "graphql" || path == "api/graphql";
+    // A query from a file, from standard input or from the shell can't be
+    // read here, so it is asked about as a mutation would be.
+    let mutates = graphql
+        && query
             .iter()
             .any(|q| q.contains("mutation") || q.starts_with('@') || q.contains(EXPANDS));
-        return mutates.then(|| format!("gh api {shown} graphql"));
+    Some(ApiCall {
+        method,
+        shown,
+        path,
+        graphql,
+        mutates,
+    })
+}
+
+/// The `PreToolUse` hook that asks, in a session a person attends, before a
+/// Bash command merges a pull request, publishes a release or writes an
+/// issue or a pull request, once for that invocation (ADR-2750, REQ-1420,
+/// REQ-1422). A governance change is `governance-guard`'s, so this guard
+/// leaves it alone and the person is asked once.
+pub fn irreversible_main() -> u8 {
+    let mut text = String::new();
+    let _ = std::io::stdin().read_to_string(&mut text);
+    let event: Value = serde_json::from_str(&text).unwrap_or(Value::Null);
+    let Some(command) = event.pointer("/tool_input/command").and_then(Value::as_str) else {
+        return 0;
+    };
+    let mut asked: Vec<String> = Vec::new();
+    for part in parts(command) {
+        if let Some(found) = irreversible(&part)
+            && !asked.contains(&found)
+        {
+            asked.push(found);
+        }
     }
-    (method != "GET" && governance(path)).then(|| format!("gh api {shown} {path}"))
+    if !asked.is_empty() && crate::attended::attended(&event) {
+        crate::attended::ask(&format!(
+            "meow-github: {} can't be taken back on the code host, which a person confirms for each invocation (REQ-1420)",
+            asked.join(" and ")
+        ));
+    }
+    0
+}
+
+/// What a part publishes on the code host that the attended rule asks about,
+/// as the command's verbs or the method and the endpoint; `None` otherwise.
+fn irreversible(part: &[String]) -> Option<String> {
+    let words = command_of(part);
+    // The pack's own writes: `project` and `sync` without `--check`.
+    if let [first, verb @ ("project" | "sync"), rest @ ..] = words.as_slice()
+        && first.ends_with("meow-github")
+        && !rest.contains(&"--check")
+    {
+        return Some(format!("meow-github {verb}"));
+    }
+    let rest = gh_args(part)?;
+    match rest.as_slice() {
+        ["api", args @ ..] => {
+            let call = api_call(args)?;
+            (!call.graphql && call.method != "GET" && !governance(&call.path))
+                .then(|| format!("gh api {} {}", call.shown, call.path))
+        }
+        [
+            "pr",
+            action @ ("merge" | "create" | "edit" | "comment" | "review" | "close" | "reopen"
+            | "ready"),
+            ..,
+        ]
+        | [
+            "issue",
+            action @ ("create" | "edit" | "comment" | "close" | "reopen" | "delete" | "transfer"
+            | "lock" | "unlock" | "pin" | "unpin"),
+            ..,
+        ]
+        | [
+            "release",
+            action @ ("create" | "edit" | "upload" | "delete" | "delete-asset"),
+            ..,
+        ] => Some(format!("gh {} {action}", rest[0])),
+        _ => None,
+    }
 }
 
 #[cfg(test)]

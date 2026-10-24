@@ -3,6 +3,7 @@ reader: someone choosing or running meow-mise
 answers: what meow-mise does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-mise@0.5.0]
+description: "Reports the tasks mise resolves in a repository, with where each came from and what stops a stage running it unattended, binds the stages to them, and never grants trust, answers a prompt or writes a file."
 ---
 
 # meow-mise
@@ -28,6 +29,8 @@ Its launcher stops on a Claude Code older than the version its `requires.toml` n
 
 ## Run it
 
+<!-- host-specific: claude -->
+
 Claude Code puts the unit's `bin/` directory on its Bash tool's `PATH`, so
 Claude Code runs it in your repository as:
 
@@ -37,9 +40,16 @@ meow-mise status
 
 From your own shell, run the same launcher by its path in the installed unit.
 
-It prints mise's version and each directory's trust state, then every task
-mise resolves in this work tree, which may differ from what your repository
-declares. mise also reads parent directories, your own configuration and
+It reports once for each directory holding a mise configuration file git
+tracks, an environment's `mise.<env>.toml` or a task directory, and starts no
+mise where it finds none. Each report opens with `scope: <directory>`, or
+`scope: <part> <directory>` where your profile's `[parts]` declares a part
+holding it, and a `marker: <file>` line for each file that matched, with `.`
+for the root.
+
+Each report prints mise's version and each directory's trust state, then every
+task mise resolves in that directory, which may differ from what your
+repository declares. mise also reads parent directories, your own configuration and
 `mise.local.toml`, so each task carries its origin: `repository` for a file
 git tracks, `work tree only` for a file inside the work tree that git doesn't
 track, and `outside` for a file beyond it. A task a committed file declares
@@ -76,7 +86,8 @@ only, never a value a file holds:
 ## Bind your stages to your tasks
 
 `meow-mise bind` prints a `[stages]` table for you to paste into
-`.meowpaw/profile.toml`, and never writes the profile itself:
+`.meowpaw/profile.toml`, and never writes the profile itself. Commit what it prints, so the stages run from
+the declaration the repository holds:
 
 ```toml
 [stages]
@@ -104,12 +115,14 @@ status.
 
 ## What it reports instead of a list
 
-`status` exits 0 when it reports the tasks and 3 when it can't, and no command
-ever reports a state it couldn't read as an empty list:
+`status` exits 0 when it reports the tasks in every directory and 3 when it
+can't in one, and no command ever reports a state it couldn't read as an
+empty list. `bind` and `check` read the root alone, because they read the
+root profile's stages:
 
 | Line                                  | Means                                                                     |
 | ------------------------------------- | ------------------------------------------------------------------------- |
-| `unresolved: not a mise repository`   | No mise configuration file or task directory; mise didn't run             |
+| `unresolved: not a mise repository`   | Git tracks no mise configuration file or task directory; mise didn't run  |
 | `unresolved: mise not found`          | mise isn't on `PATH`                                                      |
 | `unresolved: untrusted <directory>`   | mise needs the configuration trusted; read it, then run the command shown |
 | `unresolved: environment: ...`        | Your mise is older than 2026.9.11, the version the unit was tested on     |
@@ -137,5 +150,9 @@ subcommand's output to those words.
 
 ## What it needs
 
+<!-- host-specific: claude -->
+
 Claude Code 2.1.280 or later, the version this unit was tested on, declared in
 `plugins/meow-mise/requires.toml`; mise 2026.9.11 or later; and git.
+
+The pack is current as of mise 2026.10.7 and git 2.56.0, observed on 2026-10-24.

@@ -1,7 +1,7 @@
 ---
 id: EPC-2560
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2660
 ---
@@ -40,37 +40,37 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-5070 list the supported set in `docs/README.md`, and document the code host, the tracker and the worktree manager
+- [x] T-001 [P] TSK-5070 list the supported set in `docs/README.md`, and document the code host, the tracker and the worktree manager (done: pull request 1072)
       closes: REQ-2330, REQ-2358, REQ-2360, REQ-2364
-- [ ] T-002 TSK-5075 the Rust pack, `meow-rust`, detected from `Cargo.toml`
+- [x] T-002 TSK-5075 the Rust pack, `meow-rust`, detected from `Cargo.toml` (done: pull request 1077)
       closes: REQ-2332
       depends: TSK-5120 (blocking) - a pack meets EPC-2565's shared rules from its first release
       depends: TSK-5125 (blocking) - a pack meets EPC-2565's shared rules from its first release
       depends: TSK-5130 (blocking) - a pack meets EPC-2565's shared rules from its first release
       depends: TSK-5135 (blocking) - a pack meets EPC-2565's shared rules from its first release
       depends: TSK-5070 (not blocking) - it moves the pack's row to shipped, which either task can write
-- [ ] T-003 TSK-5080 the TypeScript and JavaScript pack, detected from `package.json`
+- [x] T-003 TSK-5080 the TypeScript and JavaScript pack, detected from `package.json` (done: pull request 1077)
       closes: REQ-2338
       depends: TSK-5075 (blocking) - the packs ship one at a time in the order SPC-1190 states
-- [ ] T-004 TSK-5085 the Python pack, detected from `pyproject.toml`
+- [x] T-004 TSK-5085 the Python pack, detected from `pyproject.toml` (done: pull request 1077)
       closes: REQ-2336
       depends: TSK-5080 (blocking) - the packs ship one at a time in the order SPC-1190 states
-- [ ] T-005 TSK-5090 the Go pack, detected from `go.mod`
+- [x] T-005 TSK-5090 the Go pack, detected from `go.mod` (done: pull request 1077)
       closes: REQ-2334
       depends: TSK-5085 (blocking) - the packs ship one at a time in the order SPC-1190 states
-- [ ] T-006 TSK-5095 the C# pack, detected from a `.sln` or `.csproj` file
+- [x] T-006 TSK-5095 the C# pack, detected from a `.sln` or `.csproj` file (done: pull request 1077)
       closes: REQ-2340
       depends: TSK-5090 (blocking) - the packs ship one at a time in the order SPC-1190 states
-- [ ] T-007 TSK-5100 the Lua and Neovim plugins pack, detected from a rockspec or `.luarc.json`
+- [x] T-007 TSK-5100 the Lua and Neovim plugins pack, detected from a rockspec or `.luarc.json` (done: pull request 1077)
       closes: REQ-2342, REQ-2344
       depends: TSK-5095 (blocking) - the packs ship one at a time in the order SPC-1190 states
-- [ ] T-008 TSK-5105 the Godot and GDScript pack, detected from `project.godot`
+- [x] T-008 TSK-5105 the Godot and GDScript pack, detected from `project.godot` (done: pull request 1077)
       closes: REQ-2346
       depends: TSK-5100 (blocking) - the packs ship one at a time in the order SPC-1190 states
-- [ ] T-009 TSK-5110 the Starlark pack, detected from a Bazel or Buck workspace file
+- [x] T-009 TSK-5110 the Starlark pack, detected from a Bazel or Buck workspace file (done: pull request 1077)
       closes: REQ-2348
       depends: TSK-5105 (blocking) - the packs ship one at a time in the order SPC-1190 states
-- [ ] T-010 TSK-5115 the Scheme pack, detected from a Scheme project file
+- [x] T-010 TSK-5115 the Scheme pack, detected from a Scheme project file (done: pull request 1077)
       closes: REQ-2350
       depends: TSK-5110 (blocking) - the packs ship one at a time in the order SPC-1190 states
 

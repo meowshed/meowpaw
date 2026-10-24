@@ -1,7 +1,7 @@
 ---
 id: TSK-4680
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2430
 closes: [REQ-1824, REQ-1826, REQ-1828]
@@ -55,7 +55,19 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+`crates/meow/tests/restack.rs` closes each criterion against a scratch
+repository with a local bare remote, and each test failed before `restack`
+existed. Criterion 1 is closed by
+`each_layer_is_rebased_onto_the_one_below_and_nothing_is_pushed` (REQ-1828),
+criterion 2 by `a_conflict_stops_the_restack_and_names_the_branch` (REQ-1824,
+REQ-1826), criterion 3 by `a_rewritten_commit_is_signed_where_the_profile_asks`
+(REQ-2614) and criterion 4 by
+`a_branch_with_uncommitted_changes_stops_it_before_any_rewrite`. Two more tests
+hold what SPC-1060 adds: a branch checked out in another working tree stops the
+restack, and a branch whose base hasn't moved is left as it is. The help and
+its pinned first words are held by `crates/meow/tests/unit_help.rs`.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

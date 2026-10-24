@@ -15,11 +15,19 @@ import unittest
 from pathlib import Path
 
 CHECK = Path(os.environ.get("CHECK_DOCS", Path(__file__).resolve().parent / "check_docs.py"))
+SUPPORTED = ("Rust", "TypeScript and JavaScript", "Python", "Go", "C#", "Lua", "Neovim plugins", "Godot and GDScript",
+             "Starlark", "Scheme", "Markdown", "GitHub", "GitHub Issues", "worktrunk")
+SET = "".join(f"| {name} | `meow-demo` | planned |\n" for name in SUPPORTED)
 INDEX = """Start here.
 
 <!-- check_docs index -->
 <!-- /check_docs index -->
 
+## Supported set
+
+| Language or tool | Pack | State |
+| --- | --- | --- |
+""" + SET + """
 ## Planned
 
 - a second demo.
@@ -178,6 +186,44 @@ class CheckDocs(unittest.TestCase):
         index = tree.root / "docs/README.md"
         index.write_text(index.read_text(encoding="utf-8").replace("## Planned\n\n- a second demo.\n\n", ""), encoding="utf-8")
         self.assertFails(tree, "docs/README.md: has no Planned section")
+
+    def supported(self, tree, old, new):
+        index = tree.root / "docs/README.md"
+        text = index.read_text(encoding="utf-8")
+        self.assertIn(old, text)
+        index.write_text(text.replace(old, new), encoding="utf-8")
+
+    def test_tsk_5070_an_index_without_the_supported_set_fails(self):
+        """TSK-5070 criterion 1, REQ-2330: the index declares the languages and tools the harness supports."""
+        tree = self.tree()
+        self.supported(tree, "## Supported set\n", "## Other\n")
+        self.assertFails(tree, "docs/README.md: has no Supported set section")
+
+    def test_tsk_5070_a_language_missing_from_the_supported_set_fails(self):
+        """TSK-5070 criterion 1, REQ-2330: each language and tool the requirement names has a row."""
+        tree = self.tree()
+        self.supported(tree, "| Scheme | `meow-demo` | planned |\n", "")
+        self.assertFails(tree, "docs/README.md: the supported set has no row for Scheme")
+
+    def test_tsk_5070_a_row_with_another_state_fails(self):
+        """TSK-5070 criterion 1, REQ-2330: a row's state is shipped, planned or postponed."""
+        tree = self.tree()
+        self.supported(tree, "| Rust | `meow-demo` | planned |", "| Rust | `meow-demo` | beta |")
+        self.assertFails(tree, "docs/README.md: the supported set gives Rust the state beta, which isn't shipped, planned or postponed")
+
+    def test_tsk_5070_a_row_with_no_pack_fails(self):
+        """TSK-5070 criterion 1, REQ-2330: every row names the pack that serves it."""
+        tree = self.tree()
+        self.supported(tree, "| Go | `meow-demo` | planned |", "| Go |  | planned |")
+        self.assertFails(tree, "docs/README.md: the supported set names no pack for Go")
+
+    def test_tsk_5070_a_shipped_row_names_a_unit_that_exists(self):
+        """TSK-5070 criterion 1, REQ-2330: a shipped row is a claim an install can falsify, so its pack exists."""
+        tree = self.tree()
+        self.supported(tree, "| Markdown | `meow-demo` | planned |", "| Markdown | `meow-demo` | shipped |")
+        self.assertEqual(tree.check().returncode, 0, tree.check().stdout)
+        self.supported(tree, "| Markdown | `meow-demo` | shipped |", "| Markdown | `meow-absent` | shipped |")
+        self.assertFails(tree, "docs/README.md: the supported set marks Markdown shipped, and no unit meow-absent exists")
 
     def test_a_route_link_to_a_missing_file_fails(self):
         """REQ-3144: the route file links the documentation, and a link resolves."""

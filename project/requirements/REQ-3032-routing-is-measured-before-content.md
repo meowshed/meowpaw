@@ -11,8 +11,9 @@ verification: evaluation
 
 # REQ-3032
 
-Routing MUST be measured before what a unit says, because a unit that is never
 **Withdrawn by ADR-2980 on 2026-10-11. No replacement.**
+
+Routing MUST be measured before what a unit says, because a unit that is never
 
 It made the measurement of a prompt obligatory, and ADR-2980 removed prompt
 evaluation whole, because the owner will redesign it in future.

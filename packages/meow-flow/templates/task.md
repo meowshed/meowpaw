@@ -6,6 +6,7 @@ revised: YYYY-MM-DD
 epic: EPC-NNNN # or bug: BUG-NNNN where a defect carries this task, or realises: ADR-NNNN where one task realises the decision; name one
 closes: [REQ-NNNN] # the requirements it closes, any number; a defect's task restores one and may close none
 issue: # the tracker's number, where the repository uses one
+produces: # optional: the document this task's output is, where it is one and not code; that document names this task in prompted-by
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

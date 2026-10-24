@@ -17,6 +17,8 @@ picks it up is spec.
 4. Argue against it before you finish, and state the strongest objection.
 5. Say what works once it is accepted and what still doesn't, so a reader can
    tell an increment from a promise.
+6. Name each concern the decision raises, such as performance, security or
+   upgrade, in the decision's `concerns:` front matter.
 </steps>
 
 <rules name="design">
@@ -90,4 +92,18 @@ picks it up is spec.
   as a preference.
 - D24. Run the adversarial pass over the draft before implementation, and
   write its findings against the draft rather than rewriting it.
+- D25. For each decision that adds a rule to the constitution, ask whether
+  the rule pulls against one already there, and write two that do as one rule
+  with its exception stated, in the same decision, because two rules that
+  pull against each other leave the reader to guess which wins.
+- D26. For a decision that changes the vision, ask whether a requirement makes
+  each claim it adds falsifiable, and remove a claim with no requirement,
+  because a claim nothing can fail settles no argument.
+- D27. Where a decision contradicts the vision, report that one of the two is
+  stale, ask which, and stop: the step writes no decision while both stand,
+  because a record that holds both leaves the contradiction for the next
+  reader to resolve.
+- D28. Name a concern as one word a specification heading can carry, because
+  `paw check` matches it against the headings, and a concern phrased as a
+  sentence is one no heading names.
 </rules>

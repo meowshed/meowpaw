@@ -1,7 +1,7 @@
 ---
 id: EPC-2440
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2570
 ---
@@ -40,16 +40,16 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-4700 report a constitution over 200 lines from `paw check`, as advice, in the `record` feature of `crates/meow/`
+- [x] T-001 [P] TSK-4700 report a constitution over 200 lines from `paw check`, as advice, in the `record` feature of `crates/meow/` (done: pull request 1078)
       closes: REQ-2734
 
-- [ ] T-002 [P] TSK-4710 keep the method out of an initialised constitution and ask the design step for contradicting rules, in `plugins/meow-flow/`
+- [x] T-002 [P] TSK-4710 keep the method out of an initialised constitution and ask the design step for contradicting rules, in `plugins/meow-flow/` (done: pull request 1078)
       closes: REQ-2738, REQ-2740
 
-- [ ] T-003 [P] TSK-4720 forbid a shipped rule that leans on being read last, in `plugins/meow-author/skills/write/`
+- [x] T-003 [P] TSK-4720 forbid a shipped rule that leans on being read last, in `plugins/meow-author/skills/write/` (done: pull request 1078)
       closes: REQ-2742
 
-- [ ] T-004 TSK-4730 cut this repository's `CLAUDE.md` to what is always relevant, each rule naming its check
+- [x] T-004 TSK-4730 cut this repository's `CLAUDE.md` to what is always relevant, each rule naming its check (done: pull request 1078)
       closes: REQ-2732, REQ-2736, REQ-2744, REQ-2745, REQ-2746
       depends: TSK-4700 (not blocking) - its report measures the cut, and the cut can be counted by hand without it
 

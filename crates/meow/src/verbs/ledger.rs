@@ -511,6 +511,20 @@ pub struct Result<'a> {
     pub output: &'a str,
     /// The part of the work a subset run covered, or `None` for the whole.
     pub targets: Option<&'a [String]>,
+    /// The part the run covered, or `repository` (REQ-3043).
+    pub scope: &'a str,
+}
+
+/// The directory a run started in, which decides the files it can reach,
+/// the instructions that load and the settings that apply (REQ-3044).
+fn started_in() -> Option<String> {
+    let here = std::env::current_dir().ok()?;
+    Some(
+        std::fs::canonicalize(&here)
+            .unwrap_or(here)
+            .display()
+            .to_string(),
+    )
 }
 
 /// Appends one record, and its whole output beside the ledger, returning the
@@ -537,6 +551,8 @@ pub fn record(
         "tree": result.after,
         "revision": revision(root),
         "targets": result.targets,
+        "scope": result.scope,
+        "directory": started_in(),
         "repository": repository_identity(root),
         "work_tree": std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()).display().to_string(),
     });
@@ -601,6 +617,7 @@ pub fn start(
     command: &str,
     targets: Option<&[String]>,
     before: &str,
+    scope: &str,
 ) -> Option<String> {
     let (ledger, _) = ledger_of(root)?;
     let id = new_id(verb);
@@ -611,6 +628,8 @@ pub fn start(
         "verb": verb,
         "command": command,
         "targets": targets,
+        "scope": scope,
+        "directory": started_in(),
         "tree_before": before,
         "time": now(),
         "pid": pid,
@@ -688,6 +707,6 @@ pub fn short(tree: &str) -> &str {
 /// What one recorded result states, as the ledger's own documentation names
 /// it, which the interface page carries (REQ-2992).
 pub(crate) const EVIDENCE: &str = "A piece of evidence is one line of the ledger's JSON, whose keys are record, \
-verb, command, outcome, status, time, before, after, output and targets: what ran, what it printed, and the \
-trees either side of it. Cite the line `evidence` prints, which names the stage, the outcome, the record and \
+verb, command, outcome, status, time, before, after, output, targets, scope and directory: what ran, what it \
+printed, the trees either side of it, the part it covered and the directory it started in. Cite the line `evidence` prints, which names the stage, the outcome, the record and \
 the tree, and never restate it.";

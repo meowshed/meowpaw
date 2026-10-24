@@ -11,5 +11,7 @@ verification: static
 
 # REQ-1057
 
+**Withdrawn by ADR-2970 on 2026-10-11. No replacement.**
+
 Material that exceeds its budget MUST move into supporting files rather than
 be shortened by removing its obligations.

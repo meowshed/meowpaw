@@ -1,7 +1,7 @@
 ---
 id: TSK-4640
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2420
 closes: [REQ-2194]
@@ -51,7 +51,49 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+`meow-github protections`, in `crates/meow/src/github/protections.rs`, reads
+`repos/{r}/branches/{trunk}/protection` and
+`repos/{r}/rules/branches/{trunk}` through the request layer and prints the
+six lines SPC-1080 states, closing REQ-2194. Each test is in
+`crates/meow/tests/protections.rs`, runs `paw github protections o/r` against
+a stand-in `gh` and compares the report's lines whole. Each failed first,
+before the subcommand existed.
+
+1. `a_classic_protection_reports_each_of_the_six` closes criterion 1: force
+   pushes blocked and signed commits `in force`, the other four `absent`,
+   exit 0.
+2. `a_ruleset_counts_where_the_branch_has_no_protection` closes criterion 2:
+   a 404 for the protection and a `required_linear_history` rule give
+   `linear history: in force` and the rest `absent`.
+   `every_ruleset_rule_counts` holds each of the six rule types to its line.
+3. `a_refused_read_leaves_each_protection_it_holds_unread` closes criterion
+   3: a 403 for the rules prints the layer's `refused:` line, names every
+   protection it couldn't read `unread`, none `absent`, and exits 3. A
+   protection the classic answer shows in force stays `in force`.
+4. Every test above calls `every_call_reads`, which closes criterion 4: each
+   call the stand-in logged is `gh api <endpoint>` with no `-X`,
+   `--method`, `-f` or `-F`.
+
+`no_trunk_is_reported_and_reads_nothing` holds SPC-1080's sentence on an
+undeclared trunk. `unit_help.rs` holds the subcommand's lines to the first
+words its help states, and the help gives the two `gh api` reads as the
+manual equivalent. `docs/interface.md` lists the subcommand, and
+`plugins/meow-github/README.md` documents it.
+
+I made two choices the task leaves open. The report prints the credential
+line first and the four budget lines last, as `project` and `sync` do,
+because REQ-2568 and REQ-2582 hold every run of the request layer to them.
+After a throttle or a rejected credential, the report sends no second read,
+as the layer's other callers don't. The layer gained `get_unless_missing`,
+which reads a 404 as an answer, because a 404 on the protection is how GitHub
+says the branch has none.
+
+SPC-1080 reads a 404 on the protection as no protection. Whether GitHub also
+answers 404 to a credential without administration access, which would print
+`absent` where the truth is unread, only a run against this repository with
+such a credential shows.
+
+Every stage passed in pull request #1072.
 
 ## Left alone
 

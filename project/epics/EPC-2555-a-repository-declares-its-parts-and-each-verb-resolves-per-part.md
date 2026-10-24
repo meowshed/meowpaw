@@ -1,7 +1,7 @@
 ---
 id: EPC-2555
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2650
 ---
@@ -40,18 +40,18 @@ number.
 
 ## Tasks
 
-- [ ] T-001 TSK-5050 read `[parts]` and layer a part's profile over the root's, in the profile module of `crates/meow/`
+- [x] T-001 TSK-5050 read `[parts]` and layer a part's profile over the root's, in the profile module of `crates/meow/` (done: pull request 1072)
       closes: REQ-0343, REQ-3040, REQ-3046
 
-- [ ] T-002 TSK-5055 resolve and report each verb per part, with `--part` and a `scope:` line, in `plugins/meow-checks/`
+- [x] T-002 TSK-5055 resolve and report each verb per part, with `--part` and a `scope:` line, in `plugins/meow-checks/` (done: pull request 1072)
       closes: REQ-0078, REQ-3042, REQ-3043, REQ-3044
       depends: TSK-5050 (blocking) - a part's verbs come from the layered profile it reads
 
-- [ ] T-003 [P] TSK-5060 activate `meow-markdown`, `meow-mise` and `meow-gotask` per marker directory
+- [x] T-003 [P] TSK-5060 activate `meow-markdown`, `meow-mise` and `meow-gotask` per marker directory (done: pull request 1072)
       closes: REQ-0133, REQ-3048
       depends: TSK-5050 (not blocking) - a report names the part where one is declared, and names the directory without it
 
-- [ ] T-004 [P] TSK-5065 carry the rules for sparse trees, root settings and read denials in the `commit` skill and the implement step
+- [x] T-004 [P] TSK-5065 carry the rules for sparse trees, root settings and read denials in the `commit` skill and the implement step (done: pull request 1072)
       closes: REQ-3052, REQ-3054, REQ-3056
 
 ## Coverage

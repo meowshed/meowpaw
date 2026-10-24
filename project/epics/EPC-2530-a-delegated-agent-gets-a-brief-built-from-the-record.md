@@ -1,7 +1,7 @@
 ---
 id: EPC-2530
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2560
 ---
@@ -49,15 +49,16 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-4945 print a task's brief with `paw brief`, in the `record` feature of `crates/meow/`
+- [x] T-001 [P] TSK-4945 print a task's brief with `paw brief`, in the `record` feature of `crates/meow/` (done: pull request 1072)
       closes: REQ-0810, REQ-0812, REQ-0814, REQ-1764
 
-- [ ] T-002 TSK-4950 state when a step delegates, how it dispatches and who reviews, in `plugins/meow-flow/skills/method/`
+- [x] T-002 TSK-4950 state when a step delegates, how it dispatches and who reviews, in `plugins/meow-flow/skills/method/` (done: pull request 1072)
       closes: REQ-0818, REQ-0824, REQ-0826, REQ-0828, REQ-2980
       depends: TSK-4945 (blocking) - the step names `paw brief`, which has to exist before the step tells anyone to run it
 
-- [ ] T-003 [P] TSK-4955 show that a repository's own agent replaces a shipped one of the same name
-      closes: REQ-2986
+- [~] T-003 [P] TSK-4955 show that a repository's own agent replaces a shipped one of the same name
+  closes: REQ-2986
+  dropped: ADR-3020 withdraws REQ-2986, because the platform keeps a repository's agent apart from the unit's
 
 ## Coverage
 

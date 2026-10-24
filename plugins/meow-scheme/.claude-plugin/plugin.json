@@ -1,0 +1,14 @@
+{
+  "name": "meow-scheme",
+  "version": "0.1.0",
+  "description": "Detects Scheme projects from the manifests git tracks, names the implementation before it binds anything, prints a stages table that binds Racket's tests as raco test without writing bytecode and binds nothing for an implementation whose commands the repository doesn't commit, reports a stage that writes bytecode into the working tree and a compiled directory that isn't ignored, writing no file, and carries what a reviewer of Scheme checks that no command reports.",
+  "author": {
+    "name": "Andrew Vasilyev",
+    "email": "me@retran.me"
+  },
+  "homepage": "https://github.com/meowshed/meowpaw/blob/main/plugins/meow-scheme/README.md",
+  "repository": "https://github.com/meowshed/meowpaw",
+  "license": "Apache-2.0",
+  "keywords": ["scheme", "racket", "language", "stages", "meowpaw"],
+  "dependencies": ["meow-core"]
+}

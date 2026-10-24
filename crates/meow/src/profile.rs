@@ -199,12 +199,24 @@ pub const KEYS: &[Key] = &[
         reason: "Where the record lives is the repository's layout, and a directory of Markdown doesn't say it is the record (SPC-1070)",
     },
     Key {
+        path: "record.kinds",
+        reason: "Which artifact kinds the record holds beyond the harness's own is the repository's choice, and a directory of Markdown doesn't say it is one (SPC-1070)",
+    },
+    Key {
         path: "docs.style",
         reason: "The documentation style is the repository's decision, and the pages already written can't name it (SPC-1090)",
     },
     Key {
+        path: "docs.diagrams",
+        reason: "The notation a repository draws diagrams in is its choice, and the blocks already written can't say which renderer it relies on (REQ-2296)",
+    },
+    Key {
         path: "markdown.target",
         reason: "The renderer a document is written for is outside the repository, and the Markdown alone doesn't name it (REQ-2452)",
+    },
+    Key {
+        path: "go.race",
+        reason: "Whether a repository accepts a test run without the race detector is its decision, and the tests alone can't show it (REQ-2414)",
     },
     Key {
         path: "licence.header",
@@ -234,7 +246,156 @@ pub const KEYS: &[Key] = &[
         path: "method.principles",
         reason: "Which files hold the repository's principles is its choice, and no file name says a document is one",
     },
+    Key {
+        path: "parts",
+        reason: "Only the project knows what it is built from, and a marker says which tool a directory uses, not which part it is (REQ-0343)",
+    },
 ];
+
+/// The keys a part's profile may hold: every key but the record's and the
+/// parts', because the record stays at the root and a part declares no parts
+/// of its own (REQ-3046).
+fn part_keys() -> Vec<&'static str> {
+    KEYS.iter()
+        .map(|key| key.path)
+        .filter(|path| *path != "parts" && *path != "record" && !path.starts_with("record."))
+        .collect()
+}
+
+/// One part the root profile declares under `[parts]`: its name, and its
+/// directory relative to the root, written without a leading `./` or a
+/// trailing `/` (REQ-0343).
+#[derive(Clone, Debug, PartialEq)]
+pub struct Part {
+    pub name: String,
+    pub directory: String,
+}
+
+/// The parts the root profile declares, in the order it gives them, and a line
+/// for each entry that names no directory inside the repository. A profile
+/// with no `[parts]` declares none, and the repository is one part, its root.
+pub fn parts(table: &toml::Table) -> (Vec<Part>, Vec<String>) {
+    let mut found = Vec::new();
+    let mut problems = Vec::new();
+    let Some(declared) = table.get("parts") else {
+        return (found, problems);
+    };
+    let Some(declared) = declared.as_table() else {
+        problems.push(
+            "profile: [parts] isn't a table; write one line a part, name = \"directory\""
+                .to_string(),
+        );
+        return (found, problems);
+    };
+    for (name, value) in declared {
+        let directory = value.as_str().and_then(part_directory);
+        match directory {
+            Some(directory) => found.push(Part {
+                name: name.clone(),
+                directory,
+            }),
+            None => problems.push(format!(
+                "profile: part {name} names no directory inside the repository; write {name} = \"<directory>\" under [parts]"
+            )),
+        }
+    }
+    (found, problems)
+}
+
+/// A part's directory as written, without `./` or a trailing `/`, or `None`
+/// where it is empty, the root itself, absolute, or climbs out with `..`.
+fn part_directory(text: &str) -> Option<String> {
+    let trimmed = text.trim().trim_end_matches('/');
+    let trimmed = trimmed.strip_prefix("./").unwrap_or(trimmed);
+    let path = Path::new(trimmed);
+    let inside = path
+        .components()
+        .all(|part| matches!(part, std::path::Component::Normal(_)));
+    (inside && !trimmed.is_empty()).then(|| trimmed.to_string())
+}
+
+/// Where a part's own profile would be.
+pub fn part_profile(root: &Path, part: &Part) -> PathBuf {
+    root.join(&part.directory).join(PROFILE)
+}
+
+/// The profile a part reads: the root's, with the part's own
+/// `.meowpaw/profile.toml` read over it where the part's directory holds one
+/// (REQ-3040). A key the part declares replaces the root's, and the part's
+/// stages are the ones it declares and never the root's. A `[record]` or
+/// `[parts]` in the part's profile is reported as an unknown key and the
+/// root's stands (REQ-3046). The tool reads both files itself and relies on no
+/// setting the platform inherits from a parent directory.
+pub fn read_part(root: &Path, part: &Part) -> Profile {
+    let shared = read(root);
+    let own = part_profile(root, part);
+    if !own.is_file() {
+        return shared;
+    }
+    let shown = format!("{}/{PROFILE}", part.directory);
+    let text = match std::fs::read(&own).map(String::from_utf8) {
+        Ok(Ok(text)) => text,
+        Ok(Err(error)) => return Profile::Unparseable(format!("{shown}: {error}")),
+        Err(error) => return Profile::Unparseable(format!("{shown}: {error}")),
+    };
+    let table = match text.parse::<toml::Table>() {
+        Ok(table) => table,
+        Err(error) => {
+            let message = error
+                .message()
+                .lines()
+                .map(str::trim)
+                .filter(|line| !line.is_empty())
+                .collect::<Vec<_>>()
+                .join("; ");
+            return match error.span() {
+                Some(span) => {
+                    let line = text[..span.start.min(text.len())].matches('\n').count() + 1;
+                    Profile::Unparseable(format!("{shown}: line {line}: {message}"))
+                }
+                None => Profile::Unparseable(format!("{shown}: {message}")),
+            };
+        }
+    };
+    let (base, mut unknown) = match shared {
+        Profile::Unparseable(message) => return Profile::Unparseable(message),
+        Profile::Absent => (toml::Table::new(), Vec::new()),
+        Profile::Parsed(table, unknown) => (table, unknown),
+    };
+    let mut found = Vec::new();
+    unknown_among(&table, "", &part_keys(), &mut found);
+    unknown.extend(found.into_iter().map(|key| format!("{key} (in {shown})")));
+    Profile::Parsed(layer(&base, &table), unknown)
+}
+
+/// The root's table with the part's read over it.
+fn layer(root: &toml::Table, part: &toml::Table) -> toml::Table {
+    let mut out = root.clone();
+    out.remove("stages");
+    out.remove("verbs");
+    for (key, value) in part {
+        if key == "record" || key == "parts" {
+            continue;
+        }
+        over(&mut out, key, value);
+    }
+    out
+}
+
+/// Sets `key` in `table` to `value`, merging where both are tables, so the
+/// part replaces each key it declares and keeps the root's others.
+fn over(table: &mut toml::Table, key: &str, value: &toml::Value) {
+    match (table.get_mut(key), value) {
+        (Some(toml::Value::Table(inner)), toml::Value::Table(theirs)) => {
+            for (name, value) in theirs {
+                over(inner, name, value);
+            }
+        }
+        _ => {
+            table.insert(key.to_string(), value.clone());
+        }
+    }
+}
 
 /// Each entry in `keys` whose reason is empty.
 fn unreasoned(keys: &[Key]) -> Vec<&'static str> {
@@ -268,6 +429,40 @@ fn unknown_among(table: &toml::Table, prefix: &str, known: &[&str], out: &mut Ve
 fn unknown(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
     let known: Vec<&str> = KEYS.iter().map(|key| key.path).collect();
     unknown_among(table, prefix, &known, out);
+    declared_kind_keys(table, prefix, out);
+}
+
+/// The keys a declared kind holds. A kind is named by the repository, so its
+/// table can't be listed in `KEYS`; every other key under it, such as one that
+/// would switch an obligation off, is unknown (REQ-0670).
+pub const KIND_KEYS: [&str; 4] = ["prefix", "lifetime", "template", "outranks"];
+
+fn declared_kind_keys(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
+    let path = |name: &str| {
+        if prefix.is_empty() {
+            name.to_string()
+        } else {
+            format!("{prefix}.{name}")
+        }
+    };
+    let Some(kinds) = table
+        .get("record")
+        .and_then(|r| r.get("kinds"))
+        .and_then(|k| k.as_table())
+    else {
+        return;
+    };
+    for (name, declaration) in kinds {
+        let Some(declaration) = declaration.as_table() else {
+            continue;
+        };
+        for key in declaration
+            .keys()
+            .filter(|k| !KIND_KEYS.contains(&k.as_str()))
+        {
+            out.push(path(&format!("record.kinds.{name}.{key}")));
+        }
+    }
 }
 
 /// The personal profile as read: absent, unparseable, or the table and each
@@ -588,6 +783,153 @@ mod tests {
         );
     }
 
+    /// A root profile and each part's own, written under one directory.
+    fn with_parts(root: &str, parts: &[(&str, &str)]) -> tempdir::Dir {
+        let dir = tempdir::Dir::new();
+        std::fs::create_dir_all(dir.path().join(".meowpaw")).unwrap();
+        std::fs::write(dir.path().join(PROFILE), root).unwrap();
+        for (directory, text) in parts {
+            let at = dir.path().join(directory).join(".meowpaw");
+            std::fs::create_dir_all(&at).unwrap();
+            std::fs::write(at.join("profile.toml"), text).unwrap();
+        }
+        dir
+    }
+
+    const TWO_PARTS: &str = "[stages]\ntest = \"root-test\"\nlint = \"root-lint\"\n\n[record]\nroot = \"project\"\n\n[parts]\nsite = \"site/\"\ncrate = \"./crates/x\"\n";
+
+    /// TSK-5050 criterion 1, REQ-0343: the root profile declares its parts,
+    /// each a name and a directory, and `parts` is no unknown key.
+    #[test]
+    fn the_root_profile_declares_its_parts() {
+        let dir = with_parts(TWO_PARTS, &[]);
+        let Profile::Parsed(table, unknown) = read(dir.path()) else {
+            panic!("the profile didn't parse");
+        };
+        assert_eq!(unknown, Vec::<String>::new());
+        let (found, problems) = parts(&table);
+        assert_eq!(problems, Vec::<String>::new());
+        assert_eq!(
+            found,
+            [
+                Part {
+                    name: "site".into(),
+                    directory: "site".into()
+                },
+                Part {
+                    name: "crate".into(),
+                    directory: "crates/x".into()
+                },
+            ]
+        );
+    }
+
+    /// TSK-5050 criterion 1, REQ-0343: an entry naming no directory inside
+    /// the repository is reported, and never taken as a part.
+    #[test]
+    fn a_part_outside_the_repository_is_reported() {
+        let table: toml::Table = "[parts]\nup = \"../other\"\nroot = \"/\"\nnone = 3\nok = \"a\"\n"
+            .parse()
+            .unwrap();
+        let (found, problems) = parts(&table);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].directory, "a");
+        assert_eq!(problems.len(), 3, "{problems:?}");
+    }
+
+    /// TSK-5050 criterion 2, REQ-3040: a part's profile is read over the
+    /// root's, and a stage the part leaves out is unresolved there, never the
+    /// root's.
+    #[test]
+    fn a_part_declares_its_own_stages_and_takes_none_from_the_root() {
+        let dir = with_parts(
+            TWO_PARTS,
+            &[(
+                "site",
+                "[stages]\ntest = \"site-test\"\n\n[markdown]\ntarget = \"hugo\"\n",
+            )],
+        );
+        let Profile::Parsed(table, _) = read(dir.path()) else {
+            panic!("the profile didn't parse");
+        };
+        let (found, _) = parts(&table);
+        let Profile::Parsed(site, unknown) = read_part(dir.path(), &found[0]) else {
+            panic!("the part's profile didn't parse");
+        };
+        assert_eq!(unknown, Vec::<String>::new());
+        let declared = stages(&site).and_then(toml::Value::as_table).unwrap();
+        assert_eq!(
+            declared.get("test").and_then(toml::Value::as_str),
+            Some("site-test")
+        );
+        assert!(declared.get("lint").is_none(), "{declared:?}");
+        assert_eq!(
+            site.get("markdown").and_then(|m| m.get("target")),
+            Some(&toml::Value::from("hugo"))
+        );
+        // A part with no profile of its own reads the root's.
+        let Profile::Parsed(whole, _) = read_part(dir.path(), &found[1]) else {
+            panic!("the root's profile didn't parse");
+        };
+        let declared = stages(&whole).and_then(toml::Value::as_table).unwrap();
+        assert_eq!(
+            declared.get("lint").and_then(toml::Value::as_str),
+            Some("root-lint")
+        );
+    }
+
+    /// TSK-5050 criterion 3, REQ-3046: a part's `[record]` and `[parts]` are
+    /// unknown keys, and the root's record and parts stand.
+    #[test]
+    fn a_parts_record_and_parts_are_unknown_and_the_roots_stand() {
+        let dir = with_parts(
+            TWO_PARTS,
+            &[(
+                "site",
+                "[stages]\ntest = \"t\"\n\n[record]\nroot = \"elsewhere\"\n\n[parts]\ninner = \"x\"\n",
+            )],
+        );
+        let site = Part {
+            name: "site".into(),
+            directory: "site".into(),
+        };
+        let Profile::Parsed(table, unknown) = read_part(dir.path(), &site) else {
+            panic!("the part's profile didn't parse");
+        };
+        assert_eq!(
+            unknown,
+            [
+                format!("record (in site/{PROFILE})"),
+                format!("parts (in site/{PROFILE})")
+            ]
+        );
+        assert_eq!(
+            table.get("record").and_then(|r| r.get("root")),
+            Some(&toml::Value::from("project"))
+        );
+        assert_eq!(parts(&table).0.len(), 2);
+    }
+
+    /// TSK-5050 criterion 2: a part's profile that doesn't parse is reported
+    /// with its path, and nothing falls back to the root's.
+    #[test]
+    fn a_parts_broken_profile_is_unparseable_and_names_its_file() {
+        let dir = with_parts(TWO_PARTS, &[("site", "[stages\n")]);
+        let site = Part {
+            name: "site".into(),
+            directory: "site".into(),
+        };
+        match read_part(dir.path(), &site) {
+            Profile::Unparseable(message) => {
+                assert!(
+                    message.starts_with("site/.meowpaw/profile.toml: line 1"),
+                    "{message}"
+                )
+            }
+            other => panic!("expected unparseable, got {other:?}"),
+        }
+    }
+
     #[test]
     fn a_missing_profile_is_absent() {
         assert!(matches!(with_profile(None).1, Profile::Absent));
@@ -624,6 +966,23 @@ mod tests {
         ]
         .concat();
         assert_eq!(unreasoned(&added), ["verbs.added"]);
+    }
+
+    /// TSK-4970 criteria 3 and 4, REQ-0670: `record.kinds` and the four keys
+    /// of a declared kind are known, and any other key under a kind is not.
+    #[test]
+    fn a_declared_kinds_keys_are_known_and_an_opt_out_is_not() {
+        let declared = "[record.kinds.narrative]\nprefix = \"NAR\"\nlifetime = \"record\"\ntemplate = \"t\"\noutranks = []\n";
+        let (_dir, profile) = with_profile(Some(declared));
+        let Profile::Parsed(_, unknown) = &profile else {
+            panic!("the profile didn't parse");
+        };
+        assert!(unknown.is_empty(), "{unknown:?}");
+        let (_dir, profile) = with_profile(Some(&format!("{declared}frozen = false\n")));
+        let Profile::Parsed(_, unknown) = &profile else {
+            panic!("the profile didn't parse");
+        };
+        assert_eq!(unknown, &["record.kinds.narrative.frozen"]);
     }
 
     #[test]

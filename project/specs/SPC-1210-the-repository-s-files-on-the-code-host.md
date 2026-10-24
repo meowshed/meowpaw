@@ -100,3 +100,37 @@ task or a model credential named anywhere in the file. The `test` stage runs it.
 | `${{` inside a `run:` value                             | `check_workflows.py` fails, naming the file and the line        |
 | A workflow names the suite's task or a model credential | `check_workflows.py` fails, naming the file and the line        |
 | A workflow file doesn't parse                           | `check_workflows.py` fails, naming the file and the parse error |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States the files this repository keeps under `.github/` for GitHub and the rules its workflows hold.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+In `.github/` in this repository.
+
+### What crosses a trust boundary
+
+What a workflow may and may not do is stated under this document's Behaviour, and `tools/check_workflows.py` holds it.
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+GitHub reads the files from `.github/` in this repository, and the harness writes none of them into another repository.

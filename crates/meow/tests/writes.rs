@@ -209,7 +209,12 @@ fn no_subcommand_writes_outside_the_state_the_repository_and_the_record() {
 /// The writes the crate's source makes, by file and how many of each kind of
 /// call, each with where it writes. A new call fails this test, so a person
 /// reads where it writes before it is added (REQ-1429).
-const WRITES: [(&str, usize, &str); 11] = [
+const WRITES: [(&str, usize, &str); 13] = [
+    (
+        "pack.rs",
+        2,
+        "a safe fix a fixing run applies, in the file its tool named, and the directories under the run state where a stage's tool writes its output, its report and the files it keeps (REQ-2430, REQ-2442, REQ-2416, REQ-2418)",
+    ),
     (
         "github/project.rs",
         1,
@@ -229,6 +234,11 @@ const WRITES: [(&str, usize, &str); 11] = [
         "gotask.rs",
         2,
         "a scratch directory in the temporary directory for one `task --list-all` call (BUG-1570)",
+    ),
+    (
+        "markdown.rs",
+        2,
+        "the directory under the run state where `diagrams` puts each Mermaid block and what `mmdc` renders from it (REQ-2304)",
     ),
     (
         "record.rs",

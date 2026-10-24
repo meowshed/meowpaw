@@ -1,0 +1,53 @@
+---
+id: TSK-5684
+artifact: task
+status: done
+revised: 2026-10-24
+epic: EPC-2850
+closes: [REQ-4510]
+issue:
+---
+
+<!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
+
+# Resolve a launcher's binary once per machine
+
+A unit's launcher walks the core unit's data directory on every guarded call. It resolves the path once, keeps it, and reuses it.
+
+## Acceptance criteria
+
+1. Given a launcher run twice on one machine, when the second run starts, then it reads the resolved path from a file under its data directory and does not probe the machine or walk the core unit's data directory (REQ-4510). Closed by: a test with stand-ins for `uname` and the directory walk that counts each probe and sees it run once, seen failing against the launcher before the change.
+2. Given a cached path whose binary no longer exists, when the launcher runs, then it resolves again, replaces the cache and runs the new binary (REQ-4510). Closed by: a test that deletes the binary between two runs.
+3. Given the generated launchers of every unit, when `mise run all` runs, then it exits 0 (REQ-4510). Closed by: the gate of the pull request that carries this task.
+
+## What to do
+
+Add the resolution to the launcher template TSK-5683 writes, so every unit's launcher carries it, and regenerate them. The cache lives under the unit's data directory the platform provides, and a missing or unreadable cache means resolve again.
+
+## Depends on
+
+- TSK-5683 (blocking): the launcher template this task extends is the one that task writes.
+
+## Evidence
+
+Criteria 1 and 2 are closed by `tools/test_launcher_cache.py`, whose tests
+name REQ-4510. A `uname` stand-in counts its calls: the first run probes, the
+second run adds none and still runs the binary after the core unit's pointer
+file is removed, so it neither probes nor walks. A second test deletes the
+binary between two runs and sees the launcher resolve again, run the new
+binary and replace the cache. Both failed against the launcher before the
+change. The cache is one file, `binary-<launcher>`, under
+`CLAUDE_PLUGIN_DATA`, holding the unit's directory, the `PATH` it was written
+under and the resolved path; a cache written for another directory or another
+`PATH`, empty or naming a missing binary means resolve again. The `PATH` is
+part of the key because the probe's answer depends on the tools it finds, and
+the existing `meow-scm` test that removes them from `PATH` expects the
+launcher to stop. The template in `tools/generate_launchers.py` carries it, so
+every unit's launcher does. Criterion 3 rests on the gate of the pull request
+that carries this task.
+
+Every stage passed in pull request #1081.
+
+## Left alone
+
+The hook that starts a session, and what the launcher does after it has found its binary.
