@@ -1242,6 +1242,7 @@ fn declared_kinds(repository: &Path, layout: &Layout) -> (Vec<Kind>, Vec<Finding
             dir: Some(name.clone()),
             file: None,
             fields: Vec::new(),
+            optional_fields: Vec::new(),
             statuses: statuses.iter().map(|s| s.to_string()).collect(),
             index: None,
             sections: Vec::new(),
