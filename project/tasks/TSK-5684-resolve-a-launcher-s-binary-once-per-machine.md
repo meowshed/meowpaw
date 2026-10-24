@@ -30,7 +30,20 @@ Add the resolution to the launcher template TSK-5683 writes, so every unit's lau
 
 ## Evidence
 
-Not yet.
+Criteria 1 and 2 are closed by `tools/test_launcher_cache.py`, whose tests
+name REQ-4510. A `uname` stand-in counts its calls: the first run probes, the
+second run adds none and still runs the binary after the core unit's pointer
+file is removed, so it neither probes nor walks. A second test deletes the
+binary between two runs and sees the launcher resolve again, run the new
+binary and replace the cache. Both failed against the launcher before the
+change. The cache is one file, `binary-<launcher>`, under
+`CLAUDE_PLUGIN_DATA`, holding the unit's directory and the resolved path; a
+cache written for another directory, empty or naming a missing binary means
+resolve again. The template in `tools/generate_launchers.py` carries it, so
+every unit's launcher does. Criterion 3 rests on the gate of the pull request
+that carries this task.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

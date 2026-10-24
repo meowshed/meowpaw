@@ -23,7 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 FACTS = Path(__file__).resolve().parent / "launchers.toml"
 
-HEADER = """#!/bin/sh
+HEAD_TOP = """#!/bin/sh
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
@@ -34,7 +34,9 @@ case $0 in
 */*) here=${0%/*} ;;
 *) here=$(command -v "$0") && here=${here%/*} ;;
 esac
-system='' cpu='' exe=''
+"""
+
+PROBE = """system='' cpu='' exe=''
 case $(uname -s 2>/dev/null) in
 Darwin) system=apple-darwin ;;
 Linux) system=unknown-linux-musl ;;
@@ -47,24 +49,52 @@ esac
 binary="$here/$cpu-$system/paw$exe"
 """
 
-CLAUDE_FIND = """# The shared binary the core unit ships, found through the core unit's data
-# directory, which the platform documents and the core unit's session start
-# writes (REQ-4504). The unit's own build beside it is the fallback.
-data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
-for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
-  [ -f "$core" ] || continue
-  read -r root <"$core" 2>/dev/null
-  if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/paw$exe" ]; then
-    binary="$root/bin/$cpu-$system/paw$exe"
-    break
+CLAUDE_CACHE_READ = """# The path found on an earlier run, kept under the data directory the platform
+# gives this unit (REQ-4510), so a guarded call neither probes the machine nor
+# walks the core unit's data directory again. A cache that is missing,
+# unreadable, written for another place or naming a binary that is gone means
+# resolve again.
+binary='' cache=''
+if [ -n "${CLAUDE_PLUGIN_DATA:-}" ]; then
+  cache="$CLAUDE_PLUGIN_DATA/binary-@NAME@"
+  if [ -r "$cache" ]; then
+    { read -r cached_here && read -r cached_binary; } <"$cache" 2>/dev/null
+    if [ "$cached_here" = "$here" ] && [ -f "$cached_binary" ]; then
+      binary=$cached_binary
+    fi
   fi
-done
-# Loaded in place from a checkout, the core unit sits beside this one.
-[ -f "$binary" ] || {
-  beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
-  [ -f "$beside" ] && binary=$beside
-}
-# The platform version this unit was tested on, from its requires.toml
+fi
+if [ -z "$binary" ]; then
+"""
+
+CLAUDE_CACHE_WRITE = """  if [ -z "$system" ] || [ -z "$cpu" ] || [ ! -f "$binary" ]; then
+    binary=''
+  elif [ -n "$cache" ]; then
+    { mkdir -p "$CLAUDE_PLUGIN_DATA" && printf '%s\\n%s\\n' "$here" "$binary" >"$cache"; } 2>/dev/null
+  fi
+fi
+"""
+
+CLAUDE_FIND = """  # The shared binary the core unit ships, found through the core unit's data
+  # directory, which the platform documents and the core unit's session start
+  # writes (REQ-4504). The unit's own build beside it is the fallback.
+  data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
+  for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
+    [ -f "$core" ] || continue
+    read -r root <"$core" 2>/dev/null
+    if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/paw$exe" ]; then
+      binary="$root/bin/$cpu-$system/paw$exe"
+      break
+    fi
+  done
+  # Loaded in place from a checkout, the core unit sits beside this one.
+  [ -f "$binary" ] || {
+    beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
+    [ -f "$beside" ] && binary=$beside
+  }
+"""
+
+CLAUDE_PLATFORM = """# The platform version this unit was tested on, from its requires.toml
 # (REQ-1738): on an older one the launcher stops here without running the
 # binary, because the unit's behaviour was never seen on it. The version the
 # platform reports comes from `claude --version`, which the platform's CLI
@@ -90,7 +120,7 @@ if [ -n "$required" ]; then
 fi
 """
 
-CLAUDE_RUN = """if [ -n "$system" ] && [ -n "$cpu" ] && [ -f "$binary" ]; then
+CLAUDE_RUN = """if [ -n "$binary" ]; then
   [ -x "$binary" ] || chmod +x "$binary" 2>/dev/null
 @PROLOGUE@  exec "$binary" @SUBCOMMAND@ "$@"
 fi
@@ -163,10 +193,13 @@ def launcher(name: str, unit: dict, host: str) -> str:
     """The launcher text for one unit on one host ("claude" or "pi"); `name` is the launcher's file name."""
     facts = host_facts(unit, host)
     comment = "\n".join("# " + line for line in facts["comment"])
-    text = HEADER.replace("@COMMENT@", comment)
+    text = HEAD_TOP.replace("@COMMENT@", comment)
     run = CLAUDE_RUN if host == "claude" else PI_RUN
     if host == "claude":
-        text += CLAUDE_FIND
+        probe = "".join(f"  {line}\n" if line else "\n" for line in PROBE.splitlines())
+        text += CLAUDE_CACHE_READ.replace("@NAME@", name) + probe + CLAUDE_FIND + CLAUDE_CACHE_WRITE + CLAUDE_PLATFORM
+    else:
+        text += PROBE
     prologue = facts.get("prologue", "")
     text += run.replace("@PROLOGUE@", prologue).replace("@SUBCOMMAND@", facts["subcommand"])
     reason = REASON.replace("@ADVICE@", ADVICE[host])
