@@ -129,6 +129,42 @@ class Check(unittest.TestCase):
         """REQ-1110: every unit states what it is for and when to load it."""
         self.fails(unit(GOOD.replace("description: The demo skill. It MUST be loaded before a demo is run.\n", "")), "has no description in its front matter")
 
+    def test_a_description_that_leads_with_none_of_the_when_to_use_words_fails(self):
+        """TSK-5030 criterion 1, REQ-3050: the first sentence carries a word a request would, or the check names the field."""
+        skill = GOOD.replace("description: The demo skill. It MUST be loaded before a demo is run.\n",
+                             "description: Holds the demo knowledge. It MUST be loaded before a demo is run.\n"
+                             "when_to_use: Before a `commit` is written or a `push` is made.\n")
+        done = self.repo(unit(skill)).check()
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("plugins/meow-demo/skills/demo/SKILL.md: description's first sentence carries none of the words "
+                      "when_to_use names: commit, push", done.stdout)
+
+    def test_a_description_that_carries_one_of_the_when_to_use_words_passes(self):
+        """TSK-5030 criterion 1, REQ-3050: one word of the list in the first sentence, in any inflection, is enough."""
+        skill = GOOD.replace("description: The demo skill. It MUST be loaded before a demo is run.\n",
+                             "description: Writes the commit message the demo needs. It MUST be loaded before a demo is run.\n"
+                             "when_to_use: Before a `commit` is written or a `push` is made.\n")
+        done = self.repo(unit(skill)).check()
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_a_word_in_the_second_sentence_does_not_count(self):
+        """TSK-5030, REQ-3050: the description leads with the request's words, so a later sentence is too late."""
+        skill = GOOD.replace("description: The demo skill. It MUST be loaded before a demo is run.\n",
+                             "description: The demo skill. It MUST be loaded before a commit is written.\n"
+                             "when_to_use: Before a `commit` is written.\n")
+        self.fails(unit(skill), "description's first sentence carries none of the words when_to_use names: commit")
+
+    def test_a_skill_with_no_when_to_use_is_not_read_by_the_rule(self):
+        """TSK-5030: a skill with no when_to_use passes as it did."""
+        done = self.repo(unit()).check()
+        self.assertEqual(done.returncode, 0, done.stdout)
+
+    def test_every_shipped_unit_passes_the_rule(self):
+        """TSK-5030 criterion 2, REQ-3050: the units of this repository lead with the words their when_to_use names."""
+        done = subprocess.run([str(BIN), "check"], cwd=UNIT.parent.parent, capture_output=True, text=True,
+                              env={**os.environ, "CLAUDE_PLUGIN_DATA": "/nonexistent/u"})
+        self.assertNotIn("first sentence carries none", done.stdout)
+
     def test_a_commands_directory_fails(self):
         """REQ-1111: one kind of loadable unit, a command being a skill only a person invokes."""
         self.fails(unit(extra={"plugins/meow-demo/commands/go.md": "Go.\n"}), "ships a commands/ directory")
