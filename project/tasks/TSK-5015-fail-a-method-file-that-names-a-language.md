@@ -45,7 +45,24 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criteria 1 and 2 are closed by `tools/test_check_language.py`:
+`test_a_method_skill_naming_a_language_fails_with_file_line_and_word` and
+`test_a_framework_a_package_manager_and_an_extension_fail` for REQ-0070,
+`test_a_pack_readme_naming_the_language_is_not_read` and
+`test_a_fence_naming_the_pack_whose_output_it_shows_is_exempt` for REQ-0072
+and REQ-0084. Criterion 3 is closed by
+`test_this_repository_passes_and_reads_files` and by the `test-tools` task,
+which now runs `python3 tools/check_language.py`. Criterion 4 rests on
+judgement, because no program reads whether a sentence is true.
+
+The first run found one real hit in the method's own text, the hand-run
+command of `meow-prose-gate`'s README, which named a Python source file and
+the interpreter, and the README now describes the executable without them. It
+also found the Pi packages' READMEs, which name the Pi host's package manager
+in their install command. Those pages are the host adapter's, so the check
+skips a Pi package's top-level README and says so in its docstring.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

@@ -94,8 +94,10 @@ No prompt, template or page in the kernel, method or practice layers names a
 language, a build tool, a package manager or a source file extension, because
 what the harness tells a repository has to hold in every language. Language
 knowledge lives in packs. A unit's own program is written in some language and
-the rule doesn't reach its source (ADR-1070). No check enforces the rule yet,
-so review holds it, which is weaker.
+the rule doesn't reach its source (ADR-1070). `tools/check_language.py` holds the
+rule: it reads the kernel, method and practice units, skips the packs, and fails
+on a language, framework, build tool, package manager or file extension from its
+word list (ADR-2640). A new language passes until it joins the list.
 </principle>
 
 <principle name="unresolved_is_not_a_pass">
