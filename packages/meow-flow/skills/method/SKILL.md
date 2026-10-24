@@ -75,10 +75,12 @@ don't overrule it.
 - M10. Separate, in every report, what you verified from what you assumed, and
   name the command behind each verified claim, because an assumption reported
   beside a check reads as one.
-- M11. Write an insight only when the work taught something that holds past
-  its case, never because a step ended or a period passed, and report that
-  nothing was learned as an ordinary outcome, because a log written on a
-  schedule fills with activity and buries the few lessons in it.
+- M11. Write an insight as a draft, with no person's prompt, when the work
+  taught something that holds past its case, because the model that did the
+  work holds the numbers and is the one placed to see the lesson. Never write
+  one because a step ended or a period passed, and report that nothing was
+  learned as an ordinary outcome, because a log written on a schedule fills
+  with activity and buries the few lessons in it.
 - M12. Keep what happened, and when, in the version control history, and put
   only the lesson and its evidence in an insight, because the history already
   holds the activity and a second copy drifts from it.
