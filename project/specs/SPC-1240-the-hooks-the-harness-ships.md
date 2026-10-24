@@ -56,6 +56,7 @@ The hooks the units declare:
 | Unit              | Event                                  | Subcommand           | What it stops                                                                                                |
 | ----------------- | -------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `meow-core`       | `SessionStart`                         | `write-root`         | Nothing: it records where the unit is installed                                                              |
+| `meow-core`       | `SessionStart`                         | `reply-shape`        | Nothing: it hands the model the reply shape                                                                  |
 | `meow-flow`       | `SessionStart`                         | `status --waiting`   | Nothing: it reports what waits at a gate                                                                     |
 | `meow-git`        | `PreToolUse` on Bash                   | `commit-guard`       | A commit on the declared trunk                                                                               |
 | `meow-git`        | `PreToolUse` on Bash                   | `push-guard`         | A push of a commit whose message or signature fails                                                          |
