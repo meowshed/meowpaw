@@ -66,6 +66,9 @@ pub(crate) struct Kind {
     pub(crate) forbidden_fields: Vec<String>,
     pub(crate) rules: Vec<String>,
     pub(crate) draft_rules: Vec<String>,
+    /// The kinds this one wins over where two artifacts disagree. Only a
+    /// kind the repository declares carries any (REQ-0667).
+    pub(crate) outranks: Vec<String>,
 }
 
 pub(crate) struct Layout {
@@ -132,6 +135,9 @@ impl Finding {
 
 pub(crate) struct Record {
     layout: Layout,
+    /// What is wrong with the kinds the profile declares, reported by the
+    /// front matter check (REQ-0668).
+    declarations: Vec<Finding>,
     docs: Vec<Doc>,
     outside: Vec<Doc>,
     ids: Regex,
@@ -990,6 +996,7 @@ pub(crate) fn load_layout() -> Result<Layout, String> {
             forbidden_fields: strings(table, "forbidden_fields"),
             rules: strings(table, "rules"),
             draft_rules: strings(table, "draft_rules"),
+            outranks: Vec::new(),
         });
     }
     let retired = |key: &str| -> BTreeMap<String, String> {
@@ -1109,7 +1116,161 @@ fn read_doc(path: PathBuf, repository: &Path) -> Doc {
     }
 }
 
-fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
+/// The profile's file, as a declaration's findings name it.
+const PROFILE_SHOWN: &str = ".meowpaw/profile.toml";
+
+/// The template directory a declared kind's template sits under (REQ-0668).
+const TEMPLATES_DIR: &str = ".meowpaw/templates/";
+
+/// The kinds `[record.kinds.<name>]` declares, each held to every general
+/// obligation a built-in kind carries, and a finding for each declaration that
+/// lacks a fact or names a thing that doesn't exist. A kind whose prefix is
+/// unusable is left out, because no file can be told to belong to it
+/// (REQ-0666, REQ-0668, REQ-0670).
+fn declared_kinds(repository: &Path, layout: &Layout) -> (Vec<Kind>, Vec<Finding>) {
+    let mut kinds: Vec<Kind> = Vec::new();
+    let mut findings = Vec::new();
+    let Profile::Parsed(data, _) = profile::read(repository) else {
+        return (kinds, findings);
+    };
+    let Some(declared) = data
+        .get("record")
+        .and_then(|r| r.get("kinds"))
+        .and_then(|k| k.as_table())
+    else {
+        return (kinds, findings);
+    };
+    let prefix_shape = Regex::new(r"^[A-Z][A-Z0-9]*$").expect("prefix pattern");
+    let finding = |message: String| Finding {
+        shown: PROFILE_SHOWN.into(),
+        line: None,
+        message,
+    };
+    let mut outranks: Vec<(String, Vec<String>)> = Vec::new();
+    for (name, declaration) in declared {
+        let Some(declaration) = declaration.as_table() else {
+            findings.push(finding(format!(
+                "the kind {name} is not a table; declare it as [record.kinds.{name}]"
+            )));
+            continue;
+        };
+        if layout.kinds.iter().any(|k| &k.name == name) {
+            findings.push(finding(format!(
+                "the kind {name} is the name of a kind the harness ships, and a declaration can't redefine it"
+            )));
+            continue;
+        }
+        let text = |key: &str| declaration.get(key).and_then(|v| v.as_str());
+        let lifetime = match text("lifetime") {
+            Some("record") => Some("record"),
+            Some("living") => Some("living"),
+            Some(other) => {
+                findings.push(finding(format!(
+                    "the kind {name} declares lifetime {other}, where a kind is record or living"
+                )));
+                None
+            }
+            None => {
+                findings.push(finding(format!(
+                    "the kind {name} declares no lifetime; state record or living"
+                )));
+                None
+            }
+        };
+        match text("template") {
+            None => findings.push(finding(format!(
+                "the kind {name} declares no template; state a path under {TEMPLATES_DIR}"
+            ))),
+            Some(template) => {
+                if !template.starts_with(TEMPLATES_DIR) || template.contains("..") {
+                    findings.push(finding(format!(
+                        "the kind {name} declares the template {template}, which is not a path under {TEMPLATES_DIR}"
+                    )));
+                } else if !repository.join(template).is_file() {
+                    findings.push(finding(format!(
+                        "the kind {name} declares the template {template}, which doesn't exist"
+                    )));
+                }
+            }
+        }
+        let list: Vec<String> = declaration
+            .get("outranks")
+            .and_then(|v| v.as_array())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect()
+            })
+            .unwrap_or_default();
+        outranks.push((name.clone(), list));
+        let Some(prefix) = text("prefix") else {
+            findings.push(finding(format!(
+                "the kind {name} declares no prefix; state the identifier's prefix"
+            )));
+            continue;
+        };
+        if !prefix_shape.is_match(prefix) {
+            findings.push(finding(format!(
+                "the kind {name} declares the prefix {prefix}, which is not capital letters and digits"
+            )));
+            continue;
+        }
+        let taken = layout
+            .kinds
+            .iter()
+            .chain(&kinds)
+            .find(|k| k.prefix.as_deref() == Some(prefix));
+        if let Some(other) = taken {
+            findings.push(finding(format!(
+                "the kind {name} declares the prefix {prefix}, which the kind {} already uses",
+                other.name
+            )));
+            continue;
+        }
+        let statuses: &[&str] = if lifetime == Some("living") {
+            &["live"]
+        } else {
+            &["draft", "approved", "withdrawn", "rejected", "superseded"]
+        };
+        kinds.push(Kind {
+            name: name.clone(),
+            artifact: name.clone(),
+            prefix: Some(prefix.to_string()),
+            dir: Some(name.clone()),
+            file: None,
+            fields: Vec::new(),
+            statuses: statuses.iter().map(|s| s.to_string()).collect(),
+            index: None,
+            sections: Vec::new(),
+            draft_sections: Vec::new(),
+            first_section: None,
+            required_values: Vec::new(),
+            forbidden_fields: Vec::new(),
+            rules: Vec::new(),
+            draft_rules: Vec::new(),
+            outranks: Vec::new(),
+        });
+    }
+    for (name, list) in outranks {
+        for entry in &list {
+            let known = layout.kinds.iter().any(|k| &k.name == entry)
+                || declared.contains_key(entry.as_str());
+            if !known || *entry == name {
+                findings.push(finding(format!(
+                    "the kind {name} outranks {entry}, which names no other kind"
+                )));
+            }
+        }
+        if let Some(kind) = kinds.iter_mut().find(|k| k.name == name) {
+            kind.outranks = list;
+        }
+    }
+    (kinds, findings)
+}
+
+fn read_record(mut layout: Layout, repository: &Path, root: &Path) -> Record {
+    let (declared, declarations) = declared_kinds(repository, &layout);
+    layout.kinds.extend(declared);
     let mut paths = Vec::new();
     markdown_under(root, None, &mut paths);
     let mut docs = Vec::new();
@@ -1154,6 +1315,7 @@ fn read_record(layout: Layout, repository: &Path, root: &Path) -> Record {
         .expect("identifier pattern");
     Record {
         layout,
+        declarations,
         docs,
         outside,
         ids,
@@ -1233,6 +1395,13 @@ fn front_matter(record: &Record) -> Vec<Finding> {
     let date = Regex::new(r"^\d{4}-\d{2}-\d{2}$").expect("date pattern");
     let today = today();
     let mut out = Vec::new();
+    for found in &record.declarations {
+        out.push(Finding {
+            shown: found.shown.clone(),
+            line: found.line,
+            message: found.message.clone(),
+        });
+    }
     for kind in &record.layout.kinds {
         let reused = kind
             .statuses
@@ -1572,6 +1741,8 @@ fn relations(record: &Record) -> Vec<Finding> {
             }
         }
     }
+    out.extend(order_conflicts(record));
+    out.extend(produced_documents(record, &known));
     // REQ-3900: an approved requirement names an approved decision that
     // addresses or postpones it, and REQ-3902: an approved decision that
     // addresses one names an approved epic or direct task that realises it.
@@ -1615,6 +1786,129 @@ fn relations(record: &Record) -> Vec<Finding> {
                 None,
                 format!("{id} addresses work and names no approved epic or direct task that realises it (REQ-3902)"),
             ));
+        }
+    }
+    out
+}
+
+/// Each pair of artifacts, one of a kind that outranks the other's, that cite
+/// each other and state different values for one field of their own. The
+/// fields every artifact carries and the relations are left out, because they
+/// describe the artifact and not what it claims. The pair is reported and
+/// never settled (REQ-0667).
+fn order_conflicts(record: &Record) -> Vec<Finding> {
+    let general: BTreeSet<&str> = record
+        .layout
+        .fields
+        .iter()
+        .chain(&record.layout.relations)
+        .map(String::as_str)
+        .collect();
+    let cites = |doc: &Doc, id: &str| record.ids.find_iter(&doc.text).any(|m| m.as_str() == id);
+    let mut out = Vec::new();
+    for (k, kind) in record.layout.kinds.iter().enumerate() {
+        for lower in &kind.outranks {
+            let Some(l) = record.layout.kinds.iter().position(|x| &x.name == lower) else {
+                continue;
+            };
+            for high in record
+                .docs
+                .iter()
+                .filter(|d| d.kind == Some(k) && !d.is_index)
+            {
+                for low in record
+                    .docs
+                    .iter()
+                    .filter(|d| d.kind == Some(l) && !d.is_index)
+                {
+                    let (a, b) = (bare(high.id()), bare(low.id()));
+                    if a.is_empty() || b.is_empty() || !cites(high, b) || !cites(low, a) {
+                        continue;
+                    }
+                    for field in high.fields.iter().flatten() {
+                        if general.contains(field.key.as_str()) {
+                            continue;
+                        }
+                        let Some(other) = low.field(&field.key) else {
+                            continue;
+                        };
+                        if bare(&field.value) != bare(&other.value) {
+                            out.push(Finding::at(
+                                high,
+                                Some(field.line),
+                                format!(
+                                    "{a} and {b} cite each other and state different {}: {} against {} ({} and {}); {} outranks {lower}, and neither file was changed",
+                                    field.key,
+                                    bare(&field.value),
+                                    bare(&other.value),
+                                    high.shown,
+                                    low.shown,
+                                    kind.name
+                                ),
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    out
+}
+
+/// A task that produces a document and the document that names the task are
+/// held to each other, whichever side is missing (REQ-0662). The document is
+/// otherwise held to its kind, as one a step wrote is (REQ-0664).
+fn produced_documents(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Finding> {
+    let ids = |doc: &Doc, key: &str| -> Vec<String> {
+        record
+            .ids
+            .find_iter(doc.value(key))
+            .map(|m| m.as_str().to_string())
+            .collect()
+    };
+    let mut out = Vec::new();
+    for task in of_kind(record, "task") {
+        let me = bare(task.id());
+        for id in ids(task, "produces") {
+            let Some(document) = known.get(id.as_str()) else {
+                out.push(Finding::at(
+                    task,
+                    task.field("produces").map(|f| f.line),
+                    format!("{me} produces {id}, which has no file"),
+                ));
+                continue;
+            };
+            if !ids(document, "prompted-by").iter().any(|p| p == me) {
+                out.push(Finding::at(
+                    task,
+                    task.field("produces").map(|f| f.line),
+                    format!(
+                        "{me} produces {id}, and {id} doesn't name {me} in prompted-by ({})",
+                        document.shown
+                    ),
+                ));
+            }
+        }
+    }
+    for document in record.docs.iter().filter(|d| !d.is_index) {
+        let me = bare(document.id());
+        for id in ids(document, "prompted-by") {
+            let Some(task) = known
+                .get(id.as_str())
+                .filter(|t| kind_of(record, t) == "task")
+            else {
+                continue;
+            };
+            if !ids(task, "produces").iter().any(|p| p == me) {
+                out.push(Finding::at(
+                    document,
+                    document.field("prompted-by").map(|f| f.line),
+                    format!(
+                        "{me} is prompted by {id}, and {id} names no produces for {me} ({})",
+                        task.shown
+                    ),
+                ));
+            }
         }
     }
     out
@@ -2679,12 +2973,12 @@ fn rules(record: &Record) -> Vec<Finding> {
                     {
                         if !known
                             .get(id)
-                            .is_some_and(|d| kind_of(record, d) == "defect")
+                            .is_some_and(|d| matches!(kind_of(record, d), "defect" | "task"))
                         {
                             out.push(Finding::at(
                                 doc,
                                 doc.field("prompted-by").map(|f| f.line),
-                                format!("is prompted by {id}, which is not a defect"),
+                                format!("is prompted by {id}, which is not a defect or a task"),
                             ));
                         }
                     }

@@ -75,6 +75,57 @@ It goes to standard error because standard output is what a step reads, such
 as a template or an identifier. An unparseable profile stops the command with
 the parser's message, and an unknown key changes no exit status.
 
+## Declare your own kinds
+
+Declare a kind of artifact the harness doesn't ship under
+`[record.kinds.<name>]` in the same profile, and `paw check` holds its files to
+the same rules as the built-in kinds:
+
+```toml
+[record.kinds.narrative]
+prefix = "NAR"
+lifetime = "record"
+template = ".meowpaw/templates/narrative.md"
+outranks = ["research"]
+```
+
+`prefix`, `lifetime` and `template` are required. `lifetime` is `record`, which
+freezes a file on approval, or `living`, which you rewrite freely. `template`
+is a path under `.meowpaw/templates/` to a file that exists. Files of the kind
+sit in a directory named for the kind under the record's root, as
+`project/narrative/NAR-0001-<slug>.md`, with the front matter every artifact
+carries: `id`, `artifact` (the kind's name), `status` and `revised`.
+`paw check` reports a declaration that lacks one of the three, a template that
+doesn't exist and a prefix another kind uses. A key that would turn an
+obligation off, such as `frozen = false`, is an unknown key, because a
+declared kind is never exempt from the method. `paw index` writes no index
+for a declared kind.
+
+`outranks` is optional. Where two artifacts of kinds in that order cite each
+other and state different values for a field of their own, `paw check`
+reports the pair in `relations`, naming both files and the order. It doesn't
+choose between them, and the fields every artifact carries and the relations
+are left out of the comparison, because they describe the artifact and not
+what it claims.
+
+## Name the document a task produces
+
+A task's output can be a document. Name it in the task's `produces:` and name
+the task in the document's `prompted-by:`:
+
+```yaml
+# project/tasks/TSK-0001-write-the-finding.md
+produces: [RES-0002]
+# project/research/RES-0002-the-finding.md
+prompted-by: TSK-0001
+```
+
+`paw check relations` reports either side without the other, naming both
+artifacts, and a `produces:` that names no file. The document is held to its
+kind as one a step wrote is, so research still needs its Summary, Method,
+Conclusions and Sources. `prompted-by:` on research, a requirement or a
+decision names a defect or a task.
+
 ## Run the method
 
 Type `/meow-flow:run` to be taken to the next approval gate. It reads where
@@ -305,9 +356,9 @@ rules: 0 findings
 
 | Check          | Reports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `front-matter` | A field the kind requires that's missing, a field the kind forbids, a status the kind doesn't store, a bad `revised`; a retired field or status, which `lib/layout.toml` lists with what replaced it; a decision, epic or task whose stored `done` disagrees with derived completion                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `front-matter` | A field the kind requires that's missing, a field the kind forbids, a status the kind doesn't store, a bad `revised`; a retired field or status, which `lib/layout.toml` lists with what replaced it; a decision, epic or task whose stored `done` disagrees with derived completion; a kind declared under `[record.kinds]` that lacks a prefix, lifetime or template                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `identifiers`  | A file whose name and `id` disagree, an identifier used twice, a second file carrying `id: vision`, a cited requirement not found                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `relations`    | An identifier in a relation field with no file, one in a draft's prose outside code, and a link in the record to a missing file; a suspect citation in a draft or living artifact, one whose target was revised after it, or an epic or defect it cites that is withdrawn or superseded                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `relations`    | An identifier in a relation field with no file, one in a draft's prose outside code, and a link in the record to a missing file; a suspect citation in a draft or living artifact, one whose target was revised after it, or an epic or defect it cites that is withdrawn or superseded; two artifacts across a declared kind's `outranks` order that cite each other and disagree on a field; a task and the document it `produces` that don't name each other                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `index`        | A file its kind's index doesn't list, and an index entry with no file; a specification listed before one it cites                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `coverage`     | A requirement a decision addresses that lands in no task, or in no specification; a task whose Evidence section says it's done while its epic leaves it unmarked; an open task closing a withdrawn requirement; an approved or living artifact resting on a draft anywhere up its chain, and a draft or living one resting on a withdrawn, superseded or rejected provider, each with the chain named. It also states how many requirements in force land in a task, and calls an empty record's coverage zero. Where an onboarding report exists, a document the repository has that the report doesn't place exactly once, with one of four outcomes and a destination or reason                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `shape`        | An artifact missing a section its kind carries, such as research without its conclusions; a section the layout retired, such as `## Cover`; a withdrawn requirement cited in a living document outside a Withdrawn section; a record kept in an archive directory; a vision missing Who it is for, Quality goals, What it will not do or Risks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |

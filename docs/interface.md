@@ -110,6 +110,7 @@ Each key the profile may carry, with the reason the key exists:
 - `git.require_signatures` — Whether every pushed commit must be signed is the repository's policy, and no file git reads declares it
 - `tracker.kind` — Which tracker the record is projected onto is a choice, and a code host with issues doesn't make it one
 - `record.root` — Where the record lives is the repository's layout, and a directory of Markdown doesn't say it is the record
+- `record.kinds` — Which artifact kinds the record holds beyond the harness's own is the repository's choice, and a directory of Markdown doesn't say it is one
 - `docs.style` — The documentation style is the repository's decision, and the pages already written can't name it
 - `markdown.target` — The renderer a document is written for is outside the repository, and the Markdown alone doesn't name it
 - `go.race` — Whether a repository accepts a test run without the race detector is its decision, and the tests alone can't show it

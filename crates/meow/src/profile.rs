@@ -199,6 +199,10 @@ pub const KEYS: &[Key] = &[
         reason: "Where the record lives is the repository's layout, and a directory of Markdown doesn't say it is the record (SPC-1070)",
     },
     Key {
+        path: "record.kinds",
+        reason: "Which artifact kinds the record holds beyond the harness's own is the repository's choice, and a directory of Markdown doesn't say it is one (SPC-1070)",
+    },
+    Key {
         path: "docs.style",
         reason: "The documentation style is the repository's decision, and the pages already written can't name it (SPC-1090)",
     },
@@ -421,6 +425,40 @@ fn unknown_among(table: &toml::Table, prefix: &str, known: &[&str], out: &mut Ve
 fn unknown(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
     let known: Vec<&str> = KEYS.iter().map(|key| key.path).collect();
     unknown_among(table, prefix, &known, out);
+    declared_kind_keys(table, prefix, out);
+}
+
+/// The keys a declared kind holds. A kind is named by the repository, so its
+/// table can't be listed in `KEYS`; every other key under it, such as one that
+/// would switch an obligation off, is unknown (REQ-0670).
+pub const KIND_KEYS: [&str; 4] = ["prefix", "lifetime", "template", "outranks"];
+
+fn declared_kind_keys(table: &toml::Table, prefix: &str, out: &mut Vec<String>) {
+    let path = |name: &str| {
+        if prefix.is_empty() {
+            name.to_string()
+        } else {
+            format!("{prefix}.{name}")
+        }
+    };
+    let Some(kinds) = table
+        .get("record")
+        .and_then(|r| r.get("kinds"))
+        .and_then(|k| k.as_table())
+    else {
+        return;
+    };
+    for (name, declaration) in kinds {
+        let Some(declaration) = declaration.as_table() else {
+            continue;
+        };
+        for key in declaration
+            .keys()
+            .filter(|k| !KIND_KEYS.contains(&k.as_str()))
+        {
+            out.push(path(&format!("record.kinds.{name}.{key}")));
+        }
+    }
 }
 
 /// The personal profile as read: absent, unparseable, or the table and each
@@ -924,6 +962,23 @@ mod tests {
         ]
         .concat();
         assert_eq!(unreasoned(&added), ["verbs.added"]);
+    }
+
+    /// TSK-4970 criteria 3 and 4, REQ-0670: `record.kinds` and the four keys
+    /// of a declared kind are known, and any other key under a kind is not.
+    #[test]
+    fn a_declared_kinds_keys_are_known_and_an_opt_out_is_not() {
+        let declared = "[record.kinds.narrative]\nprefix = \"NAR\"\nlifetime = \"record\"\ntemplate = \"t\"\noutranks = []\n";
+        let (_dir, profile) = with_profile(Some(declared));
+        let Profile::Parsed(_, unknown) = &profile else {
+            panic!("the profile didn't parse");
+        };
+        assert!(unknown.is_empty(), "{unknown:?}");
+        let (_dir, profile) = with_profile(Some(&format!("{declared}frozen = false\n")));
+        let Profile::Parsed(_, unknown) = &profile else {
+            panic!("the profile didn't parse");
+        };
+        assert_eq!(unknown, &["record.kinds.narrative.frozen"]);
     }
 
     #[test]
