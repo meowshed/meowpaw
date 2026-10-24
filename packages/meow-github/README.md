@@ -26,3 +26,5 @@ pi install npm:@meowshed/meow-core   # carries the binary the launchers run
 
 Installing from this repository's checkout is the development install: it
 loads the package in place and runs no lifecycle script.
+
+The pack is current as of gh 2.101.0, observed on 2026-10-24.

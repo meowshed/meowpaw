@@ -30,6 +30,7 @@ EXEMPT = {
     ("research.md", "secondary coverage lags"): "means press coverage of a project, and not a count",
     ("spec.md", "Allocate a document's identifier to its subject"): "chooses a subject for a name: a judgement",
     ("spec.md", "which one is stale is a judgement"): "says the choice is a judgement and asks for none",
+    ("design.md", "report that one of the two is stale"): "asks which of two records is stale, a judgement",
     ("review.md", "matches output loosely"): "describes a weak test to report, and asks for no determination",
 }
 

@@ -1,7 +1,7 @@
 ---
 id: ADR-2600
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses:
   [REQ-0660, REQ-0662, REQ-0664, REQ-0666, REQ-0667, REQ-0668, REQ-0670]

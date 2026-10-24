@@ -16,6 +16,10 @@ picks it up is epic.
 3. Cite each requirement it states, and add each to the document's `states`.
 4. Remove what is no longer true as well as adding what is, because a
    living document carries no history.
+5. Answer the seven questions of the template's `Questions` section from what
+   the document states, or leave `unanswered`.
+6. Frame each concern the decision names in `concerns:` in a section whose
+   heading names it.
 </steps>
 
 <rules name="spec">
@@ -46,4 +50,7 @@ picks it up is epic.
   mix two in one.
 - S13. State the dependencies permitted between parts, so a dependency that
   crosses a forbidden boundary is a finding and not a preference.
+- S14. Leave a question `unanswered` rather than invent an answer, because a
+  gap left visible is one a reader can act on, and an invented answer hides
+  the gap the question exists to show.
 </rules>

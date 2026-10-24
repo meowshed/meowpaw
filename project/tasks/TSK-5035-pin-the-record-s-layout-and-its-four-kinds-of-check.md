@@ -1,7 +1,7 @@
 ---
 id: TSK-5035
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2570
 closes: [REQ-1660, REQ-1662, REQ-1668]
@@ -38,7 +38,19 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criteria 1 to 3 are closed by `crates/meow/tests/record_layout.rs`, run by
+the `crate` task:
+`a_file_in_no_kinds_directory_is_named` for criterion 1 (REQ-1668, REQ-1660),
+`this_repositorys_record_is_inside_the_layout` for criterion 2 (REQ-1668), and
+`a_verification_outside_the_four_kinds_fails_the_check` for criterion 3
+(REQ-1662). The tests read the layout from `plugins/meow-flow/lib/layout.toml`
+at run time.
+
+The program holds the verification rule in its `rules` check, not in
+`front-matter` as the task's wording says, so the test runs `paw check rules`
+and `paw check` and reads the finding from both. The rule itself is unchanged.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

@@ -216,3 +216,37 @@ Each failure prints one line, and the check goes on to report the rest.
 | `llms.txt` without its H1 or summary | `llms.txt: lacks its <part>`                                         | Add the H1 or the blockquote summary                                     |
 | An `llms.txt` link to a missing path | `llms.txt:<line>: links to <path>, which doesn't exist`              | Point the link at the page, or remove the entry                          |
 | A line of prose in `llms.txt`        | `llms.txt:<line>: neither a heading, the summary nor a link`         | Move the prose to a page and link it                                     |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States the documentation written for the people and agents using the harness, and what `tools/check_docs.py` holds.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+In Markdown files in the repository, at the paths this document's Boundary lists.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+Each unit's page ships inside the unit, as `plugins/<unit>/README.md`.

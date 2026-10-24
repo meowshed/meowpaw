@@ -394,3 +394,37 @@ of requirements in the record and in the repository's other Markdown, as
 | A decision's concern framed nowhere  | A finding naming the decision and the concern         |
 | An unknown check named               | An error naming the seven checks, exit 2              |
 | No binary for the machine            | The record is reported as not checked, exit 3         |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Checks a repository's record: its layout, front matter, identifiers, relations, coverage and rules.
+
+### What it depends on
+
+`meow-flow` lists `meow-core`, `meow-prose` in its `requires.toml`.
+
+### What depends on it
+
+`meow-loop` list `meow-flow` in their `requires.toml`.
+
+### Where its data lives
+
+The record under the root `[record] root` names, `project/` by default, read by the layout in `lib/layout.toml`.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-flow` installs as a plugin from the marketplace, `plugins/meow-flow/`, and ships as the Pi package `packages/meow-flow/`.

@@ -12,12 +12,18 @@ fields = ["id", "artifact", "status", "revised"]
 # The front matter fields whose values name other artifacts.
 relations = ["elaborates", "addresses", "postpones", "supersedes", "realises", "epic", "bug", "closes", "states", "violates", "prompted-by"]
 
-# Per kind: `sections` every record carries, `draft_sections` a draft carries
+# Per kind: `optional_fields` it may carry and no check requires (ADR-2630),
+# `sections` every record carries, `draft_sections` a draft carries
 # as well, `first_section` it opens with, `required_values` fields it must
 # fill, `forbidden_fields` it must not carry, and the named checks of `rules`
 # for every record and `draft_rules` for drafts only (ADR-1140). A rule the
 # approved record already breaks applies to drafts, because an approved record
 # is frozen.
+
+# Phrases that name an earlier version, which a specification doesn't carry
+# because version control keeps the history (ADR-2590). A new way of saying
+# "earlier" is one line here.
+history_phrases = ["previously", "no longer", "used to", "an earlier version", "was replaced"]
 
 # A file with this name is an index, and indexes are checked as indexes.
 index_name = "README.md"
@@ -45,6 +51,11 @@ name = "vision"
 artifact = "vision"
 file = "vision.md"
 statuses = ["live"]
+# A vision states who it is for, how its goals rank, what it will not do and
+# its live risks, carries no date or restated requirement, and fits one
+# sitting's reading (ADR-2580).
+sections = ["Who it is for", "Quality goals", "What it will not do", "Risks"]
+rules = ["vision-no-date", "vision-no-obligation", "vision-length"]
 
 [[kind]]
 name = "onboarding"
@@ -64,6 +75,7 @@ fields = ["states"]
 statuses = ["live"]
 index = "README.md"
 sections = ["Scope", "Boundary", "Behaviour", "Failure paths"]
+rules = ["spec-no-history"]
 
 [[kind]]
 name = "research"
@@ -75,7 +87,7 @@ index = "research/RES-0001-synthesis.md"
 sections = ["Summary", "Method", "Conclusions", "Sources"]
 first_section = "Summary"
 draft_rules = ["sources-dated", "cites-no-requirement"]
-rules = ["prompted-by-defect"]
+rules = ["prompted-by-defect", "withdrawn-names-record"]
 
 [[kind]]
 name = "requirement"
@@ -87,7 +99,7 @@ statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 index = "requirements/README.md"
 forbidden_fields = ["priority", "owner", "difficulty"]
 draft_rules = ["judgement-verifier", "one-obligation", "stands-alone", "no-negated-requirement"]
-rules = ["prompted-by-defect", "verification-kind"]
+rules = ["prompted-by-defect", "verification-kind", "withdrawn-names-record"]
 
 [[kind]]
 name = "decision"
@@ -95,11 +107,12 @@ artifact = "adr"
 prefix = "ADR"
 dir = "adrs"
 fields = ["addresses"]
+optional_fields = ["concerns"]
 statuses = ["draft", "approved", "done", "withdrawn", "rejected", "superseded"]
 index = "adrs/README.md"
 sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]
 draft_sections = ["How I will know it was realised", "What this does not settle"]
-rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect"]
+rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect", "withdrawn-names-record", "concerns-framed"]
 
 [[kind]]
 name = "epic"
@@ -110,7 +123,10 @@ fields = ["realises"]
 statuses = ["draft", "approved", "done", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]
-rules = ["realises-one", "done-has-evidence", "added-says-why", "dropped-says-why", "defect-epic-ordered"]
+rules = ["realises-one", "done-has-evidence", "added-says-why", "dropped-says-why", "defect-epic-ordered", "withdrawn-names-record"]
+# A draft epic marks no task, because a task's state is read from the task
+# (ADR-2590); an approved epic keeps the marks it was approved with (M15).
+draft_rules = ["no-task-status"]
 # A task sits under its epic or its defect and nothing else, so the task, epic
 # and defect kinds forbid every grouping field, and an epic forbids `epic`,
 # which would place it under another epic (ADR-1800).
@@ -150,7 +166,7 @@ forbidden_fields = ["priority", "milestone", "parent", "project", "sprint", "ite
 # `enters` names the step a defect enters at, required once its Triage is
 # written, which is a draft rule so defects approved before ADR-1440 keep the
 # rules they were approved under.
-rules = ["done-has-evidence", "added-says-why", "dropped-says-why", "enters-fits", "rejected-says-why", "closed-names-check"]
+rules = ["done-has-evidence", "added-says-why", "dropped-says-why", "enters-fits", "rejected-says-why", "closed-names-check", "withdrawn-names-record"]
 draft_rules = ["enters-after-triage"]
 
 [[kind]]
@@ -160,4 +176,4 @@ prefix = "INS"
 dir = "insights"
 statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
 sections = ["Evidence", "What looked right", "The pattern"]
-rules = ["title-states-claim", "evidence-measured", "ends-with-pattern"]
+rules = ["title-states-claim", "evidence-measured", "ends-with-pattern", "withdrawn-names-record"]

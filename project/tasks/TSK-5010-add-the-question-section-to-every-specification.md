@@ -1,7 +1,7 @@
 ---
 id: TSK-5010
 artifact: task
-status: approved
+status: done
 revised: 2026-10-03
 epic: EPC-2545
 closes: [REQ-2250]
@@ -38,7 +38,11 @@ document beside it.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `tools/test_spec_questions.py` (REQ-2250): `test_each_specification_answers_each_question_or_marks_it_unanswered` runs over every file under `project/specs/` and failed on all 34 before the section existed, and `test_a_section_without_its_questions_fails` shows the check fails on a missing question or an empty answer. The test reads the questions from the `spec` template, so the wording is the template's, and `mise.toml`'s `test-tools` task runs it. Criterion 2 is closed by `paw check`: it reports nothing about the specifications, and its only findings are the unmarked-task lines `paw done` clears and the withdrawn REQ-4110 under SPC-1300, which this task didn't touch.
+
+Whether an answer is right rests on judgement, because no program reads what a specification means. The answers are written from each specification's own scope and boundary, from `requires.toml` for what a unit depends on and what depends on it, and from `packages/` for the Pi package. A section the specification doesn't settle says `unanswered`: what crosses a trust boundary for 27 of the 34, and the data of SPC-1240 and SPC-1300.
+
+Every stage passed in pull request #1078.
 
 ## Left alone
 

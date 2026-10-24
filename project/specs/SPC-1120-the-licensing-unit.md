@@ -130,3 +130,37 @@ copyright line passes it (REQ-3070).
 | Nothing declared                     | `licensing is undeclared: no REUSE.toml, no [licence] and no header`    | 3    |
 | No git, or not a repository          | `unchecked: the tracked files can't be listed`                          | 3    |
 | No binary for the machine            | `unchecked: no paw executable was found for this machine`               | 3    |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Applies the licence header a repository declares and checks that every tracked file is covered by a licensing declaration.
+
+### What it depends on
+
+`meow-licence` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-licence` in its `requires.toml`.
+
+### Where its data lives
+
+`REUSE.toml` at the repository's root and the `[licence]` table of `.meowpaw/profile.toml`.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-licence` installs as a plugin from the marketplace, `plugins/meow-licence/`, and ships as the Pi package `packages/meow-licence/`.

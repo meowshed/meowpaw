@@ -1,7 +1,7 @@
 ---
 id: EPC-2450
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2580
 ---
@@ -38,14 +38,14 @@ number.
 
 ## Tasks
 
-- [ ] T-001 [P] TSK-4740 rewrite `project/vision.md` to the template's sections, with quality goals in order and live risks
+- [x] T-001 [P] TSK-4740 rewrite `project/vision.md` to the template's sections, with quality goals in order and live risks (done: pull request 1078)
       closes: REQ-2850, REQ-2852, REQ-2854
 
-- [ ] T-002 TSK-4750 report a vision's missing section, date, restated requirement and length from `paw check`, in the `record` feature of `crates/meow/`
+- [x] T-002 TSK-4750 report a vision's missing section, date, restated requirement and length from `paw check`, in the `record` feature of `crates/meow/` (done: pull request 1078)
       closes: REQ-0611, REQ-0614, REQ-0616, REQ-0618, REQ-0620, REQ-2856, REQ-2857
       depends: TSK-4740 (blocking) - the check fails today's vision, so the rewrite lands first or the gate goes red
 
-- [ ] T-003 [P] TSK-4760 ask in the design step whether a decision's vision claims are falsifiable and which of a contradicting pair is stale, in `steps/design.md`
+- [x] T-003 [P] TSK-4760 ask in the design step whether a decision's vision claims are falsifiable and which of a contradicting pair is stale, in `steps/design.md` (done: pull request 1078)
       closes: REQ-0624, REQ-2852
 
 ## Coverage

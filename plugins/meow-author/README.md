@@ -58,6 +58,9 @@ file and the line, on:
   `<example>` and `<input>`, a tag opened inside another, a tag never closed,
   or text outside every tag;
 - a skill or agent with no `description`;
+- a description whose first sentence carries none of the words its
+  `when_to_use` writes in code font, because a request reaches a unit through
+  those words; a unit with no `when_to_use` is not read by this rule;
 - an agent that leaves out one of the six fields below, or holds a value the
   table doesn't accept, naming the file and the field;
 - an agent whose front matter doesn't parse, with that reason alone, because

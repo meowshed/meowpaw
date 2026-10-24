@@ -1,7 +1,7 @@
 ---
 id: ADR-2620
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-03
 addresses:
   [REQ-2290, REQ-2292, REQ-2294, REQ-2296, REQ-2300, REQ-2302, REQ-2304]

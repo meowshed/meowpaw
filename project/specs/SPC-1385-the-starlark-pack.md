@@ -135,3 +135,37 @@ and exits 0 when there is none (REQ-2442, REQ-2416).
 | The profile doesn't parse                        | `unresolved: the profile doesn't parse: ...`          | 3    |
 | `check` finds no profile                         | `unresolved: no profile at .meowpaw/profile.toml`     | 3    |
 | An unknown argument                              | the usage line                                        | 2    |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Detects Starlark in a Bazel or Buck workspace, binds its stages and checks its configuration.
+
+### What it depends on
+
+`meow-starlark` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-starlark` in its `requires.toml`.
+
+### Where its data lives
+
+It holds none of its own: it reads the files git tracks and the profile, and SPC-1190 states that a pack's program writes no file.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-starlark` installs as a plugin from the marketplace, `plugins/meow-starlark/`, and ships as the Pi package `packages/meow-starlark/`.
