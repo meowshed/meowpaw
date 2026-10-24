@@ -73,7 +73,8 @@ status.
 ## Bind your stages
 
 `meow-markdown bind` prints a `[stages]` table for you to paste into
-`.meowpaw/profile.toml`, and never writes the profile itself:
+`.meowpaw/profile.toml`, and never writes the profile itself. Commit what it prints, so the stages run from
+the declaration the repository holds:
 
 ```toml
 [stages]
@@ -260,5 +261,5 @@ subcommand's output to those words.
 
 Claude Code 2.1.280 or later, declared in
 `plugins/meow-markdown/requires.toml`, and git. `links` needs lychee on
-`PATH`. The pack was observed against lychee 0.24.2, markdownlint-cli2 0.23.2
-and markdownlint-cli 0.49.1.
+`PATH`. The pack is current as of lychee 0.24.2, markdownlint-cli2 0.23.2,
+markdownlint-cli 0.49.1 and git 2.56.0, observed on 2026-10-24.

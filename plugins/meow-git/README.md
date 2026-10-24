@@ -142,3 +142,5 @@ in `plugins/meow-git/requires.toml`. It relies on these platform behaviours,
 each documented by Claude Code:
 
 - `PreToolUse` command hooks filtered by an `if` rule, which Claude Code applies as a best-effort filter: [documentation](https://code.claude.com/docs/en/hooks.md)
+
+The pack is current as of git 2.56.0, observed on 2026-10-24.
