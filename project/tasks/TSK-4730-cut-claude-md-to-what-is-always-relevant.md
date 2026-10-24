@@ -54,9 +54,19 @@ a check reads without changing the check in the same change.
 
 ## Evidence
 
-Not yet.
+Criterion 1: `wc -l CLAUDE.md` prints 250, at the prediction's limit, down
+from 474. Criterion 4: the `test` verb passes with the cut file. The cut
+removed the layout table, so `test_the_constitution_says_an_epic_is_one_pull_request`
+in `plugins/meow-flow/tests/test_record.py` no longer reads the table row for
+"one pull request" and reads the principle's sentence "An epic is one pull
+request" alone.
 
-Criteria 2 and 3 rest on judgement, for the reasons they give.
+Criteria 2 and 3 rest on judgement, because whether a rule must hold every
+time is read, and the removal list belongs to the pull request body. This task
+did not count recurrences over the last ten merged tasks, so it proposes no
+removal under REQ-2746: the count is not measured here.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

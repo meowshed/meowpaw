@@ -45,7 +45,13 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criteria 1, 2 and 3 are closed by the three tests in
+`crates/meow/tests/record_constitution.rs`, each seen failing before the
+change: `a_long_constitution_is_advice_and_the_exit_stays_clean`,
+`the_advice_changes_no_finding_count_or_exit_status` and
+`a_short_or_absent_constitution_prints_nothing`. They close REQ-2734.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

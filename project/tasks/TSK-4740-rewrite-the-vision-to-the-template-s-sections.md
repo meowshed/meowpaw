@@ -52,9 +52,16 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by the `Vision` class in
+`plugins/meow-flow/tests/test_constitution_vision.py`, which reads the four
+headings, seen failing first (REQ-2850, REQ-2854). Criterion 4: the same class
+counts 1609 words and finds no date or requirement identifier in the body.
 
-Criteria 2 and 3 rest on judgement, for the reasons they give.
+Criteria 2 and 3 rest on judgement, because the order of the goals and
+whether a requirement makes a claim falsifiable are read. The pull request
+body lists the six goals in order, the claims removed and the reasoning.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 
