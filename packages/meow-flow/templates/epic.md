@@ -19,22 +19,17 @@ complete when that decision is realised or that defect is closed.
    tasks are written, each decidable from this epic's own work, and ending
    with every requirement the record addresses named by a closed task.
 
-## Marks
-
-```text
-[ ] not started   [>] in progress   [x] done, with evidence
-[~] dropped, with the reason        [+] added after approval, with why
-```
-
-A task is marked in the commit that advances it, never in a later pass. A
-task that can run in parallel with its neighbours carries `[P]` after its
-number, as in `- [ ] T-002 [P] TSK-NNNN`.
-
 ## Tasks
 
-- [ ] T-001 TSK-NNNN <what, with the path it touches>
-      closes: REQ-NNNN
-      depends: TSK-NNNN (not blocking) - why, or (blocking) where it waits
+Each entry carries no mark of its state, because a task is done once its
+Evidence is written and dropped once it is withdrawn, and a second answer here
+drifts from the task. A task that can run in parallel with its neighbours
+carries `[P]` after its number, as in `- T-002 [P] TSK-NNNN`.
+
+- T-001 TSK-NNNN <what, with the path it touches>
+  closes: REQ-NNNN
+  depends: TSK-NNNN (not blocking) - why, or (blocking) where it waits
+  added: why nobody foresaw it, where the entry joined after approval
 
 ## Coverage
 
