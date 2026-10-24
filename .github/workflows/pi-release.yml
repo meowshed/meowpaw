@@ -95,6 +95,7 @@ jobs:
         # token for the registry's, so no auth token is stored here. Every
         # package must name this workflow as its trusted publisher.
         run: |
+          unpublished=""
           for pkg in packages/meow-*/; do
             short=$(basename "$pkg")
             if [ -n "$unit" ] && [ "$short" != "$unit" ]; then continue; fi
@@ -115,11 +116,23 @@ jobs:
             elif grep -q 'cannot publish over the previously published' /tmp/publish.log; then
               cat /tmp/publish.log
               echo "$name@$version was published just now"
+            elif grep -q 'E404' /tmp/publish.log && ! npm view "$name" name >/dev/null 2>&1; then
+              # Trusted publishing needs the package to exist before it can
+              # name this workflow, so a package's first version is published
+              # by hand. The rest still go out, and the step fails at the end
+              # naming each package left over.
+              cat /tmp/publish.log
+              echo "::error::$name has never been published; publish its first version by hand and name this workflow as its trusted publisher"
+              unpublished="$unpublished $name"
             else
               cat /tmp/publish.log
               exit 1
             fi
           done
+          if [ -n "$unpublished" ]; then
+            echo "::error::not published:$unpublished"
+            exit 1
+          fi
 
       - name: Pack the GitHub release archives
         run: |
