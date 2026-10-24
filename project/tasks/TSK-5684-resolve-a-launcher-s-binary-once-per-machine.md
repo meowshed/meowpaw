@@ -1,7 +1,7 @@
 ---
 id: TSK-5684
 artifact: task
-status: approved
+status: done
 revised: 2026-10-24
 epic: EPC-2850
 closes: [REQ-4510]
@@ -46,7 +46,7 @@ launcher to stop. The template in `tools/generate_launchers.py` carries it, so
 every unit's launcher does. Criterion 3 rests on the gate of the pull request
 that carries this task.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1081.
 
 ## Left alone
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-5681
 artifact: task
-status: approved
+status: done
 revised: 2026-10-24
 epic: EPC-2850
 closes: [REQ-2798]
@@ -29,7 +29,18 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `JudgeHookMatchers` in `tools/test_judge_hook_matchers.py`, which
+names REQ-2798: every hook that runs `meow-prose-gate check` carries an `if` matcher naming
+a publishing command or one of the four wrapper forms. `test_a_judge_hook_with_no_matcher_fails`
+was seen failing against a copy of the gate's hooks with the `if` removed.
+
+Criterion 2 is closed by `test_a_wrapper_form_that_publishes_nothing_calls_no_judge` in
+`plugins/meow-prose-gate/tests/test_gate.py`, which runs five wrapper-form commands that
+publish nothing and sees the recording stub judge called zero times. The behaviour already
+held, so the fixture was not seen failing, and `test_the_judge_reads_the_published_text`
+shows the same stub records a call when a command does publish.
+
+Every stage passed in pull request #1081.
 
 ## Left alone
 

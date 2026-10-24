@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Writes each unit's launcher and Pi extension from one template (REQ-4620, REQ-4510).
+"""Writes each unit's launcher and Pi extension from one template (REQ-4624, REQ-4510).
 
 A unit's launcher and its package's launcher share one skeleton per host, and
 the facts that differ per unit (its subcommand, the comment saying what the

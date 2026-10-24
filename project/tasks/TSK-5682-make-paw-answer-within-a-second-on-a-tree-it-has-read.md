@@ -1,7 +1,7 @@
 ---
 id: TSK-5682
 artifact: task
-status: approved
+status: done
 revised: 2026-10-24
 epic: EPC-2850
 closes: [REQ-2800]
@@ -69,7 +69,7 @@ Measured before and after, same machine, nothing changed between calls:
   `ready` did on a copy with nine injected defects (71 lines of findings).
 - No criterion rests on judgement.
 
-Every stage passed in pull request #PR.
+Every stage passed in pull request #1081.
 
 ## Left alone
 

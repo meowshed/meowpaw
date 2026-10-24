@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-146 decisions in all: 9 approved, 127 done, 10 superseded.
+146 decisions in all: 8 approved, 128 done, 10 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -163,7 +163,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-3010](ADR-3010-the-tracker-projection-stays-flat-and-a-trackers-grouping-is-not-written.md)                                                          | The tracker projection stays flat, and a tracker's grouping is not written                                                                 | approved   |
 | [ADR-3020](ADR-3020-a-repository-s-agent-is-reached-by-its-own-name-and-the-harness-promises-no-replacement.md)                                           | A repository's agent is reached by its own name, and the harness promises no replacement                                                   | done       |
 | [ADR-3030](ADR-3030-migrating-a-source-repository-happens-outside-the-record.md)                                                                          | Migrating a source repository happens outside the record                                                                                   | approved   |
-| [ADR-3040](ADR-3040-ten-requirements-without-a-task-get-one-epic.md)                                                                                      | Ten requirements that no task names get one epic                                                                                           | approved   |
+| [ADR-3040](ADR-3040-ten-requirements-without-a-task-get-one-epic.md)                                                                                      | Ten requirements that no task names get one epic                                                                                           | done       |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1140 by ADR-2770; ADR-1170 by ADR-2770; ADR-1210 by ADR-2770; ADR-1310 by ADR-2890; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310; ADR-2310 by ADR-2860.
 

@@ -1,7 +1,7 @@
 ---
 id: TSK-5680
 artifact: task
-status: approved
+status: done
 revised: 2026-10-24
 epic: EPC-2850
 closes: [REQ-4610, REQ-4612, REQ-4614, REQ-3074]
@@ -31,7 +31,25 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by `ExecutableName` in `tools/test_shared_binary.py`, which names
+REQ-4610: it reads the build script and every launcher the survey finds, at least
+fifteen, and finds `paw$exe` and the Windows extension in each. The behaviour already
+held, so the test was not seen failing against the tree.
+
+Criterion 2 is closed by `CoreDistribution` in the same file, which names REQ-4612: the
+core build passes `--all-features` on both of its paths, the Pi core extension exports
+`MEOWPAW_BINARY`, and no launcher runs its own wrapper. It also held already.
+
+Criterion 3 is closed by `EqualVersions`, which names REQ-4614. It failed first on all
+sixteen units that had a plugin one release ahead of its package, such as `meow-core`
+0.10.0 against 0.9.1, and passes after the sixteen package manifests and their pages'
+`describes` lines took their plugin's version. The same-pull-request half of REQ-4614
+rests on review, because no program can see which files a pull request should have
+touched.
+
+Criterion 4 rests on this pull request's gate, where every stage passed.
+
+Every stage passed in pull request #1081.
 
 ## Left alone
 

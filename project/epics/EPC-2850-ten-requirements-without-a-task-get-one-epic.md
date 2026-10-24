@@ -1,7 +1,7 @@
 ---
 id: EPC-2850
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-24
 realises: ADR-3040
 ---
@@ -28,20 +28,20 @@ every requirement the decision addresses is named by a task that is done.
 ## Tasks
 
 - T-001 [P] TSK-5680 name the requirements the existing checks prove, in `tools/`
-      closes: REQ-4610, REQ-4612, REQ-4614, REQ-3074
+  closes: REQ-4610, REQ-4612, REQ-4614, REQ-3074
 
 - T-002 [P] TSK-5681 hold a judge hook's matchers to publishing commands, in `tools/`
-      closes: REQ-2798
+  closes: REQ-2798
 
 - T-003 [P] TSK-5682 make `paw` answer within a second on a tree it has read, in `crates/meow/`
-      closes: REQ-2800
+  closes: REQ-2800
 
 - T-004 [P] TSK-5683 generate each unit's launcher and Pi extension and hold the copies of its description and page to each other
-      closes: REQ-4620, REQ-3196, REQ-4622
+  closes: REQ-4624, REQ-3196, REQ-4622
 
 - T-005 TSK-5684 resolve a launcher's binary once per machine
-      closes: REQ-4510
-      depends: TSK-5683 (blocking) - the generated launcher carries the cache
+  closes: REQ-4510
+  depends: TSK-5683 (blocking) - the generated launcher carries the cache
 
 ## Coverage
 

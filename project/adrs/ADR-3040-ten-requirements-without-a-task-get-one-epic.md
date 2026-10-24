@@ -1,9 +1,21 @@
 ---
 id: ADR-3040
 artifact: adr
-status: approved
+status: done
 revised: 2026-10-24
-addresses: [REQ-2798, REQ-2800, REQ-3074, REQ-3196, REQ-4510, REQ-4610, REQ-4612, REQ-4614, REQ-4620, REQ-4622]
+addresses:
+  [
+    REQ-2798,
+    REQ-2800,
+    REQ-3074,
+    REQ-3196,
+    REQ-4510,
+    REQ-4610,
+    REQ-4612,
+    REQ-4614,
+    REQ-4624,
+    REQ-4622,
+  ]
 postpones: []
 supersedes: []
 ---
@@ -16,7 +28,7 @@ supersedes: []
 
 I plan the ten requirements that ADR-2920 and ADR-2990 addressed and no task
 names, REQ-2798, REQ-2800, REQ-3074, REQ-3196, REQ-4510, REQ-4610, REQ-4612,
-REQ-4614, REQ-4620 and REQ-4622, in one epic of five tasks. Two tasks name
+REQ-4614, REQ-4624 and REQ-4622, in one epic of five tasks. Two tasks name
 behaviour that already holds and give it a test that cites the requirement: the
 shared executable's name, its distribution and the equal versions of a plugin
 and its package, and the trunk's passing gate (TSK-5680); and the judge hook's
@@ -27,8 +39,10 @@ unit's description and page are held to each other (TSK-5683), and a launcher
 resolves its binary once per machine (TSK-5684).
 
 This is the direction the owner chose on 2026-10-13 for the Pi tree: generate it
-from the Claude tree in place of keeping both by hand. REQ-4620 and REQ-4622
-state it, and no earlier plan carried them out.
+from the Claude tree in place of keeping both by hand. REQ-4624 and REQ-4622 state it, and no earlier plan carried them out. REQ-4624
+narrows REQ-4620, which asked for every Pi extension to be generated: seven
+extensions carry a host's hook and command adapters that no template
+expresses, so they stay hand-written.
 
 Once this is accepted, every requirement in force is named by a task or
 postponed, except REQ-1666's postponement by ADR-3030. What still doesn't work:
@@ -46,11 +60,11 @@ record and `paw status --brief` 1.2 seconds, against the second REQ-2800 asks.
 
 ## Alternatives
 
-| Option                               | Better at                       | Why it lost                                                                                       |
-| ------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Do nothing                           | Costs no work                   | Leaves ten requirements in force that nobody works on, and the status line never reaches zero      |
-| Postpone the three that build        | Smaller change                  | REQ-4620 and REQ-4622 are what the owner chose for the Pi tree, and REQ-2800 is a failing number |
-| One task for all ten                 | One record                      | A task that closes ten requirements across five areas can't be reviewed or reverted in parts      |
+| Option                        | Better at      | Why it lost                                                                                      |
+| ----------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| Do nothing                    | Costs no work  | Leaves ten requirements in force that nobody works on, and the status line never reaches zero    |
+| Postpone the three that build | Smaller change | REQ-4624 and REQ-4622 are what the owner chose for the Pi tree, and REQ-2800 is a failing number |
+| One task for all ten          | One record     | A task that closes ten requirements across five areas can't be reviewed or reverted in parts     |
 
 ## What it costs
 
@@ -60,7 +74,7 @@ can fail a gate.
 
 ## What would reverse it
 
-- The owner decides Pi isn't needed, which makes REQ-4620 and REQ-4622 moot, or
+- The owner decides Pi isn't needed, which makes REQ-4624 and REQ-4622 moot, or
   the generator takes longer to keep than the hand-written copies it replaces.
 
 ## Consequences

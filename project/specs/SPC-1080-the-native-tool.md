@@ -160,7 +160,7 @@ states:
     REQ-4610,
     REQ-4612,
     REQ-4614,
-    REQ-4620,
+    REQ-4624,
     REQ-4622,
     REQ-4700,
     REQ-4702,
@@ -578,9 +578,11 @@ that version in the unit's `CHANGELOG.md`, and never notes generated from
 commits; the release refuses a new version whose changelog has no section for
 it (REQ-3002).
 
-A unit's launcher and its Pi extension are written from one template by the
-unit's own program and never by hand for each unit, and a check fails naming a
-unit whose committed copy differs from what the program writes (REQ-4620). A
+A unit's launcher, and a Pi extension that only puts it on the path, are
+written from one template by a program of this repository and never by hand for
+each unit, and a check fails naming a unit whose committed copy differs from
+what the program writes (REQ-4624). A Pi extension that carries a host's hooks
+or commands stays hand-written. A
 unit's description agrees across its plugin manifest, its plugin page, its
 package manifest and its package page, and a package's page carries every
 section of its unit's page apart from the sections the unit's page marks as
