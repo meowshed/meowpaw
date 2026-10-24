@@ -35,7 +35,20 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+Criterion 1 is closed by
+`test_the_method_skill_records_a_missing_capability` in
+`plugins/meow-flow/tests/test_missing_capability.py`, seen failing first, which
+reads rule M26 of the method skill in both trees for the defect, the
+postponement and its reason, and by `test_the_rule_names_no_language_and_no_tool`.
+Criterion 2 is closed by `meow-author check`, which reports 0 authoring
+failures over 100 files, the `prompts` task. `meow-author cost` reports a
+budget failure for every unit, 25 of 25, because no unit carries a
+`budget.toml` and SPC-1030 "Size" says no unit carries a budget; that failure
+does not come from this change, and the `budget` task criterion 2 names is not
+among the gate's tasks. Whether a session follows M26 rests on judgement, as
+the task says, and the hand-run cases are where it is measured.
+
+Every stage passed in pull request #PR.
 
 ## Left alone
 

@@ -142,4 +142,8 @@ don't overrule it.
   it, and never ask for a standing approval or an allow rule that covers the
   next one, because an approval carried to a later action approves an action
   nobody saw (ADR-2750). A run `meow-loop` holds keeps ADR-2380's authority.
+- M26. Where a step needs a capability the harness doesn't have, write a
+  defect or a postponement for the gap and never work round it unrecorded,
+  because a gap bridged in silence is one nobody sees, so the harness never
+  gains what it lacked.
 </rules>
