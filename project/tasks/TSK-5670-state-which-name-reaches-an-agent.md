@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-24
 realises: ADR-3020
 closes: [REQ-3273]
-issue:
+issue: 1118
+projected: 13d85825d01e
+tracked: 0b04ccedbeff
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

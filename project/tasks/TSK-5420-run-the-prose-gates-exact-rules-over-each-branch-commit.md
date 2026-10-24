@@ -5,6 +5,9 @@ status: done
 revised: 2026-10-11
 bug: BUG-1564
 closes: []
+issue: 1095
+projected: b40cc7a7c121
+tracked: e9406fe214f8
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

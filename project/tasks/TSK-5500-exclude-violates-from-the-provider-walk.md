@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-11
 bug: BUG-1640
 closes: []
-issue:
+issue: 1101
+projected: e9e85f1c7536
+tracked: e7e787631774
 ---
 
 # Exclude `violates` from the record checker's provider walk

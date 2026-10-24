@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-24
 epic: EPC-2850
 closes: [REQ-4610, REQ-4612, REQ-4614, REQ-3074]
-issue:
+issue: 1119
+projected: 321e1c07af11
+tracked: 0c7eb384496c
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->

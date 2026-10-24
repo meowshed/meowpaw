@@ -5,7 +5,9 @@ status: done
 revised: 2026-10-11
 realises: ADR-2950
 closes: [REQ-3526]
-issue:
+issue: 1099
+projected: 7e56bb70153e
+tracked: f495631c8a7f
 ---
 
 # Run the research step as a cheap subagent

@@ -5,6 +5,9 @@ status: done
 revised: 2026-10-10
 realises: ADR-2910
 closes: [REQ-3724, REQ-3726, REQ-3728, REQ-3730, REQ-3732]
+issue: 1089
+projected: 2f42bb8fafa7
+tracked: f8abef57e96a
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
