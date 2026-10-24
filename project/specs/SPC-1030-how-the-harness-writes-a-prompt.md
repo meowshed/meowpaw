@@ -511,3 +511,37 @@ One check audits every unit, because the format is uniform across them
 | A prompt writes a path into the unit without the directory variable               | The check fails, naming the file and the line, because the path breaks off the install             |
 | A procedure has no step naming where it stops                                     | The check fails, naming the file                                                                   |
 | A background agent's permission prompt in an interactive session                  | It waits in the main session for the person, with no timeout the harness sets                      |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States how a unit of the harness writes a prompt: its form, its size, when it loads and the check that holds them.
+
+### What it depends on
+
+unanswered
+
+### What depends on it
+
+unanswered
+
+### Where its data lives
+
+In each unit's prompts: `skills/`, `agents/`, `output-styles/` and `hooks/` under `plugins/<unit>/`.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+unanswered

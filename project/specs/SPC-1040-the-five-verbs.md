@@ -357,3 +357,37 @@ can't run on this machine.
 | `--part` names no declared part               | An error naming the parts the profile declares, and nothing runs                  |
 | A part's profile leaves out a stage           | That stage is unresolved in that part, of kind "undeclared"                       |
 | `doctor` finds a tool missing on this machine | The finding is marked `machine`, and the repository isn't reported broken         |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Resolves, reports and runs the five verification stages a repository declares.
+
+### What it depends on
+
+`meow-checks` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-checks` in its `requires.toml`.
+
+### Where its data lives
+
+The ledger of recorded results is `<state>/meowpaw/evidence/<key>.jsonl`, outside the repository.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-checks` installs as a plugin from the marketplace, `plugins/meow-checks/`, and ships as the Pi package `packages/meow-checks/`.

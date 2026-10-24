@@ -189,3 +189,37 @@ Each is printed as SPC-1190 states, by every command it applies to:
 | Two or more modules                         | each stage `# <stage>: unresolved, several Go modules and no single command reaching them: <files>` | 0    |
 | A `go.mod` that doesn't parse               | `unresolved: <file> doesn't parse: <message>`                                                       | 3    |
 | `toolchain`: as its table states            | as its table states                                                                                 | 3    |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Detects Go, binds its stages and checks its configuration, and compares the toolchain.
+
+### What it depends on
+
+`meow-go` lists `meow-core` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-go` in its `requires.toml`.
+
+### Where its data lives
+
+It holds none of its own: it reads the files git tracks and the profile, and SPC-1190 states that a pack's program writes no file.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-go` installs as a plugin from the marketplace, `plugins/meow-go/`, and ships as the Pi package `packages/meow-go/`.

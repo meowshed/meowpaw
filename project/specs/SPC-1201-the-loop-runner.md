@@ -244,3 +244,37 @@ During a run, a `Stop` hook that can't read `run.toml` or the record
 allows the stop, writes no ending and reports `unresolved: <what>`.
 The run then reads as interrupted and never continues past a bound it couldn't
 check. A `log.jsonl` line the hook can't write is reported the same way.
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+Runs the chain inside the Claude Code session through three command hooks that start the run, continue it and guard it.
+
+### What it depends on
+
+`meow-loop` lists `meow-core`, `meow-flow` in its `requires.toml`.
+
+### What depends on it
+
+No unit lists `meow-loop` in its `requires.toml`.
+
+### Where its data lives
+
+One run's directory, `<state>/meowpaw/runs/<work tree key>/<run id>/`, outside the work tree.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+`meow-loop` installs as a plugin from the marketplace, `plugins/meow-loop/`, and ships as the Pi package `packages/meow-loop/`.

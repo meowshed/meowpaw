@@ -243,3 +243,37 @@ observed against.
 | The language's host isn't detected yet  | `unresolved: <host> not detected`                           | 3    |
 | The pinned toolchain isn't installed    | `unresolved: <tool> <pinned> pinned, <installed> installed` | 3    |
 | An unknown argument                     | the usage line                                              | 2    |
+
+## Questions
+
+Answer each question from what this document states, or leave `unanswered`,
+because a gap left visible is one a reader can act on, and a gap left out
+reads as covered.
+
+### What the part is for
+
+States what every language pack keeps: how it detects the language, what it runs and writes, where its settings live and how it exits.
+
+### What it depends on
+
+Each language pack lists `meow-core` in its `requires.toml`, and no other unit.
+
+### What depends on it
+
+No unit lists a language pack in its `requires.toml`.
+
+### Where its data lives
+
+It holds none of its own: a pack's program writes no file, in the repository or outside it.
+
+### What crosses a trust boundary
+
+unanswered
+
+### How it fails
+
+Stated under "Failure paths" in this document.
+
+### How it is deployed
+
+Each language pack installs as its own plugin from the marketplace, and ships as its own Pi package.
