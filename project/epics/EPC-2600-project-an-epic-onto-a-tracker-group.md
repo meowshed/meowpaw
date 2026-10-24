@@ -1,7 +1,7 @@
 ---
 id: EPC-2600
 artifact: epic
-status: approved
+status: done
 revised: 2026-10-03
 realises: ADR-2540
 ---
@@ -26,8 +26,9 @@ the parent, links every task and reports each mechanism and pending state.
 
 ## Tasks
 
-- [ ] T-001 TSK-5155 project an epic onto the tracker's grouping
-      closes: REQ-1364, REQ-1366, REQ-1370, REQ-1390, REQ-1398, REQ-2562, REQ-2570, REQ-2584, REQ-2586, REQ-2588, REQ-2824
+- [~] T-001 TSK-5155 project an epic onto the tracker's grouping
+  closes: REQ-1364, REQ-1366, REQ-1370, REQ-1390, REQ-1398, REQ-2562, REQ-2570, REQ-2584, REQ-2586, REQ-2588, REQ-2824
+  dropped: ADR-3010 supersedes ADR-2540, because REQ-3320 forbids the parent issue it writes
 
 ## Coverage
 
