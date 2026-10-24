@@ -162,7 +162,7 @@ jobs:
       # (REQ-2218).
       - name: Attest the archives without a release
         if: (inputs.publish || env.publish == 'true') && hashFiles('dist/attest.sha256') != ''
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-checksums: dist/attest.sha256
 

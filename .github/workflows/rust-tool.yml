@@ -227,7 +227,7 @@ jobs:
           (cd dist-full && zip -q -X "../meow-full-$full_version.zip" ./*)
       # A consumer checks the archive with `gh attestation verify` (REQ-2218).
       - name: Attest the meow-full archive
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: meow-full-${{ env.full_version }}.zip
       - name: Publish the meow-full release
