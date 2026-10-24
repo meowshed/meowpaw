@@ -3,6 +3,7 @@ reader: someone choosing or running meow-rust
 answers: what meow-rust does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-rust@0.1.0]
+description: "Detects Rust from the manifests git tracks, reports each manifest's edition, the pinned toolchain and the clippy groups a lint stage runs, prints a stages table bound from the cargo commands the manifests call for, reports an edition, a lint inheritance or an ignore file a manifest leaves unsaid, and compares the pinned toolchain with the installed one, writing no file, and carries what a reviewer of Rust checks that no command reports."
 ---
 
 # meow-rust

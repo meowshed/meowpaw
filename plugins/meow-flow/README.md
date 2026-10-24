@@ -3,6 +3,7 @@ reader: someone choosing or running meow-flow
 answers: what meow-flow does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-flow@0.53.0]
+description: "Runs the method's seven steps from research to review, each refused by a native program until its input is approved, routes each request before work starts, drives the steps to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it."
 ---
 
 # meow-flow
@@ -29,6 +30,8 @@ Installing this unit also enables `meow-core`, which ships the shared `paw` bina
 Its launcher stops on a Claude Code older than the version its `requires.toml` names, printing both versions, because the unit's behaviour was never seen on an older one.
 
 ## Bring a repository in
+
+<!-- host-specific: claude -->
 
 Type `/meow-flow:init` in a repository with no `.meowpaw/profile.toml`. It
 reads the repository and writes the profile from the template
@@ -127,6 +130,8 @@ Conclusions and Sources. `prompted-by:` on research, a requirement or a
 decision names a defect or a task.
 
 ## Run the method
+
+<!-- host-specific: claude -->
 
 Type `/meow-flow:run` to be taken to the next approval gate. It reads where
 the record stands, runs the next step, and stops where that step waits for
@@ -341,6 +346,8 @@ the decision's What would reverse it, so you see them on each run.
 
 ## Check the record
 
+<!-- host-specific: claude -->
+
 From the repository, run every check, or one by name:
 
 ```bash
@@ -393,6 +400,8 @@ and a hard limit would cut rules to fit a number. A repository with no
 
 ## Replace the researcher
 
+<!-- host-specific: claude -->
+
 To use a researcher of your own, put its definition in
 `.claude/agents/researcher.md` in your repository. Claude Code loads it under
 the bare name `researcher`, beside the unit's `meow-flow:researcher`, and
@@ -412,6 +421,8 @@ The `researcher` agent holds four tools, each for one step of its procedure:
 
 ## What it costs you
 
+<!-- host-specific: claude -->
+
 The `method` and `route` skills' descriptions, the driver's and the
 `researcher` agent's, on every turn, so Claude knows when to load each. The
 program is a native binary shipped inside the unit, so it needs nothing
@@ -421,6 +432,8 @@ so and names `claude plugin install meow-core@meowpaw` and exits 0, so the
 session begins.
 
 ## What it needs
+
+<!-- host-specific: claude -->
 
 Claude Code 2.1.283 or later, the version this unit was tested on, declared
 in `plugins/meow-flow/requires.toml`. It relies on these platform behaviours,

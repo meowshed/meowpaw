@@ -45,6 +45,7 @@ SKIPPED_FILES = {
     "packages/meow-loop/lib/layout.toml": "the mirror of the onboarding section name `Verbs`",
     "tools/check_subagent_shape.py": "a grammatical use: the verb of a sentence",
     "tools/check_gate_covers_verbs.py": "a file name and a local variable",
+    "tools/launchers.toml": "holds the text of bin/meow-checks, whose shell variables and `verbs` subcommand keep the word",
     "tools/check_terms.py": "the check names the word it looks for",
 }
 SKIPPED_PARTS = {
