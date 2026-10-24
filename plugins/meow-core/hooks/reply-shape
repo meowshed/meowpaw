@@ -1,0 +1,42 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
+# SPDX-License-Identifier: Apache-2.0
+
+# Hands the model the reply shape at the start of a session, so it holds the
+# shape whether or not anyone selected the output style, which the platform
+# does not apply on its own (BUG-1040, ADR-3050). It prints the style file's
+# role and rules blocks as the hook's additionalContext, read at run time so the
+# style stays the one source. It never fails a session: with no readable style
+# file or no rules block it prints nothing and exits 0.
+
+style=${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/output-styles/meow.md}
+[ -n "$style" ] && [ -r "$style" ] || exit 0
+
+awk '
+function esc(s,   i, c, o) {
+  o = ""
+  for (i = 1; i <= length(s); i++) {
+    c = substr(s, i, 1)
+    if (c == "\\") o = o "\\\\"
+    else if (c == "\"") o = o "\\\""
+    else if (c == "\t") o = o "\\t"
+    else if (c != "\r") o = o c
+  }
+  return o
+}
+/^<role>$/ && role == "" { inrole = 1 }
+/^<rules name="the reply shape">$/ && rules == "" { inrules = 1 }
+inrole { role = role (role == "" ? "" : "\n") $0 }
+inrules { rules = rules (rules == "" ? "" : "\n") $0 }
+/^<\/role>$/ { inrole = 0 }
+/^<\/rules>$/ { inrules = 0 }
+END {
+  if (rules == "" || inrules) exit
+  text = (role != "" && !inrole ? role "\n\n" : "") rules
+  n = split(text, lines, "\n")
+  out = ""
+  for (i = 1; i <= n; i++) out = out (i > 1 ? "\\n" : "") esc(lines[i])
+  printf "{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"%s\"}}\n", out
+}
+' "$style" 2>/dev/null
+exit 0

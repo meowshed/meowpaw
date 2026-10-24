@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-core
 answers: what meow-core does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-core@0.10.1]
+describes: [meow-core@0.10.2]
 description: "Shapes every reply Claude Code makes to you: the action first, a failure as cause, location and fix, and no preamble, recap or offer of further help. It replaces your own output style while it is enabled."
 ---
 
@@ -94,6 +94,8 @@ as a lower score.
 ## Hooks
 
 `write-root` stops nothing: at the start of a session it records where the unit is installed, so the other units find the shared binary.
+
+`reply-shape` stops nothing either: at the start of a session, and again after a resume, a clear or a compaction, it hands the model the reply shape that `output-styles/meow.md` states, so the shape holds when nobody selected the style.
 
 ## What it needs
 

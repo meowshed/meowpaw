@@ -1,5 +1,9 @@
 # meow-core
 
+## 0.10.2
+
+- A second session-start hook, `reply-shape`, hands the model the reply shape, so a Claude Code session holds it whether or not the output style is selected.
+
 ## 0.10.1
 
 - The shared executable carries `serde_json` 1.0.154 and `sha2` 0.11.1, two patch releases of its dependencies.

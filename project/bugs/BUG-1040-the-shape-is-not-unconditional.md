@@ -66,15 +66,4 @@ alternatives need comparing again.
 
 ## Closed by
 
-Not closed. One of two things closes it:
-
-- The style applies without selection, on a version where the documented
-  behaviour works, with the observation recorded.
-- ADR-1000 is amended, or superseded, by a decision whose mechanism holds. A
-  candidate it never considered is a `SessionStart` hook, whose
-  `additionalContext` reaches the model at the start of every session and does
-  not depend on the style system. RES-0203 records the hook, and no research
-  compares it against a style for this purpose.
-
-Until then, EPC-1000 is not realised: its first acceptance criterion is that a
-repository installing the kernel receives the shape without selecting it.
+ADR-3050 and TSK-5690. The `reply-shape` hook of `meow-core` hands the model the reply shape at the start of every session, so the shape no longer rests on `force-for-plugin`. The first closing path, the platform honouring the field, stays open and would make the hook redundant.

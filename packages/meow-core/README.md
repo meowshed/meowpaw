@@ -2,7 +2,7 @@
 reader: someone installing or running meow-core on Pi
 answers: what meow-core provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-core@0.10.1]
+describes: [@meowshed/meow-core@0.10.2]
 ---
 
 # @meowshed/meow-core
@@ -60,3 +60,5 @@ directory the checkout ignores.
 ## Hooks
 
 `write-root` stops nothing: at the start of a session it records where the unit is installed, so the other units find the shared binary.
+
+`reply-shape` is a Claude Code hook and runs nowhere in this package, which delivers the reply shape through its extension.
