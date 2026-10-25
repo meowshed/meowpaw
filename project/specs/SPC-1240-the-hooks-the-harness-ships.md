@@ -2,7 +2,7 @@
 id: SPC-1240
 artifact: spec
 status: live
-revised: 2026-10-24
+revised: 2026-10-26
 states:
   [
     REQ-1426,
@@ -19,6 +19,7 @@ states:
     REQ-2728,
     REQ-2730,
     REQ-2798,
+    REQ-5200,
   ]
 ---
 
@@ -153,6 +154,15 @@ as unrun and lets the call through, because a guard that lets a call through
 for a missing binary lets through the call it exists to stop (ADR-2710). A
 launcher with no binary can't tell which call its program would have let
 through, so it denies every call its hook matches.
+
+Before it names that command, the launcher checks whether its own directory
+sits under a marketplace installed with source `github`: a sibling
+`.claude-plugin/` with no `bin/<target>/` beside it, where `bin/` names at
+least one other target the release ships. Where that holds, naming the
+install command would tell the person to run what already ran, so the
+reason instead names that cause and the archive-backed marketplace's
+address, `meow.retran.me`, which carries the binary that source doesn't
+(REQ-5200, ADR-3060).
 
 `meow-flow`'s `SessionStart` hook blocks nothing, so with no binary it prints
 that the record wasn't checked and the install command, and the session

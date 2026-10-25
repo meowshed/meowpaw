@@ -74,6 +74,6 @@ Not yet closed.
 
 ## Tasks
 
-- [ ] T-001 TSK-NNNN name the cause and the working marketplace address in
+- [ ] T-001 TSK-5700 name the cause and the working marketplace address in
       the launcher template's unresolved-binary message, in
       `tools/launchers.toml`, regenerated into every unit's launcher
