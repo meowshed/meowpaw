@@ -24,7 +24,7 @@ other part of the `meowpaw` harness.
 Add the marketplace and install the unit:
 
 ```bash
-claude plugin marketplace add https://paw.retran.me/meowpaw/marketplace.json
+claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json
 claude plugin install meow-github@meowpaw
 ```
 
