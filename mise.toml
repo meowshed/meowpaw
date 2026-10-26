@@ -9,7 +9,7 @@ CLAUDE_PLUGIN_DATA = "{{config_root}}/target/gate-data/unit"
 claude = "latest"
 markdownlint-cli2 = "latest"
 "npm:prettier" = "latest"
-python = "3.15.1"
+python = "3.15.2"
 rust = { version = "1.99", components = "rustfmt,clippy" }
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
