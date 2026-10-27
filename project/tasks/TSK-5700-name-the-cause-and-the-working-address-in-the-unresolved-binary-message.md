@@ -3,7 +3,7 @@ id: TSK-5700
 artifact: task
 status: approved
 revised: 2026-10-25
-realises: ADR-3060
+realises: ADR-3070
 closes: [REQ-5200]
 issue:
 produces:
@@ -42,10 +42,9 @@ Regenerate every launcher with `python3 tools/generate_launchers.py` and
 commit the regenerated copies alongside the template, since
 `tools/generate_launchers.py --check` (part of `test-record`) fails a launcher
 the template and the checked-in copy disagree on. Extend
-`tools/test_generate_launchers.py` with the `github`-source fixture ADR-3060
+`tools/test_generate_launchers.py` with the `github`-source fixture ADR-3070
 names. Update SPC-1240's `### A hook whose program is missing` section if the
-rendered wording changes from what this task's draft of ADR-3060 already put
-there.
+rendered wording changes from what ADR-3070 already put there.
 
 ## Depends on
 
