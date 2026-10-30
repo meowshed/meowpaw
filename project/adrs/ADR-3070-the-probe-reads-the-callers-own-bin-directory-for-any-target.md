@@ -1,8 +1,8 @@
 ---
 id: ADR-3070
 artifact: adr
-status: approved
-revised: 2026-10-27
+status: superseded
+revised: 2026-10-30
 addresses: [REQ-5200]
 supersedes: [ADR-3060]
 concerns: []
