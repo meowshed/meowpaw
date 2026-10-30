@@ -20,18 +20,16 @@ that cause and `meow.retran.me` instead.
 
 ## Acceptance criteria
 
-1. Given a launcher copied into a bare `plugins/<name>/bin/<name>` with a
-   sibling `.claude-plugin/` and a `bin/` holding at least one
-   `<other-target>/` and no `<this-target>/`, when the launcher runs with no
-   cached or resolvable binary, then it denies naming the cause (a
-   `github`-source marketplace ships no binary here) and `meow.retran.me`.
-   Closed by: `tools/test_generate_launchers.py`'s new case.
-2. Given a launcher with no `bin/` sibling at all, or one whose `bin/`
-   carries no other target either (an archive-backed install missing its own
-   binary), when it runs with no resolvable binary, then it denies naming
-   `claude plugin install meow-core@meowpaw` exactly as it does on the trunk
-   today. Closed by: the existing no-binary fixtures in
-   `tools/test_generate_launchers.py` and `tools/test_launchers.py`, unchanged.
+1. Given a launcher with no `<cpu>-<system>/` directory at all under its own
+   `bin/`, when it runs with no cached or resolvable binary, then it denies
+   naming the cause (a `github`-source marketplace ships no binary here) and
+   `meow.retran.me`. Closed by: `tools/test_generate_launchers.py`'s new case.
+2. Given a launcher whose `bin/` holds at least one `<other-target>/`
+   directory but none for this machine, when it runs with no resolvable
+   binary, then it denies naming `claude plugin install meow-core@meowpaw`
+   exactly as it does on the trunk today. Closed by: the existing no-binary
+   fixtures in `tools/test_generate_launchers.py` and
+   `tools/test_launchers.py`, unchanged.
 
 ## What to do
 
