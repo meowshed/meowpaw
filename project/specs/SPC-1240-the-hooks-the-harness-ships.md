@@ -155,14 +155,15 @@ for a missing binary lets through the call it exists to stop (ADR-2710). A
 launcher with no binary can't tell which call its program would have let
 through, so it denies every call its hook matches.
 
-Before it names that command, the launcher checks whether its own directory
-sits under a marketplace installed with source `github`: a sibling
-`.claude-plugin/` with no `bin/<target>/` beside it, where `bin/` names at
-least one other target the release ships. Where that holds, naming the
+Before it names that command, the launcher checks its own `bin/` directory,
+where its script sits, for a `<cpu>-<system>/` subdirectory naming any
+platform at all. Where none exists, the install shipped no binary for any
+machine, as a marketplace added with source `github` does, and naming the
 install command would tell the person to run what already ran, so the
 reason instead names that cause and the archive-backed marketplace's
-address, `meow.retran.me`, which carries the binary that source doesn't
-(REQ-5200, ADR-3060).
+address, `meow.retran.me`, which carries what that source doesn't. Where at
+least one platform's directory exists, even one that isn't this machine's,
+the reason names the install command as it does today (REQ-5200, ADR-3070).
 
 `meow-flow`'s `SessionStart` hook blocks nothing, so with no binary it prints
 that the record wasn't checked and the install command, and the session
