@@ -916,6 +916,7 @@ whether the repository can be worked on.
 | [BUG-1720](bugs/BUG-1720-meow-checks-prints-usage-where-no-binary-resolves.md)                          | `meow-checks` prints its usage where no binary resolves                                                                                                                                    |
 | [BUG-1730](bugs/BUG-1730-the-doctor-test-reads-an-error-as-status.md)                                   | The doctor test reads an error as the output of `paw status`                                                                                                                               |
 | [BUG-1740](bugs/BUG-1740-one-refused-package-stops-the-pi-release.md)                                   | One package with no trusted publisher stops the whole Pi release                                                                                                                           |
+| [BUG-1750](bugs/BUG-1750-the-pi-release-names-an-incomplete-npm-trust-command.md)                       | The Pi release names an `npm trust` command that npm refuses                                                                                                                               |
 
 BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
 the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100
