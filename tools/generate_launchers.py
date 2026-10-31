@@ -94,6 +94,20 @@ CLAUDE_FIND = """  # The shared binary the core unit ships, found through the co
   }
 """
 
+CORE_PROBE = """  # The core unit's own bin/, where $root points, carries no binary at all
+  # where a marketplace added with source github installed it, because that
+  # source ships none of the six platforms. Naming the install command would
+  # tell the person to run what already ran, so the reason names the cause
+  # and the marketplace that does carry one instead (REQ-5200, ADR-3080).
+  core_github_source=''
+  if [ -n "$root" ]; then
+    core_github_source=1
+    for target in "$root"/bin/*-*-*/; do
+      [ -d "$target" ] && core_github_source=''
+    done
+  fi
+"""
+
 CLAUDE_PLATFORM = """# The platform version this unit was tested on, from its requires.toml
 # (REQ-1738): on an older one the launcher stops here without running the
 # binary, because the unit's behaviour was never seen on it. The version the
@@ -139,14 +153,18 @@ fi
 
 """
 
-REASON = (
+REASON_CLAUDE = """if [ -n "$core_github_source" ]; then
+  reason="no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); this install carries no binary for any machine, which a marketplace added with source github ships none of; add https://meow.retran.me/meowpaw/marketplace.json instead"
+  fix="claude plugin marketplace add https://meow.retran.me/meowpaw/marketplace.json"
+else
+  reason="no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+  fix="claude plugin install meow-core@meowpaw"
+fi
+"""
+REASON_PI = (
     'reason="no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); '
-    "@ADVICE@ for macOS, Linux and Windows on arm64 and x86_64\"\n"
+    'reinstall the unit, which ships one for macOS, Linux and Windows on arm64 and x86_64"\n'
 )
-ADVICE = {
-    "claude": "install meow-core, which ships the shared binary",
-    "pi": "reinstall the unit, which ships one",
-}
 
 STANDARD_TAIL = """case "$1" in
 @COMMANDS@)
@@ -197,12 +215,24 @@ def launcher(name: str, unit: dict, host: str) -> str:
     run = CLAUDE_RUN if host == "claude" else PI_RUN
     if host == "claude":
         probe = "".join(f"  {line}\n" if line else "\n" for line in PROBE.splitlines())
-        text += CLAUDE_CACHE_READ.replace("@NAME@", name) + probe + CLAUDE_FIND + CLAUDE_CACHE_WRITE + CLAUDE_PLATFORM
+        text += (
+            CLAUDE_CACHE_READ.replace("@NAME@", name)
+            + probe
+            + CLAUDE_FIND
+            + CORE_PROBE
+            + CLAUDE_CACHE_WRITE
+            + CLAUDE_PLATFORM
+        )
     else:
         text += PROBE
     prologue = facts.get("prologue", "")
     text += run.replace("@PROLOGUE@", prologue).replace("@SUBCOMMAND@", facts["subcommand"])
-    reason = REASON.replace("@ADVICE@", ADVICE[host])
+    reason = REASON_CLAUDE if host == "claude" else REASON_PI
+    uses_fix = "$fix" in facts.get("tail", "")
+    if host == "claude" and not uses_fix:
+        # A unit whose tail never reads $fix leaves it set and unread, which
+        # shellcheck flags as unused in that file, correctly: it is.
+        reason = "\n".join(line for line in reason.splitlines() if "fix=" not in line) + "\n"
     if "tail" in facts:
         tail = facts["tail"].replace("@REASON@\n", reason).replace("@REASON@", reason.rstrip("\n"))
     else:

@@ -1,7 +1,7 @@
 ---
 id: TSK-5700
 artifact: task
-status: approved
+status: done
 revised: 2026-10-25
 realises: ADR-3080
 closes: [REQ-5200]
@@ -56,7 +56,16 @@ Nothing.
 
 ## Evidence
 
-Not yet.
+`python3 -m unittest tools.test_generate_launchers.Denial -v`: 3 passed,
+proving both criteria — the no-target-at-all case names the cause and
+`meow.retran.me`, the other-target and no-install cases name `claude plugin
+install meow-core@meowpaw` unchanged. `python3 tools/generate_launchers.py
+--check`: 61 generated files equal their template. `mise run all`: every
+stage passed, including `test-tools` (244 tests, 0 findings across every
+record and documentation check) and `shell-lint` (clean after introducing a
+`fix` variable only into the launchers that read it, so `shellcheck`'s
+unused-variable rule holds on every file). Pull request 1133 (BUG-1690's
+closing task).
 
 ## Left alone
 

@@ -70,7 +70,7 @@ status)
   ;;
 revision)
   cat >/dev/null 2>&1
-  echo "meow-checks revision: not counted (no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null)); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+  echo "meow-checks revision: not counted ($reason)"
   exit 0
   ;;
 run)
@@ -161,14 +161,15 @@ prologue = '''
   fi
 '''
 tail = '''
+@REASON@
 # The session-start hook blocks nothing, so with no binary it says the record
 # wasn't checked and how to install the binary, and the session begins
 # (SPC-1240).
 if [ "$1" = "status" ] && [ "$2" = "--waiting" ]; then
-  echo "paw: the record was not checked: no meow binary was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with: claude plugin install meow-core@meowpaw"
+  echo "paw: the record was not checked: $reason, with: $fix"
   exit 0
 fi
-echo "paw: the record was not checked: no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+echo "paw: the record was not checked: $reason"
 exit 3
 '''
 [launcher.meow-flow.pi]
@@ -193,10 +194,11 @@ comment = [
   "through the call it exists to stop (ADR-2710).",
 ]
 tail = '''
+@REASON@
 # A hook that lets a call through for a missing binary lets through the call it
 # exists to stop (ADR-2710), so each guard denies and says how to install.
 cat >/dev/null 2>&1
-echo "meow-git: denied $1 because no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+echo "meow-git: denied $1 because $reason, with this command in a terminal outside the session: $fix" >&2
 exit 2
 '''
 [launcher.meow-git.pi]
@@ -225,7 +227,7 @@ if [ "$1" = "governance-guard" ]; then
   # through, so the hook denies every Bash call it matches and says how to
   # install the binary (ADR-2710).
   cat >/dev/null
-  echo "meow-github: denied $1 because $reason, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+  echo "meow-github: denied $1 because $reason, with this command in a terminal outside the session: $fix" >&2
   exit 2
 fi
 if [ "$1" = "history" ]; then
@@ -330,7 +332,7 @@ guard)
   # through, so the guard denies every Bash command, Edit and Write it matches
   # and says how to install the binary (ADR-2710).
   cat >/dev/null
-  echo "meow-loop: denied $1 because $reason, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+  echo "meow-loop: denied $1 because $reason, with this command in a terminal outside the session: $fix" >&2
   exit 2
   ;;
 prompt | stop)
@@ -419,8 +421,9 @@ prologue = '''
   fi
 '''
 tail = '''
+@REASON@
 cat >/dev/null 2>&1
-echo "meow-prose-gate: denied $1 because no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64, with this command in a terminal outside the session: claude plugin install meow-core@meowpaw" >&2
+echo "meow-prose-gate: denied $1 because $reason, with this command in a terminal outside the session: $fix" >&2
 exit 2
 '''
 [launcher.meow-prose-gate.pi]
