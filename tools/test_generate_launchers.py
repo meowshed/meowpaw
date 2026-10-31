@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -68,6 +69,39 @@ class Generated(unittest.TestCase):
         text = gen.expected()[ROOT / "plugins" / "meow-go" / "bin" / "meow-go"]
         self.assertIn('exec "$binary" go "$@"', text)
         self.assertIn("status | bind | check | toolchain)", text)
+
+
+class CheckoutBuild(unittest.TestCase):
+    """BUG-1700: a launcher in a checkout runs that checkout's build, so nothing has to pin the data directory."""
+
+    def fake_paw(self, directory, says):
+        target = subprocess.run(["uname", "-m"], capture_output=True, text=True).stdout.strip().replace("arm64", "aarch64")
+        system = {"Darwin": "apple-darwin", "Linux": "unknown-linux-musl"}[os.uname().sysname]
+        binary = directory / "bin" / f"{target}-{system}" / "paw"
+        binary.parent.mkdir(parents=True)
+        binary.write_text(f"#!/bin/sh\necho {says}\n", encoding="utf-8")
+        binary.chmod(0o755)
+
+    def test_the_build_beside_the_launcher_wins_over_an_installed_core(self):
+        """REQ-2928: with a release installed, a launcher in a checkout still measures the checkout."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            launcher = root / "plugins" / "meow-git" / "bin" / "meow-git"
+            launcher.parent.mkdir(parents=True)
+            launcher.write_text(gen.expected()[ROOT / "plugins" / "meow-git" / "bin" / "meow-git"], encoding="utf-8")
+            self.fake_paw(root / "plugins" / "meow-core", "checkout")
+            self.fake_paw(root / "installed", "installed")
+            core_data = root / "data" / "meow-core-meowpaw"
+            core_data.mkdir(parents=True)
+            (core_data / "meow-root").write_text(str(root / "installed"), encoding="utf-8")
+            env = {**os.environ, "CLAUDE_PLUGIN_DATA": str(root / "data" / "meow-git-meowpaw"), "HOME": tmp}
+            done = subprocess.run(["sh", str(launcher), "commit-guard"], capture_output=True, text=True, env=env, cwd=root)
+        self.assertEqual("checkout\n", done.stdout, done.stderr)
+
+    def test_the_repository_sets_no_data_directory_for_every_process(self):
+        """REQ-4504: a pin under `[env]` reaches a mise-activated shell and hides the installed core's data directory."""
+        config = tomllib.loads((ROOT / "mise.toml").read_text(encoding="utf-8"))
+        self.assertNotIn("CLAUDE_PLUGIN_DATA", config.get("env", {}))
 
 
 class Denial(unittest.TestCase):
