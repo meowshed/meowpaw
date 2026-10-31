@@ -1,7 +1,8 @@
 ---
 id: BUG-1710
 artifact: bug
-status: approved
+status: done
+pr: 1141
 severity: minor
 violates: REQ-4506
 enters: implement
