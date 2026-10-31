@@ -1,7 +1,7 @@
 ---
 id: BUG-NNNN
 artifact: bug
-status: draft # draft, approved, or withdrawn; open and closed are derived
+status: draft # draft, approved, done when `paw done` closes it in its pull request, then withdrawn, rejected or superseded
 severity: minor # minor | major | critical, and the reason under Triage
 violates: REQ-NNNN # omit where no requirement covers it yet, and say so below
 enters: implement # the step it enters at: implement or design where it violates a requirement, requirements where the requirement is wrong or none covers it, research where the cause is unknown
@@ -45,13 +45,13 @@ priority: when to fix it is the tracker's question, not the record's.
 ## Closed by
 
 The reproduction, now passing, and where it lives as a regression check. The
-fix is a task of its own, or a change reviewed on its own, never an edit made
-inside this record.
+fix is a change reviewed on its own, never an edit made inside this record.
 
-## Tasks
+## Plan
 
-Where the fix is one task, this defect carries it, and the task names
-`bug: BUG-NNNN`; where it needs several with an order between them, an epic
-realises this defect instead. Delete this section where neither applies.
+The ordered steps of this defect's one pull request, required where `enters` is
+`implement`. Each step lands its failing tests in a commit of their own, then
+the change, its documentation and its record. Delete this section where the
+defect enters earlier, because the decision it leads to carries the plan.
 
-- [ ] T-001 TSK-NNNN <what, with the path it touches>
+1. <What this step makes true, with the path it touches>

@@ -147,12 +147,12 @@ export default async function (pi: ExtensionAPI) {
     ["meow-flow:requirements", "Run the requirements step", "method"],
     ["meow-flow:design", "Run the design step", "method"],
     ["meow-flow:spec", "Run the spec step", "method"],
-    ["meow-flow:epic", "Run the epic step", "method"],
     ["meow-flow:implement", "Run the implement step", "method"],
     ["meow-flow:review", "Run the review step", "method"],
     ["meow-flow:run", "Drive the method to the next approval gate", "run"],
     ["meow-flow:init", "Initialise a repository with a profile and constitution", "init"],
     ["meow-flow:onboard", "Bring a repository's existing documents into the record", "onboard"],
+    ["meow-flow:upgrade", "Move a repository's record from epics and tasks to one record per pull request", "upgrade"],
   ];
 
   for (const [name, description, skill] of commands) {

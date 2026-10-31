@@ -64,7 +64,7 @@ does as though somebody had decided it must.
   disposition of every document, and wait for approval, because a person
   decides what the repository becomes.
 - B11. Migrate a record the repository keeps in a format of its own, such as a
-  folder of decision records or a task list, to the artifact kind that holds
+  folder of decision records or a defect list, to the artifact kind that holds
   it, one artifact per record, because left in its old format it is a second
   record and the strongest evidence of what was decided.
 - B12. Write every requirement and decision you recover as a draft, because a

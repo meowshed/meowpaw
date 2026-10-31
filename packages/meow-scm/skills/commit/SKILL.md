@@ -67,7 +67,7 @@ project gained and when, so every message is written for that question.
 </rules>
 
 <rules name="branches">
-- B1. Give one epic or defect one branch, one pull request and one review,
+- B1. Give one decision or defect one branch, one pull request and one review,
   and land it on the trunk as one squashed commit, because the history then
   reads as a list of what the project gained.
 - B2. Take every branch from the one trunk and keep it short-lived, and never
@@ -81,8 +81,8 @@ project gained and when, so every message is written for that question.
 - B5. Lock a working tree while you use it, with the reason, in the way the
   source control tool offers, because a cleanup reclaims an unlocked tree
   with your work in it.
-- B6. Split an epic that would not be one reviewable change into epics
-  before its work starts, and never split its pull request, because review
+- B6. Split a decision or defect that would not be one reviewable change
+  into several before its work starts, and never split its pull request, because review
   turns into approval past a size.
 - B7. Say so in the pull request when you force-push over a branch someone
   reviewed, because the push removes what they reviewed.

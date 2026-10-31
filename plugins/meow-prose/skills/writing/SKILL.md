@@ -27,7 +27,7 @@ file costs context.
    `changelog`, `blog-post`, `research-notes`, `meeting-notes` or
    `daily-notes`. For a project record, read `types/record/record.md` and the
    file for its kind: `vision`, `research`, `requirement`, `decision`,
-   `specification`, `epic`, `task` or `defect`.
+   `specification` or `defect`.
 4. Read the patterns file for the text's language before you check any text
    longer than a short text, whether you wrote it or edit it. The file is
    `${CLAUDE_SKILL_DIR}/patterns/en.md` or `patterns/ru.md`; for another
@@ -188,8 +188,8 @@ file costs context.
   what it does, because the reader already has the code and needs the reason it
   doesn't show. Write nothing that restates the line below, because it goes
   wrong the first time that line changes. Delete commented-out code, since
-  version control keeps it. Give every marker for later work an issue or a
-  task, because a bare marker is a promise nobody owns.
+  version control keeps it. Give every marker for later work an issue,
+  because a bare marker is a promise nobody owns.
 - G2. Make an example runnable as pasted, with its prerequisites stated before
   it. Keep only what the prose around it explains, comment a line that isn't
   obvious, and say so where you couldn't check it. Introduce it with a

@@ -20,7 +20,7 @@ words R7 names override a route.
 <steps name="route a request">
 1. If the request, or the brief a parent agent gave you, carries a route or an
    override word, take that route as given, and go to step 4. For a given
-   `route reduced`, take the approved epic or decision it enters under from
+   `route reduced`, take the approved decision or defect it enters under from
    the identifier the request names, and read that record with Read to
    confirm it is approved.
 2. Read the repository's route evidence with Read, Grep or Glob, and nothing
@@ -58,9 +58,9 @@ words R7 names override a route.
   - a person overrode the route: the route as overridden, and the route as
     classified;
   - `route reduced` where neither the reason nor the request names an
-    approved epic or decision that authorises the work: `full`, the
+    approved decision or defect that authorises the work: `full`, the
     `reduced` the person gave, and that no approved record authorises the
-    work, because `reduced` enters under an approved epic or decision, and
+    work, because `reduced` enters under an approved decision or defect, and
     with none it has no step to enter;
   - a route came with the request or the brief: the route as given, and that
     no classification ran.
@@ -72,9 +72,8 @@ words R7 names override a route.
   cost that gets the method bypassed:
   - `none`: make the edit, and stop when it is made;
   - `reduced` or `full`: run `${CLAUDE_SKILL_DIR}/../../bin/paw ready` for
-    the step the route enters at, `research` for `full`, `implement` under an
-    approved epic and `epic` under an approved decision for `reduced`, then
-    load the `meow-flow:method` skill for that step;
+    the step the route enters at, `research` for `full` and `implement` for
+    `reduced`, then load the `meow-flow:method` skill for that step;
   - a defect: load `meow-flow:method` to write the defect record, its
     reproduction and its triage, and once the record carries `enters`, run
     `paw ready` for the step it names;
@@ -96,11 +95,11 @@ words R7 names override a route.
     exempts, a typo, a formatting fix or a link, and only where the change
     alters no behaviour and no approved record, because an approved record is
     frozen and a change to it is never trivial.
-  - `reduced` writes only the records the work lacks: a task, and a defect
-    record where the work is a defect. It applies where an approved record
-    already authorises the work (ADR-1440). It enters at `implement` where an
-    approved epic carries the work, and at `epic` where an approved decision
-    covers it and no epic realises it yet. For a defect, the defect record it
+  - `reduced` writes only what the work lacks: a defect record where the work
+    is a defect, and a plan where the authorising record carries none. It
+    applies where an approved record already authorises the work (ADR-1440).
+    It enters at `implement` under an approved decision or defect, and the work
+    lands in that record's one pull request. For a defect, the defect record it
     writes is the authorising record, and the step comes from its triage, as
     the defect shape says. For other work with no approved record behind it,
     `reduced` has no step to enter at, and the route is `full`.

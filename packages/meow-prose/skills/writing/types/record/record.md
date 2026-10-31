@@ -1,7 +1,7 @@
 <role>
 The record is what a project keeps about what it must do and why: a vision,
-research records, requirements, decision records, specifications, epics, tasks
-and defect records. Read this file, then the one for the kind you are writing.
+research records, requirements, decision records, specifications and defect
+records. Read this file, then the one for the kind you are writing.
 </role>
 
 <rules name="every record">

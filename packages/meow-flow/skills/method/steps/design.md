@@ -2,8 +2,8 @@
 The design step. It reads approved requirements, named by their identifiers,
 and writes from `paw template adr`. Its artifact lands in
 `adrs/ADR-NNNN-<slug>.md` under the record root, `[record] root` in
-`.meowpaw/profile.toml` or `project/` where it declares none. The step that
-picks it up is spec.
+`.meowpaw/profile.toml` or `project/` where it declares none. The decision
+carries its own `## Plan`. The step that picks it up is spec.
 </role>
 
 <steps name="design">
@@ -19,6 +19,9 @@ picks it up is spec.
    tell an increment from a promise.
 6. Name each concern the decision raises, such as performance, security or
    upgrade, in the decision's `concerns:` front matter.
+7. Write the decision's `## Plan` as D29 to D33 say, and land every requirement
+   it addresses in a step of the plan or move it to `postpones:` with the
+   reason, then run `paw check coverage` to prove it.
 </steps>
 
 <rules name="design">
@@ -106,4 +109,30 @@ picks it up is spec.
 - D28. Name a concern as one word a specification heading can carry, because
   `paw check` matches it against the headings, and a concern phrased as a
   sentence is one no heading names.
+- D29. Give every decision that addresses a requirement a `## Plan` of ordered
+  steps, because the plan is what its pull request works through, and
+  `paw ready implement` refuses a decision that has none.
+- D30. Keep a decision to what one issue, one branch and one pull request can
+  carry, and split one that wouldn't be one reviewable change before its work
+  starts, because review turns into approval past a size. Write two parallel
+  streams as two decisions, because a plan is one ordered list.
+- D31. Write each plan step as a vertical slice someone can observe, naming the
+  requirements it closes and what it touches, so an implementer with none of
+  the conversation can follow it. Leave how it is done to the implementer,
+  beyond the constraints that bind the result.
+- D32. Let a step close several requirements and several steps close one,
+  because a requirement often needs a program change and a prompt change, and
+  write no work that no record authorises: a decision for new behaviour, a
+  defect for a departure from what is already required.
+- D33. Carry no estimates, because an estimate in a record is read as a
+  promise, and authorise recurring work once, in the record that establishes
+  it, because a new record each time it recurs adds a record and no decision.
+- D34. Write each outcome under How I will know it was realised as something
+  the project itself can bring about and this pull request's own work decides.
+  Where a third party controls the behaviour, state what the project ships and
+  record the dependency, because an outcome that waits on other work can't be
+  met when it is checked. Where the work predicts a measurable outcome, state
+  the number now, because a prediction written after the result fits it.
+- D35. Record an unknown as an open question classified by what it blocks, and
+  let it stop a step only when it blocks that step.
 </rules>

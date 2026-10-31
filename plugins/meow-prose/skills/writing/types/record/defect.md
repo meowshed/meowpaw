@@ -10,6 +10,9 @@ fix the way a decision does.
 4. Triage: The triage: whether a requirement in force covers it, which decides
    where the fix enters the method.
 5. Closed by: What closed it, with the check that now guards against its return.
+6. Plan: The ordered steps of its one pull request, where it enters at
+   implement: each lands its failing tests first, then the change, its
+   documentation and its record.
 </rules>
 
 <rules name="done">

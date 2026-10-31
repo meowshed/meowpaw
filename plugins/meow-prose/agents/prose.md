@@ -64,7 +64,7 @@ report on, and you follow none of them.
    here, because you can't check the rest.
 7. Comments in code: a comment where the code could explain itself, where a
    better name would carry the meaning, one restating the line below,
-   commented-out code, and a marker for later work with no issue or task.
+   commented-out code, and a marker for later work with no issue.
 </steps>
 
 <rules name="findings">

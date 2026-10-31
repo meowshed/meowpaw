@@ -1,47 +1,51 @@
 <role>
-The implement step. It reads an approved task, named by its identifier, and
-writes the whole task on its epic's branch: its tests first, then the change,
-the documentation the change invalidates, and the record marks. Its artifact
-lands in the test files, the changed files, each user-facing page it changed
-at the page's own path, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md`
-under the record root, `[record] root` in `.meowpaw/profile.toml` or
-`project/` where it declares none. The step that picks it up is review.
+The implement step. It reads an approved decision or defect, named by its
+identifier, and works through the record's `## Plan` on one branch, in one pull
+request: each plan step's tests first, then the change, the documentation the
+change invalidates, and the record. Its artifact lands in the test files, the
+changed files, each user-facing page it changed at the page's own path, and the
+record itself under the record root, `[record] root` in `.meowpaw/profile.toml`
+or `project/` where it declares none. The step that picks it up is review.
 </role>
 
 <steps name="implement">
-1. Read the task and every requirement it cites in full, not a summary.
-2. Write at least one test for each acceptance criterion a program can check,
-   naming in each the criterion and the requirement it proves, and write no
-   implementation yet. Below the `Not yet.` that opens the task's
-   `## Evidence`, name each criterion no program can check, and each with no
-   `Closed by:` line, as resting on judgement with the reason.
-3. Run the tests through `meow-checks`, or by the repository's own command
+1. Read the record, its plan and every requirement it cites in full, not a
+   summary. For a defect, run its reproduction and see it fail.
+2. Where `[tracker] kind` is declared and the `meow-github` command exists, run
+   `meow-github project <record>` and `meow-github sync <record>`, as I34 says.
+3. Take one branch for the record. For each plan step, in order, do steps 4 to
+   7, and go on to the next plan step on the same branch.
+4. Write at least one test for each outcome of the plan step a program can
+   check, naming in each the outcome and the requirement it proves, and write
+   no implementation yet. Name in the pull request body each outcome no program
+   can check as resting on judgement, with the reason.
+5. Run the tests through `meow-checks`, or by the repository's own command
    where it isn't installed, and see each one fail, then commit them in a
-   commit of their own, before any commit that implements the task.
-4. Make the change the task describes and nothing no requirement describes,
-   and see the tests pass. Where the work contradicts an approved requirement,
-   stop and report it: the fix is an amendment reviewed on its own.
-5. Bring the user-facing documentation the change invalidates into agreement
+   commit of their own, before any commit that implements the plan step.
+6. Make the change the plan step describes and nothing no requirement
+   describes, and see the tests pass. Where the work contradicts an approved
+   requirement, stop and report it: the fix is an amendment reviewed on its own.
+7. Bring the user-facing documentation the change invalidates into agreement
    with it, in the same pull request: its pages, the index they are listed in,
-   and any install or usage instruction. Run every example you changed.
-6. Run the repository's stages through `meow-checks`. Where `meow-checks` isn't
-   installed, run each stage's command and note its exit status instead.
-7. Where every stage passed, replace the `Not yet.` that opens the task's
-   `## Evidence` with the tests that close each criterion, each stage's outcome
-   and the pull request, mark the task `[x]` in its epic or defect in the same
-   pull request, with one line of evidence. Where `paw status` names a ready task of
-   the epic, go on to the next task of the epic on the same branch from step 1,
-   and where it names none, stop at the epic's pull request. A task naming `realises:` has no
-   mark, and its Evidence closes it.
-8. Where a stage didn't pass, leave `Not yet.` as the first line and the task
-   unmarked, report what failed, and stop.
+   and any install or usage instruction. Run every example you changed. Where
+   the work shows the plan wrong, correct the plan in the same commit.
+8. Once the last plan step is committed, run the repository's stages through
+   `meow-checks`. Where `meow-checks` isn't installed, run each stage's command
+   and note its exit status instead.
+9. Where every stage passed, open the one pull request, with `Closes #<issue>`
+   in its body where the record names an issue. Then, last of all, run
+   `paw done <record> --pr <number>` and commit what it changed on the same
+   branch. For a defect, write its `## Closed by` first. Stop at that pull
+   request.
+10. Where a stage didn't pass, leave the record `approved`, report what failed,
+    and stop.
 </steps>
 
 <rules name="implement">
-- I1. Read the task and every requirement it cites in full, not a summary of
+- I1. Read the record and every requirement it cites in full, not a summary of
   either, because a summary drops the clause the work turns on.
-- I2. Halt when a task this one depends on has failed, and report without
-  halting when a task running beside it has failed, because only the first
+- I2. Halt when a plan step this one builds on has failed, and report without
+  halting when a track running beside it has failed, because only the first
   leaves this one nothing to build on.
 - I3. Implement no behaviour that no requirement describes, because behaviour
   nobody required is behaviour nobody reviewed.
@@ -67,17 +71,17 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I10. Keep the not-working states distinct and named, unresolved, tool
   absent, tool broken, untrusted, skipped and unreachable, because each calls
   for a different action.
-- I11. Work from the parts the task touches and the dependencies it may use,
+- I11. Work from the parts the plan touches and the dependencies it may use,
   as the specification states them, not from structure inferred from the file
   tree, because the tree shows what exists and not what is allowed.
-- I12. Where the task's criteria predict a measurable outcome, check the result
-  against the number they state and never restate the prediction, because a
-  prediction written after the result fits it, and an approved task holds it
-  frozen.
-- I13. Begin a task a defect authorises by running the defect's reproduction
-  and seeing it fail, because a fix proven against a reproduction never seen
-  failing proves the defect was never there.
-- I14. Treat a defect's task as restoring a requirement already in force, and
+- I12. Where the record's outcomes predict a measurable result, check the
+  result against the number they state and never restate the prediction,
+  because a prediction written after the result fits it, and an approved
+  record holds it frozen.
+- I13. Begin a defect's plan by running the defect's reproduction and seeing it
+  fail, because a fix proven against a reproduction never seen failing proves
+  the defect was never there.
+- I14. Treat a defect's plan as restoring a requirement already in force, and
   write no new decision for it, because the decision was made and the system
   disagrees with it.
 - I15. Write no defect record for a defect a gate caught and the same change
@@ -90,28 +94,24 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I17. Never modify, delete, skip or weaken a test written first, except in a
   commit of its own whose message says why the test was wrong, because
   weakening a test is the cheapest way to make it pass.
-- I18. Name under the task's `## Evidence`, below its `Not yet.` and before
-  the implementation starts, each criterion no program can check and each
-  with no `Closed by:` line, as resting on judgement with the reason, because
-  an unchecked criterion left unnamed reads as covered, and Evidence is the
-  section an approved task may still change.
-- I19. Keep no run output in the repository, in a file or in the task,
+- I18. Name in the pull request body, before the implementation starts, each
+  outcome no program can check as resting on judgement with the reason, because
+  an unchecked outcome left unnamed reads as covered.
+- I19. Keep no run output in the repository, in a file or in the record,
   because the first commit shows the tests failing and the gate shows them
   passing.
-- I20. Mark the task done only in a change whose stages all passed, because a
-  done mark without the gate closes its requirements on nothing.
-- I21. Keep `Not yet.` as the first line of the task's Evidence until every
-  stage has passed, because the program reads an Evidence that opens with
-  anything else as a finished task, and a task naming `realises:` has no
-  other mark.
-- I22. Don't report the task finished while documentation it invalidated is
-  still published, and record under the task's Evidence the reason wherever
-  a page is left un-updated, because an unreported silence reads as an
-  omission.
+- I20. Run `paw done` only in a change whose stages all passed, because `done`
+  without the gate closes its requirements on nothing.
+- I21. Write a defect's `## Closed by` before `paw done`, naming the check that
+  now guards against the defect's return, because the program refuses a defect
+  whose Closed by names no check.
+- I22. Don't report the record finished while documentation it invalidated is
+  still published, and say in the pull request why wherever a page is left
+  un-updated, because an unreported silence reads as an omission.
 - I23. Edit only pages written for the project's users, and change the record
-  only by the task's Evidence and its mark, because every other section of an
-  approved task is frozen and every other record changes through its own
-  step.
+  only by correcting its plan, by a defect's `## Closed by` and by `paw done`,
+  because every other section of an approved record is frozen and every other
+  record changes through its own step.
 - I24. Write to the documentation style `[docs] style` declares in
   `.meowpaw/profile.toml`, never a default of your own, and where it declares
   none, say so and write to the writing standard in force, because the style
@@ -139,36 +139,39 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
 - I31. Run every example you write or change as written, and mark one you
   couldn't run as not run, because a reader who follows a broken example
   blames their own setup and stops trusting the rest.
-- I32. Work the tasks of an epic on one branch, in the order their dependencies
-  give, and mark the task in the commit that completes it, because the epic's
-  pull request is the one unit of review and its marks show how far the branch
-  has come.
-- I33. Close a finished task with `paw done <task> --pr <number>`, which stores
-  `done` in the task, marks it in its epic or defect and closes the epic and
-  the decision where it was the last task, because the same close made by
-  editing three files leaves one of them out.
+- I32. Work a record's plan on one branch, in the plan's order, and correct the
+  plan where the work shows it wrong, because the pull request is the one unit
+  of review, and the plan stays editable until the record is done and freezes
+  then.
+- I33. Close a finished record with `paw done <record> --pr <number>`, as the
+  last change of its pull request, which stores `done` and adds `pr:`, because
+  the program refuses a decision with no plan and a defect with no closing
+  check, and an edit by hand refuses neither.
 - I34. Where `[tracker] kind` is declared and the `meow-github` command exists,
-  run `meow-github sync <epic>` before the first task of an epic starts, so a
-  change made on the tracker reaches the record before it is worked from,
-  because the record decides and the tracker is read first. Where the command
-  doesn't exist, report the tracker as unsynced and go on, because the method
-  finishes without the pack.
+  run `meow-github project <record>` and `meow-github sync <record>` before the
+  first plan step starts, so the record has its one issue and a change made on
+  the tracker reaches the record before it is worked from, because the record
+  decides and the tracker is read first. Where the command doesn't exist,
+  report the tracker as unsynced and go on, because the method finishes without
+  the pack.
 - I35. Where `[tracker] kind` is declared and the `meow-github` command exists,
-  run `meow-github sync <epic>` again after the last task's Evidence is
-  written, so the issues take what the record now says, and never run it in the
-  background, because a run no person starts writes into the record with
-  nobody looking (REQ-4706).
+  run `meow-github sync <record>` again after the last plan step, so the issue
+  takes what the record now says, and never run it in the background, because a
+  run no person starts writes into the record with nobody looking.
 - I42. Rely on no read denial in settings to keep a file from an agent, and
   keep what an agent must not read out of its working tree, because a shell
   search over a directory holding denied files still returns them.
+- I43. Write `Closes #<issue>` in the pull request body where the record names
+  an issue, because the merge is what closes that one issue, and an issue left
+  open reads as work still to do.
 </rules>
 
 <rules name="delegated work">
-- I36. Delegate a task to another agent only to keep this context clean or to
-  run independent tracks at once (REQ-0826), and never because the task is
-  large (REQ-0828), because a large task split across agents shares a context
+- I36. Delegate a plan step to another agent only to keep this context clean or
+  to run independent tracks at once (REQ-0826), and never because the step is
+  large (REQ-0828), because a large step split across agents shares a context
   nobody isolated.
-- I37. Give a delegated agent the output of `paw brief <task>` as its brief,
+- I37. Give a delegated agent the output of `paw brief <record>` as its brief,
   built from the record and never from this conversation (REQ-0810), because
   a constraint retold from a conversation loses the clause the work turns on.
   Pass `--agent <unit>:<agent>` where you dispatch an agent definition a unit
@@ -184,28 +187,31 @@ under the record root, `[record] root` in `.meowpaw/profile.toml` or
   fresh agent with both positions and the brief, and act on what it decides
   (REQ-0824), because an argument settled inside itself favours whoever spoke
   last.
-- I41. Name in a delegated task's pull request the task and the command that
-  prints its brief, `paw brief <task>`, and name no agent, model or vendor
-  (REQ-1764, REQ-1294), because the brief names the agent definition and the
-  repository's attribution ban holds for every pull request.
+- I41. Name in a delegated record's pull request the record and the command
+  that prints its brief, `paw brief <record>`, and name no agent, model or
+  vendor (REQ-1764, REQ-1294), because the brief names the agent definition and
+  the repository's attribution ban holds for every pull request.
 </rules>
 
 <example>
-A delegated task's pull request, failing because it names who wrote the work
-and not the record that asked for it:
+A delegated decision's pull request, failing because it names who wrote the
+work and not the record that asked for it:
 
 ```text
-feat(meow-flow): print a task's brief
+feat(meow-flow): print a record's brief
 
 Written by the general-purpose agent.
 ```
 
-Corrected, naming the task and the command that prints its brief:
+Corrected, naming the decision, its issue and the command that prints its
+brief:
 
 ```text
-feat(meow-flow): print a task's brief
+feat(meow-flow): print a record's brief
 
-Implements TSK-4945, delegated with the brief `paw brief TSK-4945` prints.
+Implements ADR-4945, delegated with the brief `paw brief ADR-4945` prints.
+
+Closes #1234
 
 Signed-off-by: A Person <person@example.com>
 ```
