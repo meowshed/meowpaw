@@ -7,7 +7,9 @@ violates: REQ-3080
 enters: implement
 found: 2026-10-31
 revised: 2026-10-31
-issue:
+issue: 1145
+projected: 559b6bf4a636
+tracked: 0c0faf933817
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
