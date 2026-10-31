@@ -1,7 +1,7 @@
 ---
 id: BUG-1540
 artifact: bug
-status: approved
+status: done
 severity: critical
 violates: REQ-3704
 enters: requirements

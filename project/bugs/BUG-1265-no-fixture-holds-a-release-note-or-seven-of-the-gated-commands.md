@@ -1,7 +1,7 @@
 ---
 id: BUG-1265
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-3182
 enters: cover

@@ -1,7 +1,7 @@
 ---
 id: BUG-1563
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-2712
 enters: design

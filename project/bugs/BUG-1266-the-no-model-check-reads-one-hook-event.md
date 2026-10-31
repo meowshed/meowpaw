@@ -1,7 +1,7 @@
 ---
 id: BUG-1266
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-2076
 enters: cover

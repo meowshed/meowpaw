@@ -1,7 +1,7 @@
 ---
 id: BUG-1264
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-3203
 enters: design

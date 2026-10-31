@@ -58,7 +58,8 @@ Decisions and defects store `done`, which `paw done <record> --pr <number>`
 sets in the pull request that completes the work, adding `pr:` to the front
 matter (REQ-3678). A requirement closes when a done decision addresses it or a
 done archived task closes it, and no approved decision still in work addresses
-it (REQ-3680). `paw ready implement`, `paw brief` and `paw status` take a
+it (REQ-3680). A postponed requirement closes only with a decision later than the
+one that postponed it, or an earlier decision would read as closing it. `paw ready implement`, `paw brief` and `paw status` take a
 decision or a defect. `meow-github project` and `sync` map one record to one
 issue, with `issue:`, `projected:` and `tracked:` on the record (REQ-4002), and
 the pull request closes that issue.
@@ -174,7 +175,7 @@ its own check.
 1. `paw count` on this repository shows no draft or approved epic or task, the
    same counts of each kind before and after the move, and the same closed
    requirements, with the withdrawals accounted for.
-2. `paw new task` and `paw new epic` exit non-zero, and `paw show TSK-0100` prints
+2. `paw new task` and `paw new epic` exit non-zero, and `paw show TSK-2310` prints
    the archived task.
 3. A fixture with an open task, an orphan and a closed defect comes out of
    `paw upgrade --write` as this decision says, and a second run changes nothing.

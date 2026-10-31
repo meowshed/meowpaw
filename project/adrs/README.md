@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-151 decisions in all: 9 approved, 129 done, 13 superseded.
+151 decisions in all: 8 approved, 130 done, 13 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -77,7 +77,7 @@ the end, and a draft is listed but binds nothing.
 | [ADR-1570](ADR-1570-the-harness-reads-git-unescaped-and-releases-a-breaking-change-as-marked.md)                                                          | The harness reads git unescaped and without locks, keeps to the repository's configuration, and releases a breaking change as it is marked | done       |
 | [ADR-1580](ADR-1580-a-mise-pack-reads-the-tasks-a-repository-declares-and-binds-a-verb-only-to-a-task-that-can-run-unattended.md)                         | A mise pack reads the tasks a repository declares, and binds a verb only to a task that can run unattended                                 | done       |
 | [ADR-1590](ADR-1590-a-go-task-pack-reads-a-taskfile-without-writing-to-it-and-binds-a-verb-only-to-a-task-that-can-run-unattended.md)                     | A go-task pack reads a Taskfile without writing to it, and binds a verb only to a task that can run unattended                             | done       |
-| [ADR-1600](ADR-1600-the-prose-gate-is-a-program-that-blocks-only-on-a-span-it-found.md)                                                                   | The prose gate is a program, and it blocks only on a span it found in the command                                                          | approved   |
+| [ADR-1600](ADR-1600-the-prose-gate-is-a-program-that-blocks-only-on-a-span-it-found.md)                                                                   | The prose gate is a program, and it blocks only on a span it found in the command                                                          | done       |
 | [ADR-1610](ADR-1610-this-repository-binds-its-five-verbs-to-the-crates-own-tools.md)                                                                      | This repository binds its five verbs to the crate's own tools, after the crate passes them                                                 | done       |
 | [ADR-1620](ADR-1620-the-chain-gains-a-cover-step-that-paw-ready-gates-on-the-tasks-cover-section.md)                                                      | The chain gains a cover step that paw ready gates on the task's Cover section                                                              | done       |
 | [ADR-1700](ADR-1700-every-shipped-agent-declares-its-turns-tools-model-effort-instructions-and-skills-and-meow-author-check-fails-one-that-doesnt.md)     | Every shipped agent declares its turns, tools, model, effort, instructions and skills, and meow-author check fails one that doesn't        | done       |

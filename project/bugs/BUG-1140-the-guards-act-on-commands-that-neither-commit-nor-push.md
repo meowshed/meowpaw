@@ -1,7 +1,7 @@
 ---
 id: BUG-1140
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-1292
 found: 2026-09-26

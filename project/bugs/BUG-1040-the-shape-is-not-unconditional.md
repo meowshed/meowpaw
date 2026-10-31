@@ -1,7 +1,7 @@
 ---
 id: BUG-1040
 artifact: bug
-status: approved
+status: done
 severity: critical
 violates: REQ-0930
 found: 2026-09-21

@@ -1,7 +1,7 @@
 ---
 id: BUG-1200
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-2010
 found: 2026-09-27

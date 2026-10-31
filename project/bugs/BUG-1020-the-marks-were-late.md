@@ -1,7 +1,7 @@
 ---
 id: BUG-1020
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-0690
 found: 2026-09-21

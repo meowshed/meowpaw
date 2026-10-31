@@ -1,7 +1,7 @@
 ---
 id: BUG-1640
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-0139
 enters: implement

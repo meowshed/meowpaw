@@ -1,7 +1,7 @@
 ---
 id: BUG-1300
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-1358
 enters: cover

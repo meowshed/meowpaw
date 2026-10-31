@@ -1,7 +1,7 @@
 ---
 id: BUG-1401
 artifact: bug
-status: approved
+status: done
 severity: major
 violates:
 enters: requirements

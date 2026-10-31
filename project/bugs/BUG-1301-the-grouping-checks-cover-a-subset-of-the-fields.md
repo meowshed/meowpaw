@@ -1,7 +1,7 @@
 ---
 id: BUG-1301
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-3320
 enters: cover

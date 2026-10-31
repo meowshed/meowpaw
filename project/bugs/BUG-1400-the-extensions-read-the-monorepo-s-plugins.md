@@ -1,7 +1,7 @@
 ---
 id: BUG-1400
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-4108, REQ-4110, REQ-4112
 enters: implement

@@ -53,6 +53,6 @@ target = "github"
 # gate itself, and releases nothing because no release command is declared.
 [unattended]
 permission_mode = "dontAsk"
-gates = ["research", "requirements", "design", "spec", "epic", "implement", "review", "merge"]
+gates = ["research", "requirements", "design", "spec", "implement", "review", "merge"]
 release = false
 amend_approved = false

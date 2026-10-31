@@ -1,7 +1,7 @@
 ---
 id: BUG-1690
 artifact: bug
-status: approved
+status: done
 severity: minor
 enters: requirements
 found: 2026-10-25

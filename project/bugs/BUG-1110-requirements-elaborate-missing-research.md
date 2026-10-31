@@ -1,7 +1,7 @@
 ---
 id: BUG-1110
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-0656
 found: 2026-09-26
