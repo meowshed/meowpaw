@@ -7,7 +7,9 @@ violates: REQ-4506
 enters: implement
 found: 2026-10-31
 revised: 2026-10-31
-issue:
+issue: 1139
+projected: 423506813f5f
+tracked: 0328c3c288f6
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
@@ -47,6 +49,11 @@ Enters at implement, because REQ-4506 states the behaviour and only the tail in
 command does fail, so the harm is the time spent on the wrong cause.
 
 ## Closed by
+
+The reproduction's step 2 now exits 3 and prints
+`meow-github upgrade: unresolved:` with the reason.
+`tools/test_generate_launchers.py::Unresolved::test_each_command_exits_3_naming_the_core_unit`
+guards `project`, `sync` and `upgrade` on both the Claude and the Pi launcher.
 
 ## Plan
 
