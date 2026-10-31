@@ -14,7 +14,7 @@ the end, and a draft is listed but binds nothing.
 
 <!-- meow-flow index -->
 
-149 decisions in all: 9 approved, 129 done, 11 superseded.
+150 decisions in all: 8 approved, 130 done, 12 superseded.
 
 | Identifier                                                                                                                                                | What it concluded                                                                                                                          | Status     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -166,7 +166,8 @@ the end, and a draft is listed but binds nothing.
 | [ADR-3040](ADR-3040-ten-requirements-without-a-task-get-one-epic.md)                                                                                      | Ten requirements that no task names get one epic                                                                                           | done       |
 | [ADR-3050](ADR-3050-the-reply-shape-reaches-every-claude-code-session-through-a-session-start-hook.md)                                                    | The reply shape reaches every Claude Code session through a session-start hook                                                             | done       |
 | [ADR-3060](ADR-3060-the-unresolved-binary-message-names-the-cause-and-the-working-address.md)                                                             | The unresolved-binary message names the install's own cause before it names a remedy                                                       | superseded |
-| [ADR-3070](ADR-3070-the-probe-reads-the-callers-own-bin-directory-for-any-target.md)                                                                      | The probe reads the caller's own `bin/` directory for any target at all                                                                    | approved   |
+| [ADR-3070](ADR-3070-the-probe-reads-the-callers-own-bin-directory-for-any-target.md)                                                                      | The probe reads the caller's own `bin/` directory for any target at all                                                                    | superseded |
+| [ADR-3080](ADR-3080-the-probe-reads-meow-cores-own-bin-directory-not-the-callers.md)                                                                      | The probe reads `meow-core`'s own `bin/` directory, not the caller's                                                                       | done       |
 
 Amended: ADR-1000 by ADR-1040; ADR-1010 by ADR-1020 and ADR-1600; ADR-1020 by ADR-1030 and ADR-1050; ADR-1070 by ADR-1110 and ADR-1410; ADR-1100 by EPC-1070; ADR-1140 by ADR-2770; ADR-1170 by ADR-2770; ADR-1210 by ADR-2770; ADR-1310 by ADR-2890; ADR-1350 by ADR-1390; ADR-1480 by ADR-1530 and ADR-1560; ADR-1530 by ADR-1550; ADR-1810 by ADR-2320 and ADR-2340 and ADR-2330; ADR-2010 by ADR-2020; ADR-2020 by BUG-1390; ADR-2300 by ADR-2310; ADR-2310 by ADR-2860.
 

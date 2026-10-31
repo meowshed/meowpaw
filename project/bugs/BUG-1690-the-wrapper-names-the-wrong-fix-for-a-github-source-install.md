@@ -70,10 +70,25 @@ blocking them outright.
 
 ## Closed by
 
-Not yet closed.
+The reproduction's step 4 disk state, rebuilt as a scratch fixture rather
+than a live `claude plugin marketplace add --source github` round trip
+(no network access to the platform's plugin installer from this
+environment): a copy of `meow-git`'s launcher beside a `meow-core`
+directory whose `bin/` holds no `<cpu>-<system>/` directory at all,
+pointed to by a `meow-root` file. Before the fix this denied naming
+`claude plugin install meow-core@meowpaw`, exactly as the reproduction's
+step 2 and 3 show; after it, the same fixture denies naming the cause and
+`meow.retran.me`
+(`tools/test_generate_launchers.py::Denial::test_meow_core_with_no_target_at_all_names_the_github_cause_and_the_address`),
+and a `meow-core` carrying another platform's binary, or none installed
+at all, still denies with the old message, unchanged. The fixture is a
+regression check: it fails again if the probe is removed or misdirected,
+as it did against both superseded decisions this defect's fix went
+through (ADR-3060, ADR-3070) before ADR-3080.
 
 ## Tasks
 
-- [ ] T-001 TSK-5700 name the cause and the working marketplace address in
+- [x] T-001 TSK-5700 name the cause and the working marketplace address in
       the launcher template's unresolved-binary message, in
       `tools/launchers.toml`, regenerated into every unit's launcher
+      (done: pull request 1133)

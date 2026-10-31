@@ -54,6 +54,18 @@ if [ -z "$binary" ]; then
     beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
     [ -f "$beside" ] && binary=$beside
   }
+  # The core unit's own bin/, where $root points, carries no binary at all
+  # where a marketplace added with source github installed it, because that
+  # source ships none of the six platforms. Naming the install command would
+  # tell the person to run what already ran, so the reason names the cause
+  # and the marketplace that does carry one instead (REQ-5200, ADR-3080).
+  core_github_source=''
+  if [ -n "$root" ]; then
+    core_github_source=1
+    for target in "$root"/bin/*-*-*/; do
+      [ -d "$target" ] && core_github_source=''
+    done
+  fi
   if [ -z "$system" ] || [ -z "$cpu" ] || [ ! -f "$binary" ]; then
     binary=''
   elif [ -n "$cache" ]; then
@@ -89,7 +101,11 @@ if [ -n "$binary" ]; then
   exec "$binary" gotask "$@"
 fi
 
-reason="no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+if [ -n "$core_github_source" ]; then
+  reason="no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); this install carries no binary for any machine, which a marketplace added with source github ships none of; add https://meow.retran.me/meowpaw/marketplace.json instead"
+else
+  reason="no paw executable was found for this machine, $(uname -s 2>/dev/null) on $(uname -m 2>/dev/null); install meow-core, which ships the shared binary for macOS, Linux and Windows on arm64 and x86_64"
+fi
 case "$1" in
 status | bind | check)
   echo "meow-gotask $1: unresolved: $reason"

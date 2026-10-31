@@ -3,6 +3,8 @@
 
 """A unit's launcher and Pi extension equal what its generator writes (TSK-5683, REQ-4624)."""
 
+import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -66,6 +68,59 @@ class Generated(unittest.TestCase):
         text = gen.expected()[ROOT / "plugins" / "meow-go" / "bin" / "meow-go"]
         self.assertIn('exec "$binary" go "$@"', text)
         self.assertIn("status | bind | check | toolchain)", text)
+
+
+class Denial(unittest.TestCase):
+    """TSK-5700, REQ-5200, ADR-3080: the unresolved-binary message names the cause."""
+
+    def scratch_launcher(self, unit="meow-git"):
+        """A scratch copy of `unit`'s generated launcher, with a sibling meow-core whose
+        `bin/` the caller populates, and a `meow-root` pointer to it."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        launcher = root / "plugins" / unit / "bin" / unit
+        launcher.parent.mkdir(parents=True)
+        launcher.write_text(gen.expected()[ROOT / "plugins" / unit / "bin" / unit], encoding="utf-8")
+        launcher.chmod(0o755)
+        core_root = root / "plugins" / "meow-core"
+        core_root.mkdir(parents=True)
+        core_data = root / "data" / "meow-core-meowpaw"
+        core_data.mkdir(parents=True)
+        (core_data / "meow-root").write_text(str(core_root), encoding="utf-8")
+        return root, launcher, core_root
+
+    def run_launcher(self, root, launcher, *args):
+        data = root / "data" / f"{launcher.parent.parent.name}-meowpaw"
+        env = {**os.environ, "CLAUDE_PLUGIN_DATA": str(data), "HOME": str(root)}
+        return subprocess.run(["sh", str(launcher), *args], capture_output=True, text=True, env=env, cwd=root)
+
+    def test_meow_core_with_no_target_at_all_names_the_github_cause_and_the_address(self):
+        """TSK-5700 criterion 1: meow-core's own bin/ carries no <cpu>-<system>/ directory for any platform."""
+        root, launcher, core_root = self.scratch_launcher()
+        done = self.run_launcher(root, launcher, "commit-guard")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("a marketplace added with source github ships none", done.stderr)
+        self.assertIn("meow.retran.me", done.stderr)
+        self.assertNotIn("claude plugin install meow-core@meowpaw", done.stderr)
+
+    def test_meow_core_with_another_target_names_the_install_command_unchanged(self):
+        """TSK-5700 criterion 2: meow-core's bin/ carries another platform's target, not this machine's."""
+        root, launcher, core_root = self.scratch_launcher()
+        (core_root / "bin" / "x86_64-pc-windows-msvc").mkdir(parents=True)
+        done = self.run_launcher(root, launcher, "commit-guard")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("claude plugin install meow-core@meowpaw", done.stderr)
+        self.assertNotIn("meow.retran.me", done.stderr)
+
+    def test_no_meow_core_installed_at_all_names_the_install_command_unchanged(self):
+        """TSK-5700 criterion 2: no meow-root pointer at all reads as meow-core simply not installed."""
+        root, launcher, core_root = self.scratch_launcher()
+        (root / "data" / "meow-core-meowpaw" / "meow-root").unlink()
+        done = self.run_launcher(root, launcher, "commit-guard")
+        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
+        self.assertIn("claude plugin install meow-core@meowpaw", done.stderr)
+        self.assertNotIn("meow.retran.me", done.stderr)
 
 
 if __name__ == "__main__":
