@@ -7,7 +7,9 @@ violates: REQ-4506
 enters: implement
 found: 2026-10-31
 revised: 2026-10-31
-issue:
+issue: 1142
+projected: c1e298608386
+tracked: e80b83d2a7f3
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
