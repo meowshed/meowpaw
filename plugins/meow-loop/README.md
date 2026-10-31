@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-loop
 answers: how a person starts a run in the session, what bounds a run and what a run keeps
 kind: reference
-describes: [meow-loop@0.17.1]
+describes: [meow-loop@0.18.0]
 description: "Runs the method's chain inside the Claude Code session where a person starts it: /meow-loop:run repeats /meow-flow:run until the record holds no open work, the iterations or the hours it was given (ten and four by default) are reached, two iterations change nothing or the person types anything else. Hooks hold the bounds outside the model, deny what would change a run's terms, and let only a person start a run. It keeps nothing in context on every turn."
 ---
 

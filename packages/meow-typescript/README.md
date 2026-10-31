@@ -2,7 +2,7 @@
 reader: someone installing or running meow-typescript on Pi
 answers: what meow-typescript provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-typescript@0.1.1]
+describes: [@meowshed/meow-typescript@0.2.0]
 ---
 
 # @meowshed/meow-typescript

@@ -1,5 +1,11 @@
 # meow-github
 
+## 0.18.0
+
+- `project` and `sync` map one decision or defect to one issue, and take no epic. A task's issue is no longer projected.
+- `meow-github upgrade` closes the issues of archived tasks after the record's upgrade has merged, and leaves a live record's issue and any unmapped issue alone.
+- This release retires epics and tasks. Before using it, run `paw upgrade` to preview and `paw upgrade --write` on a branch: `paw` refuses a record holding `tasks/` or `epics/` until then.
+
 ## 0.17.1
 
 - Its launcher runs the shared executable, which now carries `serde_json` 1.0.154 and `sha2` 0.11.1; the unit itself is unchanged.

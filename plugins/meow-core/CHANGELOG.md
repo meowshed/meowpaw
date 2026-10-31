@@ -1,5 +1,9 @@
 # meow-core
 
+## 0.11.0
+
+- Its launcher runs the shared executable, which now reads the record ADR-3090 describes; the unit itself is unchanged. This release retires epics and tasks. Before using it, run `paw upgrade` to preview and `paw upgrade --write` on a branch: `paw` refuses a record holding `tasks/` or `epics/` until then.
+
 ## 0.10.2
 
 - A second session-start hook, `reply-shape`, hands the model the reply shape, so a Claude Code session holds it whether or not the output style is selected.

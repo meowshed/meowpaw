@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-typescript
 answers: what meow-typescript does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-typescript@0.1.1]
+describes: [meow-typescript@0.2.0]
 description: "Detects a TypeScript and JavaScript package from the package.json git tracks, reads the package manager it declares, prints a stages table bound from the tools it configured and run through that manager, reports a stage that runs a tool outside the manager or leaves a linter or compiler setting without effect, and carries what a reviewer of TypeScript checks that no command reports, writing no file."
 ---
 

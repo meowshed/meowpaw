@@ -2,7 +2,7 @@
 reader: someone installing or running meow-git on Pi
 answers: what meow-git provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-git@0.6.1]
+describes: [@meowshed/meow-git@0.7.0]
 ---
 
 # @meowshed/meow-git

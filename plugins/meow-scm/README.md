@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-scm
 answers: what meow-scm does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-scm@0.8.1]
+describes: [meow-scm@0.9.0]
 description: "Checks a commit message against the convention the repository declares in .meowpaw/profile.toml and against a ban on crediting a tool, before the message is used, and reports an undeclared convention as undeclared, never as met."
 ---
 

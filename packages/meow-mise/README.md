@@ -2,7 +2,7 @@
 reader: someone installing or running meow-mise on Pi
 answers: what meow-mise provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-mise@0.5.1]
+describes: [@meowshed/meow-mise@0.6.0]
 ---
 
 # @meowshed/meow-mise

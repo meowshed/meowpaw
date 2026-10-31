@@ -2,7 +2,7 @@
 reader: someone installing or running meow-csharp on Pi
 answers: what meow-csharp provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-csharp@0.1.1]
+describes: [@meowshed/meow-csharp@0.2.0]
 ---
 
 # @meowshed/meow-csharp

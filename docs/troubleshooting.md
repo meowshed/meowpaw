@@ -4,13 +4,13 @@ answers: what each message a unit prints means, why it appeared and what fixes i
 kind: troubleshooting
 describes:
   [
-    meow-core@0.10.2,
-    meow-git@0.6.1,
-    meow-github@0.17.1,
-    meow-flow@0.53.1,
-    meow-prose-gate@0.7.1,
-    meow-scm@0.8.1,
-    meow-checks@0.14.1,
+    meow-core@0.11.0,
+    meow-git@0.7.0,
+    meow-github@0.18.0,
+    meow-flow@0.54.0,
+    meow-prose-gate@0.8.0,
+    meow-scm@0.9.0,
+    meow-checks@0.15.0,
   ]
 ---
 

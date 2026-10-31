@@ -1,6 +1,6 @@
 {
   "name": "@meowshed/meow-author",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Holds how Pi writes skills, agents, output styles, commands and prompt hooks, checks them in a repository's plugins or its own .claude directory for fixed tags, a description, the six fields an agent declares, every supporting file named and a stated stopping point. Distributed as a Pi package.",
   "keywords": [
     "pi-package",

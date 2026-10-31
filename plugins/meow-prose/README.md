@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose
 answers: what meow-prose does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose@0.8.0]
+describes: [meow-prose@0.9.0]
 description: "Holds everything Claude Code writes for you to one writing standard: the answer first, a reason for every rule, one term for one thing, and plain English for a reader who learned it as a second language."
 ---
 

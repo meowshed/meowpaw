@@ -2,7 +2,7 @@
 reader: someone installing or running meow-gotask on Pi
 answers: what meow-gotask provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-gotask@0.5.1]
+describes: [@meowshed/meow-gotask@0.6.0]
 ---
 
 # @meowshed/meow-gotask

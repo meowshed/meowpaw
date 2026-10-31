@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-code
 answers: what meow-code does, what it adds to a session and how to use it
 kind: reference
-describes: [meow-code@0.4.0]
+describes: [meow-code@0.5.0]
 description: "Holds how Claude Code changes code, writes a check and debugs a defect: the smallest correct change, the most precise edit, checks seen failing, and a defect reproduced before any cause is offered."
 ---
 
