@@ -7,7 +7,9 @@ violates: REQ-4146
 enters: implement
 found: 2026-10-31
 revised: 2026-10-31
-issue:
+issue: 1148
+projected: fa041ff9c6d3
+tracked: f11fcce9b33e
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
