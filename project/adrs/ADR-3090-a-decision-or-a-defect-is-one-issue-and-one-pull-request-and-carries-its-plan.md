@@ -1,7 +1,8 @@
 ---
 id: ADR-3090
 artifact: adr
-status: approved
+status: done
+pr: 1135
 revised: 2026-10-31
 issue: 1134
 addresses:
