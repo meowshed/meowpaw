@@ -1,5 +1,9 @@
 # meow-unattended
 
+## 0.7.1
+
+- Its launcher runs the build beside it in a checkout. An installed unit resolves its binary as before.
+
 ## 0.7.0
 
 - `[unattended] gates` no longer accepts `epic`; `paw upgrade --write` removes it from a profile.

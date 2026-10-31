@@ -2,7 +2,7 @@
 reader: someone installing or running meow-rust on Pi
 answers: what meow-rust provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-rust@0.2.0]
+describes: [@meowshed/meow-rust@0.2.1]
 ---
 
 # @meowshed/meow-rust

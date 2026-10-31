@@ -1,6 +1,6 @@
 {
   "name": "meow-rust",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Detects Rust from the manifests git tracks, reports each manifest's edition, the pinned toolchain and the clippy groups a lint stage runs, prints a stages table bound from the cargo commands the manifests call for, reports an edition, a lint inheritance or an ignore file a manifest leaves unsaid, and compares the pinned toolchain with the installed one, writing no file, and carries what a reviewer of Rust checks that no command reports.",
   "author": {
     "name": "Andrew Vasilyev",

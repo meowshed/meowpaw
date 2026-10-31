@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-gotask
 answers: what meow-gotask does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-gotask@0.6.0]
+describes: [meow-gotask@0.6.1]
 description: "Reports the tasks Task (go-task) resolves in a repository, with where each came from and what stops a stage running it unattended, binds the stages to them, and never trusts a remote Taskfile, answers a prompt or writes into the repository."
 ---
 

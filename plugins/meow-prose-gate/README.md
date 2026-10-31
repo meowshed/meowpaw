@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-prose-gate
 answers: what meow-prose-gate does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-prose-gate@0.8.0]
+describes: [meow-prose-gate@0.8.1]
 description: "Stops Claude Code from publishing a commit message, pull request, issue, comment or release note that carries a writing defect any reader can point to. A program blocks a stock idiom from a fixed list, a line of bold text in place of a heading and text hidden in a file, and a model judging twice blocks other idioms, unexpanded acronyms and a bold phrase opening a paragraph only where both judgements agree on a span the text holds. It keeps nothing in context."
 ---
 

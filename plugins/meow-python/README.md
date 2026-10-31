@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-python
 answers: what meow-python does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-python@0.2.0]
+describes: [meow-python@0.2.1]
 description: "Detects a Python project from the pyproject.toml git tracks, reads the environment tool it declares, prints a stages table bound from the tools it configured and run through that environment, reports a stage that runs a tool outside the environment or lets a tool write into the working tree, and carries what a reviewer of Python checks that no command reports, writing no file."
 ---
 

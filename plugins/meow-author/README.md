@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-author
 answers: what meow-author does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-author@0.10.0]
+describes: [meow-author@0.10.1]
 description: "Holds how Claude Code writes skills, agents, output styles, commands and prompt hooks, checks them in a repository's plugins or its own .claude directory for fixed tags, a description, the six fields an agent declares, every supporting file named and a stated stopping point."
 ---
 

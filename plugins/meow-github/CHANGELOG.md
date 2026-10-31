@@ -1,5 +1,10 @@
 # meow-github
 
+## 0.18.1
+
+- Its launcher runs the build beside it in a checkout. An installed unit resolves its binary as before.
+- With no binary, `project`, `sync` and `upgrade` exit 3 and name the cause where they printed a usage line.
+
 ## 0.18.0
 
 - `project` and `sync` map one decision or defect to one issue, and take no epic. A task's issue is no longer projected.

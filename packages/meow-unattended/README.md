@@ -2,7 +2,7 @@
 reader: someone installing or running meow-unattended on Pi
 answers: what meow-unattended provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-unattended@0.7.0]
+describes: [@meowshed/meow-unattended@0.7.1]
 ---
 
 # @meowshed/meow-unattended
