@@ -20,12 +20,12 @@ FLOW_COMMANDS = [
     ("meow-flow:requirements", "method"),
     ("meow-flow:design", "method"),
     ("meow-flow:spec", "method"),
-    ("meow-flow:epic", "method"),
     ("meow-flow:implement", "method"),
     ("meow-flow:review", "method"),
     ("meow-flow:run", "run"),
     ("meow-flow:init", "init"),
     ("meow-flow:onboard", "onboard"),
+    ("meow-flow:upgrade", "upgrade"),
 ]
 
 NODE_CHECK = """

@@ -1,9 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! The rules `paw check` holds living documents and withdrawals to, and how a
-//! task's state is read from the task (TSK-4750 and SPC-1230, TSK-4770 and
-//! SPC-1070 "The layout", TSK-4780 and SPC-1090 "The gate").
+//! The rules `paw check` holds living documents and withdrawals to (TSK-4750
+//! and SPC-1230, TSK-4770 and SPC-1070 "The layout").
 
 #![cfg(feature = "record")]
 
@@ -299,104 +298,4 @@ fn a_withdrawal_naming_nothing_fails() {
         )],
     );
     assert!(!check(&dir.0).0.contains("first line names no record"));
-}
-
-fn epic(status: &str, entry: &str) -> String {
-    format!(
-        "---\nid: EPC-0001\nartifact: epic\nstatus: {status}\nrevised: 2026-01-01\nrealises: ADR-0001\n---\n\n# A plan\n\n## Acceptance criteria\n\nText.\n\n## Tasks\n\n{entry}\n      closes: REQ-0001\n\n## Coverage\n\nText.\n\n## Not covered\n\nText.\n"
-    )
-}
-
-/// Criterion 1 of TSK-4780 (REQ-2897): a draft epic carries no mark per task,
-/// and an approved one may.
-#[test]
-fn a_draft_epic_with_a_status_per_task_fails() {
-    let marked = "- [ ] T-001 TSK-0001 build it";
-    let dir = repo(
-        "draft-marked",
-        &[("epics/EPC-0001-a.md", &epic("draft", marked))],
-    );
-    let (out, _) = check(&dir.0);
-    assert!(
-        out.contains("project/epics/EPC-0001-a.md:17: marks a task with a checkbox, where an epic carries no status per task"),
-        "{out}"
-    );
-    let dir = repo(
-        "draft-plain",
-        &[(
-            "epics/EPC-0001-a.md",
-            &epic("draft", "- T-001 TSK-0001 build it"),
-        )],
-    );
-    assert!(!check(&dir.0).0.contains("carries no status per task"));
-    let dir = repo(
-        "approved-marked",
-        &[("epics/EPC-0001-a.md", &epic("approved", marked))],
-    );
-    assert!(!check(&dir.0).0.contains("carries no status per task"));
-}
-
-fn task(id: &str, status: &str, evidence: &str, depends: &str) -> String {
-    format!(
-        "---\nid: {id}\nartifact: task\nstatus: {status}\nrevised: 2026-01-01\nepic: EPC-0001\ncloses: [REQ-0001]\n---\n\n# A task\n\n## What to do\n\nText.\n\n## Depends on\n\n{depends}\n\n## Evidence\n\n{evidence}\n\n## Left alone\n\nText.\n"
-    )
-}
-
-fn record_with(entry_one: &str, first: &str, epic_status: &str) -> Dir {
-    let entries = format!("{entry_one}\n      closes: REQ-0001\n- T-002 TSK-0002 second");
-    repo(
-        "derive",
-        &[
-            (
-                "requirements/REQ-0001-a.md",
-                &requirement("approved", "The harness MUST work."),
-            ),
-            (
-                "adrs/ADR-0001-a.md",
-                "---\nid: ADR-0001\nartifact: adr\nstatus: approved\nrevised: 2026-01-01\naddresses: [REQ-0001]\n---\n\n# 1. A\n\n## Decision\n\nText.\n",
-            ),
-            ("epics/EPC-0001-a.md", &epic(epic_status, &entries)),
-            ("tasks/TSK-0001-a.md", first),
-            (
-                "tasks/TSK-0002-b.md",
-                &task("TSK-0002", "approved", "Not yet.", "- TSK-0001 (blocking)"),
-            ),
-        ],
-    )
-}
-
-fn ready(dir: &Path) -> Option<i32> {
-    paw(dir, &["ready", "implement", "TSK-0002"]).status.code()
-}
-
-/// Criterion 2 of TSK-4780: an unmarked entry reads as done once the task's
-/// Evidence is written, and as dropped once the task is withdrawn.
-#[test]
-fn an_unmarked_task_is_done_from_its_evidence_and_dropped_from_its_status() {
-    let entry = "- T-001 TSK-0001 first";
-    let written = task("TSK-0001", "approved", "Tests close it.", "Nothing.");
-    assert_eq!(ready(&record_with(entry, &written, "approved").0), Some(0));
-    let open = task("TSK-0001", "approved", "Not yet.", "Nothing.");
-    assert_eq!(ready(&record_with(entry, &open, "approved").0), Some(1));
-    let dropped = task("TSK-0001", "withdrawn", "Not yet.", "Nothing.");
-    assert_eq!(ready(&record_with(entry, &dropped, "approved").0), Some(0));
-}
-
-/// Criterion 3 of TSK-4780: in an approved epic with marks, `[x]` and `[~]`
-/// still decide, whatever the Evidence says.
-#[test]
-fn a_marked_task_keeps_the_state_its_mark_gives() {
-    let open = task("TSK-0001", "approved", "Not yet.", "Nothing.");
-    assert_eq!(
-        ready(&record_with("- [x] T-001 TSK-0001 first", &open, "approved").0),
-        Some(0)
-    );
-    assert_eq!(
-        ready(&record_with("- [~] T-001 TSK-0001 first", &open, "approved").0),
-        Some(0)
-    );
-    assert_eq!(
-        ready(&record_with("- [ ] T-001 TSK-0001 first", &open, "approved").0),
-        Some(1)
-    );
 }

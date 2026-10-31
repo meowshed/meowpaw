@@ -22,43 +22,54 @@ static ENTRY: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^- (?:\[(.)\] )?T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern")
 });
 
-/// The Markdown files of one retired directory, its index left out.
-fn retired_docs(dir: &Path, repository: &Path) -> Vec<Doc> {
+/// The records of one retired directory, its index left out, and each file
+/// that can't be read as a record, which moves unread.
+fn retired_docs(dir: &Path, repository: &Path) -> (Vec<Doc>, Vec<String>) {
     let mut paths = Vec::new();
     if dir.is_dir() {
         markdown_under(dir, None, &mut paths);
     }
     paths.sort();
-    paths
-        .into_iter()
-        .map(|path| read_doc(path, repository))
-        .filter(|doc| !bare(doc.id()).is_empty())
-        .collect()
+    let (mut docs, mut unread) = (Vec::new(), Vec::new());
+    for path in paths {
+        let doc = read_doc(path, repository);
+        if !bare(doc.id()).is_empty() {
+            docs.push(doc);
+        } else if doc.path.file_name().and_then(|n| n.to_str()) != Some("README.md") {
+            unread.push(doc.shown);
+        }
+    }
+    (docs, unread)
 }
 
-/// A task's own state, as the old record derived it: dropped once withdrawn,
-/// rejected or superseded, done once its Evidence is written, and open
-/// otherwise.
+/// The mark a task's stored status settles, where it does.
+fn final_mark(task: &Doc) -> Option<char> {
+    match bare(task.value("status")) {
+        "done" => Some('x'),
+        "withdrawn" | "rejected" | "superseded" => Some('~'),
+        _ => None,
+    }
+}
+
+/// A task's own state, as the old record derived it: settled by a final
+/// status, done once its Evidence is written, and open otherwise.
 fn own_mark(task: &Doc) -> char {
-    if matches!(
-        bare(task.value("status")),
-        "withdrawn" | "rejected" | "superseded"
-    ) {
-        return '~';
+    if let Some(mark) = final_mark(task) {
+        return mark;
     }
     let said = section_lines(task, "Evidence")
         .into_iter()
         .map(|(_, line)| line.trim())
         .find(|line| !line.is_empty());
-    if said.is_some_and(|line| !line.starts_with("Not yet.")) {
+    if said.is_some_and(|line| !line.starts_with("Not yet")) {
         'x'
     } else {
         ' '
     }
 }
 
-/// Each task an epic or a defect lists, with its mark, taking an unmarked
-/// entry's state from the task.
+/// Each task an epic or a defect lists, with its mark. A final status wins over
+/// a list that went stale, and an unmarked entry takes its state from the task.
 fn listed_marks(doc: &Doc, tasks: &BTreeMap<String, &Doc>) -> Vec<(String, char)> {
     let mut out = Vec::new();
     let mut inside = false;
@@ -67,8 +78,11 @@ fn listed_marks(doc: &Doc, tasks: &BTreeMap<String, &Doc>) -> Vec<(String, char)
             inside = heading.trim() == "Tasks";
         } else if inside && let Some(found) = ENTRY.captures(line) {
             let id = found[2].to_string();
-            let mark = found.get(1).and_then(|m| m.as_str().chars().next());
-            let mark = mark.unwrap_or_else(|| tasks.get(&id).map_or(' ', |t| own_mark(t)));
+            let task = tasks.get(&id);
+            let mark = task
+                .and_then(|t| final_mark(t))
+                .or_else(|| found.get(1).and_then(|m| m.as_str().chars().next()))
+                .unwrap_or_else(|| task.map_or(' ', |t| own_mark(t)));
             out.push((id, mark));
         }
     }
@@ -84,6 +98,10 @@ struct Moves {
     orphans: Vec<String>,
     /// Decisions and defects to store `done` on.
     finished: Vec<String>,
+    /// Finished tasks whose status doesn't say so yet, with the status that does.
+    settled: Vec<(String, &'static str)>,
+    /// Approved decisions with work and no plan, which a person has to plan.
+    planless: Vec<String>,
 }
 
 /// The authority that carries a task, through its epic where it has one.
@@ -141,9 +159,12 @@ fn plan(record: &Record, tasks: &[Doc], epics: &[Doc]) -> Moves {
     let mut moves = Moves::default();
     for task in tasks {
         let id = bare(task.id()).to_string();
-        // A withdrawn task is dropped whatever a list still says of it.
         let mark = listed.get(&id).copied().unwrap_or_else(|| own_mark(task));
-        if own_mark(task) == '~' || matches!(mark, 'x' | '~') {
+        if matches!(mark, 'x' | '~') {
+            if final_mark(task).is_none() {
+                let status = if mark == 'x' { "done" } else { "withdrawn" };
+                moves.settled.push((id, status));
+            }
             continue;
         }
         let carrier = authority(task, &by_epic);
@@ -171,9 +192,25 @@ fn plan(record: &Record, tasks: &[Doc], epics: &[Doc]) -> Moves {
             moves.finished.push(id.to_string());
         }
     }
+    // A record that takes open work on isn't finished, whatever its own list
+    // says: an epic of another decision can list a defect's task.
+    let carriers: Vec<String> = moves.folded.iter().map(|(_, c)| c.clone()).collect();
+    moves.finished.retain(|id| !carriers.contains(id));
+    for decision in of_kind(record, "decision") {
+        let id = bare(decision.id()).to_string();
+        if bare(decision.value("status")) == "approved"
+            && !requirements_in(record, decision.value("addresses")).is_empty()
+            && !has_plan(decision)
+            && !carriers.contains(&id)
+            && !moves.finished.contains(&id)
+        {
+            moves.planless.push(id);
+        }
+    }
     moves.folded.sort();
     moves.orphans.sort();
     moves.finished.sort();
+    moves.planless.sort();
     moves
 }
 
@@ -216,35 +253,90 @@ fn defect_closed(defect: &Doc, held: &[(String, char)]) -> bool {
     !(first.is_empty() || first.starts_with("Not") || first.starts_with("Open"))
 }
 
-/// The profile's text with the retired step gone from its gates, or nothing
-/// where no gate names it. Only the `gates` list is touched, so every comment
-/// and every other line stays as it was.
+/// The profile's text with the retired step gone from `[unattended] gates`, or
+/// nothing where that list doesn't name it. The list is read as TOML and only
+/// its span is rewritten, so every other line stays as it was.
 fn without_retired_gate(text: &str) -> Option<String> {
-    let gates = Regex::new(r#"(?m)^gates\s*=\s*\[[^\]]*\]"#).expect("gates pattern");
-    let found = gates.find(text)?;
-    let step = Regex::new(r#""epic"\s*,?\s*"#).expect("step pattern");
-    if !step.is_match(found.as_str()) {
+    let table: toml::Table = text.parse().ok()?;
+    let gates = table.get("unattended")?.get("gates")?.as_array()?;
+    let kept: Vec<&str> = gates
+        .iter()
+        .filter_map(|gate| gate.as_str())
+        .filter(|gate| *gate != "epic")
+        .collect();
+    if kept.len() == gates.len() {
         return None;
     }
-    let list = step.replace(found.as_str(), "");
-    let list = list.replace(", ]", "]").replace(",]", "]");
+    let (start, end) = gates_span(text)?;
+    let list: Vec<String> = kept.iter().map(|gate| format!("\"{gate}\"")).collect();
     Some(format!(
-        "{}{list}{}",
-        &text[..found.start()],
-        &text[found.end()..]
+        "{}[{}]{}",
+        &text[..start],
+        list.join(", "),
+        &text[end..]
     ))
 }
 
-/// A record's text with each folded task added as a step of its `## Plan`.
+/// Where the `gates` array of `[unattended]` starts and ends in the text.
+fn gates_span(text: &str) -> Option<(usize, usize)> {
+    let (mut offset, mut inside) = (0, false);
+    for line in text.split_inclusive('\n') {
+        let bare = line.split('#').next().unwrap_or("").trim();
+        if bare.starts_with('[') {
+            inside = bare == "[unattended]";
+        } else if inside && bare.split('=').next().map(str::trim) == Some("gates") {
+            let start = offset + line.find('[')?;
+            return Some((start, start + array_length(&text[start..])?));
+        }
+        offset += line.len();
+    }
+    None
+}
+
+/// The length of the TOML array that opens `text`, reading past strings and
+/// comments, where a bracket means nothing.
+fn array_length(text: &str) -> Option<usize> {
+    let (mut depth, mut quote, mut comment) = (0usize, None, false);
+    for (at, c) in text.char_indices() {
+        match (quote, c) {
+            _ if comment => comment = c != '\n',
+            (Some(open), _) if open == c => quote = None,
+            (Some(_), _) => {}
+            (None, '"' | '\'') => quote = Some(c),
+            (None, '#') => comment = true,
+            (None, '[') => depth += 1,
+            (None, ']') => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(at + 1);
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// A record's text with each folded task added as a step of its `## Plan`. A
+/// step already there is left out, so a rerun after an interrupted one adds
+/// nothing.
 fn with_steps(text: &str, steps: &[String]) -> String {
-    let mut lines: Vec<String> = text.lines().map(str::to_string).collect();
+    let steps: Vec<&String> = steps
+        .iter()
+        .filter(|step| !text.contains(step.as_str()))
+        .collect();
+    if steps.is_empty() {
+        return text.to_string();
+    }
+    let outline = outline(text);
+    let mut lines: Vec<String> = outline.iter().map(|(l, ..)| l.to_string()).collect();
     let items = Regex::new(r"^(\d+)\. ").expect("step pattern");
-    let opened = lines.iter().position(|line| line.trim() == "## Plan");
+    let opened = outline.iter().position(|(.., h)| *h == Some("Plan"));
     let (end, first) = match opened {
         Some(at) => {
-            let end = lines[at + 1..]
+            let end = outline[at + 1..]
                 .iter()
-                .position(|line| line.starts_with("## "))
+                .position(|(.., h)| h.is_some())
                 .map_or(lines.len(), |off| at + 1 + off);
             let last = lines[at..end]
                 .iter()
@@ -278,11 +370,20 @@ fn with_steps(text: &str, steps: &[String]) -> String {
     out
 }
 
-/// The text with `key: value` added after the status line.
+/// The text with `key: value` added after the status line of its front matter.
 pub(super) fn with_added_field(text: &str, key: &str, value: &str) -> Option<String> {
-    let status = text.lines().find(|line| line.starts_with("status:"))?;
-    let at = text.find(status)? + status.len();
-    Some(format!("{}\n{key}: {value}{}", &text[..at], &text[at..]))
+    let mut at = 0;
+    for (i, line) in text.split_inclusive('\n').enumerate() {
+        let bare = line.trim_end();
+        if i == 0 && bare != "---" || i > 0 && bare == "---" {
+            return None;
+        }
+        at += line.len();
+        if bare.starts_with("status:") {
+            return Some(format!("{}{key}: {value}\n{}", &text[..at], &text[at..]));
+        }
+    }
+    None
 }
 
 /// `paw upgrade [--write]`: reports each move, and with `--write` makes them.
@@ -306,8 +407,9 @@ pub(super) fn upgrade(rest: &[String]) -> u8 {
         say!("paw upgrade: nothing to upgrade; the record is in the form ADR-3090 states");
         return CLEAN;
     }
-    let tasks = retired_docs(&root.join("tasks"), &repository);
-    let epics = retired_docs(&root.join("epics"), &repository);
+    let (tasks, mut unread) = retired_docs(&root.join("tasks"), &repository);
+    let (epics, others) = retired_docs(&root.join("epics"), &repository);
+    unread.extend(others);
     let moves = plan(&record, &tasks, &epics);
     let verb = if write { "archived" } else { "would archive" };
     say!(
@@ -323,8 +425,17 @@ pub(super) fn upgrade(rest: &[String]) -> u8 {
     for id in &moves.finished {
         say!("  {verb} done on {id}");
     }
+    for (task, status) in &moves.settled {
+        say!("  {verb} {status} on {task}");
+    }
     for task in &moves.orphans {
         say!("  {task} needs a decision: it is open and no live record authorises it");
+    }
+    for id in &moves.planless {
+        say!("  {id} needs a plan: it is approved, addresses work and no task carries it");
+    }
+    for path in &unread {
+        say!("  {path} can't be read as a record, and moves unread");
     }
     if new_profile.is_some() {
         let verb = if write { "removed" } else { "would remove" };
@@ -359,8 +470,24 @@ pub(super) fn upgrade(rest: &[String]) -> u8 {
 /// Writes the moves, the records first and the directories last, so a run that
 /// stops leaves a record the next run finishes.
 fn apply(record: &Record, root: &Path, tasks: &[Doc], moves: &Moves) -> Result<(), String> {
+    let archive = root.join("archive");
+    for dir in RETIRED_DIRS {
+        if let Some(name) = taken_name(&root.join(dir), &archive.join(dir)) {
+            return Err(format!(
+                "archive/{dir} already holds {name}; nothing was written"
+            ));
+        }
+    }
     let known = known(record);
     let mut grouped: BTreeMap<&str, Vec<String>> = BTreeMap::new();
+    for (task, status) in &moves.settled {
+        let Some(doc) = tasks.iter().find(|t| bare(t.id()) == task) else {
+            continue;
+        };
+        if let Some(text) = with_field(&doc.text, "status", status) {
+            write_text(&doc.path, &text)?;
+        }
+    }
     for (task, carrier) in &moves.folded {
         let Some(doc) = tasks.iter().find(|t| bare(t.id()) == task) else {
             continue;
@@ -370,7 +497,9 @@ fn apply(record: &Record, root: &Path, tasks: &[Doc], moves: &Moves) -> Result<(
             .entry(carrier)
             .or_default()
             .push(format!("{} (`archive/tasks/{name}`)", title(doc)));
-        if let Some(text) = with_added_field(&doc.text, "folded-into", carrier) {
+        let text = with_field(&doc.text, "folded-into", carrier)
+            .or_else(|| with_added_field(&doc.text, "folded-into", carrier));
+        if let Some(text) = text {
             write_text(&doc.path, &text)?;
         }
     }
@@ -387,13 +516,33 @@ fn apply(record: &Record, root: &Path, tasks: &[Doc], moves: &Moves) -> Result<(
             write_text(&doc.path, &text)?;
         }
     }
-    let archive = root.join("archive");
-    std::fs::create_dir_all(&archive).map_err(|e| format!("{}: {e}", archive.display()))?;
     for dir in RETIRED_DIRS {
-        let (from, to) = (root.join(dir), archive.join(dir));
-        if from.is_dir() {
-            std::fs::rename(&from, &to).map_err(|e| format!("{}: {e}", from.display()))?;
-        }
+        move_files(&root.join(dir), &archive.join(dir))?;
     }
     Ok(())
+}
+
+/// A file of `from` that `to` already holds, which a move would overwrite.
+fn taken_name(from: &Path, to: &Path) -> Option<String> {
+    std::fs::read_dir(from)
+        .ok()?
+        .filter_map(Result::ok)
+        .map(|entry| entry.file_name())
+        .find(|name| to.join(name).exists())
+        .map(|name| name.to_string_lossy().into_owned())
+}
+
+/// Moves each file of `from` into `to`, then removes `from`, so a directory
+/// half moved by an interrupted run is finished by the next.
+fn move_files(from: &Path, to: &Path) -> Result<(), String> {
+    if !from.is_dir() {
+        return Ok(());
+    }
+    let shown = |e: std::io::Error| format!("{}: {e}", from.display());
+    std::fs::create_dir_all(to).map_err(shown)?;
+    for entry in std::fs::read_dir(from).map_err(shown)? {
+        let entry = entry.map_err(shown)?;
+        std::fs::rename(entry.path(), to.join(entry.file_name())).map_err(shown)?;
+    }
+    std::fs::remove_dir(from).map_err(shown)
 }

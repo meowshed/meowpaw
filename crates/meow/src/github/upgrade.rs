@@ -14,7 +14,7 @@ use super::project::{self, CLEAN, FOUND, Record, UNREAD, halt, read_tracker, rec
 use super::request::{Failure, Layer};
 use crate::profile::{self, Profile};
 use serde_json::Value;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// What the record says of one archived task's issue.
 #[derive(PartialEq)]
@@ -27,6 +27,19 @@ enum Fate {
     Folded(String),
     /// Leave it open: nothing authorises the work.
     Orphan,
+}
+
+impl Fate {
+    /// How much of the work is still alive, so that of the tasks sharing an
+    /// issue the least finished decides it.
+    fn rank(&self) -> u8 {
+        match self {
+            Fate::Completed => 0,
+            Fate::Dropped => 1,
+            Fate::Folded(_) => 2,
+            Fate::Orphan => 3,
+        }
+    }
 }
 
 fn fate(task: &Record) -> Fate {
@@ -52,25 +65,41 @@ fn issue_of(base: &std::path::Path, id: &str) -> String {
         .unwrap_or_default()
 }
 
+/// Each issue a live record owns, with that record, which `upgrade` leaves
+/// alone: a defect and its tasks often shared one issue.
+fn owned_issues(base: &std::path::Path) -> BTreeMap<String, String> {
+    [("adrs", "ADR-"), ("bugs", "BUG-")]
+        .iter()
+        .flat_map(|(dir, prefix)| records(&base.join(dir), prefix))
+        .filter(|record| !record.field("issue").is_empty())
+        .map(|record| (record.field("issue"), record.field("id")))
+        .collect()
+}
+
 /// Reports each open pull request that names a folded task, and changes none,
 /// because a branch in flight is somebody's work (ADR-3090).
-fn name_open_pulls(layer: &mut Layer, repository: &str, folded: &BTreeSet<String>) {
-    let endpoint = format!("repos/{repository}/pulls?state=open&per_page=100");
-    let Ok(Value::Array(pulls)) = layer.get(&endpoint, false) else {
-        println!("meow-github upgrade: the open pull requests couldn't be read");
-        return;
-    };
-    for pull in pulls {
-        let text = ["title", "body"]
-            .map(|key| pull.get(key).and_then(Value::as_str).unwrap_or_default())
-            .join("\n");
-        let number = pull.get("number").and_then(Value::as_u64).unwrap_or(0);
-        for id in folded.iter().filter(|id| text.contains(id.as_str())) {
-            println!(
-                "pull request #{number} names {id}, which is folded; left as it is, and its branch moves its plan to the record by hand"
-            );
+fn name_open_pulls(
+    layer: &mut Layer,
+    repository: &str,
+    folded: &BTreeSet<String>,
+) -> Result<(), Failure> {
+    let mut page = Some(format!("repos/{repository}/pulls?state=open&per_page=100"));
+    while let Some(endpoint) = page {
+        let (body, following) = layer.page(&endpoint, false)?;
+        for pull in body.as_array().map(Vec::as_slice).unwrap_or_default() {
+            let text = ["title", "body"]
+                .map(|key| pull.get(key).and_then(Value::as_str).unwrap_or_default())
+                .join("\n");
+            let number = pull.get("number").and_then(Value::as_u64).unwrap_or(0);
+            for id in folded.iter().filter(|id| text.contains(id.as_str())) {
+                println!(
+                    "pull request #{number} names {id}, which is folded; left as it is, and its branch moves its plan to the record by hand"
+                );
+            }
         }
+        page = following;
     }
+    Ok(())
 }
 
 pub fn run(layer: &mut Layer, repository: Option<&str>, check: bool) -> u8 {
@@ -126,24 +155,57 @@ pub fn run(layer: &mut Layer, repository: Option<&str>, check: bool) -> u8 {
         })
         .collect();
     for carrier in &carriers {
-        worst = worst.max(project::run(layer, carrier, Some(&repository), check));
+        let code = project::run(layer, carrier, Some(&repository), check);
+        if code == UNREAD {
+            println!("meow-github upgrade: {carrier} has no issue yet, so nothing is closed");
+            return UNREAD;
+        }
+        worst = worst.max(code);
     }
     let folded: BTreeSet<String> = tasks
         .iter()
         .filter(|task| matches!(fate(task), Fate::Folded(_)))
         .map(|task| task.field("id"))
         .collect();
-    name_open_pulls(layer, &repository, &folded);
-    let verb = if check { "would close" } else { "closed" };
+    match name_open_pulls(layer, &repository, &folded) {
+        Ok(()) => {}
+        Err(stop @ (Failure::Throttled(_) | Failure::Rejected(_))) => {
+            halt(&stop);
+            return UNREAD;
+        }
+        Err(e) => {
+            report(
+                "meow-github upgrade: the open pull requests couldn't be read",
+                &e,
+            );
+            worst = worst.max(UNREAD);
+        }
+    }
+    let owned = owned_issues(&base);
+    let mut deciding: BTreeMap<String, &Record> = BTreeMap::new();
     for task in &tasks {
-        let id = task.field("id");
         let issue = task.field("issue");
-        let fate = fate(task);
         if issue.is_empty() {
-            if fate == Fate::Orphan {
-                println!("{id}: needs a decision, and it maps to no issue");
+            if fate(task) == Fate::Orphan {
+                println!(
+                    "{}: needs a decision, and it maps to no issue",
+                    task.field("id")
+                );
                 worst = worst.max(FOUND);
             }
+        } else if deciding
+            .get(&issue)
+            .is_none_or(|held| fate(held).rank() < fate(task).rank())
+        {
+            deciding.insert(issue, task);
+        }
+    }
+    let verb = if check { "would close" } else { "closed" };
+    for (issue, task) in deciding {
+        let id = task.field("id");
+        let fate = fate(task);
+        if let Some(owner) = owned.get(&issue) {
+            println!("{id}: issue #{issue} is {owner}'s own, and is left as it is");
             continue;
         }
         let remote = match read_tracker(layer, &repository, &issue) {
@@ -179,6 +241,13 @@ pub fn run(layer: &mut Layer, repository: Option<&str>, check: bool) -> u8 {
             ),
             Fate::Folded(carrier) => {
                 let successor = issue_of(&base, carrier);
+                if successor.is_empty() && !check {
+                    println!(
+                        "{id}: issue #{issue} is left open, because {carrier} has no issue to name"
+                    );
+                    worst = worst.max(FOUND);
+                    continue;
+                }
                 let named = if successor.is_empty() {
                     carrier.clone()
                 } else {

@@ -381,7 +381,7 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
         );
         return Err(FOUND);
     }
-    if verb != "upgrade" && upgrade::old_form(&root) {
+    if !matches!(verb, "upgrade" | "count") && upgrade::old_form(&root) {
         say!("paw {verb}: {OLD_FORM}");
         return Err(FOUND);
     }
@@ -700,9 +700,13 @@ fn check_frozen(rest: &[String]) -> u8 {
             pair
         };
         let closing = bare(doc.value("status")) == "done";
+        let mapping = ["issue", "projected", "tracked", "revised"];
         let allowed = matches!(kind.name.as_str(), "decision" | "defect")
-            && !was_done
-            && work_part(&before, closing) == work_part(&after, closing);
+            && if was_done {
+                frozen_text(&before, &[], &mapping) == frozen_text(&after, &[], &mapping)
+            } else {
+                work_part(&before, closing) == work_part(&after, closing)
+            };
         if !allowed {
             findings.push(format!(
                 "{}: approved at {base}, and changed since without a line naming its authority; a change to an approved record invalidates its approval",
@@ -877,6 +881,8 @@ fn work_part(text: &str, closing: bool) -> String {
         &["issue", "projected", "tracked", "pr", "revised"]
     };
     frozen_text(text, &["Plan", "Tasks", "Closed by"], fields)
+        .trim_end()
+        .to_string()
 }
 
 /// The fields and sections the layout retired that a record carries.
@@ -1882,9 +1888,8 @@ fn requirements_in(record: &Record, text: &str) -> BTreeSet<String> {
         .collect()
 }
 
-/// A decision's requirements land in at least one task of the epic realising
-/// it, any number of tasks may name one (REQ-3646, REQ-3648), and every one of
-/// them is stated by a specification (REQ-0246).
+/// Every requirement an approved or done decision addresses is stated by a
+/// specification or withdrawn, and each chain is checked.
 fn coverage(record: &Record) -> Vec<Finding> {
     let mut out = Vec::new();
     let mut stated = BTreeSet::new();
@@ -3242,8 +3247,7 @@ pub(crate) fn changed_record_paths(record: &Record, held: &Held, root: &str) -> 
 /// separator, and `root` is the record root among them. A step writes the kind
 /// its row names, and a defect or an insight in every step. A file under the
 /// root that is no record, such as an index, is allowed in every step, and a
-/// path outside the root only in `implement`. An `implement` run changes an
-/// epic only in its task marks. A path that holds more than one record, as a
+/// path outside the root only in `implement`. A path that holds more than one record, as a
 /// link and its target do, is judged for each.
 #[cfg(feature = "loop")]
 pub(crate) fn off_step(
@@ -3359,7 +3363,15 @@ pub(crate) fn crossings(record: &Record, held: &Held, step: &str) -> Vec<String>
                     doc.shown, then.shown
                 ));
             }
-            Some((then, _)) if then.status != status && decided(kind, status) => {
+            // An implement run closes its input by storing done (SPC-1201).
+            Some((then, _))
+                if then.status != status
+                    && decided(kind, status)
+                    && !(step == "implement"
+                        && then.status == "approved"
+                        && status == "done"
+                        && run_may_change(&kind.name, step, &then.text, &doc.text)) =>
+            {
                 out.push(format!("{} (became {status})", doc.shown));
             }
             Some((then, _))
@@ -5106,13 +5118,13 @@ mod tests {
         (record, dir)
     }
 
-    /// TSK-5140, REQ-3900, REQ-3902: an approved requirement, an approved
-    /// decision addressing it, and an epic realising it, each written where
-    /// `with` names it, so a test asks for exactly one gap.
+    /// TSK-5140, REQ-3900, REQ-3672: an approved requirement and an approved
+    /// decision addressing it, the decision carrying a plan where `plan` says,
+    /// each written where its flag names it, so a test asks for exactly one gap.
     fn gap_fixture(
         requirement: bool,
         decision: bool,
-        epic: bool,
+        plan: bool,
         postpones: bool,
     ) -> (Record, std::path::PathBuf) {
         unsafe {
@@ -5129,14 +5141,13 @@ mod tests {
         static COUNT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
         let count = COUNT.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         let dir = std::env::temp_dir().join(format!(
-            "meow-gap-{requirement}-{decision}-{epic}-{postpones}-{}-{count}",
+            "meow-gap-{requirement}-{decision}-{plan}-{postpones}-{}-{count}",
             std::process::id()
         ));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(dir.join(".meowpaw")).unwrap();
         std::fs::create_dir_all(dir.join("project").join("requirements")).unwrap();
         std::fs::create_dir_all(dir.join("project").join("adrs")).unwrap();
-        std::fs::create_dir_all(dir.join("project").join("epics")).unwrap();
         std::fs::write(
             dir.join(".meowpaw").join("profile.toml"),
             "[record]\nroot = \"project\"\n",
@@ -5157,16 +5168,10 @@ mod tests {
             } else {
                 "addresses: [REQ-0001]"
             };
+            let body = if plan { "## Plan\n\n1. Do it.\n" } else { "" };
             std::fs::write(
                 dir.join("project").join("adrs").join("ADR-0001-a-choice.md"),
-                format!("---\nid: ADR-0001\nstatus: approved\nrevised: 2026-01-01\n{relation}\n---\n\n# 0001. A choice\n"),
-            )
-            .unwrap();
-        }
-        if epic {
-            std::fs::write(
-                dir.join("project").join("epics").join("EPC-0001-a-plan.md"),
-                "---\nid: EPC-0001\nstatus: approved\nrevised: 2026-01-01\nrealises: ADR-0001\n---\n\n# A plan\n",
+                format!("---\nid: ADR-0001\nartifact: adr\nstatus: approved\nrevised: 2026-01-01\n{relation}\n---\n\n# 0001. A choice\n\n{body}"),
             )
             .unwrap();
         }
@@ -5207,28 +5212,28 @@ mod tests {
 
     #[test]
     fn an_addressing_decision_without_a_plan_is_reported() {
-        // TSK-5140 criterion 1, REQ-3902: an approved decision that addresses
-        // a requirement names an approved epic or direct task.
+        // REQ-3672: an approved decision that addresses a requirement holds
+        // its plan.
         let (record, dir) = gap_fixture(true, true, false, false);
-        let found = relations(&record);
+        let found = rules(&record);
         let _ = std::fs::remove_dir_all(&dir);
         assert!(
             found
                 .iter()
-                .any(|f| f.message.contains("ADR-0001") && f.message.contains("REQ-3902")),
+                .any(|f| f.message.contains("carries no ## Plan (REQ-3672)")),
             "the planless decision went unreported: {:?}",
             found.iter().map(|f| &f.message).collect::<Vec<_>>()
         );
     }
 
     #[test]
-    fn an_approved_epic_clears_the_decision() {
-        // TSK-5140 criterion 1, REQ-3902: the realising epic is the plan.
+    fn a_plan_clears_the_decision() {
+        // REQ-3672: the plan in the decision is the plan.
         let (record, dir) = gap_fixture(true, true, true, false);
-        let found = relations(&record);
+        let found = rules(&record);
         let _ = std::fs::remove_dir_all(&dir);
         assert!(
-            found.iter().all(|f| !f.message.contains("REQ-3902")),
+            found.iter().all(|f| !f.message.contains("REQ-3672")),
             "a planned decision was reported: {:?}",
             found.iter().map(|f| &f.message).collect::<Vec<_>>()
         );
@@ -5236,13 +5241,13 @@ mod tests {
 
     #[test]
     fn a_postponing_only_decision_needs_no_plan() {
-        // TSK-5140 criterion 1, REQ-3902: a decision that only postpones
-        // defers the work instead of authorising it, so it names no plan.
+        // REQ-3672: a decision that only postpones defers the work instead of
+        // authorising it, so it holds no plan.
         let (record, dir) = gap_fixture(true, true, false, true);
-        let found = relations(&record);
+        let found = rules(&record);
         let _ = std::fs::remove_dir_all(&dir);
         assert!(
-            found.iter().all(|f| !f.message.contains("REQ-3902")),
+            found.iter().all(|f| !f.message.contains("REQ-3672")),
             "a postponing decision was held to a plan: {:?}",
             found.iter().map(|f| &f.message).collect::<Vec<_>>()
         );

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! `paw brief <task>` prints the brief a delegated agent gets, built from the
-//! task, its epic or decision and the requirements it closes, and never from a
-//! conversation (TSK-4945, TSK-5175, SPC-1090 "Delegated work").
+//! `paw brief <record>` prints the brief a delegated agent gets, built from the
+//! decision or defect and the requirements it names, and never from a
+//! conversation (TSK-4945, TSK-5175, ADR-3090, SPC-1090 "Delegated work").
 
 #![cfg(feature = "record")]
 
@@ -43,9 +43,10 @@ fn write(root: &Path, name: &str, text: &str) {
 const FIRST: &str = "The harness MUST copy a constraint as it stands, \nwith every clause kept.\n\nA summary drops the clause the work turns on.";
 const SECOND: &str = "The harness MUST NOT write to a file it was asked to read.";
 const CRITERIA: &str = "1. Given a fixture, when it runs, then it prints\n   `exactly this` and nothing else (REQ-0001).";
-const LEFT_ALONE: &str = "The other subcommands, which stay as they are.";
-const TO_DO: &str = "Add the subcommand to the `record` feature.";
+const NOT_SETTLED: &str = "The other subcommands, which stay as they are.";
+const PLAN: &str = "1. Add the subcommand to the `record` feature.";
 const DECISION: &str = "The record decides what a brief says, and nothing else does.";
+const FIX: &str = "It should copy the clause it dropped, because the work turns on it.";
 
 fn requirement(id: &str, body: &str) -> String {
     format!(
@@ -53,14 +54,9 @@ fn requirement(id: &str, body: &str) -> String {
     )
 }
 
-fn task(id: &str, authority: &str) -> String {
-    format!(
-        "---\nid: {id}\nartifact: task\nstatus: approved\nrevised: 2026-01-01\n{authority}\ncloses: [REQ-0001, REQ-0002]\n---\n\n<!-- A comment no agent needs. -->\n\n# Build the thing\n\nThe opening says what the task is for.\n\n## Acceptance criteria\n\n{CRITERIA}\n\n## What to do\n\n{TO_DO}\n\n## Depends on\n\nNothing.\n\n## Evidence\n\nNot yet.\n\n## Left alone\n\n{LEFT_ALONE}\n"
-    )
-}
-
-/// A record holding an approved decision, an epic realising it with one task
-/// closing two requirements, and a second task realising the decision itself.
+/// A record holding an approved decision with its plan, addressing two
+/// requirements, an approved defect violating one of them with a plan of its
+/// own, and a task the upgrade archived.
 fn fixture(name: &str) -> Dir {
     let dir = Dir::new(name);
     let root = dir.0.join("project");
@@ -88,23 +84,20 @@ fn fixture(name: &str) -> Dir {
         &root,
         "adrs/ADR-0001-a-choice.md",
         &format!(
-            "---\nid: ADR-0001\nartifact: adr\nstatus: approved\nrevised: 2026-01-01\naddresses: [REQ-0001, REQ-0002]\n---\n\n# 0001. A choice\n\n## Decision\n\n{DECISION}\n\n## Why\n\nBecause.\n"
+            "---\nid: ADR-0001\nartifact: adr\nstatus: approved\nrevised: 2026-01-01\naddresses: [REQ-0001, REQ-0002]\n---\n\n<!-- A comment no agent needs. -->\n\n# 0001. A choice\n\nThe opening says what the decision is for.\n\n## Decision\n\n{DECISION}\n\n## Why\n\nBecause.\n\n## How I will know it was realised\n\n{CRITERIA}\n\n## What this does not settle\n\n{NOT_SETTLED}\n\n## Plan\n\n{PLAN}\n"
         ),
     );
     write(
         &root,
-        "epics/EPC-0001-a-plan.md",
-        "---\nid: EPC-0001\nartifact: epic\nstatus: approved\nrevised: 2026-01-01\nrealises: ADR-0001\n---\n\n# A plan\n\nThe epic's opening.\n\n## Tasks\n\n- [ ] T-001 TSK-0001 build the thing, in the `record` feature\n      closes: REQ-0001, REQ-0002\n",
+        "bugs/BUG-0001-a-defect.md",
+        &format!(
+            "---\nid: BUG-0001\nartifact: bug\nstatus: approved\nrevised: 2026-01-01\nseverity: minor\nfound: 2026-01-01\nviolates: [REQ-0002]\nenters: implement\n---\n\n# A defect\n\n## What it should do, and why\n\n{FIX}\n\n## Plan\n\n{PLAN}\n"
+        ),
     );
     write(
         &root,
-        "tasks/TSK-0001-build.md",
-        &task("TSK-0001", "epic: EPC-0001"),
-    );
-    write(
-        &root,
-        "tasks/TSK-0002-direct.md",
-        &task("TSK-0002", "realises: ADR-0001"),
+        "archive/tasks/TSK-0001-build.md",
+        "---\nid: TSK-0001\nartifact: task\nstatus: done\nrevised: 2026-01-01\ncloses: [REQ-0001]\n---\n\n# Build the thing\n",
     );
     dir
 }
@@ -146,27 +139,24 @@ fn part<'a>(brief: &'a str, name: &str) -> &'a str {
 #[test]
 fn a_brief_states_four_parts_and_copies_each_constraint_byte_for_byte() {
     let dir = fixture("parts");
-    let done = paw(&dir.0, &["brief", "TSK-0001"]);
+    let done = paw(&dir.0, &["brief", "ADR-0001"]);
     assert_eq!(done.status.code(), Some(0), "{done:?}");
     let brief = stdout(&done);
     let build = part(&brief, "What to build");
     assert!(
-        build.contains("The opening says what the task is for."),
+        build.contains("The opening says what the decision is for."),
         "{build}"
     );
-    assert!(build.contains(TO_DO), "{build}");
+    assert!(build.contains(DECISION), "{build}");
+    assert!(build.contains(PLAN), "{build}");
     let constraints = part(&brief, "Constraints");
-    for copied in [FIRST, SECOND, CRITERIA, LEFT_ALONE] {
+    for copied in [FIRST, SECOND, CRITERIA, NOT_SETTLED] {
         assert!(
             constraints.contains(copied),
             "the constraints don't hold {copied:?} byte for byte:\n{constraints}"
         );
     }
     let interfaces = part(&brief, "Interfaces");
-    assert!(
-        interfaces.contains("- [ ] T-001 TSK-0001 build the thing, in the `record` feature"),
-        "{interfaces}"
-    );
     assert!(interfaces.contains("SPC-0001"), "{interfaces}");
     let report = part(&brief, "Report back");
     for outcome in ["DONE", "DONE_WITH_CONCERNS", "NEEDS_CONTEXT", "BLOCKED"] {
@@ -174,22 +164,27 @@ fn a_brief_states_four_parts_and_copies_each_constraint_byte_for_byte() {
     }
     // REQ-0810: the brief carries what the record says and nothing a
     // conversation could add, so it is the same on every run.
-    assert_eq!(stdout(&paw(&dir.0, &["brief", "TSK-0001"])), brief);
+    assert_eq!(stdout(&paw(&dir.0, &["brief", "ADR-0001"])), brief);
     assert!(!brief.contains("A comment no agent needs."), "{brief}");
 }
 
-/// TSK-4945 criterion 2: a task realising a decision has the decision read in
-/// the epic's place.
+/// ADR-3090: a defect's brief reads what it should do and its own plan, and
+/// its constraints are the requirements it violates.
 #[test]
-fn a_task_realising_a_decision_reads_the_decision_in_the_epics_place() {
-    let dir = fixture("decision");
-    let done = paw(&dir.0, &["brief", "TSK-0002"]);
+fn a_defects_brief_reads_its_fix_and_the_requirement_it_violates() {
+    let dir = fixture("defect");
+    let done = paw(&dir.0, &["brief", "BUG-0001"]);
     assert_eq!(done.status.code(), Some(0), "{done:?}");
     let brief = stdout(&done);
-    assert!(part(&brief, "What to build").contains(DECISION), "{brief}");
-    assert!(!brief.contains("The epic's opening."), "{brief}");
+    let build = part(&brief, "What to build");
+    assert!(build.contains(FIX), "{brief}");
+    assert!(build.contains(PLAN), "{brief}");
+    assert!(!brief.contains(DECISION), "{brief}");
+    let constraints = part(&brief, "Constraints");
+    assert!(constraints.contains(SECOND), "{constraints}");
+    assert!(!constraints.contains(FIRST), "{constraints}");
     assert!(
-        brief.lines().nth(1).is_some_and(|l| l.contains("ADR-0001")),
+        brief.lines().nth(1).is_some_and(|l| l.contains("BUG-0001")),
         "{brief}"
     );
 }
@@ -202,14 +197,14 @@ fn the_first_line_names_the_agent_the_brief_is_written_for() {
     let dir = fixture("agent");
     let named = paw(
         &dir.0,
-        &["brief", "TSK-0001", "--agent", "meow-flow:router"],
+        &["brief", "ADR-0001", "--agent", "meow-flow:router"],
     );
     assert_eq!(named.status.code(), Some(0), "{named:?}");
     assert_eq!(
         stdout(&named).lines().next(),
         Some("agent: meow-flow:router")
     );
-    let default = paw(&dir.0, &["brief", "TSK-0001"]);
+    let default = paw(&dir.0, &["brief", "ADR-0001"]);
     assert_eq!(
         stdout(&default).lines().next(),
         Some("agent: general-purpose")
@@ -234,12 +229,13 @@ fn the_first_line_names_the_agent_the_brief_is_written_for() {
     }
 }
 
-/// TSK-4945 criterion 4: an identifier that resolves to no task exits 1,
-/// naming it, and prints no brief.
+/// TSK-4945 criterion 4, ADR-3090: an identifier that resolves to nothing, or
+/// to a kind with no brief, an archived task among them, exits 1, naming it,
+/// and prints no brief.
 #[test]
-fn an_unresolved_task_exits_1_and_prints_no_brief() {
+fn an_identifier_with_no_brief_exits_1_and_prints_no_brief() {
     let dir = fixture("unresolved");
-    for id in ["TSK-9999", "REQ-0001"] {
+    for id in ["ADR-9999", "REQ-0001", "TSK-0001"] {
         let done = paw(&dir.0, &["brief", id]);
         assert_eq!(done.status.code(), Some(1), "{done:?}");
         let out = stdout(&done);
@@ -252,23 +248,21 @@ fn an_unresolved_task_exits_1_and_prints_no_brief() {
 }
 
 /// TSK-5175, REQ-1764, REQ-1294, ADR-2730: the brief tells the delegated
-/// agent that its pull request names the task and the command that prints the
-/// brief, and names no agent, model or vendor.
+/// agent that its pull request names the record and the command that prints
+/// the brief, and names no agent, model or vendor.
 #[test]
-fn the_brief_asks_the_pull_request_for_the_task_and_the_brief_command() {
+fn the_brief_asks_the_pull_request_for_the_record_and_the_brief_command() {
     let dir = fixture("pull-request");
     let brief = stdout(&paw(
         &dir.0,
-        &["brief", "TSK-0001", "--agent", "meow-flow:researcher"],
+        &["brief", "ADR-0001", "--agent", "meow-flow:researcher"],
     ));
     let report = part(&brief, "Report back")
         .split_whitespace()
         .collect::<Vec<_>>()
         .join(" ");
-    assert!(
-        report.contains("pull request carrying this work names the task, TSK-0001, and the command that prints this brief, `paw brief TSK-0001`"),
-        "{report}"
-    );
+    assert!(report.contains("ADR-0001"), "{report}");
+    assert!(report.contains("`paw brief ADR-0001`"), "{report}");
     assert!(
         report.contains("names no agent, model or vendor"),
         "{report}"

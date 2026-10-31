@@ -14,12 +14,11 @@ use crate::profile::{self, Profile};
 use std::path::{Path, PathBuf};
 
 const MODES: [&str; 3] = ["dontAsk", "acceptEdits", "auto"];
-const GATES: [&str; 8] = [
+const GATES: [&str; 7] = [
     "research",
     "requirements",
     "design",
     "spec",
-    "epic",
     "implement",
     "review",
     "merge",

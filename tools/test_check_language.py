@@ -102,7 +102,7 @@ class Language(unittest.TestCase):
         with redirect_stdout(out):
             status = check_language.main()
         self.assertEqual(status, 0, out.getvalue())
-        self.assertNotIn("0 method files read", out.getvalue())
+        self.assertNotRegex(out.getvalue(), r"(?m)^0 method files read")
 
     def test_the_lists_agree_with_each_unit_s_declared_layer(self):
         """REQ-0072: a unit is a pack exactly where its requires.toml says layer = "pack"."""

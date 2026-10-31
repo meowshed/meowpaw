@@ -41,7 +41,7 @@ def index(ident, names):
 CLEAN = {
     "vision.md": "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n\n" + "".join(
         f"## {section}\n\nText.\n\n" for section in ("Who it is for", "Quality goals", "What it will not do", "Risks")),
-    "README.md": index("index", ["SPC-0001", "EPC-0001", "BUG-0001"]),
+    "README.md": index("index", ["SPC-0001", "BUG-0001"]),
     "specs/SPC-0001-a-part.md": record(
         "spec", "SPC-0001", {"status": "live", "states": "[REQ-0001]"},
         ["Scope", "Boundary", "Behaviour", "Failure paths"]),
@@ -56,13 +56,7 @@ CLEAN = {
     "adrs/README.md": index("index", ["ADR-0001"]),
     "adrs/ADR-0001-a-choice.md": record(
         "adr", "ADR-0001", {"addresses": "[REQ-0001]"},
-        ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]),
-    "epics/EPC-0001-a-plan.md": record(
-        "epic", "EPC-0001", {"realises": "ADR-0001"},
-        ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]),
-    "tasks/TSK-0001-a-task.md": record(
-        "task", "TSK-0001", {"epic": "EPC-0001", "closes": "\n  [\n    REQ-0001,\n  ]"},
-        ["What to do", "Depends on", "Evidence", "Left alone"], "\nSee [the plan](../epics/EPC-0001-a-plan.md).\n"),
+        ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences", "Plan"]),
     "bugs/BUG-0001-a-defect.md": record(
         "bug", "BUG-0001", {"violates": "REQ-0001", "severity": "minor", "found": "2026-01-01"},
         ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]),
@@ -70,6 +64,11 @@ CLEAN = {
 
 CLEAN["adrs/ADR-0001-a-choice.md"] = CLEAN["adrs/ADR-0001-a-choice.md"].replace(
     "## Alternatives\n\nText.", "## Alternatives\n\n| Option | Why it lost |\n| ------ | ----------- |\n| Nothing | It costs more |")
+
+
+# A task `paw upgrade` archived, which a test writes where it needs one, closing `closes`.
+def archived_task(closes):
+    return record("task", "TSK-0001", {"status": "done", "closes": f"[{closes}]"}, ["Evidence"])
 
 
 class Repository:
@@ -119,30 +118,16 @@ class Checks(unittest.TestCase):
 
     def test_front_matter_reports_a_status_outside_the_vocabulary(self):
         repository = self.repo()
-        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: closed")
         self.found(repository.run("check"), "front-matter",
-                   "project/bugs/BUG-0001-a-defect.md:4: status done is not one a defect stores")
-
-    def test_done_status_and_derived_completion_must_agree(self):
-        """TSK-5190 criterion 1, REQ-0583/REQ-0585: both disagreement directions are findings."""
-        repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
-        false_claim = repository.run("check", "front-matter")
-        self.assertIn("stores done, but its work is not complete", false_claim.stdout)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: done", "status: approved")
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
-                        "## Tasks\n\n- [x] T-001 TSK-0001 the task")
-        missing_claim = repository.run("check", "front-matter")
-        self.assertIn("is complete, but stores approved instead of done", missing_claim.stdout)
-
+                   "project/bugs/BUG-0001-a-defect.md:4: status closed is not one a defect stores")
     def test_two_findings_are_counted_in_the_plural(self):
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
-        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: closed")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: closed")
         done = repository.run("check", "front-matter")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("front-matter: 2 findings\n", done.stdout)
-
     def test_a_defect_may_name_no_requirement(self):
         repository = self.repo()
         repository.edit("bugs/BUG-0001-a-defect.md", "violates: REQ-0001\n", "")
@@ -164,25 +149,19 @@ class Checks(unittest.TestCase):
 
     def test_identifiers_reports_a_cited_requirement_with_no_file(self):
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nIt meets REQ-0999.")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Why\n\nText.", "## Why\n\nIt meets REQ-0999.")
         self.found(repository.run("check", "identifiers"), "identifiers",
-                   "project/tasks/TSK-0001-a-task.md:25: cites REQ-0999, which has no file")
-
+                   "project/adrs/ADR-0001-a-choice.md:17: cites REQ-0999, which has no file")
     def test_relations_reports_an_identifier_that_does_not_resolve(self):
         repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: ADR-0001, ADR-0009")
-        # ADR-0001 keeps a plan, so the only finding is the unresolvable one.
-        repository.write("tasks/TSK-0002-direct.md", record(
-            "task", "TSK-0002", {"realises": "ADR-0001"}, ["Evidence"]))
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", "addresses: [REQ-0001]\nsupersedes: [ADR-0009]")
         self.found(repository.run("check", "relations"), "relations",
-                   "project/epics/EPC-0001-a-plan.md:6: realises names ADR-0009, which has no file")
-
+                   "project/adrs/ADR-0001-a-choice.md:7: supersedes names ADR-0009, which has no file")
     def test_relations_reports_a_link_whose_target_is_missing(self):
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "EPC-0001-a-plan.md", "EPC-0001-gone.md")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Why\n\nText.", "## Why\n\nSee [the part](../specs/SPC-0001-gone.md).")
         self.found(repository.run("check", "relations"), "relations",
-                   "project/tasks/TSK-0001-a-task.md:31: links to ../epics/EPC-0001-gone.md, which doesn't exist")
-
+                   "project/adrs/ADR-0001-a-choice.md:17: links to ../specs/SPC-0001-gone.md, which doesn't exist")
     def test_a_relation_is_bare_identifiers(self):
         repository = self.repo()
         repository.edit("requirements/REQ-0001-an-obligation.md", "elaborates: RES-0002",
@@ -201,12 +180,6 @@ class Checks(unittest.TestCase):
         repository.write("adrs/README.md", index("index", ["ADR-0001", "ADR-0002"]))
         self.found(repository.run("check", "index"), "index",
                    "project/adrs/README.md:11: lists ADR-0002, which has no file")
-
-    def test_coverage_reports_a_requirement_in_no_task(self):
-        repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "REQ-0001,", "")
-        self.found(repository.run("check", "coverage"), "coverage",
-                   "project/epics/EPC-0001-a-plan.md: REQ-0001 lands in no task")
 
     def test_coverage_reports_a_requirement_no_specification_states(self):
         repository = self.repo()
@@ -272,10 +245,9 @@ class Checks(unittest.TestCase):
 
     def test_an_observed_status_is_never_stored(self):
         repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "status: approved", "status: verified")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: verified")
         self.found(repository.run("check", "front-matter"), "front-matter",
-                   "project/epics/EPC-0001-a-plan.md:4: status verified is not one a epic stores")
-
+                   "project/adrs/ADR-0001-a-choice.md:4: status verified is not one a decision stores")
     def test_a_numbered_kind_is_named_for_its_identifier(self):
         repository = self.repo()
         repository.write("research/a-loose-note.md", CLEAN["research/RES-0002-a-finding.md"].replace("RES-0002", "RES-0003"))
@@ -310,91 +282,40 @@ class Checks(unittest.TestCase):
         repository.edit("requirements/REQ-0001-an-obligation.md", "verification: judgement", "verification: judgement\nverifier: agent")
         self.assertEqual(repository.run("check", "rules").returncode, 0)
 
-    def test_an_epic_realises_exactly_one_record(self):
-        repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: ADR-0001, BUG-0001")
-        self.found(repository.run("check", "rules"), "rules",
-                   "project/epics/EPC-0001-a-plan.md:6: realises 2 records, where an epic realises exactly one decision or defect")
-
     def test_a_decision_says_why_each_alternative_lost(self):
         repository = self.repo()
         repository.edit("adrs/ADR-0001-a-choice.md", "| Option | Why it lost |", "| Option | Notes |")
         self.found(repository.run("check", "rules"), "rules",
                    "project/adrs/ADR-0001-a-choice.md:21: has no column saying why each alternative lost")
 
-    def mark(self, repository, mark, extra=""):
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
-                        f"## Tasks\n\n- [{mark}] T-001 TSK-0001 the task\n      closes: REQ-0001{extra}")
-
-    def test_a_task_marked_parallel_and_done_carries_evidence(self):
-        """BUG-1180: a task marked [P] is read with its mark, so its evidence is checked."""
-        repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
-                        "## Tasks\n\n- [x] T-001 [P] TSK-0001 the task\n      closes: REQ-0001")
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
-        self.found(repository.run("check", "rules"), "rules",
-                   'project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
-
-    def test_a_task_marked_done_carries_evidence(self):
-        repository = self.repo()
-        self.mark(repository, "x")
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
-        self.found(repository.run("check", "rules"), "rules",
-                   'project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 done, and its Evidence section holds nothing past "Not yet."')
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nNot yet.", "## Evidence\n\nNot yet.\n\nThe fixture passed.")
-        self.assertEqual(repository.run("check", "rules").returncode, 0)
-
-    def test_a_task_with_evidence_left_unmarked_is_reported(self):
-        repository = self.repo()
-        self.mark(repository, " ")
-        self.found(repository.run("check", "coverage"), "coverage",
-                   "project/epics/EPC-0001-a-plan.md:17: leaves TSK-0001 unmarked, and its Evidence section is written")
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nNot yet. Postponed by the owner.")
-        self.assertEqual(repository.run("check", "coverage").returncode, 0)
-
-    def test_a_task_closing_a_withdrawn_requirement_in_an_open_epic_is_reported(self):
-        repository = self.repo()
-        self.mark(repository, ">")
-        repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
-        # A living specification stating a withdrawn requirement is a finding of its own (ADR-1470).
-        repository.edit("specs/SPC-0001-a-part.md", "states: [REQ-0001]", "states: []")
-        self.found(repository.run("check", "coverage"), "coverage",
-                   "project/tasks/TSK-0001-a-task.md:7: closes REQ-0001, which is withdrawn, while the task is open in EPC-0001")
-        repository.edit("epics/EPC-0001-a-plan.md", "- [>] T-001", "- [x] T-001")
-        self.assertEqual(repository.run("check", "coverage").returncode, 0)
-
     def test_a_draft_body_naming_a_missing_identifier_is_reported(self):
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
-        repository.edit("tasks/TSK-0001-a-task.md", "## Left alone\n\nText.", "## Left alone\n\nADR-0009 and `ADR-0008`.\n\n```text\nADR-0007\n```")
+        repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
+        repository.edit("research/RES-0002-a-finding.md", "## Method\n\nText.", "## Method\n\nADR-0009 and `ADR-0008`.\n\n```text\nADR-0007\n```")
         done = repository.run("check", "relations")
-        self.found(done, "relations", "project/tasks/TSK-0001-a-task.md:29: names ADR-0009, which has no file")
+        self.found(done, "relations", "project/research/RES-0002-a-finding.md:17: names ADR-0009, which has no file")
         self.assertNotIn("ADR-0008", done.stdout)
         self.assertNotIn("ADR-0007", done.stdout)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: draft", "status: approved")
+        repository.edit("research/RES-0002-a-finding.md", "status: draft", "status: approved")
         self.assertEqual(repository.run("check", "relations").returncode, 0)
-
-    def verified(self, repository):
-        self.mark(repository, "x")
-
     def test_show_derives_a_requirements_state(self):
         repository = self.repo()
-        self.verified(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
         done = repository.run("show", "REQ-0001")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("State\n  closed\n  TSK-0001 done in EPC-0001\n", done.stdout)
+        self.assertIn("State\n  closed\n  ADR-0001 done\n", done.stdout)
         repository.write("requirements/REQ-0002-another.md",
                          (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8").replace("REQ-0001", "REQ-0002"))
-        self.assertIn("State\n  open, named by no task\n\n", repository.run("show", "REQ-0002").stdout)
-
+        self.assertIn("State\n  open, named by no decision\n\n", repository.run("show", "REQ-0002").stdout)
     def test_status_counts_requirements_by_derived_state(self):
         repository = self.repo()
-        self.verified(repository)
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
         repository.write("requirements/REQ-0002-another.md",
                          (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8").replace("REQ-0001", "REQ-0002"))
-        self.assertIn("Requirements\n  2 in force: 1 closed, 0 in a task not yet done, 0 reopened by a defect, 0 postponed, 1 named by no task\n",
+        self.assertIn("Requirements\n  2 in force: 1 closed, 0 in a decision not yet done, 0 reopened by a defect, 0 postponed, 1 named by no decision\n",
                       repository.run("status").stdout)
-
     def test_status_says_a_record_under_no_version_control_is_local(self):
         repository = self.repo()
         self.assertNotIn("local to this machine", repository.run("status").stdout)
@@ -534,7 +455,7 @@ class Checks(unittest.TestCase):
         self.assertIn("requirement: 1: 1 withdrawn\n", first.stdout)
         self.assertIn("research: 1: 1 approved\n", first.stdout)
         self.assertIn("insight: 0\n", first.stdout)
-        self.assertTrue(first.stdout.endswith("identifiers: 8\n"), first.stdout)
+        self.assertTrue(first.stdout.endswith("identifiers: 6\n"), first.stdout)
         self.assertEqual(first.stdout, repository.run("count").stdout)
 
     def test_an_empty_record_reports_its_coverage_as_zero(self):
@@ -542,12 +463,12 @@ class Checks(unittest.TestCase):
         for path in (repository.root / "requirements").glob("REQ-*.md"):
             path.unlink()
         done = repository.run("check", "coverage")
-        self.assertIn("coverage: 0 of 0 requirements in force land in a task; an empty record's coverage is zero, not complete\n", done.stdout)
+        self.assertIn("coverage: 0 of 0 requirements in force land in a record; an empty record's coverage is zero, not complete\n", done.stdout)
         self.assertIn("Requirements\n  none in force, so coverage is zero, not complete\n", repository.run("status").stdout)
 
-    def test_coverage_counts_the_requirements_that_land_in_a_task(self):
+    def test_coverage_counts_the_requirements_that_land_in_a_record(self):
         done = self.repo().run("check", "coverage")
-        self.assertIn("coverage: 1 of 1 requirements in force land in a task\n", done.stdout)
+        self.assertIn("coverage: 1 of 1 requirements in force land in a record\n", done.stdout)
 
     REPORT = ("---\nid: onboarding\nartifact: onboarding\nstatus: draft\nrevised: 2026-01-01\n---\n\n# Onboarding\n\nText.\n\n"
               "## Verbs\n\nText.\n\n## Conventions\n\nText.\n\n## Documents\n\n"
@@ -637,45 +558,37 @@ class Checks(unittest.TestCase):
         status = repository.run("status").stdout
         self.assertIn("ADR-0002", status)
         self.assertIn("postponing: 1 requirement, listed under Postponed", status)
-        self.assertIn("2 in force: 0 closed, 1 in a task not yet done, 0 reopened by a defect, 1 postponed, 0 named by no task", status)
+        self.assertIn("2 in force: 0 closed, 0 in a decision not yet done, 1 reopened by a defect, 1 postponed, 0 named by no decision", status)
         for check in ("rules", "coverage"):
             done = repository.run("check", check)
             self.assertEqual(done.returncode, 0, done.stdout)
 
-    def test_a_postponed_requirement_a_task_closes_is_no_longer_postponed(self):
-        repository = self.postponing()
-        repository.edit("tasks/TSK-0001-a-task.md", "    REQ-0001,", "    REQ-0001,\n    REQ-0002,")
-        shown = repository.run("show", "REQ-0002").stdout
-        self.assertIn("State\n  open, in a task not yet done\n", shown)
-        self.assertNotIn("postponed by", shown)
+    def later_decision(self, repository, number, status):
+        """A decision addressing REQ-0002, numbered before or after ADR-0002 that postpones it."""
+        decision = (repository.root / "adrs/ADR-0001-a-choice.md").read_text(encoding="utf-8")
+        repository.write(f"adrs/ADR-{number}-taken-up.md", decision.replace("ADR-0001", f"ADR-{number}").replace(
+            "addresses: [REQ-0001]", "addresses: [REQ-0002]").replace("status: approved", f"status: {status}"))
 
+    def test_a_later_decision_takes_up_a_postponed_requirement(self):
+        """REQ-3680: a later decision in work opens the requirement, and closes it once it is done."""
+        repository = self.postponing()
+        self.later_decision(repository, "0003", "approved")
+        shown = repository.run("show", "REQ-0002").stdout
+        self.assertIn("State\n  open, in a decision not yet done\n", shown)
+        self.assertNotIn("postponed by", shown)
+        repository.edit("adrs/ADR-0003-taken-up.md", "status: approved", "status: done")
+        self.assertIn("State\n  closed\n", repository.run("show", "REQ-0002").stdout)
+
+    def test_a_decision_before_the_postponement_closes_nothing(self):
+        """ADR-3090: a done decision earlier than the one that postponed the requirement leaves it postponed."""
+        repository = self.postponing()
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", "addresses: [REQ-0001, REQ-0002]")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
+        self.assertIn("State\n  postponed by ADR-0002\n", repository.run("show", "REQ-0002").stdout)
     def test_a_decision_addressing_and_postponing_nothing_is_reported(self):
         repository = self.postponing(fields="postpones: []")
         self.found(repository.run("check", "rules"), "rules",
                    "project/adrs/ADR-0002-not-now.md:6: addresses no requirement and postpones none, where a decision does one or both")
-
-    def test_a_task_added_after_approval_says_why(self):
-        repository = self.repo()
-        self.mark(repository, "+")
-        self.found(repository.run("check", "rules"), "rules",
-                   "project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 added after approval with no added: line saying why")
-        repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      added: nobody foresaw the case")
-        self.assertEqual(repository.run("check", "rules").returncode, 0)
-
-    def test_a_dropped_task_keeps_its_entry_and_says_why(self):
-        repository = self.repo()
-        self.mark(repository, "~")
-        self.found(repository.run("check", "rules"), "rules",
-                   "project/epics/EPC-0001-a-plan.md:17: marks TSK-0001 dropped with no dropped: line saying why")
-        repository.edit("epics/EPC-0001-a-plan.md", "closes: REQ-0001", "closes: REQ-0001\n      dropped: the decision was reversed")
-        self.assertEqual(repository.run("check", "rules").returncode, 0)
-
-    def test_a_draft_task_carries_acceptance_criteria(self):
-        repository = self.repo()
-        self.assertEqual(repository.run("check", "shape").returncode, 0)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
-        self.found(repository.run("check", "shape"), "shape",
-                   "project/tasks/TSK-0001-a-task.md: has no Acceptance criteria section, which a draft task carries")
 
     def test_a_file_of_no_known_kind_is_reported(self):
         repository = self.repo()
@@ -691,10 +604,6 @@ class Chain(unittest.TestCase):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         return repository
-
-    def mark(self, repository, mark):
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
-                        f"## Tasks\n\n- [{mark}] T-001 TSK-0001 the task\n      closes: REQ-0001")
 
     def ready(self, repository, *args):
         return repository.run("ready", *args)
@@ -722,78 +631,65 @@ class Chain(unittest.TestCase):
         self.assertEqual(self.ready(repository, "requirements", "RES-0002").returncode, 0)
         self.assertEqual(self.ready(repository, "spec", "ADR-0001").returncode, 0)
 
-    def test_epic_refuses_a_decision_whose_requirement_no_spec_states(self):
+    def test_implement_refuses_a_decision_whose_requirement_no_spec_states(self):
         repository = self.repo()
-        self.assertEqual(self.ready(repository, "epic", "ADR-0001").returncode, 0)
+        self.assertEqual(self.ready(repository, "implement", "ADR-0001").returncode, 0)
         repository.edit("specs/SPC-0001-a-part.md", "states: [REQ-0001]", "states: []")
-        done = self.ready(repository, "epic", "ADR-0001")
+        done = self.ready(repository, "implement", "ADR-0001")
         self.assertEqual(done.returncode, 1)
         self.assertIn("REQ-0001, which ADR-0001 addresses, is stated by no specification", done.stdout)
-
-    def test_implement_refuses_until_its_dependency_is_done(self):
+    def test_implement_refuses_a_decision_with_no_plan(self):
+        """REQ-3672: the plan is what the step works through."""
         repository = self.repo()
-        repository.write("tasks/TSK-0002-a-second-task.md", CLEAN["tasks/TSK-0001-a-task.md"]
-                         .replace("TSK-0001", "TSK-0002").replace("## Depends on\n\nText.", "## Depends on\n\nTSK-0001."))
-        self.mark(repository, " ")
-        done = self.ready(repository, "implement", "TSK-0002")
+        repository.edit("adrs/ADR-0001-a-choice.md", "\n## Plan\n\nText.\n", "\n")
+        done = self.ready(repository, "implement", "ADR-0001")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("ADR-0001 carries no plan", done.stdout)
+    def test_implement_refuses_a_draft_decision(self):
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: draft")
+        done = self.ready(repository, "implement", "ADR-0001")
         self.assertEqual(done.returncode, 1)
-        self.assertIn("TSK-0001, which TSK-0002 depends on, isn't done", done.stdout)
-        self.mark_done(repository)
-        self.assertEqual(self.ready(repository, "implement", "TSK-0002").returncode, 0)
+        self.assertIn("ADR-0001, a decision, is draft and not approved", done.stdout)
 
-    def mark_done(self, repository):
-        repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
-
-    def test_implement_refuses_a_task_whose_epic_is_a_draft(self):
+    def test_implement_takes_only_a_decision_or_a_defect(self):
+        """ADR-3090: an archived task is read, and it is no input to a step."""
         repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "status: approved", "status: draft")
+        repository.write("archive/tasks/TSK-0001-a-task.md", archived_task("REQ-0001"))
         done = self.ready(repository, "implement", "TSK-0001")
-        self.assertEqual(done.returncode, 1)
-        self.assertIn("EPC-0001, the epic of TSK-0001, is draft and not approved", done.stdout)
-
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("TSK-0001 is a task, and only a decision or a defect is implemented", done.stdout)
     def test_review_needs_no_verification(self):
         """ADR-2300: nothing writes checked-at, so review doesn't wait on it."""
-        done = self.ready(self.repo(), "review", "EPC-0001")
+        done = self.ready(self.repo(), "review", "ADR-0001")
         self.assertEqual(done.returncode, 0, done.stdout)
 
     def test_status_leads_with_drafts_and_places_each_decision(self):
-        """REQ-3202, REQ-3638: an open task is placed at implement (REQ-0321 for the drafts)."""
+        """REQ-3202, REQ-3666: an approved decision with its plan is placed at implement (REQ-0321 for the drafts)."""
         repository = self.repo()
         repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
-        self.mark(repository, " ")
         done = repository.run("status")
         self.assertEqual(done.returncode, 0, done.stdout)
         lines = done.stdout.splitlines()
         self.assertEqual(lines[0], "Waiting for approval")
         self.assertIn("RES-0002 research, draft", lines[1])
-        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", done.stdout)
-        self.mark_done(repository)
-        self.assertIn("closed: EPC-0001 (1 task done)", repository.run("status").stdout)
-
-    def test_status_places_a_decision_with_no_epic(self):
+        self.assertIn("next: implement ADR-0001", done.stdout)
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
+        self.assertIn("closed: ADR-0001", repository.run("status").stdout)
+    def test_status_places_a_decision_with_no_plan(self):
         repository = self.repo()
-        (repository.root / "epics" / "EPC-0001-a-plan.md").unlink()
-        self.assertIn("next: spec, then epic", repository.run("status").stdout)
-
+        repository.edit("adrs/ADR-0001-a-choice.md", "\n## Plan\n\nText.\n", "\n")
+        self.assertIn("waiting: ADR-0001 carries no plan", repository.run("status").stdout)
     def test_status_prints_the_same_state_twice(self):
-        """REQ-0210: status prints the same text twice, with an open task or with none."""
+        """REQ-0210: status prints the same text twice, with a decision open or closed."""
         repository = self.repo()
         first = repository.run("status").stdout
-        self.assertIn("ADR-0001", first)
+        self.assertIn("next: implement ADR-0001", first)
         self.assertEqual(first, repository.run("status").stdout)
-        self.mark(repository, " ")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
         first = repository.run("status").stdout
-        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", first)
+        self.assertIn("closed: ADR-0001", first)
         self.assertEqual(first, repository.run("status").stdout)
-
-    def cover(self, repository):
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence",
-                        "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + FILLED + "\n\n## Evidence")
-        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
-            path = repository.path / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("A file.\n", encoding="utf-8")
-
     def test_the_profile_template_names_no_language(self):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
@@ -809,23 +705,18 @@ class Chain(unittest.TestCase):
 
     def test_template_prefers_the_repository_own(self):
         repository = self.repo()
-        unit = UNIT / "templates" / "task.md"
-        done = repository.run("template", "task")
-        if unit.is_file():
-            self.assertEqual(done.stdout.strip(), str(unit))
-        else:
-            self.assertEqual(done.returncode, 1)
-        own = repository.path / ".meowpaw" / "templates" / "task.md"
+        done = repository.run("template", "adr")
+        self.assertEqual(Path(done.stdout.strip()), (UNIT / "templates" / "adr.md").resolve())
+        own = repository.path / ".meowpaw" / "templates" / "adr.md"
         own.parent.mkdir(parents=True)
         own.write_text("# mine\n", encoding="utf-8")
-        done = repository.run("template", "task")
+        done = repository.run("template", "adr")
         self.assertEqual(done.returncode, 0)
         self.assertEqual(Path(done.stdout.strip()).resolve(), own.resolve())
-
     def test_an_unknown_kind_names_the_kinds(self):
         done = self.repo().run("template", "memo")
         self.assertEqual(done.returncode, 2)
-        self.assertIn("research, requirement, adr, spec, epic, task, bug, insight, vision, constitution", done.stderr)
+        self.assertIn("research, requirement, adr, spec, bug, insight, vision, constitution", done.stderr)
 
     def template(self, kind):
         done = self.repo().run("template", kind)
@@ -837,43 +728,6 @@ class Chain(unittest.TestCase):
         enters = [line for line in self.template("bug").splitlines() if line.startswith("enters:")]
         self.assertEqual(len(enters), 1, enters)
         self.assertNotRegex(enters[0].split("#", 1)[1], r"\b(cover|document|verify)\b")
-
-
-FILLED = """- Checks: tests/test_a_task.py
-- Failing run: project/evidence/a-failing-run.txt
-- Landed in: #12
-- Judgement: 2: whether the page reads well rests on a reader"""
-
-CRITERIA = """1. Given a task, then a check passes.
-   Closed by: tests/test_a_task.py.
-2. Given a page, then it reads well.
-3. Given a table, then it is ordered as a reader expects.
-   Closed by: tests/test_a_task.py."""
-
-
-class TasklessEpic(unittest.TestCase):
-    """BUG-1250: `ready` and `status` read an epic that lists no tasks the same way (REQ-0208)."""
-
-    def repo(self, named):
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        if named:
-            repository.edit("epics/EPC-0001-a-plan.md", "## Not covered\n\nText.",
-                            "## Not covered\n\n- REQ-0001 is closed by a task another record carries.")
-        return repository
-
-    def test_status_names_document_and_ready_agrees(self):
-        """TSK-2560 criterion 2, REQ-3620: a taskless epic naming everything is closed."""
-        repository = self.repo(named=True)
-        self.assertIn("closed: EPC-0001 (0 tasks done)", repository.run("status").stdout)
-
-    def test_an_epic_leaving_a_requirement_unnamed_is_refused_by_both(self):
-        """TSK-2560 criterion 3: status waits on a taskless epic that leaves a requirement unnamed."""
-        repository = self.repo(named=False)
-        reason = "EPC-0001 lists no tasks, and REQ-0001, which ADR-0001 addresses, isn't named under Not covered"
-        status = repository.run("status").stdout
-        self.assertIn(f"waiting: {reason}", status)
-        self.assertNotIn("closed: EPC-0001", status)
 
 
 class RunSkill(unittest.TestCase):
@@ -905,7 +759,9 @@ class Show(unittest.TestCase):
         return repository
 
     def test_show_resolves_an_identifier_and_derives_what_cites_it(self):
-        done = self.repo().run("show", "REQ-0001")
+        repository = self.repo()
+        repository.write("archive/tasks/TSK-0001-a-task.md", archived_task("REQ-0001"))
+        done = repository.run("show", "REQ-0001")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         lines = done.stdout.splitlines()
         self.assertEqual(lines[0], "REQ-0001 requirement, approved: project/requirements/REQ-0001-an-obligation.md")
@@ -914,23 +770,12 @@ class Show(unittest.TestCase):
         for line in ("  addresses: ADR-0001", "  closes: TSK-0001", "  states: SPC-0001", "  violates: BUG-0001",
                      "  body: project/requirements/README.md"):
             self.assertIn(line, cited)
-
     def test_a_withdrawn_artifact_still_resolves(self):
         repository = self.repo()
         repository.edit("requirements/REQ-0001-an-obligation.md", "status: approved", "status: withdrawn")
         done = repository.run("show", "REQ-0001")
         self.assertEqual(done.returncode, 0)
         self.assertIn("REQ-0001 requirement, withdrawn:", done.stdout)
-
-    def test_a_task_marked_parallel_is_read_with_its_mark(self):
-        """BUG-1180, REQ-0584: a task marked [P] derives its requirement's state from its mark."""
-        repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
-                        "## Tasks\n\n- [x] T-001 [P] TSK-0001 the task\n      closes: REQ-0001")
-        done = repository.run("show", "REQ-0001")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("TSK-0001 done in EPC-0001", done.stdout)
-        self.assertNotIn("in a task not yet done", done.stdout)
 
     def test_an_identifier_with_no_artifact_resolves_to_nothing(self):
         done = self.repo().run("show", "REQ-0999")
@@ -976,41 +821,39 @@ class Frozen(unittest.TestCase):
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
 
-    def test_a_task_may_gain_evidence_and_an_unverified_epic_marks(self):
+    def test_a_decision_may_correct_its_plan_until_it_is_done(self):
+        """REQ-3676: the plan stays editable while the work corrects it."""
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixture passed.")
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Plan\n\nText.", "## Plan\n\n1. The corrected step.")
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
 
-    def test_a_task_may_gain_its_projection(self):
+    def test_a_done_decisions_plan_is_frozen(self):
+        """REQ-3676: the plan freezes once the record is done."""
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "epic: EPC-0001", "epic: EPC-0001\nprojected: 0123456789ab")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+                        "commit", "-qam", "done"], cwd=repository.path, check=True, capture_output=True)
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Plan\n\nText.", "## Plan\n\n1. A rewritten past.")
+        self.assertEqual(self.frozen(repository).returncode, 1)
+    def test_a_decision_may_gain_its_projection(self):
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", "addresses: [REQ-0001]\nissue: 7\nprojected: 0123456789ab")
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
-
-    def test_a_task_may_gain_the_tracker_side_fingerprint(self):
+    def test_a_decision_may_gain_the_tracker_side_fingerprint(self):
         """TSK-5320, REQ-4704: `tracked` beside `projected` is a mapping field and changes after approval."""
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "epic: EPC-0001", "epic: EPC-0001\nprojected: 0123456789ab\ntracked: fedcba987654")
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", "addresses: [REQ-0001]\nprojected: 0123456789ab\ntracked: fedcba987654")
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
-
-    def test_a_task_may_say_what_it_left_alone(self):
-        """The implementer fills `## Left alone` after approval, as the template asks, so it is free like Evidence."""
+    def test_a_decision_rewritten_outside_its_plan_is_reported(self):
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "## Left alone\n\nText.", "## Left alone\n\nThe index, because nothing moved.")
-        done = self.frozen(repository)
-        self.assertEqual(done.returncode, 0, done.stdout)
-
-    def test_a_task_rewritten_outside_its_evidence_is_reported(self):
-        repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "## What to do\n\nText.", "## What to do\n\nSomething else.")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Decision\n\nText.", "## Decision\n\nSomething else.")
         self.assertEqual(self.frozen(repository).returncode, 1)
-
     def committed(self):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
@@ -1021,14 +864,14 @@ class Frozen(unittest.TestCase):
 
     def test_an_added_line_citing_a_hash_as_a_revision_is_reported(self):
         repository = self.committed()
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixtures passed at `9f3c2e1`.")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Plan\n\nText.", "## Plan\n\nThe fixtures passed at `9f3c2e1`.")
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 1, done.stdout)
         self.assertIn("cites the commit 9f3c2e1 as a revision; cite the pull request that carried it", done.stdout)
 
     def test_an_added_line_citing_a_pull_request_passes(self):
         repository = self.committed()
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe fixtures passed at the trunk after #12, and a fee was added.")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Plan\n\nText.", "## Plan\n\nThe fixtures passed at the trunk after #12, and a fee was added.")
         done = self.frozen(repository)
         self.assertEqual(done.returncode, 0, done.stdout)
         self.assertIn("frozen: 0 findings", done.stdout)
@@ -1055,11 +898,12 @@ class Frozen(unittest.TestCase):
         self.assertIn("frozen: 0 findings", done.stdout)
 
     def test_done_is_a_status_only_frozen_transition(self):
-        """TSK-5190 criterion 2, REQ-0594: approved to done passes, but substantive edits still fail."""
+        """TSK-5190 criterion 2, REQ-3678: approved to done with its `pr:` passes, but substantive edits still fail."""
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", "addresses: [REQ-0001]\npr: 12")
         self.assertEqual(self.frozen(repository).returncode, 0)
-        repository.edit("tasks/TSK-0001-a-task.md", "## What to do\n\nText.", "## What to do\n\nChanged.")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Why\n\nText.", "## Why\n\nChanged.")
         self.assertEqual(self.frozen(repository).returncode, 1)
 
 
@@ -1191,7 +1035,7 @@ class Allocate(unittest.TestCase):
         base = CLEAN["requirements/REQ-0001-an-obligation.md"]
         repository.write("requirements/REQ-0012-gone.md", base.replace("REQ-0001", "REQ-0012").replace("topic: a", "topic: z")
                          .replace("status: approved", "status: withdrawn"))
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nSee REQ-0014.")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Why\n\nText.", "## Why\n\nSee REQ-0014.")
         self.assertEqual(self.new(repository, "requirement", "--topic", "t"), "REQ-0016")
 
     def test_a_new_topic_starts_a_block_above_the_highest(self):
@@ -1215,13 +1059,13 @@ class Find(unittest.TestCase):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         repository.edit("adrs/ADR-0001-a-choice.md", "# ADR-0001", "# 0001. An approval gate for the plan")
-        repository.edit("epics/EPC-0001-a-plan.md", "# EPC-0001", "# The gate")
+        repository.edit("bugs/BUG-0001-a-defect.md", "# BUG-0001", "# The gate")
         done = repository.run("find", "approval", "gate")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         lines = done.stdout.strip().splitlines()
         self.assertEqual(lines[1], "ADR-0001 decision, approved: An approval gate for the plan"
                                    " (project/adrs/ADR-0001-a-choice.md, front matter)")
-        self.assertEqual(lines[2], "EPC-0001 epic, approved: The gate (project/epics/EPC-0001-a-plan.md, front matter)")
+        self.assertEqual(lines[2], "BUG-0001 defect, approved: The gate (project/bugs/BUG-0001-a-defect.md, front matter)")
         self.assertNotIn("Text.", done.stdout)
 
     def test_find_with_no_match_says_so(self):
@@ -1345,7 +1189,7 @@ class ReadOnly(unittest.TestCase):
     """ADR-1200: the commands that read the record write nothing, and repeat themselves."""
 
     COMMANDS = (["check"], ["check", "frozen"], ["status"], ["status", "--waiting"], ["ready", "design", "REQ-0001"],
-                ["template", "task"], ["show", "REQ-0001"], ["index", "requirement"], ["new", "adr"],
+                ["template", "adr"], ["show", "REQ-0001"], ["index", "requirement"], ["new", "adr"],
                 ["find", "task"], ["count"])
 
     def tree(self, root):
@@ -1402,10 +1246,10 @@ class Where(unittest.TestCase):
         elsewhere = Path(outside.name) / "record"
         repository = Repository(profile=f'[record]\nroot = "{elsewhere}"\n', root=str(elsewhere))
         self.addCleanup(repository.tmp.cleanup)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: closed")
         done = repository.run("check", "front-matter")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(f"{elsewhere.resolve()}/tasks/TSK-0001-a-task.md:4: stores done, but its work is not complete",
+        self.assertIn(f"{elsewhere.resolve()}/adrs/ADR-0001-a-choice.md:4: status closed is not one a decision stores",
                       done.stdout)
         self.assertFalse((repository.path / "project").exists())
 
@@ -1436,7 +1280,7 @@ class NoWrites(unittest.TestCase):
     def test_the_tree_is_identical_before_and_after_a_run(self):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: closed")
 
         def tree():
             out = {}
@@ -1524,61 +1368,50 @@ class Named(unittest.TestCase):
 
 
 
-class DefectTasks(unittest.TestCase):
-    """ADR-1440: a defect authorises a task directly, with no epic."""
+class DefectIsItsOwnWork(unittest.TestCase):
+    """ADR-3090: a defect authorises its own work, with its plan, on the same level as a decision."""
 
-    def repo(self, bug_status="approved", mark="x"):
+    SECTIONS = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
+
+    def repo(self, status="approved", plan=True):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
-        bug = record("bug", "BUG-0002", {"status": bug_status, "violates": "REQ-0001", "severity": "minor",
-                                          "found": "2026-01-01"},
-                     ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"])
-        bug += f"\n## Tasks\n\n- [{mark}] T-001 TSK-0002 restore the obligation\n      evidence: the reproduction passes.\n"
-        repository.write("bugs/BUG-0002-a-second-defect.md", bug)
-        repository.write("tasks/TSK-0002-a-fix.md", record(
-            "task", "TSK-0002", {"bug": "BUG-0002", "closes": "[REQ-0001]"},
-            ["What to do", "Depends on", "Evidence", "Left alone"]).replace(
-            "## Depends on\n\nText.", "## Depends on\n\nNothing."))
+        repository.write("bugs/BUG-0002-a-second-defect.md", record(
+            "bug", "BUG-0002", {"status": status, "violates": "REQ-0001", "severity": "minor",
+                                "found": "2026-01-01", "enters": "implement"},
+            self.SECTIONS + (["Plan"] if plan else [])))
         return repository
 
-    def test_a_task_a_defect_marks_done_is_done(self):
-        """REQ-0354: a defect carries its own task, and the task's state derives from its mark."""
-        done = self.repo().run("show", "REQ-0001")
-        self.assertIn("TSK-0002 done in BUG-0002", done.stdout)
-
-    def test_a_task_under_an_approved_defect_is_ready(self):
-        """REQ-0352: a defect record authorises work exactly as a decision record does."""
-        done = self.repo(mark=" ").run("ready", "implement", "TSK-0002")
-        self.assertEqual(done.returncode, 0, done.stdout)
-
-    def test_a_task_under_a_draft_defect_is_not_ready(self):
-        """REQ-0352: a draft defect authorises nothing yet."""
-        done = self.repo(bug_status="draft", mark=" ").run("ready", "implement", "TSK-0002")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("BUG-0002, the defect of TSK-0002, is draft and not approved", done.stdout)
-
-    def test_status_counts_tasks_by_their_authority(self):
-        """REQ-0374: the proportion of work defects authorise is reported."""
-        done = self.repo().run("status")
-        self.assertIn("2 in all: 1 authorised by decisions, 1 by defects", done.stdout)
-
-    def test_a_draft_task_naming_no_authority_is_reported(self):
-        """ADR-1440: a task names exactly one epic or one defect."""
+    def test_an_approved_defect_with_a_plan_is_ready(self):
+        """REQ-0352, REQ-3674: a defect record authorises work exactly as a decision record does."""
         repository = self.repo()
-        repository.write("tasks/TSK-0003-a-stray.md", record(
-            "task", "TSK-0003", {"status": "draft", "closes": "[REQ-0001]"},
-            ["What to do", "Depends on", "Evidence", "Left alone", "Acceptance criteria"]))
-        done = repository.run("check", "rules")
-        self.assertIn("TSK-0003-a-stray.md", done.stdout)
-        self.assertIn("names 0 authorising records", done.stdout)
+        done = repository.run("ready", "implement", "BUG-0002")
+        self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("next: implement BUG-0002", repository.run("status").stdout)
 
-    def test_a_defects_marks_change_after_approval(self):
-        """ADR-1440: an approved defect's Tasks section changes as an epic's marks do."""
-        repository = self.repo(mark=" ")
+    def test_a_draft_defect_is_not_ready(self):
+        """REQ-0352: a draft defect authorises nothing yet."""
+        done = self.repo(status="draft").run("ready", "implement", "BUG-0002")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("BUG-0002, a defect, is draft and not approved", done.stdout)
+
+    def test_a_defect_entering_at_implement_with_no_plan_is_refused(self):
+        """REQ-3674: `ready`, `status` and the draft rule agree that it holds its plan."""
+        repository = self.repo(plan=False)
+        done = repository.run("ready", "implement", "BUG-0002")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("BUG-0002 carries no plan", done.stdout)
+        self.assertIn("waiting: BUG-0002 carries no plan", repository.run("status").stdout)
+        self.assertIn("enters at implement and carries no ## Plan (REQ-3674)",
+                      self.repo(status="draft", plan=False).run("check", "rules").stdout)
+
+    def test_a_defects_plan_and_closed_by_change_after_approval(self):
+        """REQ-3676: an approved defect's plan and Closed by change, and its diagnosis doesn't."""
+        repository = self.repo()
         for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
                                      "commit", "-q", "-m", "base"]):
             subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
-        repository.edit("bugs/BUG-0002-a-second-defect.md", "- [ ] T-001", "- [x] T-001")
+        repository.edit("bugs/BUG-0002-a-second-defect.md", "## Plan\n\nText.", "## Plan\n\n1. The corrected step.")
         repository.edit("bugs/BUG-0002-a-second-defect.md", "## Closed by\n\nText.", "## Closed by\n\nThe reproduction, now a check.")
         done = repository.run("check", "frozen")
         self.assertEqual(done.returncode, 0, done.stdout)
@@ -1637,13 +1470,10 @@ class Triage(unittest.TestCase):
 
     def test_a_closed_defect_names_its_regression_check(self):
         """REQ-0368: the check that closes a defect remains as a regression check."""
-        def task(repository):
-            repository.write("tasks/TSK-0004-a-fix.md", record(
-                "task", "TSK-0004", {"bug": "BUG-0003", "closes": "[]"},
-                ["What to do", "Depends on", "Evidence", "Left alone"]))
-        said = self.check({"violates": "REQ-0001"}, [("## Closed by\n\nText.", "## Closed by\n\n## Tasks\n\n- [x] T-001 TSK-0004 fix it\n      evidence: it passes.\n")], task)
-        self.assertIn("has every task done and an empty Closed by", said)
-
+        said = self.check({"status": "done", "violates": "REQ-0001"}, [("## Closed by\n\nText.", "## Closed by\n")])
+        self.assertIn("is done with an empty Closed by", said)
+        said = self.check({"status": "done", "violates": "REQ-0001"})
+        self.assertNotIn("Closed by", said)
     def test_severity_is_required(self):
         """REQ-0372: severity is recorded on the defect."""
         repository = Repository()
@@ -1652,14 +1482,6 @@ class Triage(unittest.TestCase):
         said = repository.run("check", "front-matter").stdout
         self.assertIn("BUG-0003-a-report.md", said)
         self.assertIn("severity", said)
-
-    def test_an_epic_for_a_one_task_defect_is_reported(self):
-        """REQ-0356: an epic is created for a defect only where the fix needs several ordered tasks."""
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: BUG-0001")
-        said = repository.run("check", "rules").stdout
-        self.assertIn("realises the defect BUG-0001 with 0 tasks and no order between them", said)
 
     def test_prompted_by_names_a_defect(self):
         """REQ-0362: a record a defect prompted cites the defect."""
@@ -1687,15 +1509,14 @@ class Connections(unittest.TestCase):
         done = repository.run("check", "identifiers")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
-    def test_an_approved_task_over_draft_research_names_the_chain(self):
-        """REQ-0139: a task whose own links resolve is reported where the research under it is a draft."""
+    def test_an_approved_decision_over_draft_research_names_the_chain(self):
+        """REQ-0139: a decision whose own links resolve is reported where the research under it is a draft."""
         repository = self.repo()
         repository.edit("research/RES-0002-a-finding.md", "status: approved", "status: draft")
         done = repository.run("check", "coverage")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("project/tasks/TSK-0001-a-task.md: rests on RES-0002, a draft, through "
-                      "TSK-0001 -> EPC-0001 -> ADR-0001 -> REQ-0001 -> RES-0002", done.stdout)
-
+        self.assertIn("project/adrs/ADR-0001-a-choice.md: rests on RES-0002, a draft, through "
+                      "ADR-0001 -> REQ-0001 -> RES-0002", done.stdout)
     def test_a_draft_over_a_withdrawn_requirement_is_reported(self):
         """REQ-0139: a draft still being written can be moved off a withdrawn provider."""
         repository = self.repo()
@@ -1749,18 +1570,6 @@ class Connections(unittest.TestCase):
         self.assertNotIn("suspect", repository.run("show", "RES-0002").stdout)
         self.assertNotIn("RES-0002 elaborates RES-0001", repository.run("status").stdout)
 
-    def test_an_epic_is_suspect_by_its_status_and_not_its_date(self):
-        """REQ-0141: an epic changes as its tasks close, so only its withdrawal makes a citation suspect."""
-        repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
-        repository.edit("epics/EPC-0001-a-plan.md", "revised: 2026-01-01", "revised: 2026-02-01")
-        done = repository.run("check", "relations")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        repository.edit("epics/EPC-0001-a-plan.md", "status: approved", "status: withdrawn")
-        done = repository.run("check", "relations")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("project/tasks/TSK-0001-a-task.md:6: epic EPC-0001 is withdrawn, so the citation is suspect",
-                      done.stdout)
 
 
 class Reported(unittest.TestCase):
@@ -1788,10 +1597,9 @@ class Reported(unittest.TestCase):
         repository.edit("requirements/REQ-0001-an-obligation.md", "revised: 2026-01-01", "revised: 2026-02-01")
         done = repository.run("status")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("  RES-0002, rejected, under 4 approved artifacts: ADR-0001, EPC-0001, REQ-0001, "
-                      "TSK-0001\n", done.stdout)
-        self.assertIn("  3 suspect citations in approved artifacts: ADR-0001 addresses REQ-0001, BUG-0001 violates "
-                      "REQ-0001, TSK-0001 closes REQ-0001\n", done.stdout)
+        self.assertIn("  RES-0002, rejected, under 2 approved artifacts: ADR-0001, REQ-0001\n", done.stdout)
+        self.assertIn("  2 suspect citations in approved artifacts: ADR-0001 addresses REQ-0001, BUG-0001 violates "
+                      "REQ-0001\n", done.stdout)
 
     def test_the_share_resting_on_judgement_is_stated(self):
         """REQ-0161: the requirements in force are counted by how they are verified."""
@@ -1836,192 +1644,18 @@ class VerificationKind(unittest.TestCase):
         self.assertEqual(done.returncode, 0, "judgement" + done.stdout + done.stderr)
 
 
-class Dependencies(unittest.TestCase):
-    """ADR-1800 and SPC-1090 "The gate": each dependency line says whether it blocks, and `paw` waits only on
-    the blocking ones (REQ-1358). A bare line on an approved task keeps blocking, and a draft is asked to mark it.
-    """
-
-    TASK = "tasks/TSK-0002-a-second-task.md"
-
-    def repo(self, lines, status="approved", first=False):
-        """TSK-0002 depends on TSK-0001 through `lines`; both are open under EPC-0001. With `first`, the epic
-        lists TSK-0002 ahead of TSK-0001, so `status` reaches it first."""
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        task = CLEAN["tasks/TSK-0001-a-task.md"].replace("TSK-0001", "TSK-0002").replace(
-            "## Depends on\n\nText.", "## Depends on\n\n" + "\n".join(lines)).replace(
-            "status: approved", f"status: {status}").replace(
-            "## Evidence", "## Acceptance criteria\n\n" + CRITERIA + "\n\n## Cover\n\n" + FILLED + "\n\n## Evidence")
-        repository.write(self.TASK, task)
-        entries = ["- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001",
-                   "- [ ] T-002 TSK-0002 the second task\n      closes: REQ-0001"]
-        if first:
-            entries = ["- [ ] T-001 TSK-0002 the second task\n      closes: REQ-0001",
-                       "- [ ] T-002 TSK-0001 the task\n      closes: REQ-0001"]
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n" + "\n\n".join(entries))
-        for name in ("tests/test_a_task.py", "project/evidence/a-failing-run.txt"):
-            path = repository.path / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("A file.\n", encoding="utf-8")
-        return repository
-
-    # `dependency-declared`'s messages, so each test shows the line reported by that rule and by no other (BUG-1300).
-    UNMARKED = "names a dependency without (blocking) or (not blocking), where each line says whether it blocks"
-    TWO = "names 2 tasks on one dependency line, where each line names one task and says whether it blocks"
-
-    def line_of(self, repository, text):
-        lines = (repository.root / self.TASK).read_text(encoding="utf-8").splitlines()
-        return f"{self.TASK.split('/')[1]}:{lines.index(text) + 1}:"
-
-    def test_a_declared_dependency_passes(self):
-        """TSK-2900 criterion 1, REQ-1358: a draft's `(blocking)` and `(not blocking)` lines are reported by no
-        rule, while a variant such as `(non-blocking)` is reported by line under `dependency-declared`."""
-        declared = ["- TSK-0001 (not blocking): shares a helper", "- TSK-0003 (blocking): the parser lands there"]
-        variant = "- TSK-0004 (non-blocking): shares a fixture"
-        repository = self.repo(declared + [variant], status="draft")
-        done = repository.run("check", "rules")
-        for line in declared:
-            self.assertNotIn(self.line_of(repository, line), done.stdout, line)
-        self.assertIn(self.line_of(repository, variant) + " " + self.UNMARKED, done.stdout, done.stdout + done.stderr)
-
-    def test_a_bare_dependency_in_a_draft_is_reported(self):
-        """TSK-2900 criterion 1, REQ-1358: a draft's bare `- TSK-NNNN` line is reported by its line number
-        under `dependency-declared`."""
-        bare = "- TSK-0001"
-        repository = self.repo(["- TSK-0003 (not blocking): shares a helper", bare], status="draft")
-        done = repository.run("check", "rules")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(self.line_of(repository, bare) + " " + self.UNMARKED, done.stdout)
-
-    def test_a_line_naming_two_tasks_is_reported(self):
-        """TSK-2900 criterion 1, REQ-1358: a draft's line naming two identifiers is reported by its line number,
-        even when it carries a marker."""
-        two = "- TSK-0001 and TSK-0003 (blocking): both land the parser"
-        repository = self.repo([two], status="draft")
-        done = repository.run("check", "rules")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(self.line_of(repository, two) + " " + self.TWO, done.stdout)
-
-    def test_an_approved_bare_dependency_still_blocks(self):
-        """TSK-2900 criterion 2, REQ-1358: an approved task's bare line is not reported and `ready implement`
-        still waits on it, while the same line in a draft is reported, because `dependency-declared` is a draft
-        rule (ADR-1140)."""
-        bare = "- TSK-0001"
-        repository = self.repo([bare])
-        checked = repository.run("check", "rules")
-        self.assertNotIn(self.line_of(repository, bare), checked.stdout)
-        done = repository.run("ready", "implement", "TSK-0002")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("TSK-0001, which TSK-0002 depends on, isn't done", done.stdout)
-        draft = self.repo([bare], status="draft")
-        self.assertIn(self.line_of(draft, bare), draft.run("check", "rules").stdout)
-
-    def test_a_not_blocking_dependency_leaves_the_task_ready(self):
-        """TSK-2900 criterion 3, REQ-1358: a task whose only open dependency is `(not blocking)` is ready to
-        cover and to implement."""
-        repository = self.repo(["- TSK-0001 (not blocking): shares a helper"])
-        for step in ("implement",):
-            done = repository.run("ready", step, "TSK-0002")
-            self.assertEqual(done.returncode, 0, step + done.stdout + done.stderr)
-            self.assertNotIn("TSK-0001, which TSK-0002 depends on", done.stdout, step)
-
-    def test_a_blocking_dependency_makes_the_task_wait(self):
-        """TSK-2900 criterion 3, REQ-1358: the same dependency marked `(blocking)` keeps `ready cover` and
-        `ready implement` waiting on it, and only the marker separates the two outcomes."""
-        for marker, code in (("blocking", 1), ("not blocking", 0)):
-            repository = self.repo([f"- TSK-0001 ({marker}): the parser lands there"])
-            for step in ("implement",):
-                done = repository.run("ready", step, "TSK-0002")
-                self.assertEqual(done.returncode, code, marker + " " + step + done.stdout + done.stderr)
-                named = "TSK-0001, which TSK-0002 depends on, isn't done"
-                (self.assertIn if code else self.assertNotIn)(named, done.stdout, marker + " " + step)
-
-    def test_status_names_a_task_whose_only_dependency_does_not_block(self):
-        """TSK-2900 criterion 3, REQ-1358: `paw status` names as next the first task whose only open
-        dependency is `(not blocking)`."""
-        repository = self.repo(["- TSK-0001 (not blocking): shares a helper"], first=True)
-        done = repository.run("status")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertRegex(done.stdout, r"next: \w+ TSK-0002 \(EPC-0001, 0 of 2 tasks done\)")
-
-    def test_status_waits_on_a_blocking_dependency(self):
-        """TSK-2920 criterion 1, BUG-1300, REQ-1358: with the epic listing TSK-0002 first, a `(blocking)` line
-        and an approved task's bare line each make `paw status` pass over TSK-0002 and name TSK-0001, so only the
-        marker separates this outcome from the `(not blocking)` one above."""
-        for lines in (["- TSK-0001 (blocking): the parser lands there"], ["- TSK-0001"]):
-            with self.subTest(lines=lines):
-                done = self.repo(lines, first=True).run("status")
-                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-                self.assertRegex(done.stdout, r"next: \w+ TSK-0001 \(EPC-0001, 0 of 2 tasks done\)")
-                self.assertNotRegex(done.stdout, r"next: \w+ TSK-0002")
-
-    def defect_epic(self, task_lines, depends=None):
-        """An epic realising BUG-0001 with two tasks, ordered only by `task_lines` or by an entry's `depends:`."""
-        repository = self.repo(task_lines)
-        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: BUG-0001")
-        if depends is not None:
-            repository.edit("epics/EPC-0001-a-plan.md", "the second task\n      closes: REQ-0001",
-                            f"the second task\n      closes: REQ-0001\n      depends: {depends}")
-        return repository.run("check", "rules").stdout
-
-    UNORDERED = "realises the defect BUG-0001 with 2 tasks and no order between them"
-
-    def test_a_not_blocking_order_does_not_order_a_defects_epic(self):
-        """TSK-2900 criterion 4, REQ-1358: a task's line and an epic entry's `depends:` marked `(not blocking)`
-        are no order, so `defect-epic-ordered` reports each epic."""
-        said = self.defect_epic(["- TSK-0001 (not blocking): shares a helper"])
-        self.assertIn(self.UNORDERED, said)
-        said = self.defect_epic(["Nothing."], depends="TSK-0001 (not blocking) - shares a helper")
-        self.assertIn(self.UNORDERED, said)
-
-    def test_a_blocking_order_orders_a_defects_epic(self):
-        """TSK-2900 criterion 4, REQ-1358: `(blocking)` on the task's line or the entry's `depends:`, or an
-        unmarked `depends:`, orders the epic, and only the marker separates it from the reported one."""
-        for lines, depends in ((["- TSK-0001 (blocking): the parser lands there"], None),
-                               (["Nothing."], "TSK-0001 (blocking) - the parser lands there"),
-                               (["Nothing."], "TSK-0001 - the parser lands there")):
-            self.assertNotIn(self.UNORDERED, self.defect_epic(lines, depends), (lines, depends))
-        self.assertIn(self.UNORDERED, self.defect_epic(["- TSK-0001 (not blocking): shares a helper"]))
-
-    def test_the_templates_and_the_epic_step_show_both_markers(self):
-        """TSK-2900 criterion 5, REQ-1358: the task and epic templates show both markers and no longer say a
-        convenience isn't a dependency, and the epic step holds a rule beside E6 to declare one as not blocking."""
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        texts = {}
-        for kind in ("task", "epic"):
-            done = repository.run("template", kind)
-            self.assertEqual(done.returncode, 0, done.stderr)
-            texts[kind] = Path(done.stdout.strip()).read_text(encoding="utf-8")
-        depends_on = texts["task"].split("## Depends on", 1)[1].split("\n## ", 1)[0]
-        self.assertIn("(blocking)", depends_on)
-        self.assertIn("(not blocking)", depends_on)
-        self.assertRegex(texts["epic"], r"depends: TSK-NNNN \(not blocking\) - why")
-        for kind, text in texts.items():
-            self.assertNotRegex(flat(text).lower(), r"convenience isn.t a dependency", kind)
-        rules = tagged((METHOD / "steps" / "epic.md").read_text(encoding="utf-8"), "rules")
-        items = re.findall(r"^- (E\d+)\.(.*?)(?=^- E\d+\.|\Z)", rules, re.MULTILINE | re.DOTALL)
-        names = [name for name, _ in items]
-        self.assertIn("E6", names)
-        at = names.index("E6")
-        beside = [flat(body) for _, body in items[max(at - 1, 0):at + 2]]
-        self.assertTrue(any("convenience" in body and "not blocking" in body and re.search(r"\breason|\bwhy\b", body)
-                            for body in beside), beside)
-
-
-STEPS = ("research", "requirements", "design", "spec", "epic", "implement", "review")
+STEPS = ("research", "requirements", "design", "spec", "implement", "review")
 METHOD = UNIT / "skills" / "method"
 REPOSITORY = UNIT.parent.parent
 
 # Where each step's artifact lands, as a path pattern under the record root the profile resolves (REQ-3203,
-# BUG-1264). Document and review are read apart: a page isn't under the record root, and review writes nothing.
+# BUG-1264). Review is read apart: a page isn't under the record root, and review writes nothing.
 LANDS = {
     "research": ["research/res-nnnn-<topic>.md"],
     "requirements": ["requirements/req-nnnn-<slug>.md"],
     "design": ["adrs/adr-nnnn-<slug>.md"],
     "spec": ["specs/spc-nnnn-<topic>.md"],
-    "epic": ["epics/epc-nnnn-<slug>.md", "tasks/tsk-nnnn-<slug>.md"],
-    "implement": ["tasks/tsk-nnnn-<slug>.md", "evidence", "test files", "user-facing page"],
+    "implement": ["the test files", "user-facing page", "the record itself"],
 }
 RECORD_ROOT = ("[record] root", ".meowpaw/profile.toml", "project/")
 
@@ -2065,93 +1699,27 @@ def tagged(text, tag):
 
 
 class Grouping(unittest.TestCase):
-    """ADR-1800 and SPC-1070 "The layout": the task, epic and defect kinds forbid every grouping field, and the
-    epic kind forbids `epic`, so a task sits under its epic or its defect and nothing else (REQ-3320)."""
+    """ADR-1800 and SPC-1070 "The layout": the defect kind forbids every grouping field, so a defect is one
+    issue and sits under no other record."""
 
-    TASK = "tasks/TSK-0001-a-task.md"
-    EPIC = "epics/EPC-0001-a-plan.md"
     BUG = "bugs/BUG-0001-a-defect.md"
-
-    def repo(self):
-        repository = Repository()
-        self.addCleanup(repository.tmp.cleanup)
-        return repository
-
-    def reported(self, repository, name, field):
-        """`paw check` exits 1 and names the file, the field's line and the field. Line 7 is the first line after
-        the fixture's own fields, where each test writes the grouping field."""
-        done = repository.run("check")
-        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn(f"project/{name}:7: carries {field},", done.stdout)
-        return done
-
-    def test_a_task_with_a_milestone_is_reported(self):
-        """TSK-2910 criterion 1, REQ-3320: a task carrying `milestone:` is reported by file and field, whatever
-        its status, so the draft is reported as the approved one is."""
-        repository = self.repo()
-        repository.edit(self.TASK, "status: approved\nrevised: 2026-01-01\nepic: EPC-0001",
-                        "status: draft\nrevised: 2026-01-01\nepic: EPC-0001\nmilestone: v1")
-        self.reported(repository, self.TASK, "milestone")
-
-    def test_an_epic_with_a_parent_is_reported(self):
-        """TSK-2910 criterion 1, REQ-3320: an epic carrying `parent:` is reported by file and field."""
-        repository = self.repo()
-        repository.edit(self.EPIC, "realises: ADR-0001", "realises: ADR-0001\nparent: EPC-0002")
-        self.reported(repository, self.EPIC, "parent")
-
-    def test_a_task_under_its_epic_or_defect_passes(self):
-        """TSK-2910 criterion 1, REQ-3320: a task naming `epic:`, or `bug:` in its place, and no grouping field
-        is not reported, so the forbidden list doesn't reach the fields that place a task. The epic carries
-        `parent:` in the same run, so the check is shown reporting a grouping field and passing the task, and a
-        run that reports no grouping field anywhere doesn't pass."""
-        for field in ("epic: EPC-0001", "bug: BUG-0001"):
-            with self.subTest(field=field):
-                repository = self.repo()
-                repository.edit(self.TASK, "epic: EPC-0001", field)
-                repository.edit(self.EPIC, "realises: ADR-0001", "realises: ADR-0001\nparent: EPC-0002")
-                done = self.reported(repository, self.EPIC, "parent")
-                self.assertNotIn("TSK-0001", done.stdout, done.stdout)
-                self.assertEqual(done.stdout.count("carries"), 1, done.stdout)
-
-    def test_an_approved_task_with_a_label_is_reported(self):
-        """TSK-2910 criterion 2, REQ-3320: an approved task carrying `label:` is reported, because a forbidden
-        field reaches every record and not only a draft."""
-        repository = self.repo()
-        repository.edit(self.TASK, "epic: EPC-0001", "epic: EPC-0001\nlabel: urgent")
-        self.assertIn("status: approved", (repository.root / self.TASK).read_text(encoding="utf-8"))
-        self.reported(repository, self.TASK, "label")
-
-    def test_a_defect_with_a_milestone_is_reported(self):
-        """TSK-2910 criterion 3, REQ-3320: a defect carrying `milestone:` is reported by file and field."""
-        repository = self.repo()
-        repository.edit(self.BUG, "violates: REQ-0001", "violates: REQ-0001\nmilestone: v1")
-        self.reported(repository, self.BUG, "milestone")
-
-    # ADR-1800's forbidden groupings, and the fixture's last field on each kind, after which a test writes one.
     GROUPINGS = ("milestone", "parent", "project", "sprint", "iteration", "label", "labels")
-    PLACES = {TASK: ("epic: EPC-0001", GROUPINGS), EPIC: ("realises: ADR-0001", ("epic",) + GROUPINGS),
-              BUG: ("violates: REQ-0001", GROUPINGS)}
 
-    def test_every_grouping_field_is_reported_on_every_kind(self):
-        """TSK-2930 criterion 1, BUG-1301, REQ-3320: each field ADR-1800 forbids, on each kind it forbids it on, is
-        reported by file, line and field, so a layout that drops one field from one kind fails here."""
-        for name, (last, fields) in self.PLACES.items():
-            for field in fields:
-                with self.subTest(kind=name, field=field):
-                    repository = self.repo()
-                    repository.edit(name, last, f"{last}\n{field}: x")
-                    self.reported(repository, name, field)
-
-    def test_an_epic_under_an_epic_is_reported(self):
-        """TSK-2910 criterion 3, REQ-3320: an epic carrying `epic:` is reported, because only an epic would place
-        one epic under another."""
-        repository = self.repo()
-        repository.edit(self.EPIC, "realises: ADR-0001", "realises: ADR-0001\nepic: EPC-0002")
-        self.reported(repository, self.EPIC, "epic")
+    def test_every_grouping_field_is_reported_on_a_defect(self):
+        """TSK-2930 criterion 1, BUG-1301: each field ADR-1800 forbids is reported by file, line and field, so a
+        layout that drops one field fails here. Line 7 is the first line after the fixture's own fields."""
+        for field in self.GROUPINGS:
+            with self.subTest(field=field):
+                repository = Repository()
+                self.addCleanup(repository.tmp.cleanup)
+                repository.edit(self.BUG, "violates: REQ-0001", f"violates: REQ-0001\n{field}: x")
+                done = repository.run("check")
+                self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+                self.assertIn(f"project/{self.BUG}:7: carries {field},", done.stdout)
 
 
 class MethodSkill(unittest.TestCase):
-    """ADR-2300: the method's prompts name seven steps (REQ-3638) and where each step's artifact lands (REQ-3203)."""
+    """ADR-2300: the method's prompts name six steps (REQ-3666) and where each step's artifact lands (REQ-3203)."""
 
     def step(self, name):
         path = METHOD / "steps" / f"{name}.md"
@@ -2165,7 +1733,7 @@ class MethodSkill(unittest.TestCase):
 
     def test_each_role_names_where_its_artifact_lands(self):
         """REQ-3203: each role names its path pattern under the record root, implement its tests, pages and
-        Evidence, and review nothing."""
+        the record, and review nothing."""
         for name, patterns in LANDS.items():
             role = flat(tagged(self.step(name), "role"))
             for phrase in RECORD_ROOT + tuple(patterns):
@@ -2178,32 +1746,31 @@ class MethodSkill(unittest.TestCase):
         return tuple(name.strip() for name in block.split("->")), text.split(block, 1)[0]
 
     def test_the_living_documents_name_the_chain(self):
-        """REQ-3638: the chain in CLAUDE.md's own_method_first and in the vision is the seven steps, and the
-        vision's sentence before it says seven."""
+        """REQ-3666: the chain in CLAUDE.md's own_method_first and in the vision is the six steps, and the
+        vision says six."""
         constitution = (REPOSITORY / "CLAUDE.md").read_text(encoding="utf-8")
         principle = tagged(constitution, "principle")
         self.assertIn("own_method_first", constitution.split(principle, 1)[0][-80:])
         self.assertEqual(self.chain(principle)[0], STEPS)
-        steps, before = self.chain((REPOSITORY / "project" / "vision.md").read_text(encoding="utf-8"))
-        self.assertEqual(steps, STEPS)
-        introduction = before.rstrip().removesuffix("```text").rstrip().rsplit("\n\n", 1)[-1].lower()
-        self.assertNotRegex(introduction, r"\b(nine|ten)\b")
-        self.assertRegex(introduction, r"\bseven\b")
+        vision = (REPOSITORY / "project" / "vision.md").read_text(encoding="utf-8")
+        self.assertEqual(self.chain(vision)[0], STEPS)
+        self.assertNotRegex(vision.lower(), r"\b(seven|nine|ten) steps\b")
+        self.assertRegex(flat(vision), r"\bsix steps\b")
 
 
 AGENTS = UNIT / "agents"
 
 
 class RequirementState(unittest.TestCase):
-    """TSK-3800, ADR-2300: a requirement's state comes from the tasks, epics and defects that name it."""
+    """REQ-3680, ADR-3090: a requirement's state comes from the decisions, archived tasks and defects that name it."""
 
     def repo(self):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         return repository
 
-    def tasks(self, repository, *entries):
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n" + "\n\n".join(entries))
+    def finish(self, repository):
+        repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
 
     def second_requirement(self, repository, addressed=True):
         text = (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8")
@@ -2212,116 +1779,82 @@ class RequirementState(unittest.TestCase):
             repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", "addresses: [REQ-0001, REQ-0002]")
             repository.edit("specs/SPC-0001-a-part.md", "states: [REQ-0001]", "states: [REQ-0001, REQ-0002]")
 
-    def second_task(self, repository, closes):
-        text = (repository.root / "tasks/TSK-0001-a-task.md").read_text(encoding="utf-8")
-        text = text.replace("TSK-0001", "TSK-0002").replace("\n  [\n    REQ-0001,\n  ]", f" [{closes}]")
-        repository.write("tasks/TSK-0002-another.md", text)
-
-    def test_a_requirement_whose_only_task_is_done_is_closed(self):
-        """REQ-3600, REQ-3602: done with no checked-at is closed, and nothing says verified."""
+    def test_a_requirement_whose_decision_is_done_is_closed(self):
+        """REQ-3680, REQ-3602: a done decision closes it, and nothing says verified."""
         repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.finish(repository)
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
         done = repository.run("show", "REQ-0001")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("State\n  closed\n  TSK-0001 done in EPC-0001\n", done.stdout)
+        self.assertIn("State\n  closed\n  ADR-0001 done\n", done.stdout)
         self.assertNotIn("verified", done.stdout)
 
-    def test_a_requirement_with_one_open_task_of_two_is_open(self):
-        """REQ-3600, REQ-3648: a second task naming the requirement keeps it open until it is done."""
-        repository = self.repo()
-        self.second_task(repository, "REQ-0001")
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001",
-                   "- [ ] T-002 TSK-0002 another\n      closes: REQ-0001")
-        self.assertIn("State\n  open, in a task not yet done\n", repository.run("show", "REQ-0001").stdout)
-
-    def test_a_requirement_no_task_names_is_open(self):
-        """REQ-3608: nothing naming it leaves it open, never closed."""
+    def test_a_done_archived_task_closes_a_requirement(self):
+        """REQ-3680: closure from before the upgrade stays true."""
         repository = self.repo()
         self.second_requirement(repository, addressed=False)
-        self.assertIn("State\n  open, named by no task\n", repository.run("show", "REQ-0002").stdout)
+        repository.write("archive/tasks/TSK-0001-a-task.md", archived_task("REQ-0002"))
+        self.assertIn("State\n  closed\n  TSK-0001 done\n", repository.run("show", "REQ-0002").stdout)
 
-    def test_an_open_defect_reopens_a_closed_requirement(self):
-        """REQ-3610: an open defect naming the requirement in violates reopens it."""
+    def test_a_decision_still_in_work_keeps_a_requirement_open(self):
+        """REQ-3680: a done decision closes nothing while another approved decision still addresses it."""
         repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nText.", "## Closed by\n\nNot closed.")
-        self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
-
-    def defect_tasks(self, repository, *marks):
-        entries = "\n".join(f"- [{m}] T-00{i} TSK-000{i + 5} a fix" for i, m in enumerate(marks, 1))
-        repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nText.",
-                        f"## Closed by\n\nNot closed.\n\n## Tasks\n\n{entries}")
-
-    def test_a_defect_whose_tasks_are_done_is_closed(self):
-        """REQ-3610: a defect closes with its tasks, whatever its Closed by says, and the requirement closes again."""
-        repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        self.defect_tasks(repository, "x")
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
+        decision = (repository.root / "adrs/ADR-0001-a-choice.md").read_text(encoding="utf-8")
+        repository.write("adrs/ADR-0002-a-second.md", decision.replace("ADR-0001", "ADR-0002"))
+        self.finish(repository)
+        self.assertIn("State\n  open, in a decision not yet done\n", repository.run("show", "REQ-0001").stdout)
+        repository.edit("adrs/ADR-0002-a-second.md", "status: approved", "status: done")
         self.assertIn("State\n  closed\n", repository.run("show", "REQ-0001").stdout)
 
-    def test_a_defect_with_an_open_task_is_open(self):
-        """REQ-3610: one open fix task keeps the defect open, and its requirement with it."""
+    def test_a_requirement_no_decision_names_is_open(self):
+        """REQ-3680: nothing naming it leaves it open, never closed."""
         repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        self.defect_tasks(repository, "x", " ")
-        self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
+        self.second_requirement(repository, addressed=False)
+        self.assertIn("State\n  open, named by no decision\n", repository.run("show", "REQ-0002").stdout)
 
-    def test_a_defect_whose_fixes_were_all_dropped_is_open(self):
-        """REQ-3610: dropping every fix closes nothing, as it closes no requirement."""
+    def test_an_open_defect_reopens_a_closed_requirement(self):
+        """REQ-3610: an open defect naming the requirement in violates reopens it, draft or approved."""
         repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        self.defect_tasks(repository, "~")
+        self.finish(repository)
         self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
-
-    def test_a_draft_defect_with_no_task_is_open(self):
-        """REQ-3610: a defect still being written is open, whatever its Closed by says."""
-        repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
         repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: draft")
         self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
 
-    def test_a_defect_an_epic_realises_closes_with_the_epics_tasks(self):
-        """REQ-3610: a defect realised by an epic is open while the epic's tasks are, and closed once one is done."""
+    def test_a_defect_stored_done_closes_the_requirement_again(self):
+        """REQ-3678, REQ-3610: a defect closes by storing `done`, whatever its Closed by says."""
         repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nText.", "## Closed by\n\nNot closed.")
-        epic = (repository.root / "epics/EPC-0001-a-plan.md").read_text(encoding="utf-8")
-        epic = epic.replace("EPC-0001", "EPC-0002").replace("realises: ADR-0001", "realises: BUG-0001")
-        repository.write("epics/EPC-0002-the-fix.md", epic.replace("- [x] T-001 TSK-0001", "- [ ] T-001 TSK-0007"))
-        self.assertIn("State\n  open, violated by BUG-0001\n", repository.run("show", "REQ-0001").stdout)
-        repository.edit("epics/EPC-0002-the-fix.md", "- [ ] T-001 TSK-0007", "- [x] T-001 TSK-0007")
+        self.finish(repository)
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
         self.assertIn("State\n  closed\n", repository.run("show", "REQ-0001").stdout)
 
-    def test_tasks_and_requirements_relate_many_to_many(self):
-        """REQ-3646, REQ-3648: two tasks naming one requirement, and one naming three, is no coverage finding."""
+    def test_a_decision_may_address_several_requirements(self):
+        """REQ-3668: one decision naming three requirements is no coverage finding."""
         repository = self.repo()
         self.second_requirement(repository)
         text = (repository.root / "requirements/REQ-0001-an-obligation.md").read_text(encoding="utf-8")
         repository.write("requirements/REQ-0003-a-third.md", text.replace("REQ-0001", "REQ-0003"))
         repository.edit("adrs/ADR-0001-a-choice.md", "REQ-0001, REQ-0002]", "REQ-0001, REQ-0002, REQ-0003]")
         repository.edit("specs/SPC-0001-a-part.md", "REQ-0001, REQ-0002]", "REQ-0001, REQ-0002, REQ-0003]")
-        self.second_task(repository, "REQ-0001, REQ-0002, REQ-0003")
-        for task in ("tasks/TSK-0001-a-task.md", "tasks/TSK-0002-another.md"):
-            repository.edit(task, "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
-        self.tasks(repository, "- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001",
-                   "- [ ] T-002 TSK-0002 another\n      closes: REQ-0001, REQ-0002, REQ-0003")
         done = repository.run("check", "coverage")
         self.assertEqual(done.returncode, 0, done.stdout)
+        self.assertIn("coverage: 3 of 3 requirements in force land in a record\n", done.stdout)
 
     def test_status_counts_requirements_by_their_state(self):
-        """REQ-3600, REQ-3602, REQ-3608: the counts name closed and open, and no verified state."""
+        """REQ-3680, REQ-3602: the counts name closed and open, and no verified state."""
         repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.finish(repository)
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
         self.second_requirement(repository, addressed=False)
-        self.assertIn("Requirements\n  2 in force: 1 closed, 0 in a task not yet done, 0 reopened by a defect, "
-                      "0 postponed, 1 named by no task\n", repository.run("status").stdout)
+        self.assertIn("Requirements\n  2 in force: 1 closed, 0 in a decision not yet done, 0 reopened by a defect, "
+                      "0 postponed, 1 named by no decision\n", repository.run("status").stdout)
 
-    def test_status_closes_an_epic_whose_tasks_are_done(self):
-        """REQ-3604, REQ-3620: every task done closes the epic, and no document or verify step is named."""
+    def test_status_closes_a_done_decision(self):
+        """REQ-3678: a done decision is closed, and no document or verify step is named."""
         repository = self.repo()
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
+        self.finish(repository)
         status = repository.run("status").stdout
-        self.assertIn("closed: EPC-0001 (1 task done)", status)
+        self.assertIn("closed: ADR-0001", status)
         self.assertNotIn("verify", status)
         self.assertNotIn("document", status)
 
@@ -2351,10 +1884,10 @@ class RequirementState(unittest.TestCase):
         self.assertIn("Requirements\n  2 in force:", open_status.stdout)
         self.assertIn("Postponed\n  1 requirement, listed by `paw status`\n", open_status.stdout)
         self.assertNotIn("until:", open_status.stdout)
-        self.tasks(repository, "- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        self.assertIn("closed: EPC-0001", repository.run("status").stdout)
+        self.finish(repository)
+        self.assertIn("closed: ADR-0001", repository.run("status").stdout)
         closed = repository.run("status", "--brief").stdout
-        self.assertNotIn("closed: EPC-0001", closed)
+        self.assertNotIn("closed: ADR-0001", closed)
         self.assertIn("1 closed, listed by `paw status`", closed)
         self.assertIn("Only a new record can fix\n", closed)
 
@@ -2364,148 +1897,58 @@ class RequirementState(unittest.TestCase):
         self.postpone(repository, "1. A second repository asks.\n2. The owner asks.")
         self.assertIn("  REQ-0002 by ADR-0002, until: A second repository asks.\n\n", repository.run("status").stdout)
 
-    def test_a_postponement_whose_task_was_dropped_is_listed_and_counted_alike(self):
-        """REQ-3622: a requirement whose only task is dropped is postponed in the count and in the list."""
+    def test_a_postponement_whose_later_decision_was_withdrawn_is_listed_and_counted_alike(self):
+        """REQ-3622: a requirement whose only later decision is withdrawn is postponed in the count and in the list."""
         repository = self.repo()
         self.postpone(repository, "- The owner asks.")
-        repository.edit("tasks/TSK-0001-a-task.md", "    REQ-0001,", "    REQ-0001,\n    REQ-0002,")
-        self.tasks(repository, "- [~] T-001 TSK-0001 the task\n      closes: REQ-0001, REQ-0002\n      dropped: not now")
+        decision = (repository.root / "adrs/ADR-0001-a-choice.md").read_text(encoding="utf-8")
+        repository.write("adrs/ADR-0003-dropped.md", decision.replace("ADR-0001", "ADR-0003").replace(
+            "addresses: [REQ-0001]", "addresses: [REQ-0002]").replace("status: approved", "status: withdrawn"))
         status = repository.run("status").stdout
         self.assertIn("1 postponed", status)
         self.assertIn("  REQ-0002 by ADR-0002, until: The owner asks.\n", status)
 
 
-class SevenSteps(unittest.TestCase):
-    """TSK-3810, ADR-2300: `paw` knows seven steps, reads no Cover, and lets a task realise a decision."""
+SIX_STEPS = "research, requirements, design, spec, implement, review"
+
+
+class SixSteps(unittest.TestCase):
+    """ADR-3090, ADR-2300: `paw` knows six steps, reads no Cover, and implements a decision or a defect."""
 
     def repo(self):
         repository = Repository()
         self.addCleanup(repository.tmp.cleanup)
         return repository
 
-    def test_an_unknown_step_names_the_seven(self):
-        """REQ-3638: the steps are research, requirements, design, spec, epic, implement and review."""
-        done = self.repo().run("ready", "bogus", "TSK-0001")
-        self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
-        self.assertIn("the steps are research, requirements, design, spec, epic, implement, review\n", done.stderr)
-
     def test_a_retired_step_is_an_unknown_step(self):
-        """TSK-4060 criterion 1, REQ-3004, ADR-2350: cover, document and verify are refused as any step `paw ready`
-        doesn't know, with exit 2 and the seven steps in order and nothing else, so `bogus` gets the same line with
-        its own name and no pointer follows any of them."""
+        """TSK-4060 criterion 1, REQ-3004, REQ-3666: cover, document, verify and epic are refused as any step
+        `paw ready` doesn't know, with exit 2 and the six steps in order and nothing else, so `bogus` gets the
+        same line with its own name and no pointer follows any of them."""
         repository = self.repo()
-        for step in ("cover", "document", "verify", "bogus"):
+        for step in ("cover", "document", "verify", "epic", "bogus"):
             with self.subTest(step=step):
-                done = repository.run("ready", step, "TSK-0001")
+                done = repository.run("ready", step, "ADR-0001")
                 self.assertEqual(done.returncode, 2, done.stdout + done.stderr)
                 self.assertEqual(done.stdout, "")
-                self.assertEqual(done.stderr, f"paw ready: no step is named {step}; the steps are research, "
-                                              "requirements, design, spec, epic, implement, review\n")
+                self.assertEqual(done.stderr, f"paw ready: no step is named {step}; the steps are {SIX_STEPS}\n")
 
     def test_implement_reads_no_cover(self):
-        """REQ-3616: an approved task with no Cover section is ready to implement."""
+        """REQ-3682: an approved decision with a plan and no Cover section is ready to implement."""
         repository = self.repo()
-        text = (repository.root / "tasks/TSK-0001-a-task.md").read_text(encoding="utf-8")
-        self.assertNotIn("## Cover", text)
-        done = repository.run("ready", "implement", "TSK-0001")
+        self.assertNotIn("## Cover", (repository.root / "adrs/ADR-0001-a-choice.md").read_text(encoding="utf-8"))
+        done = repository.run("ready", "implement", "ADR-0001")
         self.assertEqual(done.returncode, 0, done.stdout)
-
-    def direct(self, repository, evidence="Not yet."):
-        (repository.root / "epics/EPC-0001-a-plan.md").unlink()
-        repository.edit("README.md", "- EPC-0001\n", "")
-        repository.edit("tasks/TSK-0001-a-task.md", "epic: EPC-0001", "realises: ADR-0001")
-        repository.edit("tasks/TSK-0001-a-task.md", "\nSee [the plan](../epics/EPC-0001-a-plan.md).\n", "\n")
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", f"## Evidence\n\n{evidence}")
-
-    def test_a_task_realises_a_decision_with_no_epic(self):
-        """REQ-3630: a task naming `realises: ADR-NNNN` and no epic passes every check and is next to implement."""
-        repository = self.repo()
-        self.direct(repository)
-        done = repository.run("check")
-        self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertIn("next: implement TSK-0001 (ADR-0001, 0 of 1 task done)", repository.run("status").stdout)
-        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
 
     def test_ready_accepts_done_as_post_approval(self):
-        """TSK-5190 criterion 2, REQ-0595: done task and decision remain ready inputs."""
+        """TSK-5190 criterion 2, REQ-3678: a done decision remains a ready input."""
         repository = self.repo()
-        self.direct(repository, evidence="In #1.")
         repository.edit("adrs/ADR-0001-a-choice.md", "status: approved", "status: done")
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: done")
-        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 0)
-
-    def test_a_draft_task_may_realise_a_decision(self):
-        """REQ-3630: `realises` counts as the one authority a draft names."""
-        repository = self.repo()
-        self.direct(repository)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
-        done = repository.run("check", "rules")
-        self.assertEqual(done.returncode, 0, done.stdout)
-
-    def second_direct(self, repository, status="approved", evidence="Not yet.", extra=""):
-        text = (repository.root / "tasks/TSK-0001-a-task.md").read_text(encoding="utf-8")
-        text = text.replace("TSK-0001", "TSK-0002").replace("epic: EPC-0001", f"realises: ADR-0001{extra}")
-        text = text.replace("status: approved", f"status: {status}").replace("## Evidence\n\nText.", f"## Evidence\n\n{evidence}")
-        repository.write("tasks/TSK-0002-direct.md", text.replace("\nSee [the plan](../epics/EPC-0001-a-plan.md).\n", "\n"))
-
-    def test_a_decision_with_an_epic_and_an_open_direct_task_is_not_closed(self):
-        """REQ-3604, REQ-3630: a direct task open beside a finished epic keeps the decision open in status."""
-        repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        self.second_direct(repository)
-        status = repository.run("status").stdout
-        self.assertIn("next: implement TSK-0002 (EPC-0001, 1 of 2 tasks done)", status)
-        self.assertNotIn("closed: EPC-0001", status)
-
-    def test_a_withdrawn_direct_task_is_dropped(self):
-        """REQ-3630: a direct task withdrawn has nothing to mark it, so its status drops it."""
-        repository = self.repo()
-        self.direct(repository)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: withdrawn")
-        self.assertIn("closed: ADR-0001 (1 task done)", repository.run("status").stdout)
-        self.assertIn("TSK-0001 dropped in ADR-0001", repository.run("show", "REQ-0001").stdout)
-
-    def test_status_waits_on_a_draft_direct_task_as_ready_does(self):
-        """REQ-3630: status and `ready implement` agree that a draft direct task waits for approval."""
-        repository = self.repo()
-        self.direct(repository)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
-        self.assertIn("waiting: TSK-0001 is draft and not approved", repository.run("status").stdout)
-        self.assertEqual(repository.run("ready", "implement", "TSK-0001").returncode, 1)
-
-    def test_a_task_realises_only_a_decision(self):
-        """REQ-3630: `realises` naming a defect is refused by the draft rule and by `ready`."""
-        repository = self.repo()
-        self.direct(repository)
-        repository.edit("tasks/TSK-0001-a-task.md", "realises: ADR-0001", "realises: BUG-0001")
-        done = repository.run("ready", "implement", "TSK-0001")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("TSK-0001 realises BUG-0001, which is not a decision", done.stdout)
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
-        self.assertIn("realises BUG-0001, where a task realises only a decision", repository.run("check", "rules").stdout)
-
-    def test_a_task_naming_no_authority_closes_from_its_evidence(self):
-        """TSK-5190 criterion 3, REQ-0596: a grandfathered unowned task closes from Evidence."""
-        repository = self.repo()
-        self.second_direct(repository, evidence="In #1.")
-        repository.edit("tasks/TSK-0002-direct.md", "realises: ADR-0001\n", "")
-        repository.edit("tasks/TSK-0002-direct.md", "status: approved", "status: done")
-        self.assertIn("TSK-0002 done in \n", repository.run("show", "REQ-0001").stdout)
-
-    def test_a_direct_task_waits_on_its_dependency(self):
-        """REQ-1358, REQ-3630: a direct task's blocking dependency is done once that task's Evidence is written."""
-        repository = self.repo()
-        self.direct(repository)
-        self.second_direct(repository, extra="")
-        repository.edit("tasks/TSK-0002-direct.md", "## Depends on\n\nText.", "## Depends on\n\n- TSK-0001 (blocking): it lands first")
-        self.assertEqual(repository.run("ready", "implement", "TSK-0002").returncode, 1)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nNot yet.", "## Evidence\n\nIn #1.")
-        self.assertEqual(repository.run("ready", "implement", "TSK-0002").returncode, 0)
+        self.assertEqual(repository.run("ready", "implement", "ADR-0001").returncode, 0)
 
     def test_a_retired_step_is_refused_in_a_draft_defect_only(self):
-        """REQ-3638: a draft defect may not enter at a retired step; one approved, superseded or withdrawn keeps it."""
+        """REQ-3666: a draft defect may not enter at a retired step; one approved, superseded or withdrawn keeps it."""
         repository = self.repo()
-        for step in ("cover", "document", "verify"):
+        for step in ("cover", "document", "verify", "epic"):
             repository.edit("bugs/BUG-0001-a-defect.md", "found:", f"enters: {step}\nfound:")
             for status, code in (("approved", 0), ("superseded", 0), ("withdrawn", 0), ("draft", 1)):
                 text = (repository.root / "bugs/BUG-0001-a-defect.md").read_text(encoding="utf-8")
@@ -2519,34 +1962,25 @@ class SevenSteps(unittest.TestCase):
                     self.assertIn(f"enters {step}, which is not a step", done.stdout)
             repository.edit("bugs/BUG-0001-a-defect.md", f"enters: {step}\n", "")
 
-    def test_a_direct_task_closes_with_its_evidence(self):
-        """REQ-3630, REQ-3604: with no epic to mark it, a task is done once its Evidence is written."""
-        repository = self.repo()
-        self.direct(repository, evidence="In #1: the checks pass.")
-        self.assertIn("closed: ADR-0001 (1 task done)", repository.run("status").stdout)
-        self.assertIn("State\n  closed\n  TSK-0001 done in ADR-0001\n", repository.run("show", "REQ-0001").stdout)
-
 
 class ShortChainPrompts(unittest.TestCase):
-    """TSK-3820, ADR-2300: the prompts and templates ask for the seven-step chain."""
-
-    SEVEN = ["research", "requirements", "design", "spec", "epic", "implement", "review"]
+    """ADR-3090, ADR-2300: the prompts and templates ask for the six-step chain."""
 
     def flat(self, path):
         return re.sub(r"\s+", " ", path.read_text(encoding="utf-8"))
 
-    def test_the_skill_names_seven_steps_in_order(self):
-        """Criterion 1, REQ-3638: SKILL.md's description and body name the seven steps in order."""
+    def test_the_skill_names_six_steps_in_order(self):
+        """REQ-3666: SKILL.md's description and body name the six steps in order."""
         text = (METHOD / "SKILL.md").read_text(encoding="utf-8")
         front, body = text.split("\n---\n", 1)
-        pattern = r",\s+".join(self.SEVEN[:-1]) + r",?\s+and\s+" + self.SEVEN[-1]
+        pattern = r",\s+".join(STEPS[:-1]) + r",?\s+and\s+" + STEPS[-1]
         description = next(line for line in front.splitlines() if line.startswith("description:"))
         self.assertRegex(description, pattern)
         self.assertRegex(re.sub(r"\s+", " ", body), pattern)
 
-    def test_each_of_the_seven_steps_has_one_file(self):
-        """Criterion 1, REQ-3638: `steps/` holds one file for each of the seven steps and no other."""
-        self.assertEqual(sorted(p.stem for p in (METHOD / "steps").glob("*.md")), sorted(self.SEVEN))
+    def test_each_of_the_six_steps_has_one_file(self):
+        """REQ-3666: `steps/` holds one file for each of the six steps and no other."""
+        self.assertEqual(sorted(p.stem for p in (METHOD / "steps").glob("*.md")), sorted(STEPS))
 
     def test_nothing_the_unit_ships_dispatches_a_record_reviewer_or_a_skeptic(self):
         """Criterion 2, REQ-3624: no shipped file names the record reviewer or the skeptic, and the agent is gone."""
@@ -2557,26 +1991,23 @@ class ShortChainPrompts(unittest.TestCase):
         self.assertEqual(found, [])
 
     def test_implement_writes_the_tests_first(self):
-        """Criterion 3, REQ-3616, REQ-3640, REQ-3642, REQ-3644, REQ-3618: tests in a first commit that fails, not
-        weakened outside a commit saying why, and the documentation and the record marks in the same pull request."""
+        """REQ-3682: tests in a first commit that fails, not weakened outside a commit saying why, and the
+        documentation and `paw done` in the same pull request."""
         text = self.flat(METHOD / "steps" / "implement.md")
-        self.assertRegex(text, r"test for each acceptance criterion a program can check")
-        self.assertRegex(text, r"commit of their own.{0,80}before any (commit|code) that implements")
+        self.assertRegex(text, r"test for each outcome of the plan step a program can check")
+        self.assertRegex(text, r"commit of their own, before any commit that implements")
         self.assertRegex(text, r"see each (one|test) fail")
         self.assertRegex(text, r"(modify|weaken).{0,120}commit of its own.{0,60}why")
         self.assertRegex(text, r"documentation.{0,120}same pull request|same pull request.{0,120}documentation")
-        self.assertRegex(text, r"mark the task.{0,80}same pull request")
-        self.assertRegex(text, r"Where every stage passed,.{0,260}mark the task")
-        self.assertRegex(text, r"Mark the task done only in a change whose stages all passed, because")
-        self.assertNotRegex(text, r"its output")
-        self.assertRegex(text, r"Keep `Not yet\.` as the first line of the task's Evidence until every stage has passed, because")
-        self.assertRegex(text, r"Where a stage didn't pass, leave `Not yet\.` as the first line")
+        self.assertRegex(text, r"paw done <record> --pr <number>")
+        self.assertRegex(text, r"Where every stage passed,.{0,400}paw done <record>")
+        self.assertRegex(text, r"Where a stage didn't pass, leave the record `approved`")
 
     def test_review_is_a_code_review_in_the_pull_request(self):
-        """Criterion 4, REQ-3626, REQ-3612: a review of the change in its pull request, fixed there, written into no
+        """REQ-3626, REQ-3612: a review of the change in its pull request, fixed there, written into no
         record, reporting a test that would pass against a wrong implementation."""
         text = self.flat(METHOD / "steps" / "review.md")
-        self.assertRegex(text, r"epic's pull request")
+        self.assertRegex(text, r"pull request of a decision or a defect")
         self.assertRegex(text, r"fix.{0,80}in (that|the same) pull request")
         self.assertRegex(text, r"Write no finding into the record")
         self.assertRegex(text, r"writes no finding into the record")
@@ -2585,37 +2016,30 @@ class ShortChainPrompts(unittest.TestCase):
         self.assertRegex(text, r"End in one verdict")
         self.assertRegex(text, r"would (still )?pass against a wrong implementation")
 
-    def test_the_templates_carry_no_cover_and_no_checked_at(self):
-        """Criterion 5, REQ-3616, REQ-3602: the task template has no Cover section and the epic no checked-at."""
+    def test_the_templates_carry_a_plan_and_the_retired_ones_are_gone(self):
+        """REQ-3672, REQ-3674, REQ-3666: the decision and defect templates hold `## Plan`, and no epic or task
+        template ships."""
         templates = UNIT / "templates"
-        self.assertNotIn("## Cover", (templates / "task.md").read_text(encoding="utf-8"))
-        self.assertNotIn("checked-at", (templates / "epic.md").read_text(encoding="utf-8"))
-        self.assertIn("realises:", (templates / "task.md").read_text(encoding="utf-8"))
+        for name in ("adr.md", "bug.md"):
+            self.assertIn("## Plan", (templates / name).read_text(encoding="utf-8"), name)
+        for name in ("epic.md", "task.md"):
+            self.assertFalse((templates / name).exists(), name)
 
-    def test_the_living_documents_name_seven_steps(self):
-        """Criterion 6, REQ-3638: the constitution and the root README give the chain with seven steps."""
+    def test_the_living_documents_name_six_steps(self):
+        """REQ-3666: the constitution and the root README give the chain with six steps."""
         root = UNIT.parent.parent
-        chain = r"research -> requirements -> design -> spec -> epic\s+-> implement -> review"
+        chain = r"research -> requirements -> design -> spec -> implement -> review"
         for name in ("CLAUDE.md", "README.md", "project/vision.md"):
             text = (root / name).read_text(encoding="utf-8")
             self.assertRegex(text, chain, name)
-        for name in ("CLAUDE.md", "README.md", "project/vision.md", "llms.txt", "plugins/meow-flow/README.md"):
+        for name in ("README.md", "llms.txt", "plugins/meow-flow/README.md"):
             text = re.sub(r"\s+", " ", (root / name).read_text(encoding="utf-8"))
-            self.assertNotRegex(text, r"(?i)\b(nine|ten) steps\b", name)
-            self.assertRegex(text, r"(?i)\bseven steps\b", name)
+            self.assertNotRegex(text, r"(?i)\b(seven|nine|ten) steps\b", name)
+            self.assertRegex(text, r"(?i)\bsix steps\b", name)
 
     def test_a_criterion_is_decidable_from_its_own_work(self):
-        """REQ-3628: the task and epic templates and the epic step ask for a criterion its own work decides."""
-        templates = UNIT / "templates"
-        self.assertIn("decidable from this task's own work", self.flat(templates / "task.md"))
-        self.assertIn("decidable from this epic's own work", self.flat(templates / "epic.md"))
-        self.assertRegex(self.flat(METHOD / "steps" / "epic.md"), r"own work decides, never a later epic's")
-
-    def test_the_epic_step_writes_a_lone_task_with_no_epic(self):
-        """REQ-3630: the epic step writes one task naming `realises:` where one task realises the decision."""
-        text = self.flat(METHOD / "steps" / "epic.md")
-        self.assertRegex(text, r"Where one task realises the decision, write that task alone, naming `realises: ADR-NNNN`")
-        self.assertRegex(text, r"Write no epic for a decision one task realises, because")
+        """REQ-3672: the design step asks for a criterion this pull request's own work decides."""
+        self.assertRegex(self.flat(METHOD / "steps" / "design.md"), r"this pull request's own work decides")
 
 
 class MigratedShape(unittest.TestCase):
@@ -2632,23 +2056,21 @@ class MigratedShape(unittest.TestCase):
             subprocess.run(["git", *args], cwd=repository.path, check=True, capture_output=True)
 
     def test_the_clean_record_carries_no_checked_at(self):
-        """A specification and an epic need no `checked-at` to pass every check."""
+        """A specification and a decision need no `checked-at` to pass every check."""
         repository = self.repo()
-        for name in ("specs/SPC-0001-a-part.md", "epics/EPC-0001-a-plan.md"):
+        for name in ("specs/SPC-0001-a-part.md", "adrs/ADR-0001-a-choice.md"):
             self.assertNotIn("checked-at", (repository.root / name).read_text(encoding="utf-8"), name)
         self.assertEqual(repository.run("check").returncode, 0)
-
     def test_checked_at_is_a_retired_field(self):
         """A record still carrying `checked-at` is reported, by file and line."""
         repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", 'realises: ADR-0001\nchecked-at: "#1"')
+        repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at: "#1"')
         done = repository.run("check", "front-matter")
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("project/epics/EPC-0001-a-plan.md:7: carries checked-at, a retired field", done.stdout)
-
+        self.assertIn("project/adrs/ADR-0001-a-choice.md:7: carries checked-at, a retired field", done.stdout)
     def test_a_retired_section_is_reported(self):
         """A record still carrying `## Cover`, `## Verified` or `## Open review findings` is reported by `shape`."""
-        for name, section in (("tasks/TSK-0001-a-task.md", "Cover"), ("epics/EPC-0001-a-plan.md", "Verified"),
+        for name, section in (("bugs/BUG-0001-a-defect.md", "Cover"), ("requirements/REQ-0001-an-obligation.md", "Verified"),
                               ("adrs/ADR-0001-a-choice.md", "Open review findings")):
             with self.subTest(section=section):
                 repository = self.repo()
@@ -2670,11 +2092,11 @@ class MigratedShape(unittest.TestCase):
         """The migration's own edits aren't a change: an approved record loses `## Cover`, `## Open review findings`
         or `checked-at` with no finding, and still can't change anything else."""
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "## Cover\n\n- Checks: none\n\n## Evidence")
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Triage", "## Cover\n\n- Checks: none\n\n## Triage")
         repository.edit("requirements/REQ-0001-an-obligation.md", "# REQ-0001\n", "# REQ-0001\n\n## Open review findings\n\nOne.\n")
         repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at: "#1"')
         self.commit(repository)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\n- Checks: none\n\n## Evidence", "## Evidence")
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Cover\n\n- Checks: none\n\n## Triage", "## Triage")
         repository.edit("requirements/REQ-0001-an-obligation.md", "\n## Open review findings\n\nOne.\n", "")
         repository.edit("adrs/ADR-0001-a-choice.md", '\nchecked-at: "#1"', "")
         done = repository.run("check", "frozen", "--base", "HEAD")
@@ -2699,7 +2121,7 @@ class MigratedShape(unittest.TestCase):
     def test_a_retired_heading_with_more_words_is_the_same_section(self):
         """`## Verified, and closed with a criterion unmet` is the Verified section; `## Covered` is not Cover."""
         repository = self.repo()
-        path = repository.root / "epics/EPC-0001-a-plan.md"
+        path = repository.root / "adrs/ADR-0001-a-choice.md"
         text = path.read_text(encoding="utf-8")
         path.write_text(text + "\n## Verified, and closed with a criterion unmet\n\nText.\n", encoding="utf-8")
         self.assertIn("carries the section Verified, which is retired", repository.run("check", "shape").stdout)
@@ -2711,11 +2133,11 @@ class MigratedShape(unittest.TestCase):
         span of backticks isn't a fence, so the section after it is still a section."""
         repository = self.repo()
         repository.edit("adrs/ADR-0001-a-choice.md", "addresses: [REQ-0001]", 'addresses: [REQ-0001]\nchecked-at:\n  [\n    "#1",\n  ]')
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence", "```paw check``` prints nothing.\n\n## Cover\n\nNot yet.\n\n## Evidence")
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Triage", "```paw check``` prints nothing.\n\n## Cover\n\nNot yet.\n\n## Triage")
         self.assertIn("carries the section Cover", repository.run("check", "shape").stdout)
         self.commit(repository)
         repository.edit("adrs/ADR-0001-a-choice.md", '\nchecked-at:\n  [\n    "#1",\n  ]', "")
-        repository.edit("tasks/TSK-0001-a-task.md", "## Cover\n\nNot yet.\n\n## Evidence", "## Evidence")
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Cover\n\nNot yet.\n\n## Triage", "## Triage")
         done = repository.run("check", "frozen", "--base", "HEAD")
         self.assertEqual(done.returncode, 0, done.stdout)
 
@@ -2732,7 +2154,7 @@ class MigratedShape(unittest.TestCase):
         line in an approved record is a change."""
         repository = self.repo()
         self.commit(repository)
-        repository.edit("adrs/ADR-0001-a-choice.md", "revised: 2026-01-01", "revised: 2026-02-02")
+        repository.edit("requirements/REQ-0001-an-obligation.md", "revised: 2026-01-01", "revised: 2026-02-02")
         self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
 
     def test_one_retired_section_removed_while_another_stays(self):
@@ -2749,13 +2171,12 @@ class MigratedShape(unittest.TestCase):
         repository.edit("adrs/ADR-0001-a-choice.md", "## Verified\n\nKept.", "## Verified\n\nChanged.")
         self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
 
-    def test_a_first_level_heading_in_evidence_ends_nothing(self):
-        """Only a `## ` heading bounds a section, so a `# ` line in a task's Evidence is part of it."""
+    def test_a_first_level_heading_in_a_plan_ends_nothing(self):
+        """Only a `## ` heading bounds a section, so a `# ` line in a decision's plan is part of it."""
         repository = self.repo()
         self.commit(repository)
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\n# ran\n\noutput")
+        repository.edit("adrs/ADR-0001-a-choice.md", "## Plan\n\nText.", "## Plan\n\n# ran\n\noutput")
         self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
-
     def test_a_fence_closes_on_its_own_mark_at_its_own_length(self):
         """A four-mark fence holds a three-mark one, a line with an info string closes nothing, a tilde fence takes
         any info string, and a fence indented four spaces is code, not a fence."""
@@ -2769,36 +2190,12 @@ class MigratedShape(unittest.TestCase):
                 path.write_text(path.read_text(encoding="utf-8") + f"\n{body}\n", encoding="utf-8")
                 self.assertEqual("which is retired" in repository.run("check", "shape").stdout, reported)
 
-    def test_a_second_tasks_section_or_a_changed_relation_freezes_an_epic(self):
-        """An epic's free text is its first Tasks section: a second one added to hold new text, and a changed
-        `realises`, are reported, and a fenced heading inside Tasks doesn't end it."""
-        repository = self.repo()
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n```text\n## Example\n```\n\n- [ ] T-001 TSK-0001 the task")
-        self.commit(repository)
-        repository.edit("epics/EPC-0001-a-plan.md", "- [ ] T-001", "- [x] T-001")
-        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
-        repository.edit("epics/EPC-0001-a-plan.md", "## Coverage", "## Tasks\n\nNew criterion: easier.\n\n## Coverage")
-        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nNew criterion: easier.\n\n## Coverage", "## Coverage")
-        repository.edit("epics/EPC-0001-a-plan.md", "realises: ADR-0001", "realises: BUG-0001")
-        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 1)
-
-    def test_an_approved_epic_may_change_its_tasks_and_nothing_else(self):
-        """With no `checked-at` to freeze it, an approved epic changes only under `## Tasks`."""
-        repository = self.repo()
-        self.commit(repository)
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [x] T-001 TSK-0001 the task")
-        self.assertEqual(repository.run("check", "frozen", "--base", "HEAD").returncode, 0)
-        repository.edit("epics/EPC-0001-a-plan.md", "## Acceptance criteria\n\nText.", "## Acceptance criteria\n\nEasier.")
-        done = repository.run("check", "frozen", "--base", "HEAD")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("project/epics/EPC-0001-a-plan.md: approved at HEAD", done.stdout)
 
 
 class ApprovedOnTheBranch(unittest.TestCase):
-    """TSK-5290, ADR-2860: a task's approval is read from the working tree, wherever the trunk stands."""
+    """TSK-5290, ADR-3090: a record's approval is read from the working tree, wherever the trunk stands."""
 
-    TASK = "tasks/TSK-0001-a-task.md"
+    DECISION = "adrs/ADR-0001-a-choice.md"
 
     def git(self, repository, *args):
         return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", *args],
@@ -2806,51 +2203,49 @@ class ApprovedOnTheBranch(unittest.TestCase):
                               env={**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"})
 
     def repo(self, draft=False):
-        """A record whose one open task is committed on `work` and absent from `main`."""
+        """A record whose one open decision is committed on `work` and absent from `main`."""
         repository = Repository(profile='[git]\ntrunk = "main"\n')
         self.addCleanup(repository.tmp.cleanup)
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.", "## Tasks\n\n- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001")
-        repository.edit(self.TASK, "## Evidence\n\nText.", "## Evidence\n\nNot yet.")
         self.git(repository, "checkout", "-q", "-b", "main")
-        task = (repository.root / self.TASK).read_text(encoding="utf-8")
-        (repository.root / self.TASK).unlink()
+        decision = (repository.root / self.DECISION).read_text(encoding="utf-8")
+        (repository.root / self.DECISION).unlink()
         self.git(repository, "add", "-A")
         self.git(repository, "commit", "-q", "-m", "base")
         self.git(repository, "checkout", "-q", "-b", "work")
         if draft:
-            task = task.replace("status: approved", "status: draft")
-        (repository.root / self.TASK).write_text(task, encoding="utf-8")
+            decision = decision.replace("status: approved", "status: draft")
+        (repository.root / self.DECISION).write_text(decision, encoding="utf-8")
         self.git(repository, "add", "-A")
-        self.git(repository, "commit", "-q", "--allow-empty", "-m", "the task")
+        self.git(repository, "commit", "-q", "--allow-empty", "-m", "the decision")
         return repository
 
-    def test_a_task_approved_on_the_branch_is_ready(self):
-        """Criterion 1, REQ-4412: `ready implement` exits 0 for a task approved on the branch and absent from the trunk."""
-        done = self.repo().run("ready", "implement", "TSK-0001")
+    def test_a_decision_approved_on_the_branch_is_ready(self):
+        """Criterion 1: `ready implement` exits 0 for a decision approved on the branch and absent from the trunk."""
+        done = self.repo().run("ready", "implement", "ADR-0001")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
-    def test_status_names_the_task_as_next(self):
-        """Criterion 2, REQ-4412: `status` prints next and no waiting line for that task."""
+    def test_status_names_the_decision_as_next(self):
+        """Criterion 2: `status` prints next and no waiting line for that decision."""
         status = self.repo().run("status").stdout
-        self.assertIn("next: implement TSK-0001 (EPC-0001, 0 of 1 task done)", status)
-        self.assertNotIn("waiting: TSK-0001", status)
+        self.assertIn("next: implement ADR-0001", status)
+        self.assertNotIn("waiting: ADR-0001", status)
 
-    def test_a_draft_task_is_not_ready(self):
-        """Criterion 3, REQ-4412: reading the working tree still refuses a task that is a draft there."""
-        done = self.repo(draft=True).run("ready", "implement", "TSK-0001")
+    def test_a_draft_decision_is_not_ready(self):
+        """Criterion 3: reading the working tree still refuses a decision that is a draft there."""
+        done = self.repo(draft=True).run("ready", "implement", "ADR-0001")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("TSK-0001", done.stdout)
+        self.assertIn("ADR-0001", done.stdout)
 
 
-class EpicIsOnePullRequest(unittest.TestCase):
-    """TSK-5291, ADR-2860: the constitution and the method unit state the unit of a pull request."""
+class OneRecordOnePullRequest(unittest.TestCase):
+    """ADR-3090, REQ-3668: the constitution and the method unit state the unit of a pull request."""
 
     ROOT = Path(__file__).resolve().parents[3]
-    FROZEN = ("project/research/", "project/adrs/", "project/tasks/", "project/requirements/",
-              "project/bugs/", "project/epics/", "project/insights/")
+    FROZEN = ("project/research/", "project/adrs/", "project/archive/", "project/requirements/",
+              "project/bugs/", "project/insights/")
 
     def test_no_living_text_says_a_task_is_a_pull_request(self):
-        """Criterion 1, REQ-4400: the old statement of the unit appears in no living or shipped file."""
+        """REQ-3668: the old statement of the unit appears in no living or shipped file."""
         tracked = subprocess.run(["git", "ls-files"], cwd=self.ROOT, capture_output=True, text=True, check=True)
         found = []
         for name in tracked.stdout.splitlines():
@@ -2865,16 +2260,10 @@ class EpicIsOnePullRequest(unittest.TestCase):
                     found.append(f"{name}:{number}")
         self.assertEqual(found, [])
 
-    def test_the_constitution_says_an_epic_is_one_pull_request(self):
-        """Criterion 2, REQ-4400: the principle names the epic as the unit (TSK-4730 cut the layout table)."""
-        text = (self.ROOT / "CLAUDE.md").read_text(encoding="utf-8")
-        self.assertRegex(text, r"An epic is one pull request")
-
-    def test_the_implement_step_works_the_tasks_of_an_epic_on_one_branch(self):
-        """Criterion 3, REQ-4414: the step says the tasks of an epic share one branch, each marked where it lands."""
-        text = (self.ROOT / "plugins/meow-flow/skills/method/steps/implement.md").read_text(encoding="utf-8")
-        self.assertRegex(text, r"tasks of (the|an) epic[^.]{0,200}one branch")
-        self.assertRegex(text, r"mark(ed)? (it |each |the task )?in the commit that")
+    def test_the_constitution_says_a_record_is_one_pull_request(self):
+        """REQ-3668: the principle names the decision or the defect as the unit."""
+        text = re.sub(r"\s+", " ", (self.ROOT / "CLAUDE.md").read_text(encoding="utf-8"))
+        self.assertRegex(text, r"A decision or a defect is one issue and one pull request")
 
 
 class ReadDenial(unittest.TestCase):
@@ -2912,17 +2301,16 @@ class WriteCommands(unittest.TestCase):
     def test_approve_changes_the_status_line_and_nothing_else(self):
         """TSK-5310 criterion 1, REQ-4602: a draft the check accepts is approved, and only its status line moved."""
         repository = self.repo()
-        repository.edit("tasks/TSK-0001-a-task.md", "status: approved", "status: draft")
-        repository.edit("tasks/TSK-0001-a-task.md", "## What to do", "## Acceptance criteria\n\nText.\n\n## What to do")
+        name = "adrs/ADR-0001-a-choice.md"
+        repository.edit(name, "status: approved", "status: draft")
+        repository.edit(name, "## Plan", "## How I will know it was realised\n\nText.\n\n## What this does not settle\n\nText.\n\n## Plan")
         before = self.snapshot(repository)
-        done = repository.run("approve", "TSK-0001")
+        done = repository.run("approve", "ADR-0001")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         after = self.snapshot(repository)
-        self.assertEqual(self.changed(before, after), ["tasks/TSK-0001-a-task.md"])
-        self.assertEqual(self.lines_changed(before["tasks/TSK-0001-a-task.md"], after["tasks/TSK-0001-a-task.md"]),
-                         [("status: draft", "status: approved")])
+        self.assertEqual(self.changed(before, after), [name])
+        self.assertEqual(self.lines_changed(before[name], after[name]), [("status: draft", "status: approved")])
         self.assertEqual(repository.run("check").returncode, 0)
-
     def test_approve_refuses_a_draft_with_a_finding_and_changes_nothing(self):
         """TSK-5310 criterion 2, REQ-4602: a finding about the draft stops the command, names it, and writes nothing."""
         repository = self.repo()
@@ -2938,7 +2326,7 @@ class WriteCommands(unittest.TestCase):
         """TSK-5310, REQ-4602: an approved record isn't approved again, and nothing is written."""
         repository = self.repo()
         before = self.snapshot(repository)
-        done = repository.run("approve", "TSK-0001")
+        done = repository.run("approve", "ADR-0001")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("not a draft", done.stdout)
         self.assertEqual(self.snapshot(repository), before)
@@ -2967,54 +2355,58 @@ class WriteCommands(unittest.TestCase):
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertEqual(self.snapshot(repository), before)
 
-    def finished_task(self, repository):
-        repository.edit("tasks/TSK-0001-a-task.md", "## Evidence\n\nText.", "## Evidence\n\nThe tests close it.")
-        repository.edit("epics/EPC-0001-a-plan.md", "## Tasks\n\nText.",
-                        "## Tasks\n\n- [ ] T-001 TSK-0001 the task\n      closes: REQ-0001")
-
-    def test_done_closes_the_task_its_epic_and_the_decision(self):
-        """TSK-5311 criteria 1 and 2, REQ-4600: one command stores done, marks the epic and closes the last of them."""
+    def test_done_stores_done_and_names_the_pull_request(self):
+        """REQ-3678: one command stores `done`, adds `pr:` and changes no other record."""
         repository = self.repo()
-        self.finished_task(repository)
-        done = repository.run("done", "TSK-0001", "--pr", "12")
+        before = self.snapshot(repository)
+        done = repository.run("done", "ADR-0001", "--pr", "12")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         files = self.snapshot(repository)
-        self.assertIn("status: done", files["tasks/TSK-0001-a-task.md"])
-        self.assertIn("- [x] T-001 TSK-0001 the task (done: pull request 12)", files["epics/EPC-0001-a-plan.md"])
-        self.assertIn("status: done", files["epics/EPC-0001-a-plan.md"])
-        self.assertIn("status: done", files["adrs/ADR-0001-a-choice.md"])
+        self.assertEqual(self.changed(before, files), ["adrs/ADR-0001-a-choice.md"])
+        front = files["adrs/ADR-0001-a-choice.md"].split("\n---\n", 1)[0]
+        self.assertIn("status: done", front)
+        self.assertIn("pr: 12", front)
         self.assertEqual(repository.run("check").returncode, 0, repository.run("check").stdout)
 
-    def test_done_leaves_the_epic_open_while_another_task_is_open(self):
-        """TSK-5311 criterion 1, REQ-4600: the epic and the decision keep their status until the last task is done."""
+    def test_done_closes_a_defect_that_names_its_check(self):
+        """REQ-3678, REQ-0368: a defect closes the same way, once its Closed by names a check."""
         repository = self.repo()
-        self.finished_task(repository)
-        repository.write("tasks/TSK-0002-a-second-task.md", record(
-            "task", "TSK-0002", {"epic": "EPC-0001", "closes": "\n  [\n    REQ-0001,\n  ]"},
-            ["What to do", "Depends on", "Evidence", "Left alone"]))
-        repository.edit("epics/EPC-0001-a-plan.md", "      closes: REQ-0001",
-                        "      closes: REQ-0001\n- [ ] T-002 TSK-0002 the second task\n      closes: REQ-0001")
-        done = repository.run("done", "TSK-0001", "--pr", "12")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        files = self.snapshot(repository)
-        self.assertIn("- [x] T-001 TSK-0001", files["epics/EPC-0001-a-plan.md"])
-        self.assertIn("- [ ] T-002 TSK-0002", files["epics/EPC-0001-a-plan.md"])
-        self.assertNotIn("status: done", files["epics/EPC-0001-a-plan.md"])
-        self.assertNotIn("status: done", files["adrs/ADR-0001-a-choice.md"])
-
-    def test_done_refuses_a_task_whose_evidence_is_not_written(self):
-        """TSK-5311 criterion 3, REQ-4600: a task whose Evidence opens with `Not yet.` isn't closed, and nothing moves."""
-        repository = self.repo()
-        self.finished_task(repository)
-        repository.edit("tasks/TSK-0001-a-task.md", "The tests close it.", "Not yet.")
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nText.", "## Closed by\n\nNot yet.")
         before = self.snapshot(repository)
-        done = repository.run("done", "TSK-0001", "--pr", "12")
+        done = repository.run("done", "BUG-0001", "--pr", "12")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("BUG-0001's Closed by doesn't name the check that closed it", done.stdout)
+        self.assertEqual(self.snapshot(repository), before)
+        repository.edit("bugs/BUG-0001-a-defect.md", "## Closed by\n\nNot yet.", "## Closed by\n\nThe regression test.")
+        done = repository.run("done", "BUG-0001", "--pr", "12")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("status: done", self.snapshot(repository)["bugs/BUG-0001-a-defect.md"])
+    def test_done_refuses_what_is_not_an_approved_decision_or_defect(self):
+        """REQ-3678, ADR-3090: an archived task, a requirement and a record already done are refused, and nothing moves."""
+        repository = self.repo()
+        repository.write("archive/tasks/TSK-0001-a-task.md", archived_task("REQ-0001"))
+        repository.edit("bugs/BUG-0001-a-defect.md", "status: approved", "status: done")
+        before = self.snapshot(repository)
+        for ident, said in (("TSK-0001", "only a decision or a defect is closed"),
+                            ("REQ-0001", "only a decision or a defect is closed"),
+                            ("BUG-0001", "only an approved record is closed")):
+            done = repository.run("done", ident, "--pr", "12")
+            self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+            self.assertIn(said, done.stdout)
+        self.assertEqual(self.snapshot(repository), before)
+    def test_done_refuses_a_decision_with_no_plan(self):
+        """REQ-3672, REQ-3678: a decision that addresses work closes only with its plan, and nothing moves."""
+        repository = self.repo()
+        repository.edit("adrs/ADR-0001-a-choice.md", "\n## Plan\n\nText.\n", "\n")
+        before = self.snapshot(repository)
+        done = repository.run("done", "ADR-0001", "--pr", "12")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("ADR-0001 carries no plan", done.stdout)
         self.assertEqual(self.snapshot(repository), before)
 
 
 class SynchronisationStep(unittest.TestCase):
-    """TSK-5322, REQ-4706: the implement step runs the synchronisation at the start and the end of an epic's work."""
+    """TSK-5322, REQ-4002: the implement step runs the synchronisation at the start and the end of a record's work."""
 
     ROOT = Path(__file__).resolve().parents[3]
 
@@ -3032,8 +2424,8 @@ class SynchronisationStep(unittest.TestCase):
         """Criterion 2: `tools/sync_issues.py` doesn't exist, and no living or shipped file names it."""
         self.assertFalse((self.ROOT / "tools" / "sync_issues.py").exists())
         tracked = subprocess.run(["git", "ls-files"], cwd=self.ROOT, capture_output=True, text=True, check=True)
-        frozen = ("project/research/", "project/adrs/", "project/tasks/", "project/requirements/", "project/bugs/",
-                  "project/epics/", "project/insights/")
+        frozen = ("project/research/", "project/adrs/", "project/archive/", "project/requirements/", "project/bugs/",
+                  "project/insights/")
         named = []
         for name in tracked.stdout.splitlines():
             if name.startswith(frozen) or name == "plugins/meow-flow/tests/test_record.py":

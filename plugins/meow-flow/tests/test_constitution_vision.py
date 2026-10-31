@@ -14,7 +14,7 @@ from pathlib import Path
 UNIT = Path(__file__).resolve().parent.parent
 ROOT = UNIT.parent.parent
 TREES = {"Claude": UNIT, "Pi": ROOT / "packages" / "meow-flow"}
-STEPS = ("research", "requirements", "design", "spec", "epic", "implement", "review")
+STEPS = ("research", "requirements", "design", "spec", "implement", "review")
 
 
 def flat(path):

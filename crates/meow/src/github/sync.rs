@@ -14,37 +14,11 @@
 
 use super::name_repository;
 use super::project::{
-    CLEAN, FOUND, Record, Tracker, UNREAD, fingerprint, halt, marker, projection, read_tracker,
-    record_mapping, records, report, same, tracker_fingerprint,
+    CLEAN, FOUND, Tracker, UNREAD, fingerprint, halt, marker, projection, read_tracker,
+    record_mapping, records, report, tracker_fingerprint,
 };
 use super::request::{Failure, Layer};
 use crate::profile::{self, Profile};
-
-/// The task's title line, `# <title>`, replaced by `title`.
-fn write_title(task: &Record, title: &str) -> std::io::Result<()> {
-    let mut done = false;
-    let mut out: Vec<String> = Vec::new();
-    for line in task.text.lines() {
-        if !done && line.starts_with("# ") {
-            out.push(format!("# {title}"));
-            done = true;
-        } else {
-            out.push(line.to_string());
-        }
-    }
-    let mut text = out.join("\n");
-    if task.text.ends_with('\n') {
-        text.push('\n');
-    }
-    std::fs::write(&task.path, text)
-}
-
-fn reload(task: &Record) -> Record {
-    Record {
-        path: task.path.clone(),
-        text: std::fs::read_to_string(&task.path).unwrap_or_default(),
-    }
-}
 
 fn stopped(failure: &Failure) {
     halt(failure);
@@ -153,7 +127,6 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
             let closed = tracker_fingerprint(&remote.title, &remote.body, true);
             stored != open && stored != closed
         };
-        let draft = task.field("status") == "draft";
         let full = format!("{body}\n\n{}", marker(&id, &print));
         let tracked_now = |t: &str, b: &str| tracker_fingerprint(t, b, remote.closed);
 
@@ -186,66 +159,11 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
                 }
             }
         } else if tracker_changed {
-            let remote_title = remote
-                .title
-                .strip_prefix(&format!("{id}: "))
-                .unwrap_or(&remote.title)
-                .to_string();
-            if !draft {
-                println!(
-                    "{id}: issue #{issue} was edited on GitHub since the last synchronisation; {id} is {}, and an approved record's wording is never written from the tracker, so the difference is reported",
-                    task.field("status")
-                );
-                worst = worst.max(FOUND);
-            } else if check {
-                println!(
-                    "{id}: issue #{issue} changed on GitHub only; the title would be written into {} (would)",
-                    task.path.display()
-                );
-            } else {
-                match write_title(task, &remote_title) {
-                    Ok(()) => {
-                        let fresh = reload(task);
-                        let (new_title, new_body) = projection(&fresh);
-                        let new_print = fingerprint(&new_title, &new_body);
-                        println!(
-                            "{id}: issue #{issue} changed on GitHub only; the title was written into {}",
-                            task.path.display()
-                        );
-                        // The body is derived from the record's requirements and plan, so
-                        // a body edited on the tracker can't be written into the
-                        // record, and the record's body goes back to the issue.
-                        let mut fp = tracked_now(&remote.title, &remote.body);
-                        if !same(&remote.body, &new_body) {
-                            let again = format!("{new_body}\n\n{}", marker(&id, &new_print));
-                            match layer.update_issue(
-                                &repository,
-                                &issue,
-                                &[("title", &new_title), ("body", &again)],
-                            ) {
-                                Ok(_) => {
-                                    println!(
-                                        "{id}: the body is derived from the record, so the record's body is written to issue #{issue}"
-                                    );
-                                    fp = tracked_now(&new_title, &new_body);
-                                }
-                                Err(e) => {
-                                    report(&format!("{id}: issue #{issue} body not updated"), &e);
-                                    worst = worst.max(UNREAD);
-                                }
-                            }
-                        }
-                        let _ = record_mapping(&fresh, number, &new_print, &fp);
-                    }
-                    Err(e) => {
-                        println!(
-                            "{id}: issue #{issue} changed on GitHub, and the title couldn't be written to {}: {e}",
-                            task.path.display()
-                        );
-                        worst = worst.max(FOUND);
-                    }
-                }
-            }
+            println!(
+                "{id}: issue #{issue} was edited on GitHub since the last synchronisation; {id} is {}, and an approved record's wording is never written from the tracker, so the difference is reported",
+                task.field("status")
+            );
+            worst = worst.max(FOUND);
         } else {
             println!("{id}: unchanged, issue #{issue} at {print}");
             if stored.is_empty() && !check {

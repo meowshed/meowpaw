@@ -89,7 +89,6 @@ class IdentifiersComeFromTheSubcommand(unittest.TestCase):
         wanted = {
             "requirements.md": ["paw new requirement"],
             "design.md": ["paw new decision"],
-            "epic.md": ["paw new epic", "paw new task"],
             "spec.md": ["paw new specification"],
             "research.md": ["paw new research"],
         }

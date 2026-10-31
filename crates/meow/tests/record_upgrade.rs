@@ -164,7 +164,11 @@ fn old_form(root: &Path) {
     write(
         root,
         "project/bugs/BUG-0002-open.md",
-        &defect("BUG-0002", "- [ ] T-001 TSK-0005", "Not closed."),
+        &defect(
+            "BUG-0002",
+            "- [ ] T-001 TSK-0005\n- [ ] T-002 TSK-0007",
+            "Not closed.",
+        ),
     );
     write(
         root,
@@ -211,6 +215,14 @@ fn a_preview_says_what_moves_and_writes_nothing() {
     assert!(dir.0.join("project/tasks/TSK-0001-a.md").exists());
     assert!(!dir.0.join("project/archive").exists());
     assert!(read(&dir.0, ".meowpaw/profile.toml").contains("\"epic\""));
+    assert_eq!(
+        read(&dir.0, "project/tasks/TSK-0002-b.md"),
+        task("TSK-0002", "approved", "epic: EPC-0001", "Not yet.")
+    );
+    assert_eq!(
+        read(&dir.0, "project/adrs/ADR-0001-open.md"),
+        decision("ADR-0001", "approved")
+    );
 }
 
 #[test]
@@ -285,6 +297,7 @@ fn finished_records_store_done_and_open_ones_do_not() {
     assert!(read(&dir.0, "project/adrs/ADR-0003-finished.md").contains("status: done"));
     assert!(read(&dir.0, "project/adrs/ADR-0001-open.md").contains("status: approved"));
     assert!(read(&dir.0, "project/bugs/BUG-0001-closed.md").contains("status: done"));
+    assert!(read(&dir.0, "project/bugs/BUG-0002-open.md").contains("status: approved"));
     assert!(read(&dir.0, "project/bugs/BUG-0003-recorded.md").contains("status: done"));
 }
 
@@ -421,7 +434,11 @@ fn done_closes_a_defect() {
     );
     let output = paw(&dir.0, &["done", "BUG-0001", "--pr", "13"]);
     assert!(output.status.success(), "{}", said(&output));
-    assert!(read(&dir.0, "project/bugs/BUG-0001-a.md").contains("status: done"));
+    let bug = read(&dir.0, "project/bugs/BUG-0001-a.md");
+    assert!(
+        bug.contains("status: done") && bug.contains("pr: 13"),
+        "{bug}"
+    );
 }
 
 #[test]
@@ -491,4 +508,220 @@ fn a_postponed_requirement_closes_only_with_a_later_decision() {
     );
     let shown = said(&paw(&dir.0, &["show", "REQ-0001"]));
     assert!(shown.contains("  closed"), "{shown}");
+}
+
+#[test]
+fn a_rerun_after_a_stop_before_the_move_adds_nothing_twice() {
+    let dir = Dir::new("resume");
+    old_form(&dir.0);
+    // A file where the archive goes stops the run after the records' writes.
+    write(&dir.0, "project/archive", "in the way");
+    let stopped = paw(&dir.0, &["upgrade", "--write"]);
+    assert_ne!(stopped.status.code(), Some(0), "{}", said(&stopped));
+    std::fs::remove_file(dir.0.join("project/archive")).unwrap();
+    let output = paw(&dir.0, &["upgrade", "--write"]);
+    assert!(output.status.success(), "{}", said(&output));
+    let adr = read(&dir.0, "project/adrs/ADR-0001-open.md");
+    assert_eq!(adr.matches("TSK-0002").count(), 2, "{adr}");
+    assert!(!adr.contains("2. "), "{adr}");
+    let archived = read(&dir.0, "project/archive/tasks/TSK-0002-b.md");
+    assert_eq!(archived.matches("folded-into").count(), 1, "{archived}");
+}
+
+#[test]
+fn a_full_archive_refuses_before_any_write() {
+    let dir = Dir::new("taken");
+    old_form(&dir.0);
+    write(&dir.0, "project/archive/tasks/TSK-0001-a.md", "older");
+    let output = paw(&dir.0, &["upgrade", "--write"]);
+    assert_eq!(output.status.code(), Some(1), "{}", said(&output));
+    assert!(said(&output).contains("already holds"), "{}", said(&output));
+    assert_eq!(
+        read(&dir.0, "project/adrs/ADR-0001-open.md"),
+        decision("ADR-0001", "approved")
+    );
+}
+
+#[test]
+fn a_step_joins_an_existing_plan_and_not_a_fenced_heading() {
+    let dir = Dir::new("existing");
+    old_form(&dir.0);
+    let text = decision("ADR-0001", "approved")
+        + "\n## Consequences\n\n```text\n## Plan\n```\n\n## Plan\n\n1. Keep this.\n\n## After\n\nText.\n";
+    write(&dir.0, "project/adrs/ADR-0001-open.md", &text);
+    paw(&dir.0, &["upgrade", "--write"]);
+    let adr = read(&dir.0, "project/adrs/ADR-0001-open.md");
+    let keep = adr.find("1. Keep this.").unwrap();
+    let step = adr.find("2. Work TSK-0002").expect(&adr);
+    assert!(keep < step && step < adr.find("## After").unwrap(), "{adr}");
+}
+
+#[test]
+fn a_stale_folded_carrier_is_not_stored_done() {
+    let dir = Dir::new("stale");
+    old_form(&dir.0);
+    // A defect closed by its text, whose task an epic elsewhere lists as open.
+    write(
+        &dir.0,
+        "project/bugs/BUG-0004-a.md",
+        &defect("BUG-0004", "", "A regression test."),
+    );
+    write(
+        &dir.0,
+        "project/tasks/TSK-0008-h.md",
+        &task("TSK-0008", "approved", "bug: BUG-0004", "Not yet."),
+    );
+    write(
+        &dir.0,
+        "project/epics/EPC-0004-a.md",
+        &epic("EPC-0004", "ADR-0001", "- [ ] T-001 TSK-0008"),
+    );
+    paw(&dir.0, &["upgrade", "--write"]);
+    let bug = read(&dir.0, "project/bugs/BUG-0004-a.md");
+    assert!(bug.contains("status: approved"), "{bug}");
+    assert!(bug.contains("1. Work TSK-0008"), "{bug}");
+}
+
+#[test]
+fn not_yet_with_a_colon_is_open_work() {
+    let dir = Dir::new("notyet");
+    old_form(&dir.0);
+    write(
+        &dir.0,
+        "project/tasks/TSK-0002-b.md",
+        &task(
+            "TSK-0002",
+            "approved",
+            "epic: EPC-0001",
+            "Not yet: the tests are written.",
+        ),
+    );
+    paw(&dir.0, &["upgrade", "--write"]);
+    assert!(read(&dir.0, "project/adrs/ADR-0001-open.md").contains("status: approved"));
+    assert!(read(&dir.0, "project/archive/tasks/TSK-0002-b.md").contains("folded-into"));
+}
+
+#[test]
+fn a_task_marked_done_stores_done_so_it_keeps_closing_its_requirement() {
+    let dir = Dir::new("settled");
+    old_form(&dir.0);
+    write(
+        &dir.0,
+        "project/tasks/TSK-0006-f.md",
+        &task("TSK-0006", "approved", "epic: EPC-0002", "Not yet."),
+    );
+    paw(&dir.0, &["upgrade", "--write"]);
+    assert!(read(&dir.0, "project/archive/tasks/TSK-0006-f.md").contains("status: done"));
+}
+
+#[test]
+fn a_decision_with_work_and_no_task_is_reported_as_needing_a_plan() {
+    let dir = Dir::new("planless");
+    old_form(&dir.0);
+    write(
+        &dir.0,
+        "project/requirements/REQ-0003-c.md",
+        &requirement("REQ-0003"),
+    );
+    write(
+        &dir.0,
+        "project/adrs/ADR-0005-new.md",
+        &planned("ADR-0005", "approved", "").replace("REQ-0001", "REQ-0003"),
+    );
+    let text = said(&paw(&dir.0, &["upgrade"]));
+    assert!(text.contains("ADR-0005 needs a plan"), "{text}");
+}
+
+#[test]
+fn only_the_gates_of_unattended_change_whatever_their_shape() {
+    let dir = Dir::new("shapes");
+    old_form(&dir.0);
+    let profile = "[record]\nroot = \"project\"\n\n[other]\ngates = [\"epic\"]\n\n[unattended]\n  gates = [\n    'spec', # a ] in a comment\n    \"epic\",\n    \"epic\",\n  ]\nrelease = false\n";
+    write(&dir.0, ".meowpaw/profile.toml", profile);
+    paw(&dir.0, &["upgrade", "--write"]);
+    let text = read(&dir.0, ".meowpaw/profile.toml");
+    assert!(text.contains("[other]\ngates = [\"epic\"]"), "{text}");
+    assert!(
+        text.contains("  gates = [\"spec\"]\nrelease = false"),
+        "{text}"
+    );
+}
+
+#[test]
+fn a_file_that_is_no_record_is_named_as_it_moves() {
+    let dir = Dir::new("unread");
+    old_form(&dir.0);
+    write(&dir.0, "project/tasks/notes.md", "No front matter.\n");
+    let text = said(&paw(&dir.0, &["upgrade"]));
+    assert!(
+        text.contains("notes.md can't be read as a record"),
+        "{text}"
+    );
+}
+
+#[test]
+fn a_count_of_a_record_in_the_old_form_still_answers() {
+    let dir = Dir::new("count");
+    old_form(&dir.0);
+    let output = paw(&dir.0, &["count"]);
+    assert!(output.status.success(), "{}", said(&output));
+}
+
+fn committed(dir: &Path) {
+    for args in [
+        &["init", "-q"][..],
+        &["add", "-A"][..],
+        &[
+            "-c",
+            "user.name=a",
+            "-c",
+            "user.email=a@b",
+            "commit",
+            "-qm",
+            "a",
+        ][..],
+    ] {
+        let done = Command::new("git")
+            .args(args)
+            .current_dir(dir)
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .output()
+            .unwrap();
+        assert!(done.status.success(), "{}", said(&done));
+    }
+}
+
+#[test]
+fn a_plan_added_at_the_end_of_an_approved_decision_passes_the_frozen_check() {
+    let dir = Dir::new("planend");
+    new_form(&dir.0, "approved", "");
+    committed(&dir.0);
+    let file = "project/adrs/ADR-0001-a.md";
+    write(
+        &dir.0,
+        file,
+        &(read(&dir.0, file) + "\n## Plan\n\n1. Do it.\n"),
+    );
+    let output = paw(&dir.0, &["check", "frozen", "--base", "HEAD"]);
+    assert!(output.status.success(), "{}", said(&output));
+}
+
+#[test]
+fn a_done_record_freezes_its_plan_and_keeps_its_mapping_free() {
+    let dir = Dir::new("donefrozen");
+    new_form(&dir.0, "done", "\n## Plan\n\n1. Do it.\n");
+    committed(&dir.0);
+    let file = "project/adrs/ADR-0001-a.md";
+    let text = read(&dir.0, file);
+    write(
+        &dir.0,
+        file,
+        &text.replace("status: done", "status: done\ntracked: abc"),
+    );
+    let output = paw(&dir.0, &["check", "frozen", "--base", "HEAD"]);
+    assert!(output.status.success(), "{}", said(&output));
+    write(&dir.0, file, &text.replace("1. Do it.", "1. Do it better."));
+    let output = paw(&dir.0, &["check", "frozen", "--base", "HEAD"]);
+    assert_eq!(output.status.code(), Some(1), "{}", said(&output));
 }

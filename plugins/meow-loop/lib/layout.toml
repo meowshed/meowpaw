@@ -113,6 +113,9 @@ index = "adrs/README.md"
 sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]
 draft_sections = ["How I will know it was realised", "What this does not settle"]
 rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect", "withdrawn-names-record", "concerns-framed", "plan-where-work"]
+# A decision sits under nothing, as a defect does, so it forbids every grouping
+# field (ADR-1800, ADR-3090).
+forbidden_fields = ["milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
 
 # The two kinds ADR-3090 retired: read and cited from the archive, and never
 # written, so `paw new` refuses them and no rule reads them. The relations stay

@@ -554,8 +554,9 @@ fn may_write(step: &str) -> &'static str {
         "requirements" => "requirements",
         "design" => "decisions",
         "spec" => "specifications",
-        "epic" => "epics and tasks",
-        _ => "tasks, the task marks of epics and defects, and any path outside the record's root",
+        _ => {
+            "the decision or defect in work, its plan and `pr:`, and any path outside the record's root"
+        }
     }
 }
 

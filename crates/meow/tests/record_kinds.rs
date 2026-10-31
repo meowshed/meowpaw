@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! The kinds a repository declares, the order between kinds, the document a
-//! task produces and the frozen insight (TSK-4970, TSK-4975, TSK-4980,
-//! TSK-4960; SPC-1070 "Kinds a repository declares", "A document a task
-//! produces" and "The frozen check").
+//! The kinds a repository declares, the order between kinds and the frozen
+//! insight (TSK-4970, TSK-4975, TSK-4960; SPC-1070 "Kinds a repository
+//! declares" and "The frozen check").
 
 #![cfg(feature = "record")]
 
@@ -301,92 +300,6 @@ fn an_outranks_entry_naming_no_kind_is_reported() {
     let text = said(&done);
     assert_eq!(done.status.code(), Some(1), "{text}");
     assert!(has_line(&text, &["narrative", "dream"]), "{text}");
-}
-
-fn task(produces: &str) -> String {
-    format!(
-        "---\nid: TSK-0001\nartifact: task\nstatus: draft\nrevised: 2026-01-01\nrealises: ADR-0001\n{produces}---\n\n# Write the finding\n"
-    )
-}
-
-fn produced(prompted: &str) -> String {
-    format!(
-        "---\nid: RES-0002\nartifact: research\nstatus: draft\nrevised: 2026-01-01\n{prompted}---\n\n# Produced\n\n## Summary\n\nS.\n\n## Method\n\nM.\n\n## Conclusions\n\nC.\n\n## Sources\n\nNone.\n"
-    )
-}
-
-fn produces_fixture(name: &str, task_text: &str, document: &str) -> Dir {
-    let dir = Dir::new(name);
-    write(
-        &dir.0,
-        ".meowpaw/profile.toml",
-        "[record]\nroot = \"project\"\n",
-    );
-    write(&dir.0, "project/tasks/TSK-0001-write.md", task_text);
-    write(&dir.0, "project/research/RES-0002-produced.md", document);
-    dir
-}
-
-/// TSK-4980 criterion 1, REQ-0660, REQ-0662: a task whose output is a
-/// document, and the document naming it, are accepted.
-#[test]
-fn a_task_and_the_document_it_produces_name_each_other() {
-    let dir = produces_fixture(
-        "pair",
-        &task("produces: [RES-0002]\n"),
-        &produced("prompted-by: TSK-0001\n"),
-    );
-    let text = said(&paw(&dir.0, &["check"]));
-    assert!(!text.contains("RES-0002"), "{text}");
-    assert!(!has_line(&text, &["TSK-0001", "produces"]), "{text}");
-    assert!(!has_line(&text, &["not a defect"]), "{text}");
-}
-
-/// TSK-4980 criterion 2, REQ-0662: a produced document that doesn't name its
-/// task is a finding naming both.
-#[test]
-fn a_produced_document_without_prompted_by_is_a_finding() {
-    let dir = produces_fixture("no-prompt", &task("produces: [RES-0002]\n"), &produced(""));
-    let done = paw(&dir.0, &["check"]);
-    let text = said(&done);
-    assert_eq!(done.status.code(), Some(1), "{text}");
-    assert!(
-        has_line(&text, &["TSK-0001", "RES-0002", "prompted-by"]),
-        "{text}"
-    );
-}
-
-/// TSK-4980 criterion 2, REQ-0662: a document prompted by a task that names no
-/// `produces:` is a finding naming both.
-#[test]
-fn a_prompting_task_without_produces_is_a_finding() {
-    let dir = produces_fixture(
-        "no-produces",
-        &task(""),
-        &produced("prompted-by: TSK-0001\n"),
-    );
-    let done = paw(&dir.0, &["check"]);
-    let text = said(&done);
-    assert_eq!(done.status.code(), Some(1), "{text}");
-    assert!(
-        has_line(&text, &["TSK-0001", "RES-0002", "produces"]),
-        "{text}"
-    );
-}
-
-/// TSK-4980 criterion 3, REQ-0664: a produced document missing a section its
-/// kind requires is reported by the shape check.
-#[test]
-fn a_produced_document_obeys_its_kind() {
-    let document = "---\nid: RES-0002\nartifact: research\nstatus: draft\nrevised: 2026-01-01\nprompted-by: TSK-0001\n---\n\n# Produced\n\n## Summary\n\nS.\n";
-    let dir = produces_fixture("shape", &task("produces: [RES-0002]\n"), document);
-    let done = paw(&dir.0, &["check", "shape"]);
-    let text = said(&done);
-    assert_eq!(done.status.code(), Some(1), "{text}");
-    assert!(
-        has_line(&text, &["RES-0002", "has no Method section"]),
-        "{text}"
-    );
 }
 
 fn insight(body: &str) -> String {

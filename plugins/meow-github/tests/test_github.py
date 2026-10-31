@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Fixtures for meow-github: the history read and the projection through a stand-in gh (ADR-1290, ADR-1810)."""
+"""Fixtures for meow-github: the history read, the projection and the upgrade through a stand-in gh (ADR-1290, ADR-1810, ADR-3090)."""
 
 import calendar
 import hashlib
@@ -173,50 +173,41 @@ print(json.dumps(out))
 # The read-back listing `project` sends after its last create (SPC-1080), with `since` as a UTC time.
 LISTING = r"^repos/o/r/issues\?state=all&since=(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ)&per_page=100$"
 
-EPIC = """---
-id: EPC-0001
-artifact: epic
+DECISION = """---
+id: ADR-0001
+artifact: adr
 status: {status}
 revised: 2026-01-01
-realises: ADR-0001
----
-
-# A plan
-
-## Tasks
-
-- [ ] T-001 TSK-0001 the first
-      closes: REQ-0001
-
-- [ ] T-002 TSK-0002 the second
-      closes: REQ-0002, REQ-0003
-"""
-
-TASK = """---
-id: {id}
-artifact: task
-status: approved
-revised: 2026-01-01
-epic: EPC-0001
-closes:
-  [
-{closes}
-  ]
+addresses: [REQ-0001, REQ-0002]
 issue:
 ---
 
-# {title}
+# Refuse an empty title
 
 Text.
 
-## Depends on
+## Plan
 
-{depends}
-
-## Evidence
-
-Not yet.
+1. Refuse it.
 """
+
+DEFECT = """---
+id: BUG-0001
+artifact: bug
+status: {status}
+revised: 2026-01-01
+violates: [REQ-0004]
+issue:
+---
+
+# A defect
+
+## Plan
+
+1. Restore the behaviour.
+"""
+
+RECORD = "project/adrs/ADR-0001-a-choice.md"
 
 
 class Project(unittest.TestCase):
@@ -227,43 +218,43 @@ class Project(unittest.TestCase):
         subprocess.run(["git", "init", "-q"], cwd=root, check=True)
         (root / ".meowpaw").mkdir()
         (root / ".meowpaw" / "profile.toml").write_text(tracker, encoding="utf-8")
-        (root / "project" / "epics").mkdir(parents=True)
-        (root / "project" / "tasks").mkdir()
-        (root / "project" / "epics" / "EPC-0001-a-plan.md").write_text(EPIC.format(status=status), encoding="utf-8")
-        (root / "project" / "tasks" / "TSK-0001-first.md").write_text(TASK.format(
-            id="TSK-0001", closes="    REQ-0001,", title="Refuse an empty title", depends="Nothing."), encoding="utf-8")
-        (root / "project" / "tasks" / "TSK-0002-second.md").write_text(TASK.format(
-            id="TSK-0002", closes="    REQ-0002,\n    REQ-0003,", title="Say why", depends="TSK-0001, whose check this reports."), encoding="utf-8")
+        (root / "project" / "adrs").mkdir(parents=True)
+        (root / RECORD).write_text(DECISION.format(status=status), encoding="utf-8")
         (root / "bin").mkdir()
         (root / "bin" / "gh").write_text(TRACKER, encoding="utf-8")
         (root / "bin" / "gh").chmod(0o755)
         return root
 
-    def project(self, root, *extra):
+    def project(self, root, *extra, target="ADR-0001"):
         env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json")}
-        return subprocess.run([str(BIN), "project", "EPC-0001", "o/r", *extra], cwd=root, capture_output=True, text=True, env=env)
+        return subprocess.run([str(BIN), "project", target, "o/r", *extra], cwd=root, capture_output=True, text=True, env=env)
 
     def state(self, root):
         return json.loads((root / "state.json").read_text(encoding="utf-8"))
 
-    def task(self, root, name):
-        return (root / "project" / "tasks" / name).read_text(encoding="utf-8")
+    def text(self, root, name=RECORD):
+        return (root / name).read_text(encoding="utf-8")
 
-    def test_an_approved_epic_projects_one_issue_per_task(self):
+    def retitle(self, root):
+        path = root / RECORD
+        path.write_text(path.read_text(encoding="utf-8").replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+
+    def test_an_approved_decision_projects_one_issue(self):
+        """REQ-4002: one record is one issue, whose body names its requirements and carries its plan."""
         root = self.repository()
         done = self.project(root)
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         issues = self.state(root)["issues"]
-        self.assertEqual(sorted(i["title"] for i in issues.values()), ["TSK-0001: Refuse an empty title", "TSK-0002: Say why"])
-        second = issues["2"]["body"]
-        self.assertIn("TSK-0002 of EPC-0001, which realises ADR-0001.", second)
-        self.assertIn("Closes REQ-0002, REQ-0003.", second)
-        self.assertIn("Depends on: TSK-0001, whose check this reports.", second)
-        self.assertRegex(second, r"<!-- meow-github: projected from TSK-0002 at [0-9a-f]{12} -->$")
-        text = self.task(root, "TSK-0002-second.md")
-        self.assertIn("\nissue: 2\n", text)
+        self.assertEqual([i["title"] for i in issues.values()], ["ADR-0001: Refuse an empty title"])
+        body = issues["1"]["body"]
+        self.assertIn("The work of ADR-0001.", body)
+        self.assertIn("Names REQ-0001, REQ-0002.", body)
+        self.assertIn("## Plan\n\n1. Refuse it.", body)
+        self.assertRegex(body, r"<!-- meow-github: projected from ADR-0001 at [0-9a-f]{12} -->$")
+        text = self.text(root)
+        self.assertIn("\nissue: 1\n", text)
         self.assertRegex(text, r"\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
-        self.assertRegex(done.stdout, r"(?m)^TSK-0001: projected to issue #1 at [0-9a-f]{12}, read back$")
+        self.assertRegex(done.stdout, r"(?m)^ADR-0001: projected to issue #1 at [0-9a-f]{12}, read back$")
         gets = [c for c in self.state(root)["calls"] if "-X" not in c]
         self.assertEqual(len(gets), 1, gets)
         self.assertRegex(gets[0][1], LISTING)
@@ -274,45 +265,45 @@ class Project(unittest.TestCase):
         issue = self.state(root)["issues"]["1"]
         body = issue["body"].rsplit("\n\n", 1)[0]
         by_hand = hashlib.sha256(f"{issue['title']}\n{body}".encode()).hexdigest()[:12]
-        self.assertIn(f"\nprojected: {by_hand}\n", self.task(root, "TSK-0001-first.md"))
+        self.assertIn(f"\nprojected: {by_hand}\n", self.text(root))
 
     def test_a_replay_changes_nothing(self):
         root = self.repository()
         self.project(root)
-        before = (self.state(root), self.task(root, "TSK-0001-first.md"))
+        before = (self.state(root), self.text(root))
         done = self.project(root)
         self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertEqual(len(self.state(root)["issues"]), 2)
+        self.assertEqual(len(self.state(root)["issues"]), 1)
         self.assertFalse([c for c in self.state(root)["calls"][len(before[0]["calls"]):] if "-X" in c])
-        self.assertEqual(before[1], self.task(root, "TSK-0001-first.md"))
-        self.assertIn("TSK-0001: unchanged, issue #1 at", done.stdout)
+        self.assertEqual(before[1], self.text(root))
+        self.assertIn("ADR-0001: unchanged, issue #1 at", done.stdout)
 
-    def test_a_task_with_no_issue_field_gets_one_and_a_replay_opens_nothing(self):
-        """REQ-1382, REQ-1386: the mapping is written on the task even where the field was missing, so a replay is no action."""
+    def test_a_record_with_no_issue_field_gets_one_and_a_replay_opens_nothing(self):
+        """REQ-4002: the mapping is written on the record even where the field was missing, so a replay is no action."""
         root = self.repository()
-        path = root / "project" / "tasks" / "TSK-0001-first.md"
+        path = root / RECORD
         path.write_text(path.read_text(encoding="utf-8").replace("issue:\n", "", 1), encoding="utf-8")
         self.project(root)
-        self.assertRegex(self.task(root, "TSK-0001-first.md"), r"\nissue: 1\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
+        self.assertRegex(self.text(root), r"\nissue: 1\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
         done = self.project(root)
         self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertEqual(len(self.state(root)["issues"]), 2)
-        self.assertIn("TSK-0001: unchanged, issue #1 at", done.stdout)
+        self.assertEqual(len(self.state(root)["issues"]), 1)
+        self.assertIn("ADR-0001: unchanged, issue #1 at", done.stdout)
 
     def writes(self, root, since=0):
         return [c for c in self.state(root)["calls"][since:] if "-X" in c]
 
-    def test_a_changed_task_updates_its_issue(self):
+    def test_a_changed_record_updates_its_issue(self):
         root = self.repository()
         self.project(root)
-        before = self.task(root, "TSK-0001-first.md")
-        (root / "project" / "tasks" / "TSK-0001-first.md").write_text(before.replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+        before = self.text(root)
+        self.retitle(root)
         calls = len(self.state(root)["calls"])
         done = self.project(root)
         self.assertEqual(done.returncode, 0, done.stdout)
-        self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse a blank title")
+        self.assertEqual(self.state(root)["issues"]["1"]["title"], "ADR-0001: Refuse a blank title")
         self.assertEqual([c[:4] for c in self.writes(root, calls)], [["api", "repos/o/r/issues/1", "-X", "PATCH"]])
-        self.assertNotEqual(before.split("projected: ")[1][:12], self.task(root, "TSK-0001-first.md").split("projected: ")[1][:12])
+        self.assertNotEqual(before.split("projected: ")[1][:12], self.text(root).split("projected: ")[1][:12])
 
     def test_an_issue_edited_on_github_is_reported_and_left(self):
         root = self.repository()
@@ -322,26 +313,26 @@ class Project(unittest.TestCase):
         (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
         done = self.project(root)
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("TSK-0001: issue #1 was edited on GitHub since it was projected", done.stdout)
+        self.assertIn("ADR-0001: issue #1 was edited on GitHub since it was projected", done.stdout)
         self.assertEqual(self.state(root)["issues"]["1"]["body"], "Rewritten by a person.")
         self.assertFalse(self.writes(root, len(state["calls"])))
 
-    def test_a_closed_issue_on_an_unmarked_task_is_reported_and_check_writes_nothing(self):
+    def test_a_closed_issue_on_an_open_record_is_reported_and_check_writes_nothing(self):
         root = self.repository()
         self.project(root)
         state = self.state(root)
-        state["issues"]["2"]["state"] = "closed"
+        state["issues"]["1"]["state"] = "closed"
         (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
-        tasks = [self.task(root, n) for n in ("TSK-0001-first.md", "TSK-0002-second.md")]
-        (root / "project" / "tasks" / "TSK-0001-first.md").write_text(tasks[0].replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+        self.retitle(root)
+        before = self.text(root)
         done = self.project(root, "--check")
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("TSK-0002: issue #2 is closed on GitHub while EPC-0001 leaves the task unmarked", done.stdout)
-        self.assertIn("TSK-0001: changed since it was projected at", done.stdout)
+        self.assertIn("ADR-0001: issue #1 is closed on GitHub while the decision isn't done", done.stdout)
+        self.assertIn("ADR-0001: changed since it was projected at", done.stdout)
         self.assertIn("would be updated", done.stdout)
         self.assertFalse(self.writes(root, len(state["calls"])))
-        self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse an empty title")
-        self.assertEqual(self.task(root, "TSK-0002-second.md"), tasks[1])
+        self.assertEqual(self.state(root)["issues"]["1"]["title"], "ADR-0001: Refuse an empty title")
+        self.assertEqual(self.text(root), before)
 
     def test_a_repository_declaring_no_tracker_projects_nothing(self):
         root = self.repository(tracker="[verbs]\n")
@@ -349,15 +340,12 @@ class Project(unittest.TestCase):
         self.assertEqual(done.returncode, 3, done.stdout)
         self.assertIn(".meowpaw/profile.toml declares no tracker, so nothing is projected; declare `[tracker] kind = \"github\"`", done.stdout)
         self.assertFalse((root / "state.json").exists())
-        self.assertNotIn("issue: 1", self.task(root, "TSK-0001-first.md"))
+        self.assertNotIn("issue: 1", self.text(root))
 
     def test_project_groups_an_issue_nowhere(self):
-        """TSK-2910 criterion 4, REQ-3320: `project` passes no grouping argument and no grouping field, so an issue
-        sits under nothing on the tracker, and the body copies a dependency line's `(not blocking)` as written."""
+        """TSK-2910 criterion 4, REQ-4002: `project` passes no grouping argument and no grouping field, so an issue
+        sits under nothing on the tracker."""
         root = self.repository()
-        path = root / "project" / "tasks" / "TSK-0002-second.md"
-        path.write_text(path.read_text(encoding="utf-8").replace(
-            "TSK-0001, whose check this reports.", "- TSK-0001 (not blocking): shares a helper"), encoding="utf-8")
         done = self.project(root)
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         calls = self.state(root)["calls"]
@@ -381,152 +369,78 @@ class Project(unittest.TestCase):
                 self.assertIn(call[2:4], (["-X", "POST"], ["-X", "PATCH"]), call)
                 self.assertEqual([call[4], call[6]], ["-f", "-f"], call)
                 self.assertTrue(call[5].startswith("title=") and call[7].startswith("body="), call)
-        self.assertIn("- TSK-0001 (not blocking): shares a helper", self.state(root)["issues"]["2"]["body"])
-
-    def test_a_task_realising_a_decision_projects_with_no_parent(self):
-        """TSK-3810 criterion 4, REQ-3630: a task naming `realises` and no epic projects as one issue under nothing."""
-        root = self.repository()
-        (root / "project" / "adrs").mkdir()
-        (root / "project" / "adrs" / "ADR-0002-a-choice.md").write_text(
-            "---\nid: ADR-0002\nartifact: adr\nstatus: approved\nrevised: 2026-01-01\naddresses: [REQ-0004]\n---\n\n# 0002. A choice\n",
-            encoding="utf-8")
-        (root / "project" / "tasks" / "TSK-0003-direct.md").write_text(TASK.format(
-            id="TSK-0003", closes="    REQ-0004,", title="Do it directly", depends="Nothing.").replace(
-            "epic: EPC-0001", "realises: ADR-0002"), encoding="utf-8")
-        env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json")}
-        done = subprocess.run([str(BIN), "project", "ADR-0002", "o/r"], cwd=root, capture_output=True, text=True, env=env)
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        issues = self.state(root)["issues"]
-        self.assertEqual([i["title"] for i in issues.values()], ["TSK-0003: Do it directly"])
-        self.assertIn("TSK-0003, which realises ADR-0002.", issues["1"]["body"])
-        self.assertIn("\nissue: 1\n", self.task(root, "TSK-0003-direct.md"))
-
-    def direct(self, root, adr_status="approved"):
-        (root / "project" / "adrs").mkdir(exist_ok=True)
-        (root / "project" / "adrs" / "ADR-0002-a-choice.md").write_text(
-            f"---\nid: ADR-0002\nartifact: adr\nstatus: {adr_status}\nrevised: 2026-01-01\naddresses: [REQ-0004]\n---\n\n# 0002. A choice\n",
-            encoding="utf-8")
-        (root / "project" / "tasks" / "TSK-0003-direct.md").write_text(TASK.format(
-            id="TSK-0003", closes="    REQ-0004,", title="Do it directly", depends="Nothing.").replace(
-            "epic: EPC-0001", "realises: ADR-0002"), encoding="utf-8")
-
-    def run_on(self, root, target, *extra):
-        env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json")}
-        return subprocess.run([str(BIN), "project", target, "o/r", *extra], cwd=root, capture_output=True, text=True, env=env)
 
     def test_a_draft_decision_projects_nothing(self):
-        """REQ-3630: a draft decision's direct tasks wait for its approval, as an epic's do."""
-        root = self.repository()
-        self.direct(root, adr_status="draft")
-        done = self.run_on(root, "ADR-0002")
-        self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("ADR-0002 is draft", done.stdout)
-
-    def test_a_done_decision_projects_like_an_approved_one(self):
-        """TSK-5190 criterion 2, REQ-0595: done remains a post-approval projection input."""
-        root = self.repository()
-        self.direct(root, adr_status="done")
-        done = self.run_on(root, "ADR-0002")
-        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("issue: 1", self.task(root, "TSK-0003-direct.md"))
-
-    def test_a_task_under_an_epic_is_not_projected_under_its_decision(self):
-        """REQ-3630: a task naming an epic belongs to the epic, even where it also names the decision."""
-        root = self.repository()
-        self.direct(root)
-        path = root / "project" / "tasks" / "TSK-0003-direct.md"
-        path.write_text(path.read_text(encoding="utf-8").replace("realises: ADR-0002", "epic: EPC-0001\nrealises: ADR-0002"), encoding="utf-8")
-        done = self.run_on(root, "ADR-0002")
-        self.assertIn("ADR-0002 has no tasks", done.stdout)
-
-    def test_a_draft_epic_projects_nothing(self):
+        """REQ-4002: a draft waits for its approval."""
         root = self.repository(status="draft")
         done = self.project(root)
         self.assertEqual(done.returncode, 1, done.stdout)
-        self.assertIn("EPC-0001 is draft, and its tasks are projected only once it is approved", done.stdout)
+        self.assertIn("ADR-0001 is draft, and it is projected only once it is approved", done.stdout)
         self.assertFalse((root / "state.json").exists())
 
-    def defect(self, root, mark=" ", parallel=""):
-        """TSK-5180 criteria 1-3, REQ-4000: a defect owns its task and completion mark."""
+    def test_a_done_decision_projects_like_an_approved_one(self):
+        """TSK-5190 criterion 2, REQ-3678: done remains a post-approval projection input."""
+        root = self.repository(status="done")
+        done = self.project(root)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("issue: 1", self.text(root))
+
+    def test_a_retired_kind_maps_to_no_issue(self):
+        """ADR-3090: only a decision or a defect maps to an issue, so a task or an epic is refused before any call."""
+        root = self.repository()
+        for target in ("TSK-0001", "EPC-0001"):
+            done = self.project(root, target=target)
+            self.assertEqual(done.returncode, 1, done.stdout)
+            self.assertIn(f"{target} is no decision or defect, and only those map to an issue", done.stdout)
+        self.assertFalse((root / "state.json").exists())
+
+    def defect(self, root, status="approved"):
         (root / "project" / "bugs").mkdir()
-        (root / "project" / "bugs" / "BUG-0001-a-defect.md").write_text(
-            f"""---
-id: BUG-0001
-artifact: defect
-status: approved
-revised: 2026-01-01
-issue:
----
+        (root / "project" / "bugs" / "BUG-0001-a-defect.md").write_text(DEFECT.format(status=status), encoding="utf-8")
 
-# A defect
-
-## Tasks
-
-- [{mark}] T-001 {parallel}TSK-0003 restore the behaviour
-""",
-            encoding="utf-8")
-        (root / "project" / "tasks" / "TSK-0003-defect.md").write_text(TASK.format(
-            id="TSK-0003", closes="    REQ-0004,", title="Restore the behaviour", depends="Nothing.").replace(
-            "epic: EPC-0001", "bug: BUG-0001"), encoding="utf-8")
-
-    def test_an_approved_defect_projects_its_task_and_replays_nothing(self):
-        """TSK-5180 criteria 1-2, REQ-4000: BUG targets share the durable issue mapping and replay."""
+    def test_an_approved_defect_projects_one_issue_and_replays_nothing(self):
+        """TSK-5180 criteria 1-2, REQ-4002: a BUG target shares the durable issue mapping and the replay."""
         root = self.repository()
         self.defect(root)
-        done = self.run_on(root, "BUG-0001")
+        done = self.project(root, target="BUG-0001")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         issue = self.state(root)["issues"]["1"]
-        self.assertEqual(issue["title"], "TSK-0003: Restore the behaviour")
+        self.assertEqual(issue["title"], "BUG-0001: A defect")
         body = issue["body"].rsplit("\n\n<!-- meow-github:", 1)[0]
-        self.assertEqual(body, "TSK-0003 of BUG-0001.\n\nCloses REQ-0004.\n\nDepends on: Nothing.")
-        self.assertIn("\nissue: 1\n", self.task(root, "TSK-0003-defect.md"))
+        self.assertEqual(body, "The work of BUG-0001.\n\nNames REQ-0004.\n\n## Plan\n\n1. Restore the behaviour.")
+        self.assertIn("\nissue: 1\n", self.text(root, "project/bugs/BUG-0001-a-defect.md"))
         calls = len(self.state(root)["calls"])
-        replay = self.run_on(root, "BUG-0001")
+        replay = self.project(root, target="BUG-0001")
         self.assertEqual(replay.returncode, 0, replay.stdout)
         self.assertFalse(self.writes(root, calls))
 
-    def test_a_defect_mark_decides_whether_a_closed_issue_agrees(self):
-        """TSK-5180 criterion 3, REQ-4000: defect marks, not tracker state, decide done."""
+    def test_a_defects_status_decides_whether_a_closed_issue_agrees(self):
+        """TSK-5180 criterion 3, REQ-3678: the record, not the tracker's state, decides done."""
         root = self.repository()
         self.defect(root)
-        self.run_on(root, "BUG-0001")
+        self.project(root, target="BUG-0001")
         state = self.state(root)
         state["issues"]["1"]["state"] = "closed"
         (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
         calls = len(state["calls"])
-        open_task = self.run_on(root, "BUG-0001", "--check")
-        self.assertEqual(open_task.returncode, 1, open_task.stdout)
-        self.assertIn("BUG-0001 leaves the task unmarked", open_task.stdout)
+        still_open = self.project(root, "--check", target="BUG-0001")
+        self.assertEqual(still_open.returncode, 1, still_open.stdout)
+        self.assertIn("is closed on GitHub while the defect isn't done", still_open.stdout)
         self.assertFalse(self.writes(root, calls))
         calls = len(self.state(root)["calls"])
         bug = root / "project" / "bugs" / "BUG-0001-a-defect.md"
-        bug.write_text(bug.read_text(encoding="utf-8").replace("- [ ]", "- [x]"), encoding="utf-8")
-        done_task = self.run_on(root, "BUG-0001", "--check")
-        self.assertEqual(done_task.returncode, 0, done_task.stdout)
-        self.assertNotIn("leaves the task unmarked", done_task.stdout)
-        self.assertFalse(self.writes(root, calls))
-
-    def test_a_parallel_defect_task_keeps_its_done_mark(self):
-        """TSK-5180 criterion 3: the valid [P] marker does not hide a done task."""
-        root = self.repository()
-        self.defect(root, mark="x", parallel="[P] ")
-        self.run_on(root, "BUG-0001")
-        state = self.state(root)
-        state["issues"]["1"]["state"] = "closed"
-        (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
-        calls = len(state["calls"])
-        done_task = self.run_on(root, "BUG-0001", "--check")
-        self.assertEqual(done_task.returncode, 0, done_task.stdout)
-        self.assertNotIn("leaves the task unmarked", done_task.stdout)
+        bug.write_text(bug.read_text(encoding="utf-8").replace("status: approved", "status: done"), encoding="utf-8")
+        closed = self.project(root, "--check", target="BUG-0001")
+        self.assertEqual(closed.returncode, 0, closed.stdout)
+        self.assertNotIn("isn't done", closed.stdout)
         self.assertFalse(self.writes(root, calls))
 
     def test_the_shipped_surfaces_name_a_defect_projection_target(self):
-        """TSK-5180 criterion 4, REQ-4000: launcher and reference expose BUG targets."""
+        """TSK-5180 criterion 4, REQ-4002: launcher and reference expose BUG targets."""
         launcher = (UNIT / "bin" / "meow-github").read_text(encoding="utf-8")
         page = (UNIT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("project <epic|decision|defect>", launcher)
+        self.assertIn("project <decision|defect>", launcher)
         self.assertIn("meow-github project BUG-1210", page)
-        self.assertRegex(page, r"`<task> of\s+<defect>\.`")
 
 
 # ADR-1810: the stand-in `gh` the request layer's checks run against. It prints a status line and a header block
@@ -642,24 +556,22 @@ SECONDARY = {"message": "You have exceeded a secondary rate limit. Please wait a
 
 
 class Sync(unittest.TestCase):
-    """TSK-5320 and TSK-5321, ADR-2890: a task and its issue are synchronised by a fingerprint of each side."""
+    """TSK-5320 and TSK-5321, ADR-2890, ADR-3090: a record and its issue are synchronised by a fingerprint of each side."""
 
     repository = Project.repository
     state = Project.state
-    task = Project.task
+    text = Project.text
+    retitle = Project.retitle
     writes = Project.writes
 
     def run_tool(self, root, command, *extra):
         env = {**os.environ, "PATH": f"{root / 'bin'}:{os.environ['PATH']}", "GH_STATE": str(root / "state.json")}
-        return subprocess.run([str(BIN), command, "EPC-0001", "o/r", *extra], cwd=root, capture_output=True, text=True, env=env)
+        return subprocess.run([str(BIN), command, "ADR-0001", "o/r", *extra], cwd=root, capture_output=True, text=True, env=env)
 
-    def synced(self, status="approved"):
-        """A projected epic whose two tasks carry the given status, and a first synchronisation that changes nothing."""
+    def synced(self):
+        """A projected decision."""
         root = self.repository()
         self.run_tool(root, "project")
-        for name in ("TSK-0001-first.md", "TSK-0002-second.md"):
-            path = root / "project" / "tasks" / name
-            path.write_text(path.read_text(encoding="utf-8").replace("status: approved", f"status: {status}"), encoding="utf-8")
         return root
 
     def edit_issue(self, root, number, **fields):
@@ -668,16 +580,13 @@ class Sync(unittest.TestCase):
         (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
 
     def test_project_writes_the_tracker_fingerprint_beside_the_record_s(self):
-        """TSK-5320 criterion 1, REQ-4704: `projected` and `tracked` are both on the task after `project`."""
-        root = self.repository()
-        self.run_tool(root, "project")
-        self.assertRegex(self.task(root, "TSK-0001-first.md"), r"\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
+        """TSK-5320 criterion 1, REQ-4002: `projected` and `tracked` are both on the record after `project`."""
+        self.assertRegex(self.text(self.synced()), r"\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
 
     def test_a_mapping_with_the_record_side_only_gains_the_tracker_side(self):
-        """TSK-5320 criterion 2, REQ-4704: an older mapping is read, and the next `project` adds `tracked`, nothing else."""
-        root = self.repository()
-        self.run_tool(root, "project")
-        path = root / "project" / "tasks" / "TSK-0001-first.md"
+        """TSK-5320 criterion 2, REQ-4002: an older mapping is read, and the next `project` adds `tracked`, nothing else."""
+        root = self.synced()
+        path = root / RECORD
         older = re.sub(r"\ntracked: [0-9a-f]{12}", "", path.read_text(encoding="utf-8"))
         path.write_text(older, encoding="utf-8")
         done = self.run_tool(root, "project")
@@ -685,77 +594,84 @@ class Sync(unittest.TestCase):
         self.assertRegex(path.read_text(encoding="utf-8"), r"\nprojected: [0-9a-f]{12}\ntracked: [0-9a-f]{12}\n---\n")
         self.assertEqual(re.sub(r"\ntracked: [0-9a-f]{12}", "", path.read_text(encoding="utf-8")), older)
 
-    def test_a_draft_takes_a_title_changed_on_github(self):
-        """TSK-5321 criterion 1, REQ-4700: the side that changed is applied, here the tracker's into a draft."""
-        root = self.synced(status="draft")
-        self.edit_issue(root, 1, title="TSK-0001: Refuse a blank title")
+    def test_a_replay_of_an_unchanged_record_writes_nothing(self):
+        """REQ-4002: where neither side changed, the run says so and sends no write."""
+        root = self.synced()
         calls = len(self.state(root)["calls"])
         done = self.run_tool(root, "sync")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertIn("\n# Refuse a blank title\n", self.task(root, "TSK-0001-first.md"))
+        self.assertIn("ADR-0001: unchanged, issue #1", done.stdout)
         self.assertFalse(self.writes(root, calls))
-        again = self.run_tool(root, "sync")
-        self.assertIn("TSK-0001: unchanged, issue #1", again.stdout)
 
     def test_a_title_changed_in_the_record_only_updates_the_issue(self):
-        """TSK-5321 criterion 2, REQ-4700: the record's change is applied to the issue where only it changed."""
-        root = self.synced(status="draft")
-        path = root / "project" / "tasks" / "TSK-0001-first.md"
-        path.write_text(path.read_text(encoding="utf-8").replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+        """TSK-5321 criterion 2, REQ-4002: the record's change is applied to the issue where only it changed."""
+        root = self.synced()
+        self.retitle(root)
         calls = len(self.state(root)["calls"])
         done = self.run_tool(root, "sync")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse a blank title")
+        self.assertEqual(self.state(root)["issues"]["1"]["title"], "ADR-0001: Refuse a blank title")
         self.assertEqual([c[:4] for c in self.writes(root, calls)], [["api", "repos/o/r/issues/1", "-X", "PATCH"]])
 
     def test_where_both_sides_changed_the_record_wins(self):
-        """TSK-5321 criterion 3, REQ-4700: a conflict is won by the file, and the issue holds the record's text."""
-        root = self.synced(status="draft")
-        path = root / "project" / "tasks" / "TSK-0001-first.md"
-        path.write_text(path.read_text(encoding="utf-8").replace("# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
-        self.edit_issue(root, 1, title="TSK-0001: Reject an empty title")
+        """TSK-5321 criterion 3, REQ-4002: a conflict is won by the file, and the issue holds the record's text."""
+        root = self.synced()
+        self.retitle(root)
+        self.edit_issue(root, 1, title="ADR-0001: Reject an empty title")
         done = self.run_tool(root, "sync")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertIn("both sides changed", done.stdout)
-        self.assertEqual(self.state(root)["issues"]["1"]["title"], "TSK-0001: Refuse a blank title")
-        self.assertIn("\n# Refuse a blank title\n", self.task(root, "TSK-0001-first.md"))
+        self.assertEqual(self.state(root)["issues"]["1"]["title"], "ADR-0001: Refuse a blank title")
+        self.assertIn("\n# Refuse a blank title\n", self.text(root))
 
-    def test_an_approved_task_is_never_reworded_from_the_tracker(self):
-        """TSK-5321 criterion 4, REQ-4702: the difference is printed, the file is not written, nothing is sent."""
-        root = self.synced(status="approved")
-        before = self.task(root, "TSK-0001-first.md")
-        self.edit_issue(root, 1, title="TSK-0001: Refuse a blank title")
+    def test_an_approved_record_is_never_reworded_from_the_tracker(self):
+        """TSK-5321 criterion 4, REQ-4002: the difference is printed, the file is not written, nothing is sent."""
+        root = self.synced()
+        before = self.text(root)
+        self.edit_issue(root, 1, title="ADR-0001: Refuse a blank title")
         calls = len(self.state(root)["calls"])
         done = self.run_tool(root, "sync")
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("never written", done.stdout)
-        self.assertEqual(self.task(root, "TSK-0001-first.md"), before)
+        self.assertEqual(self.text(root), before)
         self.assertFalse(self.writes(root, calls))
 
-    def test_an_issue_closed_on_the_tracker_marks_a_task_whose_evidence_is_written(self):
-        """TSK-5321 criterion 5, REQ-4700: the state flows to the record where the Evidence is written, and is
-        reported where it isn't."""
-        root = self.synced(status="approved")
-        path = root / "project" / "tasks" / "TSK-0001-first.md"
-        path.write_text(path.read_text(encoding="utf-8").replace("Not yet.", "The fixture passed."), encoding="utf-8")
+    def test_an_issue_closed_on_the_tracker_is_reported_while_the_record_is_open(self):
+        """REQ-3678: the record decides when its work is done, so a closed issue changes nothing in it."""
+        root = self.synced()
         self.edit_issue(root, 1, state="closed")
-        self.edit_issue(root, 2, state="closed")
+        before = self.text(root)
         done = self.run_tool(root, "sync")
-        epic = (root / "project" / "epics" / "EPC-0001-a-plan.md").read_text(encoding="utf-8")
-        self.assertIn("- [x] T-001 TSK-0001", epic)
-        self.assertIn("- [ ] T-002 TSK-0002", epic)
-        self.assertIn("TSK-0002: issue #2 is closed on GitHub while its Evidence isn't written", done.stdout)
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("ADR-0001: issue #1 is closed on GitHub while ADR-0001 isn't done", done.stdout)
+        self.assertEqual(self.text(root), before)
+
+    def test_a_done_record_agrees_with_a_closed_issue(self):
+        """REQ-3678: the same closed issue is no finding once the record stores `done`."""
+        root = self.synced()
+        self.edit_issue(root, 1, state="closed")
+        (root / RECORD).write_text(self.text(root).replace("status: approved", "status: done"), encoding="utf-8")
+        done = self.run_tool(root, "sync")
+        self.assertNotIn("isn't done", done.stdout)
+
+    def test_a_draft_is_not_synchronised(self):
+        """REQ-4002: a record maps to an issue once it is approved."""
+        root = self.repository(status="draft")
+        done = self.run_tool(root, "sync")
+        self.assertEqual(done.returncode, 1, done.stdout)
+        self.assertIn("ADR-0001 is draft, and it is synchronised only once it is approved", done.stdout)
+        self.assertFalse((root / "state.json").exists())
 
     def test_check_writes_nothing(self):
-        """REQ-1400: `--check` computes the difference on demand and changes neither side."""
-        root = self.synced(status="draft")
-        self.edit_issue(root, 1, title="TSK-0001: Refuse a blank title")
-        before = self.task(root, "TSK-0001-first.md")
+        """REQ-4002: `--check` computes the difference on demand and changes neither side."""
+        root = self.synced()
+        self.retitle(root)
+        before = self.text(root)
         calls = len(self.state(root)["calls"])
         done = self.run_tool(root, "sync", "--check")
-        self.assertEqual(self.task(root, "TSK-0001-first.md"), before)
+        self.assertEqual(self.text(root), before)
         self.assertFalse(self.writes(root, calls))
-        self.assertIn("would", done.stdout)
+        self.assertIn("(would)", done.stdout)
 
 
 class Layered:
@@ -818,7 +734,7 @@ class Throttle(Layered, unittest.TestCase):
         """TSK-2940 criterion 1, REQ-2566: a 403 with `retry-after: 30` prints `throttled`, the method, the endpoint
         and the UTC time 30 seconds after the response, exits 3 and sends no further call."""
         root = self.throttled_project({"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        done = self.meow_github(root, "project", "ADR-0001", "o/r")
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         line = self.throttled_line(done)
         self.assertIn("POST repos/o/r/issues", line)
@@ -831,7 +747,7 @@ class Throttle(Layered, unittest.TestCase):
         """TSK-2940 criterion 2, REQ-2566: under `--wait` the refused call is sent again no earlier than the
         `retry-after` time, on the injected clock."""
         root = self.throttled_project({"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r", "--wait")
+        done = self.meow_github(root, "project", "ADR-0001", "o/r", "--wait")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         creates = [c for c in self.calls(root) if create(c)]
         self.assertGreaterEqual(len(creates), 2, creates)
@@ -842,7 +758,7 @@ class Throttle(Layered, unittest.TestCase):
         seconds, which would take the waits past an hour, starts no sleep and stops the run as throttled."""
         root = self.throttled_project({"status": 403, "headers": {"Retry-After": "3540"}, "body": SECONDARY},
                                       {"status": 403, "headers": {"Retry-After": "120"}, "body": SECONDARY})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r", "--wait")
+        done = self.meow_github(root, "project", "ADR-0001", "o/r", "--wait")
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         self.throttled_line(done)
         creates = [c for c in self.calls(root) if create(c)]
@@ -859,7 +775,7 @@ class Throttle(Layered, unittest.TestCase):
             with self.subTest(extra=extra):
                 root = self.throttled_project(
                     {"status": 403, "headers": {"Retry-After": "Wed, 21 Oct 2026 07:28:00 GMT"}, "body": SECONDARY})
-                done = self.meow_github(root, "project", "EPC-0001", "o/r", *extra)
+                done = self.meow_github(root, "project", "ADR-0001", "o/r", *extra)
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
                 line = self.throttled_line(done)
                 self.assertIn("POST repos/o/r/issues", line)
@@ -941,21 +857,30 @@ ACTIONS = ", inside a GitHub Actions workflow"
 SENTINEL = "meow-sentinel-6d1f0b7e"
 
 
-def many_tasks(test, count):
-    """A repository whose approved epic lists `count` unmapped tasks."""
+# The open pull requests `meow-github upgrade` reads.
+OPEN_PULLS = "repos/o/r/pulls?state=open&per_page=100"
+
+
+def many_folded(test, count):
+    """A repository whose archive holds `count` open tasks with no issue, each folded into a decision of its own
+    with no issue yet, so `meow-github upgrade` creates `count` issues in one run."""
     root = Project.repository(test)
-    tasks = root / "project" / "tasks"
-    for old in tasks.iterdir():
-        old.unlink()
-    lines = []
+    (root / RECORD).unlink()
+    tasks = root / "project" / "archive" / "tasks"
+    tasks.mkdir(parents=True)
     for n in range(1, count + 1):
-        task = f"TSK-{n:04d}"
-        lines.append(f"- [ ] T-{n:03d} {task} task {n}\n      closes: REQ-0001\n")
-        (tasks / f"{task}-task-{n}.md").write_text(TASK.format(
-            id=task, closes="    REQ-0001,", title=f"Task {n}", depends="Nothing."), encoding="utf-8")
-    epic = EPIC.format(status="approved").split("## Tasks")[0] + "## Tasks\n\n" + "\n".join(lines)
-    (root / "project" / "epics" / "EPC-0001-a-plan.md").write_text(epic, encoding="utf-8")
+        (root / "project" / "adrs" / f"ADR-{n:04d}-a-choice.md").write_text(
+            DECISION.format(status="approved").replace("ADR-0001", f"ADR-{n:04d}"), encoding="utf-8")
+        (tasks / f"TSK-{n:04d}-task.md").write_text(archived(f"TSK-{n:04d}", "approved", "", f"ADR-{n:04d}"), encoding="utf-8")
     return root
+
+
+def archived(ident, status, issue, folded=""):
+    """An archived task as `paw upgrade` leaves it."""
+    lines = ["---", f"id: {ident}", "artifact: task", f"status: {status}", "revised: 2026-01-01"]
+    lines += [f"issue: {issue}"] if issue else []
+    lines += [f"folded-into: {folded}"] if folded else []
+    return "\n".join(lines + ["---", "", f"# {ident}", ""])
 
 
 class Budgets(Layered, unittest.TestCase):
@@ -964,17 +889,17 @@ class Budgets(Layered, unittest.TestCase):
     run_of_501 = None
 
     def five_hundred_and_one(self):
-        """One `project` run over 501 unmapped tasks, shared by the checks that read it: its result and the calls
-        the stand-in recorded, read before the first check's repository is removed."""
+        """One `upgrade` run creating the issues of 501 decisions, shared by the checks that read it: its result and
+        the calls the stand-in recorded, read before the first check's repository is removed."""
         if Budgets.run_of_501 is None:
-            root = many_tasks(self, 501)
-            self.stand_in(root, {})
-            done = self.meow_github(root, "project", "EPC-0001", "o/r", credential={})
+            root = many_folded(self, 501)
+            self.stand_in(root, {"listings": {OPEN_PULLS: []}})
+            done = self.meow_github(root, "upgrade", "o/r", credential={})
             Budgets.run_of_501 = (done, self.calls(root))
         return Budgets.run_of_501
 
     def test_content_creation_stops_the_run_at_500_an_hour(self):
-        """TSK-2950 criterion 1, REQ-2568: with 501 unmapped tasks the stand-in records 500 creates, and the run
+        """TSK-2950 criterion 1, REQ-2568: with 501 unmapped decisions the stand-in records 500 creates, and the run
         stops before the 501st, naming content creation at 500 of 500 this hour, and exits 3."""
         done, calls = self.five_hundred_and_one()
         self.assertEqual(done.returncode, 3, done.stdout[-2000:] + done.stderr)
@@ -999,7 +924,7 @@ class Budgets(Layered, unittest.TestCase):
             with self.subTest(limit=limit):
                 root = Project.repository(self)
                 self.stand_in(root, {"headers": {"X-Ratelimit-Limit": limit}})
-                done = self.meow_github(root, "project", "EPC-0001", "o/r", credential={"GITHUB_ACTIONS": "true"})
+                done = self.meow_github(root, "project", "ADR-0001", "o/r", credential={"GITHUB_ACTIONS": "true"})
                 self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                 tail = done.stdout.splitlines()[-len(COUNTS):]
                 self.assertEqual([line.split(":")[0] for line in tail], list(COUNTS), tail)
@@ -1012,7 +937,7 @@ class Budgets(Layered, unittest.TestCase):
                 self.assertEqual(tail[1:], [
                     f"secondary points: {reads + 5 * creates} of 900 this minute",
                     f"content creation: {creates} of 80 this minute, {creates} of 500 this hour",
-                    f"spacing: {creates} writes, each at least one second after the previous one"])
+                    f"spacing: {creates} write, each at least one second after the previous one"])
 
 
 def groups(test, done):
@@ -1031,142 +956,127 @@ def listings(calls):
 
 
 class Partial(Layered, unittest.TestCase):
-    """ADR-1810: created issues are read back in one listing, and a run that stops part way says what it did."""
+    """ADR-1810: a created issue is read back in one listing, and a run that stops part way says what it did."""
 
     REFUSED = {"status": 422, "body": {"message": "Validation Failed"}}
 
-    def five(self, script, skew=0):
-        root = many_tasks(self, 5)
+    def run_project(self, script, skew=0):
+        root = Project.repository(self)
         self.stand_in(root, script)
-        return root, self.meow_github(root, "project", "EPC-0001", "o/r", skew=skew)
+        return root, self.meow_github(root, "project", "ADR-0001", "o/r", skew=skew)
 
-    def test_a_failed_write_reads_back_and_reports_partial(self):
-        """TSK-2960 criterion 1, REQ-2572: with the third of five creates failing, `project` sends the read-back
-        listing, names the first two tasks as projected and the other three as not projected, and exits 3."""
-        root, done = self.five({"responses": {"POST repos/o/r/issues": [None, None, self.REFUSED]}})
+    def test_a_failed_write_reports_partial(self):
+        """TSK-2960 criterion 1, REQ-2572: with the create failing, `project` has nothing to read back, names the
+        record as not projected, and exits 3."""
+        root, done = self.run_project({"responses": {"POST repos/o/r/issues": [self.REFUSED]}})
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         calls = self.calls(root)
-        self.assertEqual(len([c for c in calls if create(c)]), 3, calls)
-        self.assertEqual(len(listings(calls)), 1, calls)
-        self.assertEqual(groups(self, done), ("TSK-0001, TSK-0002", "none", "TSK-0003, TSK-0004, TSK-0005"))
+        self.assertEqual(len([c for c in calls if create(c)]), 1, calls)
+        self.assertEqual(listings(calls), [], calls)
+        self.assertEqual(groups(self, done), ("none", "none", "ADR-0001"))
 
     def test_the_listing_starts_at_githubs_date(self):
         """TSK-2960 criterion 2, REQ-2572: with the local clock two minutes ahead of the stand-in's `Date`, the
-        listing's `since` is the `Date` of the run's first response, and both created issues are read back. The
+        listing's `since` is the `Date` of the run's first response, and the created issue is read back. The
         stand-in lists only the issues written at or after `since`, so a `since` taken from the local clock reads
-        neither back. Its create answers carry no `updated_at`, so the start comes from the `Date` (ADR-2320)."""
-        root, done = self.five({"no_updated_at": True,
-                                "responses": {"POST repos/o/r/issues": [None, None, self.REFUSED]}}, skew=120)
-        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        nothing back. Its create answer carries no `updated_at`, so the start comes from the `Date` (ADR-2320)."""
+        root, done = self.run_project({"no_updated_at": True}, skew=120)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         first = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 120))
         self.assertEqual(listings(self.calls(root)), [first])
-        self.assertEqual(groups(self, done)[:2], ("TSK-0001, TSK-0002", "none"))
+        self.assertRegex(done.stdout, r"(?m)^ADR-0001: projected to issue #1 at [0-9a-f]{12}, read back$")
 
     def test_a_throttle_sends_no_listing(self):
-        """TSK-2960 criterion 3, REQ-2572: with the third create answered by a secondary throttle, `project` sends
-        no listing, names the first two tasks as created and not read back and the rest as not projected, and
-        exits 3."""
+        """TSK-2960 criterion 3, REQ-2572: with the create answered by a secondary throttle, `project` sends no
+        listing, names the record as not projected, and exits 3."""
         throttle = {"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY}
-        root, done = self.five({"responses": {"POST repos/o/r/issues": [None, None, throttle]}})
+        root, done = self.run_project({"responses": {"POST repos/o/r/issues": [throttle]}})
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         calls = self.calls(root)
         self.assertEqual(listings(calls), [])
         self.assertTrue(create(calls[-1]), calls)
-        projected, unread, left = groups(self, done)
-        self.assertEqual(projected, "none")
-        self.assertEqual(re.findall(r"TSK-\d{4}", unread), ["TSK-0001", "TSK-0002"])
-        self.assertEqual(re.findall(r"#\d+", unread), ["#1", "#2"])
-        self.assertEqual(left, "TSK-0003, TSK-0004, TSK-0005")
+        self.assertEqual(groups(self, done), ("none", "none", "ADR-0001"))
 
     def test_an_issue_the_listing_omits_is_not_read_back(self):
         """TSK-2960 criterion 4 and TSK-4040 criterion 2, REQ-2572, REQ-3322: where the listing shows a created issue
-        with another body or another title, or omits it and its read by number shows another body, its task goes
-        under `created, not read back` with the reason, and the task keeps `issue:`."""
-        shown = (({"omit": [2], "read_alter": [2]}, "reads differently from what was written"),
-                 ({"omit": [2], "read_retitle": [2]}, "reads differently from what was written"),
-                 ({"alter": [2]}, "reads differently from what was written"),
-                 ({"retitle": [2]}, "reads differently from what was written"))
+        with another body or another title, or omits it and its read by number shows another body, its record goes
+        under `created, not read back` with the reason, and the record keeps `issue:`."""
+        shown = (({"omit": [1], "read_alter": [1]}, "reads differently from what was written"),
+                 ({"omit": [1], "read_retitle": [1]}, "reads differently from what was written"),
+                 ({"alter": [1]}, "reads differently from what was written"),
+                 ({"retitle": [1]}, "reads differently from what was written"))
         for script, reason in shown:
             with self.subTest(script=script):
-                root = Project.repository(self)
-                self.stand_in(root, script)
-                done = self.meow_github(root, "project", "EPC-0001", "o/r")
+                root, done = self.run_project(script)
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
                 self.assertEqual(len(listings(self.calls(root))), 1)
-                projected, unread, left = groups(self, done)
-                self.assertEqual((projected, left), ("TSK-0001", "none"))
-                self.assertEqual(unread, f"TSK-0002 (issue #2, {reason})")
-                self.assertIn("\nissue: 2\n", Project.task(self, root, "TSK-0002-second.md"))
+                self.assertEqual(groups(self, done), ("none", f"ADR-0001 (issue #1, {reason})", "none"))
+                self.assertIn("\nissue: 1\n", Project.text(self, root))
 
     @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root writes a read-only file")
-    def test_an_updated_issue_is_projected_though_its_task_file_is_not_written(self):
-        """TSK-2960, REQ-2572: a mapped task whose issue was updated counts as projected where its file then can't
-        be written, because its issue was updated. The run stops at a refused create after it, so the line is
-        printed."""
+    def test_an_updated_issue_is_projected_though_its_record_file_is_not_written(self):
+        """TSK-2960, REQ-2572: a mapped record whose issue was updated counts as projected where its file then can't
+        be written, because its issue was updated, and the run exits 1 and prints no `partial:` line."""
         root = Project.repository(self)
         self.stand_in(root, {})
-        first = self.meow_github(root, "project", "EPC-0001", "o/r")
+        first = self.meow_github(root, "project", "ADR-0001", "o/r")
         self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
-        task = root / "project" / "tasks" / "TSK-0001-first.md"
-        task.write_text(task.read_text(encoding="utf-8").replace("# Refuse an empty title", "# Refuse a blank title"),
-                        encoding="utf-8")
-        task.chmod(0o444)
-        (root / "project" / "tasks" / "TSK-0003-third.md").write_text(TASK.format(
-            id="TSK-0003", closes="    REQ-0004,", title="A third", depends="Nothing."), encoding="utf-8")
-        self.stand_in(root, {"responses": {"POST repos/o/r/issues": [self.REFUSED]}})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
-        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
-        self.assertIn("TSK-0001: issue #1 updated, and the mapping couldn't be written", done.stdout)
-        self.assertEqual(groups(self, done), ("TSK-0001, TSK-0002", "none", "TSK-0003"))
+        Project.retitle(self, root)
+        (root / RECORD).chmod(0o444)
+        done = self.meow_github(root, "project", "ADR-0001", "o/r")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("ADR-0001: issue #1 updated, and the mapping couldn't be written", done.stdout)
+        self.assertEqual([line for line in done.stdout.splitlines() if line.startswith("partial:")], [])
 
-    def test_created_issues_are_read_back_in_one_listing(self):
-        """TSK-2960 criterion 5, REQ-2572: with five tasks and every create answered, the stand-in records one
-        read-back listing and no read of a single created issue, and the report holds no `partial:` line. The
-        stand-in answers the listing three issues a page, so a run reading only the first page reads two back
-        short."""
-        root, done = self.five({"page_size": 3})
+    def test_a_created_issue_is_read_back_from_every_page_of_one_listing(self):
+        """TSK-2960 criterion 5, REQ-2572: with a second decision created in the same second as the first and the
+        listing answering one issue a page, the stand-in records one read-back listing of two pages and no read of a
+        single created issue, and the report holds no `partial:` line, so a run reading only the first page fails."""
+        root = Project.repository(self)
+        (root / "project" / "adrs" / "ADR-0002-another.md").write_text(
+            DECISION.format(status="approved").replace("ADR-0001", "ADR-0002"), encoding="utf-8")
+        self.stand_in(root, {"page_size": 1})
+        first = self.meow_github(root, "project", "ADR-0001", "o/r")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        self.stand_in(root, {"page_size": 1})
+        before = len(self.calls(root))
+        done = self.meow_github(root, "project", "ADR-0002", "o/r")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
-        calls = self.calls(root)
-        self.assertEqual(len([c for c in calls if create(c)]), 5, calls)
+        calls = self.calls(root)[before:]
+        self.assertEqual(len([c for c in calls if create(c)]), 1, calls)
         self.assertEqual(len(listings(calls)), 1, calls)
         pages = [c["args"][1] for c in calls if "issues?state=all&since=" in c["args"][1]]
         self.assertEqual(len(pages), 2, calls)
         self.assertTrue(pages[1].endswith("&per_page=100&page=2"), pages)
-        single = [c for c in calls if re.fullmatch(r"repos/o/r/issues/\d+", c["args"][1])]
-        self.assertEqual(single, [], calls)
+        self.assertEqual([c for c in calls if re.fullmatch(r"repos/o/r/issues/\d+", c["args"][1])], [], calls)
         self.assertEqual([line for line in done.stdout.splitlines() if line.startswith("partial:")], [])
-        read = [line for line in done.stdout.splitlines() if line.endswith(", read back")]
-        self.assertEqual(len(read), 5, done.stdout)
+        self.assertEqual(len([line for line in done.stdout.splitlines() if line.endswith(", read back")]), 1, done.stdout)
 
 
 class ReadBack(Layered, unittest.TestCase):
     """ADR-2340: a created issue the read-back listing leaves out is read by its number before it is reported."""
 
     def test_an_issue_the_listing_leaves_out_is_read_by_number(self):
-        """TSK-4040 criterion 1, REQ-3322: with the second of two created issues left out of the listing and answered
-        by number, both tasks read back, one read by number is sent, no `partial:` line is printed, and the run
-        exits 0."""
+        """TSK-4040 criterion 1, REQ-3322: with the created issue left out of the listing and answered by number, the
+        record reads back, one read by number is sent, no `partial:` line is printed, and the run exits 0."""
         root = Project.repository(self)
-        self.stand_in(root, {"omit": [2]})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.stand_in(root, {"omit": [1]})
+        done = self.meow_github(root, "project", "ADR-0001", "o/r")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         lines = done.stdout.splitlines()
-        for number in (1, 2):
-            self.assertEqual(len([line for line in lines if line.startswith(f"TSK-000{number}: projected to issue "
-                                                                             f"#{number} at ")
-                                  and line.endswith(", read back")]), 1, done.stdout)
+        self.assertEqual(len([line for line in lines if line.startswith("ADR-0001: projected to issue #1 at ")
+                              and line.endswith(", read back")]), 1, done.stdout)
         reads = [c["args"][1] for c in self.calls(root) if re.fullmatch(r"repos/o/r/issues/\d+", c["args"][1])]
-        self.assertEqual(reads, ["repos/o/r/issues/2"])
+        self.assertEqual(reads, ["repos/o/r/issues/1"])
         self.assertEqual([line for line in lines if line.startswith("partial:")], [])
 
-    def test_the_listing_starts_at_the_first_issues_own_time(self):
-        """TSK-4020 criterion 1, REQ-3322: with each issue written before its create's answer, the first two
-        seconds before and the second one, the repository named and two unmapped tasks, the listing starts at the
-        earliest `updated_at`, finds both issues with no read by number, and the run exits 0. A start at the latest
-        time, or at the first response's `Date`, misses the first issue and reads it by number."""
+    def test_the_listing_starts_at_the_issues_own_time(self):
+        """TSK-4020 criterion 1, REQ-3322: with the issue written two seconds before its create's answer and the
+        repository named, the listing starts at its `updated_at`, finds it with no read by number, and the run
+        exits 0. A start at the first response's `Date` misses the issue and reads it by number."""
         root = Project.repository(self)
-        self.stand_in(root, {"lag": [2, 1]})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        self.stand_in(root, {"lag": [2]})
+        done = self.meow_github(root, "project", "ADR-0001", "o/r")
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         calls = self.calls(root)
         self.assertEqual(listings(calls), [time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 2))])
@@ -1179,29 +1089,26 @@ class ReadBack(Layered, unittest.TestCase):
         stand-in's, so a start taken from the local clock fails."""
         root = Project.repository(self)
         self.stand_in(root, {"lag": 1, "no_updated_at": True})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r", skew=120)
+        done = self.meow_github(root, "project", "ADR-0001", "o/r", skew=120)
         self.assertEqual(listings(self.calls(root)),
                          [time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START - 120))], done.stdout + done.stderr)
 
-    def test_a_throttled_read_by_number_stops_the_reads(self):
-        """TSK-4040 criterion 4, REQ-3322, REQ-3326: with both created issues left out of the listing, a secondary
-        throttle or a 401 answering the first read by number leaves both issues under `created, not read back` with
-        `no read ran` and sends no request after it, and any other failure leaves that issue under
-        `couldn't be read` and reads the next. Each run exits 3."""
+    def test_a_failed_read_by_number_leaves_the_issue_unread(self):
+        """TSK-4040 criterion 4, REQ-3322, REQ-3326: with the created issue left out of the listing, a secondary
+        throttle or a 401 answering the read by number leaves it under `created, not read back` with `no read ran`,
+        and any other failure with `couldn't be read`. Each run sends no request after it and exits 3."""
         throttle = {"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY}
         rejected = {"status": 401, "body": {"message": "Bad credentials"}}
         failed = {"status": 422, "body": {"message": "Unprocessable"}}
-        stopped = ("none", "TSK-0001 (issue #1, no read ran), TSK-0002 (issue #2, no read ran)", "none")
-        cases = ((throttle, stopped, True), (rejected, stopped, True),
-                 (failed, ("TSK-0002", "TSK-0001 (issue #1, couldn't be read)", "none"), False))
-        for answer, expected, last in cases:
+        stopped = ("none", "ADR-0001 (issue #1, no read ran)", "none")
+        for answer, expected in ((throttle, stopped), (rejected, stopped),
+                                 (failed, ("none", "ADR-0001 (issue #1, couldn't be read)", "none"))):
             with self.subTest(status=answer["status"]):
                 root = Project.repository(self)
-                self.stand_in(root, {"omit": [1, 2], "responses": {"GET repos/o/r/issues/1": [answer]}})
-                done = self.meow_github(root, "project", "EPC-0001", "o/r")
+                self.stand_in(root, {"omit": [1], "responses": {"GET repos/o/r/issues/1": [answer]}})
+                done = self.meow_github(root, "project", "ADR-0001", "o/r")
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
-                calls = self.calls(root)
-                self.assertEqual(calls[-1]["args"][1] == "repos/o/r/issues/1", last, calls)
+                self.assertEqual(self.calls(root)[-1]["args"][1], "repos/o/r/issues/1")
                 self.assertEqual(groups(self, done), expected)
 
 
@@ -1214,7 +1121,7 @@ class Refusal(Layered, unittest.TestCase):
         root = Project.repository(self)
         answer = {"status": status, "headers": headers, "body": {"message": message}}
         self.stand_in(root, {"responses": {"POST repos/o/r/issues": [answer]}})
-        done = self.meow_github(root, "project", "EPC-0001", "o/r")
+        done = self.meow_github(root, "project", "ADR-0001", "o/r")
         self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
         self.assertNotIn("throttled", done.stdout)
         self.assertEqual(len([c for c in self.calls(root) if create(c)]), 1)
@@ -1251,22 +1158,20 @@ class Refusal(Layered, unittest.TestCase):
             '"Must have admin rights to Repository."'), 1, lines)
 
     def test_a_404_on_a_mapped_issue_may_be_hidden(self):
-        """TSK-2970 criterion 4, REQ-2574: a 404 on a task's mapped issue is reported as a refusal, with
+        """TSK-2970 criterion 4, REQ-2574: a 404 on a record's mapped issue is reported as a refusal, with
         `, or it is hidden from this credential` added, and the run exits 3, whether the read of the issue or
-        the update of a changed task's issue gets it."""
+        the update of a changed record's issue gets it."""
         for call in ("GET", "PATCH"):
             with self.subTest(call=call):
                 root = Project.repository(self)
                 self.stand_in(root, {})
-                first = self.meow_github(root, "project", "EPC-0001", "o/r")
+                first = self.meow_github(root, "project", "ADR-0001", "o/r")
                 self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
                 if call == "PATCH":
-                    task = root / "project" / "tasks" / "TSK-0001-first.md"
-                    task.write_text(task.read_text(encoding="utf-8").replace(
-                        "# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+                    Project.retitle(self, root)
                 missing = {"status": 404, "body": {"message": "Not Found"}}
                 self.stand_in(root, {"responses": {f"{call} repos/o/r/issues/1": [missing]}})
-                done = self.meow_github(root, "project", "EPC-0001", "o/r")
+                done = self.meow_github(root, "project", "ADR-0001", "o/r")
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
                 self.assertEqual(done.stdout.splitlines().count(
                     f'refused: {call} repos/o/r/issues/1 needs a permission: GitHub named no permission and said '
@@ -1277,7 +1182,7 @@ class Refusal(Layered, unittest.TestCase):
         and is reported as no refusal."""
         lines = self.refused_create(404, {}, "Not Found")
         self.assertEqual([line for line in lines if line.startswith("refused:")], [], lines)
-        self.assertEqual(lines.count("TSK-0001: not projected: repos/o/r/issues: HTTP 404: Not Found"), 1, lines)
+        self.assertEqual(lines.count("ADR-0001: not projected: repos/o/r/issues: HTTP 404: Not Found"), 1, lines)
 
     def test_a_401_is_unauthenticated(self):
         """TSK-2970 criterion 5 and TSK-4030 criterion 2, REQ-2574, REQ-3324: a 401 prints
@@ -1288,36 +1193,33 @@ class Refusal(Layered, unittest.TestCase):
 
     def test_a_401_ends_the_run(self):
         """TSK-4030 criterion 3, REQ-3326: a 401 is the last request the run sends, wherever it lands: the read of a
-        mapped issue, the update of a changed one, a create after an earlier create, or the read-back listing. The
-        run prints the `partial:` line with the tasks in the groups the stop leaves them in, and exits 3."""
+        mapped issue, the update of a changed one, a create, or the read-back listing. The run prints the `partial:`
+        line with the record in the group the stop leaves it in, and exits 3."""
         rejected = {"status": 401, "body": {"message": "Bad credentials"}}
         since = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(START))
         listing = f"repos/o/r/issues?state=all&since={since}&per_page=100"
-        unread = "TSK-0001 (issue #1, {why}), TSK-0002 (issue #2, {why})"
         cases = (
             ("read", True, {"GET repos/o/r/issues/1": [rejected]}, ["repos/o/r/issues/1"],
-             ("none", "none", "TSK-0001, TSK-0002")),
+             ("none", "none", "ADR-0001")),
             ("update", True, {"PATCH repos/o/r/issues/1": [rejected]}, ["repos/o/r/issues/1"] * 2,
-             ("none", "none", "TSK-0001, TSK-0002")),
-            ("create", False, {"POST repos/o/r/issues": [None, rejected]}, ["repos/o/r/issues"] * 2,
-             ("none", "TSK-0001 (issue #1, no listing ran)", "TSK-0002")),
-            ("listing", False, {f"GET {listing}": [rejected]}, ["repos/o/r/issues"] * 2 + [listing],
-             ("none", unread.format(why="the listing's credential was rejected"), "none")),
+             ("none", "none", "ADR-0001")),
+            ("create", False, {"POST repos/o/r/issues": [rejected]}, ["repos/o/r/issues"],
+             ("none", "none", "ADR-0001")),
+            ("listing", False, {f"GET {listing}": [rejected]}, ["repos/o/r/issues", listing],
+             ("none", "ADR-0001 (issue #1, the listing's credential was rejected)", "none")),
         )
         for where, mapped, responses, every, expected in cases:
             with self.subTest(where=where):
                 root = Project.repository(self)
                 self.stand_in(root, {})
                 if mapped:
-                    first = self.meow_github(root, "project", "EPC-0001", "o/r")
+                    first = self.meow_github(root, "project", "ADR-0001", "o/r")
                     self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
                     if where == "update":
-                        task = root / "project" / "tasks" / "TSK-0001-first.md"
-                        task.write_text(task.read_text(encoding="utf-8").replace(
-                            "# Refuse an empty title", "# Refuse a blank title"), encoding="utf-8")
+                        Project.retitle(self, root)
                 before = len(self.calls(root))
                 self.stand_in(root, {"responses": responses})
-                done = self.meow_github(root, "project", "EPC-0001", "o/r")
+                done = self.meow_github(root, "project", "ADR-0001", "o/r")
                 self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
                 sent = [call["args"][1] for call in self.calls(root)[before:]]
                 self.assertEqual(sent, every)
@@ -1360,7 +1262,7 @@ class Credential(Layered, unittest.TestCase):
                     root = Project.repository(self)
                     self.stand_in(root, {})
                     credential = dict(variables, **({"GITHUB_ACTIONS": "true"} if actions else {}))
-                    done = self.meow_github(root, "project", "EPC-0001", "o/r", credential=credential)
+                    done = self.meow_github(root, "project", "ADR-0001", "o/r", credential=credential)
                     first = (done.stdout.splitlines() or [""])[0]
                     self.assertIn(form + (ACTIONS if actions else ""), first, done.stdout + done.stderr)
                     if not actions:
@@ -1376,7 +1278,7 @@ class Credential(Layered, unittest.TestCase):
                 with self.subTest(variable=variable, command=command):
                     root = Project.repository(self)
                     self.stand_in(root, {"listings": SINGLE_PAGES})
-                    args = ("project", "EPC-0001", "o/r") if command == "project" else ("history", "o/r")
+                    args = ("project", "ADR-0001", "o/r") if command == "project" else ("history", "o/r")
                     done = self.meow_github(root, *args, credential={variable: SENTINEL})
                     self.assertNotIn(SENTINEL, done.stdout, "the token's value is on standard output")
                     self.assertNotIn(SENTINEL, done.stderr, "the token's value is on standard error")
@@ -1385,6 +1287,232 @@ class Credential(Layered, unittest.TestCase):
                     else:
                         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
                         self.assertEqual(json.loads(done.stdout).get("credential"), FORMS[variable], done.stdout)
+
+
+class Upgrade(Layered, unittest.TestCase):
+    """ADR-3090 "Open tasks and issues": `meow-github upgrade` retires the issues of archived tasks, one row each."""
+
+    def repository(self, tasks, issues, pulls=()):
+        """A record whose archive holds `tasks`, each `(id, status, issue, folded-into)`, on a tracker holding
+        `issues`, each `(number, state)` and numbered from 1, and one approved decision with no issue yet."""
+        root = Project.repository(self)
+        directory = root / "project" / "archive" / "tasks"
+        directory.mkdir(parents=True)
+        for ident, status, issue, folded in tasks:
+            (directory / f"{ident}-a-task.md").write_text(archived(ident, status, issue, folded), encoding="utf-8")
+        state = {"issues": {str(n): {"number": n, "title": f"Issue {n}", "body": "The old body.", "state": s,
+                                     "written": START} for n, s in issues},
+                 "calls": [], "used": {}}
+        (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+        self.stand_in(root, {"listings": {OPEN_PULLS: list(pulls)}})
+        return root
+
+    def issue(self, root, number):
+        return json.loads((root / "state.json").read_text(encoding="utf-8"))["issues"][str(number)]
+
+    def writes(self, root):
+        return [c["args"] for c in self.calls(root) if "-X" in c["args"]]
+
+    def test_a_done_task_closes_its_open_issue_as_completed(self):
+        """Row 1: the notice and the state land in one call, above the issue's own body."""
+        root = self.repository([("TSK-0001", "done", "1", "")], [(1, "open")])
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        issue = self.issue(root, 1)
+        self.assertEqual((issue["state"], issue["state_reason"]), ("closed", "completed"))
+        self.assertTrue(issue["body"].startswith("TSK-0001 is done and archived (ADR-3090)."), issue["body"])
+        self.assertTrue(issue["body"].endswith("The old body."), issue["body"])
+        self.assertEqual(len(self.writes(root)), 1, self.writes(root))
+        self.assertIn("TSK-0001: closed issue #1 as completed", done.stdout)
+
+    def test_a_dropped_task_closes_its_open_issue_as_not_planned(self):
+        """Row 2: withdrawn, rejected and superseded all read as work nobody did."""
+        for status in ("withdrawn", "rejected", "superseded"):
+            with self.subTest(status=status):
+                root = self.repository([("TSK-0001", status, "1", "")], [(1, "open")])
+                done = self.meow_github(root, "upgrade", "o/r")
+                self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+                issue = self.issue(root, 1)
+                self.assertEqual((issue["state"], issue["state_reason"]), ("closed", "not_planned"))
+                self.assertIn("TSK-0001 was dropped and is archived", issue["body"])
+
+    def test_a_folded_task_creates_its_carriers_issue_first_and_names_it(self):
+        """Row 3: the carrier's issue is created before the closing call, whose body names it as `ADR-x (#n)`."""
+        root = self.repository([("TSK-0001", "approved", "1", "ADR-0001")], [(1, "open")])
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        writes = self.writes(root)
+        self.assertEqual([(w[1], w[w.index("-X") + 1]) for w in writes],
+                         [("repos/o/r/issues", "POST"), ("repos/o/r/issues/1", "PATCH")], writes)
+        self.assertIn("\nissue: 2\n", Project.text(self, root))
+        issue = self.issue(root, 1)
+        self.assertEqual((issue["state"], issue["state_reason"]), ("closed", "not_planned"))
+        self.assertIn("ADR-0001 (#2) carries its work", issue["body"])
+
+    def test_a_folded_task_finds_the_issue_its_carrier_already_has(self):
+        """Row 3: a carrier with an issue keeps it, so no second one opens."""
+        root = self.repository([("TSK-0001", "approved", "1", "ADR-0001")], [(1, "open")])
+        self.meow_github(root, "project", "ADR-0001", "o/r")
+        self.assertEqual(self.issue(root, 2)["state"], "open")
+        before = len(self.writes(root))
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        writes = self.writes(root)[before:]
+        self.assertEqual([w[w.index("-X") + 1] for w in writes], ["PATCH"], writes)
+        self.assertIn("ADR-0001 (#2) carries its work", self.issue(root, 1)["body"])
+
+    def test_an_orphan_is_left_open_and_reported(self):
+        """Row 4: nothing authorises the work, so nothing writes to its issue, and the run exits 1."""
+        root = self.repository([("TSK-0001", "approved", "1", "")], [(1, "open")])
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(self.writes(root), [])
+        self.assertEqual(self.issue(root, 1)["state"], "open")
+        self.assertIn("TSK-0001: issue #1 is left as it is, and TSK-0001 needs a decision", done.stdout)
+
+    def test_a_closed_issue_gets_no_write(self):
+        """The table's right column: a closed issue is left alone, and a folded task and an orphan are reported."""
+        root = self.repository([("TSK-0001", "done", "1", ""), ("TSK-0002", "withdrawn", "2", ""),
+                                ("TSK-0003", "approved", "3", "ADR-0001"), ("TSK-0004", "approved", "4", "")],
+                               [(1, "closed"), (2, "closed"), (3, "closed"), (4, "closed")])
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        closing = [w for w in self.writes(root) if w[1] != "repos/o/r/issues"]
+        self.assertEqual(closing, [])
+        for number in (1, 2, 3, 4):
+            self.assertEqual(self.issue(root, number)["body"], "The old body.")
+        self.assertIn("TSK-0003: issue #3 is closed, and ADR-0001 carries the work", done.stdout)
+        self.assertIn("TSK-0004: issue #4 is left as it is, and TSK-0004 needs a decision", done.stdout)
+
+    def test_an_issue_no_archived_task_maps_gets_no_call(self):
+        """ADR-3090: it is the repository's own, so it is never read, let alone written."""
+        root = self.repository([("TSK-0001", "done", "1", "")], [(1, "open"), (2, "open")])
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual([c["args"] for c in self.calls(root) if c["args"][1] == "repos/o/r/issues/2"], [])
+        self.assertEqual(self.issue(root, 2), {"number": 2, "title": "Issue 2", "body": "The old body.",
+                                               "state": "open", "written": START})
+
+    def test_check_reports_each_row_and_writes_nothing(self):
+        """ADR-3090: `--check` previews the table with no write, and leaves the record as it is."""
+        root = self.repository([("TSK-0001", "done", "1", ""), ("TSK-0002", "withdrawn", "2", ""),
+                                ("TSK-0003", "approved", "3", "ADR-0001"), ("TSK-0004", "approved", "4", "")],
+                               [(1, "open"), (2, "open"), (3, "open"), (4, "open")])
+        before = Project.text(self, root)
+        done = self.meow_github(root, "upgrade", "--check", "o/r")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(self.writes(root), [])
+        self.assertEqual(Project.text(self, root), before)
+        self.assertIn("TSK-0001: would close issue #1 as completed", done.stdout)
+        self.assertIn("TSK-0002: would close issue #2 as not_planned", done.stdout)
+        self.assertIn("TSK-0003: would close issue #3 as not_planned", done.stdout)
+        self.assertIn("ADR-0001: not projected yet", done.stdout)
+        self.assertIn("TSK-0004: issue #4 is left as it is", done.stdout)
+
+    def test_an_open_pull_request_naming_a_folded_task_is_reported_and_left(self):
+        """ADR-3090: a branch in flight is somebody's work, so it is listed, and no call writes to it."""
+        pulls = ({"number": 9, "title": "Finish TSK-0001", "body": ""}, {"number": 8, "title": "Other", "body": "It names TSK-0002."},
+                 {"number": 7, "title": "Unrelated", "body": None})
+        root = self.repository([("TSK-0001", "approved", "1", "ADR-0001"), ("TSK-0002", "done", "2", "")],
+                               [(1, "open"), (2, "open")], pulls)
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("pull request #9 names TSK-0001, which is folded", done.stdout)
+        self.assertNotIn("pull request #8", done.stdout)
+        self.assertNotIn("pull request #7", done.stdout)
+        self.assertEqual([w for w in self.writes(root) if "/pulls" in w[1]], [])
+
+    def test_an_issue_a_live_record_owns_gets_no_write(self):
+        """ADR-3090: a defect's issue stays its issue, so an archived task sharing it changes nothing."""
+        root = self.repository([("TSK-0001", "done", "1", "")], [(1, "open")])
+        Project.defect(self, root)
+        path = root / "project" / "bugs" / "BUG-0001-a-defect.md"
+        path.write_text(path.read_text(encoding="utf-8").replace("issue:\n", "issue: 1\n"), encoding="utf-8")
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertEqual(self.writes(root), [])
+        self.assertEqual(self.issue(root, 1)["state"], "open")
+        self.assertIn("TSK-0001: issue #1 is BUG-0001's own", done.stdout)
+
+    def test_the_least_finished_task_decides_a_shared_issue(self):
+        """ADR-3090: a done task beside an orphan leaves the issue open with no write, and beside a folded task
+        closes it as not planned, because work nobody did never reads as done."""
+        orphaned = self.repository([("TSK-0001", "done", "1", ""), ("TSK-0002", "approved", "1", "")], [(1, "open")])
+        done = self.meow_github(orphaned, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(self.writes(orphaned), [])
+        self.assertEqual(self.issue(orphaned, 1)["state"], "open")
+        self.assertIn("TSK-0002 needs a decision", done.stdout)
+        folded = self.repository([("TSK-0001", "done", "1", ""), ("TSK-0002", "approved", "1", "ADR-0001")], [(1, "open")])
+        done = self.meow_github(folded, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        issue = self.issue(folded, 1)
+        self.assertEqual((issue["state"], issue["state_reason"]), ("closed", "not_planned"))
+        self.assertIn("TSK-0002 is archived, and ADR-0001 (#2) carries its work", issue["body"])
+
+    def test_a_folded_task_whose_carrier_is_a_draft_gets_no_write(self):
+        """ADR-3090: a draft carrier gets no issue, so the closing notice would name nothing and the issue stays."""
+        root = self.repository([("TSK-0001", "approved", "1", "ADR-0001")], [(1, "open")])
+        path = root / RECORD
+        path.write_text(path.read_text(encoding="utf-8").replace("status: approved", "status: draft"), encoding="utf-8")
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertEqual(self.writes(root), [])
+        self.assertEqual(self.issue(root, 1)["state"], "open")
+        self.assertIn("TSK-0001: issue #1 is left open, because ADR-0001 has no issue to name", done.stdout)
+
+    def test_a_throttled_carrier_create_stops_the_run(self):
+        """ADR-1810, ADR-3090: where the carrier's issue can't be created the run stops, and no issue is closed."""
+        root = self.repository([("TSK-0001", "approved", "1", "ADR-0001"), ("TSK-0002", "done", "2", "")],
+                               [(1, "open"), (2, "open")])
+        throttle = {"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY}
+        self.stand_in(root, {"listings": {OPEN_PULLS: []}, "responses": {"POST repos/o/r/issues": [throttle]}})
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertEqual([w for w in self.writes(root) if "PATCH" in w], [])
+        self.assertIn("ADR-0001 has no issue yet, so nothing is closed", done.stdout)
+
+    def test_open_pull_requests_on_a_second_page_are_reported(self):
+        """ADR-3090: every page of the listing is read, so a repository with many open pull requests hides none."""
+        following = f"https://api.github.com/{OPEN_PULLS}&page=2"
+        root = self.repository([("TSK-0001", "approved", "1", "ADR-0001")], [(1, "open")])
+        first = {"status": 200, "body": [{"number": 6, "title": "Other", "body": ""}],
+                 "headers": {"Link": f'<{following}>; rel="next"'}}
+        self.stand_in(root, {"listings": {f"{OPEN_PULLS}&page=2": [{"number": 5, "title": "Finish TSK-0001", "body": ""}]},
+                             "responses": {f"GET {OPEN_PULLS}": [first]}})
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("pull request #5 names TSK-0001, which is folded", done.stdout)
+
+    def test_a_throttled_pull_request_listing_stops_the_run(self):
+        """ADR-1810: a throttled listing sends nothing after it, so no issue is read or closed."""
+        root = self.repository([("TSK-0001", "done", "1", "")], [(1, "open")])
+        throttle = {"status": 403, "headers": {"Retry-After": "30"}, "body": SECONDARY}
+        self.stand_in(root, {"responses": {f"GET {OPEN_PULLS}": [throttle]}})
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 3, done.stdout + done.stderr)
+        self.assertEqual(self.calls(root)[-1]["args"][1], OPEN_PULLS)
+        self.assertEqual(self.writes(root), [])
+
+    def test_a_second_run_writes_nothing(self):
+        """REQ-5314: an interrupted or repeated run skips what is already closed."""
+        root = self.repository([("TSK-0001", "done", "1", ""), ("TSK-0002", "withdrawn", "2", ""),
+                                ("TSK-0003", "approved", "3", "ADR-0001")], [(1, "open"), (2, "open"), (3, "open")])
+        first = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        before = len(self.writes(root))
+        self.assertEqual(before, 4, self.writes(root))
+        second = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
+        self.assertEqual(self.writes(root)[before:], [])
+
+    def test_an_empty_archive_says_the_record_comes_first(self):
+        """ADR-3090: the issues change after the record's pull request merges, so no archive means no call."""
+        root = self.repository([], [(1, "open")])
+        done = self.meow_github(root, "upgrade", "o/r")
+        self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
+        self.assertIn("no archived task; merge `paw upgrade --write` first", done.stdout)
+        self.assertEqual(self.calls(root), [])
 
 
 class Guard(unittest.TestCase):
