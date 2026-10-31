@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-git
 answers: what meow-git does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-git@0.7.0]
+describes: [meow-git@0.7.1]
 description: "Refuses a git commit on the trunk the repository declares, and checks every commit a push would publish for the declared commit convention and for a good signature, before the push runs. It keeps nothing in context on every turn."
 ---
 

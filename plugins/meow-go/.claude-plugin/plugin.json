@@ -1,6 +1,6 @@
 {
   "name": "meow-go",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Detects Go from the modules git tracks, reports each module's language version, pinned toolchain, declared tools and golangci-lint configuration, prints a stages table bound from them with the race detector on in test, reports a golangci-lint configuration that is not the version 2 shape and states a supply-chain check's reach, and compares the pinned toolchain with the installed one, writing no file, and carries what a reviewer of Go checks that no command reports.",
   "author": {
     "name": "Andrew Vasilyev",

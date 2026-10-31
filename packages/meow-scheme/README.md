@@ -2,7 +2,7 @@
 reader: someone installing or running meow-scheme on Pi
 answers: what meow-scheme provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-scheme@0.2.0]
+describes: [@meowshed/meow-scheme@0.2.1]
 ---
 
 # @meowshed/meow-scheme

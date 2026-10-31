@@ -1,5 +1,9 @@
 # meow-loop
 
+## 0.18.1
+
+- Its launcher runs the build beside it in a checkout. An installed unit resolves its binary as before.
+
 ## 0.18.0
 
 - A run's steps are research, requirements, design, spec and implement, and an `implement` run takes a decision or a defect, finishing when it stores `done`.

@@ -2,7 +2,7 @@
 reader: someone installing or running meow-markdown on Pi
 answers: what meow-markdown provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-markdown@0.10.0]
+describes: [@meowshed/meow-markdown@0.10.1]
 ---
 
 # @meowshed/meow-markdown

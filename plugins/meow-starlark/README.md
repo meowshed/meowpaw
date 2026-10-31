@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-starlark
 answers: what meow-starlark does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-starlark@0.2.0]
+describes: [meow-starlark@0.2.1]
 description: "Detects Bazel and Buck workspaces from what git tracks, names the build system that evaluates the Starlark before it binds anything, prints a stages table bound from the buildifier configuration and the workspace file the repository committed with Bazel's symlinks switched off, reports a stage that passes whatever buildifier finds, rewrites files or leaves output in the working tree, writing no file, and carries what a reviewer of Starlark checks that no command reports."
 ---
 

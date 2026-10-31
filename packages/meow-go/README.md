@@ -2,7 +2,7 @@
 reader: someone installing or running meow-go on Pi
 answers: what meow-go provides, what it adds to a session and how to install it
 kind: reference
-describes: [@meowshed/meow-go@0.2.0]
+describes: [@meowshed/meow-go@0.2.1]
 ---
 
 # @meowshed/meow-go

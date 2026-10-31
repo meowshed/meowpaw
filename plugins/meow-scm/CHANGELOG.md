@@ -1,5 +1,9 @@
 # meow-scm
 
+## 0.9.1
+
+- Its launcher runs the build beside it in a checkout. An installed unit resolves its binary as before.
+
 ## 0.9.0
 
 - The commit skill maps one decision or defect to one branch and one pull request.

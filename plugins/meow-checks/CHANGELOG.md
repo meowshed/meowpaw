@@ -1,5 +1,10 @@
 # meow-checks
 
+## 0.15.1
+
+- Its launcher runs the build beside it in a checkout. An installed unit resolves its binary as before.
+- With no binary, `evidence`, `state`, `tree`, `local` and `doctor` exit 3 and name the cause where they printed a usage line.
+
 ## 0.15.0
 
 - Its launcher runs the shared executable, which now reads the record ADR-3090 describes; the unit itself is unchanged. This release retires epics and tasks. Before using it, run `paw upgrade` to preview and `paw upgrade --write` on a branch: `paw` refuses a record holding `tasks/` or `epics/` until then.
