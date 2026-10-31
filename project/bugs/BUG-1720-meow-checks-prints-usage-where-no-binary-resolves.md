@@ -1,7 +1,8 @@
 ---
 id: BUG-1720
 artifact: bug
-status: approved
+status: done
+pr: 1143
 severity: major
 violates: REQ-4506
 enters: implement
