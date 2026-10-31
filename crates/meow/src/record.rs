@@ -577,7 +577,8 @@ fn violated_by(record: &Record, id: &str) -> Vec<String> {
 
 /// A requirement's observed state (REQ-0584), derived from the records that
 /// name it and the defects that violate it, with nothing after closed
-/// (REQ-3602, REQ-3610, REQ-3680).
+/// (REQ-3602, REQ-3610, REQ-3680). A decision closes a postponed requirement
+/// only where it came after the decision that postponed it.
 fn requirement_state(
     records: &[(String, char)],
     postponed: Option<&str>,
@@ -587,7 +588,10 @@ fn requirement_state(
         "reopened by a defect"
     } else if records.iter().any(|(_, mark)| *mark != 'x') {
         "in a decision not yet done"
-    } else if !records.is_empty() {
+    } else if records
+        .iter()
+        .any(|(id, _)| postponed.is_none_or(|by| !id.starts_with("ADR-") || id.as_str() > by))
+    {
         "closed"
     } else if postponed.is_some() {
         "postponed"
@@ -732,6 +736,7 @@ fn hash_citations(record: &Record, repository: &Path, base: &str) -> Vec<String>
             continue;
         };
         if doc.is_index
+            || kind.archived
             || kind.statuses.iter().any(|s| s == "live")
             || Path::new(&doc.shown).is_absolute()
         {
@@ -2268,6 +2273,11 @@ fn shape(record: &Record) -> Vec<Finding> {
             && dir
                 .split('/')
                 .any(|part| part.to_lowercase().contains("archive"))
+            && !record
+                .layout
+                .kinds
+                .iter()
+                .any(|k| k.archived && k.dir.as_deref() == Some(dir))
             && archives.insert(dir.to_string())
         {
             out.push(Finding::at(doc, None, format!("sits in {dir}, a directory named for an archive; freeze the record or discard it with a reason")));

@@ -469,3 +469,26 @@ fn a_plan_may_change_until_the_record_is_done() {
     let output = paw(&dir.0, &["check", "frozen", "--base", "HEAD"]);
     assert_eq!(output.status.code(), Some(1), "{}", said(&output));
 }
+
+#[test]
+fn a_postponed_requirement_closes_only_with_a_later_decision() {
+    let dir = Dir::new("postponed");
+    new_form(&dir.0, "done", "");
+    write(
+        &dir.0,
+        "project/adrs/ADR-0002-b.md",
+        &planned("ADR-0002", "approved", "").replace(
+            "addresses: [REQ-0001]",
+            "addresses: []\npostpones: [REQ-0001]",
+        ),
+    );
+    let shown = said(&paw(&dir.0, &["show", "REQ-0001"]));
+    assert!(shown.contains("postponed by ADR-0002"), "{shown}");
+    write(
+        &dir.0,
+        "project/adrs/ADR-0003-c.md",
+        &planned("ADR-0003", "done", ""),
+    );
+    let shown = said(&paw(&dir.0, &["show", "REQ-0001"]));
+    assert!(shown.contains("  closed"), "{shown}");
+}
