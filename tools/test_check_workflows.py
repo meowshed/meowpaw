@@ -4,7 +4,9 @@
 """Fixtures for check_workflows: a workflow starts read-only and trusts no foreign value (ADR-2520)."""
 
 import io
+import os
 import re
+import subprocess
 import sys
 import tempfile
 import textwrap
@@ -418,6 +420,47 @@ class Attestation(unittest.TestCase):
                         self.assertEqual(held, {"id-token", "attestations"}, job)
                     else:
                         self.assertEqual(held, set(), job)
+
+
+class PublishLoop(unittest.TestCase):
+    """BUG-1740, REQ-4146: a package npm refuses is named, and the packages after it still publish."""
+
+    NPM = """#!/bin/sh
+if [ "$1" = view ]; then
+  case "$2" in *@*@*) exit 1 ;; esac
+  exit 0
+fi
+case "$PWD" in
+*/meow-b) echo "npm error code E404"; exit 1 ;;
+esac
+"""
+    JQ = """#!/bin/sh
+case "$2" in
+.name) basename "$(dirname "$3")" | sed 's/^/@x\\//' ;;
+*) echo 1.0.0 ;;
+esac
+"""
+
+    def test_a_refused_package_stops_no_other(self):
+        text = (ROOT / ".github" / "workflows" / "pi-release.yml").read_text(encoding="utf-8")
+        step = re.search(r'run: \|\n( +unpublished="".*?)\n\n', text, re.DOTALL).group(1)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for name, body in (("npm", self.NPM), ("jq", self.JQ)):
+                tool = root / "tools" / name
+                tool.parent.mkdir(exist_ok=True)
+                tool.write_text(body, encoding="utf-8")
+                tool.chmod(0o755)
+            for package in ("meow-a", "meow-b", "meow-c"):
+                (root / "packages" / package).mkdir(parents=True)
+                (root / "packages" / package / "package.json").write_text("{}", encoding="utf-8")
+            env = {**os.environ, "PATH": f"{root / 'tools'}:{os.environ['PATH']}"}
+            env.pop("unit", None)
+            done = subprocess.run(["bash", "-e", "-c", textwrap.dedent(step)], capture_output=True, text=True, env=env, cwd=root)
+        self.assertEqual(1, done.returncode, done.stdout + done.stderr)
+        self.assertIn("@x/meow-c@1.0.0 published", done.stdout)
+        self.assertIn("not published: @x/meow-b", done.stdout)
+        self.assertIn("npm trust github @x/meow-b", done.stdout)
 
 
 if __name__ == "__main__":
