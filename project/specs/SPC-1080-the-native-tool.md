@@ -213,10 +213,12 @@ units' programs: `verbs`, `scm`, `git`, `record`, `github`,
 subcommand sits behind a feature named for its unit. The core unit ships the one
 build, with every unit's feature, for every platform the harness supports, and
 a unit that runs a program declares the core unit under `dependencies` and no
-other unit (REQ-4500, REQ-4502, ADR-2870). A unit's launcher reads the path of
-the core unit's installed root from the core unit's data directory, which the
-core unit's session start writes, and it reports each of its checks unresolved,
-naming the core unit, where it finds none (REQ-4504, REQ-4506). The profile reading,
+other unit (REQ-4500, REQ-4502, ADR-2870). A unit's launcher in a checkout runs
+the build beside it, in the core unit's directory, so a check measures that
+checkout (REQ-2928). An installed unit has nothing there, so its launcher reads
+the path of the core unit's installed root from the core unit's data directory,
+which the core unit's session start writes, and it reports each of its checks
+unresolved, naming the core unit, where it finds none (REQ-4504, REQ-4506). The profile reading,
 the report shapes and the exit codes the units share are one module every
 feature uses.
 

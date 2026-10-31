@@ -75,23 +75,26 @@ CLAUDE_CACHE_WRITE = """  if [ -z "$system" ] || [ -z "$cpu" ] || [ ! -f "$binar
 fi
 """
 
-CLAUDE_FIND = """  # The shared binary the core unit ships, found through the core unit's data
-  # directory, which the platform documents and the core unit's session start
-  # writes (REQ-4504). The unit's own build beside it is the fallback.
-  data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
-  for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
-    [ -f "$core" ] || continue
-    read -r root <"$core" 2>/dev/null
-    if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/paw$exe" ]; then
-      binary="$root/bin/$cpu-$system/paw$exe"
-      break
-    fi
-  done
-  # Loaded in place from a checkout, the core unit sits beside this one.
-  [ -f "$binary" ] || {
-    beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
-    [ -f "$beside" ] && binary=$beside
-  }
+CLAUDE_FIND = """  # Loaded in place from a checkout, the core unit sits beside this one, and
+  # its build wins, because a check of a checkout measures that checkout
+  # (REQ-2928). An installed unit has nothing there, and finds the shared binary
+  # through the core unit's data directory, which the platform documents and
+  # the core unit's session start writes (REQ-4504). The unit's own build beside
+  # it is the fallback.
+  beside="$here/../../meow-core/bin/$cpu-$system/paw$exe"
+  if [ -f "$beside" ]; then
+    binary=$beside
+  else
+    data=${CLAUDE_PLUGIN_DATA:+${CLAUDE_PLUGIN_DATA%/*}}
+    for core in "${data:-$HOME/.claude/plugins/data}"/meow-core-*/meow-root; do
+      [ -f "$core" ] || continue
+      read -r root <"$core" 2>/dev/null
+      if [ -n "$root" ] && [ -f "$root/bin/$cpu-$system/paw$exe" ]; then
+        binary="$root/bin/$cpu-$system/paw$exe"
+        break
+      fi
+    done
+  fi
 """
 
 CORE_PROBE = """  # The core unit's own bin/, where $root points, carries no binary at all

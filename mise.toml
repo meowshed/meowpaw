@@ -1,10 +1,5 @@
 # The repository's own gate. `meow-mise` reads these tasks to resolve the stages.
 
-[env]
-# A launcher prefers an installed meow-core's binary, so the gate pins an empty
-# data directory and runs this checkout's build, as the tests do (REQ-2928).
-CLAUDE_PLUGIN_DATA = "{{config_root}}/target/gate-data/unit"
-
 [tools]
 claude = "latest"
 markdownlint-cli2 = "latest"
