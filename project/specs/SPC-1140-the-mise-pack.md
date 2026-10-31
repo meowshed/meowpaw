@@ -44,8 +44,7 @@ It leaves running a stage to SPC-1040, which `meow-checks` implements: a bound
 stage is a command in the profile like any other. Packs for other runners are
 not written yet.
 
-ADR-1580 decides this part, EPC-1550 realises it, and `meow-mise` implements
-it, checked at #577.
+ADR-1580 decides this part, and `meow-mise` implements it, checked at #577.
 
 ## Boundary
 

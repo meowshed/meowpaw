@@ -18,7 +18,7 @@ SPC-1190 states for a language pack holds here, and this document states only
 what is Scheme's. It binds stages for Racket alone, and leaves coverage,
 documentation generation and every other implementation's commands unbound.
 
-ADR-2660 decides this pack and EPC-2560's TSK-5115 ships it.
+ADR-2660 decides this pack.
 
 ## Boundary
 

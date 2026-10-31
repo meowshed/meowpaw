@@ -123,13 +123,13 @@ layer already allows that call.
 
 ## Comparison
 
-| Option                                      | Better at                                  | Why it falls short                                                      |
-| ------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
-| Keep epics and tasks                        | Parallel work, per-task issues             | Two records for one review, and a third file for one plan               |
-| Drop only the epic                          | Smallest change                            | Tasks keep their issues, so one pull request still closes several       |
-| Delete the old records                      | Least to carry                             | History moves to git, and 138 citing records dangle                     |
-| Archive them, read-only and citable         | Keeps closure and citations with no writes | `paw` keeps a small read of two retired kinds for as long as they exist |
-| Keep the old form working beside the new    | No forced upgrade                          | Every rule runs twice, and nothing retires                              |
+| Option                                   | Better at                                  | Why it falls short                                                      |
+| ---------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| Keep epics and tasks                     | Parallel work, per-task issues             | Two records for one review, and a third file for one plan               |
+| Drop only the epic                       | Smallest change                            | Tasks keep their issues, so one pull request still closes several       |
+| Delete the old records                   | Least to carry                             | History moves to git, and 138 citing records dangle                     |
+| Archive them, read-only and citable      | Keeps closure and citations with no writes | `paw` keeps a small read of two retired kinds for as long as they exist |
+| Keep the old form working beside the new | No forced upgrade                          | Every rule runs twice, and nothing retires                              |
 
 ## The case against one record for everything
 

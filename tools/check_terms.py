@@ -27,10 +27,10 @@ WORD = re.compile(r"\bverbs?\b", re.IGNORECASE)
 SKIPPED_PREFIXES = {
     "project/research/": "approved records are frozen and keep their word",
     "project/adrs/": "approved records are frozen and keep their word",
-    "project/tasks/": "approved records are frozen and keep their word",
+    "project/archive/tasks/": "approved records are frozen and keep their word",
     "project/requirements/": "approved records are frozen and keep their word",
     "project/bugs/": "approved records are frozen and keep their word",
-    "project/epics/": "approved records are frozen and keep their word",
+    "project/archive/epics/": "approved records are frozen and keep their word",
     "project/insights/": "approved records are frozen and keep their word",
     "plugins/meow-prose/": "the writing standard says verb as the grammatical term",
     "packages/meow-prose/": "the mirror of the writing standard",

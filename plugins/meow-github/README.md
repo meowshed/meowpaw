@@ -3,16 +3,17 @@ reader: someone choosing or running meow-github
 answers: what meow-github does, what it adds to a session and how to run it
 kind: reference
 describes: [meow-github@0.17.1]
-description: "Reads a GitHub repository's issues, pull requests and comments through gh as one JSON document, projects an approved epic's tasks onto issues and writes nothing else, and asks before a Bash command's gh changes how the repository is governed."
+description: "Reads a GitHub repository's issues, pull requests and comments through gh as one JSON document, projects an approved decision or defect onto its one issue, retires the issues of archived tasks after an upgrade, and asks before a Bash command's gh changes how the repository is governed."
 ---
 
 # meow-github
 
 `meow-github` serves GitHub as your code host and GitHub Issues as your
-tracker. `project` creates the issue each task of an approved epic projects
-onto, links it to the task and reads it back, and the record keeps the
-projection as a mapping from each task to its issue, in the task's own
-`issue:` field, so nothing but the repository holds the link. `history` reads
+tracker. `project` creates the one issue an approved decision or defect projects
+onto, links it to the record and reads it back, and the record keeps the
+projection as a mapping in its own `issue:` field, so nothing but the repository
+holds the link. `upgrade` retires the issues of archived tasks after a record's
+upgrade has merged. `history` reads
 a GitHub repository's history: every issue and pull request, whether each
 pull request merged, and every conversation and review comment. It prints them
 as one JSON document and writes nothing to GitHub. `/meow-flow:onboard` reads a
@@ -82,7 +83,7 @@ rejected approach, and `null` for an issue. `credential` and `budget` are the
 credential line and the budget lines that
 [Credential and budgets](#credential-and-budgets) describes.
 
-## Project an authorising record's tasks onto issues
+## Project a record onto its issue
 
 Declare the tracker in `.meowpaw/profile.toml` first. Without it the command
 says so and does nothing, and nothing in the method needs a tracker:
@@ -96,111 +97,124 @@ The command opens by naming the profile's state, as
 `meow-github project: profile: parsed`, and each key no unit reads, as
 `meow-github project: unknown key: <path>`, which changes no exit status.
 
-Once an epic is approved, file one issue per task:
+Once a decision or a defect is approved, file its one issue:
 
 ```bash
-meow-github project EPC-1310
-```
-
-An approved defect that carries tasks directly uses the same projection and
-derives completion from its own task marks:
-
-```bash
+meow-github project ADR-1310
 meow-github project BUG-1210
 ```
 
-Each issue is titled with the task's identifier and title, and its body cites
-the authorising epic, defect or decision, the requirements the task closes and
-its dependencies, and ends with a marker naming the task and a fingerprint. The task gains `issue:` with the
-issue's number and `projected:` with the fingerprint, so the mapping lives in
-the repository. After its last create, the run reads the issues it created
-back in one listing of the issues written since the `updated_at` GitHub gave
-the earliest of them, and matches each by number. Where no create's answer
-states that time, the listing starts at the `Date` of the run's first
-response. The listing can lag a create by seconds, so the run reads each
-issue it left out on its own, by number, before it reports that issue as not
-read back. Run it again and nothing changes. It refuses an authorising record
-that isn't approved.
+The issue's title is the record's identifier and title. Its body names the
+record, the requirements a decision addresses or a defect violates, and the
+record's `## Plan`, and ends with a marker naming the record and a fingerprint.
+The record gains `issue:` with the issue's number, and `projected:` and
+`tracked:` with the fingerprints, so the mapping lives in the repository. Write
+`Closes #<issue>` in the pull request body, because the merge is what closes that
+one issue. After its last create, the run reads the issue it created back in one
+listing of the issues written since the `updated_at` GitHub gave it, and matches
+it by number. Where the create's answer doesn't state that time, the listing
+starts at the `Date` of the run's first response. The listing can lag a create by
+seconds, so the run reads an issue it left out on its own, by number, before it
+reports that issue as not read back. Run it again and nothing changes. It refuses
+a record that isn't approved.
 
-Where a run stops before it has projected every task, or neither the listing
-nor a read by number shows a created issue as it was written, the report says which tasks are in which state and
-the run exits 3:
+Where a run stops before it has projected the record, or neither the listing nor
+a read by number shows a created issue as it was written, the report says which
+state the record is in and the run exits 3:
 
 ```text
-partial: projected TSK-1930; created, not read back TSK-1940 (issue #512, reads differently from what was written); not projected TSK-1950, TSK-1960
+partial: projected none; created, not read back ADR-1310 (issue #512, reads differently from what was written); not projected none
 ```
 
-| Group                    | Holds each task whose issue                                               |
+| Group                    | Holds a record whose issue                                                |
 | ------------------------ | ------------------------------------------------------------------------- |
 | `projected`              | Was updated, was found unchanged, or was created and read back as written |
 | `created, not read back` | Was created and not confirmed, with the issue's number and the reason     |
-| `not projected`          | Is any other task of the authorising record, visited or not               |
+| `not projected`          | Was not visited                                                           |
 
-A group with no task reads `none`. The reason is `couldn't be read`,
+A group with no record reads `none`. The reason is `couldn't be read`,
 `reads differently from what was written`, `the listing couldn't be read`,
 `the listing was throttled`, `the listing's credential was rejected`,
 `no listing ran`, `no read ran` or
-`the task doesn't name it`.
+`the record doesn't name it`.
 The run sends the listing after a write GitHub refused, and sends none after a
-throttle, a budget ceiling or a 401, where it sends nothing more at all. A task under
-`created, not read back` keeps its `issue:`, so the next run reads that issue
-through the mapping and creates no second one. The one exception is
-`the task doesn't name it`: the issue exists and the task file couldn't be
-written, so set `issue:` on the task by hand before the next run.
+throttle, a budget ceiling or a 401, where it sends nothing more at all. A record
+under `created, not read back` keeps its `issue:`, so the next run reads that
+issue through the mapping and creates no second one. The one exception is
+`the record doesn't name it`: the issue exists and the record's file couldn't be
+written, so set `issue:` on the record by hand before the next run.
 
-A decision one task realises has no epic. Name the decision, and the pack files
-an issue for each task that names it in `realises:`, under nothing:
-
-```bash
-meow-github project ADR-2300
-```
-
-The record owns each issue's title and body, and GitHub owns whether it is
-open or closed, which the pack never writes. A task you changed updates its
-issue on the next run. An issue someone edited on GitHub is reported and left
-as it is, and an issue closed on GitHub while its task remains open in the
-record is reported. An epic or defect decides that state with its task marks;
-a task directly realising a decision decides it with Evidence. Add
-`--check` to see each task's state without writing anything:
+The record owns the issue's title and body. `project` and `sync` never write
+whether an issue is open or closed, and only `upgrade` closes one. A record you
+changed updates its issue on the next run. An issue someone edited on GitHub is
+reported and left as it is, and an issue closed on GitHub while its record isn't
+done is reported, because `paw done` decides that state. Add `--check` to see the
+record's state without writing anything:
 
 ```bash
-meow-github project EPC-1310 --check
+meow-github project ADR-1310 --check
 ```
 
-## Synchronise a task and its issue
+## Synchronise a record and its issue
 
-`project` writes the record to the issues. `sync` also takes a change made on
+`project` writes the record to its issue. `sync` also takes a change made on
 GitHub back into the record, by a fingerprint of each side taken at the last
 synchronisation and not by a clock, because GitHub keeps one time for a whole
 issue. The mapping carries both: `projected:` for the record side and
-`tracked:` for the tracker side, which an older task gains at its next run.
+`tracked:` for the tracker side, which an older record gains at its next run.
 
 ```bash
-meow-github sync EPC-1310
-meow-github sync EPC-1310 --check
+meow-github sync ADR-1310
+meow-github sync ADR-1310 --check
 ```
 
-For each task that `project` has mapped, `sync` finds which side changed since
+For a record that `project` has mapped, `sync` finds which side changed since
 the last run:
 
-| Changed since the last run | What `sync` does                                                                                          |
-| -------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Neither                    | Reports `unchanged`                                                                                       |
-| The record only            | Updates the issue to what the record says                                                                 |
-| The issue only             | Writes the issue's title into a draft task; reports the difference for an approved one and writes nothing |
-| Both                       | Writes the record's text to the issue, because the record wins a conflict                                 |
+| Changed since the last run | What `sync` does                                                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Neither                    | Reports `unchanged`                                                                                         |
+| The record only            | Updates the issue to what the record says                                                                   |
+| The issue only             | Writes the issue's title into a draft record; reports the difference for an approved one and writes nothing |
+| Both                       | Writes the record's text to the issue, because the record wins a conflict                                   |
 
-The body of an issue is derived from the task's closes and its dependencies, so
+The body of an issue is derived from the record's requirements and its plan, so
 a body edited on GitHub isn't written into the record, and the record's body
-goes back to the issue. An approved task's wording is never written from the
-tracker, which the method forbids for any approved record; the difference is
-reported and `sync` exits 1. An issue closed on GitHub marks the task done in
-its epic or defect where the task's Evidence is written, and is reported
-where it isn't. `--check` prints what each task would get and writes nothing.
+goes back to the issue. An approved record's wording is never written from the
+tracker, which the method forbids; the difference is reported and `sync` exits 1.
+An issue closed on GitHub while its record isn't done is reported and not
+reconciled, and `sync` exits 1, because the record decides when its work is done.
+`--check` prints what the record would get and writes nothing.
 
-The method runs `sync` before the first task of an epic and after the last
-task's Evidence, where a tracker is declared, and nothing runs it in the
-background.
+The method runs `sync` at the start and the end of a record's work, where a
+tracker is declared, and nothing runs it in the background.
+
+## Retire the issues of archived tasks
+
+Run `upgrade` after the pull request of `paw upgrade --write` has merged, because
+an issue closed earlier could name a plan that is never merged.
+`/meow-flow:upgrade` runs it for you, and `--check` previews it and writes
+nothing:
+
+```bash
+meow-github upgrade --check
+meow-github upgrade
+```
+
+| Archived task                     | Its issue is open                                                                        | Its issue is closed            |
+| --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------ |
+| Done                              | Closed as `completed`                                                                    | Left alone                     |
+| Withdrawn, rejected or superseded | Closed as `not_planned`                                                                  | Left alone                     |
+| Open, with `folded-into:`         | The record's issue is created first, then this one is closed as `not_planned`, naming it | Left alone, and reported       |
+| Open, with no `folded-into:`      | Left open, and reported as needing a decision                                            | Reported as needing a decision |
+
+An issue that maps to no task stays as it is, and a defect's issue stays its
+issue. Each close is one write that prepends the notice to the body and sets the
+state, so an interrupted run leaves no issue half changed and the next run skips
+what is already closed. The command lists each open pull request whose title or
+body names a folded task and changes none of them: rebase that branch and move
+its plan to the record by hand. It exits 1 with no archived task, and 1 where an
+open task needs a decision.
 
 ## Report the trunk's protections
 
@@ -249,25 +263,22 @@ gh api repos/OWNER/REPO/branches/main/protection
 gh api repos/OWNER/REPO/rules/branches/main
 ```
 
-## Project a task by hand
+## Project a record by hand
 
-You can file a task's issue without the pack and get the same issue and the
+You can file a record's issue without the pack and get the same issue and the
 same mapping, so installing the pack later continues your record instead of
-duplicating it. Write the body as the pack does: the task and its authorising
-record, the requirements it closes, and its dependencies. Its first sentence
-is `<task> of <epic>, which realises <decision>.` for an epic, `<task> of
-<defect>.` for a defect, or `<task>, which realises <decision>.` for a direct
-decision task. Then:
+duplicating it. Write the body as the pack does: `The work of <id>.`, then
+`Names <requirements>.`, then the record's `## Plan` under that heading. Then:
 
 ```bash
-title="TSK-1930: Project an approved epic's tasks onto issues"
+title="ADR-1310: The GitHub pack projects a record onto its issue"
 fingerprint=$(printf '%s\n%s' "$title" "$body" | shasum -a 256 | cut -c1-12)
 gh api repos/OWNER/REPO/issues -X POST -f title="$title" -f body="$body
 
-<!-- meow-github: projected from TSK-1930 at $fingerprint -->"
+<!-- meow-github: projected from ADR-1310 at $fingerprint -->"
 ```
 
-Set the task's `issue:` to the number GitHub returns and add
+Set the record's `issue:` to the number GitHub returns and add
 `projected: <fingerprint>` beside it.
 
 ## When it can't read
@@ -291,11 +302,11 @@ refused: POST repos/OWNER/REPO/issues needs issues=write; GitHub said "Resource 
 refused: GET repos/OWNER/REPO/issues/512 needs a permission: GitHub named no permission and said "Not Found", or it is hidden from this credential
 ```
 
-| Line                                     | GitHub answered                                                                            |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `unauthenticated: <method> <endpoint>`   | 401: the credential is missing, expired or revoked                                         |
-| `refused: <method> <endpoint> needs ...` | 403 that isn't a throttle                                                                  |
-| The same, ending `, or it is hidden ...` | 404 on an issue a task maps, which GitHub also gives for an issue the credential can't see |
+| Line                                     | GitHub answered                                                                              |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `unauthenticated: <method> <endpoint>`   | 401: the credential is missing, expired or revoked                                           |
+| `refused: <method> <endpoint> needs ...` | 403 that isn't a throttle                                                                    |
+| The same, ending `, or it is hidden ...` | 404 on an issue a record maps, which GitHub also gives for an issue the credential can't see |
 
 After `needs`, the line gives the permission as GitHub named it, from the
 first of these the response carries:
@@ -319,7 +330,7 @@ separator in it prints as a space, and a backslash or a double quote is
 escaped, so the message can't split the line or end its quotation.
 
 `project` prints the line on a line of its own, above the line saying what the
-refusal stopped: a task, the naming of the repository or the read-back.
+refusal stopped: a record, the naming of the repository or the read-back.
 `history` prints it after `unread:`, and after the listing's name where a
 listing was refused.
 
@@ -332,7 +343,7 @@ the header doesn't parse as its unit, the line says the time is unknown. Add
 `--wait` to either command to sleep until that time and send the call again:
 
 ```bash
-meow-github project EPC-1310 --wait
+meow-github project ADR-1310 --wait
 ```
 
 A run sleeps an hour at most in all, because a primary limit resets within an

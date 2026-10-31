@@ -22,8 +22,8 @@ SPC-1080, signing and the push guard to SPC-1060, and the rules the
 repository's contributors follow to `CLAUDE.md`, which no file here repeats.
 The harness writes none of these files into another repository.
 
-ADR-2510 decides the community files, and TSK-4610 realises it. ADR-2520
-decides the rules a workflow holds, and EPC-2420 realises it.
+ADR-2510 decides the community files, and ADR-2520 decides the rules a workflow
+holds.
 
 ## Boundary
 

@@ -47,14 +47,12 @@ profile declares no command, which is never a pass.
 - **decision** — `adrs/``ADR-NNNN`, : addresses
   statuses: draft, approved, done, withdrawn, rejected, superseded
   sections: Decision, Why, Alternatives, What it costs, What would reverse it, Consequences
-- **epic** — `epics/``EPC-NNNN`, : realises
+- **epic** — `archive/epics/``EPC-NNNN`, : 
   statuses: draft, approved, done, withdrawn, rejected, superseded
-  sections: Acceptance criteria, Tasks, Coverage, Not covered
-- **task** — `tasks/``TSK-NNNN`, : closes
+- **task** — `archive/tasks/``TSK-NNNN`, : 
   statuses: draft, approved, done, withdrawn, rejected, superseded
-  sections: What to do, Depends on, Evidence, Left alone
 - **defect** — `bugs/``BUG-NNNN`, : severity, found
-  statuses: draft, approved, withdrawn, rejected, superseded
+  statuses: draft, approved, done, withdrawn, rejected, superseded
   sections: Reproduction, What the system does, What it should do, and why, Triage, Closed by
 - **insight** — `insights/``INS-NNNN`, : 
   statuses: draft, approved, withdrawn, rejected, superseded
@@ -63,7 +61,7 @@ profile declares no command, which is never a pass.
 ## The record's paths and identifier formats
 
 Every artifact carries `id, artifact, status, revised` in its front matter. The relations, whose
-values are bare identifiers: elaborates, addresses, postpones, supersedes, realises, epic, bug, closes, states, violates, prompted-by.
+values are bare identifiers: elaborates, addresses, postpones, supersedes, realises, epic, bug, closes, states, violates, prompted-by, folded-into.
 An identifier is its kind's prefix, a dash and four digits, allocated
 once, never reused and never renumbered. The index of a kind is its
 `README.md`.
@@ -157,10 +155,12 @@ person reads in its place:
 
 - `history` — the issues, pull requests and comments of one repository on the code host, read back
   By hand: list the repository's issues, pull requests, conversation comments and review comments on the code host, with the `gh` tool or its web page
-- `project` — where each task of an epic, decision or defect stands as an issue, and creates the missing ones
-  By hand: read each task's `issue:` and the tracker's issue it names, and create the issue a task lacks
+- `project` — where a decision or defect stands as an issue, and creates the issue where it is missing
+  By hand: read the record's `issue:` and the tracker's issue it names, and create the issue where it lacks one
 - `sync` — what changed on the tracker since the last projection, written back into the record
-  By hand: compare each issue's title, state and body with its task's record, and copy a change to the record
+  By hand: compare the issue's title, state and body with its record, and copy a change to the record
+- `upgrade` — what retires the issues of archived tasks after the record's upgrade merged, and with no `--check` retires them
+  By hand: for each file under `archive/tasks`, close its open issue as completed where it is done, as not planned where it is dropped or carries `folded-into:`, naming the record that carries the work, and leave any other open
 - `protections` — which of six protections are in force on the declared trunk, read and never changed
   By hand: read `gh api repos/{owner}/{repo}/branches/{trunk}/protection` and `gh api repos/{owner}/{repo}/rules/branches/{trunk}`, and look in each for blocked force pushes, blocked deletion, required reviews, required checks, signed commits and linear history
 - `governance-guard` — whether a tool call would change the repository's governance on the code host
@@ -184,15 +184,15 @@ person reads in its place:
 - `check` — whether the record meets each rule its layout declares
   By hand: read each artifact's front matter, required sections and index table against `lib/layout.toml`, follow each cited identifier to the file that carries it, and for `frozen` compare each approved record with `git show <rev>:<path>`
 - `status` — where each approved decision stands in the chain, as the record says
-  By hand: list every artifact whose `status:` is draft, then for each approved decision read the epics that `realises:` it and each epic's tasks, count each requirement's state from the tasks that `closes:` it, with `--waiting` list the drafts alone, and with `--brief` count the closed decisions, the postponements and the frozen findings in place of listing them
+  By hand: list every artifact whose `status:` is draft, then for each approved decision read its `status:` and whether it carries a `## Plan`, list each open defect, count each requirement's state from the decisions that address it and the archived tasks that `closes:` it, with `--waiting` list the drafts alone, and with `--brief` count the closed decisions, the postponements and the frozen findings in place of listing them
 - `ready` — whether the input a step names is approved and complete
-  By hand: read each named artifact's `status:`, for `epic` the `states:` of its specifications, and for `implement` the authority's `status:` and each `depends:` task's completion
+  By hand: read each named artifact's `status:`, and for `implement` that a decision or defect carries a `## Plan` and that a decision's requirements are in a specification's `states:`
 - `template` — which template is in force for a kind
   By hand: look for the kind's file in `.meowpaw/templates/`, then in the unit's `templates/` directory
 - `show` — what one artifact says, what it names and what cites it
   By hand: open the artifact's file, read its front matter relations, and search the record for its identifier to find what cites it
-- `brief` — the brief a delegated agent gets for one task, from the task, its epic or decision and the requirements it closes; `--agent <unit>:<agent>` names the agent definition it is written for, and without it the brief names `general-purpose`, the platform's agent the implement step dispatches
-  By hand: copy the task's opening, What to do, Acceptance criteria, Left alone and Depends on, its epic's entry for it or its decision's Decision, the body of each requirement it closes, and the specifications that state them, word for word
+- `brief` — the brief a delegated agent gets for one decision or defect, from the record, its plan and the requirements it names; `--agent <unit>:<agent>` names the agent definition it is written for, and without it the brief names `general-purpose`, the platform's agent the implement step dispatches
+  By hand: copy the record's opening, its Decision or What it should do, its Plan and How I will know it was realised, the body of each requirement it names, and the specifications that state them, word for word
 - `index` — the index table of one kind of artifact
   By hand: list the kind's directory and write one row for each file from its front matter and its conclusion, and with `--write` replace the table between the index's markers
 - `new` — the next free identifier of a kind
@@ -205,8 +205,10 @@ person reads in its place:
   By hand: run `paw check` and read what it reports about the draft, then change its `status:` to approved
 - `withdraw` — that an approved requirement is withdrawn by a named decision
   By hand: change the requirement's `status:` to withdrawn and its `revised:` to today, and name the decision and the replacement in its body
-- `done` — that a complete approved task is done in a pull request
-  By hand: read that the task's Evidence no longer opens with `Not yet.`, then change its `status:` to done, mark it with the pull request in its epic's or defect's task list, and close the epic and decision where it was the last open task
+- `done` — that an approved decision or defect is done in a pull request
+  By hand: read that a decision carries its `## Plan` or a defect's Closed by names its check, then change its `status:` to done and add `pr:` with the pull request
+- `upgrade` — what moving the record to the current form would change, and with `--write` changes it
+  By hand: move `epics/` and `tasks/` under `archive/`, store done on each decision and defect whose tasks are all finished, add each open task to its live authority's `## Plan` with `folded-into:` on the task, and remove epic from the profile's gates
 - `onboarding` — what an approved onboarding report placed, and removes it
   By hand: check the report is approved and each migrated or superseded destination exists, then delete each file whose outcome is migrated, superseded or discarded
 

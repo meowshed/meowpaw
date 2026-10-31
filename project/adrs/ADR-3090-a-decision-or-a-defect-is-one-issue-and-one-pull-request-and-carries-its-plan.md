@@ -99,12 +99,12 @@ a plan that isn't on the trunk. `meow-github upgrade` runs then, previews with
 the notice to the body and setting the state together, so an interrupted run
 leaves no issue half changed:
 
-| Archived task                     | Its issue is open                                                                          | Its issue is closed            |
-| --------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------ |
-| Done                              | Closed as `completed`                                                                      | Left alone                     |
-| Withdrawn, rejected or superseded | Closed as `not_planned`                                                                    | Left alone                     |
-| Open, with `folded-into:`         | The record's issue is created first, then this one is closed as `not_planned`, naming it   | Left alone, and reported       |
-| Open, with no `folded-into:`      | Left open, and reported as needing a decision                                              | Reported as needing a decision |
+| Archived task                     | Its issue is open                                                                        | Its issue is closed            |
+| --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------ |
+| Done                              | Closed as `completed`                                                                    | Left alone                     |
+| Withdrawn, rejected or superseded | Closed as `not_planned`                                                                  | Left alone                     |
+| Open, with `folded-into:`         | The record's issue is created first, then this one is closed as `not_planned`, naming it | Left alone, and reported       |
+| Open, with no `folded-into:`      | Left open, and reported as needing a decision                                            | Reported as needing a decision |
 
 An issue that maps to no task is the repository's own and stays as it is. A
 defect's issue stays open and stays its issue. The command lists each open pull
@@ -133,14 +133,14 @@ a defect to stay separate from a decision.
 
 ## Alternatives
 
-| Option                                    | Better at                                | Why it lost                                                            |
-| ----------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------- |
-| Do nothing                                | Costs nothing, and parallel tasks stay   | Three records for one review, and the method keeps growing exceptions  |
-| Drop only the epic                        | Smallest change                          | One pull request still closes several issues                           |
-| Delete the old records                    | Nothing to carry                         | 138 citing records dangle, and history leaves the record               |
-| Keep both forms working                   | No forced upgrade                        | Every rule runs twice, and nothing retires                             |
-| Archive, and upgrade by command           | Citations and closure stay true          | `paw` keeps a read of two retired kinds                                |
-| Close issues in the upgrade pull request  | One step for the person                  | The issue can name a plan that is never merged                         |
+| Option                                   | Better at                              | Why it lost                                                           |
+| ---------------------------------------- | -------------------------------------- | --------------------------------------------------------------------- |
+| Do nothing                               | Costs nothing, and parallel tasks stay | Three records for one review, and the method keeps growing exceptions |
+| Drop only the epic                       | Smallest change                        | One pull request still closes several issues                          |
+| Delete the old records                   | Nothing to carry                       | 138 citing records dangle, and history leaves the record              |
+| Keep both forms working                  | No forced upgrade                      | Every rule runs twice, and nothing retires                            |
+| Archive, and upgrade by command          | Citations and closure stay true        | `paw` keeps a read of two retired kinds                               |
+| Close issues in the upgrade pull request | One step for the person                | The issue can name a plan that is never merged                        |
 
 ## What it costs
 
@@ -172,9 +172,9 @@ its own check.
 
 ## How I will know it was realised
 
-1. `paw count` on this repository shows no draft or approved epic or task, the
-   same counts of each kind before and after the move, and the same closed
-   requirements, with the withdrawals accounted for.
+1. `paw count` on this repository shows the same count of each kind before and
+   after the move, with each archived record's status unchanged, and `paw status`
+   shows the same closed and postponed requirements.
 2. `paw new task` and `paw new epic` exit non-zero, and `paw show TSK-2310` prints
    the archived task.
 3. A fixture with an open task, an orphan and a closed defect comes out of
@@ -231,4 +231,4 @@ named only epics and tasks.
 7. Living text: `CLAUDE.md`, `project/README.md`, the specifications, `docs/` and
    the unit READMEs.
 8. Close: `mise run all`, an agent's review of the code, then `paw done ADR-3090
-   --pr <number>` and the pull request. The merge is the approval.
+--pr <number>` and the pull request. The merge is the approval.

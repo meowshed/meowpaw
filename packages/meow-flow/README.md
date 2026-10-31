@@ -7,7 +7,7 @@ describes: [@meowshed/meow-flow@0.53.1]
 
 # @meowshed/meow-flow
 
-Runs the method's seven steps from research to review, each refused by a native program until its input is approved, routes each request before work starts, drives the steps to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it. Distributed as a Pi package.
+Runs the method's six steps from research to review, each refused by a native program until its input is approved, routes each request before work starts, drives the steps to the next approval gate with /meow-flow:run, and checks the record they write where .meowpaw/profile.toml declares it. Distributed as a Pi package.
 
 ## Install it
 
@@ -26,6 +26,33 @@ pi install npm:@meowshed/meow-core   # carries the binary the launchers run
 
 Installing from this repository's checkout is the development install: it
 loads the package in place and runs no lifecycle script.
+
+## Upgrade a record from epics and tasks
+
+Where your record holds `epics/` or `tasks/`, every `paw` command but `upgrade`
+stops with one finding naming the upgrade, because a second working form would
+never retire. Type `/meow-flow:upgrade`, which runs the two commands below and
+stops between them for you to read what each will do.
+
+```bash
+paw upgrade                # previews each move and writes nothing
+paw upgrade --write        # makes the moves
+```
+
+The upgrade moves `epics/` and `tasks/` to `archive/epics/` and
+`archive/tasks/`, each file otherwise unchanged, and `paw` goes on reading them,
+so a citation still resolves. It stores `done` on each decision and defect whose
+tasks finished, because nothing can compute that once the marks are archived. It
+adds each open task as a step of the `## Plan` of the live decision or defect
+that authorises it, and writes `folded-into:` on the task. It archives an open
+task with no live authority and reports it as needing a decision. It removes
+`epic` from `[unattended] gates`. It leaves a template you override under
+`.meowpaw/templates/` for a retired kind alone and reports it. Run it again on a
+finished record and it says there is nothing to upgrade.
+
+Review the result as one pull request with `paw count` before and after in its
+body. Once it merges, run `meow-github upgrade` to retire the archived tasks'
+issues, as `meow-github`'s page says.
 
 ## Declare where the record lives
 
@@ -80,42 +107,23 @@ choose between them, and the fields every artifact carries and the relations
 are left out of the comparison, because they describe the artifact and not
 what it claims.
 
-## Name the document a task produces
-
-A task's output can be a document. Name it in the task's `produces:` and name
-the task in the document's `prompted-by:`:
-
-```yaml
-# project/tasks/TSK-0001-write-the-finding.md
-produces: [RES-0002]
-# project/research/RES-0002-the-finding.md
-prompted-by: TSK-0001
-```
-
-`paw check relations` reports either side without the other, naming both
-artifacts, and a `produces:` that names no file. The document is held to its
-kind as one a step wrote is, so research still needs its Summary, Method,
-Conclusions and Sources. `prompted-by:` on research, a requirement or a
-decision names a defect or a task.
-
 ## Have a change reviewed
 
-The review step reads the epic's pull request. Where the session wrote the
-change, it sends the difference to an agent with read-only tools, fixes what
-the agent finds in that pull request, and writes one sentence on it in the
-task's Evidence. It reports each test that would still pass against a wrong
+The review step reads the record's pull request. Where the session wrote the
+change, it sends the difference to an agent with read-only tools and fixes what
+the agent finds in that pull request. It reports each test that would still pass against a wrong
 implementation. Where the agent reports `BLOCKED`, because a tool it needed
 was denied, the step reports the review as not run, and doesn't resume the
 agent, send another under the same permissions or review the change itself. No agent reviews a record: you read it when you approve its
 pull request.
 
-The implement step hands a task to another agent only to keep its own context
-clean or to run independent tracks at once, never because the task is large.
-It gives that agent the output of `paw brief <task>`, and declares
+The implement step hands work to another agent only to keep its own context
+clean or to run independent tracks at once, never because the work is large.
+It gives that agent the output of `paw brief <record>`, and declares
 `isolation: worktree` where agents implement in parallel. A fresh agent, never
 a fork of the session that did the work, reviews delegated work, and a third
 fresh agent settles a disagreement between the two, given both positions and
-the brief. The pull request names the task and `paw brief <task>`, and names
+the brief. The pull request names the record and `paw brief <record>`, and names
 no agent, model or vendor.
 
 ## Write a status change in one command
@@ -125,14 +133,14 @@ files is left out:
 
 ```bash
 paw approve <id>...                      # draft to approved, where `paw check` reports nothing about it
-paw done <task> --pr <number>            # done in the task, marked in its epic or defect, closed up the chain
+paw done <record> --pr <number>          # done and `pr:` on a decision or defect, in the pull request that completes it
 paw withdraw <requirement> --by <decision> --replaced-by <id>...
 ```
 
 `approve` writes nothing and exits 1 where the check has a finding about a
-record you named. `done` refuses a task whose Evidence still opens with
-`Not yet.`, marks the entry with the pull request you give, and stores `done`
-in the epic and the decision once the last task is done. `withdraw` writes the
+record you named. `done` refuses a record that isn't approved, a decision that
+addresses work with no plan, and a defect whose Closed by names no check.
+`withdraw` writes the
 tombstone, the status and today's date. Each command changes only the lines it
 owns and regenerates the index of each kind it touched, and a result passes
 `paw check` without the command, so you can still edit a record in your editor.
@@ -142,8 +150,8 @@ owns and regenerates the index of each kind it touched, and a result passes
 A decision can postpone requirements you choose not to realise now. Give it
 `postpones: [REQ-...]` beside or in place of `addresses:`, and say under What
 would reverse it when they should be taken up. The requirements then read as
-postponed in `show` and `status`, and stop reading as postponed once a task
-closes them. A decision that only postpones needs no epic. `paw status` lists
+postponed in `show` and `status`, and stop reading as postponed once a later
+decision closes them. A decision that only postpones needs no plan. `paw status` lists
 every postponement under Postponed with its condition, the first entry under
 the decision's What would reverse it, so you see them on each run.
 
@@ -167,8 +175,9 @@ The layout it reads each kind by is `packages/meow-flow/lib/layout.toml`.
 ## Commands
 
 Each command sends its skill's instructions into the session, so the step
-runs: the seven step commands load the method skill, `/meow-flow:run` the
-driver skill, and `/meow-flow:init` and `/meow-flow:onboard` their own. Type
+runs: the six step commands load the method skill, `/meow-flow:run` the
+driver skill, and `/meow-flow:init`, `/meow-flow:onboard` and
+`/meow-flow:upgrade` their own. Type
 the command and its arguments, and the model carries out what the skill
 says.
 

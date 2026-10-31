@@ -2,7 +2,7 @@
 id: SPC-1090
 artifact: spec
 status: live
-revised: 2026-10-24
+revised: 2026-10-31
 states:
   [
     REQ-0080,
@@ -39,7 +39,7 @@ states:
     REQ-0233,
     REQ-0235,
     REQ-0236,
-    REQ-0239,
+    REQ-3668,
     REQ-0240,
     REQ-0242,
     REQ-0243,
@@ -49,18 +49,13 @@ states:
     REQ-0249,
     REQ-0250,
     REQ-0251,
-    REQ-0252,
     REQ-0253,
-    REQ-0254,
+    REQ-3680,
     REQ-0255,
-    REQ-0256,
+    REQ-3672,
     REQ-0257,
-    REQ-0258,
+    REQ-3670,
     REQ-0259,
-    REQ-0260,
-    REQ-0263,
-    REQ-0264,
-    REQ-0265,
     REQ-0267,
     REQ-0268,
     REQ-0269,
@@ -76,8 +71,6 @@ states:
     REQ-0289,
     REQ-0298,
     REQ-0300,
-    REQ-0301,
-    REQ-0303,
     REQ-0305,
     REQ-0306,
     REQ-0308,
@@ -92,7 +85,6 @@ states:
     REQ-0320,
     REQ-0321,
     REQ-0322,
-    REQ-0323,
     REQ-0324,
     REQ-0326,
     REQ-0329,
@@ -114,8 +106,7 @@ states:
     REQ-0348,
     REQ-0350,
     REQ-0352,
-    REQ-0354,
-    REQ-0356,
+    REQ-3674,
     REQ-0358,
     REQ-0360,
     REQ-0364,
@@ -144,9 +135,7 @@ states:
     REQ-0544,
     REQ-0564,
     REQ-0566,
-    REQ-0583,
-    REQ-0595,
-    REQ-0596,
+    REQ-3678,
     REQ-0613,
     REQ-0810,
     REQ-0812,
@@ -281,12 +270,6 @@ states:
     REQ-2876,
     REQ-2888,
     REQ-2890,
-    REQ-2892,
-    REQ-2894,
-    REQ-2896,
-    REQ-2900,
-    REQ-2902,
-    REQ-2904,
     REQ-2910,
     REQ-2916,
     REQ-2917,
@@ -294,7 +277,6 @@ states:
     REQ-2919,
     REQ-2920,
     REQ-2922,
-    REQ-2926,
     REQ-2978,
     REQ-3092,
     REQ-3094,
@@ -302,7 +284,6 @@ states:
     REQ-3098,
     REQ-3100,
     REQ-3104,
-    REQ-3106,
     REQ-3108,
     REQ-3110,
     REQ-3112,
@@ -320,42 +301,25 @@ states:
     REQ-3202,
     REQ-3203,
     REQ-3216,
-    REQ-3600,
     REQ-3602,
-    REQ-3604,
-    REQ-3606,
-    REQ-3608,
     REQ-3610,
     REQ-3612,
     REQ-3614,
-    REQ-3616,
-    REQ-3618,
+    REQ-3682,
     REQ-3620,
     REQ-3622,
     REQ-3624,
-    REQ-3626,
-    REQ-3628,
-    REQ-3630,
     REQ-3632,
-    REQ-3638,
-    REQ-3640,
-    REQ-3642,
+    REQ-3666,
     REQ-3644,
-    REQ-3646,
-    REQ-3648,
-    REQ-3650,
-    REQ-3652,
+    REQ-3684,
     REQ-3654,
     REQ-3656,
     REQ-3658,
-    REQ-4400,
-    REQ-4402,
-    REQ-4404,
-    REQ-4406,
-    REQ-4408,
-    REQ-4410,
-    REQ-4412,
-    REQ-4414,
+    REQ-3676,
+    REQ-3686,
+    REQ-5300,
+    REQ-3526,
   ]
 ---
 
@@ -366,17 +330,18 @@ states:
 This covers how the method's steps run: how you invoke one, the gate each
 checks before it writes, the command that drives them and the state of the
 chain as the record shows it. It also covers the route, which comes before the
-chain's first step and says where a request enters the chain, and the two
-commands that bring an existing repository in, `/meow-flow:init` and
-`/meow-flow:onboard`. Each artifact's content rules belong to the
-specifications of the steps that write them.
+chain's first step and says where a request enters the chain, the two commands
+that bring an existing repository in, `/meow-flow:init` and
+`/meow-flow:onboard`, and `/meow-flow:upgrade` beside them. Each artifact's
+content rules belong to the specifications of the steps that write them.
 
-The chain has seven steps: research, requirements, design, spec, epic,
-implement and review (REQ-3638). A requirement closes with the tasks that name
-it (REQ-3604). No agent reviews a record, and the repository keeps no run
-output. Every record meets the shape of the seven steps (REQ-3652), and the
-marketplace ships no unit whose only purpose is one the chain lacks
-(REQ-3654).
+The chain has six steps: research, requirements, design, spec, implement and
+review (REQ-3666). A decision or a defect is the one unit of work: one record,
+one issue, one branch and one pull request (REQ-3668). The record carries its
+own plan (REQ-3672, REQ-3674). No agent reviews a record, and the repository
+keeps no run output. The record refuses a new epic or task, and reads the ones
+in its archive (REQ-3684). The marketplace ships no unit whose only purpose is
+one the chain lacks (REQ-3654).
 
 The `route` skill classifies the request in the session and reports the route
 before any edit (ADR-2930). The method skill and this repository's
@@ -389,11 +354,8 @@ SPC-1030 states. The prose reviewer and the researcher do.
 A run of the chain with no person watching is planned before it starts, from
 an authority the repository declares, as SPC-1200 states.
 
-A task never opens a pull request of its own, because an epic's tasks are
-groups of commits on its branch (ADR-2860). ADR-3000 postpones stacking an epic
-on an unmerged epic. ADR-2590 decides that an epic carries no status
-per task, which amends how ADR-2300 derives a task's state, and EPC-2460
-realises it.
+The harness builds no stack of pull requests, and ADR-3000 postpones stacking
+one record's pull request on another's.
 
 ADR-2560, as ADR-2730 amends it, decides the brief a delegated agent gets and
 what its pull request names. ADR-2610 lets the model write an insight.
@@ -406,21 +368,23 @@ verification stages (REQ-0132): format, lint, check, test and build.
 
 ## Boundary
 
-| Surface                                    | What it is                                                                |
-| ------------------------------------------ | ------------------------------------------------------------------------- |
-| `plugins/meow-flow/skills/method/SKILL.md` | What every step shares, and how to invoke one                             |
-| `plugins/meow-flow/skills/method/steps/`   | One file per step, read only for the step being run                       |
-| `plugins/meow-flow/skills/run/SKILL.md`    | `/meow-flow:run`, the command that drives the chain                       |
-| `plugins/meow-flow/skills/route/SKILL.md`  | The skill that routes a request before work starts                        |
-| `plugins/meow-flow/agents/researcher.md`   | The cheap subagent the research step dispatches                           |
-| `plugins/meow-flow/templates/<kind>.md`    | The unit's template for each kind                                         |
-| `.meowpaw/templates/<kind>.md`             | A repository's own template, which overrides the unit's                   |
-| `paw status`, `ready`, `template`          | The chain's state, a step's gate, the template in force                   |
-| `paw check`                                | The record's consistency, run by the method skill on every step           |
-| `paw check coverage`                       | Whether each tracked document outside the record has one outcome          |
-| `paw onboarding remove`                    | The removal of the documents an approved onboarding report places         |
-| `/meow-flow:init`, `/meow-flow:onboard`    | The two commands that bring an existing repository in                     |
-| The `SessionStart` hook                    | Runs `paw status --waiting`, so a session opens with the pending approval |
+| Surface                                    | What it is                                                                 |
+| ------------------------------------------ | -------------------------------------------------------------------------- |
+| `plugins/meow-flow/skills/method/SKILL.md` | What every step shares, and how to invoke one                              |
+| `plugins/meow-flow/skills/method/steps/`   | One file per step, read only for the step being run                        |
+| `plugins/meow-flow/skills/run/SKILL.md`    | `/meow-flow:run`, the command that drives the chain                        |
+| `plugins/meow-flow/skills/route/SKILL.md`  | The skill that routes a request before work starts                         |
+| `plugins/meow-flow/agents/researcher.md`   | The cheap subagent the research step dispatches                            |
+| `plugins/meow-flow/templates/<kind>.md`    | The unit's template for each kind                                          |
+| `.meowpaw/templates/<kind>.md`             | A repository's own template, which overrides the unit's                    |
+| `paw status`, `ready`, `template`          | The chain's state, a step's gate, the template in force                    |
+| `paw done`                                 | Stores `done` and `pr:` on a decision or a defect                          |
+| `paw check`                                | The record's consistency, run by the method skill on every step            |
+| `paw check coverage`                       | Whether each tracked document outside the record has one outcome           |
+| `paw onboarding remove`                    | The removal of the documents an approved onboarding report places          |
+| `/meow-flow:init`, `/meow-flow:onboard`    | The two commands that bring an existing repository in                      |
+| `/meow-flow:upgrade`, `paw upgrade`        | The command that moves a repository's record to the form the harness holds |
+| The `SessionStart` hook                    | Runs `paw status --waiting`, so a session opens with the pending approval  |
 
 ## Behaviour
 
@@ -431,11 +395,11 @@ classifies the change (REQ-0330) and reports the route and its reason as the
 first thing in the reply, before any tool that writes runs (REQ-0332). A route
 has a size and a shape.
 
-| Size      | What it writes                                                       | Where it enters                                                                                  |
-| --------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `none`    | no artifact                                                          | the edit, for a typo, a formatting fix or a link that alters no behaviour and no approved record |
-| `reduced` | only the records the work lacks: a task, and a defect record for one | `implement` under an approved epic, `epic` under an approved decision no epic realises yet       |
-| `full`    | every step's artifact                                                | `research`                                                                                       |
+| Size      | What it writes                                                   | Where it enters                                                                                  |
+| --------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `none`    | no artifact                                                      | the edit, for a typo, a formatting fix or a link that alters no behaviour and no approved record |
+| `reduced` | only the records the work lacks: a plan step, or a defect record | `implement` under an approved decision or defect                                                 |
+| `full`    | every step's artifact                                            | `research`                                                                                       |
 
 The three sizes are the classes REQ-0334 asks for. Work that no approved
 record authorises has no step for `reduced` to enter at, so its route is
@@ -495,36 +459,32 @@ The reply is the only place the route is recorded.
 
 ### The steps
 
-The chain runs seven steps in this order, each writing one kind of artifact
-(REQ-3638): research, requirements, design, spec, epic, implement and review.
-The documentation check reports a living page that states another number of
-steps (REQ-3632). The research step dispatches the researcher, reads nothing
-itself, and writes the artifact from the draft the researcher returns
-(REQ-3526).
+The chain runs six steps in this order, each writing one kind of artifact
+(REQ-3666): research, requirements, design, spec, implement and review. The
+documentation check reports a living page that states another number of steps
+(REQ-3632). The research step dispatches the researcher, reads nothing itself,
+and writes the artifact from the draft the researcher returns (REQ-3526).
 
-A task's pull request carries the whole task: its tests first, in a commit of
-their own where they fail, then the implementation, the documentation it
-changes and its record marks (REQ-3616, REQ-3618, REQ-3640, REQ-3642). Its
-merge closes the task, its epic where the task was the last open one, and each
-requirement nothing open still names (REQ-3604). An acceptance criterion is
-decidable from the work of the task or epic that states it (REQ-3628).
+A record's pull request carries all its work (REQ-3668). Each plan step lands
+in order: its tests first, in a commit of their own where they fail, then the
+implementation, the documentation it changes and its record marks (REQ-3682).
+`paw done <record> --pr <number>` stores `done` and `pr:` on the record in the
+pull request that completes the work, so the merge closes the record and the
+requirements it addresses (REQ-3678, REQ-3680). An acceptance criterion is
+decidable from the work of the record that states it (REQ-3672).
 
-`paw ready` knows the seven steps and no others. It refuses any other name,
-`cover`, `document` and `verify` among them, with exit 2 and the seven steps in
-order (ADR-2350).
+`paw ready` knows the six steps and no others. It refuses any other name,
+`cover`, `document`, `verify` and `epic` among them, with exit 2 and the six
+steps in order (ADR-2350).
 
-A task may realise a decision with no epic, naming `realises: ADR-NNNN` in
-place of `epic:` (REQ-3630).
-
-| Step         | Reads, and the requirements it follows                                                                                                                                                                                                                                                                                                                                              | Writes                                                                 |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| research     | a question, REQ-2137, REQ-2139                                                                                                                                                                                                                                                                                                                                                      | a research record                                                      |
-| requirements | approved research, REQ-2131, REQ-2132, REQ-2133, REQ-2134                                                                                                                                                                                                                                                                                                                           | requirement records                                                    |
-| design       | approved requirements, REQ-1230, REQ-1231, REQ-1232, REQ-1233, REQ-1234, REQ-1235, REQ-1236, REQ-1237, REQ-1238, REQ-1239, REQ-1240, REQ-1242, REQ-1244, REQ-1246, REQ-1248, REQ-1250, REQ-1252, REQ-1254, REQ-1256, REQ-1258, REQ-2138, REQ-2140, REQ-2760, REQ-2762, REQ-2764, REQ-2766, REQ-2768, REQ-2770, REQ-2772, REQ-2776, REQ-2778, REQ-2780, REQ-2782, REQ-2794, REQ-2796 | a decision record                                                      |
-| spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated                                             |
-| epic         | an approved decision or defect                                                                                                                                                                                                                                                                                                                                                      | an epic and its task records                                           |
-| implement    | an approved task, REQ-2266, REQ-3216                                                                                                                                                                                                                                                                                                                                                | the tests first, the change, its documentation and the task's evidence |
-| review       | the task's pull request, REQ-2268                                                                                                                                                                                                                                                                                                                                                   | findings, fixed in the pull request                                    |
+| Step         | Reads, and the requirements it follows                                                                                                                                                                                                                                                                                                                                              | Writes                                                               |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| research     | a question, REQ-2137, REQ-2139                                                                                                                                                                                                                                                                                                                                                      | a research record                                                    |
+| requirements | approved research, REQ-2131, REQ-2132, REQ-2133, REQ-2134                                                                                                                                                                                                                                                                                                                           | requirement records                                                  |
+| design       | approved requirements, REQ-1230, REQ-1231, REQ-1232, REQ-1233, REQ-1234, REQ-1235, REQ-1236, REQ-1237, REQ-1238, REQ-1239, REQ-1240, REQ-1242, REQ-1244, REQ-1246, REQ-1248, REQ-1250, REQ-1252, REQ-1254, REQ-1256, REQ-1258, REQ-2138, REQ-2140, REQ-2760, REQ-2762, REQ-2764, REQ-2766, REQ-2768, REQ-2770, REQ-2772, REQ-2776, REQ-2778, REQ-2780, REQ-2782, REQ-2794, REQ-2796 | a decision record with its plan                                      |
+| spec         | an approved decision, REQ-2256, REQ-2258                                                                                                                                                                                                                                                                                                                                            | the specification, updated                                           |
+| implement    | an approved decision or defect with a plan, REQ-2266, REQ-3216                                                                                                                                                                                                                                                                                                                      | the tests first, the change, its documentation and the stored `done` |
+| review       | the record's pull request, REQ-2268                                                                                                                                                                                                                                                                                                                                                 | findings, fixed in the pull request                                  |
 
 A person or the model invokes one step by naming it to the `method` skill, and
 the step does its own work and no later step's (REQ-0192, REQ-0194). Each step
@@ -539,15 +499,14 @@ step's output is found by path and not only by kind (REQ-3203, BUG-1264).
 Implement also names what lands outside the record root: the test files, the
 changed files and each user-facing page at its own path.
 
-| Step         | Its artifact lands in                                                                                                    |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| research     | `research/RES-NNNN-<topic>.md`                                                                                           |
-| requirements | one `requirements/REQ-NNNN-<slug>.md` for each obligation                                                                |
-| design       | `adrs/ADR-NNNN-<slug>.md`                                                                                                |
-| spec         | `specs/SPC-NNNN-<topic>.md`                                                                                              |
-| epic         | `epics/EPC-NNNN-<slug>.md` and one `tasks/TSK-NNNN-<slug>.md` for each task                                              |
-| implement    | the test files, the changed files, each user-facing page it changed, and the `## Evidence` of `tasks/TSK-NNNN-<slug>.md` |
-| review       | nothing in the record; its fixes land in the task's pull request (REQ-0544, REQ-3626)                                    |
+| Step         | Its artifact lands in                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------ |
+| research     | `research/RES-NNNN-<topic>.md`                                                                   |
+| requirements | one `requirements/REQ-NNNN-<slug>.md` for each obligation                                        |
+| design       | `adrs/ADR-NNNN-<slug>.md`, carrying its `## Plan`                                                |
+| spec         | `specs/SPC-NNNN-<topic>.md`                                                                      |
+| implement    | the test files, the changed files, each user-facing page it changed, and the record it completes |
+| review       | nothing in the record; its fixes land in the record's pull request (REQ-0544, REQ-3682)          |
 
 No step requires a command from a practice-layer unit to be installed
 (REQ-2130). Work that isn't code, a specification, a document, a decision or
@@ -556,26 +515,43 @@ a configuration, goes through the same steps and the same gates as code
 records a default for the rest (REQ-2630). A step that reviews its own output
 stops after two rounds and reports what is still open (REQ-2632).
 
+### The plan
+
+A decision that addresses a requirement carries a `## Plan` of ordered steps an
+implementer can follow with no access to the conversation that produced it
+(REQ-3672). A defect whose triage enters at implement carries one too
+(REQ-3674). A plan states its steps in order, and marks a step that follows
+another only for convenience as not blocking (REQ-1358). The decision's "How I
+will know it was realised" holds its acceptance criteria. A criterion no program
+can check is named there as resting on judgement, with the reason, before the
+implementation starts (REQ-3216, REQ-0147).
+
+The plan is the one part of an approved record that stays editable, because the
+work corrects it, and it freezes when the record is done (REQ-3676). A record
+that would not be one reviewable pull request is split into smaller records
+before its work starts (REQ-3670). Two parallel streams of work are two
+records.
+
 ### What each step holds
 
 Each step's file carries the obligations of its step as labelled rules, and
-the `task` and `bug` templates carry the obligations of their kinds (ADR-1160).
+the `adr` and `bug` templates carry the obligations of their kinds (ADR-1160).
 The rules name no requirement, because the files ship to other repositories.
 
-| Step or template | Holds                                                                                                                                                                                                                                                                                                                          |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                                                           |
-| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                                                             |
-| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890                                                                                                                                                                                               |
-| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                                                       |
-| epic             | REQ-0239, REQ-0252, REQ-0254, REQ-0255, REQ-0256, REQ-0258, REQ-0260, REQ-0263, REQ-0264, REQ-0265, REQ-0268, REQ-0270, REQ-0285, REQ-0301, REQ-0305, REQ-0323, REQ-2892, REQ-2894, REQ-2896, REQ-2904, REQ-3100, REQ-3106, REQ-3172                                                                                           |
-| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-3616, REQ-3618, REQ-3640, REQ-3642, REQ-3644 |
-| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108, REQ-3612, REQ-3626                                                                                                                                   |
-| templates        | REQ-0303, REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2900, REQ-2902, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-2926                                                                                                                                                                           |
+| Step or template | Holds                                                                                                                                                                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| research         | REQ-0209, REQ-0211, REQ-0221, REQ-0222, REQ-0225, REQ-0226, REQ-0227, REQ-0229, REQ-0564, REQ-2640, REQ-2642, REQ-2644, REQ-2648, REQ-2650, REQ-2869                                                                                                                                             |
+| requirements     | REQ-0213, REQ-0214, REQ-0215, REQ-0231, REQ-0245, REQ-0253, REQ-0271, REQ-0273, REQ-2874, REQ-2876                                                                                                                                                                                               |
+| design           | REQ-0230, REQ-0232, REQ-0233, REQ-0235, REQ-0236, REQ-0249, REQ-0251, REQ-0255, REQ-0268, REQ-0270, REQ-0285, REQ-0305, REQ-0566, REQ-2638, REQ-2652, REQ-2694, REQ-2888, REQ-2890, REQ-3100, REQ-3172, REQ-3668, REQ-3670, REQ-3672, REQ-3680                                                   |
+| spec             | REQ-0242, REQ-0243, REQ-0244, REQ-0248, REQ-0250, REQ-0331, REQ-0333, REQ-0335, REQ-0337, REQ-0339, REQ-0341, REQ-0613, REQ-2858, REQ-2859, REQ-2860, REQ-2861, REQ-2862                                                                                                                         |
+| implement        | REQ-0257, REQ-0259, REQ-0267, REQ-0269, REQ-0272, REQ-0274, REQ-0276, REQ-0450, REQ-0458, REQ-0460, REQ-0462, REQ-0464, REQ-0466, REQ-2774, REQ-3104, REQ-0287, REQ-0289, REQ-0298, REQ-0300, REQ-1950, REQ-1952, REQ-1954, REQ-1956, REQ-1958, REQ-1960, REQ-1962, REQ-2836, REQ-3682, REQ-3644 |
+| review           | REQ-0306, REQ-0308, REQ-0310, REQ-0311, REQ-0312, REQ-0313, REQ-0314, REQ-0315, REQ-0316, REQ-0318, REQ-0320, REQ-0322, REQ-0324, REQ-0326, REQ-0544, REQ-2834, REQ-3108, REQ-3612, REQ-3682                                                                                                     |
+| templates        | REQ-0534, REQ-0535, REQ-0536, REQ-0537, REQ-2910, REQ-2916, REQ-2917, REQ-2918, REQ-2919, REQ-2920, REQ-2922, REQ-3672, REQ-3674                                                                                                                                                                 |
 
-The implement step holds what the cover and document steps held, because their
-work lands in the task's pull request. The method skill runs `paw check` on
-every step, so the stages check the record on every change (REQ-0277, REQ-0132).
+The implement step holds the obligations of tests and documentation, because
+that work lands in the record's pull request. The method skill runs `paw check`
+on every step, so the stages check the record on every change (REQ-0277,
+REQ-0132).
 
 The implement step reads `[docs] style` from `.meowpaw/profile.toml`: a path to
 the repository's own style guide, or the name of an installed unit that ships
@@ -588,23 +564,18 @@ changed, and reports the documentation as unchecked where no stage covers it
 
 A defect record authorises work as a decision does (REQ-0352), and its path
 begins with a reproduction, which the defect carries before it is triaged
-(REQ-0348, REQ-0364). A task names its authorising record in exactly one of
-`epic`, `bug` and `realises`, because its state derives from the one record
-that marks it (ADR-1440).
+(REQ-0348, REQ-0364). A defect sits on the same level as a decision: one record,
+one issue, one branch and one pull request (REQ-3668).
 
-A defect's task restores a requirement already in force, so its `closes` may
-be empty (REQ-0350). The defect carries a `## Tasks` section with an epic's
-marks, and the task's state derives from it (REQ-0354). An epic realises a
-defect only where the fix needs at least two tasks with an order between them
-(REQ-0356). Only a blocking dependency, one the task can't start before,
-counts as an order: a task's dependency line marked `(not blocking)` and an
-epic entry's `depends:` marked `(not blocking)` don't count.
+A defect restores a requirement already in force, so it is evidence and not new
+work needing a decision (REQ-0350). Where its triage enters at implement, it
+carries its own `## Plan` (REQ-3674).
 
 The triage answers first whether a requirement in force covers the behaviour,
 in `violates` or in its Triage section (REQ-0358). It then names in `enters`
 the step the defect enters at (REQ-0360):
 
-- `implement` where the code or a task's tests fail a requirement in force
+- `implement` where the code or its tests fail a requirement in force
 - `design` where the design fails a requirement in force
 - `requirements` where the requirement is wrong or none covers the behaviour
 - `research` where the cause is unknown
@@ -619,117 +590,79 @@ The defect records its severity from the start, a draft included, because
 severity is a property of the observation and not part of the triage
 (REQ-0372). A defect closed as not a defect is stored `rejected` with its
 reasoning under Triage (REQ-0370). A closed defect's Closed by names the check
-that stays as a regression check (REQ-0368). `paw status` counts separately
-the tasks that decisions authorise and the tasks that defects authorise
-(REQ-0374).
+that stays as a regression check (REQ-0368). `paw status` lists the decisions
+and the defects under separate headings, so the share of work defects authorise
+can be read from it (REQ-0374).
 
-The implement step begins a defect's task by running its reproduction and
+The implement step begins a defect's work by running its reproduction and
 seeing it fail. A defect a gate caught and the same change closed needs no
 record of its own (REQ-3174).
 
-The implement step writes the following under a task's Evidence: the tests
-that close each criterion, each stage's outcome and the pull request. Where
-`meow-checks` isn't installed it also records each command and its exit
-status, because `meow-flow` works without it (REQ-0146, ADR-1480). It keeps no
-run output, in a file or in the task (REQ-3614), and marks the task and its
-completed authorising records `status: done` only in a change whose stages all
-passed (REQ-0583, REQ-3606). Before the implementation, it
-names each criterion no program can check as resting on judgement (REQ-3216,
-REQ-0147).
+The implement step names in the pull request the tests that close each
+criterion and each stage's outcome. Where `meow-checks` isn't installed it also
+names each command and its exit status, because `meow-flow` works without it
+(REQ-0146, ADR-1480). It keeps no run output, in a file or in the record
+(REQ-3614), and runs `paw done` only in a change whose stages all passed
+(REQ-3678).
 
 ### The gate
 
 Before it writes, a step runs `paw ready <step> <id>...` with the identifiers
-of its input. `ready` exits 0 when every input exists and is approved or, for a
-decision, epic or task, done, and 1 when one isn't, naming each missing or
-unapproved input on its own line (REQ-0198, REQ-0200, REQ-0595). The step
-refuses on 1 and says what is missing.
+of its input. `ready` exits 0 when every input exists and is approved or done,
+and 1 when one isn't, naming each missing or unapproved input on its own line
+(REQ-0198, REQ-0200). The step refuses on 1 and says what is missing.
 
-| Step         | Its input is ready when                                                                                                                                |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| research     | always                                                                                                                                                 |
-| requirements | each named research record is approved (REQ-0212)                                                                                                      |
-| design       | each named requirement is approved (REQ-0228)                                                                                                          |
-| spec         | the named decision is approved (REQ-0240)                                                                                                              |
-| epic         | the named decision or defect is approved, and a decision's requirements are all stated by a specification                                              |
-| implement    | the named task and its epic, defect or decision are approved, each task it depends on is done, and the task is approved in the working tree (REQ-4412) |
-| review       | nothing: the review reads the task's pull request                                                                                                      |
+| Step         | Its input is ready when                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| research     | always                                                                                                                               |
+| requirements | each named research record is approved (REQ-0212)                                                                                    |
+| design       | each named requirement is approved (REQ-0228)                                                                                        |
+| spec         | the named decision is approved (REQ-0240)                                                                                            |
+| implement    | the named decision or defect is approved, carries a plan, and a decision's requirements are all stated by a specification (REQ-3672) |
+| review       | nothing: the review reads the record's pull request                                                                                  |
 
-A task under an epic or defect is done when its authorising record marks it
-`[x]`, and dropped when marked `[~]` or when its status is withdrawn, rejected
-or superseded. A task realising a decision directly is done once its Evidence
-opens with anything but "Not yet." (REQ-3630). A frozen historical task naming
-no authority uses that same Evidence rule (REQ-0596). A task entry may carry
-`[P]` between its number and its identifier, marking it as able to run in
-parallel (REQ-0265), which is an order and not a status. A completed task,
-epic or decision stores `status: done`, and `paw check` requires that stored
-claim and the derived result to agree (REQ-0583, REQ-0585).
-
-Each line under a task's `## Depends on` names one task and says whether it
-blocks, so a dependency that exists only for convenience is declared and never
-left out (REQ-1358). `paw check` asks a draft task for the marker
-(`dependency-declared`):
-
-```text
-- TSK-NNNN (blocking): the parser this task extends lands there.
-- TSK-MMMM (not blocking): shares a fixture, which either task can write.
-```
-
-A line saying `(blocking)` is blocking, a line saying `(not blocking)` isn't,
-and a line naming a `TSK-` identifier with neither marker is blocking, as in a
-task written before the marker existed. For `ready implement` and `status`,
-only the blocking dependencies of a task count, so a task whose only open
-dependency doesn't block is ready. An epic entry's `depends:` takes the same
-marker, as `depends: TSK-NNNN (not blocking) - why`, and reads the same way.
-Readiness reads only the task's own line, and `paw check` doesn't compare an
-epic entry's marker with it.
-
-`ready implement` reads no `## Cover` section: the task's first commit holds
-its failing tests (REQ-3616, REQ-3642), and the task doesn't record them. No
-record carries `## Cover`, `## Verified`, `## Open review findings` or
-`checked-at`: the layout retires them, and `paw check` reports one still
-carried (REQ-3652).
+`ready implement` reads no tests: the first commit of a plan step holds its
+failing tests (REQ-3682), and the record doesn't name them. No record carries
+`## Cover`, `## Verified`, `## Open review findings` or `checked-at`: the layout
+retires them, and `paw check` reports one still carried.
 
 ### Stacking pull requests
 
-The harness builds no stack of pull requests. An epic is one branch and one
-pull request, and its tasks are groups of commits on that branch (ADR-2860),
-so a task has no pull request to stack on. ADR-3000 postpones the rules
-ADR-2550 wrote for task layers, REQ-1810 to REQ-1844 among them. An epic that
-depends on an unmerged epic waits for that epic's merge. `meow-git restack`,
-which SPC-1060 states, still rebuilds the branches of a stack a person makes.
+The harness builds no stack of pull requests. A decision or a defect is one
+branch and one pull request (REQ-3668), and two parallel streams of work are two
+records. ADR-3000 postpones the rules ADR-2550 wrote for layers, REQ-1810 to
+REQ-1844 among them. A record that depends on an unmerged record waits for that
+record's merge. `meow-git restack`, which SPC-1060 states, rebuilds the branches
+of a stack a person makes.
 
 ### The state
 
 `paw status` prints the chain's state, computed from the record each time it
-runs. It leads with every research, requirement, decision, epic, task and
-defect record whose status is `draft`, under "Waiting for approval"
-(REQ-0321). Then, for each approved decision, it prints the step the decision
-has reached and the next one:
+runs. It leads with every research, requirement, decision and defect record
+whose status is `draft`, under "Waiting for approval" (REQ-0321). Then, for each
+approved or done decision, it prints where the decision stands:
 
-- no epic and no task realises it: next is `spec`, then `epic`
-- its epic is a draft: waiting for the epic's approval
-- its epic has tasks not done: for the first task whose blocking dependencies
-  are done, next is `implement`, and the line keeps the form
-  `(<epic>, <n> of <m> tasks done)`
-- tasks name it in `realises` and no epic realises it: the line has the same
-  form, counted under the decision, and waits while an open one of those tasks
-  isn't approved
-- an epic and tasks naming it in `realises` both exist: the tasks count beside
-  the epic's
-- every task is done or dropped: closed, and the line names no next step
-  (REQ-3604, REQ-3620)
+- done: `closed: <id>`, and the line names no next step (REQ-3620)
+- approved, postponing requirements and addressing none: `postponing:`, with the
+  count, listed under Postponed
+- approved with a plan: `next: implement <id>`
+- approved with no plan: `waiting: <id> carries no plan`
 
-Each requirement is open or closed as REQ-3600, REQ-3608 and REQ-3610 derive
-it. It is closed when a task naming it is done and no task naming it is open.
-It is open while an open defect names it in `violates`, whatever its tasks
-say, and open when nothing names it. Closed is the last state. A defect with
-no task is closed in the change that recorded it, unless its Closed by opens
-with "Not" or "Open". A task or an epic may name any number of requirements,
-and a requirement may be named by any number of tasks and epics (REQ-3646,
-REQ-3648). `status` lists every postponed requirement, one its decision
-postpones, under Postponed with the first entry of the decision's What would
-reverse it (REQ-3622).
+Under Defects it lists each approved defect. One entering at implement, or
+naming no step, reads as a decision does, with `next: implement <id>` or
+`waiting: <id> carries no plan`, and any other prints `enters at <step>`.
+
+Each requirement is closed, in a decision not yet done, reopened by a defect,
+postponed or named by no decision, as REQ-3680, REQ-3602 and REQ-3610 derive it.
+It is closed when a done decision addresses it or a done archived task closes
+it, and no approved decision still in work addresses it. A postponed requirement
+closes only with a decision later than the one that postponed it, because an
+earlier decision would read as closing it. It is reopened while an open defect
+names it in `violates`, whatever else closes it. Closed is the last state. A
+decision may address any number of requirements, and any number of decisions
+may address one requirement. `status` lists every postponed requirement, one its
+decision postpones, under Postponed with the first entry of the decision's What
+would reverse it (REQ-3622).
 
 Run twice with nothing changed, `paw status` prints the same text (REQ-0210).
 
@@ -741,33 +674,26 @@ step that produces an artifact needing approval stops there, and no step ever
 reads silence, a change of subject or an unrelated instruction as approval
 (REQ-0390, REQ-0400).
 
-Where a person asks for a decision only, the method skill writes its research,
-requirements, decision record, specification changes, epic and tasks in turn
-and stops once, at the pull request, whose merge is the approval (REQ-3650,
-REQ-3656, ADR-2310). Where a person asks for an epic, it goes on and implements
-the tasks on the same branch, and stops once, at the same pull request
-(REQ-4400, REQ-4410, ADR-2860). Where the epic's records are already approved
-on the trunk, it implements the tasks on one branch in one pull request
-(REQ-4414). The
-method skill opens the pull request and names it in its report, and where the
-repository declares no code host it names the branch in its place. It writes
-each record as a draft, runs `paw check`, and sets the record to `approved`
-only where the check reports nothing, because a record written as approved from
-the start skips the rules that apply to drafts alone (REQ-3658). The statuses
-land in the pull request's commits, each not in a commit of its own, and the
-merge is the approval. Work done before the merge is at risk of rejection with
-the decision, and the person's merge is the only gate the path has.
+Where a person asks for a decision's whole cycle, the method skill writes its
+research, requirements, decision record with its plan and specification changes,
+implements the plan on the same branch, and stops once, at the pull request,
+whose merge is the approval (REQ-3668, REQ-3656, ADR-2310). Where the record is
+already approved on the trunk, the skill implements its plan on one branch in
+one pull request (REQ-3668). The method skill opens the pull request and names
+it in its report, and where the repository declares no code host it names the
+branch in its place. It writes each record as a draft, runs `paw check`, and
+sets the record to `approved` only where the check reports nothing, because a
+record written as approved from the start skips the rules that apply to drafts
+alone (REQ-3658). The statuses land in the pull request's commits, each not in a
+commit of its own, and the merge is the approval. Work done before the merge is
+at risk of rejection with the decision, and the person's merge is the only gate
+the path has.
 
-A defect that carries its tasks and a task that realises a decision with no
-epic follow the same path from their record (REQ-4402, REQ-4404). An epic whose
-pull request would not be one reviewable change is split into smaller epics
-before its work starts, and the pull request is never split in its place
-(REQ-4406). An epic or a defect with no unmerged dependency opens its pull
-request against the trunk (REQ-4408).
+A defect follows the same path from its record (REQ-3668). A record with no
+unmerged dependency opens its pull request against the trunk (REQ-3668).
 
-`ready implement` reads a task's approval from the working tree, so a task
-approved on the epic's own branch is ready, and `status` names as next the
-first task that can start (REQ-4412).
+`ready implement` reads a record's approval from the working tree, so a decision
+approved on its own branch is ready.
 
 `paw status --waiting` prints only what waits for approval, each line naming
 the artifact, its kind and the gate it waits at, and prints nothing when
@@ -781,9 +707,9 @@ No agent reviews a record (REQ-3624): the person approving its pull request
 reads it, and the method skill reports a record it wrote as unreviewed by a
 person.
 
-The review step reads a task's pull request against the base it was opened on
+The review step reads a record's pull request against the base it was opened on
 (REQ-0311). Where the session produced the change, the review step dispatches
-the review to an agent with read-only tools. It names what the task asks and
+the review to an agent with read-only tools. It names what the record asks and
 not who wrote it, and reads the return as a verdict, named as an agent's
 (REQ-0149, REQ-0151, REQ-0157, REQ-0818, REQ-0819). Where the session didn't
 produce the change, the step runs the review itself, because the session isn't judging its own
@@ -801,7 +727,7 @@ The review judges whether the work meets its requirements and improves the
 codebase. It never judges whether the decision was right, which the decision's
 reversal condition answers (REQ-0329). It reports each test that would still
 pass against a wrong implementation (REQ-3612). Each finding that stands is
-fixed in that pull request (REQ-3626, REQ-0544).
+fixed in that pull request (REQ-3682, REQ-0544).
 
 A fresh agent reviews the fixes, for at most two rounds of fixes. A finding
 still open after the second round goes to the person in the pull request,
@@ -809,15 +735,15 @@ because a bound is what makes repair end (REQ-0822, REQ-0823).
 
 ### Delegated work
 
-A step that delegates a task gives the agent a brief built from the task's
-records and never from the conversation (REQ-0810). `paw brief <task>` prints
-it from the task, its epic or the decision it realises, and the requirements
-it closes. The brief stands alone: what to build, the constraints that bind
-it, the interfaces it touches and what to report back, each written out
-(REQ-0812), with each constraint copied word for word from the record it comes
-from (REQ-0814). It opens with the `<unit>:<agent>` name of the agent
-definition it is written for, so the harness can say which agent produced an
-artifact and under which brief by reading the task again (REQ-1764).
+A step that delegates work gives the agent a brief built from the record and
+never from the conversation (REQ-0810). `paw brief <record>` prints it from the
+decision or defect, its plan and the requirements it names. The brief stands
+alone: what to build, the constraints that bind it, the interfaces it touches
+and what to report back, each written out (REQ-0812), with each constraint
+copied word for word from the record it comes from (REQ-0814). It opens with the
+`<unit>:<agent>` name of the agent definition it is written for, so the harness
+can say which agent produced an artifact and under which brief by reading the
+record again (REQ-1764).
 
 A separate agent reviews delegated work, dispatched fresh and never forked
 from the conversation that produced it, as the review section states
@@ -826,8 +752,8 @@ resolves it in a fresh context, given both positions and the brief
 (REQ-0824). SPC-1030 states when a step delegates and what a dispatch
 declares.
 
-A delegated artifact's pull request names the task that produced it and the
-command that prints its brief, `paw brief <task>`, and names no agent, model
+A delegated artifact's pull request names the record that produced it and the
+command that prints its brief, `paw brief <record>`, and names no agent, model
 or vendor, because CLAUDE.md's `no_ai_attribution` and REQ-1294 forbid it
 (ADR-2730).
 
@@ -891,15 +817,12 @@ again with nothing approved, it says it is waiting (REQ-0206, REQ-0210).
 A step writes each artifact from the template `paw template <kind>` names:
 `.meowpaw/templates/<kind>.md` where the repository has it, and the unit's
 `templates/<kind>.md` otherwise (REQ-0526, REQ-0528). The kinds are
-`research`, `requirement`, `adr`, `spec`, `epic`, `task`, `bug`, `insight`,
-`vision`, `constitution`, `profile` and `onboarding`. The `profile` template is
+`research`, `requirement`, `adr`, `spec`, `bug`, `insight`, `vision`,
+`constitution`, `profile` and `onboarding`. The `profile` template is
 `profile.toml` and not Markdown.
 
-The `epic` template lists each task as an entry with no mark of its state, as
-`- T-001 [P] TSK-NNNN <what>`, with its `closes:` and `depends:` lines, and an
-`added:` line with the reason where the entry joined after approval (REQ-0700).
-A dropped task keeps its entry, and its own record, withdrawn, says why
-(REQ-0702).
+The `adr` and `bug` templates carry the `## Plan` section, as a numbered list of
+steps in order (REQ-3672, REQ-3674).
 
 ### Bringing a repository in
 
@@ -914,6 +837,14 @@ agreement (REQ-1564). An empty record's coverage is reported as zero, never
 complete (REQ-3098) (ADR-1250).
 
 No unit writes into the repository to run itself (REQ-3180).
+
+### Upgrading a repository
+
+`/meow-flow:upgrade` sits beside init and onboard and moves a repository's record
+to the form the harness requires (REQ-5300). It runs `paw upgrade`, shows the
+preview, and runs `paw upgrade --write` when the person agrees. SPC-1070 states
+what the upgrade does to the record, and SPC-1080 states `meow-github upgrade`,
+which runs once the record's pull request has merged.
 
 ### Onboarding
 
@@ -960,24 +891,25 @@ not gain this prompt.
 
 ## Failure paths
 
-| Condition                                                                                                                                   | What happens                                                                                                            |
-| ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `ready` names an input that doesn't exist                                                                                                   | Exit 1, the input named as missing                                                                                      |
-| `ready` for a step it doesn't know                                                                                                          | Exit 2, naming the seven steps in order, for `cover`, `document` and `verify` as for any other name                     |
-| `ready implement` on a task absent from the trunk, or a draft there                                                                         | Exit 1, naming the task and the trunk                                                                                   |
-| No trunk declared, no git work tree, a trunk naming no branch, a record outside the repository, or a task reached through a link leaving it | `ready` refuses nothing for it, and `status` says an approval can't be told from one waiting on a merge                 |
-| `template` for a kind it doesn't know                                                                                                       | Exit 2, naming the kinds                                                                                                |
-| The record's root doesn't exist                                                                                                             | `status` and `ready` say so and exit 1, as `check` does                                                                 |
-| The router can't be dispatched                                                                                                              | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
-| The router's reply names no size                                                                                                            | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
-| The router's reason names no path or identifier                                                                                             | `full`, `ambiguous`, "the router's reason named nothing it read", and the override words                                |
-| The repository declares no record                                                                                                           | The route as the router gave it, and that no record is declared; the skill proceeds to the work and runs no step's gate |
-| A person overrode the router's route                                                                                                        | The route as overridden, and the route the router gave                                                                  |
-| `route reduced` for work no approved record authorises                                                                                      | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
-| A route came with the request or the brief                                                                                                  | The route as given, and that no router ran                                                                              |
-| The router reports `BLOCKED`                                                                                                                | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
-| The router's reply carries no outcome line                                                                                                  | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
-| No binary for the machine                                                                                                                   | The launcher reports the record as not checked and exits 3                                                              |
+| Condition                                                           | What happens                                                                                                            |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ready` names an input that doesn't exist                           | Exit 1, the input named as missing                                                                                      |
+| `ready` for a step it doesn't know                                  | Exit 2, naming the six steps in order, for `cover`, `document`, `verify` and `epic` as for any other name               |
+| `ready implement` on a record with no plan                          | Exit 1, "carries no plan"                                                                                               |
+| `ready implement` on a kind other than a decision or a defect       | Exit 1, "only a decision or a defect is implemented"                                                                    |
+| `template` for a kind it doesn't know, `epic` and `task` among them | Exit 2, naming the kinds                                                                                                |
+| The record's root doesn't exist                                     | `status` and `ready` say so and exit 1, as `check` does                                                                 |
+| The record holds `epics/` or `tasks/`                               | Every `paw` command but `upgrade` reports one finding naming the upgrade and exits 1                                    |
+| The router can't be dispatched                                      | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
+| The router's reply names no size                                    | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
+| The router's reason names no path or identifier                     | `full`, `ambiguous`, "the router's reason named nothing it read", and the override words                                |
+| The repository declares no record                                   | The route as the router gave it, and that no record is declared; the skill proceeds to the work and runs no step's gate |
+| A person overrode the router's route                                | The route as overridden, and the route the router gave                                                                  |
+| `route reduced` for work no approved record authorises              | `full`, the `reduced` the person gave, and that no approved record authorises the work                                  |
+| A route came with the request or the brief                          | The route as given, and that no router ran                                                                              |
+| The router reports `BLOCKED`                                        | `full`, `ambiguous`, "the router couldn't run", and the override words                                                  |
+| The router's reply carries no outcome line                          | `full`, `ambiguous`, "the router's reply named no route", and the override words                                        |
+| No binary for the machine                                           | The launcher reports the record as not checked and exits 3                                                              |
 
 Where two of the route's rows apply, the report carries both, and the
 `route reduced` row decides the route over the row for a route given with the
@@ -991,7 +923,7 @@ reads as covered.
 
 ### What the part is for
 
-Runs the method's seven steps, the route that comes before them and the commands that bring an existing repository in.
+Runs the method's six steps, the route that comes before them and the commands that bring an existing repository in and upgrade it.
 
 ### What it depends on
 

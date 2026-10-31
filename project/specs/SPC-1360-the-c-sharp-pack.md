@@ -18,7 +18,7 @@ SPC-1190 states for a language pack holds here, and this document states only
 what is C#'s. It leaves the supply-chain audit, a preview opt-in and the
 solution format's migration to the skill, because no command reports them.
 
-ADR-2660 decides this pack and EPC-2560's TSK-5095 ships it.
+ADR-2660 decides this pack.
 
 ## Boundary
 

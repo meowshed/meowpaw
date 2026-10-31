@@ -31,7 +31,8 @@ chore = "none"
 trunk = "main"
 require_signatures = true
 
-# The tracker meow-github projects each approved epic's tasks onto (ADR-1310).
+# The tracker meow-github projects each approved decision or defect onto
+# (ADR-3090).
 [tracker]
 kind = "github"
 

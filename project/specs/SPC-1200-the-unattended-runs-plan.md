@@ -112,7 +112,7 @@ itself and asks the person nothing (REQ-3714):
    body, naming the run's id (REQ-2384).
 
 Where `paw status` has no line beginning `next:` and requirements are named by
-no task, the run chooses the next block itself: one topic with neighbouring
+no decision, the run chooses the next block itself: one topic with neighbouring
 identifiers, skipping postponed requirements and those an approved decision
 already addresses. Where the block contradicts a record in force, the run
 writes the decision that amends that record (REQ-3720).

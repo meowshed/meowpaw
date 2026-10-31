@@ -20,8 +20,7 @@ place, and this document states only where the two differ: detection, the
 listing, where each block comes from, remote includes and secret variables.
 Running a stage is SPC-1040's.
 
-ADR-1590 decides this part, EPC-1560 realises it, and `meow-gotask` implements
-it, checked at #587.
+ADR-1590 decides this part, and `meow-gotask` implements it, checked at #587.
 
 ## Boundary
 

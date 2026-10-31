@@ -363,8 +363,7 @@ declare:
 An agent that reaches its `maxTurns` returns its output marked partial, and
 whatever dispatched it reads that output as unfinished work (REQ-2974). The
 platform's documentation and code say so, as RES-0284 read them, and no run has
-shown it yet. The hand-run case EPC-1650 adds is the first that can show it
-(ADR-1700).
+shown it yet. The hand-run case ADR-1700 adds is the first that can show it.
 
 ### What an agent reports
 

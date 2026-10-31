@@ -53,7 +53,7 @@ whether a header of a declared form is present, and it leaves the shape of a
 reply to SPC-1000.
 
 The harness does not implement this yet. ADR-1010 authorises it, ADR-1020,
-ADR-1030, ADR-1050, ADR-1600 and ADR-2390 amend it, EPC-1010 and EPC-1020 realise them.
+ADR-1030, ADR-1050, ADR-1600 and ADR-2390 amend it.
 ADR-2700 names the gate's judge as the one hook call that reaches the network
 and waits on a model, and ADR-2710 decides that a missing binary denies the
 publish.
@@ -227,7 +227,7 @@ name is improved before a comment is added (REQ-1013). A comment is short and
 plain, one line where one line will do, and says why the code does what it
 does. A comment never restates
 what the code says (REQ-1014). Commented-out code does not survive a change
-(REQ-1024), and a marker for later work carries an issue or a task (REQ-1026).
+(REQ-1024), and a marker for later work carries an issue or a record (REQ-1026).
 
 On a source file the reviewer reads the whole file to find a few lines of
 comment, so it runs on the files a change touched.
