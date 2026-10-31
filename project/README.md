@@ -911,6 +911,7 @@ whether the repository can be worked on.
 | [BUG-1670](bugs/BUG-1670-readiness-answers-complete-where-the-record-derives-in-progress.md)            | `paw ready implement` answers complete where `paw status` derives in-progress                                                                                                              |
 | [BUG-1680](bugs/BUG-1680-this-repository-s-own-checks-run-the-installed-release.md)                     | This repository's own checks run the installed release, not the checkout                                                                                                                   |
 | [BUG-1690](bugs/BUG-1690-the-wrapper-names-the-wrong-fix-for-a-github-source-install.md)                | The wrapper names the wrong fix for a marketplace added from the GitHub repository                                                                                                         |
+| [BUG-1700](bugs/BUG-1700-the-gate-s-pin-strands-installed-launchers-in-this-repository.md)              | The gate's pin stops every installed launcher working in this repository                                                                                                                   |
 
 BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
 the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100
