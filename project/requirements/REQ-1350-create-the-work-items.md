@@ -3,13 +3,17 @@ id: REQ-1350
 artifact: requirement
 topic: the-forge
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0022
 verification: behavioural
 ---
 
 # REQ-1350
 
-Where a repository uses a tracker, the harness MUST be able to create the work
+**Withdrawn. Replaced by REQ-4002.**
+
+It read: where a repository uses a tracker, the harness MUST be able to create the work
 items its epic decomposes into.
+
+Withdrawn by ADR-3090.

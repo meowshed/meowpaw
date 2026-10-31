@@ -1,7 +1,7 @@
 ---
 id: BUG-1630
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-4108
 enters: implement

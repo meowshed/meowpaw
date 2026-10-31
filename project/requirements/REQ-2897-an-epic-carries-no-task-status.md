@@ -3,14 +3,16 @@ id: REQ-2897
 artifact: requirement
 topic: artifacts
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0256
 verification: static
 ---
 
 # REQ-2897
 
-An epic MUST NOT carry per-task status.
+**Withdrawn. Replaced by REQ-3672.**
 
-It is a second copy of a fact derived from the tasks themselves.
+It read: an epic MUST NOT carry per-task status.
+
+Withdrawn by ADR-3090.

@@ -1,7 +1,7 @@
 ---
 id: BUG-1220
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-1292
 enters: implement

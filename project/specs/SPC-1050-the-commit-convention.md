@@ -33,9 +33,9 @@ attribution ban, `meow-scm`, and the skill that holds what no check can decide.
 It leaves the commands that make a commit, signing, branches and working trees
 to a pack, which ADR-1080 names, and how the skill is written to SPC-1030.
 
-ADR-1080 decides it, EPC-1050 realises it, and `meow-scm` implements it,
-verified under issue 130. ADR-2530 adds the sign-off route, the trailers that
-name a person and the breaking mark, and TSK-4650 realises them.
+ADR-1080 decides it, and `meow-scm` implements it, verified under issue 130.
+ADR-2530 adds the sign-off route, the trailers that name a person and the
+breaking mark.
 
 ## Boundary
 

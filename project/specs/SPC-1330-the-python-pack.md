@@ -36,7 +36,7 @@ states only what is Python's. It leaves the matrix runners, coverage, the
 supply-chain check and the type checker the repository never configured
 unbound. Running a stage is SPC-1040's.
 
-ADR-2660 orders the packs and EPC-2560 realises this one.
+ADR-2660 orders the packs.
 
 ## Boundary
 

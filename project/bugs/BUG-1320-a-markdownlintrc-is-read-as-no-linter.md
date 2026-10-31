@@ -1,7 +1,7 @@
 ---
 id: BUG-1320
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-2352
 enters: implement

@@ -31,7 +31,7 @@ It leaves the rules a unit ships to SPC-1030, which holds that none depends on
 being read last, the other living documents to SPC-1070 and SPC-1230, and the
 rest of `/meow-flow:init` to SPC-1090.
 
-ADR-2570 decides it, and EPC-2440 realises it.
+ADR-2570 decides it.
 
 ## Boundary
 
@@ -55,7 +55,7 @@ that must hold every time names the check that holds it, so the constitution
 is never its only carrier (REQ-2732).
 
 When the constitution is rewritten, each rule whose failure hasn't recurred in
-the evidence of the last ten merged tasks is proposed for removal, with that
+the evidence of the last ten merged pull requests is proposed for removal, with that
 count (REQ-2746).
 
 ### Its length

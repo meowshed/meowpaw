@@ -1,7 +1,7 @@
 ---
 id: BUG-1180
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-0584
 found: 2026-09-26

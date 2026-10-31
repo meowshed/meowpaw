@@ -1,7 +1,7 @@
 ---
 id: BUG-1230
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-1756
 enters: requirements

@@ -3,15 +3,16 @@ id: REQ-0263
 artifact: requirement
 topic: the-method
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0055
 verification: static
 ---
 
 # REQ-0263
 
-A task MUST be a vertical slice with behaviour someone can observe.
+**Withdrawn. Replaced by REQ-3672.**
 
-A task that produces nothing observable cannot be verified by anything except
-reading its diff, which is how a cut that was wrong survives to the end.
+It read: a task MUST be a vertical slice with behaviour someone can observe.
+
+Withdrawn by ADR-3090.

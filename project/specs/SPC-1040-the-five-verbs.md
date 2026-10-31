@@ -72,9 +72,7 @@ repository can be worked on here. Binding a stage to a runner's tasks is the
 runner pack's, and binding it from a language's tools is the language pack's. How the
 unit's skill is written is SPC-1030's.
 
-ADR-1070, ADR-1480, ADR-1520, ADR-1530, ADR-1550 and ADR-1560 decide it,
-EPC-1040, EPC-1460, EPC-1500, EPC-1510, EPC-1520 and EPC-1530 realise them,
-and
+ADR-1070, ADR-1480, ADR-1520, ADR-1530, ADR-1550 and ADR-1560 decide it, and
 `meow-checks` implements it, checked at #115. ADR-2650 adds the parts,
 ADR-2450 and ADR-2700 the revision counter, and ADR-2680 `doctor`.
 

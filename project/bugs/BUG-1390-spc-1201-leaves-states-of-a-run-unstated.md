@@ -1,7 +1,7 @@
 ---
 id: BUG-1390
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-1240
 enters: spec

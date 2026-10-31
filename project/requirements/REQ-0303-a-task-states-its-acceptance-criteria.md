@@ -3,15 +3,16 @@ id: REQ-0303
 artifact: requirement
 topic: the-method
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0068, RES-0257
 verification: static
 ---
 
 # REQ-0303
 
-A task MUST state its acceptance criteria.
+**Withdrawn. Replaced by REQ-3672.**
 
-A restated definition is a copy that drifts from the repository's, and the
-drift is invisible because each copy reads reasonably.
+It read: a task MUST state its acceptance criteria.
+
+Withdrawn by ADR-3090.

@@ -1,7 +1,7 @@
 ---
 id: BUG-1520
 artifact: bug
-status: approved
+status: done
 severity: critical
 violates: REQ-1485
 enters: implement

@@ -3,14 +3,16 @@ id: REQ-2896
 artifact: requirement
 topic: artifacts
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0256
 verification: static
 ---
 
 # REQ-2896
 
-An epic MUST NOT carry estimates.
+**Withdrawn. Replaced by REQ-3672.**
 
-They are scheduling, which the record does not hold.
+It read: an epic MUST NOT carry estimates.
+
+Withdrawn by ADR-3090.

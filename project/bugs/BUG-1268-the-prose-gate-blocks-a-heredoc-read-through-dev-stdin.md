@@ -1,7 +1,7 @@
 ---
 id: BUG-1268
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-1756
 enters: implement

@@ -176,9 +176,18 @@ checked.
 
 `paw ready implement: not ready` means the step you asked for needs an
 approved input, and `paw` lists what is missing below the message, such as a
-task another one depends on that isn't done. Approve the input or finish the
-task it names, then run the step again. If you run `/meow-flow:run` with
+decision that carries no plan. Approve the input or write what it lacks, then
+run the step again. If you run `/meow-flow:run` with
 nothing newly approved, it says what it is waiting on.
+
+## The record holds epics or tasks
+
+`the record holds epics or tasks, a form ADR-3090 retired; run paw upgrade` means
+your record still has `epics/` or `tasks/` at its root, and every `paw` command
+but `upgrade` stops until you move it. Run `/meow-flow:upgrade`, which previews
+the move with `paw upgrade`, makes it with `paw upgrade --write` and leaves the
+result in one pull request. Once that merges, run the skill again to retire the
+archived tasks' issues with `meow-github upgrade`.
 
 ## meow-verbs is now meow-checks
 

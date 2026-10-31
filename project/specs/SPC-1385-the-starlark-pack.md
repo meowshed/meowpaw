@@ -28,7 +28,7 @@ workspace. It states what `status` detects, what `bind` prints and what
 this document states only what is Starlark's. It leaves `buildozer`, a pinned
 Bazel version, and any Buck2 build or test unbound.
 
-ADR-2660 decides this pack and EPC-2560's TSK-5110 ships it.
+ADR-2660 decides this pack.
 
 ## Boundary
 

@@ -4,20 +4,18 @@ One template per kind of artifact, which `meow-flow`'s steps write from. A
 repository changes one by putting its own at `.meowpaw/templates/<kind>.md`,
 and `paw template <kind>` prints the one in force.
 
-| Template          | Kind          | Lifetime                             |
-| ----------------- | ------------- | ------------------------------------ |
-| `vision.md`       | Vision        | Living                               |
-| `constitution.md` | Constitution  | Living                               |
-| `spec.md`         | Specification | Living                               |
-| `research.md`     | Research      | A record, frozen on approval         |
-| `requirement.md`  | Requirement   | A record, one obligation per file    |
-| `adr.md`          | Decision      | A record                             |
-| `epic.md`         | Epic          | A record, its marks kept current     |
-| `task.md`         | Task          | A record, its evidence added on done |
-| `bug.md`          | Defect        | A record                             |
-| `insight.md`      | Insight       | A record, written when learned       |
-| `profile.toml`    | Profile       | Configuration, rewritten freely      |
-| `onboarding.md`   | Onboarding    | A record, frozen on approval         |
+| Template          | Kind          | Lifetime                               |
+| ----------------- | ------------- | -------------------------------------- |
+| `vision.md`       | Vision        | Living                                 |
+| `constitution.md` | Constitution  | Living                                 |
+| `spec.md`         | Specification | Living                                 |
+| `research.md`     | Research      | A record, frozen on approval           |
+| `requirement.md`  | Requirement   | A record, one obligation per file      |
+| `adr.md`          | Decision      | A record, its plan editable until done |
+| `bug.md`          | Defect        | A record, its plan editable until done |
+| `insight.md`      | Insight       | A record, written when learned         |
+| `profile.toml`    | Profile       | Configuration, rewritten freely        |
+| `onboarding.md`   | Onboarding    | A record, frozen on approval           |
 
 Every template opens with a paragraph or section that lets a reader stop:
 what the artifact covers and what it doesn't. A section may be answered

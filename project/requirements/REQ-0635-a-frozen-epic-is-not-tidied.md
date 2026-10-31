@@ -3,13 +3,17 @@ id: REQ-0635
 artifact: requirement
 topic: permanence
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0011
 verification: static
 ---
 
 # REQ-0635
 
-A frozen epic is the account of what was done and MUST NOT be tidied
+**Withdrawn. Replaced by REQ-3676.**
+
+It read: a frozen epic is the account of what was done and MUST NOT be tidied
 afterwards.
+
+Withdrawn by ADR-3090.

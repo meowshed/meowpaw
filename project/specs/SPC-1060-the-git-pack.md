@@ -2,16 +2,13 @@
 id: SPC-1060
 artifact: spec
 status: live
-revised: 2026-10-24
+revised: 2026-10-31
 states:
   [
     REQ-0079,
     REQ-1292,
-    REQ-4400,
-    REQ-4402,
-    REQ-4404,
-    REQ-4406,
-    REQ-4408,
+    REQ-3668,
+    REQ-3670,
     REQ-1298,
     REQ-1306,
     REQ-1312,
@@ -64,8 +61,8 @@ It leaves the message convention to SPC-1050, which the pack uses through
 method's chain. It states the restack that rebuilds a stack's branches, and the bounds ADR-2420 sets on a
 worktree manager or any other tool that runs source control operations.
 
-ADR-1090 decides it, EPC-1060 realises it, and `meow-git` implements it,
-verified under issue 138. ADR-2550 adds the restack, which EPC-2430 realises.
+ADR-1090 decides it, and `meow-git` implements it, verified under issue 138.
+ADR-2550 adds the restack.
 ADR-2710 decides what the hooks do when the binary is missing, and SPC-1240
 states the rules every hook keeps. ADR-2650 adds the rules for sparse working
 trees, and ADR-2660 names worktrunk as the worktree manager.
@@ -166,16 +163,16 @@ author, which the push guard holds (REQ-2818); a line added to the record
 cites a pull request, never a commit hash, which `paw check frozen`
 holds (REQ-3176); and every read of source control runs with prompting,
 paging, advice and machine-wide configuration off (REQ-2526, REQ-2528). The
-`commit` skill carries the rest: one epic or defect, one branch, one pull
+`commit` skill carries the rest: one decision or defect, one branch, one pull
 request and one squashed commit on the trunk; short-lived branches from the one trunk; no
 merge, tag, release or publish without an instruction; one branch in one
 working tree, a locked tree with its reason; a grown branch split; a force
 push over a reviewed branch disclosed; and every commit signed and signed off
-where the repository asks (REQ-4400, REQ-4402, REQ-4404, REQ-1298, REQ-1306, REQ-1320, REQ-1322,
+where the repository asks (REQ-3668, REQ-3670, REQ-1298, REQ-1306, REQ-1320, REQ-1322,
 REQ-1324, REQ-1328, REQ-2534, REQ-2536, REQ-2538, REQ-2820, REQ-2822) (ADR-1320).
 
 Every commit reaching the trunk leaves it building with its checks passing
-(REQ-2210): a task lands only as one squashed commit of a pull request whose
+(REQ-2210): a record's work lands only as one squashed commit of a pull request whose
 gate passed on its branch, the commit guard refuses a commit on the trunk, and
 in this repository CI's `gate` job runs `mise run all` on every pull request
 and on every push to the trunk.

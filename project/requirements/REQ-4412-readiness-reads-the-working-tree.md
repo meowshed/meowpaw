@@ -3,8 +3,8 @@ id: REQ-4412
 artifact: requirement
 topic: source-control
 class: functional
-status: approved
-revised: 2026-10-10
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0346
 verification: behavioural
 ---
@@ -13,7 +13,8 @@ verification: behavioural
 
 # REQ-4412
 
-`paw ready implement` MUST read a task's approval from the working tree.
+**Withdrawn. Replaced by REQ-3668.**
 
-A task approved on the epic's own branch is ready, and the trunk no longer
-decides whether it is.
+It read: `paw ready implement` MUST read a task's approval from the working tree.
+
+Withdrawn by ADR-3090.

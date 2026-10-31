@@ -1,7 +1,7 @@
 ---
 id: BUG-1005
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-0704
 found: 2026-09-21

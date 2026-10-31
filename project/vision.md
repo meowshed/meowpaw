@@ -34,7 +34,7 @@ code, and nobody can tell **whether what came back is true.**
 - A test is green and hollow: it passes whatever the code does.
 - A specification is quietly reworded to match what was built, and the
   reasoning behind the original is gone.
-- A plan says a task is done because somebody ticked it, and nothing records
+- A plan says a step is done because somebody ticked it, and nothing records
   what proved it.
 - Documentation describes what was proposed, the project shipped something
   else, and a reader cites the documentation anyway.
@@ -59,15 +59,14 @@ adopt in part is a method nobody adopts.
 
 ## How it works
 
-Seven steps run in a chain, each writing one artifact, and each refusing to run
+Six steps run in a chain, each writing one artifact, and each refusing to run
 when its input is missing or unapproved:
 
 ```text
-research -> requirements -> design -> spec -> epic
-         -> implement -> review
+research -> requirements -> design -> spec -> implement -> review
 ```
 
-Either somebody decided something, or something is broken, and every task traces
+Either somebody decided something, or something is broken, and all work traces
 to a decision or to a defect. The harness derives what sort of work it is,
 because a list of work types somebody maintains is a boundary argument that
 never ends.
@@ -105,7 +104,7 @@ Tie-breaks: earned answers beat adoptability, so a unit that can't be adopted
 without reporting a guess as a result isn't shipped. Adoptability beats the
 record's reach, so a repository that keeps no record still gets the stages.
 Where the method costs more than the change is worth, trivial work skips the
-chain, because a method costing seven steps for a one-line fix is one people
+chain, because a method costing six steps for a one-line fix is one people
 route around, and then it reports a process it never performed.
 
 ## What it will not do
@@ -166,9 +165,9 @@ template, and a declared kind inherits every obligation a built-in kind
 carries, so declaring one buys no exemptions.
 
 The record stays plain files, and `paw`, the one native tool every unit
-shares, makes it cheap to query and write (ADR-2880). `meow-github` projects an
-epic's tasks onto GitHub issues for people who want that (ADR-2890), and where
-it's missing the method works the same.
+shares, makes it cheap to query and write (ADR-2880). `meow-github` projects a
+decision or a defect onto its GitHub issue for people who want that (ADR-3090),
+and where it's missing the method works the same.
 
 One test decides whether this succeeded: **the six repositories it came from
 drop their private copies and lose nothing.** Not that it's elegant, not that

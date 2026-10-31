@@ -3,8 +3,8 @@ id: REQ-3608
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: static
 ---
@@ -13,6 +13,8 @@ verification: static
 
 # REQ-3608
 
-A requirement that no task or epic names MUST be reported open.
+**Withdrawn. Replaced by REQ-3680.**
 
-Closing has to come from a task, never from silence, and 273 requirements have no check today (RES-0310, conclusion 4).
+It read: a requirement that no task or epic names MUST be reported open.
+
+Withdrawn by ADR-3090.

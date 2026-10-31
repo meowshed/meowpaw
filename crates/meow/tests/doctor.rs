@@ -233,7 +233,6 @@ fn doctor_and_paw_status_answer_different_questions() {
         "requirement",
         "design",
         "spec",
-        "epic",
         "implement",
         "review",
         "gate",

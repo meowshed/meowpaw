@@ -1,7 +1,7 @@
 ---
 id: BUG-1370
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: [REQ-3662, REQ-3664]
 enters: implement

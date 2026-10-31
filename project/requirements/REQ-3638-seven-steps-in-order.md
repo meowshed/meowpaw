@@ -3,8 +3,8 @@ id: REQ-3638
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: static
 ---
@@ -13,6 +13,8 @@ verification: static
 
 # REQ-3638
 
-The method MUST proceed through seven named steps in this order: research, requirements, design, spec, epic, implement, review.
+**Withdrawn. Replaced by REQ-3666.**
 
-Verification goes because a requirement closes with its tasks, documentation lands in the implementing pull request, and writing tests first is part of implementing (RES-0310, conclusions 1, 8 and 9; the owner's instruction).
+It read: the method MUST proceed through seven named steps in this order: research, requirements, design, spec, epic, implement, review.
+
+Withdrawn by ADR-3090.

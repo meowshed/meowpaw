@@ -11,6 +11,8 @@ supersedes: []
 
 # 2310. A decision a person asks for in one pull request is approved by its merge, and a task off the trunk isn't ready
 
+**Amended by ADR-3090.** The record names no epic and no tasks, and a whole cycle implements on the same branch.
+
 **Amended by ADR-2860.** The task off the trunk is no longer refused, and the stop at the records holds where a person asks for a decision only.
 
 ## Decision

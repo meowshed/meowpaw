@@ -2,7 +2,7 @@
 id: SPC-1100
 artifact: spec
 status: live
-revised: 2026-10-04
+revised: 2026-10-31
 states:
   [
     REQ-0139,
@@ -22,9 +22,8 @@ states:
     REQ-0550,
     REQ-0575,
     REQ-0582,
-    REQ-0583,
+    REQ-3678,
     REQ-0584,
-    REQ-0585,
     REQ-0591,
     REQ-0636,
     REQ-0638,
@@ -70,8 +69,7 @@ This covers how artifacts name one another: the identifiers, the relation
 fields, and resolving an identifier to its artifact and to what cites it. It
 leaves checking that a relation resolves to SPC-1070's relations check.
 
-ADR-1150, ADR-1180 and ADR-1470 decide it, EPC-1150, EPC-1180 and EPC-1450
-realise them, and
+ADR-1150, ADR-1180 and ADR-1470 decide it, and
 `meow-flow` implements it, verified under issue 259.
 
 ## Boundary
@@ -93,8 +91,10 @@ citation says what it cites without resolving it (REQ-0638, REQ-0640).
 
 An artifact names what it came from in its front matter, as bare identifiers in
 one of the fields `relations` lists: `elaborates`, `addresses`, `postpones`,
-`supersedes`, `realises`, `epic`, `bug`, `closes`, `states`, `violates` and
-`prompted-by` (REQ-0644, REQ-0646). A research record, a requirement or a
+`supersedes`, `realises`, `epic`, `bug`, `closes`, `states`, `violates`,
+`prompted-by` and `folded-into` (REQ-0644, REQ-0646). `realises`, `epic`, `bug`,
+`closes` and `folded-into` appear only on archived records, and `paw` reads them
+so a citation resolves (REQ-3684). A research record, a requirement or a
 decision a defect prompted names it in `prompted-by` (REQ-0362) (ADR-1440).
 Only that upward direction is written, and a decision names the requirements it
 addresses, never the reverse (REQ-0237, REQ-0648). Every identifier in a
@@ -106,16 +106,15 @@ relation resolves to an artifact that exists (REQ-0654).
 (REQ-0642, REQ-0652):
 
 ```text
-REQ-3638 requirement, approved: project/requirements/REQ-3638-seven-steps-in-order.md
-The method MUST proceed through seven named steps ...
+REQ-3666 requirement, approved: project/requirements/REQ-3666-six-steps-in-order.md
+The method MUST proceed through six named steps ...
 
 Names
   elaborates: RES-0001
 
 Cited by
-  addresses: ADR-1130
+  addresses: ADR-3090
   states: SPC-1090
-  closes: TSK-1440
   body: project/README.md
 ```
 
@@ -184,11 +183,9 @@ REQ-1606, REQ-1608).
 
 ### Where the record contradicts itself
 
-In an approved epic written with a mark per task, `check coverage` reports a
-task marked done with no evidence and a task whose Evidence section says it's
-done, opening with anything but "Not yet.", while its epic leaves it unmarked.
-It reports a task closing a withdrawn requirement in an epic not yet verified
-(REQ-0704). `check relations` reports an identifier that
+`paw check` reports a done defect with an empty Closed by, and a draft or
+approved decision that addresses work and carries no plan, and `paw done`
+refuses to store `done` on either (REQ-0704). `check relations` reports an identifier that
 resolves to no artifact in a relation, or in a draft's prose outside code
 spans and fences, and
 `status` counts the requirements nothing checks, which covers both directions
@@ -208,7 +205,7 @@ moved against, and not a dependency of the specification that reaches the
 defect through its descendants (ADR-2960).
 
 A citation is suspect when its target's `revised` date is later than the
-citing record's own. An epic or a defect as a target is suspect only when it
+citing record's own. A decision or a defect as a target is suspect only when it
 is withdrawn or superseded, because both change after approval by design.
 `check relations` reports a suspect citation in a draft or a living artifact,
 and in an approved one `show` marks it in its `Names` list with the target's
@@ -226,14 +223,14 @@ naming none counted, and states the share resting on evaluation or judgement
 
 A requirement stores only a decided status, from the one vocabulary
 `lib/layout.toml` declares, and the program derives the observed one (REQ-0582,
-REQ-0584, REQ-0591). A decision, epic or task additionally stores the checked
-post-approval claim `done`, which must agree with its derived completion
-(REQ-0583, REQ-0585). `show` prints each task that names a
-requirement with its derived state and its epic, or "open, named by no task",
-the state derived as SPC-1090 states. Under ADR-2300 a requirement is closed when a closed
-task or epic names it and no open one does, open while an open defect names it
-in `violates`, and has no state after closed (REQ-3600, REQ-3602, REQ-3608,
-REQ-3610). `status` says the
+REQ-0584, REQ-0591). A decision or a defect additionally stores `done`, which
+`paw done` sets in the pull request that completes it (REQ-3678). `show` prints
+each decision and archived task that closes a requirement, done or open, and
+the state derived as SPC-1090 states. A requirement is closed when a done
+decision addresses it or a done archived task closes it and no approved decision
+still in work addresses it, reopened while an open defect names it in
+`violates`, and has no state after closed (REQ-3680, REQ-3602, REQ-3610).
+`status` says the
 record is local to this machine where its root is under no version control
 (REQ-0510, REQ-0527).
 
@@ -248,8 +245,8 @@ identifier (REQ-0690, REQ-0694, REQ-0696, REQ-0716) (ADR-1210).
 
 A decision may carry `postpones:`, beside or in place of `addresses:`, and
 carries at least one of the two. A requirement an approved decision postpones
-and no task closes is derived as postponed: `show` names the decision and
-`status` counts it, and a decision that only postpones needs no epic and no
+and no later decision closes is derived as postponed: `show` names the decision
+and `status` counts it, and a decision that only postpones needs no plan and no
 specification. `status` lists every postponement and its condition on each
 run, which is where a deferral is looked at again (REQ-3622) (ADR-2300).
 

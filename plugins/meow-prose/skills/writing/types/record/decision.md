@@ -16,6 +16,10 @@ worked. Its reader is evaluating, so the decision comes first.
    verifies
    it later does not invent the test.
 8. What it does not settle: What it does not settle, so nobody assumes it did.
+9. Plan: The ordered steps of its one pull request, each landing its failing
+   tests first, then the change, its documentation and its record. It stays
+   editable until the decision is done, and a decision that addresses no
+   requirement has none.
 </rules>
 
 <rules name="done">

@@ -90,7 +90,7 @@ fn fixture(name: &str, status: &str, extra: &str, headings: &str) -> Dir {
         &root,
         "adrs/ADR-0001-a-choice.md",
         &format!(
-            "---\nid: ADR-0001\nartifact: adr\nstatus: {status}\nrevised: 2026-01-01\naddresses: [REQ-0001]\nsupersedes: []\n{extra}---\n\n# 0001. A choice\n\n## Decision\n\nIt is decided.\n\n## Why\n\nBecause.\n\n## Alternatives\n\n| Option | Better at | Why it lost |\n| --- | --- | --- |\n| Do nothing | Nothing | It fixes nothing |\n\n## What it costs\n\nSomething.\n\n## What would reverse it\n\n- A condition.\n\n## Consequences\n\nSome.\n"
+            "---\nid: ADR-0001\nartifact: adr\nstatus: {status}\nrevised: 2026-01-01\naddresses: [REQ-0001]\nsupersedes: []\n{extra}---\n\n# 0001. A choice\n\n## Decision\n\nIt is decided.\n\n## Why\n\nBecause.\n\n## Alternatives\n\n| Option | Better at | Why it lost |\n| --- | --- | --- |\n| Do nothing | Nothing | It fixes nothing |\n\n## What it costs\n\nSomething.\n\n## What would reverse it\n\n- A condition.\n\n## Consequences\n\nSome.\n\n## Plan\n\n1. Do it.\n"
         ),
     );
     dir

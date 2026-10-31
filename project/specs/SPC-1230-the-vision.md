@@ -32,7 +32,7 @@ step asks of a decision that touches it.
 It leaves the record's other kinds and the rules every living document shares
 to SPC-1070, and the constitution to its own specification.
 
-ADR-2580 decides it, and EPC-2450 realises it.
+ADR-2580 decides it.
 
 ## Boundary
 
@@ -47,7 +47,7 @@ ADR-2580 decides it, and EPC-2450 realises it.
 
 ### One vision, with its sections
 
-A project has one vision, at the record's root, and an epic that changes it
+A project has one vision, at the record's root, and a decision that changes it
 edits that file and keeps no copy (REQ-0614), so `paw check`'s `identifiers`
 check reports a second file carrying `id: vision` as the identifier used
 twice. The template carries a section

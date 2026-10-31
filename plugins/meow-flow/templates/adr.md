@@ -1,8 +1,9 @@
 ---
 id: ADR-NNNN
 artifact: adr
-status: draft # draft, approved, done when its tasks are complete, then withdrawn, rejected or superseded
+status: draft # draft, approved, done when `paw done` closes it in its pull request, then withdrawn, rejected or superseded
 revised: YYYY-MM-DD
+issue: # the tracker's number, where the repository uses one
 addresses: [REQ-NNNN] # required: a decision that addresses nothing is a preference
 supersedes: []
 concerns: [] # optional: each concern the decision raises, such as performance, security or upgrade
@@ -48,9 +49,20 @@ created.
 
 ## How I will know it was realised
 
-1. An observable outcome, written now, before the work, so the epic can't
+1. An observable outcome, written now, before the work, so the work can't
    choose its own finish line.
 
 ## What this does not settle
 
 - What a reader might assume this decides and it doesn't.
+
+## Plan
+
+The ordered steps of this decision's one pull request. Each step lands its
+failing tests in a commit of their own, then the change, its documentation and
+its record. The plan stays editable until the decision is done, because the
+work corrects it, and it freezes then. Delete this section where the decision
+addresses no requirement.
+
+1. <What this step makes true, the requirements it closes and the path it
+   touches>

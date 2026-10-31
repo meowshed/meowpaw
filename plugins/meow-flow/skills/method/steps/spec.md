@@ -3,7 +3,7 @@ The spec step. It reads an approved decision, named by its identifier, and
 writes from `paw template spec`. Its artifact lands in
 `specs/SPC-NNNN-<topic>.md` under the record root, `[record] root` in
 `.meowpaw/profile.toml` or `project/` where it declares none. The step that
-picks it up is epic.
+picks it up is implement.
 </role>
 
 <steps name="spec">
@@ -26,7 +26,7 @@ picks it up is epic.
 - S1. State what the system must do now, derived from the requirements in
   force and the decisions that shape them, with every statement tracing to a
   requirement in force and every requirement in force stated somewhere.
-- S2. Keep the specification project-level, never owned by the epic that
+- S2. Keep the specification project-level, never owned by the decision that
   changed it.
 - S3. Divide it by the system's own parts, not by how the system is installed,
   and describe deployment only where deployment is the subject.

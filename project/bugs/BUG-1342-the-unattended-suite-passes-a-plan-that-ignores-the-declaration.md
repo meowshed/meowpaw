@@ -1,7 +1,7 @@
 ---
 id: BUG-1342
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-2388
 enters: cover

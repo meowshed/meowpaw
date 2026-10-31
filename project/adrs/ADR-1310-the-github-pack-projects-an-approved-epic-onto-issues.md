@@ -33,6 +33,8 @@ supersedes: []
 
 # 1310. The GitHub pack projects an approved epic's tasks onto issues, and reports where the two disagree
 
+**Amended by ADR-3090.** A decision or a defect now maps to one issue, and no task does.
+
 **Amended by ADR-2890.** An issue edited on GitHub is applied to the record where only it changed and the record is a draft, and reported otherwise.
 
 ## Decision

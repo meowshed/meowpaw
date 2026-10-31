@@ -3,8 +3,8 @@ id: REQ-4408
 artifact: requirement
 topic: source-control
 class: functional
-status: approved
-revised: 2026-10-10
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0346
 verification: static
 ---
@@ -13,8 +13,9 @@ verification: static
 
 # REQ-4408
 
-An epic or a defect with no unmerged dependency MUST open its pull request
+**Withdrawn. Replaced by REQ-3668.**
+
+It read: an epic or a defect with no unmerged dependency MUST open its pull request
 against the trunk.
 
-Parallel work stays parallel, and a stack is never deeper than the
-dependencies require.
+Withdrawn by ADR-3090.

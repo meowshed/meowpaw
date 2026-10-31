@@ -1,7 +1,7 @@
 ---
 id: BUG-1600
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-4122
 enters: implement

@@ -174,18 +174,18 @@ class Convention(unittest.TestCase):
 
 
 class CommitSkill(unittest.TestCase):
-    """TSK-5292, ADR-2860: the commit skill names the epic or the defect as the unit of a pull request."""
+    """ADR-3090: the commit skill names the decision or the defect as the unit of a pull request."""
 
     TEXT = (UNIT / "skills/commit/SKILL.md").read_text(encoding="utf-8")
 
-    def test_b1_names_the_epic_or_the_defect_as_the_unit(self):
-        """Criterion 1, REQ-4400, REQ-4402: B1 gives one epic or defect one branch, one pull request and one review."""
-        self.assertRegex(self.TEXT, r"B1\. Give one epic or defect one branch, one pull request and one review")
+    def test_b1_names_the_decision_or_the_defect_as_the_unit(self):
+        """REQ-3668: B1 gives one decision or defect one branch, one pull request and one review."""
+        self.assertRegex(self.TEXT, r"B1\. Give one decision or defect one branch, one pull request and one review")
         self.assertNotRegex(self.TEXT, r"Give one task one branch")
 
-    def test_b6_splits_the_epic_before_the_work_starts(self):
-        """Criterion 2, REQ-4406: B6 asks for the epic to be split and the pull request to stay one change."""
-        self.assertRegex(self.TEXT, r"B6\. Split an epic[^.]{0,200}before its work starts")
+    def test_b6_splits_the_record_before_the_work_starts(self):
+        """REQ-3670: B6 asks for the record to be split and the pull request to stay one change."""
+        self.assertRegex(self.TEXT, r"B6\. Split a decision or defect[^.]{0,200}before its work starts")
 
 
 class ToolOperations(unittest.TestCase):

@@ -1,7 +1,7 @@
 ---
 id: BUG-1403
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates:
 enters: requirements

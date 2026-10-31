@@ -2,7 +2,7 @@
 id: index
 artifact: index
 status: live
-revised: 2026-09-29
+revised: 2026-10-31
 ---
 
 # The project
@@ -17,16 +17,15 @@ file without changing what it is. A living document carries `status: live` and
 you rewrite it freely. A record carries its own status, stays mutable while
 it's a draft, and freezes when someone approves it.
 
-| Kind          | Where                       | Identifier | Lifetime |
-| ------------- | --------------------------- | ---------- | -------- |
-| Vision        | [`vision.md`](vision.md)    | named      | living   |
-| Specification | `specs/SPC-NNNN-<topic>.md` | `SPC-NNNN` | living   |
-| Research      | [`research/`](research/)    | `RES-NNNN` | record   |
-| Requirement   | `requirements/`             | `REQ-NNNN` | record   |
-| Decision      | `adrs/`                     | `ADR-NNNN` | record   |
-| Epic          | `epics/`                    | `EPC-NNNN` | record   |
-| Task          | `tasks/`                    | `TSK-NNNN` | record   |
-| Defect        | `bugs/`                     | `BUG-NNNN` | record   |
+| Kind          | Where                              | Identifier             | Lifetime         |
+| ------------- | ---------------------------------- | ---------------------- | ---------------- |
+| Vision        | [`vision.md`](vision.md)           | named                  | living           |
+| Specification | `specs/SPC-NNNN-<topic>.md`        | `SPC-NNNN`             | living           |
+| Research      | [`research/`](research/)           | `RES-NNNN`             | record           |
+| Requirement   | `requirements/`                    | `REQ-NNNN`             | record           |
+| Decision      | `adrs/`                            | `ADR-NNNN`             | record           |
+| Archive       | `archive/epics/`, `archive/tasks/` | `EPC-NNNN`, `TSK-NNNN` | read-only record |
+| Defect        | `bugs/`                            | `BUG-NNNN`             | record           |
 
 One artifact per file, named for its identifier, in a directory named for its
 kind. A directory appears when its first artifact does. You find a record by
@@ -35,13 +34,13 @@ it.
 
 ## Research
 
-146 documents, indexed by
+182 documents, indexed by
 [RES-0001-synthesis.md](research/RES-0001-synthesis.md), which everything
 downstream cites.
 
 ## Requirements
 
-1,123 obligations, withdrawn ones included, indexed by
+1,288 obligations, withdrawn ones included, indexed by
 [requirements/README.md](requirements/README.md). Each is one file carrying
 one obligation, and it declares whether it's functional or non-functional and
 which of the four kinds of check verifies it: a static check, a behavioural
@@ -252,108 +251,65 @@ Every decision below is approved and in force, as amended by the ones after it.
 - [ADR-2920](adrs/ADR-2920-the-shared-executable-is-named-paw.md): the
   shared executable is named `paw`, and Claude and Pi stay aligned in the same
   pull request.
+- [ADR-3090](adrs/ADR-3090-a-decision-or-a-defect-is-one-issue-and-one-pull-request-and-carries-its-plan.md):
+  a decision or a defect is one issue and one pull request and carries its plan,
+  and epics and tasks retire into an archive.
 
 ## Specifications
 
-Listed in reading order: each specification after every one it cites.
+Listed in reading order: each specification after every one it cites. A
+specification states the part as it is, and `paw show <SPC-id>` lists what it
+rests on.
 
-[SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape, checked
-at #27. It records that REQ-0930 is unmet: the style applies when a person
-selects it, and not on its own.
-
-[SPC-1240](specs/SPC-1240-the-hooks-the-harness-ships.md) states the rules
-every hook the harness ships keeps: how it answers, how much it does, the
-prose gate's judge as the one call to the network, what a hook does when its
-program is missing, and the revision counter. EPC-2520 and EPC-2525 realise
-it, and none of that work has started.
+[SPC-1000](specs/SPC-1000-the-reply-shape.md) states the reply shape.
+[SPC-1240](specs/SPC-1240-the-hooks-the-harness-ships.md) states the rules every
+hook the harness ships keeps: how it answers, how much it does, what a hook does
+when its program is missing, and the revision counter.
 
 [SPC-1020](specs/SPC-1020-measuring-the-harness.md) states that the harness
 measures no prompt, which ADR-2980 decided,
 [SPC-1030](specs/SPC-1030-how-the-harness-writes-a-prompt.md) states how every
-prompt the harness ships is written, what an agent declares, which EPC-1650
-realises, and what an agent reports, which EPC-1651 realises, and
-[SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing standard,
-which both follow. The work realising them has landed, except what EPC-2525,
-EPC-2530 and EPC-2550 realise: the tools a unit requests traced to a step,
-when a step delegates, and the check that the method names no language.
+prompt the harness ships is written, what an agent declares and what it reports,
+and [SPC-1010](specs/SPC-1010-the-writing-standard.md) states the writing
+standard both follow.
 
 [SPC-1080](specs/SPC-1080-the-native-tool.md) states the native tool, its
-launchers, its release, the marketplace address and the checks the crate
-passes. The crate implements it, verified under issue 378, and the checks the
-crate passes, which EPC-1570 realises, were verified under issue 596. The
-check that `project` groups an issue nowhere, which ADR-1800 adds, was
-verified with EPC-1710 under issue 625. The GitHub request layer, which
-ADR-1810 adds and EPC-1720 realises, isn't built yet. It also states how the profile is
-read, which EPC-2320 realises, the rules each subcommand keeps, which
-EPC-2330 realises, and each unit's plugin contract, which EPC-2340 realises;
-none of that work has started. It states the threat model, which TSK-4380
-holds to its form and points the design step at, and that work is done. It
-states the unattended install, which TSK-4600 realises, and the release's
-attestation and the report of the trunk's protections, which EPC-2420
-realises; that work hasn't started either. It also states where the harness
-writes and that it never touches a secret, which EPC-2525 realises, the
-interface page generated from the tool, which TSK-4940 realises, the parts a
-repository declares, which EPC-2555 realises, and the packs that stay
-optional, which EPC-2550 realises; none of that is built yet.
+launchers, its release, the marketplace address, the checks the crate passes,
+the GitHub request layer, projecting a record onto its issue and retiring the
+issues of archived tasks.
 
 [SPC-1040](specs/SPC-1040-the-five-verbs.md) states the five verbs, resolved
-from the repository's profile. `meow-checks` implements it, checked under
-issue 115. A verb resolved per part, which EPC-2555 realises, the revision
-counter, which EPC-2520 realises, and `doctor`, which TSK-4965 realises,
-aren't built yet.
+from the repository's profile, which `meow-checks` implements.
 
-[SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit
-convention and its check, and `meow-scm` implements it, verified under issue 130.
-TSK-4650 built the sign-off route, the trailers that name a person and the
-breaking mark.
+[SPC-1050](specs/SPC-1050-the-commit-convention.md) states the commit convention
+and its check, which `meow-scm` implements.
 
-[SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, and
-`meow-git` implements it, verified under issue 392. The restack, which
-EPC-2430 realises, the denial on a missing binary, which EPC-2525 realises,
-and the rules for sparse working trees, which EPC-2555 realises, aren't built
-yet.
+[SPC-1060](specs/SPC-1060-the-git-pack.md) states the `git` pack, which
+`meow-git` implements.
 
 [SPC-1070](specs/SPC-1070-checking-the-record.md) states how the record is
-checked, and `meow-flow` implements it, verified under issue 404, and the
-grouping fields and `dependency-declared` ADR-1800 adds, which EPC-1710
-realised, were verified under issue 625. The kinds a repository declares and
-the document a task produces, which EPC-2535 realises, the frozen insight,
-which TSK-4960 pins, and the record's layout, which EPC-2570 pins, aren't
-built yet.
+checked, the archived kinds and the upgrade, which `meow-flow` implements.
 
 [SPC-1200](specs/SPC-1200-the-unattended-runs-plan.md) states the unattended
 run's posture: the table a repository declares, the deny rules it yields, how
-a run decides a gate, lands and releases its work, and its report. EPC-2300
-realises it, and all four of its tasks are done.
+a run decides a gate, lands and releases its work, and its report.
 
 [SPC-1201](specs/SPC-1201-the-loop-runner.md) states the loop runner: a run
 inside the session a person starts it in, the three hooks that start it,
-repeat it and guard it, the files it keeps and its six endings. EPC-2300
-realises it, and all four of its tasks are done.
+repeat it and guard it, the files it keeps and its six endings.
 
 [SPC-1090](specs/SPC-1090-the-chain.md) states the method's chain: the steps,
-the gate each checks, the state of the record, the command that drives it,
-and the route that comes before the first step. `meow-flow` implements it,
-verified under issue 368, except the cover step ADR-1620 adds, which EPC-1580
-realises, the seven-step chain ADR-2300 decides, which EPC-2200 realises, and the route ADR-2100 adds,
-which EPC-2000 realises, and the outcome each dispatched agent reports, which
-ADR-1710 adds and EPC-1651 realises. The blocking dependency ADR-1800 adds, which EPC-1710
-realised, was verified under issue 625. Stacked tasks, which EPC-2430
-realises, and a task's state read from the task, which EPC-2460 realises,
-aren't built yet. Neither are the brief a delegated agent gets, which EPC-2530
-realises, the questions every specification answers, which EPC-2545 realises,
-and this repository held to its own method, which EPC-2570 realises.
+the plan, the gate each step checks, the state of the record, the command that
+drives it, and the route that comes before the first step. `meow-flow`
+implements it.
 
 [SPC-1100](specs/SPC-1100-the-records-relations.md) states the record's
 relations, resolving an identifier to its artifact and to what cites it, where
 the record contradicts itself, and each requirement's derived state.
-`meow-flow` implements it, verified under issue 398.
 
 [SPC-1110](specs/SPC-1110-the-documentation.md) states the documentation the
 harness writes for its users: each unit's page, the introduction, the route
-file for agents, the catalogue fields and the check that holds them. The
-interface page, which TSK-4940 generates, and the supported set, which
-EPC-2560 lists, aren't written yet.
+file for agents, the catalogue fields and the check that holds them.
 
 [SPC-1120](specs/SPC-1120-the-licensing-unit.md) states the licensing unit:
 where a repository declares its licensing, the skill that applies a header and
@@ -373,10 +329,7 @@ how it reports remote includes and secret variables.
 [SPC-1190](specs/SPC-1190-the-language-packs.md) states what every language
 pack keeps: detection from tracked files, what it runs and writes, its exit
 statuses and its skill. [SPC-1195](specs/SPC-1195-the-markdown-pack.md) states
-the Markdown pack within it. `meow-markdown` implements both, which EPC-1800
-realised, verified under issue 624. The supported packs in their order, which
-EPC-2560 realises, the rules every pack keeps, which EPC-2565 realises, and
-the diagram check, which EPC-2540 realises, aren't built yet.
+the Markdown pack within it, which `meow-markdown` implements.
 [SPC-1360](specs/SPC-1360-the-c-sharp-pack.md) states the C# pack, which
 `meow-csharp` implements.
 [SPC-1370](specs/SPC-1370-the-lua-and-neovim-plugins-pack.md) states the Lua
@@ -391,8 +344,7 @@ SPC-1190: its detection, its bindings, its findings and its toolchain check.
 TypeScript and JavaScript pack: how it reads each package's manager, what it
 binds for the five stages and what its check finds.
 [SPC-1330](specs/SPC-1330-the-python-pack.md) states the Python pack the same
-way for a project's environment. EPC-2560 realises both, and neither is built
-yet.
+way for a project's environment.
 
 [SPC-1380](specs/SPC-1380-the-godot-and-gdscript-pack.md) states the Godot
 and GDScript pack, which `meow-godot` implements.
@@ -404,340 +356,343 @@ which `meow-starlark` implements.
 `meow-scheme` implements.
 
 [SPC-1210](specs/SPC-1210-the-repository-s-files-on-the-code-host.md) states
-what this repository keeps under `.github/`: the community files, which
-TSK-4610 realises, and the rules every workflow holds, which EPC-2420
-realises. Both are built, and TSK-4620 holds the workflow rules with a check.
+what this repository keeps under `.github/`: the community files and the rules
+every workflow holds.
 
 [SPC-1230](specs/SPC-1230-the-vision.md) states the vision's sections, what
-`paw check` reports in it and what the design step asks of it, which EPC-2450
-realises, and [SPC-1220](specs/SPC-1220-the-constitution.md) states what a
-constitution carries and the length `paw check` reports, which EPC-2440
-realises. Neither is built yet.
+`paw check` reports in it and what the design step asks of it, and
+[SPC-1220](specs/SPC-1220-the-constitution.md) states what a constitution
+carries and the length `paw check` reports.
 
 [SPC-1300](specs/SPC-1300-the-pi-packages.md) states the Pi packages: how
 each meowpaw layer ships as a Pi package, what each extension registers,
 how the skills name their binaries, what the installer downloads and what
-fails open, which ADR-2780 decides and ADR-2790 adds to at install time,
-and which EPC-2700 realises. The packages are built; the four defects
-EPC-2710 fixes are BUG-1400 to BUG-1403, which ADR-2790 decides.
+fails open, which ADR-2780 decides and ADR-2790 adds to at install time.
 
-## Epics and tasks
+## Archive
 
-[EPC-2780](epics/EPC-2780-the-core-unit-ships-the-build-and-the-units-find-it.md) and
-[EPC-2790](epics/EPC-2790-the-units-drop-their-own-builds.md) realise ADR-2870 in four
+ADR-3090 retired the epic and the task, and a decision or a defect now carries
+its own plan. `archive/epics/` holds 115 epics and `archive/tasks/` holds 394
+tasks, each file unchanged. `paw` reads them, so `paw show TSK-2310` still prints
+a task, a citation still resolves and a done task still closes its requirements,
+and `paw new` refuses both kinds. This section lists them as they were written,
+and nothing in it is open.
+
+[EPC-2780](archive/epics/EPC-2780-the-core-unit-ships-the-build-and-the-units-find-it.md) and
+[EPC-2790](archive/epics/EPC-2790-the-units-drop-their-own-builds.md) realise ADR-2870 in four
 tasks, TSK-5300 to TSK-5303: the core unit ships the one build of the tool, the
 units depend on it and find it, and then the units drop their own builds.
 
-[EPC-2800](epics/EPC-2800-the-record-gains-commands-for-its-writes.md) realises ADR-2880
+[EPC-2800](archive/epics/EPC-2800-the-record-gains-commands-for-its-writes.md) realises ADR-2880
 in two tasks, TSK-5310 and TSK-5311: the record keeps its files, and `paw approve`,
 `paw withdraw` and `paw done` make each write that crosses files one step.
-[EPC-2810](epics/EPC-2810-a-task-and-its-issue-are-synchronised.md) realises ADR-2890
+[EPC-2810](archive/epics/EPC-2810-a-task-and-its-issue-are-synchronised.md) realises ADR-2890
 in three tasks, TSK-5320 to TSK-5322: a task and its issue are synchronised by a
 fingerprint of each side, the record wins a conflict, and an approved record is
 only reported.
 
-[EPC-2820](epics/EPC-2820-the-harness-budgets-no-characters-and-counts-no-tokens.md)
+[EPC-2820](archive/epics/EPC-2820-the-harness-budgets-no-characters-and-counts-no-tokens.md)
 realises ADR-2970 in five tasks, TSK-5510 to TSK-5550: the harness budgets no
 characters and counts no tokens, the eight requirements naming a budget are
 withdrawn, and the platform cap keeps its check in `meow author check`.
 
-[EPC-2830](epics/EPC-2830-the-harness-measures-no-prompt.md) realises ADR-2980
+[EPC-2830](archive/epics/EPC-2830-the-harness-measures-no-prompt.md) realises ADR-2980
 in five tasks, TSK-5560 to TSK-5600: the harness measures no prompt, the twenty
 requirements making a measurement obligatory are withdrawn, and the prose gate
 and its hand run stay.
 
-[EPC-2840](epics/EPC-2840-the-checkers-walk-follows-no-moved-against-relation.md)
+[EPC-2840](archive/epics/EPC-2840-the-checkers-walk-follows-no-moved-against-relation.md)
 realises ADR-2960 in one task, TSK-5620: the checker's provider walk follows
 no relation a record moved away on, and the specification names the three
 exclusions.
 
-[EPC-2850](epics/EPC-2850-ten-requirements-without-a-task-get-one-epic.md)
+[EPC-2850](archive/epics/EPC-2850-ten-requirements-without-a-task-get-one-epic.md)
 realises ADR-3040 in five tasks, TSK-5680 to TSK-5684: ten requirements that no task
 named get one, two for behaviour that already holds and three that build a
 faster `paw`, generated launchers and a binary resolved once per machine.
 
-[EPC-2860](epics/EPC-2860-the-reply-shape-reaches-every-claude-code-session.md)
+[EPC-2860](archive/epics/EPC-2860-the-reply-shape-reaches-every-claude-code-session.md)
 realises ADR-3050 in one task, TSK-5690: `meow-core` prints the reply shape at the
 start of every Claude Code session, so BUG-1040 closes.
 
-[EPC-2770](epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
+[EPC-2770](archive/epics/EPC-2770-an-epic-is-one-pull-request.md) realises ADR-2860 in three
 tasks, TSK-5290 to TSK-5292: the work of one epic is one pull request, either
 from its research or from its approved records, and the readiness check reads a
 task's approval from the working tree.
 
-[EPC-2760](epics/EPC-2760-the-stage-term.md) realises ADR-2850 in three tasks,
+[EPC-2760](archive/epics/EPC-2760-the-stage-term.md) realises ADR-2850 in three tasks,
 TSK-5270 to TSK-5272: the five verification obligations are called stages, a
 profile declares them under `[stages]` with `[verbs]` read for two releases,
 and a check holds living and shipped text to the word.
 
-[EPC-2750](epics/EPC-2750-a-unit-tag-is-cut-from-the-marketplace-release-tree.md)
+[EPC-2750](archive/epics/EPC-2750-a-unit-tag-is-cut-from-the-marketplace-release-tree.md)
 realises ADR-2830 in one task, TSK-5215: the unit tags are cut from the
 marketplace release's tree, and a unit's version is one number on every
 agent platform.
 
-[EPC-2740](epics/EPC-2740-a-pi-package-mirrors-each-unit.md) realises
+[EPC-2740](archive/epics/EPC-2740-a-pi-package-mirrors-each-unit.md) realises
 ADR-2820 in two tasks, TSK-5213 and TSK-5214: the sixteen Pi packages
 mirror the sixteen units one to one, and one unit tag releases both
 registries.
 
-[EPC-2730](epics/EPC-2730-the-rust-build-splits-from-the-plugin-releases.md)
+[EPC-2730](archive/epics/EPC-2730-the-rust-build-splits-from-the-plugin-releases.md)
 realises ADR-2810 in two tasks, TSK-5211 and TSK-5212: the Rust build
 runs in its own workflow, the releases fetch its artifacts, and the meow
 binary ships with the core package alone.
 
-[EPC-2720](epics/EPC-2720-the-packages-publish-to-npm.md) realises ADR-2800
+[EPC-2720](archive/epics/EPC-2720-the-packages-publish-to-npm.md) realises ADR-2800
 in two tasks, TSK-5209 and TSK-5210: the packages publish to npm with every
 platform's binary in each tarball, and the build workflow produces all six
 targets under Linux runners, with the darwin binaries signed.
 
-[EPC-2710](epics/EPC-2710-a-package-installs-standalone.md) realises
+[EPC-2710](archive/epics/EPC-2710-a-package-installs-standalone.md) realises
 ADR-2790 in three tasks, TSK-5206 to TSK-5208, fixing BUG-1400 to BUG-1403:
 the bundled prompts, the plain command names, and the meow-full installer.
 
-[EPC-1000](epics/EPC-1000-the-reply-shape-in-the-kernel.md) realises ADR-1000
+[EPC-1000](archive/epics/EPC-1000-the-reply-shape-in-the-kernel.md) realises ADR-1000
 in five tasks, TSK-1010 to TSK-1050, each closed with evidence. The epic closed
 at #27 with one acceptance criterion unmet, named in the epic as REQ-3170
 requires.
 
-[EPC-1010](epics/EPC-1010-the-writing-standard-as-a-unit.md) realises ADR-1010
+[EPC-1010](archive/epics/EPC-1010-the-writing-standard-as-a-unit.md) realises ADR-1010
 in eleven tasks, TSK-1110 to TSK-1210, and all eleven are closed with evidence.
 Verified under issue 118, it closed with criterion 9 unmet, named in the epic:
 BUG-1100 records that the reviewer is unmeasured on most of the rules it holds. Every requirement ADR-1010 addresses
 lands in exactly one task except REQ-3034, which the epic defers with its
 reason.
 
-[EPC-1020](epics/EPC-1020-every-shipped-prompt-tagged-and-loaded.md) realises
+[EPC-1020](archive/epics/EPC-1020-every-shipped-prompt-tagged-and-loaded.md) realises
 ADR-1020 in four tasks, TSK-1230 to TSK-1260. Three are closed, and ADR-1360
 drops TSK-1260 while it postpones the requirement that task closes. The epic
 was verified under issue 409, with criterion 5 resting on TSK-1230's
 measurement.
 
-[EPC-1030](epics/EPC-1030-the-writing-standard-loaded-by-its-description.md)
+[EPC-1030](archive/epics/EPC-1030-the-writing-standard-loaded-by-its-description.md)
 realised ADR-1050 in one task, TSK-1270, closed in #85, and was verified
 against every acceptance criterion under issue 211.
 
-[EPC-1040](epics/EPC-1040-the-five-verbs.md) realises ADR-1070 in two tasks,
+[EPC-1040](archive/epics/EPC-1040-the-five-verbs.md) realises ADR-1070 in two tasks,
 TSK-1280 and TSK-1290, both closed with evidence, and was verified against
 every acceptance criterion under issue 115.
 
-[EPC-1050](epics/EPC-1050-the-commit-convention.md) realises ADR-1080 in two
+[EPC-1050](archive/epics/EPC-1050-the-commit-convention.md) realises ADR-1080 in two
 tasks, TSK-1300 and TSK-1310, both closed with evidence, and was verified
 against every acceptance criterion under issue 130.
 
-[EPC-1060](epics/EPC-1060-the-git-pack.md) realises ADR-1090 in one task,
+[EPC-1060](archive/epics/EPC-1060-the-git-pack.md) realises ADR-1090 in one task,
 TSK-1320, closed with evidence, and was verified against every acceptance
 criterion under issue 138.
 
-[EPC-1070](epics/EPC-1070-checking-the-record.md) realised ADR-1100 in two
+[EPC-1070](archive/epics/EPC-1070-checking-the-record.md) realised ADR-1100 in two
 tasks, TSK-1330 and TSK-1340, each closed with evidence, and was verified
 against every acceptance criterion under issue 168.
 
-[EPC-1080](epics/EPC-1080-the-native-tool.md) realised ADR-1110 in five
+[EPC-1080](archive/epics/EPC-1080-the-native-tool.md) realised ADR-1110 in five
 tasks, TSK-1350 to TSK-1390, each closed with evidence, and was verified
 against every acceptance criterion under issue 160.
 
-[EPC-1090](epics/EPC-1090-the-marketplace-address.md) realised ADR-1120 in two
+[EPC-1090](archive/epics/EPC-1090-the-marketplace-address.md) realised ADR-1120 in two
 tasks, TSK-1400 and TSK-1410, each closed with evidence, and was verified
 against every acceptance criterion under issue 184.
 
-[EPC-1100](epics/EPC-1100-the-chain.md) realised ADR-1130 in three tasks,
+[EPC-1100](archive/epics/EPC-1100-the-chain.md) realised ADR-1130 in three tasks,
 TSK-1420 to TSK-1440, each closed with evidence, and was verified against every
 acceptance criterion under issue 202.
 
-[EPC-1110](epics/EPC-1110-content-rules.md) realised ADR-1140 in two tasks, TSK-1450
+[EPC-1110](archive/epics/EPC-1110-content-rules.md) realised ADR-1140 in two tasks, TSK-1450
 and TSK-1460, each closed with evidence, and was verified against every
 acceptance criterion under issue 206.
 
-[EPC-1120](epics/EPC-1120-prompt-form.md), [EPC-1130](epics/EPC-1130-reply-shape-to-agents.md)
-and [EPC-1140](epics/EPC-1140-kernel-names-no-unit.md) realise ADR-1030,
+[EPC-1120](archive/epics/EPC-1120-prompt-form.md), [EPC-1130](archive/epics/EPC-1130-reply-shape-to-agents.md)
+and [EPC-1140](archive/epics/EPC-1140-kernel-names-no-unit.md) realise ADR-1030,
 ADR-1040 and ADR-1060, whose work other epics' tasks made. Each confirmed the
 decision with its own probes and was verified under issue 209, BUG-1160's
 fix; EPC-1120 names its measurement on both models as unmet.
 
-[EPC-1150](epics/EPC-1150-navigate-the-record.md) realised ADR-1150 in two tasks, TSK-1500 and TSK-1510, each closed with evidence, and was verified against every acceptance criterion under issue 219.
+[EPC-1150](archive/epics/EPC-1150-navigate-the-record.md) realised ADR-1150 in two tasks, TSK-1500 and TSK-1510, each closed with evidence, and was verified against every acceptance criterion under issue 219.
 
-[EPC-1160](epics/EPC-1160-step-obligations.md) realised ADR-1160 in seven tasks, TSK-1520 to TSK-1580, each closed with evidence, and was verified against every acceptance criterion under issue 237.
+[EPC-1160](archive/epics/EPC-1160-step-obligations.md) realised ADR-1160 in seven tasks, TSK-1520 to TSK-1580, each closed with evidence, and was verified against every acceptance criterion under issue 237.
 
-[EPC-1170](epics/EPC-1170-approvals-held.md) realised ADR-1170 in three tasks, TSK-1590 to TSK-1610, each closed with evidence, and was verified against every acceptance criterion under issue 249.
+[EPC-1170](archive/epics/EPC-1170-approvals-held.md) realised ADR-1170 in three tasks, TSK-1590 to TSK-1610, each closed with evidence, and was verified against every acceptance criterion under issue 249.
 
-[EPC-1180](epics/EPC-1180-grow-the-record.md) realised ADR-1180 in three tasks, TSK-1620 to TSK-1640, each closed with evidence, and was verified against every acceptance criterion under issue 259.
+[EPC-1180](archive/epics/EPC-1180-grow-the-record.md) realised ADR-1180 in three tasks, TSK-1620 to TSK-1640, each closed with evidence, and was verified against every acceptance criterion under issue 259.
 
-[EPC-1190](epics/EPC-1190-design-obligations.md) realised ADR-1190 in two tasks, TSK-1650 and TSK-1660, each closed with evidence, and was verified against every acceptance criterion under issue 267.
+[EPC-1190](archive/epics/EPC-1190-design-obligations.md) realised ADR-1190 in two tasks, TSK-1650 and TSK-1660, each closed with evidence, and was verified against every acceptance criterion under issue 267.
 
-[EPC-1200](epics/EPC-1200-quality-attributes.md) realised ADR-1200 in three tasks, TSK-1670 to TSK-1690, each closed with evidence, and was verified against every acceptance criterion under issue 277.
+[EPC-1200](archive/epics/EPC-1200-quality-attributes.md) realised ADR-1200 in three tasks, TSK-1670 to TSK-1690, each closed with evidence, and was verified against every acceptance criterion under issue 277.
 
-[EPC-1210](epics/EPC-1210-record-drift.md) realised ADR-1210 in three tasks, TSK-1700 to TSK-1720, each closed with evidence, and was verified against every acceptance criterion under issue 288.
+[EPC-1210](archive/epics/EPC-1210-record-drift.md) realised ADR-1210 in three tasks, TSK-1700 to TSK-1720, each closed with evidence, and was verified against every acceptance criterion under issue 288.
 
-[EPC-1220](epics/EPC-1220-insights.md) realised ADR-1220 in two tasks, TSK-1730 and TSK-1740, each closed with evidence, and was verified against every acceptance criterion under issue 296.
+[EPC-1220](archive/epics/EPC-1220-insights.md) realised ADR-1220 in two tasks, TSK-1730 and TSK-1740, each closed with evidence, and was verified against every acceptance criterion under issue 296.
 
-[EPC-1230](epics/EPC-1230-reading-order.md) realised ADR-1230 in three tasks, TSK-1750 to TSK-1770, each closed with evidence, and was verified against every acceptance criterion under issue 306.
+[EPC-1230](archive/epics/EPC-1230-reading-order.md) realised ADR-1230 in three tasks, TSK-1750 to TSK-1770, each closed with evidence, and was verified against every acceptance criterion under issue 306.
 
-[EPC-1240](epics/EPC-1240-migrations.md) realised ADR-1240 in three tasks, TSK-1780 to TSK-1800, each closed with evidence, and was verified against every acceptance criterion under issue 316.
+[EPC-1240](archive/epics/EPC-1240-migrations.md) realised ADR-1240 in three tasks, TSK-1780 to TSK-1800, each closed with evidence, and was verified against every acceptance criterion under issue 316.
 
-[EPC-1250](epics/EPC-1250-init.md) realised ADR-1250 in three tasks, TSK-1810 to TSK-1830, each closed with evidence, and was verified against every acceptance criterion under issue 326.
+[EPC-1250](archive/epics/EPC-1250-init.md) realised ADR-1250 in three tasks, TSK-1810 to TSK-1830, each closed with evidence, and was verified against every acceptance criterion under issue 326.
 
-[EPC-1260](epics/EPC-1260-onboarding.md) realised ADR-1260 in two tasks, TSK-1840 and TSK-1850, each closed with evidence, and was verified against every acceptance criterion under issue 334.
+[EPC-1260](archive/epics/EPC-1260-onboarding.md) realised ADR-1260 in two tasks, TSK-1840 and TSK-1850, each closed with evidence, and was verified against every acceptance criterion under issue 334.
 
-[EPC-1270](epics/EPC-1270-adoption.md) realised ADR-1270 in three tasks, TSK-1860 to TSK-1880, each closed with evidence, and was verified against every acceptance criterion under issue 344.
+[EPC-1270](archive/epics/EPC-1270-adoption.md) realised ADR-1270 in three tasks, TSK-1860 to TSK-1880, each closed with evidence, and was verified against every acceptance criterion under issue 344.
 
-[EPC-1280](epics/EPC-1280-remove-placed.md) realised ADR-1280 in two tasks, TSK-1890 and TSK-1900, each closed with evidence, and was verified against every acceptance criterion under issue 356.
+[EPC-1280](archive/epics/EPC-1280-remove-placed.md) realised ADR-1280 in two tasks, TSK-1890 and TSK-1900, each closed with evidence, and was verified against every acceptance criterion under issue 356.
 
-[EPC-1290](epics/EPC-1290-github-pack.md) realised ADR-1290 in one task, TSK-1910, closed with evidence, and was verified against every acceptance criterion under issue 362.
+[EPC-1290](archive/epics/EPC-1290-github-pack.md) realised ADR-1290 in one task, TSK-1910, closed with evidence, and was verified against every acceptance criterion under issue 362.
 
-[EPC-1300](epics/EPC-1300-onboard-history.md) realised ADR-1300 in one task, TSK-1920, closed with evidence, and was verified against every acceptance criterion under issue 368.
+[EPC-1300](archive/epics/EPC-1300-onboard-history.md) realised ADR-1300 in one task, TSK-1920, closed with evidence, and was verified against every acceptance criterion under issue 368.
 
-[EPC-1310](epics/EPC-1310-project-tasks.md) realised ADR-1310 in three tasks, TSK-1930 to TSK-1950, each closed with evidence, and was verified against every acceptance criterion under issue 378.
+[EPC-1310](archive/epics/EPC-1310-project-tasks.md) realised ADR-1310 in three tasks, TSK-1930 to TSK-1950, each closed with evidence, and was verified against every acceptance criterion under issue 378.
 
-[EPC-1320](epics/EPC-1320-source-control.md) realised ADR-1320 in five tasks, TSK-1960 to TSK-2000, each closed with evidence, and was verified against every acceptance criterion under issue 392.
+[EPC-1320](archive/epics/EPC-1320-source-control.md) realised ADR-1320 in five tasks, TSK-1960 to TSK-2000, each closed with evidence, and was verified against every acceptance criterion under issue 392.
 
-[EPC-1330](epics/EPC-1330-postpone.md) realised ADR-1330 in one task, TSK-2010, closed with evidence, and was verified against every acceptance criterion under issue 398.
-[EPC-1340](epics/EPC-1340-the-record-command-is-named-paw.md) realised ADR-1350 in one task, TSK-2020, closed with evidence, and was verified against every acceptance criterion under issue 404.
+[EPC-1330](archive/epics/EPC-1330-postpone.md) realised ADR-1330 in one task, TSK-2010, closed with evidence, and was verified against every acceptance criterion under issue 398.
+[EPC-1340](archive/epics/EPC-1340-the-record-command-is-named-paw.md) realised ADR-1350 in one task, TSK-2020, closed with evidence, and was verified against every acceptance criterion under issue 404.
 
-[EPC-1350](epics/EPC-1350-the-documentation-ships-with-its-units.md) realises
+[EPC-1350](archive/epics/EPC-1350-the-documentation-ships-with-its-units.md) realises
 ADR-1370 in four tasks, TSK-2030 to TSK-2060, each closed with evidence, and
 was verified against every acceptance criterion under issue 425.
 
-[EPC-1360](epics/EPC-1360-the-document-step-carries-its-obligations.md)
+[EPC-1360](archive/epics/EPC-1360-the-document-step-carries-its-obligations.md)
 realised ADR-1380 in two tasks, TSK-2070 and TSK-2080, each closed with
 evidence, and was verified against every acceptance criterion under issue 433.
 
-[EPC-1370](epics/EPC-1370-the-method-unit-is-meow-flow.md) realises ADR-1390 in
+[EPC-1370](archive/epics/EPC-1370-the-method-unit-is-meow-flow.md) realises ADR-1390 in
 two tasks, TSK-2090 and TSK-2100, each closed with evidence, and was verified
 against every acceptance criterion under issue 441.
 
-[EPC-1380](epics/EPC-1380-licensing-applied-and-checked.md) realises ADR-1400
+[EPC-1380](archive/epics/EPC-1380-licensing-applied-and-checked.md) realises ADR-1400
 in three tasks, TSK-2110 to TSK-2130, each closed with evidence, and was
 verified against every acceptance criterion under issue 458.
 
-[EPC-1390](epics/EPC-1390-the-verbs-are-renamed.md) realises ADR-1410 in one
+[EPC-1390](archive/epics/EPC-1390-the-verbs-are-renamed.md) realises ADR-1410 in one
 task, TSK-2140, closed with evidence, and was verified against every
 acceptance criterion under issue 455.
 
-[EPC-1400](epics/EPC-1400-how-code-is-changed-and-checked.md) realises
+[EPC-1400](archive/epics/EPC-1400-how-code-is-changed-and-checked.md) realises
 ADR-1420 in one task, TSK-2150, closed with evidence, and was verified against
 every acceptance criterion under issue 464.
 
-[EPC-1410](epics/EPC-1410-a-defect-is-debugged-by-reproduction.md) realises
+[EPC-1410](archive/epics/EPC-1410-a-defect-is-debugged-by-reproduction.md) realises
 ADR-1430 in one task, TSK-2160, closed with evidence, and was verified against
 every acceptance criterion under issue 472.
 
-[EPC-1420](epics/EPC-1420-a-defect-authorises-work-directly.md) realises
+[EPC-1420](archive/epics/EPC-1420-a-defect-authorises-work-directly.md) realises
 ADR-1440 in three tasks, TSK-2170 to TSK-2190, each closed with evidence, and
 was verified against every acceptance criterion under issue 482.
 
-[EPC-1430](epics/EPC-1430-the-harness-authoring-capability-ships.md) realises
+[EPC-1430](archive/epics/EPC-1430-the-harness-authoring-capability-ships.md) realises
 ADR-1450 in two tasks, TSK-2200 and TSK-2210, each closed with evidence, and
 was verified against every acceptance criterion under issue 490.
 
-[EPC-1440](epics/EPC-1440-context-cost-held-and-reported.md) realises ADR-1460
+[EPC-1440](archive/epics/EPC-1440-context-cost-held-and-reported.md) realises ADR-1460
 in two tasks, TSK-2220 and TSK-2230, each closed with evidence, and was
 verified against every acceptance criterion under issue 498.
 
-[EPC-1450](epics/EPC-1450-record-connections-reported.md) realises ADR-1470
+[EPC-1450](archive/epics/EPC-1450-record-connections-reported.md) realises ADR-1470
 in two tasks, TSK-2240 and TSK-2250, each closed with evidence, and was
 verified against every acceptance criterion under issue 506.
 
-[EPC-1460](epics/EPC-1460-results-recorded-as-evidence.md) realises ADR-1480
+[EPC-1460](archive/epics/EPC-1460-results-recorded-as-evidence.md) realises ADR-1480
 in two tasks, TSK-2270 and TSK-2280, each closed with evidence, and was
 verified against every acceptance criterion under issue 517.
 
-[EPC-1470](epics/EPC-1470-records-reviewed-by-an-agent.md) realises ADR-1490
+[EPC-1470](archive/epics/EPC-1470-records-reviewed-by-an-agent.md) realises ADR-1490
 in two tasks, TSK-2290 and TSK-2300, each closed with evidence, and was
 verified against every acceptance criterion under issue 525.
 
-[EPC-1480](epics/EPC-1480-the-loop-reports-and-refuses.md) realises ADR-1500 in
+[EPC-1480](archive/epics/EPC-1480-the-loop-reports-and-refuses.md) realises ADR-1500 in
 one task, TSK-2310, closed with evidence, and was verified against every
 acceptance criterion under issue 531.
 
-[EPC-1490](epics/EPC-1490-verification-kind-held.md) realises ADR-1510 in one
+[EPC-1490](archive/epics/EPC-1490-verification-kind-held.md) realises ADR-1510 in one
 task, TSK-2320, closed with evidence, and was verified against every
 acceptance criterion under issue 537.
 
-[EPC-1500](epics/EPC-1500-a-verb-over-part-of-the-work.md) realises ADR-1520 in
+[EPC-1500](archive/epics/EPC-1500-a-verb-over-part-of-the-work.md) realises ADR-1520 in
 one task, TSK-2330, closed with evidence, and was verified against every
 acceptance criterion under issue 543.
 
-[EPC-1510](epics/EPC-1510-evidence-kept-and-state-held.md) realises ADR-1530 in
+[EPC-1510](archive/epics/EPC-1510-evidence-kept-and-state-held.md) realises ADR-1530 in
 three tasks, TSK-2340, TSK-2350 and TSK-2360, each closed with evidence, and
 was verified against every acceptance criterion under issue 559.
 
-[EPC-1520](epics/EPC-1520-evidence-beside-the-record.md) realises ADR-1550 in
+[EPC-1520](archive/epics/EPC-1520-evidence-beside-the-record.md) realises ADR-1550 in
 one task, TSK-2370, closed with evidence, and was verified against every
 acceptance criterion under issue 555.
 
-[EPC-1530](epics/EPC-1530-evidence-behind-each-claim.md) realises ADR-1560 in
+[EPC-1530](archive/epics/EPC-1530-evidence-behind-each-claim.md) realises ADR-1560 in
 one task, TSK-2380, closed with evidence, and was verified against every
 acceptance criterion under issue 565.
 
-[EPC-1540](epics/EPC-1540-git-read-cleanly-and-breaking-changes-released.md)
+[EPC-1540](archive/epics/EPC-1540-git-read-cleanly-and-breaking-changes-released.md)
 realises ADR-1570 in two tasks, TSK-2400 and TSK-2410, each closed with
 evidence, and was verified against every acceptance criterion under issue 575.
 
-[EPC-1550](epics/EPC-1550-the-mise-pack.md) realises ADR-1580 in three tasks,
+[EPC-1550](archive/epics/EPC-1550-the-mise-pack.md) realises ADR-1580 in three tasks,
 TSK-2420 to TSK-2440, each closed with evidence, and was verified against
 every acceptance criterion under issue 577.
 
-[EPC-1560](epics/EPC-1560-the-go-task-pack.md) realises ADR-1590 in two tasks,
+[EPC-1560](archive/epics/EPC-1560-the-go-task-pack.md) realises ADR-1590 in two tasks,
 TSK-2450 and TSK-2460, each closed with evidence, and was verified against
 every acceptance criterion under issue 587.
 
-[EPC-1590](epics/EPC-1590-the-prose-gate-is-a-program.md) realises ADR-1600
+[EPC-1590](archive/epics/EPC-1590-the-prose-gate-is-a-program.md) realises ADR-1600
 through TSK-2470, which BUG-1230 carries and which landed before the epic, and
 was verified under issue 597. Four criteria are met and the fifth in part:
 REQ-3182 is met in part, because the squash message a merge writes goes
 unread, and TSK-2575 added the fixtures BUG-1265 recorded as missing.
 
-[EPC-1570](epics/EPC-1570-the-crate-under-the-five-verbs.md) realises ADR-1610
+[EPC-1570](archive/epics/EPC-1570-the-crate-under-the-five-verbs.md) realises ADR-1610
 in four tasks, TSK-2480 to TSK-2510, each closed with evidence, and was
 verified against every acceptance criterion under issue 596.
 
-[EPC-1580](epics/EPC-1580-the-cover-step.md) realises ADR-1620 in three tasks,
+[EPC-1580](archive/epics/EPC-1580-the-cover-step.md) realises ADR-1620 in three tasks,
 TSK-2530 to TSK-2550, each closed with evidence, and closed with them under
 ADR-2300.
 
-[EPC-1800](epics/EPC-1800-the-markdown-pack.md) realises ADR-1900 in four
+[EPC-1800](archive/epics/EPC-1800-the-markdown-pack.md) realises ADR-1900 in four
 tasks, TSK-3100 to TSK-3130, each closed with evidence, and was verified
 against every acceptance criterion under issue 624. REQ-2424 and REQ-2484 stay
 postponed.
-[EPC-1900](epics/EPC-1900-the-unattended-runs-plan.md) realises ADR-2000 in
+[EPC-1900](archive/epics/EPC-1900-the-unattended-runs-plan.md) realises ADR-2000 in
 two tasks, TSK-3300 and TSK-3310, each closed with evidence, and was verified
 against every acceptance criterion under issue 626.
 
-[EPC-1910](epics/EPC-1910-the-loop-runner.md) realises ADR-2010 in six tasks,
+[EPC-1910](archive/epics/EPC-1910-the-loop-runner.md) realises ADR-2010 in six tasks,
 TSK-3350 to TSK-3400, all of them done, and each of the nine
 requirements
 ADR-2010 addresses lands in one of them.
-[EPC-1920](epics/EPC-1920-a-run-bound-to-one-step.md) realises ADR-2020 in
+[EPC-1920](archive/epics/EPC-1920-a-run-bound-to-one-step.md) realises ADR-2020 in
 four tasks, TSK-3410 to TSK-3440, all of them done, and each of the two
 requirements ADR-2020 addresses lands in one of them.
 
-[EPC-2300](epics/EPC-2300-a-run-lives-in-the-session-and-decides-merges-and-releases-itself.md)
+[EPC-2300](archive/epics/EPC-2300-a-run-lives-in-the-session-and-decides-merges-and-releases-itself.md)
 realises ADR-2380 in four tasks, TSK-4100 to TSK-4130, which move the run
 into the session and let it decide, merge and release on its own. All four
 are done, and the unit's `start` command from a terminal stays for one release
 with a deprecation line.
 
-[EPC-1710](epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
+[EPC-1710](archive/epics/EPC-1710-blocking-dependencies-and-the-only-grouping.md)
 realises ADR-1800 in two tasks, TSK-2900 and TSK-2910, each closed with
 evidence, and was verified against every acceptance criterion under issue 625.
 
-[EPC-1720](epics/EPC-1720-one-github-request-layer.md) realises ADR-1810 in
+[EPC-1720](archive/epics/EPC-1720-one-github-request-layer.md) realises ADR-1810 in
 five tasks, TSK-2940 to TSK-2980, all of them done, and each of the
 seven
 requirements ADR-1810 addresses lands in one of them. REQ-2580 stays
 postponed.
 
-[EPC-2100](epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realised
+[EPC-2100](archive/epics/EPC-2100-a-skeptic-refutes-verified-claims.md) realised
 ADR-2200 in two tasks, TSK-3700 and TSK-3710, both dropped when ADR-2300
 superseded ADR-2200.
 
-[EPC-2200](epics/EPC-2200-the-seven-step-chain.md) realises ADR-2300 in eight
+[EPC-2200](archive/epics/EPC-2200-the-seven-step-chain.md) realises ADR-2300 in eight
 tasks, TSK-3800 to TSK-3870, all of them done, and each of the 28
 requirements ADR-2300 addresses lands in one of them.
-[EPC-1650](epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
+[EPC-1650](archive/epics/EPC-1650-every-shipped-agent-declares-its-fields.md) realises
 ADR-1700 in two tasks, TSK-2700 and TSK-2701, both done, and every
 requirement ADR-1700 addresses lands in one of them.
-[EPC-1651](epics/EPC-1651-a-delegated-agent-reports-one-of-four-outcomes.md)
+[EPC-1651](archive/epics/EPC-1651-a-delegated-agent-reports-one-of-four-outcomes.md)
 realises ADR-1710 in two tasks, TSK-2702 and TSK-2703, both done, and each of the two requirements ADR-1710 addresses lands in one of
 them.
 
@@ -752,128 +707,122 @@ after a 401, and is done. TSK-4040 realises ADR-2340 directly: a created issue t
 listing leaves out is read by its number, and is done. All three amend
 ADR-1810.
 
-[EPC-2000](epics/EPC-2000-the-route-before-work.md) realises ADR-2100 in two
-tasks, TSK-3500 and TSK-3510, none of them started. Every requirement ADR-2100
+[EPC-2000](archive/epics/EPC-2000-the-route-before-work.md) realises ADR-2100 in two
+tasks, TSK-3500 and TSK-3510. Every requirement ADR-2100
 addresses lands in one of them.
 
-[EPC-2320](epics/EPC-2320-the-profile-reports-its-state-and-keeps-a-personal-file-apart.md)
-realises ADR-2370 in three tasks, TSK-4300 to TSK-4320, none of them started,
+[EPC-2320](archive/epics/EPC-2320-the-profile-reports-its-state-and-keeps-a-personal-file-apart.md)
+realises ADR-2370 in three tasks, TSK-4300 to TSK-4320,
 and each of the seven requirements ADR-2370 addresses lands in one of them.
 
-[EPC-2330](epics/EPC-2330-each-subcommand-makes-one-determination.md)
-realises ADR-2400 in three tasks, TSK-4330 to TSK-4350, none of them started,
+[EPC-2330](archive/epics/EPC-2330-each-subcommand-makes-one-determination.md)
+realises ADR-2400 in three tasks, TSK-4330 to TSK-4350,
 and each of the nine requirements ADR-2400 addresses lands in one of them.
 
-[EPC-2340](epics/EPC-2340-each-unit-is-a-versioned-plugin-held-to-its-manifest.md)
-realises ADR-2480 in four tasks, TSK-4390 to TSK-4420, none of them started,
+[EPC-2340](archive/epics/EPC-2340-each-unit-is-a-versioned-plugin-held-to-its-manifest.md)
+realises ADR-2480 in four tasks, TSK-4390 to TSK-4420,
 and each of the fifteen requirements ADR-2480 addresses lands in one of them.
 
 TSK-4360 realises ADR-2410 directly, and is done: `paw find` states its mode
 and counts artifacts. TSK-4370 realises ADR-2420 directly: the `commit` skill
 bounds a tool that runs source control operations. TSK-4380 realises ADR-2470
 directly, and is done: the design step points at the threat model SPC-1080
-keeps. TSK-4370 is not started.
+keeps.
 
-[EPC-2420](epics/EPC-2420-workflows-start-read-only-and-a-release-carries-an-attestation.md)
+[EPC-2420](archive/epics/EPC-2420-workflows-start-read-only-and-a-release-carries-an-attestation.md)
 realises ADR-2520 in three tasks, TSK-4620 to TSK-4640, and each of the five
-requirements ADR-2520 addresses lands in one of them. TSK-4620 is done, and
-neither TSK-4630 nor TSK-4640 is started.
+requirements ADR-2520 addresses lands in one of them.
 
-[EPC-2430](epics/EPC-2430-a-task-whose-blocking-dependency-is-unmerged-stacks-on-its-branch.md)
-realises ADR-2550 in four tasks, TSK-4660 to TSK-4690, none of them started,
+[EPC-2430](archive/epics/EPC-2430-a-task-whose-blocking-dependency-is-unmerged-stacks-on-its-branch.md)
+realises ADR-2550 in four tasks, TSK-4660 to TSK-4690,
 and each of the nineteen requirements ADR-2550 addresses lands in one of them.
 
-[EPC-2440](epics/EPC-2440-a-constitution-carries-only-what-is-always-relevant.md)
-realises ADR-2570 in four tasks, TSK-4700 to TSK-4730, none of them started,
+[EPC-2440](archive/epics/EPC-2440-a-constitution-carries-only-what-is-always-relevant.md)
+realises ADR-2570 in four tasks, TSK-4700 to TSK-4730,
 and each of the nine requirements ADR-2570 addresses lands in one of them.
 
-[EPC-2450](epics/EPC-2450-the-vision-carries-its-sections-and-a-check-reads-them.md)
-realises ADR-2580 in three tasks, TSK-4740 to TSK-4760, none of them started,
+[EPC-2450](archive/epics/EPC-2450-the-vision-carries-its-sections-and-a-check-reads-them.md)
+realises ADR-2580 in three tasks, TSK-4740 to TSK-4760,
 and each of the eleven requirements ADR-2580 addresses lands in one of them.
 
-[EPC-2460](epics/EPC-2460-three-documents-are-living-and-the-check-holds-the-rest-to-a-record-s-rules.md)
-realises ADR-2590, which amends ADR-2300, in two tasks, TSK-4770 and TSK-4780,
-neither started, and each of the five requirements ADR-2590 addresses lands in
+[EPC-2460](archive/epics/EPC-2460-three-documents-are-living-and-the-check-holds-the-rest-to-a-record-s-rules.md)
+realises ADR-2590, which amends ADR-2300, in two tasks, TSK-4770 and TSK-4780, and each of the five requirements ADR-2590 addresses lands in
 one of them.
 
 TSK-4600 realises ADR-2500 directly: every unit installs with no person, and
 agent-neutral material is written once. TSK-4610 realises ADR-2510 directly:
 the community files sit under `.github/`, and it's done. TSK-4650 realises
 ADR-2530 directly, and is closed with evidence: the commit check holds the
-sign-off route, the named trailers and the breaking mark. TSK-4600 is not
-started.
+sign-off route, the named trailers and the breaking mark.
 
-[EPC-2520](epics/EPC-2520-every-shipped-hook-is-held-to-one-set-of-answers.md)
-realises ADR-2450, which ADR-2700 amends, in four tasks, TSK-4900 to TSK-4915,
-none of them started, and each of the twelve requirements ADR-2450 addresses
+[EPC-2520](archive/epics/EPC-2520-every-shipped-hook-is-held-to-one-set-of-answers.md)
+realises ADR-2450, which ADR-2700 amends, in four tasks, TSK-4900 to TSK-4915, and each of the twelve requirements ADR-2450 addresses
 lands in one of them.
 
-[EPC-2525](epics/EPC-2525-each-unit-requests-only-what-a-step-names-and-a-missing-program-denies.md)
-realises ADR-2460, which ADR-2710 amends, in four tasks, TSK-4920 to TSK-4935,
-none of them started, and each of the five requirements ADR-2460 addresses
+[EPC-2525](archive/epics/EPC-2525-each-unit-requests-only-what-a-step-names-and-a-missing-program-denies.md)
+realises ADR-2460, which ADR-2710 amends, in four tasks, TSK-4920 to TSK-4935, and each of the five requirements ADR-2460 addresses
 lands in one of them.
 
-[EPC-2530](epics/EPC-2530-a-delegated-agent-gets-a-brief-built-from-the-record.md)
+[EPC-2530](archive/epics/EPC-2530-a-delegated-agent-gets-a-brief-built-from-the-record.md)
 realises ADR-2560, which ADR-2730 amends, in three tasks, TSK-4945 to
-TSK-4955, none of them started, and each of the ten requirements ADR-2560
+TSK-4955, and each of the ten requirements ADR-2560
 addresses lands in one of them.
 
-[EPC-2535](epics/EPC-2535-a-repository-declares-its-own-kinds-and-each-inherits-every-obligation.md)
-realises ADR-2600 in three tasks, TSK-4970 to TSK-4980, none of them started,
+[EPC-2535](archive/epics/EPC-2535-a-repository-declares-its-own-kinds-and-each-inherits-every-obligation.md)
+realises ADR-2600 in three tasks, TSK-4970 to TSK-4980,
 and each of the seven requirements ADR-2600 addresses lands in one of them.
 
-[EPC-2540](epics/EPC-2540-a-diagram-is-mermaid-in-the-document-and-checked-with-it.md)
-realises ADR-2620 in three tasks, TSK-4985 to TSK-4995, none of them started,
+[EPC-2540](archive/epics/EPC-2540-a-diagram-is-mermaid-in-the-document-and-checked-with-it.md)
+realises ADR-2620 in three tasks, TSK-4985 to TSK-4995,
 and each of the seven requirements ADR-2620 addresses lands in one of them.
 
-[EPC-2545](epics/EPC-2545-every-specification-answers-a-fixed-question-list.md)
-realises ADR-2630 in three tasks, TSK-5000 to TSK-5010, none of them started,
+[EPC-2545](archive/epics/EPC-2545-every-specification-answers-a-fixed-question-list.md)
+realises ADR-2630 in three tasks, TSK-5000 to TSK-5010,
 and each of the three requirements ADR-2630 addresses lands in one of them.
 
-[EPC-2550](epics/EPC-2550-a-check-holds-the-method-to-naming-no-language-and-every-pack-stays-optional.md)
-realises ADR-2640 in four tasks, TSK-5015 to TSK-5030, none of them started,
+[EPC-2550](archive/epics/EPC-2550-a-check-holds-the-method-to-naming-no-language-and-every-pack-stays-optional.md)
+realises ADR-2640 in four tasks, TSK-5015 to TSK-5030,
 and each of the nine requirements ADR-2640 addresses lands in one of them.
 
-[EPC-2555](epics/EPC-2555-a-repository-declares-its-parts-and-each-verb-resolves-per-part.md)
-realises ADR-2650 in four tasks, TSK-5050 to TSK-5065, none of them started,
+[EPC-2555](archive/epics/EPC-2555-a-repository-declares-its-parts-and-each-verb-resolves-per-part.md)
+realises ADR-2650 in four tasks, TSK-5050 to TSK-5065,
 and each of the twelve requirements ADR-2650 addresses lands in one of them.
 
-[EPC-2560](epics/EPC-2560-the-supported-set-is-declared-and-each-language-gets-a-pack.md)
-realises ADR-2660 in ten tasks, TSK-5070 to TSK-5115, none of them started:
+[EPC-2560](archive/epics/EPC-2560-the-supported-set-is-declared-and-each-language-gets-a-pack.md)
+realises ADR-2660 in ten tasks, TSK-5070 to TSK-5115:
 the supported set, then one pack for each language in the order ADR-2660
 states. Each of the fourteen requirements ADR-2660 addresses lands in one of
 them, and REQ-2356 stays postponed.
 
-[EPC-2565](epics/EPC-2565-every-language-pack-keeps-one-set-of-rules.md)
-realises ADR-2670 in four tasks, TSK-5120 to TSK-5135, none of them started,
+[EPC-2565](archive/epics/EPC-2565-every-language-pack-keeps-one-set-of-rules.md)
+realises ADR-2670 in four tasks, TSK-5120 to TSK-5135,
 and each of the eighteen requirements ADR-2670 addresses lands in one of them.
 
-[EPC-2570](epics/EPC-2570-the-harness-is-held-to-its-own-method-and-the-source-repositories-test-it.md)
-realises ADR-2690 in three tasks, TSK-5035 to TSK-5045, none of them started,
+[EPC-2570](archive/epics/EPC-2570-the-harness-is-held-to-its-own-method-and-the-source-repositories-test-it.md)
+realises ADR-2690 in three tasks, TSK-5035 to TSK-5045,
 and each of the five requirements ADR-2690 addresses lands in one of them.
 TSK-5045 waits on the owner to name the first repository to migrate.
 
-[EPC-2580](epics/EPC-2580-the-record-keeps-every-requirement-decision-and-plan-connected.md)
-realises ADR-2740 in TSK-5140 and TSK-5145, neither started. The first carries
+[EPC-2580](archive/epics/EPC-2580-the-record-keeps-every-requirement-decision-and-plan-connected.md)
+realises ADR-2740 in TSK-5140 and TSK-5145. The first carries
 forward the requirements whose provider was superseded and checks both graph
 gaps; the second pins comments in profiles.
 
-[EPC-2590](epics/EPC-2590-an-attended-irreversible-action-asks-each-time.md)
-realises ADR-2750 in TSK-5150, not started, which closes REQ-1420 and REQ-1422.
+[EPC-2590](archive/epics/EPC-2590-an-attended-irreversible-action-asks-each-time.md)
+realises ADR-2750 in TSK-5150, which closes REQ-1420 and REQ-1422.
 
-[EPC-2600](epics/EPC-2600-project-an-epic-onto-a-tracker-group.md),
-[EPC-2605](epics/EPC-2605-bound-the-prose-gates-network-judge.md),
-[EPC-2610](epics/EPC-2610-a-missing-hook-program-denies.md),
-[EPC-2615](epics/EPC-2615-generate-the-interface-reference.md) and
-[EPC-2620](epics/EPC-2620-a-delegated-pull-request-names-its-brief-and-record.md)
-realise ADR-2540 and ADR-2700 to ADR-2730 respectively. Each has one approved,
-not-started task, TSK-5155 to TSK-5175.
+[EPC-2600](archive/epics/EPC-2600-project-an-epic-onto-a-tracker-group.md),
+[EPC-2605](archive/epics/EPC-2605-bound-the-prose-gates-network-judge.md),
+[EPC-2610](archive/epics/EPC-2610-a-missing-hook-program-denies.md),
+[EPC-2615](archive/epics/EPC-2615-generate-the-interface-reference.md) and
+[EPC-2620](archive/epics/EPC-2620-a-delegated-pull-request-names-its-brief-and-record.md)
+realise ADR-2540 and ADR-2700 to ADR-2730 respectively. Each has one task, TSK-5155 to TSK-5175.
 
 TSK-4940 realises ADR-2490 directly, as ADR-2720 amends it: the interface page
 is generated from the tool's documentation comments. TSK-4960 realises
 ADR-2610 directly: an approved insight is pinned as frozen, and the model may
 write one. TSK-4965 realises ADR-2680 directly: `meow-checks doctor` answers
-whether the repository can be worked on. None of the three is started.
+whether the repository can be worked on.
 
 ## Defects
 

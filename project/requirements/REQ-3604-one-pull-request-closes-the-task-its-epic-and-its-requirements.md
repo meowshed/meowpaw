@@ -3,8 +3,8 @@ id: REQ-3604
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: behavioural
 ---
@@ -13,6 +13,8 @@ verification: behavioural
 
 # REQ-3604
 
-When a task's pull request merges, the task, its epic where the task was the epic's last open one, and each requirement that no open task or epic still names MUST be closed by that merge, with no later change.
+**Withdrawn. Replaced by REQ-3678.**
 
-The cover step spent its last pull requests closing work already done (RES-0310, conclusion 2).
+It read: when a task's pull request merges, the task, its epic where the task was the epic's last open one, and each requirement that no open task or epic still names MUST be closed by that merge, with no later change.
+
+Withdrawn by ADR-3090.

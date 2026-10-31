@@ -1,7 +1,7 @@
 ---
 id: BUG-1610
 artifact: bug
-status: approved
+status: done
 severity: major
 enters: requirements
 found: 2026-10-11

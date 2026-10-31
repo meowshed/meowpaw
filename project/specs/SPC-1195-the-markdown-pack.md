@@ -34,7 +34,7 @@ states only what is Markdown's. It leaves spelling, prose linting and site
 builds unbound. Running a stage is SPC-1040's, and the writing
 standard is SPC-1010's.
 
-ADR-1900 decides this part and EPC-1800 realised it, verified under issue 624.
+ADR-1900 decides this part, verified under issue 624.
 ADR-2620 adds the diagrams: their notation, the check that parses them and
 the rules a diagram keeps.
 

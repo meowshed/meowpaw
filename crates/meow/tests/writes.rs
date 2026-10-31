@@ -218,17 +218,12 @@ const WRITES: [(&str, usize, &str); 13] = [
     (
         "github/project.rs",
         1,
-        "the task record the projection marks, under the record root",
+        "the decision or defect the projection marks, under the record root",
     ),
     (
         "github/request.rs",
         1,
         "the rate limit's wait file, under the run state",
-    ),
-    (
-        "github/sync.rs",
-        2,
-        "the task and its authority's record, under the record root",
     ),
     (
         "gotask.rs",
@@ -244,6 +239,11 @@ const WRITES: [(&str, usize, &str); 13] = [
         "record.rs",
         7,
         "the record's files through a temporary file beside each, and the onboarding removal under the repository",
+    ),
+    (
+        "record/upgrade.rs",
+        4,
+        "the profile the upgrade edits, and the archive it moves epics and tasks into, under the repository (ADR-3090)",
     ),
     (
         "runloop.rs",

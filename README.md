@@ -12,50 +12,45 @@ the whole value.
 
 Universal means two things here. The method knows nothing about your stack, so
 a Rust workspace, a Godot game, a Compose deployment and a Markdown knowledge
-base all move through the same seven steps. The parts that _must_ know your
+base all move through the same six steps. The parts that _must_ know your
 stack - how to format, how to lint, how to run one test - arrive as small packs
 answering a fixed contract.
 
 ## The method
 
-Every unit of work, in any repository, moves through the same seven steps, and
+Every unit of work, in any repository, moves through the same six steps, and
 each one writes a single artifact:
 
 ```text
-research -> requirements -> design -> spec -> epic
-         -> implement -> review
+research -> requirements -> design -> spec -> implement -> review
 ```
 
 The vision, the constitution and the specification are living documents. They
 describe the present and you rewrite them freely, because the history already
 lives in the records. Everything else is a record - research, requirements,
-decisions, epics, tasks, defects - open while it's a draft and frozen once
+decisions, defects - open while it's a draft and frozen once
 approved, so a later truth becomes a new record and never an edit to an old
 one.
 
-Design produces decision records. An epic realises exactly one authorising
-record, a decision or a defect, which is what makes it finite and what it
-projects onto when you use a tracker.
+Design produces decision records. A decision or a defect is the one unit of
+work: one record, one issue when you use a tracker, one branch and one pull
+request, and the record carries its own plan.
 
-An epic is one pull request: each of its tasks is its tests first, then the
-change, its documentation and its record marks. Review runs last, inside that
-pull request, which fixes what the review finds.
+Each step of the plan is its tests first, then the change, its documentation
+and its record marks. Review runs last, inside that pull request, which fixes
+what the review finds.
 
 A step refuses to run when its input is missing or unapproved, and that refusal
 is the only thing enforcing the order. Trivial work skips the chain: the
 harness classifies the request first and tells you which class it picked,
-because a harness that demands seven steps for a typo is one you'd work around.
+because a harness that demands six steps for a typo is one you'd work around.
 
 ## Status
 
-126 research documents are written, and 1,053 requirements are drawn from them.
-Each requirement carries one obligation, cites the research it came from, and
-declares what would verify it.
-
-Nothing is designed and nothing is built. No decision is in force, so nothing
-here says how any of this works, and no plugin exists yet. The harness is built
-by its own method, so its artifacts come before its code, and they're what you
-read and argue with today.
+The harness is built by its own method, so its artifacts come before its code.
+[`project/README.md`](project/README.md) says what's decided, what's in force and
+what's open. Each requirement carries one obligation, cites the research it came
+from, and declares what would verify it.
 
 ## Read in this order
 

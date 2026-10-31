@@ -1,7 +1,7 @@
 ---
 id: BUG-1570
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-1429
 enters: design

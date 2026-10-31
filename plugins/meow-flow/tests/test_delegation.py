@@ -32,19 +32,19 @@ def rule(text, requirement):
 
 
 class Delegation(unittest.TestCase):
-    def test_two_reasons_to_delegate_and_never_because_a_task_is_large(self):
+    def test_two_reasons_to_delegate_and_never_because_a_step_is_large(self):
         """TSK-4950 criterion 1, REQ-0826, REQ-0828: context kept clean or independent tracks, never size."""
         reasons = rule(TEXT, "REQ-0826")
         self.assertRegex(reasons, r"keep (this|a|the) context clean")
         self.assertRegex(reasons, r"independent tracks")
-        self.assertRegex(rule(TEXT, "REQ-0828"), r"never because (the|a) task is large")
+        self.assertRegex(rule(TEXT, "REQ-0828"), r"never because (the|a) step is large")
 
     def test_a_parallel_dispatch_declares_a_worktree_and_carries_the_brief(self):
-        """TSK-4950 criterion 2, REQ-2980, REQ-0810: `isolation: worktree`, and `paw brief <task>`'s output."""
+        """TSK-4950 criterion 2, REQ-2980, REQ-0810: `isolation: worktree`, and `paw brief <record>`'s output."""
         isolation = rule(TEXT, "REQ-2980")
         self.assertIn("isolation: worktree", isolation)
         self.assertRegex(isolation, r"parallel")
-        self.assertRegex(rule(TEXT, "REQ-0810"), r"output of `paw brief <task>`")
+        self.assertRegex(rule(TEXT, "REQ-0810"), r"output of `paw brief <record>`")
 
     def test_review_is_a_fresh_agent_and_a_disagreement_goes_to_a_third(self):
         """TSK-4950 criterion 3, REQ-0818, REQ-0824: what the step tells the dispatcher; whether a model does
@@ -56,12 +56,12 @@ class Delegation(unittest.TestCase):
         self.assertRegex(third, r"third fresh agent")
         self.assertRegex(third, r"both positions and the brief")
 
-    def test_a_delegated_pull_request_names_the_task_and_the_brief_and_no_agent(self):
-        """TSK-4950 criterion 4, TSK-5175, REQ-1764, REQ-1294: the task and `paw brief <task>`, and no agent,
+    def test_a_delegated_pull_request_names_the_record_and_the_brief_and_no_agent(self):
+        """TSK-4950 criterion 4, TSK-5175, REQ-1764, REQ-1294: the record and `paw brief <record>`, and no agent,
         model or vendor."""
         pull_request = rule(TEXT, "REQ-1764")
         self.assertRegex(pull_request, r"pull request")
-        self.assertIn("`paw brief <task>`", pull_request)
+        self.assertIn("`paw brief <record>`", pull_request)
         self.assertRegex(pull_request, r"no agent, model or vendor")
         for word in ("claude", "anthropic", "opus", "sonnet", "haiku", "co-authored-by", "generated with"):
             self.assertNotIn(word, FLAT.lower())
@@ -76,8 +76,8 @@ class Delegation(unittest.TestCase):
         messages = [f for f in fences if "paw brief" in f]
         self.assertEqual(len(messages), 1, "the example holds no corrected message in a text fence")
         message = messages[0]
-        self.assertRegex(message, r"TSK-\d{4}")
-        self.assertRegex(message, r"paw brief TSK-\d{4}")
+        self.assertRegex(message, r"ADR-\d{4}")
+        self.assertRegex(message, r"paw brief ADR-\d{4}")
         # The first sign-off names the commit's author, so the check runs as the person the example names.
         author = {"GIT_AUTHOR_NAME": "A Person", "GIT_AUTHOR_EMAIL": "person@example.com"}
         done = subprocess.run([str(SCM), "check-message"], input=message, cwd=ROOT, capture_output=True, text=True,

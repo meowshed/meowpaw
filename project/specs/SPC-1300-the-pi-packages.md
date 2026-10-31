@@ -2,7 +2,7 @@
 id: SPC-1300
 artifact: spec
 status: live
-revised: 2026-10-11
+revised: 2026-10-31
 states:
   [
     REQ-4100,
@@ -11,9 +11,9 @@ states:
     REQ-4108,
     REQ-4112,
     REQ-4114,
-    REQ-4122,
+    REQ-3666,
     REQ-4126,
-    REQ-4128,
+    REQ-3684,
     REQ-4130,
     REQ-4132,
     REQ-4134,
@@ -38,7 +38,7 @@ developed for both platforms. It states the mapping, the package layout, the
 event handlers, the commands, the tools, the binary dispatch and the
 dual-platform contract.
 
-It leaves the implementation of each extension to its task, the eval runner
+It leaves the implementation of each extension to its decision, the eval runner
 design to a later decision, and per-user configuration to a later decision. A Pi package that exploits dynamic tool registration, virtual models
 or structured output has no specification yet, because no decision asks for
 one.
@@ -215,7 +215,7 @@ program holds.
 ### Commands
 
 The method extension registers a command for each step and driver
-(REQ-4122). The seven steps share the method skill, because the unit ships
+(REQ-3666). The six steps share the method skill, because the unit ships
 no skill per step:
 
 | Command                   | Loads skill               |
@@ -224,16 +224,16 @@ no skill per step:
 | `/meow-flow:requirements` | `skills/method/SKILL.md`  |
 | `/meow-flow:design`       | `skills/method/SKILL.md`  |
 | `/meow-flow:spec`         | `skills/method/SKILL.md`  |
-| `/meow-flow:epic`         | `skills/method/SKILL.md`  |
 | `/meow-flow:implement`    | `skills/method/SKILL.md`  |
 | `/meow-flow:review`       | `skills/method/SKILL.md`  |
 | `/meow-flow:run`          | `skills/run/SKILL.md`     |
 | `/meow-flow:init`         | `skills/init/SKILL.md`    |
 | `/meow-flow:onboard`      | `skills/onboard/SKILL.md` |
+| `/meow-flow:upgrade`      | `skills/upgrade/SKILL.md` |
 
 Each handler sends the skill file's text and the command's arguments into the
 session as a user message, because a notification reaches only the person
-and never the model (REQ-4122).
+and never the model.
 
 ### The loop command
 
@@ -269,7 +269,7 @@ bundled inside the package that loads it, and no resolved path walks above
 the package root (REQ-4130). Where a file is missing, the extension
 reports it and carries on with the behaviour it can hold.
 
-The record templates ship in the package alongside `paw` (REQ-4128). The
+The record templates ship in the package alongside `paw`. The
 command `paw template <kind>` reads them from the same relative path it uses
 in the Claude Code plugin.
 

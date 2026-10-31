@@ -1,7 +1,7 @@
 ---
 id: BUG-1530
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-4300
 enters: implement

@@ -92,11 +92,7 @@ fn fixture(name: &str) -> Dir {
         "vision.md",
         "---\nid: vision\nartifact: vision\nstatus: live\nrevised: 2026-01-01\n---\n\n# Vision\n",
     );
-    write(
-        &root,
-        "README.md",
-        &index(&["SPC-0001", "EPC-0001", "BUG-0001"]),
-    );
+    write(&root, "README.md", &index(&["SPC-0001", "BUG-0001"]));
     write(
         &root,
         "specs/SPC-0001-a-part.md",
@@ -159,6 +155,7 @@ fn fixture(name: &str) -> Dir {
             "What it costs",
             "What would reverse it",
             "Consequences",
+            "Plan",
         ],
         "",
     )
@@ -169,27 +166,13 @@ fn fixture(name: &str) -> Dir {
     write(&root, "adrs/ADR-0001-a-choice.md", &decision);
     write(
         &root,
-        "epics/EPC-0001-a-plan.md",
-        &record(
-            "epic",
-            "EPC-0001",
-            &[("realises", "ADR-0001")],
-            &["Acceptance criteria", "Tasks", "Coverage", "Not covered"],
-            "",
-        ),
-    );
-    write(
-        &root,
-        "tasks/TSK-0001-a-task.md",
+        "archive/tasks/TSK-0001-a-task.md",
         &record(
             "task",
             "TSK-0001",
-            &[
-                ("epic", "EPC-0001"),
-                ("closes", "\n  [\n    REQ-0001,\n  ]"),
-            ],
-            &["What to do", "Depends on", "Evidence", "Left alone"],
-            "\nSee [the plan](../epics/EPC-0001-a-plan.md).\n",
+            &[("status", "done"), ("closes", "[REQ-0001]")],
+            &["Evidence"],
+            "",
         ),
     );
     write(
@@ -425,18 +408,19 @@ fn read_only_output_opens_with_stated_first_words() {
     held(d, "show", &["show", "REQ-0001"]);
     held(d, "show", &["show", "TSK-0001"]);
     held(d, "show", &["show", "TSK-9999"]);
-    held(d, "ready", &["ready", "implement", "TSK-0001"]);
-    held(d, "ready", &["ready", "implement", "TSK-9999"]);
+    held(d, "ready", &["ready", "implement", "ADR-0001"]);
+    held(d, "ready", &["ready", "implement", "ADR-9999"]);
     held(d, "ready", &["ready", "research"]);
-    held(d, "template", &["template", "task"]);
+    held(d, "template", &["template", "adr"]);
+    held(d, "new", &["new", "decision"]);
     held(d, "new", &["new", "task"]);
     held(d, "index", &["index", "requirement"]);
-    held(d, "index", &["index", "task"]);
+    held(d, "index", &["index", "decision"]);
     held(d, "find", &["find", "vision"]);
     held(d, "show", &["show", "vision"]);
-    let brief = held(d, "brief", &["brief", "TSK-0001"]);
+    let brief = held(d, "brief", &["brief", "ADR-0001"]);
     assert!(brief.iter().any(|l| l == "# Constraints"), "{brief:?}");
-    held(d, "brief", &["brief", "TSK-9999"]);
+    held(d, "brief", &["brief", "ADR-9999"]);
 }
 
 /// REQ-1184: a finding's line, a draft's waiting line and a refused change
@@ -485,7 +469,7 @@ fn findings_drafts_and_refusals_open_with_stated_first_words() {
             "REQ-0001",
         ],
     );
-    held(d, "done", &["done", "TSK-9999", "--pr", "1"]);
+    held(d, "done", &["done", "ADR-9999", "--pr", "1"]);
     held(d, "onboarding", &["onboarding", "remove"]);
 }
 
@@ -530,14 +514,7 @@ fn successful_changes_open_with_stated_first_words() {
             "",
         ),
     );
-    let epic = d.join("project/epics/EPC-0001-a-plan.md");
-    let text = std::fs::read_to_string(&epic).unwrap();
-    std::fs::write(
-        &epic,
-        format!("{text}\n- [ ] T-001 TSK-0001 a task\n      closes: REQ-0001\n"),
-    )
-    .unwrap();
-    let done = held(d, "done", &["done", "TSK-0001", "--pr", "7"]);
+    let done = held(d, "done", &["done", "ADR-0001", "--pr", "7"]);
     assert!(
         done.iter().any(|l| l.contains("is done in pull request 7")),
         "{done:?}"

@@ -1,7 +1,7 @@
 ---
 id: BUG-1250
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-0208
 enters: cover

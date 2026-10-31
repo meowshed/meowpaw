@@ -1,7 +1,7 @@
 ---
 id: ADR-1600
 artifact: adr
-status: approved
+status: done
 revised: 2026-09-28
 addresses: [REQ-3182, REQ-3183, REQ-3187, REQ-1756, REQ-2076]
 supersedes: []

@@ -1,7 +1,7 @@
 ---
 id: BUG-1130
 artifact: bug
-status: approved
+status: done
 severity: minor
 found: 2026-09-26
 revised: 2026-09-26

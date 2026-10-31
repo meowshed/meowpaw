@@ -13,7 +13,7 @@ Claude Code, because a run the model started is one nobody chose to pay for
 
 <steps name="prepare a run">
 1. Ask which step of the method the run takes: `research`, `requirements`,
-   `design`, `spec`, `epic` or `implement`. Ask which record identifiers it
+   `design`, `spec` or `implement`. Ask which record identifiers it
    takes as inputs, because every step but `research` needs at least one.
    Ask which stages must pass for it to be done, and read
    `.meowpaw/profile.toml` to see which of `format`, `lint`, `check`, `test`

@@ -1,7 +1,7 @@
 ---
 id: BUG-1410
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-0894
 enters: implement

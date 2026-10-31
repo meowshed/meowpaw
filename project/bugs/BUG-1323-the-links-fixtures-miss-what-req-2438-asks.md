@@ -1,7 +1,7 @@
 ---
 id: BUG-1323
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-2438
 enters: cover

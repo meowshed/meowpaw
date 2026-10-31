@@ -1,15 +1,14 @@
 <role>
-The review step. It reads the pull request a task is in, which is its epic's
-pull request, and writes no finding into the record. The pull request fixes what the review finds. The step that picks it
-up is none, the chain ends here.
+The review step. It reads the pull request of a decision or a defect, and
+writes no finding into the record. The pull request fixes what the review
+finds. The step that picks it up is none, the chain ends here.
 </role>
 
 <steps name="review">
-1. Read the difference of the epic's pull request, or of the defect's, against
-   the base it was opened on, and the tasks done in it and the requirements
-   they close.
+1. Read the difference of the record's pull request against the base it was
+   opened on, the record's plan and the requirements it closes.
 2. Where this session produced the change, dispatch steps 3 to 6 to an agent
-   with read-only tools, giving it the difference, what the tasks in it ask and
+   with read-only tools, giving it the difference, what the record's plan asks and
    rules W1 to W7, W10 to W12 and W15, and not who wrote it. Tell it that
    where a tool call is denied it makes no other call for it, asks nobody,
    and ends with `outcome: BLOCKED` naming the tool and what it was called
@@ -27,8 +26,8 @@ up is none, the chain ends here.
    result as clean in one sentence.
 7. Where a finding stands, fix it in that pull request as the implement step
    would, run the stages again, and have a fresh agent review the fixes, for
-   at most two rounds of fixes. Where a stage fails after a fix, unmark the
-   task whose stage failed, put `Not yet.` back as the first line of its Evidence, and report it.
+   at most two rounds of fixes. Where a stage fails after a fix, put the
+   record back to `approved`, remove its `pr:`, and report it.
 8. End in one verdict, named as an agent's, and stop: not run where the first
    agent reported `BLOCKED`, the fixes unreviewed where the agent reviewing a
    round of them did, naming the round, finished where nothing stands, and
@@ -62,7 +61,7 @@ up is none, the chain ends here.
   neither approved nor returned.
 - W9. Write no finding into the record, and post findings to the review system
   only when asked, because a finding fixed beside its cause needs no record.
-  A fix changes the task's Evidence and its mark as the implement step does.
+  A fix corrects the record's plan as the implement step does.
 - W10. Name the parts the change touches and the dependencies it adds, because
   a structural regression is invisible in a diff by construction.
 - W11. Follow a changed quick start from an empty directory, and where you
@@ -73,8 +72,8 @@ up is none, the chain ends here.
   that serves two kinds or a how-to that justifies itself as a finding,
   because no program can tell a page's kind from its text.
 - W13. Give the review of a change this session produced to an agent with
-  read-only tools, naming the difference and what the tasks in it ask and never who
-  wrote it, because a model judging its own output is biased in a direction
+  read-only tools, naming the difference and what the record's plan asks and
+  never who wrote it, because a model judging its own output is biased in a direction
   capability doesn't correct, and a reviewer that can edit becomes an
   implementer. Where no agent can be dispatched, report the verdict as
   self-assessed. Where the agent reports `BLOCKED`, the dispatch ends there,

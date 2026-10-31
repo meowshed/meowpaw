@@ -2,7 +2,7 @@
 id: SPC-1080
 artifact: spec
 status: live
-revised: 2026-10-24
+revised: 2026-10-31
 states:
   [
     REQ-0010,
@@ -35,23 +35,18 @@ states:
     REQ-1184,
     REQ-1186,
     REQ-1190,
-    REQ-1350,
+    REQ-4002,
     REQ-1351,
-    REQ-1352,
     REQ-1354,
     REQ-1355,
     REQ-1356,
-    REQ-1360,
-    REQ-1364,
+    REQ-3668,
     REQ-1366,
     REQ-1368,
     REQ-1370,
     REQ-1372,
-    REQ-1376,
     REQ-1380,
-    REQ-1382,
     REQ-1384,
-    REQ-1386,
     REQ-1390,
     REQ-1392,
     REQ-1396,
@@ -140,14 +135,15 @@ states:
     REQ-3178,
     REQ-3192,
     REQ-3196,
-    REQ-3320,
     REQ-3322,
     REQ-3324,
     REQ-3326,
     REQ-3800,
     REQ-3900,
-    REQ-3902,
-    REQ-4000,
+    REQ-3672,
+    REQ-3674,
+    REQ-2928,
+    REQ-4300,
     REQ-4142,
     REQ-4146,
     REQ-4148,
@@ -165,7 +161,6 @@ states:
     REQ-4700,
     REQ-4702,
     REQ-4704,
-    REQ-4706,
   ]
 ---
 
@@ -179,16 +174,13 @@ own features, how a unit's launcher finds and runs it, and how a release ships
 it. What each subcommand does is its unit's specification, which cites this
 one, so this one names none of them.
 
-ADR-1110 decides it, EPC-1080 realises it, and the `meow` crate with its
+ADR-1110 decides it, and the `meow` crate with its
 launchers and release implements it, verified under issue 160. ADR-1610
-decides how this repository's five stages check the crate, and EPC-1570
-realises that. BUG-1240 and TSK-2520 bring the launchers and the build
+decides how this repository's five stages check the crate. BUG-1240 brings the launchers and the build
 script under the same stages. ADR-1800 adds the check that `project` groups
-an issue nowhere, and EPC-1710 realised it, verified under issue 625. ADR-1810
-sends every GitHub request through one layer, and EPC-1720 realises it.
-ADR-2500 decides the unattended install, and TSK-4600 realises it. ADR-2520
-adds the release's attestation and the report of the trunk's protections, and
-EPC-2420 realises them. ADR-2710 decides what a hook's launcher does with no
+an issue nowhere, verified under issue 625. ADR-1810 sends every GitHub request
+through one layer. ADR-2500 decides the unattended install. ADR-2520 adds the
+release's attestation and the report of the trunk's protections. ADR-2710 decides what a hook's launcher does with no
 binary. ADR-2460 decides where the harness writes and that it never touches a
 secret. ADR-2490, as ADR-2720 amends it, decides the interface page and its
 generator. ADR-2650 adds the parts a repository declares and the profile
@@ -224,8 +216,7 @@ a unit that runs a program declares the core unit under `dependencies` and no
 other unit (REQ-4500, REQ-4502, ADR-2870). A unit's launcher reads the path of
 the core unit's installed root from the core unit's data directory, which the
 core unit's session start writes, and it reports each of its checks unresolved,
-naming the core unit, where it finds none (REQ-4504, REQ-4506). Until EPC-2790
-lands, a unit still carries a build of its own beside it. The profile reading,
+naming the core unit, where it finds none (REQ-4504, REQ-4506). The profile reading,
 the report shapes and the exit codes the units share are one module every
 feature uses.
 
@@ -367,13 +358,16 @@ marked breaking (ADR-2490, ADR-2720).
 ### The checks the crate passes
 
 The record check reports an approved requirement that no approved decision
-addresses or postpones, and an approved addressing decision with no approved
-epic or direct task (REQ-3900, REQ-3902). A decision that only postpones work
-needs no implementation plan.
+addresses or postpones, and a draft or approved addressing decision with no
+`## Plan` (REQ-3900, REQ-3672). A decision that only postpones work needs no
+plan.
 
 This repository's five stages check the crate as they check every other file
 it ships, so evidence kept from the stages covers the code every unit runs
-(REQ-1186). Each stage runs a task in `mise.toml`, and the gate's `all` task
+(REQ-1186). A check this repository runs against its own tree runs the binary
+that tree builds and never an installed release (REQ-2928), and the `test` stage
+finishes within 300 seconds on the owner's machine with the units' binaries
+already built (REQ-4300). Each stage runs a task in `mise.toml`, and the gate's `all` task
 depends on each of them apart from `build`, whose binaries CI builds in its own
 workflow:
 
@@ -781,61 +775,84 @@ other command it prints nothing and exits 0.
 ### Projecting the record onto a tracker
 
 The record is the system of record and a tracker a projection of it, and the
-method completes with none (REQ-1372, REQ-1376, REQ-1380). `meow-github`
-serves the code host GitHub, creating, linking and reading back the issues an
-epic projects onto (REQ-2358), and GitHub Issues as the tracker, projected as
-a mapping from each task to its issue and never as an integration that keeps
-state of its own (REQ-2360) (ADR-2660). A repository
+method completes with none (REQ-1372, REQ-4002, REQ-1380). `meow-github`
+serves the code host GitHub, creating, linking and reading back the issue a
+record projects onto (REQ-2358), and GitHub Issues as the tracker, projected as
+a mapping from each decision or defect to its one issue and never as an
+integration that keeps state of its own (REQ-2360) (ADR-2660). A repository
 declares its tracker as `[tracker] kind` in its profile (REQ-1351).
-`meow-github project <record>` projects the tasks of an approved epic, an
-approved defect that carries tasks directly, or an approved decision realised
-without an epic. It selects defect tasks by their `bug` field, derives their
-completion from the defect's task marks and otherwise uses the same mapping,
-replay, read-back, disagreement and failure behaviour (REQ-4000). The command
-uses the request layer, one issue for each task, citing the requirements and dependencies and
-marked as a synchronisation's write, and records `issue:` and `projected:` on
-the task (REQ-1350, REQ-1352, REQ-1354, REQ-1356, REQ-1360, REQ-1382,
-REQ-1384, REQ-1386, REQ-1396). After its last create it reads the issues it
-created back in one uncached, paged listing,
+
+`meow-github project <record>` maps an approved decision or defect to one issue
+(REQ-3668, REQ-4002). The command uses the request layer. The issue's title is
+`<id>: <title>`, and its body names the record, the requirements it addresses or
+violates and its `## Plan`, marked as a synchronisation's write. The command
+records `issue:`, `projected:` and `tracked:` on the record (REQ-4002, REQ-1354,
+REQ-1356, REQ-1384, REQ-1396). The pull request closes that issue with
+`Closes #<issue>`. After its last create it reads the issue it created back in
+one uncached, paged listing,
 `repos/{r}/issues?state=all&since=<start>&per_page=100`, where `<start>` is
 the earliest `updated_at` among the create answers of the run, or the `Date`
 of the run's first response where no create answer carries one, and matches
-each by number (REQ-3322) (ADR-2320). It then reads by number,
-`repos/{r}/issues/{n}`, uncached, each created issue the listing left out,
+it by number (REQ-3322) (ADR-2320). It then reads by number,
+`repos/{r}/issues/{n}`, uncached, a created issue the listing left out,
 because the listing can lag a create by seconds, and stops these reads at a
 throttle, a ceiling or a 401 (REQ-3322) (ADR-2340). It reads
-an issue already mapped to a task on its own, and each link is read back from
+an issue already mapped to the record on its own, and each link is read back from
 the tracker, in this run's listing or through its mapping in the next run
 (REQ-1368). The listing runs after a failed write or a refusal, and not after
 a throttle, a ceiling or a 401 (ADR-1810, ADR-2330).
 
-A replay changes nothing and a changed task updates its issue. `meow-github
-sync` compares each task with its issue by a fingerprint of each side taken at
-the last synchronisation: the side that changed is applied to the other, the
-record's text is applied where both changed, an approved record is never
-reworded from the tracker and its difference is reported, and the issue's state
-still flows to the record (REQ-4700, REQ-4702, REQ-4704, ADR-2890). A closed
-issue on an unmarked task is reported, and `--check` computes the state on
-demand and writes nothing (REQ-1355, REQ-1392, REQ-1400). The method runs the
-synchronisation at the start and the end of an epic's work and nothing runs it
-in the background (REQ-4706). The docs give the `gh` commands that project a task by
-hand, the headers to read and the one-second spacing between writes
-(REQ-1402) (ADR-1310, ADR-1810).
+A replay changes nothing and a changed record updates its issue. `meow-github
+sync <record>` compares a record with its issue by a fingerprint of each side
+taken at the last synchronisation: the side that changed is applied to the
+other, the record's text is applied where both changed, an approved record is
+never reworded from the tracker and its difference is reported (REQ-4700,
+REQ-4702, REQ-4704, ADR-2890). An issue closed on the tracker while its record
+isn't done is reported and not reconciled, because the record decides when its
+work is done (REQ-3678), and `--check` computes the state on demand and writes
+nothing (REQ-1355, REQ-1392, REQ-1400). The method runs the synchronisation at
+the start and the end of a record's work and nothing runs it in the background
+(REQ-4002). The docs give the `gh` commands that project a record by hand, the
+headers to read and the one-second spacing between writes (REQ-1402)
+(ADR-1310, ADR-1810).
 
-Whenever `project` stops before it has projected every task, or holds a
+Whenever `project` stops before it has projected the record, or holds a
 created issue it didn't read back, it prints
-`partial: projected TSK-a; created, not read back TSK-b; not projected TSK-c`
+`partial: projected <id>; created, not read back <id>; not projected <id>`
 after the read-back listing, where the listing runs, and exits 3 (REQ-2572).
-A task is projected when its issue was updated or found unchanged in this run,
+A record is projected when its issue was updated or found unchanged in this run,
 or was created and read back matching the record. A created issue that neither
 the listing nor its read by number shows as written goes under
-`created, not read back`, with the reason. Its task holds the mapping, so the
+`created, not read back`, with the reason. The record holds the mapping, so the
 next run reads that issue through it and creates no second one.
 
 `project` groups an issue nowhere: it passes no `--milestone`, `--parent`,
-`--project` or `--label` and creates no blocked-by relation, and the issue's
-body carries each dependency line with its `(blocking)` or `(not blocking)`
-marker as the task writes it (REQ-3320) (ADR-1800).
+`--project` or `--label` and creates no blocked-by relation (ADR-1800).
+
+### Retiring the issues of archived tasks
+
+`meow-github upgrade` runs after the pull request of `paw upgrade --write` has
+merged, because an issue closed earlier could name a plan that is never merged
+(ADR-3090). `--check` previews it and writes nothing. It reads
+`archive/tasks/` and refuses with exit 1 where that is empty, and it reads no
+issue an archived task doesn't map, so an issue of the repository's own stays as
+it is.
+
+| Archived task                     | Its issue is open                                                                        | Its issue is closed            |
+| --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------ |
+| Done                              | Closed as `completed`                                                                    | Left alone                     |
+| Withdrawn, rejected or superseded | Closed as `not_planned`                                                                  | Left alone                     |
+| Open, with `folded-into:`         | The record's issue is created first, then this one is closed as `not_planned`, naming it | Left alone, and reported       |
+| Open, with no `folded-into:`      | Left open, and reported as needing a decision                                            | Reported as needing a decision |
+
+Each close is one call that prepends the notice to the body and sets the state,
+so an interrupted run leaves no issue half changed and the next run skips what
+is already closed. A defect's issue stays open and stays its issue, because the
+command reads only the tasks' mappings. The command lists each open pull request
+whose title or body names a folded task and changes none of them, because those
+branches are somebody's work. Each branch rebases and moves its plan to the
+record by hand. An open task with no `folded-into:` and no issue is reported as
+needing a decision too, and any orphan makes the run exit 1.
 
 ### Quality attributes
 
@@ -899,7 +916,7 @@ process uses, and maps each to the control that answers it, or says none does
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | Spoofing               | The push guard's signature check, and the credential's form named by `meow-github`                                                       |
 | Tampering              | `paw check frozen` on approved records, the SHA-256 of each released archive and its build provenance attestation                        |
-| Repudiation            | Signed and signed-off commits, and one squashed pull request per task                                                                    |
+| Repudiation            | Signed and signed-off commits, and one squashed pull request per record                                                                  |
 | Information disclosure | None by program; the instruction in `CLAUDE.md` alone                                                                                    |
 | Denial of service      | The request layer's ceilings for the code host; none for a slow hook                                                                     |
 | Elevation of privilege | The governance guard's `ask`, the write allow list, and `meow-author check` refusing `Agent`, `Task` or `*` in a shipped agent's `tools` |
@@ -935,7 +952,8 @@ process uses, and maps each to the control that answers it, or says none does
 | A throttle with `--wait`                         | The layer sleeps until the stated time and resends, and stops as throttled once the waits would pass an hour |
 | A limit header's value doesn't parse in its unit | The wait is reported as unknown, the run sends nothing more and exits 3                                      |
 | A request would pass a budget's ceiling          | It isn't sent, and the run stops as at a throttle, naming the count and when it frees                        |
-| `project` stops before visiting every task       | It prints `partial:` with what it projected, created and didn't project, and exits 3                         |
+| `project` stops before visiting the record       | It prints `partial:` with what it projected, created and didn't project, and exits 3                         |
+| `upgrade` finds no archived task                 | It names `paw upgrade --write` and exits 1                                                                   |
 | GitHub answers 401                               | `unauthenticated:` with the method and endpoint, exit 3                                                      |
 | GitHub answers a 403 that isn't a throttle       | `refused:` with the method, endpoint and permission, or GitHub's message, exit 3                             |
 | GitHub answers 404 on a mapped object            | As a 403, adding that it may be hidden from this credential, exit 3                                          |

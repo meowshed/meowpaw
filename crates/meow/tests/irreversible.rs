@@ -178,7 +178,7 @@ fn asked(dir: &Path, state: &Path, mode: &str, command: &str) -> Vec<String> {
 }
 
 /// One fixture command for each operation ADR-2750 names.
-const IRREVERSIBLE: [&str; 13] = [
+const IRREVERSIBLE: [&str; 14] = [
     "git push origin feat/x",
     "git -C sub push",
     "gh pr merge 12 --squash",
@@ -189,7 +189,8 @@ const IRREVERSIBLE: [&str; 13] = [
     "gh pr create --title T --body B",
     "gh api -X POST repos/o/r/issues -f title=T",
     "gh api repos/o/r/issues/4/comments -f body=B",
-    "meow-github project EPC-0001",
+    "meow-github project ADR-0001",
+    "meow-github upgrade",
     "gh api -X PUT repos/o/r/branches/main/protection",
     "gh secret set TOKEN",
 ];
@@ -248,7 +249,8 @@ fn a_read_or_a_local_write_asks_nothing() {
         "gh release view meow-x-v1.0.0",
         "gh api repos/o/r/issues",
         "gh api -X GET repos/o/r/pulls",
-        "meow-github project EPC-0001 --check",
+        "meow-github project ADR-0001 --check",
+        "meow-github upgrade --check",
         "meow-github history",
         "ls -la",
     ] {

@@ -1,7 +1,7 @@
 ---
 id: BUG-1590
 artifact: bug
-status: approved # draft, approved, or withdrawn; open and closed are derived
+status: done # draft, approved, or withdrawn; open and closed are derived
 severity: major # the registry held no version the workflow reported as published, so a release read as complete while half of one distribution shipped nothing
 violates: REQ-4146 # a Pi package mirrors each unit one to one; a unit release must reach npm, which the workflow promises and the shell swallows
 enters: implement # the step it enters at: implement or design where it violates a requirement, requirements where the requirement is wrong or none covers it, research where the cause is unknown

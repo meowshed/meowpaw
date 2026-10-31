@@ -3,8 +3,8 @@ id: REQ-4404
 artifact: requirement
 topic: source-control
 class: functional
-status: approved
-revised: 2026-10-10
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0346
 verification: static
 ---
@@ -13,5 +13,9 @@ verification: static
 
 # REQ-4404
 
-One task that realises a decision with no epic MUST map to one branch, one pull
+**Withdrawn. Replaced by REQ-3668.**
+
+It read: one task that realises a decision with no epic MUST map to one branch, one pull
 request and one review, from the decision to the merge of the task.
+
+Withdrawn by ADR-3090.

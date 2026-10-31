@@ -19,7 +19,7 @@ plugin's Lua. It states what `status` detects, what `bind` prints and what
 this document states only what is Lua's. It leaves coverage, documentation
 generation and the typed dialect Teal unbound.
 
-ADR-2660 decides this pack and EPC-2560's TSK-5100 ships it.
+ADR-2660 decides this pack.
 
 ## Boundary
 

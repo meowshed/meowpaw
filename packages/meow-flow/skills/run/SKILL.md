@@ -23,13 +23,13 @@ progress file. With no such prompt, you are attended and everything below
    otherwise the first decision whose line begins `next:`.
 3. Where the chosen line begins `waiting:`, or nothing begins `next:`, report
    the first item waiting, the line itself or the first record under Waiting
-   for approval, and stop, saying what the chain is waiting on. A task that
+   for approval, and stop, saying what the chain is waiting on. A record that
    isn't approved on the trunk yet waits on a merge, which only a person
    makes.
 4. Load the `method` skill and run the step the chosen line names, with its
    input.
 5. Stop where that step ends at an approval gate. Where the person asked for
-   a whole decision in one pull request, the method skill's M20 carries the
+   a decision's whole cycle in one pull request, the method skill's M20 carries the
    steps through, and you stop at that pull request.
 6. Where that step ends without an approval gate, run
    `paw status --brief` again and continue from step 2,
@@ -51,18 +51,15 @@ progress file. With no such prompt, you are attended and everything below
 4. Approve the record, or the change, and write the approval as a harness
    approval in the pull request's body, or in a comment on it once it is open,
    naming the run's id.
-5. Land the work on the epic's one branch, in the epic's one pull request: push
-   the branch, open the pull request once, and carry on with the next task of
-   the epic on the same branch while `paw status` names one, and merge the
-   pull request only once `paw status` shows the epic is closed, its checks pass
-   and the repository's gate passed on the branch. A defect's tasks, and a
-   task that realises a decision, keep a pull request of their own, which
-   merges once `paw status` shows the defect or the decision closed.
-   Where a merged change needs a release and `[unattended] release` names a
+5. Land the work on the record's one branch, in its one pull request: push
+   the branch, open the pull request once, carry on through the record's plan
+   on the same branch, and merge the pull request only once `paw status` shows
+   the decision or the defect closed, its checks pass and the repository's gate
+   passed on the branch. Where a merged change needs a release and `[unattended] release` names a
    command, run that command once, after the merge, from the repository's root.
    You never guess a release command.
 6. Where `paw status` has no `next:` line and requirements are named by no
-   task, choose the next block yourself: one topic with neighbouring
+   decision, choose the next block yourself: one topic with neighbouring
    identifiers, skipping postponed requirements and those an approved decision
    already addresses. Where the block contradicts a record in force, write the
    decision that amends that record.

@@ -30,7 +30,7 @@ GDExtension's native build and the comparison of the project's engine version
 with the installed engine unbound, because `status`, `bind` and `check` start
 no tool and the installed version is only known by running the engine.
 
-ADR-2660 decides this pack and EPC-2560's TSK-5105 ships it.
+ADR-2660 decides this pack.
 
 ## Boundary
 

@@ -10,7 +10,7 @@
 fields = ["id", "artifact", "status", "revised"]
 
 # The front matter fields whose values name other artifacts.
-relations = ["elaborates", "addresses", "postpones", "supersedes", "realises", "epic", "bug", "closes", "states", "violates", "prompted-by"]
+relations = ["elaborates", "addresses", "postpones", "supersedes", "realises", "epic", "bug", "closes", "states", "violates", "prompted-by", "folded-into"]
 
 # Per kind: `optional_fields` it may carry and no check requires (ADR-2630),
 # `sections` every record carries, `draft_sections` a draft carries
@@ -34,12 +34,12 @@ index_name = "README.md"
 # a kind below.
 [retired.fields]
 unit = "the unit of work is named by the relations the record carries"
-checked-at = "no verification is recorded; a requirement closes with the tasks that name it (ADR-2300)"
+checked-at = "no verification is recorded; a requirement closes with the record that names it (ADR-2300)"
 
 # Sections the record has retired, reported wherever one is still carried.
 [retired.sections]
-Cover = "a task's tests land first in a commit of their own in the epic's pull request, and nothing in the task records them (ADR-2300)"
-Verified = "no verification is recorded; an epic closes with its tasks (ADR-2300)"
+Cover = "a plan step's tests land first in a commit of their own in the pull request, and nothing in the record keeps them (ADR-2300)"
+Verified = "no verification is recorded; a decision closes with its pull request (ADR-2300)"
 "Open review findings" = "no agent reviews a record, so none leaves findings in it (ADR-2300)"
 
 [retired.statuses]
@@ -107,49 +107,36 @@ artifact = "adr"
 prefix = "ADR"
 dir = "adrs"
 fields = ["addresses"]
-optional_fields = ["concerns"]
+optional_fields = ["concerns", "issue", "projected", "tracked", "pr"]
 statuses = ["draft", "approved", "done", "withdrawn", "rejected", "superseded"]
 index = "adrs/README.md"
 sections = ["Decision", "Why", "Alternatives", "What it costs", "What would reverse it", "Consequences"]
 draft_sections = ["How I will know it was realised", "What this does not settle"]
-rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect", "withdrawn-names-record", "concerns-framed"]
+rules = ["alternatives-why-lost", "addresses-or-postpones", "prompted-by-defect", "withdrawn-names-record", "concerns-framed", "plan-where-work"]
+# A decision sits under nothing, as a defect does, so it forbids every grouping
+# field (ADR-1800, ADR-3090).
+forbidden_fields = ["milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
 
+# The two kinds ADR-3090 retired: read and cited from the archive, and never
+# written, so `paw new` refuses them and no rule reads them. The relations stay
+# in `relations` above because archived records carry them.
 [[kind]]
 name = "epic"
 artifact = "epic"
 prefix = "EPC"
-dir = "epics"
-fields = ["realises"]
+dir = "archive/epics"
+archived = true
+fields = []
 statuses = ["draft", "approved", "done", "withdrawn", "rejected", "superseded"]
-index = "README.md"
-sections = ["Acceptance criteria", "Tasks", "Coverage", "Not covered"]
-rules = ["realises-one", "done-has-evidence", "added-says-why", "dropped-says-why", "defect-epic-ordered", "withdrawn-names-record"]
-# A draft epic marks no task, because a task's state is read from the task
-# (ADR-2590); an approved epic keeps the marks it was approved with (M15).
-draft_rules = ["no-task-status"]
-# A task sits under its epic or its defect and nothing else, so the task, epic
-# and defect kinds forbid every grouping field, and an epic forbids `epic`,
-# which would place it under another epic (ADR-1800).
-forbidden_fields = ["epic", "milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
 
 [[kind]]
 name = "task"
 artifact = "task"
 prefix = "TSK"
-dir = "tasks"
-# A task names the epic or the defect that authorises it, or the decision it
-# realises with no epic (REQ-3630), exactly one of the three, which
-# `one-authority` checks on drafts: three planning tasks approved
-# before ADR-1440 name neither, and keep the rules they were approved under.
-# `dependency-declared` asks each dependency line to say whether it blocks,
-# on drafts only, because an approved bare line keeps the order it was
-# approved with (ADR-1800).
-fields = ["closes"]
-draft_rules = ["one-authority", "dependency-declared"]
+dir = "archive/tasks"
+archived = true
+fields = []
 statuses = ["draft", "approved", "done", "withdrawn", "rejected", "superseded"]
-sections = ["What to do", "Depends on", "Evidence", "Left alone"]
-draft_sections = ["Acceptance criteria"]
-forbidden_fields = ["milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
 
 [[kind]]
 name = "defect"
@@ -159,15 +146,16 @@ dir = "bugs"
 # `violates` is left out where no requirement covers the defect yet, as the
 # defect template says, so it isn't required.
 fields = ["severity", "found"]
-statuses = ["draft", "approved", "withdrawn", "rejected", "superseded"]
+optional_fields = ["issue", "projected", "tracked", "pr"]
+statuses = ["draft", "approved", "done", "withdrawn", "rejected", "superseded"]
 index = "README.md"
 sections = ["Reproduction", "What the system does", "What it should do, and why", "Triage", "Closed by"]
 forbidden_fields = ["priority", "milestone", "parent", "project", "sprint", "iteration", "label", "labels"]
 # `enters` names the step a defect enters at, required once its Triage is
 # written, which is a draft rule so defects approved before ADR-1440 keep the
 # rules they were approved under.
-rules = ["done-has-evidence", "added-says-why", "dropped-says-why", "enters-fits", "rejected-says-why", "closed-names-check", "withdrawn-names-record"]
-draft_rules = ["enters-after-triage"]
+rules = ["enters-fits", "rejected-says-why", "closed-names-check", "withdrawn-names-record"]
+draft_rules = ["enters-after-triage", "plan-where-implement"]
 
 [[kind]]
 name = "insight"

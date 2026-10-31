@@ -1,7 +1,7 @@
 ---
 id: BUG-1261
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-3216
 enters: design

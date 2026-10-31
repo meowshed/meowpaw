@@ -1,7 +1,7 @@
 ---
 id: BUG-1550
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-1146
 enters: implement

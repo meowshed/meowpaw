@@ -1,11 +1,11 @@
 ---
 name: method
-description: The method's seven steps, research, requirements, design, spec, epic, implement and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification, epic or task record is written, before a task is implemented, and before a pull request is reviewed. It MUST NOT be skipped, however small the record looks.
+description: The method's six steps, research, requirements, design, spec, implement and review, and the gate each checks. It MUST be loaded before any research, requirement, decision, specification or defect record is written, before a decision's or a defect's plan is implemented, and before a pull request is reviewed. It MUST NOT be skipped, however small the record looks.
 ---
 
 <role>
-You run one step of the method at a time, unless a person asks for a whole
-decision in one pull request. Each step writes one artifact from an approved
+You run one step of the method at a time, unless a person asks for a
+decision's whole cycle in one pull request. Each step writes one artifact from an approved
 input, because an artifact built on an unapproved one inherits a
 decision nobody made. A program settles whether the input is ready, and you
 don't overrule it.
@@ -13,7 +13,7 @@ don't overrule it.
 
 <steps name="run a step">
 1. Name the step and the identifiers of its input. The steps, in order, are
-   research, requirements, design, spec, epic, implement and review. The route skill, `meow-flow:route`, runs before the
+   research, requirements, design, spec, implement and review. The route skill, `meow-flow:route`, runs before the
    first of them and names the step a request enters at.
 2. Read the repository's principles before producing anything: `CLAUDE.md`,
    and each file `.meowpaw/profile.toml` names under `[method] principles`.
@@ -26,7 +26,7 @@ don't overrule it.
 6. Run `${CLAUDE_SKILL_DIR}/../../bin/paw check` and fix what it reports, for at most two rounds, and
    report anything still open after the second.
 7. Where M20 applies and the check reported nothing, set each artifact the
-   step wrote to `approved`, and where a step up to epic remains, go to step 1 for it.
+   step wrote to `approved`, and where a step up to implement remains, go to step 1 for it.
 8. End by naming the artifact you wrote, the gate it now waits at, and the
    step that picks it up, with the command that runs it, and say the record
    is unreviewed by a person. Where M20 applies, the gate is the pull request,
@@ -105,29 +105,26 @@ don't overrule it.
   editorial part, because a rename can be checked and a rewritten paragraph
   can only be read.
 - M18. Run `paw count` before and after a migration and put both
-  outputs in its evidence, because a record the migration lost fails no other
+  outputs in its pull request, because a record the migration lost fails no other
   check.
 - M19. Dispatch no agent to review a record you wrote, because the person
   approving its pull request is its reader, and an agent's review of a record
   was a step nobody could act on.
-- M20. Where a person asks for a decision to land in one pull request, write
-  its research, requirements, decision record, specification changes, epic
-  and tasks in turn, withdraw in it the approved records they replace, and
-  stop once, at that pull request, which you open and name in your report,
-  because its merge is the one approval, a pull request for each record adds
-  a merge and no review, and a stop before one exists leaves the person a
-  branch to find. Where the repository declares no code host, name the branch
-  in its place, because no pull request can exist there and the branch is
-  what the person merges. Without that request, M5 holds.
+- M20. Where a person asks for a decision's whole cycle in one pull request,
+  write its research, requirements, decision record with its plan and
+  specification changes in turn, implement that plan on the same branch,
+  withdraw in it the approved records they replace, and stop once, at that
+  pull request, which you open and name in your report, because its merge is
+  the one approval, a pull request for each record adds a merge and no review,
+  and a stop before one exists leaves the person a branch to find. Where the
+  repository declares no code host, name the branch in its place, because no
+  pull request can exist there and the branch is what the person merges.
+  Without that request, M5 holds.
 - M21. Under M20, write each record as a draft, run `paw check`, and set it
-  to `approved` only where the check reports nothing, and go no further than
-  the epic step, because a draft meets rules an approved record is excused
-  from, and `paw ready implement` refuses a task that isn't approved on the
-  trunk yet. The statuses land in that pull request's commits, and no commit
-  of their own.
-- M22. Let a task name `realises: ADR-NNNN` in place of `epic:` where one task
-  realises the decision, and write no epic for it, because an epic holding one
-  task is a second record for the same plan.
+  to `approved` only where the check reports nothing, because a draft meets
+  rules an approved record is excused from and `paw ready implement` refuses
+  a draft. The statuses land in that pull request's commits, and no commit of
+  their own.
 - M23. Cite a subcommand's output as evidence with the command, its exit
   status, its output and the tree revision it ran at, in your report or the
   pull request and never in a file of the repository (I19), because output

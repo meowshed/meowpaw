@@ -1,7 +1,7 @@
 ---
 id: BUG-1269
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-3182
 enters: implement

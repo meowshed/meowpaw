@@ -1,7 +1,7 @@
 ---
 id: ADR-2860
 artifact: adr
-status: done
+status: superseded
 revised: 2026-10-10
 addresses:
   [

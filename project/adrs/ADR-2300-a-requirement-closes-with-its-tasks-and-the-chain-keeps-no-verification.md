@@ -42,6 +42,8 @@ supersedes: [ADR-1490, ADR-1530, ADR-1550, ADR-1560, ADR-2200]
 
 # 2300. A requirement closes with the tasks that name it, and the chain keeps no verification, no evidence and no record review
 
+**Amended by ADR-3090.** The chain has six steps and no epic, and a requirement closes with a done decision or a done archived task.
+
 ## Decision
 
 A requirement is closed when a closed task or epic names it and no open one

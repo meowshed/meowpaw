@@ -30,8 +30,9 @@ lifetime in its front matter: `status: live` means you rewrite it freely, and
 anything else is a record, mutable while a draft and frozen on approval. The
 stored statuses are `draft`, `approved`, `done`, `withdrawn`, `rejected`,
 `superseded` and `live`. `in-progress`, `closed` and `open` are derived from
-the tree and never written into a file, and `paw check` rejects a stored `done`
-that derived closure doesn't agree with.
+the tree and never written into a file, and `paw done` stores `done` on a
+decision or a defect. `project/archive/` holds retired epics and tasks, which
+`paw` reads and cites and never writes.
 
 `docs/` documents the harness as a whole, and `plugins/<name>/README.md` is
 each unit's own page. `.meowpaw/` belongs to the repository being worked in and
@@ -48,8 +49,7 @@ The harness is developed by its own method, from the first artifact, and the
 order isn't negotiable:
 
 ```text
-research -> requirements -> design -> spec -> epic
-         -> implement -> review
+research -> requirements -> design -> spec -> implement -> review
 ```
 
 A step whose input is missing or unapproved doesn't run, and `paw ready <step>
@@ -57,15 +57,16 @@ A step whose input is missing or unapproved doesn't run, and `paw ready <step>
 specification covers it, stop and go back, because a project that exempts
 itself from its own method has disproved it before shipping.
 
-An epic is one pull request, from its research to the merge of its completed
-work. Each task in it is its tests first, in a commit of their own where they
-fail, then the change, its documentation and its record marks. An epic that
-wouldn't be one reviewable change is split before its work starts.
+A decision or a defect is one issue and one pull request, from its research to
+the merge of its completed work, and carries its `## Plan`. Each plan step is
+its tests first, in a commit of their own where they fail, then the change, its
+documentation and its record marks. A record that wouldn't be one reviewable
+change is split before its work starts.
 
 Classify work before the chain starts: the route skill, `meow-flow:route`,
 routes each request and reports the route before any edit. Trivial work - a
 typo, a formatting fix, a link - skips the chain. That exemption is narrow on
-purpose: a method costing seven steps for a one-line fix is one people route
+purpose: a method costing six steps for a one-line fix is one people route
 around, and then it reports a process it never performed. Anything that
 changes behaviour isn't trivial.
 </principle>
@@ -114,7 +115,7 @@ doesn't survive the edit.
 
 <principle name="artifacts_stay_current">
 Keeping the artifacts true is part of the work, and never a tidying pass after
-it. A task is complete once its Evidence is written, in the commit that
+it. A record is complete once `paw done` stores it, in the pull request that
 completes it. When work shows an artifact is wrong, fix the artifact, because
 one that has drifted from the tree is worse than a missing one: people go on
 citing it. Review holds this.
@@ -126,9 +127,8 @@ turn. Don't ask a question and then continue on your own answer, and don't
 treat silence or a change of subject as approval.
 
 One exception moves the stop and doesn't remove it. Where a person asks for a
-decision to land in one pull request, its records are written through to the
-tasks and the turn ends at that pull request, whose merge is the approval.
-Nothing is implemented before that merge.
+decision's whole cycle, its records and its implementation land on one branch
+and the turn ends at that pull request, whose merge is the approval.
 
 A run `meow-loop` holds is the one place no person stands at the gate: it
 decides each gate itself against these principles, critiques what it approves

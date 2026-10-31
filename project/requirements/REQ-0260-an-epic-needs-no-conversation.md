@@ -3,8 +3,8 @@ id: REQ-0260
 artifact: requirement
 topic: the-method
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0055
 verification: judgement
 verifier: agent
@@ -12,5 +12,9 @@ verifier: agent
 
 # REQ-0260
 
-An epic MUST be followable by an implementer with no access to the
+**Withdrawn. Replaced by REQ-3672.**
+
+It read: an epic MUST be followable by an implementer with no access to the
 conversation that produced it.
+
+Withdrawn by ADR-3090.

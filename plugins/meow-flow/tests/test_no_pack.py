@@ -99,25 +99,25 @@ class NoPack(unittest.TestCase):
         self.assertNotIn("passed", done.stdout)
 
     def test_the_ready_gates_answer_as_they_do_beside_every_pack(self):
-        """TSK-5020 criterion 2, REQ-0088: `paw ready spec` and `paw ready epic` exit as they do with packs."""
+        """TSK-5020 criterion 2, REQ-0088: `paw ready spec` and `paw ready implement` exit as they do with packs."""
         bare = self.installation()
         packed = self.installation(INSTALLED + ("meow-git", "meow-mise", "meow-rust"))
-        for step, identifier in (("spec", "ADR-0001"), ("epic", "ADR-0001"), ("implement", "TSK-0001")):
+        for step, identifier in (("spec", "ADR-0001"), ("implement", "ADR-0001")):
             without, beside = bare.paw("ready", step, identifier), packed.paw("ready", step, identifier)
             self.assertEqual(without.returncode, beside.returncode, (step, without.stdout, beside.stdout))
             self.assertEqual(without.stdout, beside.stdout, step)
         self.assertEqual(bare.paw("ready", "spec", "ADR-0001").returncode, 0)
-        self.assertEqual(bare.paw("ready", "epic", "ADR-0001").returncode, 0)
+        self.assertEqual(bare.paw("ready", "implement", "ADR-0001").returncode, 0)
 
-    def test_a_task_that_changes_only_a_specification_passes_the_same_gate(self):
-        """TSK-5020 criterion 3, REQ-0080: the gate reads the task's record and not the kind of work it names."""
+    def test_a_record_that_changes_only_a_specification_passes_the_same_gate(self):
+        """TSK-5020 criterion 3, REQ-0080: the gate reads the record and not the kind of work it names."""
         results = []
         for work in ("Change `specs/SPC-0001-a-part.md` and nothing else.", "Change `src/lib` and its tests."):
             installation = self.installation()
-            path = installation.repo / "project" / "tasks" / "TSK-0001-a-task.md"
-            path.write_text(path.read_text(encoding="utf-8").replace(
-                "## What to do\n\nText.", f"## What to do\n\n{work}"), encoding="utf-8")
-            ready = installation.paw("ready", "implement", "TSK-0001")
+            path = installation.repo / "project" / "adrs" / "ADR-0001-a-choice.md"
+            path.write_text(path.read_text(encoding="utf-8").replace("## Plan\n\nText.", f"## Plan\n\n1. {work}"),
+                            encoding="utf-8")
+            ready = installation.paw("ready", "implement", "ADR-0001")
             check = installation.paw("check")
             self.assertEqual(ready.returncode, 0, ready.stdout + ready.stderr)
             self.assertEqual(check.returncode, 0, check.stdout + check.stderr)

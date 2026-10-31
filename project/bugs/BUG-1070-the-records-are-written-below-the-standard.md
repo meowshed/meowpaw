@@ -1,7 +1,7 @@
 ---
 id: BUG-1070
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-1115
 found: 2026-09-21

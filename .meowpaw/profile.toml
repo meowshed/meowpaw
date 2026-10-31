@@ -31,7 +31,8 @@ chore = "none"
 trunk = "main"
 require_signatures = true
 
-# The tracker meow-github projects each approved epic's tasks onto (ADR-1310).
+# The tracker meow-github projects each approved decision or defect onto
+# (ADR-3090).
 [tracker]
 kind = "github"
 
@@ -53,6 +54,6 @@ target = "github"
 # gate itself, and releases nothing because no release command is declared.
 [unattended]
 permission_mode = "dontAsk"
-gates = ["research", "requirements", "design", "spec", "epic", "implement", "review", "merge"]
+gates = ["research", "requirements", "design", "spec", "implement", "review", "merge"]
 release = false
 amend_approved = false

@@ -1,7 +1,7 @@
 ---
 id: BUG-1190
 artifact: bug
-status: approved
+status: done
 severity: minor
 violates: REQ-2530
 found: 2026-09-27

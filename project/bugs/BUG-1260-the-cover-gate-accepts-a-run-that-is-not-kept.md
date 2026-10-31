@@ -1,7 +1,7 @@
 ---
 id: BUG-1260
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-3207
 enters: implement

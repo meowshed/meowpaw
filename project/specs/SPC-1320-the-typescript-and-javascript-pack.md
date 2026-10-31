@@ -36,7 +36,7 @@ states only what is TypeScript's and JavaScript's. It leaves the publishing
 checks, the monorepo orchestrators' tasks, coverage and the browser test
 runners unbound. Running a stage is SPC-1040's.
 
-ADR-2660 orders the packs and EPC-2560 realises this one.
+ADR-2660 orders the packs.
 
 ## Boundary
 

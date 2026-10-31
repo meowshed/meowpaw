@@ -57,7 +57,7 @@ Each shipped language pack has a document of its own beside this one. The
 runner packs, SPC-1140 and SPC-1150, keep the same boundary for a runner and
 aren't restated here. Running a bound stage is SPC-1040's.
 
-ADR-1900 decides this part and EPC-1800 realised it, verified under issue 624.
+ADR-1900 decides this part, verified under issue 624.
 ADR-2640 adds the versions a pack states and the configuration it writes,
 ADR-2650 makes a pack activate where its marker is, ADR-2660 orders the
 packs, and ADR-2670 adds the rules every pack keeps on what it runs, what it

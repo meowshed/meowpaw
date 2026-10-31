@@ -1,7 +1,7 @@
 ---
 id: BUG-1210
 artifact: bug
-status: approved
+status: done
 severity: major
 violates: REQ-1382
 enters: implement

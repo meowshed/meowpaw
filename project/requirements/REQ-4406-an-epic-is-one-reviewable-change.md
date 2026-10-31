@@ -3,8 +3,8 @@ id: REQ-4406
 artifact: requirement
 topic: source-control
 class: functional
-status: approved
-revised: 2026-10-10
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0346
 verification: static
 ---
@@ -13,8 +13,9 @@ verification: static
 
 # REQ-4406
 
-An epic whose pull request would not be one reviewable change MUST be split into
+**Withdrawn. Replaced by REQ-3670.**
+
+It read: an epic whose pull request would not be one reviewable change MUST be split into
 smaller epics before its work starts.
 
-Review turns into approval past a size, so the pull request is never the
-thing that is split.
+Withdrawn by ADR-3090.
