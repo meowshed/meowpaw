@@ -116,13 +116,18 @@ jobs:
             elif grep -q 'cannot publish over the previously published' /tmp/publish.log; then
               cat /tmp/publish.log
               echo "$name@$version was published just now"
-            elif grep -q 'E404' /tmp/publish.log && ! npm view "$name" name >/dev/null 2>&1; then
+            elif grep -q 'E404' /tmp/publish.log; then
               # Trusted publishing needs the package to exist before it can
               # name this workflow, so a package's first version is published
-              # by hand. The rest still go out, and the step fails at the end
-              # naming each package left over.
+              # by hand, and npm answers 404 until the package names it. The
+              # rest still go out, and the step fails at the end naming each
+              # package left over.
               cat /tmp/publish.log
-              echo "::error::$name has never been published; publish its first version by hand and name this workflow as its trusted publisher"
+              if npm view "$name" name >/dev/null 2>&1; then
+                echo "::error::$name names no trusted publisher; run: npm trust github $name --file pi-release.yml --repo meowshed/meowpaw"
+              else
+                echo "::error::$name has never been published; publish its first version by hand and name this workflow as its trusted publisher"
+              fi
               unpublished="$unpublished $name"
             else
               cat /tmp/publish.log
