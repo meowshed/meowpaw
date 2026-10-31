@@ -1,7 +1,8 @@
 ---
 id: BUG-1700
 artifact: bug
-status: approved
+status: done
+pr: 1138
 severity: major
 violates: REQ-4504
 enters: implement
