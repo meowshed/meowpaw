@@ -157,5 +157,22 @@ class Denial(unittest.TestCase):
         self.assertNotIn("meow.retran.me", done.stderr)
 
 
+class Unresolved(unittest.TestCase):
+    """BUG-1710, REQ-4506: with no binary, a meow-github command reports itself unresolved and not as misused."""
+
+    def test_each_command_exits_3_naming_the_core_unit(self):
+        for tree, reason in (("plugins", "install meow-core"), ("packages", "reinstall the unit")):
+            for command in ("project", "sync", "upgrade"):
+                with self.subTest(tree=tree, command=command), tempfile.TemporaryDirectory() as tmp:
+                    launcher = Path(tmp) / "meow-github"
+                    launcher.write_text(gen.expected()[ROOT / tree / "meow-github" / "bin" / "meow-github"], encoding="utf-8")
+                    env = {**os.environ, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit", "HOME": tmp}
+                    env.pop("MEOWPAW_BINARY", None)
+                    done = subprocess.run(["sh", str(launcher), command, "--check"], capture_output=True, text=True, env=env)
+                    self.assertEqual(3, done.returncode, done.stdout + done.stderr)
+                    self.assertIn(f"meow-github {command}: unresolved", done.stdout)
+                    self.assertIn(reason, done.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
