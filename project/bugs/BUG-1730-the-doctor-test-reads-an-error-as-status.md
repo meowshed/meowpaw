@@ -1,7 +1,8 @@
 ---
 id: BUG-1730
 artifact: bug
-status: approved
+status: done
+pr: 1146
 severity: minor
 violates: REQ-3080
 enters: implement
