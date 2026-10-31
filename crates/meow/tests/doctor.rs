@@ -110,6 +110,10 @@ fn paw(fixture: &Fixture, args: &[&str]) -> (Output, String) {
         .env("XDG_STATE_HOME", state)
         .env("XDG_RUNTIME_DIR", state)
         .env("MEOWPAW_STATE_DIR", state)
+        .env(
+            "MEOW_LAYOUT",
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plugins/meow-flow/lib/layout.toml"),
+        )
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
         .env("GIT_CONFIG_NOSYSTEM", "1")
         .stdin(Stdio::null())
@@ -227,6 +231,10 @@ fn doctor_and_paw_status_answer_different_questions() {
     let (_, doctor) = paw(&fixture, &["verbs", "doctor"]);
     let (_, status) = paw(&fixture, &["record", "status"]);
     assert!(!status.trim().is_empty(), "paw status printed nothing");
+    assert!(
+        !status.contains("not checked"),
+        "paw status read no record:\n{status}"
+    );
     let doctor_words = doctor.to_lowercase();
     for word in [
         "research",
