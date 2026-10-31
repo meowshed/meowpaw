@@ -174,5 +174,22 @@ class Unresolved(unittest.TestCase):
                     self.assertIn(reason, done.stdout)
 
 
+class UnresolvedChecks(unittest.TestCase):
+    """BUG-1720, REQ-4506: with no binary, a meow-checks command reports itself unresolved and not as misused."""
+
+    def test_each_command_exits_3_naming_the_core_unit(self):
+        for tree, reason in (("plugins", "install meow-core"), ("packages", "reinstall the unit")):
+            for command in ("evidence", "state", "tree", "local", "doctor"):
+                with self.subTest(tree=tree, command=command), tempfile.TemporaryDirectory() as tmp:
+                    launcher = Path(tmp) / "meow-checks"
+                    launcher.write_text(gen.expected()[ROOT / tree / "meow-checks" / "bin" / "meow-checks"], encoding="utf-8")
+                    env = {**os.environ, "CLAUDE_PLUGIN_DATA": f"{tmp}/data/unit", "HOME": tmp}
+                    env.pop("MEOWPAW_BINARY", None)
+                    done = subprocess.run(["sh", str(launcher), command], capture_output=True, text=True, env=env)
+                    self.assertEqual(3, done.returncode, done.stdout + done.stderr)
+                    self.assertIn(f"meow-checks {command}: unresolved", done.stdout)
+                    self.assertIn(reason, done.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
