@@ -121,5 +121,11 @@ if [ "$1" = "history" ]; then
   echo "meow-github history: unread ($reason); nothing was read"
   exit 3
 fi
+case "$1" in
+project | sync | upgrade)
+  echo "meow-github $1: unresolved: $reason"
+  exit 3
+  ;;
+esac
 echo "usage: meow-github history [--wait] [<owner>/<name>] | project <decision|defect> [--check] [--wait] [<owner>/<name>] | sync <decision|defect> [--check] [--wait] [<owner>/<name>] | upgrade [--check] [--wait] [<owner>/<name>] | governance-guard" >&2
 exit 2
