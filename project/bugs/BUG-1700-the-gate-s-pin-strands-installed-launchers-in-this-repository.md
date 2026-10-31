@@ -7,7 +7,9 @@ violates: REQ-4504
 enters: implement
 found: 2026-10-31
 revised: 2026-10-31
-issue:
+issue: 1137
+projected: dd17439e01e7
+tracked: 6ab04f0d78c3
 ---
 
 <!-- Written to the writing standard meow-prose ships: lead with the answer, give each rule its reason in the same sentence, and show the failing case. -->
@@ -56,6 +58,13 @@ launcher fails in this repository for anyone with mise activated, and the
 message names the wrong cause.
 
 ## Closed by
+
+The reproduction's step 2 now exits 0 in a shell under this repository's mise
+configuration, because that configuration no longer sets `CLAUDE_PLUGIN_DATA`.
+`tools/test_generate_launchers.py::CheckoutBuild` guards both halves:
+`test_the_build_beside_the_launcher_wins_over_an_installed_core` holds REQ-2928
+without the pin, and `test_the_repository_sets_no_data_directory_for_every_process`
+fails if the pin returns.
 
 ## Plan
 
