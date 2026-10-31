@@ -1,7 +1,8 @@
 ---
 id: BUG-1740
 artifact: bug
-status: approved
+status: done
+pr: 1149
 severity: major
 violates: REQ-4146
 enters: implement
