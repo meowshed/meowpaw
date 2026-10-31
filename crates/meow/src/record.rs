@@ -33,6 +33,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
+mod upgrade;
+
 const CHECKS: [&str; 7] = [
     "front-matter",
     "identifiers",
@@ -42,6 +44,9 @@ const CHECKS: [&str; 7] = [
     "shape",
     "rules",
 ];
+/// What every command says of a record in the form ADR-3090 retired.
+const OLD_FORM: &str = "the record holds epics or tasks, a form ADR-3090 retired; run paw upgrade";
+
 const CLEAN: u8 = 0;
 const FOUND: u8 = 1;
 const USAGE: u8 = 2;
@@ -72,6 +77,8 @@ pub(crate) struct Kind {
     /// The kinds this one wins over where two artifacts disagree. Only a
     /// kind the repository declares carries any (REQ-0667).
     pub(crate) outranks: Vec<String>,
+    /// A retired kind, read and cited and never written (ADR-3090).
+    pub(crate) archived: bool,
 }
 
 pub(crate) struct Layout {
@@ -101,9 +108,6 @@ struct Doc {
     fields: Option<Vec<Field>>,
     kind: Option<usize>,
     is_index: bool,
-    /// For an epic, the mark each unmarked task entry derives from its task,
-    /// by line (SPC-1090 "The gate").
-    derived: BTreeMap<usize, char>,
 }
 
 impl Doc {
@@ -160,7 +164,7 @@ pub(crate) struct Command {
     pub(crate) lines: &'static str,
 }
 
-pub(crate) const COMMANDS: [Command; 14] = [
+pub(crate) const COMMANDS: [Command; 15] = [
     Command {
         name: "check",
         run: check,
@@ -172,14 +176,14 @@ pub(crate) const COMMANDS: [Command; 14] = [
         name: "status",
         run: status,
         determines: "where each approved decision stands in the chain, as the record says",
-        by_hand: "list every artifact whose `status:` is draft, then for each approved decision read the epics that `realises:` it and each epic's tasks, count each requirement's state from the tasks that `closes:` it, with `--waiting` list the drafts alone, and with `--brief` count the closed decisions, the postponements and the frozen findings in place of listing them",
-        lines: "Waiting Decisions Tasks Requirements Postponed Only The nothing none <id> <count> waiting: next: closed: postponing: by unconnected, paw",
+        by_hand: "list every artifact whose `status:` is draft, then for each approved decision read its `status:` and whether it carries a `## Plan`, list each open defect, count each requirement's state from the decisions that address it and the archived tasks that `closes:` it, with `--waiting` list the drafts alone, and with `--brief` count the closed decisions, the postponements and the frozen findings in place of listing them",
+        lines: "Waiting Decisions Defects Requirements Postponed Only The nothing none <id> <count> waiting: next: closed: postponing: by unconnected, paw",
     },
     Command {
         name: "ready",
         run: ready,
         determines: "whether the input a step names is approved and complete",
-        by_hand: "read each named artifact's `status:`, for `epic` the `states:` of its specifications, and for `implement` the authority's `status:` and each `depends:` task's completion",
+        by_hand: "read each named artifact's `status:`, and for `implement` that a decision or defect carries a `## Plan` and that a decision's requirements are in a specification's `states:`",
         lines: "paw <id>",
     },
     Command {
@@ -199,9 +203,9 @@ pub(crate) const COMMANDS: [Command; 14] = [
     Command {
         name: "brief",
         run: brief,
-        determines: "the brief a delegated agent gets for one task, from the task, its epic or decision and the requirements it closes; `--agent <unit>:<agent>` names the agent definition it is written for, and without it the brief names `general-purpose`, the platform's agent the implement step dispatches",
-        by_hand: "copy the task's opening, What to do, Acceptance criteria, Left alone and Depends on, its epic's entry for it or its decision's Decision, the body of each requirement it closes, and the specifications that state them, word for word",
-        lines: "agent: task: # from spec: <fence> paw",
+        determines: "the brief a delegated agent gets for one decision or defect, from the record, its plan and the requirements it names; `--agent <unit>:<agent>` names the agent definition it is written for, and without it the brief names `general-purpose`, the platform's agent the implement step dispatches",
+        by_hand: "copy the record's opening, its Decision or What it should do, its Plan and How I will know it was realised, the body of each requirement it names, and the specifications that state them, word for word",
+        lines: "agent: record: # from spec: <fence> paw",
     },
     Command {
         name: "index",
@@ -248,9 +252,16 @@ pub(crate) const COMMANDS: [Command; 14] = [
     Command {
         name: "done",
         run: done,
-        determines: "that a complete approved task is done in a pull request",
-        by_hand: "read that the task's Evidence no longer opens with `Not yet.`, then change its `status:` to done, mark it with the pull request in its epic's or defect's task list, and close the epic and decision where it was the last open task",
+        determines: "that an approved decision or defect is done in a pull request",
+        by_hand: "read that a decision carries its `## Plan` or a defect's Closed by names its check, then change its `status:` to done and add `pr:` with the pull request",
         lines: "paw",
+    },
+    Command {
+        name: "upgrade",
+        run: upgrade::upgrade,
+        determines: "what moving the record to the current form would change, and with `--write` changes it",
+        by_hand: "move `epics/` and `tasks/` under `archive/`, store done on each decision and defect whose tasks are all finished, add each open task to its live authority's `## Plan` with `folded-into:` on the task, and remove epic from the profile's gates",
+        lines: "paw would archived folded stored removed needs",
     },
     Command {
         name: "onboarding",
@@ -286,7 +297,7 @@ pub fn main(args: &[String]) -> u8 {
         Some(command) => (command.run)(rest),
         None => {
             eprintln!(
-                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | brief <task> [--agent <unit>:<agent>] | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | approve <id>... | withdraw <id> --by <id> --replaced-by <id>... | done <task> --pr <number> | onboarding remove; paw <subcommand> --help names what a person reads in its place",
+                "usage: paw check [{} | frozen [--base <rev>]] | status | ready <step> <id>... | template <kind> | show <id> | brief <record> [--agent <unit>:<agent>] | index <kind> [--write] | new <kind> [--topic <topic>] | find <word>... | count | approve <id>... | withdraw <id> --by <id> --replaced-by <id>... | done <record> --pr <number> | upgrade [--write] | onboarding remove; paw <subcommand> --help names what a person reads in its place",
                 CHECKS.join(" | ")
             );
             USAGE
@@ -317,8 +328,10 @@ pub(crate) fn open_counts(repository: &Path) -> Result<(usize, usize), String> {
             root.display()
         ));
     }
+    if upgrade::old_form(&root) {
+        return Err(OLD_FORM.to_string());
+    }
     let record = read_record(layout, repository, &root);
-    let known = known(&record);
     let mut requirements = 0;
     for requirement in of_kind(&record, "requirement")
         .into_iter()
@@ -326,20 +339,20 @@ pub(crate) fn open_counts(repository: &Path) -> Result<(usize, usize), String> {
     {
         let id = bare(requirement.id());
         let state = requirement_state(
-            &closing_tasks(&record, &known, id),
+            &closing_records(&record, id),
             postponed_by(&record, id).as_deref(),
             &violated_by(&record, id),
         );
         if matches!(
             state,
-            "in a task not yet done" | "reopened by a defect" | "named by no task"
+            "in a decision not yet done" | "reopened by a defect" | "named by no decision"
         ) {
             requirements += 1;
         }
     }
     let defects = of_kind(&record, "defect")
         .into_iter()
-        .filter(|d| approved(d) && defect_open(&record, d))
+        .filter(|d| approved(d) && defect_open(d))
         .count();
     Ok((requirements, defects))
 }
@@ -366,6 +379,10 @@ fn open_record(verb: &str) -> Result<(Record, PathBuf, PathBuf), u8> {
             "paw {verb}: the record's root {} doesn't exist; nothing was checked",
             root.display()
         );
+        return Err(FOUND);
+    }
+    if verb != "upgrade" && upgrade::old_form(&root) {
+        say!("paw {verb}: {OLD_FORM}");
         return Err(FOUND);
     }
     let record = read_record(layout, &repository, &root);
@@ -410,14 +427,13 @@ fn check(rest: &[String]) -> u8 {
         if check == "coverage" {
             // Nothing required and nothing missing look the same to a count of
             // findings, so the coverage itself is stated (REQ-3098).
-            let known = known(&record);
             let in_force: Vec<&Doc> = of_kind(&record, "requirement")
                 .into_iter()
                 .filter(|r| approved(r))
                 .collect();
             let landed = in_force
                 .iter()
-                .filter(|r| !closing_tasks(&record, &known, bare(r.id())).is_empty())
+                .filter(|r| !closing_records(&record, bare(r.id())).is_empty())
                 .count();
             let zero = if in_force.is_empty() {
                 "; an empty record's coverage is zero, not complete"
@@ -425,7 +441,7 @@ fn check(rest: &[String]) -> u8 {
                 ""
             };
             say!(
-                "coverage: {landed} of {} requirements in force land in a task{zero}",
+                "coverage: {landed} of {} requirements in force land in a record{zero}",
                 in_force.len()
             );
         }
@@ -513,59 +529,37 @@ fn under_version_control(root: &Path) -> bool {
     inside && !ignored
 }
 
-/// Each task closing a requirement, with its mark and the epic, defect or
-/// decision that authorises it.
-fn closing_tasks(
-    record: &Record,
-    known: &BTreeMap<String, &Doc>,
-    id: &str,
-) -> Vec<(String, char, String)> {
+/// Each record that closes a requirement or still works on it: an approved or
+/// done decision addressing it, and a done archived task closing it
+/// (REQ-3680), each with its mark, `x` done and anything else open.
+fn closing_records(record: &Record, id: &str) -> Vec<(String, char)> {
     let mut out = Vec::new();
-    for task in of_kind(record, "task") {
-        if !task.value("closes").contains(id)
-            || !requirements_in(record, task.value("closes")).contains(id)
+    for decision in of_kind(record, "decision") {
+        if !approved(decision) || !requirements_in(record, decision.value("addresses")).contains(id)
         {
             continue;
         }
-        let epic_id = authority_of(task).to_string();
-        out.push((bare(task.id()).to_string(), mark_of(known, task), epic_id));
+        let mark = if bare(decision.value("status")) == "done" {
+            'x'
+        } else {
+            ' '
+        };
+        out.push((bare(decision.id()).to_string(), mark));
+    }
+    for task in of_kind(record, "task") {
+        if bare(task.value("status")) == "done"
+            && requirements_in(record, task.value("closes")).contains(id)
+        {
+            out.push((bare(task.id()).to_string(), 'x'));
+        }
     }
     out.sort();
     out
 }
 
-/// Whether a defect is still open (REQ-3610). It closes with its tasks, its
-/// own or those of an epic realising it, once one is done and none is open,
-/// the rule a requirement closes by. A draft with no task done is open. An
-/// approved one with no task done closed in the change that recorded it,
-/// unless its Closed by opens with "Not" or "Open", which is how a defect
-/// still waiting says so.
-fn defect_open(record: &Record, defect: &Doc) -> bool {
-    if !matches!(bare(defect.value("status")), "draft" | "approved") {
-        return false;
-    }
-    let id = bare(defect.id());
-    let mut tasks = marks(defect);
-    for epic in of_kind(record, "epic") {
-        if bare(epic.value("realises")) == id {
-            tasks.extend(marks(epic));
-        }
-    }
-    if tasks.iter().any(|(_, mark)| !finished(*mark)) {
-        return true;
-    }
-    if tasks.iter().any(|(_, mark)| *mark == 'x') {
-        return false;
-    }
-    if bare(defect.value("status")) == "draft" {
-        return true;
-    }
-    let first = section_lines(defect, "Closed by")
-        .into_iter()
-        .map(|(_, l)| l.trim())
-        .find(|l| !l.is_empty())
-        .unwrap_or("");
-    first.is_empty() || first.starts_with("Not") || first.starts_with("Open")
+/// Whether a defect is still open. It closes by storing `done` (REQ-3678).
+fn defect_open(defect: &Doc) -> bool {
+    matches!(bare(defect.value("status")), "draft" | "approved")
 }
 
 /// The open defects naming a requirement in `violates`.
@@ -576,29 +570,29 @@ fn violated_by(record: &Record, id: &str) -> Vec<String> {
             d.value("violates").contains(id)
                 && requirements_in(record, d.value("violates")).contains(id)
         })
-        .filter(|d| defect_open(record, d))
+        .filter(|d| defect_open(d))
         .map(|d| bare(d.id()).to_string())
         .collect()
 }
 
-/// A requirement's observed state (REQ-0584), derived from the tasks and
-/// epics that name it and the defects that violate it, with nothing after
-/// closed (REQ-3600, REQ-3602, REQ-3608, REQ-3610).
+/// A requirement's observed state (REQ-0584), derived from the records that
+/// name it and the defects that violate it, with nothing after closed
+/// (REQ-3602, REQ-3610, REQ-3680).
 fn requirement_state(
-    tasks: &[(String, char, String)],
+    records: &[(String, char)],
     postponed: Option<&str>,
     violated: &[String],
 ) -> &'static str {
     if !violated.is_empty() {
         "reopened by a defect"
-    } else if tasks.iter().any(|(_, mark, _)| !finished(*mark)) {
-        "in a task not yet done"
-    } else if tasks.iter().any(|(_, mark, _)| *mark == 'x') {
+    } else if records.iter().any(|(_, mark)| *mark != 'x') {
+        "in a decision not yet done"
+    } else if !records.is_empty() {
         "closed"
     } else if postponed.is_some() {
         "postponed"
     } else {
-        "named by no task"
+        "named by no decision"
     }
 }
 
@@ -663,9 +657,9 @@ fn check_frozen(rest: &[String]) -> u8 {
             text: before.clone(),
             kind: doc.kind,
             is_index: false,
-            derived: BTreeMap::new(),
         };
-        if bare(old.value("status")) != "approved" {
+        let was_done = bare(old.value("status")) == "done";
+        if bare(old.value("status")) != "approved" && !was_done {
             continue;
         }
         if matches!(bare(doc.value("status")), "withdrawn" | "superseded") {
@@ -701,23 +695,10 @@ fn check_frozen(rest: &[String]) -> u8 {
             }
             pair
         };
-        let done_transition = bare(doc.value("status")) == "done"
-            && matches!(kind.name.as_str(), "decision" | "epic" | "task");
-        let (before, after) = if done_transition {
-            (
-                frozen_text(&before, &[], &["status"]),
-                frozen_text(&after, &[], &["status"]),
-            )
-        } else {
-            (before, after)
-        };
-        let allowed = match kind.name.as_str() {
-            "decision" if done_transition => before == after,
-            "epic" => epic_frozen_part(&before) == epic_frozen_part(&after),
-            "task" => frozen_part(&before) == frozen_part(&after),
-            "defect" => defect_frozen_part(&before) == defect_frozen_part(&after),
-            _ => false,
-        };
+        let closing = bare(doc.value("status")) == "done";
+        let allowed = matches!(kind.name.as_str(), "decision" | "defect")
+            && !was_done
+            && work_part(&before, closing) == work_part(&after, closing);
         if !allowed {
             findings.push(format!(
                 "{}: approved at {base}, and changed since without a line naming its authority; a change to an approved record invalidates its approval",
@@ -880,29 +861,17 @@ fn frozen_text(text: &str, sections: &[&str], fields: &[&str]) -> String {
     out.join("\n")
 }
 
-/// A task's text without what may change after approval: its evidence, what
-/// it left alone, which the implementer writes, its issue, its projection, the
-/// tracker side's fingerprint and its revision date.
-fn frozen_part(text: &str) -> String {
-    frozen_text(
-        text,
-        &["Evidence", "Left alone"],
-        &["issue", "projected", "tracked", "revised"],
-    )
-}
-
-/// An epic's text without what may change after approval: the marks and
-/// evidence under its Tasks, and its revision date. Nothing else freezes it
-/// later, since no verification is recorded (ADR-2300).
-fn epic_frozen_part(text: &str) -> String {
-    frozen_text(text, &["Tasks"], &["revised"])
-}
-
-/// A defect's text without what may change after approval: the marks of the
-/// tasks it carries, what closed it, its issue and its revision date
-/// (ADR-1440).
-fn defect_frozen_part(text: &str) -> String {
-    frozen_text(text, &["Tasks", "Closed by"], &["issue", "revised"])
+/// A decision's or defect's text without what may change before it is done:
+/// its plan, the marks a defect kept, what closed it, the tracker's mapping,
+/// its pull request, its revision date and, where it closes, its status
+/// (REQ-3676).
+fn work_part(text: &str, closing: bool) -> String {
+    let fields: &[&str] = if closing {
+        &["status", "issue", "projected", "tracked", "pr", "revised"]
+    } else {
+        &["issue", "projected", "tracked", "pr", "revised"]
+    };
+    frozen_text(text, &["Plan", "Tasks", "Closed by"], fields)
 }
 
 /// The fields and sections the layout retired that a record carries.
@@ -1006,6 +975,10 @@ pub(crate) fn load_layout() -> Result<Layout, String> {
             rules: strings(table, "rules"),
             draft_rules: strings(table, "draft_rules"),
             outranks: Vec::new(),
+            archived: table
+                .get("archived")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false),
         });
     }
     let retired = |key: &str| -> BTreeMap<String, String> {
@@ -1121,7 +1094,6 @@ fn read_doc(path: PathBuf, repository: &Path) -> Doc {
         fields,
         kind: None,
         is_index: false,
-        derived: BTreeMap::new(),
     }
 }
 
@@ -1259,6 +1231,7 @@ fn declared_kinds(repository: &Path, layout: &Layout) -> (Vec<Kind>, Vec<Finding
             rules: Vec::new(),
             draft_rules: Vec::new(),
             outranks: Vec::new(),
+            archived: false,
         });
     }
     for (name, list) in outranks {
@@ -1301,7 +1274,6 @@ fn read_record(mut layout: Layout, repository: &Path, root: &Path) -> Record {
         });
         docs.push(doc);
     }
-    derive_marks(&layout, &mut docs);
 
     let root_canonical = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
     let mut others = Vec::new();
@@ -1329,50 +1301,6 @@ fn read_record(mut layout: Layout, repository: &Path, root: &Path) -> Record {
         docs,
         outside,
         ids,
-    }
-}
-
-/// The pattern of a task entry an epic lists with no mark.
-fn unmarked_entry() -> &'static Regex {
-    static ENTRY: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"^- T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern"));
-    &ENTRY
-}
-
-/// Gives each unmarked task entry of an epic the mark its task derives: done
-/// once its Evidence is written, dropped once it is withdrawn, rejected or
-/// superseded, and open otherwise (SPC-1090 "The gate").
-fn derive_marks(layout: &Layout, docs: &mut [Doc]) {
-    let head = unmarked_entry();
-    let epic = layout.kinds.iter().position(|k| k.name == "epic");
-    let tasks: BTreeMap<String, char> = docs
-        .iter()
-        .filter(|d| d.kind.is_some_and(|k| layout.kinds[k].name == "task"))
-        .map(|d| {
-            let mark = if matches!(
-                bare(d.value("status")),
-                "withdrawn" | "rejected" | "superseded"
-            ) {
-                '~'
-            } else if claims_done(d) {
-                'x'
-            } else {
-                ' '
-            };
-            (bare(d.id()).to_string(), mark)
-        })
-        .collect();
-    for doc in docs.iter_mut().filter(|d| d.kind == epic && epic.is_some()) {
-        let derived: BTreeMap<usize, char> = doc
-            .text
-            .lines()
-            .enumerate()
-            .filter_map(|(i, line)| {
-                let task = head.captures(line)?.get(1)?.as_str();
-                Some((i + 1, tasks.get(task).copied().unwrap_or(' ')))
-            })
-            .collect();
-        doc.derived = derived;
     }
 }
 
@@ -1530,29 +1458,6 @@ fn front_matter(record: &Record) -> Vec<Finding> {
                     format!("revised is in the future: {revised}"),
                 ));
             }
-        }
-    }
-    let known = known(record);
-    for doc in record.docs.iter().filter(|d| !d.is_index) {
-        let kind = kind_of(record, doc);
-        if !matches!(kind, "decision" | "epic" | "task")
-            || !matches!(bare(doc.value("status")), "approved" | "done")
-        {
-            continue;
-        }
-        let derived = derived_done(record, &known, doc);
-        let stored = bare(doc.value("status")) == "done";
-        if stored != derived {
-            let message = if stored {
-                "stores done, but its work is not complete"
-            } else {
-                "is complete, but stores approved instead of done"
-            };
-            out.push(Finding::at(
-                doc,
-                doc.field("status").map(|f| f.line),
-                message.into(),
-            ));
         }
     }
     out
@@ -1756,12 +1661,8 @@ fn relations(record: &Record) -> Vec<Finding> {
         }
     }
     out.extend(order_conflicts(record));
-    out.extend(produced_documents(record, &known));
     // REQ-3900: an approved requirement names an approved decision that
-    // addresses or postpones it, and REQ-3902: an approved decision that
-    // addresses one names an approved epic or direct task that realises it.
-    // A decision that only postpones defers the work instead of authorising
-    // it, so it names no plan (ADR-2740).
+    // addresses or postpones it.
     let active = |status: &str| status == "approved" || status == "done";
     let provided = |id: &str| {
         of_kind(record, "decision").iter().any(|d| {
@@ -1780,27 +1681,6 @@ fn relations(record: &Record) -> Vec<Finding> {
             None,
             format!("{id} is in force and names no approved decision that addresses or postpones it (REQ-3900)"),
         ));
-    }
-    for decision in of_kind(record, "decision") {
-        let id = bare(decision.id());
-        if !active(bare(decision.value("status")))
-            || requirements_in(record, decision.value("addresses")).is_empty()
-        {
-            continue;
-        }
-        let planned = of_kind(record, "epic")
-            .iter()
-            .any(|e| active(bare(e.value("status"))) && bare(e.value("realises")) == id)
-            || of_kind(record, "task")
-                .iter()
-                .any(|t| active(bare(t.value("status"))) && bare(t.value("realises")) == id);
-        if !planned {
-            out.push(Finding::at(
-                decision,
-                None,
-                format!("{id} addresses work and names no approved epic or direct task that realises it (REQ-3902)"),
-            ));
-        }
     }
     out
 }
@@ -1863,65 +1743,6 @@ fn order_conflicts(record: &Record) -> Vec<Finding> {
                         }
                     }
                 }
-            }
-        }
-    }
-    out
-}
-
-/// A task that produces a document and the document that names the task are
-/// held to each other, whichever side is missing (REQ-0662). The document is
-/// otherwise held to its kind, as one a step wrote is (REQ-0664).
-fn produced_documents(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<Finding> {
-    let ids = |doc: &Doc, key: &str| -> Vec<String> {
-        record
-            .ids
-            .find_iter(doc.value(key))
-            .map(|m| m.as_str().to_string())
-            .collect()
-    };
-    let mut out = Vec::new();
-    for task in of_kind(record, "task") {
-        let me = bare(task.id());
-        for id in ids(task, "produces") {
-            let Some(document) = known.get(id.as_str()) else {
-                out.push(Finding::at(
-                    task,
-                    task.field("produces").map(|f| f.line),
-                    format!("{me} produces {id}, which has no file"),
-                ));
-                continue;
-            };
-            if !ids(document, "prompted-by").iter().any(|p| p == me) {
-                out.push(Finding::at(
-                    task,
-                    task.field("produces").map(|f| f.line),
-                    format!(
-                        "{me} produces {id}, and {id} doesn't name {me} in prompted-by ({})",
-                        document.shown
-                    ),
-                ));
-            }
-        }
-    }
-    for document in record.docs.iter().filter(|d| !d.is_index) {
-        let me = bare(document.id());
-        for id in ids(document, "prompted-by") {
-            let Some(task) = known
-                .get(id.as_str())
-                .filter(|t| kind_of(record, t) == "task")
-            else {
-                continue;
-            };
-            if !ids(task, "produces").iter().any(|p| p == me) {
-                out.push(Finding::at(
-                    document,
-                    document.field("prompted-by").map(|f| f.line),
-                    format!(
-                        "{me} is prompted by {id}, and {id} names no produces for {me} ({})",
-                        task.shown
-                    ),
-                ));
             }
         }
     }
@@ -2070,84 +1891,17 @@ fn coverage(record: &Record) -> Vec<Finding> {
             stated.insert(bare(requirement.id()).to_string());
         }
     }
-    let decisions = of_kind(record, "decision");
-    let tasks = of_kind(record, "task");
     let known = known(record);
-    let not_covered = Regex::new(r"(?ms)^## Not covered$(.*)").expect("section pattern");
-    for epic in of_kind(record, "epic") {
-        let epic_id = bare(epic.id());
-        let realises = bare(epic.value("realises"));
-        let Some(decision) = decisions.iter().find(|d| bare(d.id()) == realises) else {
-            // An epic may realise a defect, which addresses no requirement to cover.
-            if known
-                .get(realises)
-                .is_some_and(|d| kind_of(record, d) == "defect")
-            {
-                continue;
-            }
-            out.push(Finding::at(
-                epic,
-                epic.field("realises").map(|f| f.line),
-                format!("realises {realises}, which is not a decision"),
-            ));
+    for decision in of_kind(record, "decision") {
+        if !approved(decision) {
             continue;
-        };
-        for (line, mark, task, _) in entries(epic) {
-            let Some(doc) = known.get(task.as_str()) else {
-                continue;
-            };
-            if mark == ' ' && claims_done(doc) {
-                out.push(Finding::at(
-                    epic,
-                    Some(line),
-                    format!("leaves {task} unmarked, and its Evidence section is written"),
-                ));
-            }
-            if finished(mark) {
-                continue;
-            }
-            for requirement in requirements_in(record, doc.value("closes")) {
-                if known
-                    .get(requirement.as_str())
-                    .is_some_and(|r| bare(r.value("status")) == "withdrawn")
-                {
-                    out.push(Finding::at(doc, doc.field("closes").map(|f| f.line), format!("closes {requirement}, which is withdrawn, while the task is open in {epic_id}")));
-                }
-            }
         }
-        let addressed = requirements_in(record, decision.value("addresses"));
-        let mut claimed: BTreeSet<String> = BTreeSet::new();
-        for task in tasks.iter().filter(|t| bare(t.value("epic")) == epic_id) {
-            for requirement in requirements_in(record, task.value("closes")) {
-                claimed.insert(requirement);
-            }
-        }
-        let named = not_covered
-            .captures(&epic.text)
-            .map(|c| requirements_in(record, &c[1]))
-            .unwrap_or_default();
-        for requirement in &addressed {
-            if !claimed.contains(requirement) && !named.contains(requirement) {
-                out.push(Finding::at(
-                    epic,
-                    None,
-                    format!("{requirement} lands in no task"),
-                ));
-            }
-            if !stated.contains(requirement) {
+        for requirement in requirements_in(record, decision.value("addresses")) {
+            if !stated.contains(&requirement) {
                 out.push(Finding::at(
                     decision,
                     None,
                     format!("{requirement} is stated in no specification"),
-                ));
-            }
-        }
-        for requirement in &claimed {
-            if !addressed.contains(requirement) {
-                out.push(Finding::at(
-                    epic,
-                    None,
-                    format!("{requirement} is closed by a task and addressed by no decision"),
                 ));
             }
         }
@@ -2386,10 +2140,10 @@ fn is_draft(doc: &Doc) -> bool {
 /// away from or moved against, not what it rests on (ADR-2960).
 const NOT_PROVIDERS: [&str; 3] = ["supersedes", "postpones", "violates"];
 
-/// Kinds that change after approval by design, an epic as its tasks close and
-/// a defect as its Tasks and Closed by sections fill, so their date says
+/// Kinds that change after approval by design, a decision as its plan is
+/// corrected and a defect as its plan and Closed by fill, so their date says
 /// nothing about a citation and only their status does (ADR-1470).
-const CHANGE_AFTER_APPROVAL: [&str; 2] = ["epic", "defect"];
+const CHANGE_AFTER_APPROVAL: [&str; 2] = ["decision", "defect"];
 
 /// Each provider up a document's chain, once, with the path that reached it,
 /// walked in the order the layout lists its relations (REQ-0139).
@@ -2664,42 +2418,6 @@ fn section_lines<'a>(doc: &'a Doc, name: &str) -> Vec<(usize, &'a str)> {
     out
 }
 
-/// Each task entry an epic lists: its line, its mark, its task and the whole
-/// entry with its continuation lines.
-fn entries(epic: &Doc) -> Vec<(usize, char, String, String)> {
-    static HEAD: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r"^- \[(.)\] T-\d+ (?:\[P\] )?(TSK-\d{4})").expect("entry pattern")
-    });
-    let head = &*HEAD;
-    let plain = unmarked_entry();
-    let mut out: Vec<(usize, char, String, String)> = Vec::new();
-    for (i, line) in epic.text.lines().enumerate() {
-        if let Some(c) = head.captures(line) {
-            let mark = c[1].chars().next().unwrap_or(' ');
-            out.push((i + 1, mark, c[2].to_string(), line.to_string()));
-        } else if let Some(mark) = epic.derived.get(&(i + 1)).copied()
-            && let Some(c) = plain.captures(line)
-        {
-            out.push((i + 1, mark, c[1].to_string(), line.to_string()));
-        } else if let Some(last) = out.last_mut()
-            && line.starts_with(' ')
-            && !line.trim().is_empty()
-        {
-            last.3.push('\n');
-            last.3.push_str(line);
-        }
-    }
-    out
-}
-
-/// Whether a task's Evidence section says the work is done: it holds text and
-/// doesn't open with "Not yet.", which a postponed task keeps above its note.
-fn claims_done(task: &Doc) -> bool {
-    let lines = section_lines(task, "Evidence");
-    let first = lines.iter().map(|(_, l)| l.trim()).find(|l| !l.is_empty());
-    first.is_some_and(|l| !l.starts_with("Not yet"))
-}
-
 /// A requirement's statement: the paragraph under its heading, with its line.
 fn statement(doc: &Doc) -> Option<(usize, String)> {
     let lines: Vec<&str> = doc.text.lines().collect();
@@ -2709,24 +2427,6 @@ fn statement(doc: &Doc) -> Option<(usize, String)> {
         .find(|&i| lines[i].trim().is_empty())
         .unwrap_or(lines.len());
     Some((start + 1, lines[start..end].join(" ")))
-}
-
-/// A task's evidence, without a leading "Not yet." paragraph.
-fn evidence_of(task: &Doc) -> String {
-    let lines: Vec<&str> = section_lines(task, "Evidence")
-        .into_iter()
-        .map(|(_, l)| l)
-        .collect();
-    let text = lines.join("\n");
-    let mut paragraphs = text
-        .split("\n\n")
-        .map(str::trim)
-        .filter(|p| !p.is_empty())
-        .peekable();
-    if paragraphs.peek().is_some_and(|p| p.starts_with("Not yet")) {
-        paragraphs.next();
-    }
-    paragraphs.collect::<Vec<_>>().join("\n\n")
 }
 
 /// The most words a vision runs to (SPC-1230).
@@ -2763,8 +2463,6 @@ fn has_word(text: &str, phrase: &str) -> bool {
 fn rules(record: &Record) -> Vec<Finding> {
     let date = Regex::new(r"\d{4}-\d{2}-\d{2}").expect("date pattern");
     let requirement = Regex::new(r"REQ-\d{4}").expect("requirement pattern");
-    let authority = Regex::new(r"(?:ADR|BUG)-\d{4}").expect("authority pattern");
-    let task_id = Regex::new(r"TSK-\d{4}").expect("task pattern");
     // RES-0254: two keywords can't be cited by one check, "such a record" breaks
     // when its neighbour moves, and "No X MUST Y" negates a requirement.
     let keyword = Regex::new(r"\b(?:MUST|SHALL|SHOULD|MAY)(?: NOT)?\b").expect("keyword pattern");
@@ -2775,7 +2473,6 @@ fn rules(record: &Record) -> Vec<Finding> {
     let sentences = Regex::new(r"[^.!?]*(?:[.!?]+(?:\s|$)|$)").expect("sentence pattern");
     let struck = Regex::new(r"~~[^~\s][^~]*~~").expect("struck pattern");
     let inline_code = Regex::new(r"`[^`]*`").expect("code span pattern");
-    let checkbox = Regex::new(r"^\s*- \[.\] ").expect("checkbox pattern");
     let known = known(record);
     let mut out = Vec::new();
     for doc in &record.docs {
@@ -2847,15 +2544,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                         ));
                     }
                 }
-                "realises-one" => {
-                    let field = doc.field("realises");
-                    let named = field
-                        .map(|f| authority.find_iter(&f.value).count())
-                        .unwrap_or(0);
-                    if named != 1 {
-                        out.push(Finding::at(doc, field.map(|f| f.line), format!("realises {named} records, where an epic realises exactly one decision or defect")));
-                    }
-                }
                 "concerns-framed" => {
                     if kind.optional_fields.iter().any(|f| f == "concerns")
                         && matches!(bare(doc.value("status")), "draft" | "approved" | "done")
@@ -2887,34 +2575,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                             header.map(|(line, _)| line),
                             "has no column saying why each alternative lost".into(),
                         ));
-                    }
-                }
-                "done-has-evidence" | "added-says-why" | "dropped-says-why" => {
-                    for (line, mark, task, entry) in entries(doc) {
-                        match (rule.as_str(), mark) {
-                            ("done-has-evidence", 'x') => {
-                                let evidence = known
-                                    .get(task.as_str())
-                                    .map(|t| evidence_of(t))
-                                    .unwrap_or_default();
-                                if evidence.is_empty() {
-                                    out.push(Finding::at(doc, Some(line), format!("marks {task} done, and its Evidence section holds nothing past \"Not yet.\"")));
-                                }
-                            }
-                            ("added-says-why", '+') if !entry.contains("added:") => {
-                                out.push(Finding::at(doc, Some(line), format!("marks {task} added after approval with no added: line saying why")));
-                            }
-                            ("dropped-says-why", '~') if !entry.contains("dropped:") => {
-                                out.push(Finding::at(
-                                    doc,
-                                    Some(line),
-                                    format!(
-                                        "marks {task} dropped with no dropped: line saying why"
-                                    ),
-                                ));
-                            }
-                            _ => {}
-                        }
                     }
                 }
                 "one-obligation" | "stands-alone" | "no-negated-requirement" => {
@@ -3009,36 +2669,33 @@ fn rules(record: &Record) -> Vec<Finding> {
                     }
                 }
                 "closed-names-check" => {
-                    let tasks = entries(doc);
-                    let closed =
-                        !tasks.is_empty() && tasks.iter().all(|(_, mark, _, _)| finished(*mark));
-                    if closed
+                    if bare(doc.value("status")) == "done"
                         && !section_lines(doc, "Closed by")
                             .iter()
                             .any(|(_, l)| !l.trim().is_empty())
                     {
-                        out.push(Finding::at(doc, None, "has every task done and an empty Closed by, where it names the check that stays as a regression check".into()));
+                        out.push(Finding::at(doc, None, "is done with an empty Closed by, where it names the check that stays as a regression check".into()));
                     }
                 }
-                "defect-epic-ordered" => {
-                    let realises = bare(doc.value("realises"));
-                    if known
-                        .get(realises)
-                        .is_some_and(|d| kind_of(record, d) == "defect")
+                "plan-where-work" => {
+                    if matches!(bare(doc.value("status")), "draft" | "approved")
+                        && !requirements_in(record, doc.value("addresses")).is_empty()
+                        && !has_plan(doc)
                     {
-                        let tasks = entries(doc);
-                        let ordered = tasks.iter().any(|(_, _, task, entry)| {
-                            entry
-                                .lines()
-                                .filter_map(|l| l.split_once("depends:"))
-                                .any(|(_, said)| !said.contains(NOT_BLOCKING))
-                                || known
-                                    .get(task.as_str())
-                                    .is_some_and(|t| !depends_on(t).is_empty())
-                        });
-                        if tasks.len() < 2 || !ordered {
-                            out.push(Finding::at(doc, doc.field("realises").map(|f| f.line), format!("realises the defect {realises} with {} and no order between them, where a one-task fix is carried by the defect itself", count(tasks.len(), "task"))));
-                        }
+                        out.push(Finding::at(
+                            doc,
+                            None,
+                            "addresses work and carries no ## Plan (REQ-3672)".into(),
+                        ));
+                    }
+                }
+                "plan-where-implement" => {
+                    if bare(doc.value("enters")) == "implement" && !has_plan(doc) {
+                        out.push(Finding::at(
+                            doc,
+                            doc.field("enters").map(|f| f.line),
+                            "enters at implement and carries no ## Plan (REQ-3674)".into(),
+                        ));
                     }
                 }
                 "prompted-by-defect" => {
@@ -3056,40 +2713,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                                 doc.field("prompted-by").map(|f| f.line),
                                 format!("is prompted by {id}, which is not a defect or a task"),
                             ));
-                        }
-                    }
-                }
-                "one-authority" => {
-                    let named = [doc.value("epic"), doc.value("bug"), doc.value("realises")]
-                        .iter()
-                        .filter(|v| !bare(v).is_empty())
-                        .count();
-                    if named != 1 {
-                        let field = doc
-                            .field("epic")
-                            .or_else(|| doc.field("bug"))
-                            .or_else(|| doc.field("realises"));
-                        out.push(Finding::at(doc, field.map(|f| f.line), format!("names {named} authorising records, where a task names exactly one epic, one defect or one decision it realises")));
-                    }
-                    let realises = bare(doc.value("realises"));
-                    if !realises.is_empty() && !realises.starts_with("ADR-") {
-                        out.push(Finding::at(
-                            doc,
-                            doc.field("realises").map(|f| f.line),
-                            format!("realises {realises}, where a task realises only a decision"),
-                        ));
-                    }
-                }
-                "dependency-declared" => {
-                    for (line, text) in section_lines(doc, "Depends on") {
-                        let named = task_id.find_iter(text).count();
-                        if named > 1 {
-                            out.push(Finding::at(doc, Some(line), format!("names {named} tasks on one dependency line, where each line names one task and says whether it blocks")));
-                        } else if named == 1
-                            && !text.contains(BLOCKING)
-                            && !text.contains(NOT_BLOCKING)
-                        {
-                            out.push(Finding::at(doc, Some(line), "names a dependency without (blocking) or (not blocking), where each line says whether it blocks".into()));
                         }
                     }
                 }
@@ -3254,30 +2877,6 @@ fn rules(record: &Record) -> Vec<Finding> {
                         }
                     }
                 }
-                "no-task-status" => {
-                    let mut tasks = false;
-                    for (i, text) in doc.text.lines().enumerate() {
-                        if let Some(heading) = text.strip_prefix("## ") {
-                            tasks = heading.trim() == "Tasks";
-                        } else if tasks && checkbox.is_match(text) {
-                            out.push(Finding::at(
-                                doc,
-                                Some(i + 1),
-                                "marks a task with a checkbox, where an epic carries no status per task".into(),
-                            ));
-                        } else if tasks
-                            && text.trim_start().starts_with('|')
-                            && text.to_lowercase().contains("status")
-                        {
-                            out.push(Finding::at(
-                                doc,
-                                Some(i + 1),
-                                "has a Status column, where an epic carries no status per task"
-                                    .into(),
-                            ));
-                        }
-                    }
-                }
                 unknown => out.push(Finding::at(
                     doc,
                     None,
@@ -3289,26 +2888,23 @@ fn rules(record: &Record) -> Vec<Finding> {
     out
 }
 
-const STEPS: [&str; 7] = [
+const STEPS: [&str; 6] = [
     "research",
     "requirements",
     "design",
     "spec",
-    "epic",
     "implement",
     "review",
 ];
 
-/// The steps ADR-2300 retired. The `enters` rule reads them: an approved defect
-/// triaged while they were steps keeps its `enters` (ADR-2350).
-const RETIRED_STEPS: [&str; 3] = ["cover", "document", "verify"];
-const TEMPLATES: [&str; 12] = [
+/// The steps ADR-2300 and ADR-3090 retired. The `enters` rule reads them: an
+/// approved defect triaged while they were steps keeps its `enters` (ADR-2350).
+const RETIRED_STEPS: [&str; 4] = ["cover", "document", "verify", "epic"];
+const TEMPLATES: [&str; 10] = [
     "research",
     "requirement",
     "adr",
     "spec",
-    "epic",
-    "task",
     "bug",
     "insight",
     "vision",
@@ -3327,115 +2923,11 @@ fn kind_of<'a>(record: &'a Record, doc: &Doc) -> &'a str {
         .unwrap_or("artifact")
 }
 
-/// Each task an epic lists, with the mark it carries: `x` done, `~` dropped,
-/// and anything else open. A `[P]` marking a parallel task is read past.
-fn marks(epic: &Doc) -> Vec<(String, char)> {
-    entries(epic)
-        .into_iter()
-        .map(|(_, mark, task, _)| (task, mark))
-        .collect()
-}
-
-/// The record that authorises a task: the epic it names, the defect that
-/// carries it directly (ADR-1440), or the decision it realises with no epic
-/// (REQ-3630).
-fn authority_of(task: &Doc) -> &str {
-    ["epic", "bug", "realises"]
+/// Whether a record carries a plan with something in it (REQ-3672).
+fn has_plan(doc: &Doc) -> bool {
+    section_lines(doc, "Plan")
         .iter()
-        .map(|key| bare(task.value(key)))
-        .find(|v| !v.is_empty())
-        .unwrap_or("")
-}
-
-/// The mark a task carries: the one its epic or defect gives it, or, for a
-/// task realising a decision with nothing to mark it, done once its Evidence
-/// is written (REQ-3630).
-fn mark_of(known: &BTreeMap<String, &Doc>, task: &Doc) -> char {
-    let id = bare(task.id());
-    if is_direct(task) || authority_of(task).is_empty() {
-        // A withdrawn, rejected or superseded task is dropped, since there is
-        // no epic to mark it `[~]`.
-        return if matches!(
-            bare(task.value("status")),
-            "withdrawn" | "rejected" | "superseded"
-        ) {
-            '~'
-        } else if claims_done(task) {
-            'x'
-        } else {
-            ' '
-        };
-    }
-    known
-        .get(authority_of(task))
-        .and_then(|e| marks(e).into_iter().find(|(t, _)| t == id).map(|(_, m)| m))
-        .unwrap_or(' ')
-}
-
-/// Whether the record's existing marks and Evidence derive completed work.
-fn derived_done(record: &Record, known: &BTreeMap<String, &Doc>, doc: &Doc) -> bool {
-    match kind_of(record, doc) {
-        "task" => mark_of(known, doc) == 'x',
-        "epic" => {
-            let tasks = marks(doc);
-            !tasks.is_empty() && tasks.iter().all(|(_, mark)| finished(*mark))
-        }
-        "decision" => {
-            let id = bare(doc.id());
-            let mut tasks: Vec<(String, char)> = of_kind(record, "task")
-                .into_iter()
-                .filter(|task| is_direct(task) && bare(task.value("realises")) == id)
-                .map(|task| (bare(task.id()).to_string(), mark_of(known, task)))
-                .collect();
-            for epic in of_kind(record, "epic") {
-                if bare(epic.value("realises")) == id {
-                    tasks.extend(marks(epic));
-                }
-            }
-            !tasks.is_empty() && tasks.iter().all(|(_, mark)| finished(*mark))
-        }
-        _ => false,
-    }
-}
-
-/// Whether a task realises a decision directly, naming no epic and no defect
-/// (REQ-3630).
-fn is_direct(task: &Doc) -> bool {
-    !bare(task.value("realises")).is_empty()
-        && bare(task.value("epic")).is_empty()
-        && bare(task.value("bug")).is_empty()
-}
-
-fn finished(mark: char) -> bool {
-    mark == 'x' || mark == '~'
-}
-
-/// The marker a dependency line carries where it doesn't block (ADR-1800).
-const NOT_BLOCKING: &str = "(not blocking)";
-
-/// The marker a dependency line carries where it blocks (ADR-1800).
-const BLOCKING: &str = "(blocking)";
-
-/// The tasks a task waits on: the `TSK-` identifiers under `## Depends on`,
-/// leaving out each line marked `(not blocking)`. A line marked `(blocking)`,
-/// or marked neither way, blocks (SPC-1090 "The gate", REQ-1358).
-fn depends_on(task: &Doc) -> Vec<String> {
-    static ID: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"TSK-\d{4}").expect("identifier pattern"));
-    let id = &*ID;
-    section_lines(task, "Depends on")
-        .into_iter()
-        .filter(|(_, line)| !line.contains(NOT_BLOCKING))
-        .flat_map(|(_, line)| id.find_iter(line).map(|m| m.as_str().to_string()))
-        .collect()
-}
-
-/// Whether a task is done or dropped: marked so by its epic or defect, or, for
-/// a task realising a decision directly, by its Evidence or its status.
-fn task_finished(known: &BTreeMap<String, &Doc>, task: &str) -> bool {
-    known
-        .get(task)
-        .is_some_and(|doc| finished(mark_of(known, doc)))
+        .any(|(_, line)| !line.trim().is_empty())
 }
 
 /// What keeps the inputs from being ready for a step, one line each, as `paw
@@ -3450,7 +2942,7 @@ pub(crate) fn unready(record: &Record, step: &str, ids: &[String]) -> Vec<String
         };
         let kind = kind_of(record, doc);
         match step {
-            "requirements" | "design" | "spec" | "epic" | "implement" if !approved(doc) => {
+            "requirements" | "design" | "spec" | "implement" if !approved(doc) => {
                 missing.push(format!(
                     "{id}, a {kind}, is {} and not approved",
                     bare(doc.value("status"))
@@ -3460,7 +2952,10 @@ pub(crate) fn unready(record: &Record, step: &str, ids: &[String]) -> Vec<String
             _ => {}
         }
         match step {
-            "epic" if kind == "decision" => {
+            "implement" if matches!(kind, "decision" | "defect") => {
+                if !has_plan(doc) {
+                    missing.push(format!("{id} carries no plan"));
+                }
                 let mut stated = BTreeSet::new();
                 for spec in of_kind(record, "specification") {
                     stated.extend(requirements_in(record, spec.value("states")));
@@ -3473,35 +2968,9 @@ pub(crate) fn unready(record: &Record, step: &str, ids: &[String]) -> Vec<String
                     }
                 }
             }
-            "implement" => {
-                let epic_id = authority_of(doc);
-                let what = if !bare(doc.value("epic")).is_empty() {
-                    "the epic"
-                } else if !bare(doc.value("bug")).is_empty() {
-                    "the defect"
-                } else {
-                    "the decision"
-                };
-                match known.get(epic_id) {
-                    Some(epic) if what == "the decision" && kind_of(record, epic) != "decision" => {
-                        missing.push(format!("{id} realises {epic_id}, which is not a decision"))
-                    }
-                    Some(epic) if approved(epic) => {}
-                    Some(epic) => missing.push(format!(
-                        "{epic_id}, {what} of {id}, is {} and not approved",
-                        bare(epic.value("status"))
-                    )),
-                    None if epic_id.is_empty() => {
-                        missing.push(format!("{id} names no epic, no defect and no decision"))
-                    }
-                    None => missing.push(format!("{epic_id}, {what} of {id}, has no file")),
-                }
-                for dependency in depends_on(doc) {
-                    if !task_finished(&known, &dependency) {
-                        missing.push(format!("{dependency}, which {id} depends on, isn't done"));
-                    }
-                }
-            }
+            "implement" => missing.push(format!(
+                "{id} is a {kind}, and only a decision or a defect is implemented"
+            )),
             _ => {}
         }
     }
@@ -3555,14 +3024,7 @@ fn ready(rest: &[String]) -> u8 {
 /// The steps a run of `meow-loop` takes, which are every step but review
 /// (SPC-1201).
 #[cfg(feature = "loop")]
-pub(crate) const RUN_STEPS: [&str; 6] = [
-    "research",
-    "requirements",
-    "design",
-    "spec",
-    "epic",
-    "implement",
-];
+pub(crate) const RUN_STEPS: [&str; 5] = ["research", "requirements", "design", "spec", "implement"];
 
 /// The record under `root` as a run reads it, with the layout `MEOW_LAYOUT`
 /// names or the copy `meow-loop` ships in its own `lib/layout.toml`.
@@ -3662,53 +3124,16 @@ pub(crate) fn decided_by_edit(
     (new != old && decided(kind, &new)).then_some(new)
 }
 
-/// A record's text with each task mark under its Tasks set to open and each
-/// entry's `evidence:` lines removed, so two texts that differ only in the
-/// marks and the evidence written with them compare equal.
-#[cfg(feature = "loop")]
-fn without_marks(text: &str) -> String {
-    let head = Regex::new(r"^(- \[).(\] T-\d+ )").expect("mark pattern");
-    // An entry's own fields end a run of evidence lines, so an evidence line
-    // that wraps onto text shaped like a field stays evidence.
-    let field = Regex::new(r"^\s+(?:closes|depends|evidence):").expect("field pattern");
-    let (mut in_tasks, mut skipping) = (false, false);
-    let mut out: Vec<String> = Vec::new();
-    // Split on newlines alone, so a change of line ending is a change.
-    for line in text.split('\n') {
-        if let Some(heading) = line.strip_prefix("## ") {
-            (in_tasks, skipping) = (heading.trim() == "Tasks", false);
-        } else if in_tasks {
-            if head.is_match(line) {
-                skipping = false;
-                out.push(head.replace(line, "${1} ${2}").into_owned());
-                continue;
-            }
-            let evidence = line.trim_start().starts_with("evidence:") && field.is_match(line);
-            let wrapped = skipping && line.starts_with(' ') && !line.trim().is_empty();
-            if evidence || (wrapped && !field.is_match(line)) {
-                skipping = true;
-                continue;
-            }
-            skipping = false;
-        }
-        out.push(line.to_string());
-    }
-    out.join("\n")
-}
-
 /// Whether a run of `step` may change an approved record of `kind` from
-/// `before` to `after`. A task may change outside its frozen part in any step.
-/// An epic or a defect may change only in its task marks and the evidence
-/// written with them, and only in an `implement` run. None of the frozen
-/// comparison's exemptions apply, because a status now `withdrawn` and a line
-/// naming an authority are a person's decisions (ADR-2020).
+/// `before` to `after`. A decision or defect may change only in its work part,
+/// and only in an `implement` run. None of the frozen comparison's exemptions
+/// apply, because a status now `withdrawn` and a line naming an authority are
+/// a person's decisions (ADR-2020).
 #[cfg(feature = "loop")]
 fn run_may_change(kind: &str, step: &str, before: &str, after: &str) -> bool {
-    match kind {
-        "task" => frozen_part(before) == frozen_part(after),
-        "epic" | "defect" if step == "implement" => without_marks(before) == without_marks(after),
-        _ => false,
-    }
+    matches!(kind, "decision" | "defect")
+        && step == "implement"
+        && work_part(before, true) == work_part(after, true)
 }
 
 /// Each Markdown file under `root` that can't be read, with the error. The
@@ -3730,15 +3155,14 @@ pub(crate) fn unreadable_files(root: &Path) -> Vec<(PathBuf, String)> {
 
 /// Each input that is the wrong kind for `step`, with its line: a
 /// `requirements` run reads research records, a `design` run requirements, a
-/// `spec` and an `epic` run decisions, and an `implement` run tasks. An input
+/// `spec` run decisions, and an `implement` run decisions or defects. An input
 /// with no file is `unready`'s to report.
 #[cfg(feature = "loop")]
 pub(crate) fn wrong_kind(record: &Record, step: &str, ids: &[String]) -> Vec<(String, String)> {
     let expected = match step {
         "requirements" => "research",
         "design" => "requirement",
-        "spec" | "epic" => "decision",
-        "implement" => "task",
+        "spec" | "implement" => "decision",
         _ => return Vec::new(),
     };
     let article = |word: &str| {
@@ -3752,7 +3176,8 @@ pub(crate) fn wrong_kind(record: &Record, step: &str, ids: &[String]) -> Vec<(St
     ids.iter()
         .filter_map(|id| {
             let kind = kind_of(record, known.get(id.as_str())?);
-            (kind != expected).then(|| {
+            let fits = kind == expected || (step == "implement" && kind == "defect");
+            (!fits).then(|| {
                 let line = format!(
                     "{id}, {} {kind}, is not {} {expected}, which {} {step} run reads",
                     article(kind),
@@ -3825,8 +3250,7 @@ pub(crate) fn off_step(
                 "requirements" => kind == "requirement",
                 "design" => kind == "decision",
                 "spec" => kind == "specification",
-                "epic" => matches!(kind, "epic" | "task"),
-                _ => kind == "task",
+                _ => kind == "decision",
             }
     };
     let mut out = Vec::new();
@@ -3844,40 +3268,23 @@ pub(crate) fn off_step(
             }
             continue;
         }
-        let docs: Vec<&Doc> = record
+        let mut kinds: Vec<usize> = record
             .docs
             .iter()
             .filter(|doc| tree_path(root, &doc.relative) == *path)
+            .filter_map(|doc| doc.kind)
             .collect();
-        let thens: Vec<&HeldDoc> = held
-            .docs
-            .iter()
-            .filter(|then| tree_path(root, &then.relative) == *path)
-            .collect();
-        let mut entries: Vec<(usize, Option<&Doc>, Option<&HeldDoc>)> = docs
-            .iter()
-            .filter_map(|doc| doc.kind.map(|k| (k, Some(*doc), thens.first().copied())))
-            .collect();
-        if docs.is_empty() {
-            entries.extend(
-                thens
+        if kinds.is_empty() {
+            kinds.extend(
+                held.docs
                     .iter()
-                    .filter_map(|then| then.kind.map(|k| (k, None, Some(*then)))),
+                    .filter(|then| tree_path(root, &then.relative) == *path)
+                    .filter_map(|then| then.kind),
             );
         }
-        for (k, doc, then) in entries {
+        for k in kinds {
             let kind = record.layout.kinds[k].name.as_str();
-            if step == "implement" && kind == "epic" {
-                let marks_only = matches!(
-                    (doc, then),
-                    (Some(doc), Some(then)) if without_marks(&then.text) == without_marks(&doc.text)
-                );
-                if !marks_only {
-                    out.push(format!(
-                        "{path} (an epic changed beyond its task marks, which the implement step writes)"
-                    ));
-                }
-            } else if !allowed(kind) {
+            if !allowed(kind) {
                 out.push(format!(
                     "{path} ({kind} record, which the {step} step doesn't write)"
                 ));
@@ -3983,10 +3390,9 @@ pub(crate) fn step_holds(
     let known = known(record);
     if step == "implement" {
         return inputs.iter().all(|id| {
-            known.get(id.as_str()).is_some_and(|task| {
-                kind_of(record, task) == "task"
-                    && mark_of(&known, task) == 'x'
-                    && !evidence_of(task).is_empty()
+            known.get(id.as_str()).is_some_and(|doc| {
+                matches!(kind_of(record, doc), "decision" | "defect")
+                    && bare(doc.value("status")) == "done"
             })
         });
     }
@@ -4032,9 +3438,6 @@ pub(crate) fn step_holds(
                     })
             })
         }),
-        "epic" => inputs
-            .iter()
-            .all(|id| any("epic", &|doc| new(doc) && cites(doc, &["realises"], id))),
         _ => false,
     }
 }
@@ -4059,123 +3462,24 @@ fn title(doc: &Doc) -> String {
         .to_string()
 }
 
-/// Why an epic that lists no tasks can't close: each requirement its record
-/// addresses that it leaves unnamed under Not covered. Empty where it lists
-/// tasks, or names every one, because its work was done elsewhere (BUG-1250).
-fn taskless_gaps(record: &Record, known: &BTreeMap<String, &Doc>, epic: &Doc) -> Vec<String> {
-    static NOT_COVERED: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"(?ms)^## Not covered$(.*)").expect("section pattern"));
-    if !marks(epic).is_empty() {
-        return Vec::new();
-    }
-    let epic_id = bare(epic.id());
-    let realises = bare(epic.value("realises"));
-    let addressed = known
-        .get(realises)
-        .map(|authority| requirements_in(record, authority.value("addresses")))
-        .unwrap_or_default();
-    if addressed.is_empty() {
-        return vec![format!("{epic_id} lists no tasks")];
-    }
-    let named = NOT_COVERED
-        .captures(&epic.text)
-        .map(|c| requirements_in(record, &c[1]))
-        .unwrap_or_default();
-    addressed
-        .iter()
-        .filter(|requirement| !named.contains(*requirement))
-        .map(|requirement| {
-            format!("{epic_id} lists no tasks, and {requirement}, which {realises} addresses, isn't named under Not covered")
-        })
-        .collect()
-}
-
-/// Where one authorising record stands in the chain, and what comes next.
-fn position(record: &Record, known: &BTreeMap<String, &Doc>, decision: &Doc) -> String {
+/// Where one decision stands in the chain, and what comes next.
+fn position(record: &Record, decision: &Doc) -> String {
     let id = bare(decision.id());
-    let epics: Vec<&Doc> = of_kind(record, "epic")
-        .into_iter()
-        .filter(|e| bare(e.value("realises")) == id)
-        .collect();
-    // A decision one task realises has that task and no epic (REQ-3630).
-    let direct_tasks: Vec<&Doc> = of_kind(record, "task")
-        .into_iter()
-        .filter(|t| is_direct(t) && bare(t.value("realises")) == id)
-        .collect();
-    let direct: Vec<(String, char)> = direct_tasks
-        .iter()
-        .map(|t| (bare(t.id()).to_string(), mark_of(known, t)))
-        .collect();
-    // A direct task has no epic whose approval covers it, so status waits on
-    // its own approval, as `ready implement` does.
-    if let Some(draft) = direct_tasks
-        .iter()
-        .find(|t| !finished(mark_of(known, t)) && !approved(t))
-    {
-        return format!(
-            "waiting: {} is {} and not approved",
-            bare(draft.id()),
-            bare(draft.value("status"))
-        );
+    if bare(decision.value("status")) == "done" {
+        return format!("closed: {id}");
     }
     let postponed = requirements_in(record, decision.value("postpones"));
-    if epics.is_empty()
-        && direct.is_empty()
-        && requirements_in(record, decision.value("addresses")).is_empty()
-        && !postponed.is_empty()
-    {
+    if requirements_in(record, decision.value("addresses")).is_empty() && !postponed.is_empty() {
         return format!(
             "postponing: {}, listed under Postponed",
             count(postponed.len(), "requirement")
         );
     }
-    let (group, tasks) = match epics.first() {
-        Some(epic) => {
-            let epic_id = bare(epic.id());
-            if !approved(epic) {
-                return format!(
-                    "waiting: {epic_id} is {} and not approved",
-                    bare(epic.value("status"))
-                );
-            }
-            if let Some(gap) = taskless_gaps(record, known, epic).first() {
-                return format!("waiting: {gap}");
-            }
-            // Tasks realising the decision directly count beside the epic's.
-            let mut tasks = marks(epic);
-            tasks.extend(direct);
-            (epic_id, tasks)
-        }
-        None if !direct.is_empty() => (id, direct),
-        None => return "next: spec, then epic".to_string(),
-    };
-    let open: Vec<&String> = tasks
-        .iter()
-        .filter(|(_, mark)| !finished(*mark))
-        .map(|(task, _)| task)
-        .collect();
-    if !open.is_empty() {
-        let free = |task: &&&String| {
-            known
-                .get(task.as_str())
-                .map(|doc| depends_on(doc).iter().all(|d| task_finished(known, d)))
-                .unwrap_or(true)
-        };
-        // The first task that can start is next, and its approval is read from
-        // the working tree (REQ-4412).
-        let doable = open.iter().find(free);
-        return match doable {
-            Some(task) => format!(
-                "next: implement {task} ({group}, {} of {} done)",
-                tasks.len() - open.len(),
-                count(tasks.len(), "task")
-            ),
-            None => format!("waiting: every open task of {group} depends on one that isn't done"),
-        };
+    if has_plan(decision) {
+        format!("next: implement {id}")
+    } else {
+        format!("waiting: {id} carries no plan")
     }
-    // Every task done or dropped closes the epic or the decision, and no step whose work has
-    // landed is named next (REQ-3604, REQ-3620).
-    format!("closed: {group} ({} done)", count(tasks.len(), "task"))
 }
 
 /// The gate a draft of each kind waits at.
@@ -4184,13 +3488,12 @@ fn gate_of(kind: &str) -> &'static str {
         "research" => "the research gate",
         "requirement" => "the requirements gate",
         "decision" => "the design gate",
-        "epic" | "task" => "the epic gate",
         "defect" => "triage",
         _ => "approval",
     }
 }
 
-/// Each requirement an approved decision postpones and no task has taken up,
+/// Each requirement an approved decision postpones and no record has taken up,
 /// with the condition that would end the postponement, which is the first
 /// line of the decision's What would reverse it (REQ-3622).
 fn postponements(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<String> {
@@ -4223,7 +3526,7 @@ fn postponements(record: &Record, known: &BTreeMap<String, &Doc>) -> Vec<String>
         for requirement in requirements_in(record, decision.value("postpones")) {
             let still = known.get(requirement.as_str()).is_some_and(|r| approved(r))
                 && requirement_state(
-                    &closing_tasks(record, known, &requirement),
+                    &closing_records(record, &requirement),
                     Some(bare(decision.id())),
                     &violated_by(record, &requirement),
                 ) == "postponed";
@@ -4319,7 +3622,7 @@ fn status(rest: &[String]) -> u8 {
     }
     let mut closed = 0;
     for decision in decisions {
-        let place = position(&record, &known, decision);
+        let place = position(&record, decision);
         if brief && place.starts_with("closed:") {
             closed += 1;
             continue;
@@ -4331,33 +3634,31 @@ fn status(rest: &[String]) -> u8 {
         say!("  {closed} closed, listed by `paw status`");
     }
     say!();
-    say!("Tasks");
-    let tasks = of_kind(&record, "task");
-    let by_defect = tasks
-        .iter()
-        .filter(|t| {
-            !bare(t.value("bug")).is_empty()
-                || known.get(bare(t.value("epic"))).is_some_and(|e| {
-                    known
-                        .get(bare(e.value("realises")))
-                        .is_some_and(|d| kind_of(&record, d) == "defect")
-                })
-        })
-        .count();
-    say!(
-        "  {} in all: {} authorised by decisions, {} by defects",
-        tasks.len(),
-        tasks.len() - by_defect,
-        by_defect
-    );
+    say!("Defects");
+    let open: Vec<&Doc> = of_kind(&record, "defect")
+        .into_iter()
+        .filter(|d| bare(d.value("status")) == "approved")
+        .collect();
+    if open.is_empty() {
+        say!("  none open");
+    }
+    for defect in open {
+        let id = bare(defect.id());
+        say!("  {id} {}", title(defect));
+        match bare(defect.value("enters")) {
+            "implement" | "" if has_plan(defect) => say!("    next: implement {id}"),
+            "implement" | "" => say!("    waiting: {id} carries no plan"),
+            step => say!("    enters at {step}"),
+        }
+    }
     say!();
     say!("Requirements");
     let states = [
         "closed",
-        "in a task not yet done",
+        "in a decision not yet done",
         "reopened by a defect",
         "postponed",
-        "named by no task",
+        "named by no decision",
     ];
     let mut tally = [0usize; 5];
     let in_force: Vec<&Doc> = of_kind(&record, "requirement")
@@ -4367,7 +3668,7 @@ fn status(rest: &[String]) -> u8 {
     for requirement in &in_force {
         let id = bare(requirement.id());
         let state = requirement_state(
-            &closing_tasks(&record, &known, id),
+            &closing_records(&record, id),
             postponed_by(&record, id).as_deref(),
             &violated_by(&record, id),
         );
@@ -4679,22 +3980,18 @@ fn show(rest: &[String]) -> u8 {
     if kind_of(&record, doc) == "requirement" {
         say!();
         say!("State");
-        let tasks = closing_tasks(&record, &known, id);
+        let records = closing_records(&record, id);
         let by = postponed_by(&record, id);
         let violated = violated_by(&record, id);
-        match requirement_state(&tasks, by.as_deref(), &violated) {
+        match requirement_state(&records, by.as_deref(), &violated) {
             "postponed" => say!("  postponed by {}", by.unwrap_or_default()),
             "reopened by a defect" => say!("  open, violated by {}", violated.join(", ")),
             "closed" => say!("  closed"),
             state => say!("  open, {state}"),
         }
-        for (task, mark, epic) in &tasks {
-            let done = match mark {
-                'x' => "done",
-                '~' => "dropped",
-                _ => "open",
-            };
-            say!("  {task} {done} in {epic}");
+        for (name, mark) in &records {
+            let done = if *mark == 'x' { "done" } else { "open" };
+            say!("  {name} {done}");
         }
     }
     say!();
@@ -4753,13 +4050,13 @@ const BRIEF_AGENT: &str = "general-purpose";
 /// What a delegated agent reports, as ADR-1710 and ADR-2730 state it.
 const BRIEF_REPORT: &str =
     "Report on your first line `outcome:` and one of DONE, DONE_WITH_CONCERNS,
-NEEDS_CONTEXT or BLOCKED. Below it, name the test that closes each acceptance
-criterion, each stage you ran with its command and exit status, and each file
+NEEDS_CONTEXT or BLOCKED. Below it, name the test that closes each planned
+outcome, each stage you ran with its command and exit status, and each file
 you changed. If a tool call is denied, end with `outcome: BLOCKED`, naming the
 tool and what it was called on, and make no other call for it.
 
-A pull request carrying this work names the task, TASK, and the command that
-prints this brief, `paw brief TASK`, and names no agent, model or vendor.";
+A pull request carrying this work names the record, RECORD, and the command
+that prints this brief, `paw brief RECORD`, and names no agent, model or vendor.";
 
 /// Lines with the blank ones at either end removed, joined as they stood.
 fn trimmed(lines: &[&str]) -> String {
@@ -4818,15 +4115,12 @@ fn quote(from: &str, text: &str) {
     say!();
 }
 
-/// Prints the brief a delegated agent gets for one task, built from the record
-/// alone (REQ-0810, REQ-0812, REQ-0814), naming the agent definition it is
-/// written for (REQ-1764). It writes nothing.
 fn brief(rest: &[String]) -> u8 {
     let (id, agent) = match rest {
         [id] => (id, BRIEF_AGENT),
         [id, flag, agent] if flag == "--agent" && !agent.is_empty() => (id, agent.as_str()),
         _ => {
-            eprintln!("usage: paw brief <task> [--agent <unit>:<agent>]");
+            eprintln!("usage: paw brief <record> [--agent <unit>:<agent>]");
             return USAGE;
         }
     };
@@ -4835,98 +4129,75 @@ fn brief(rest: &[String]) -> u8 {
         Err(code) => return code,
     };
     let known = known(&record);
-    let Some(task) = known.get(id.as_str()) else {
+    let Some(doc) = known.get(id.as_str()) else {
         say!("paw brief: {id} resolves to nothing in the record");
         return FOUND;
     };
-    if kind_of(&record, task) != "task" {
-        say!(
-            "paw brief: {id} is a {}, and only a task has a brief",
-            kind_of(&record, task)
-        );
+    let kind = kind_of(&record, doc);
+    if !matches!(kind, "decision" | "defect") {
+        say!("paw brief: {id} is a {kind}, and only a decision or a defect has a brief");
         return FOUND;
     }
-    let authority = authority_of(task);
-    let parent = known.get(authority).copied();
     say!("agent: {agent}");
-    if authority.is_empty() {
-        say!("task: {id}, authorised by no record");
-    } else {
-        say!("task: {id}, authorised by {authority}");
-    }
+    say!("record: {id}, a {kind}");
     say!();
 
     say!("# What to build");
     say!();
-    quote(&format!("{id}, its title and opening: {}", task.shown), &{
-        let opening = under_title(task, false);
-        format!("{}\n\n{opening}", title(task))
+    quote(&format!("{id}, its title and opening: {}", doc.shown), &{
+        let opening = under_title(doc, false);
+        format!("{}\n\n{opening}", title(doc))
             .trim_end()
             .to_string()
     });
-    quote(
-        &format!("{id}, What to do"),
-        &section_text(task, "What to do"),
-    );
-    if let Some(parent) = parent {
-        match kind_of(&record, parent) {
-            "decision" => quote(
-                &format!("{authority}, Decision: {}", parent.shown),
-                &section_text(parent, "Decision"),
-            ),
-            "defect" => quote(
-                &format!("{authority}, What it should do, and why: {}", parent.shown),
-                &section_text(parent, "What it should do, and why"),
-            ),
-            _ => quote(
-                &format!("{authority}, its opening: {}", parent.shown),
-                &under_title(parent, false),
-            ),
-        }
+    if kind == "decision" {
+        quote(&format!("{id}, Decision"), &section_text(doc, "Decision"));
+    } else {
+        quote(
+            &format!("{id}, What it should do, and why"),
+            &section_text(doc, "What it should do, and why"),
+        );
     }
+    quote(&format!("{id}, Plan"), &section_text(doc, "Plan"));
 
     say!("# Constraints");
     say!();
-    let closes: Vec<String> = record
+    let names = doc.value(if kind == "decision" {
+        "addresses"
+    } else {
+        "violates"
+    });
+    let named: Vec<String> = record
         .ids
-        .find_iter(task.value("closes"))
+        .find_iter(names)
         .map(|m| m.as_str().to_string())
         .collect();
-    for requirement in &closes {
+    for requirement in &named {
         match known.get(requirement.as_str()) {
-            Some(doc) => quote(
-                &format!("{requirement}: {}", doc.shown),
-                &under_title(doc, true),
+            Some(cited) => quote(
+                &format!("{requirement}: {}", cited.shown),
+                &under_title(cited, true),
             ),
             None => say!("from {requirement}, which resolves to nothing in the record"),
         }
     }
     quote(
-        &format!("{id}, Acceptance criteria"),
-        &section_text(task, "Acceptance criteria"),
+        &format!("{id}, How I will know it was realised"),
+        &section_text(doc, "How I will know it was realised"),
     );
     quote(
-        &format!("{id}, Left alone"),
-        &section_text(task, "Left alone"),
+        &format!("{id}, What this does not settle"),
+        &section_text(doc, "What this does not settle"),
     );
 
     say!("# Interfaces");
     say!();
-    if let Some(parent) = parent
-        && let Some(entry) = entries(parent).into_iter().find(|e| e.2 == id.as_str())
-    {
-        quote(&format!("{authority}, its entry for {id}"), &entry.3);
-    }
-    quote(
-        &format!("{id}, Depends on"),
-        &section_text(task, "Depends on"),
-    );
     for spec in of_kind(&record, "specification") {
         let stated: Vec<&str> = record
             .ids
             .find_iter(spec.value("states"))
             .map(|m| m.as_str())
-            .filter(|r| closes.iter().any(|c| c == r))
+            .filter(|r| named.iter().any(|c| c == r))
             .collect();
         if !stated.is_empty() {
             say!(
@@ -4943,7 +4214,7 @@ fn brief(rest: &[String]) -> u8 {
     say!();
     quote(
         "the method, ADR-1710 and ADR-2730",
-        &BRIEF_REPORT.replace("TASK", id),
+        &BRIEF_REPORT.replace("RECORD", id),
     );
     CLEAN
 }
@@ -5234,6 +4505,10 @@ fn new_identifier(rest: &[String]) -> u8 {
         Ok(opened) => opened,
         Err(code) => return code,
     };
+    if kind_named(&record, word).is_some_and(|k| record.layout.kinds[k].archived) {
+        say!("paw new: the {word} is retired (ADR-3090); a decision or a defect carries its plan");
+        return FOUND;
+    }
     let Some(k) = kind_named(&record, word).filter(|&k| record.layout.kinds[k].prefix.is_some())
     else {
         let kinds: Vec<&str> = record
@@ -5448,50 +4723,6 @@ fn with_field(text: &str, key: &str, value: &str) -> Option<String> {
     replaced.then_some(out)
 }
 
-/// The text with the mark of one task's entry set to done and the pull request
-/// that did it named, and every other line as it was.
-fn with_done_mark(text: &str, task: &str, pull_request: &str) -> Option<String> {
-    let head =
-        Regex::new(&format!(r"^- \[.\] (T-\d+ (?:\[P\] )?{task}\b)(.*)$")).expect("mark pattern");
-    let plain = Regex::new(&format!(r"^- T-\d+ (?:\[P\] )?{task}\b")).expect("entry pattern");
-    let mut out = String::with_capacity(text.len() + 32);
-    let mut marked = false;
-    for line in text.split_inclusive('\n') {
-        let content = line.trim_end_matches(['\n', '\r']);
-        // An entry with no mark takes its state from its task (SPC-1090).
-        if !marked && plain.is_match(content) {
-            marked = true;
-        }
-        if !marked && let Some(c) = head.captures(content) {
-            let note = if c[2].contains("(done:") {
-                String::new()
-            } else {
-                format!(" (done: pull request {pull_request})")
-            };
-            out.push_str(&format!(
-                "- [x] {}{}{}{}",
-                &c[1],
-                &c[2],
-                note,
-                &line[content.len()..]
-            ));
-            marked = true;
-            continue;
-        }
-        out.push_str(line);
-    }
-    marked.then_some(out)
-}
-
-/// Whether the task's Evidence says something other than `Not yet.`.
-fn evidence_written(task: &Doc) -> bool {
-    section_lines(task, "Evidence")
-        .into_iter()
-        .map(|(_, line)| line.trim())
-        .find(|line| !line.is_empty())
-        .is_some_and(|line| !line.starts_with("Not yet."))
-}
-
 /// A file written beside itself and renamed into place, so an interrupted
 /// write leaves the old text or the new and never half of either.
 fn write_text(path: &Path, text: &str) -> Result<(), String> {
@@ -5691,16 +4922,16 @@ fn withdraw(rest: &[String]) -> u8 {
     CLEAN
 }
 
-/// `paw done <task> --pr <number>`: stores `done` in a complete task, marks it
-/// in its epic or defect, and closes the epic and the decision where it was
-/// the last open task (ADR-2880).
+/// `paw done <record> --pr <number>`: stores `done` in an approved decision or
+/// defect and names the pull request that completes it (REQ-3678).
 fn done(rest: &[String]) -> u8 {
-    let [task, flag, number] = rest else {
-        eprintln!("usage: paw done <task> --pr <number>");
+    let usage = "usage: paw done <record> --pr <number>";
+    let [id, flag, number] = rest else {
+        eprintln!("{usage}");
         return USAGE;
     };
     if flag != "--pr" || number.is_empty() || !number.chars().all(|c| c.is_ascii_digit()) {
-        eprintln!("usage: paw done <task> --pr <number>");
+        eprintln!("{usage}");
         return USAGE;
     }
     let (record, _, _) = match open_record("done") {
@@ -5708,112 +4939,53 @@ fn done(rest: &[String]) -> u8 {
         Err(code) => return code,
     };
     let known_now = known(&record);
-    let Some(doc) = known_now.get(task.as_str()) else {
-        say!("paw done: {task} names no record");
+    let Some(doc) = known_now.get(id.as_str()) else {
+        say!("paw done: {id} names no record");
         return FOUND;
     };
-    if kind_of(&record, doc) != "task" {
-        say!("paw done: {task} is not a task");
+    let kind = kind_of(&record, doc);
+    if !matches!(kind, "decision" | "defect") {
+        say!("paw done: {id} is a {kind}, and only a decision or a defect is closed");
         return FOUND;
     }
     match bare(doc.value("status")) {
         "approved" => {}
         other => {
-            say!("paw done: {task} is {other}, and only an approved task is closed");
+            say!("paw done: {id} is {other}, and only an approved record is closed");
             return FOUND;
         }
     }
-    if !evidence_written(doc) {
-        say!(
-            "paw done: {task}'s Evidence is not written; it opens with `Not yet.` or holds nothing"
-        );
+    if kind == "decision"
+        && !requirements_in(&record, doc.value("addresses")).is_empty()
+        && !has_plan(doc)
+    {
+        say!("paw done: {id} carries no plan");
         return FOUND;
     }
-    let authority = authority_of(doc).to_string();
-    let epic_text = match known_now.get(authority.as_str()) {
-        Some(a) if matches!(kind_of(&record, a), "epic" | "defect") => {
-            let Some(text) = with_done_mark(&a.text, task, number) else {
-                say!("paw done: {} lists no entry for {task}", a.shown);
-                return FOUND;
-            };
-            Some((a.path.clone(), text))
-        }
-        _ => None,
-    };
-    let Some(task_text) = with_field(&doc.text, "status", "done") else {
+    let first = section_lines(doc, "Closed by")
+        .into_iter()
+        .map(|(_, line)| line.trim())
+        .find(|line| !line.is_empty())
+        .unwrap_or("");
+    if kind == "defect"
+        && (first.is_empty() || first.starts_with("Not") || first.starts_with("Open"))
+    {
+        say!("paw done: {id}'s Closed by doesn't name the check that closed it");
+        return FOUND;
+    }
+    let text = with_field(&doc.text, "status", "done").and_then(|text| {
+        with_field(&text, "pr", number).or_else(|| upgrade::with_added_field(&text, "pr", number))
+    });
+    let Some(text) = text else {
         say!("paw done: {} carries no status line to change", doc.shown);
         return FOUND;
     };
-    let task_path = doc.path.clone();
-    let direct = is_direct(doc);
-    if let Err(reason) = write_text(&task_path, &task_text) {
+    if let Err(reason) = write_text(&doc.path, &text) {
         say!("paw done: {reason}");
         return FOUND;
     }
-    if let Some((path, text)) = epic_text
-        && let Err(reason) = write_text(&path, &text)
-    {
-        say!("paw done: {reason}");
-        return FOUND;
-    }
-    say!("paw done: {task} is done in pull request {number}");
-    // What the writes complete: the epic once every task of it is done, then
-    // the decision once every epic and task of it is.
-    let mut touched: Vec<String> = vec!["task".to_string(), "epic".to_string()];
-    for _ in 0..2 {
-        let Ok((fresh, _, _)) = open_record("done") else {
-            break;
-        };
-        let known_fresh = known(&fresh);
-        let mut next: Option<(PathBuf, String, String)> = None;
-        for candidate in [authority.as_str(), ""] {
-            let mut ids: Vec<String> = Vec::new();
-            if candidate.is_empty() {
-                if let Some(epic) = known_fresh.get(authority.as_str()) {
-                    let realised = bare(epic.value("realises")).to_string();
-                    if !realised.is_empty() {
-                        ids.push(realised);
-                    }
-                }
-                if direct {
-                    ids.push(authority.clone());
-                }
-            } else {
-                ids.push(candidate.to_string());
-            }
-            for id in ids {
-                let Some(target) = known_fresh.get(id.as_str()) else {
-                    continue;
-                };
-                let kind = kind_of(&fresh, target);
-                if matches!(kind, "epic" | "decision")
-                    && bare(target.value("status")) == "approved"
-                    && derived_done(&fresh, &known_fresh, target)
-                    && let Some(text) = with_field(&target.text, "status", "done")
-                {
-                    next = Some((target.path.clone(), text, kind.to_string()));
-                    break;
-                }
-            }
-            if next.is_some() {
-                break;
-            }
-        }
-        let Some((path, text, kind)) = next else {
-            break;
-        };
-        drop(known_fresh);
-        if let Err(reason) = write_text(&path, &text) {
-            say!("paw done: {reason}");
-            return FOUND;
-        }
-        say!(
-            "paw done: {} is done",
-            path.file_name().and_then(|n| n.to_str()).unwrap_or("")
-        );
-        touched.push(kind);
-    }
-    regenerate(&touched);
+    say!("paw done: {id} is done in pull request {number}");
+    regenerate(&[kind.to_string()]);
     CLEAN
 }
 

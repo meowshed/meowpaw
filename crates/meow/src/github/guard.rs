@@ -366,8 +366,8 @@ pub fn irreversible_main() -> u8 {
 /// as the command's verbs or the method and the endpoint; `None` otherwise.
 fn irreversible(part: &[String]) -> Option<String> {
     let words = command_of(part);
-    // The pack's own writes: `project` and `sync` without `--check`.
-    if let [first, verb @ ("project" | "sync"), rest @ ..] = words.as_slice()
+    // The pack's own writes: `project`, `sync` and `upgrade` without `--check`.
+    if let [first, verb @ ("project" | "sync" | "upgrade"), rest @ ..] = words.as_slice()
         && first.ends_with("meow-github")
         && !rest.contains(&"--check")
     {

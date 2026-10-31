@@ -1,19 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Andrew Vasilyev <me@retran.me>
 // SPDX-License-Identifier: Apache-2.0
 
-//! Project an approved epic's tasks onto GitHub issues (ADR-1310).
+//! Project an approved decision or defect onto one GitHub issue (ADR-3090).
 //!
-//! SPC-1080 states the behaviour. The record owns each issue's title and
-//! body, and the mapping lives on the task: `issue:` names the issue and
+//! SPC-1080 states the behaviour. The record owns the issue's title and
+//! body, and the mapping lives on the record: `issue:` names the issue and
 //! `projected:` the fingerprint of what was written, so a replay finds nothing
 //! to do and the mapping survives losing the tracker. The fingerprint is the
 //! first twelve hex digits of the SHA-256 of the title, a newline and the body,
 //! which `shasum -a 256` reproduces by hand. Every call goes through the
 //! request layer, and a throttle stops the run where it is met (ADR-1810).
 //! The issues a run created are read back in one listing after its last
-//! create, and a run that stops before it has projected every task says
-//! which tasks it projected, which it created and couldn't read back, and which it left
-//! (REQ-2572).
+//! create, and a run that stops says what it projected, what it created and
+//! couldn't read back, and what it left (REQ-2572).
 
 use super::name_repository;
 use super::request::{Failure, Layer};
@@ -55,12 +54,12 @@ impl Record {
             .unwrap_or_default()
     }
 
-    /// The requirement identifiers in `closes`, which may run over several lines.
-    fn closes(&self) -> Vec<String> {
+    /// The requirement identifiers in `key`, which may run over several lines.
+    fn requirements(&self, key: &str) -> Vec<String> {
         let mut out = Vec::new();
         let mut inside = false;
         for line in front_matter(&self.text) {
-            if line.starts_with("closes:") {
+            if line.starts_with(&format!("{key}:")) {
                 inside = true;
             } else if !line.starts_with(' ') && !line.starts_with(']') && line.contains(':') {
                 inside = false;
@@ -76,19 +75,20 @@ impl Record {
         out
     }
 
-    pub(super) fn section(&self, name: &str) -> String {
-        let mut out = Vec::new();
+    /// A section's text with its line breaks, for a body a reader follows.
+    fn section_text(&self, name: &str) -> String {
+        let mut out: Vec<&str> = Vec::new();
         let mut inside = false;
         for line in self.text.lines() {
             if let Some(heading) = line.strip_prefix("## ") {
                 inside = heading.trim() == name;
                 continue;
             }
-            if inside && !line.trim().is_empty() {
-                out.push(line.trim());
+            if inside {
+                out.push(line);
             }
         }
-        out.join(" ")
+        out.join("\n").trim().to_string()
     }
 }
 
@@ -127,36 +127,23 @@ pub fn fingerprint(title: &str, body: &str) -> String {
     digest.iter().take(6).map(|b| format!("{b:02x}")).collect()
 }
 
-/// What the record says the task's issue holds: its title, and its body
-/// without the marker, which names the fingerprint and so can't be part of it.
-pub(super) fn projection(task: &Record, authoriser: &Record) -> (String, String) {
-    let id = task.field("id");
-    let title = format!("{id}: {}", task.title());
-    let closes = task.closes();
-    // A task realising a decision with no epic sits under nothing (REQ-3630).
-    let mut body = if authoriser.field("artifact") == "adr" {
-        format!(
-            "{id}, which realises {}.\n\nCloses {}.",
-            authoriser.field("id"),
-            closes.join(", ")
-        )
-    } else if authoriser.field("artifact") == "defect" {
-        format!(
-            "{id} of {}.\n\nCloses {}.",
-            authoriser.field("id"),
-            closes.join(", ")
-        )
+/// What the record says its issue holds: its title, and its body without the
+/// marker, which names the fingerprint and so can't be part of it.
+pub(super) fn projection(record: &Record) -> (String, String) {
+    let id = record.field("id");
+    let title = format!("{id}: {}", record.title());
+    let names = if record.field("artifact") == "adr" {
+        record.requirements("addresses")
     } else {
-        format!(
-            "{id} of {}, which realises {}.\n\nCloses {}.",
-            authoriser.field("id"),
-            authoriser.field("realises"),
-            closes.join(", ")
-        )
+        record.requirements("violates")
     };
-    let depends = task.section("Depends on");
-    if !depends.is_empty() {
-        body.push_str(&format!("\n\nDepends on: {depends}"));
+    let mut body = format!("The work of {id}.");
+    if !names.is_empty() {
+        body.push_str(&format!("\n\nNames {}.", names.join(", ")));
+    }
+    let plan = record.section_text("Plan");
+    if !plan.is_empty() {
+        body.push_str(&format!("\n\n## Plan\n\n{plan}"));
     }
     (title, body)
 }
@@ -165,7 +152,7 @@ pub(super) fn marker(id: &str, fingerprint: &str) -> String {
     format!("<!-- meow-github: projected from {id} at {fingerprint} -->")
 }
 
-/// Writes `issue:`, `projected:` and `tracked:` into the task's front matter.
+/// Writes `issue:`, `projected:` and `tracked:` into the record's front matter.
 pub(super) fn record_mapping(
     task: &Record,
     number: u64,
@@ -179,7 +166,7 @@ pub(super) fn record_mapping(
         if line == "---" {
             fences += 1;
             in_front = fences == 1;
-            // A task written without the optional fields gets them here, or a
+            // A record written without the optional fields gets them here, or a
             // replay finds no mapping and opens a second issue (BUG-1210).
             if fences == 2 && !out.iter().any(|l: &String| l.starts_with("issue:")) {
                 out.push(format!("issue: {number}"));
@@ -268,21 +255,8 @@ pub(super) fn read_tracker(
     })
 }
 
-/// The tasks the epic marks done.
-pub(super) fn done_in(epic: &Record) -> Vec<String> {
-    epic.text
-        .lines()
-        .filter_map(|l| l.strip_prefix("- [x] "))
-        .filter_map(|l| {
-            l.split_whitespace()
-                .find(|word| word.starts_with("TSK-"))
-                .map(str::to_string)
-        })
-        .collect()
-}
-
 /// Prints why a call gave nothing, after `context`, with a refusal's line on a
-/// line of its own so that it reads as GitHub's answer and not as the task's.
+/// line of its own so that it reads as GitHub's answer and not as the record's.
 pub(super) fn report(context: &str, failure: &Failure) {
     match failure {
         Failure::Refused(line) | Failure::Rejected(line) => {
@@ -316,15 +290,15 @@ struct Created {
     print: String,
 }
 
-/// What the run did with each task it can name, for the `partial:` line.
+/// What the run did with each record it can name, for the `partial:` line.
 #[derive(Default)]
 struct Outcome {
-    /// The tasks whose issue was updated, found unchanged, or created and read
+    /// The records whose issue was updated, found unchanged, or created and read
     /// back matching the record.
     projected: Vec<String>,
-    /// The tasks whose issue was created and not read back, each with why.
+    /// The records whose issue was created and not read back, each with why.
     unread: Vec<String>,
-    /// Whether the run stopped before it visited every task.
+    /// Whether the run stopped before it visited every record.
     stopped: bool,
     /// Whether it stopped at a throttle, a ceiling or a rejected credential,
     /// after which it sends nothing more, the listing included.
@@ -332,7 +306,7 @@ struct Outcome {
 }
 
 impl Outcome {
-    /// Puts a created issue's task under `projected`, as read back as written.
+    /// Puts a created issue's record under `projected`, as read back as written.
     fn confirm(&mut self, c: Created) {
         println!(
             "{}: projected to issue #{} at {}, read back",
@@ -341,7 +315,7 @@ impl Outcome {
         self.projected.push(c.id);
     }
 
-    /// Puts each created issue's task under `created, not read back`, with why.
+    /// Puts each created issue's record under `created, not read back`, with why.
     fn leave(&mut self, created: &[Created], why: &str) {
         for c in created {
             self.unread
@@ -349,7 +323,7 @@ impl Outcome {
         }
     }
 
-    /// The `partial:` line: every task of `tasks` under one of three groups.
+    /// The `partial:` line: every record of `tasks` under one of three groups.
     fn partial(&self, tasks: &[Record]) -> String {
         let left: Vec<String> = tasks
             .iter()
@@ -422,7 +396,7 @@ fn read_back(
 }
 
 /// Reads the created issues back, in one listing and then by number for each
-/// the listing left out, and sorts each task into `outcome`. The listing runs
+/// the listing left out, and sorts each record into `outcome`. The listing runs
 /// after a failed write or a refusal, and not after a throttle, a ceiling or a
 /// rejected credential, because a request sent while throttled risks the
 /// integration and one sent with a rejected credential counts towards
@@ -539,21 +513,18 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
         .unwrap_or("project")
         .to_string();
     let base = root.join(record_root);
-    // A decision groups its direct tasks, a defect carries its own, and an
-    // epic carries the rest (REQ-3630, REQ-4000).
-    let direct = target_id.starts_with("ADR-");
-    let defect = target_id.starts_with("BUG-");
-    let (dir, kind) = if direct {
+    let (dir, kind) = if target_id.starts_with("ADR-") {
         ("adrs", "decision")
-    } else if defect {
+    } else if target_id.starts_with("BUG-") {
         ("bugs", "defect")
     } else {
-        ("epics", "epic")
+        println!(
+            "meow-github project: {target_id} is no decision or defect, and only those map to an issue"
+        );
+        return FOUND;
     };
-    let Some(authoriser) = records(&base.join(dir), &format!("{target_id}-"))
-        .into_iter()
-        .next()
-    else {
+    let tasks = records(&base.join(dir), &format!("{target_id}-"));
+    let Some(authoriser) = tasks.first() else {
         println!(
             "meow-github project: {target_id} resolves to no {kind} under {}",
             base.display()
@@ -562,48 +533,14 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
     };
     if !matches!(authoriser.field("status").as_str(), "approved" | "done") {
         println!(
-            "meow-github project: {target_id} is {}, and its tasks are projected only once it is approved",
+            "meow-github project: {target_id} is {}, and it is projected only once it is approved",
             authoriser.field("status")
         );
         return FOUND;
     }
-    let tasks: Vec<Record> = records(&base.join("tasks"), "TSK-")
-        .into_iter()
-        .filter(|t| {
-            if direct {
-                t.field("realises") == target_id
-                    && t.field("epic").is_empty()
-                    && t.field("bug").is_empty()
-                    && !matches!(
-                        t.field("status").as_str(),
-                        "withdrawn" | "rejected" | "superseded"
-                    )
-            } else if defect {
-                t.field("bug") == target_id
-                    && !matches!(
-                        t.field("status").as_str(),
-                        "withdrawn" | "rejected" | "superseded"
-                    )
-            } else {
-                t.field("epic") == target_id
-            }
-        })
-        .collect();
-    // With no epic to mark it, a task is done once its Evidence is written.
-    let done: Vec<String> = if direct {
-        tasks
-            .iter()
-            .filter(|t| {
-                let evidence = t.section("Evidence");
-                !evidence.is_empty() && !evidence.starts_with("Not yet")
-            })
-            .map(|t| t.field("id"))
-            .collect()
-    } else {
-        done_in(&authoriser)
-    };
+    let done = authoriser.field("status") == "done";
     let mut outcome = Outcome::default();
-    // A run that can't name its repository visits no task, so it is partial too.
+    // A run that can't name its repository visits nothing, so it is partial too.
     let repository = match name_repository(layer, repository) {
         Ok(name) => name,
         Err(e) => {
@@ -621,7 +558,7 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
     let mut created: Vec<Created> = Vec::new();
     for task in &tasks {
         let id = task.field("id");
-        let (title, body) = projection(task, &authoriser);
+        let (title, body) = projection(task);
         let print = fingerprint(&title, &body);
         let issue = task.field("issue");
         if !issue.is_empty() {
@@ -647,16 +584,10 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
                 }
             };
             let (on_tracker, closed) = (remote.text_fingerprint(), remote.closed);
-            if closed && !done.contains(&id) {
-                if direct {
-                    println!(
-                        "{id}: issue #{issue} is closed on GitHub while the task's Evidence isn't written; the record decides when a task is done, so this is reported, not reconciled"
-                    );
-                } else {
-                    println!(
-                        "{id}: issue #{issue} is closed on GitHub while {target_id} leaves the task unmarked; the {kind} decides when the task is done, so this is reported, not reconciled"
-                    );
-                }
+            if closed && !done {
+                println!(
+                    "{id}: issue #{issue} is closed on GitHub while the {kind} isn't done; the record decides when it is done, so this is reported, not reconciled"
+                );
                 worst = worst.max(FOUND);
             }
             if on_tracker != projected {
@@ -750,9 +681,9 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
                 "{id}: issue #{number} created, and the mapping couldn't be written to {}: {e}",
                 task.path.display()
             );
-            outcome
-                .unread
-                .push(format!("{id} (issue #{number}, the task doesn't name it)"));
+            outcome.unread.push(format!(
+                "{id} (issue #{number}, the record doesn't name it)"
+            ));
             outcome.stopped = true;
             break;
         }
@@ -772,9 +703,6 @@ pub fn run(layer: &mut Layer, target_id: &str, repository: Option<&str>, check: 
         });
     }
     settle(layer, &repository, created, &mut outcome);
-    if tasks.is_empty() {
-        println!("meow-github project: {target_id} has no tasks");
-    }
     if outcome.stopped || !outcome.unread.is_empty() {
         println!("{}", outcome.partial(&tasks));
         return UNREAD;

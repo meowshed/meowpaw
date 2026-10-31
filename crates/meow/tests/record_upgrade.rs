@@ -171,6 +171,32 @@ fn old_form(root: &Path) {
         "project/bugs/BUG-0003-recorded.md",
         &defect("BUG-0003", "", "The change that recorded it."),
     );
+    // A task its defect still lists as open, and which was withdrawn.
+    write(
+        root,
+        "project/tasks/TSK-0007-g.md",
+        &task("TSK-0007", "withdrawn", "bug: BUG-0002", "Not yet."),
+    );
+    // A decision whose epic lists no tasks, because other work closed all of
+    // what it addresses and the epic says so (BUG-1250).
+    write(
+        root,
+        "project/requirements/REQ-0002-b.md",
+        "---\nid: REQ-0002\nartifact: requirement\ntopic: t\nclass: functional\nstatus: approved\nrevised: 2026-01-01\nverification: static\n---\n\n# REQ-0002\n\nThe thing MUST hold.\n",
+    );
+    write(
+        root,
+        "project/adrs/ADR-0004-elsewhere.md",
+        &decision("ADR-0004", "approved").replace("addresses: []", "addresses: [REQ-0002]"),
+    );
+    write(
+        root,
+        "project/epics/EPC-0003-elsewhere.md",
+        &format!(
+            "{}\n## Not covered\n\n- REQ-0002 was closed before this decision.\n",
+            epic("EPC-0003", "ADR-0004", "None.")
+        ),
+    );
 }
 
 #[test]
@@ -180,7 +206,7 @@ fn a_preview_says_what_moves_and_writes_nothing() {
     let output = paw(&dir.0, &["upgrade"]);
     let text = said(&output);
     assert!(output.status.success(), "{text}");
-    assert!(text.contains("would archive 6 tasks and 2 epics"), "{text}");
+    assert!(text.contains("would archive 7 tasks and 3 epics"), "{text}");
     assert!(text.contains("TSK-0002 into ADR-0001"), "{text}");
     assert!(dir.0.join("project/tasks/TSK-0001-a.md").exists());
     assert!(!dir.0.join("project/archive").exists());
@@ -232,6 +258,23 @@ fn an_open_task_with_no_live_authority_is_reported_and_placed_nowhere() {
     assert!(text.contains("TSK-0003 needs a decision"), "{text}");
     assert!(!read(&dir.0, "project/archive/tasks/TSK-0003-c.md").contains("folded-into"));
     assert!(!read(&dir.0, "project/adrs/ADR-0002-gone.md").contains("## Plan"));
+}
+
+#[test]
+fn a_withdrawn_task_is_neither_folded_nor_reported_whatever_its_list_says() {
+    let dir = Dir::new("withdrawn");
+    old_form(&dir.0);
+    let text = said(&paw(&dir.0, &["upgrade", "--write"]));
+    assert!(!text.contains("TSK-0007"), "{text}");
+    assert!(!read(&dir.0, "project/bugs/BUG-0002-open.md").contains("2. "));
+}
+
+#[test]
+fn a_decision_whose_work_landed_elsewhere_stores_done() {
+    let dir = Dir::new("elsewhere");
+    old_form(&dir.0);
+    paw(&dir.0, &["upgrade", "--write"]);
+    assert!(read(&dir.0, "project/adrs/ADR-0004-elsewhere.md").contains("status: done"));
 }
 
 #[test]
@@ -340,6 +383,11 @@ fn a_decision_with_no_plan_is_not_ready_to_implement() {
 fn a_decision_with_a_plan_is_next_and_ready() {
     let dir = Dir::new("plan");
     new_form(&dir.0, "approved", "\n## Plan\n\n1. Do it.\n");
+    write(
+        &dir.0,
+        "project/specs/SPC-0001-a.md",
+        "---\nid: SPC-0001\nartifact: spec\nstatus: live\nrevised: 2026-01-01\nstates: [REQ-0001]\n---\n\n# A\n",
+    );
     let output = paw(&dir.0, &["ready", "implement", "ADR-0001"]);
     assert!(output.status.success(), "{}", said(&output));
     assert!(said(&paw(&dir.0, &["status"])).contains("next: implement ADR-0001"));

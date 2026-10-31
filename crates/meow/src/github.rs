@@ -17,6 +17,7 @@ mod project;
 mod protections;
 mod request;
 mod sync;
+mod upgrade;
 
 const USAGE: u8 = 2;
 const UNREAD: u8 = 3;
@@ -27,11 +28,11 @@ const LISTINGS: [(&str, &str); 4] = [
     ("review comments", "pulls/comments?per_page=100"),
 ];
 
-const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | sync <epic|decision|defect> [--check] [--wait] [<owner>/<name>] | protections [--wait] [<owner>/<name>] | governance-guard | irreversible-guard";
+const USAGE_LINE: &str = "usage: meow-github history [--wait] [<owner>/<name>] | project <decision|defect> [--check] [--wait] [<owner>/<name>] | sync <decision|defect> [--check] [--wait] [<owner>/<name>] | upgrade [--check] [--wait] [<owner>/<name>] | protections [--wait] [<owner>/<name>] | governance-guard | irreversible-guard";
 
 /// What each subcommand determines, what a person reads in its place, and its
 /// kinds of line (SPC-1080).
-pub(crate) const HELP: [crate::help::Entry; 6] = [
+pub(crate) const HELP: [crate::help::Entry; 7] = [
     crate::help::Entry {
         name: "history",
         determines: "the issues, pull requests and comments of one repository on the code host, read back",
@@ -41,16 +42,23 @@ pub(crate) const HELP: [crate::help::Entry; 6] = [
     },
     crate::help::Entry {
         name: "project",
-        determines: "where each task of an epic, decision or defect stands as an issue, and creates the missing ones",
-        by_hand: "read each task's `issue:` and the tracker's issue it names, and create the issue a task lacks",
+        determines: "where a decision or defect stands as an issue, and creates the issue where it is missing",
+        by_hand: "read the record's `issue:` and the tracker's issue it names, and create the issue where it lacks one",
         lines: "credential: meow-github primary secondary content spacing: partial: <id>",
         json: "",
     },
     crate::help::Entry {
         name: "sync",
         determines: "what changed on the tracker since the last projection, written back into the record",
-        by_hand: "compare each issue's title, state and body with its task's record, and copy a change to the record",
+        by_hand: "compare the issue's title, state and body with its record, and copy a change to the record",
         lines: "credential: meow-github primary secondary content spacing: partial: <id>",
+        json: "",
+    },
+    crate::help::Entry {
+        name: "upgrade",
+        determines: "what retires the issues of archived tasks after the record's upgrade merged, and with no `--check` retires them",
+        by_hand: "for each file under `archive/tasks`, close its open issue as completed where it is done, as not planned where it is dropped or carries `folded-into:`, naming the record that carries the work, and leave any other open",
+        lines: "credential: meow-github primary secondary content spacing: pull <id>",
         json: "",
     },
     crate::help::Entry {
@@ -109,6 +117,8 @@ pub fn main(args: &[String]) -> u8 {
         ("sync", [record, repository], _) => {
             synchronise(&mut layer, record, Some(repository), check)
         }
+        ("upgrade", [], _) => retire(&mut layer, None, check),
+        ("upgrade", [repository], _) => retire(&mut layer, Some(repository), check),
         ("protections", [], false) => protect(&mut layer, None),
         ("protections", [repository], false) => protect(&mut layer, Some(repository)),
         _ => {
@@ -118,7 +128,7 @@ pub fn main(args: &[String]) -> u8 {
     }
 }
 
-/// Projects an authorising record, with the credential's form as the report's first line and
+/// Projects a decision or defect, with the credential's form as the report's first line and
 /// the budget as its last lines (REQ-2568, REQ-2582).
 fn project(layer: &mut Layer, record: &str, repository: Option<&str>, check: bool) -> u8 {
     println!("credential: {}", credential());
@@ -129,12 +139,24 @@ fn project(layer: &mut Layer, record: &str, repository: Option<&str>, check: boo
     code
 }
 
-/// Synchronises an authorising record's tasks with their issues, with the
+/// Synchronises a decision or defect with its issue, with the
 /// credential's form as the report's first line and the budget as its last
 /// lines, as `project` does (ADR-2890).
 fn synchronise(layer: &mut Layer, record: &str, repository: Option<&str>, check: bool) -> u8 {
     println!("credential: {}", credential());
     let code = sync::run(layer, record, repository, check);
+    for line in layer.budget() {
+        println!("{line}");
+    }
+    code
+}
+
+/// Retires the issues of archived tasks, with the credential's form as the
+/// report's first line and the budget as its last lines, as `project` does
+/// (ADR-3090).
+fn retire(layer: &mut Layer, repository: Option<&str>, check: bool) -> u8 {
+    println!("credential: {}", credential());
+    let code = upgrade::run(layer, repository, check);
     for line in layer.budget() {
         println!("{line}");
     }
