@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-checks
 answers: what meow-checks does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-checks@0.14.1]
+describes: [meow-checks@0.15.0]
 description: "Runs a repository's five verification stages, format, lint, check, test and build, from the commands it declares in .meowpaw/profile.toml, and reports a stage with no command as unresolved, never as passed."
 ---
 

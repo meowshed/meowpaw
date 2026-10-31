@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-godot
 answers: what meow-godot does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-godot@0.1.1]
+describes: [meow-godot@0.2.0]
 description: "Detects Godot projects from what git tracks, reads the engine version from each project file before it binds anything, prints a stages table bound from the gdtoolkit, GUT and export preset files the repository committed with an import before every export and its output outside the working tree, reports an engine cache or identifier file ignored or committed wrongly, writing no file, and carries what a reviewer of GDScript and scenes checks that no command reports."
 ---
 

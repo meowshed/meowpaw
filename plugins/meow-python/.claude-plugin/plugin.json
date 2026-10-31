@@ -1,6 +1,6 @@
 {
   "name": "meow-python",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Detects a Python project from the pyproject.toml git tracks, reads the environment tool it declares, prints a stages table bound from the tools it configured and run through that environment, reports a stage that runs a tool outside the environment or lets a tool write into the working tree, and carries what a reviewer of Python checks that no command reports, writing no file.",
   "author": {
     "name": "Andrew Vasilyev",

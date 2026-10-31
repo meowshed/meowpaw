@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-licence
 answers: what meow-licence does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-licence@0.6.1]
+describes: [meow-licence@0.7.0]
 description: "Adds the licence header a repository declares to each file Claude Code creates, never rewrites one, and checks that every tracked file is covered by the licensing declared in REUSE.toml, in .meowpaw/profile.toml or in its files' headers."
 ---
 

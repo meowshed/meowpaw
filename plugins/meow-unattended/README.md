@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-unattended
 answers: what posture meow-unattended prints, what its deny rules stop and what they don't
 kind: reference
-describes: [meow-unattended@0.6.1]
+describes: [meow-unattended@0.7.0]
 description: "Prints the posture an unattended run is held to from the [unattended] table a repository declares: the permission mode, the gates the run may decide, its release command and whether it may amend an approved record, with each deny rule and what the rules don't stop. It writes nothing, starts nothing and keeps nothing in context on every turn."
 ---
 

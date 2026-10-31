@@ -1,5 +1,10 @@
 # meow-unattended
 
+## 0.7.0
+
+- `[unattended] gates` no longer accepts `epic`; `paw upgrade --write` removes it from a profile.
+- This release retires epics and tasks. Before using it, run `paw upgrade` to preview and `paw upgrade --write` on a branch: `paw` refuses a record holding `tasks/` or `epics/` until then.
+
 ## 0.6.1
 
 - Its launcher runs the shared executable, which now carries `serde_json` 1.0.154 and `sha2` 0.11.1; the unit itself is unchanged.

@@ -2,7 +2,7 @@
 reader: someone choosing or running meow-mise
 answers: what meow-mise does, what it adds to a session and how to run it
 kind: reference
-describes: [meow-mise@0.5.1]
+describes: [meow-mise@0.6.0]
 description: "Reports the tasks mise resolves in a repository, with where each came from and what stops a stage running it unattended, binds the stages to them, and never grants trust, answers a prompt or writes a file."
 ---
 
