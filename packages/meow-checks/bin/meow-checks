@@ -64,6 +64,10 @@ run)
   printf '\nsummary: %s\n' "$summary"
   exit 3
   ;;
+evidence | state | tree | local | doctor)
+  echo "meow-checks $1: unresolved: $reason"
+  exit 3
+  ;;
 *)
   echo "usage: meow-checks status [--json] | meow-checks run <verb>..." >&2
   exit 2

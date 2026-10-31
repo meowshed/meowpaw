@@ -913,6 +913,7 @@ whether the repository can be worked on.
 | [BUG-1690](bugs/BUG-1690-the-wrapper-names-the-wrong-fix-for-a-github-source-install.md)                | The wrapper names the wrong fix for a marketplace added from the GitHub repository                                                                                                         |
 | [BUG-1700](bugs/BUG-1700-the-gate-s-pin-strands-installed-launchers-in-this-repository.md)              | The gate's pin stops every installed launcher working in this repository                                                                                                                   |
 | [BUG-1710](bugs/BUG-1710-meow-github-prints-usage-where-no-binary-resolves.md)                          | `meow-github` prints its usage where no binary resolves                                                                                                                                    |
+| [BUG-1720](bugs/BUG-1720-meow-checks-prints-usage-where-no-binary-resolves.md)                          | `meow-checks` prints its usage where no binary resolves                                                                                                                                    |
 
 BUG-1040, BUG-1100 and BUG-1360 are open. BUG-1040 routes to design, because
 the mechanism ADR-1000 chose does not deliver what the decision claims. BUG-1100
