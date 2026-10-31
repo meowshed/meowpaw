@@ -124,7 +124,7 @@ jobs:
               # package left over.
               cat /tmp/publish.log
               if npm view "$name" name >/dev/null 2>&1; then
-                echo "::error::$name names no trusted publisher; run: npm trust github $name --file pi-release.yml --repo meowshed/meowpaw"
+                echo "::error::$name names no trusted publisher; run: npm trust github $name --file pi-release.yml --repo meowshed/meowpaw --allow-publish"
               else
                 echo "::error::$name has never been published; publish its first version by hand and name this workflow as its trusted publisher"
               fi

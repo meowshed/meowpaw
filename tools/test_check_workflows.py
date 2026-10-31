@@ -461,6 +461,7 @@ esac
         self.assertIn("@x/meow-c@1.0.0 published", done.stdout)
         self.assertIn("not published: @x/meow-b", done.stdout)
         self.assertIn("npm trust github @x/meow-b", done.stdout)
+        self.assertRegex(done.stdout, r"npm trust github @x/meow-b .*--allow-publish")
 
 
 if __name__ == "__main__":
