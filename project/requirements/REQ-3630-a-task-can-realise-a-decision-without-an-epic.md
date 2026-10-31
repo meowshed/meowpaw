@@ -3,8 +3,8 @@ id: REQ-3630
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: static
 ---
@@ -13,6 +13,8 @@ verification: static
 
 # REQ-3630
 
-A task MUST be able to realise a decision directly, with no epic, where the decision needs one task.
+**Withdrawn. Replaced by REQ-3668.**
 
-Seventeen of 70 epics group one task (RES-0310, conclusion 16).
+It read: a task MUST be able to realise a decision directly, with no epic, where the decision needs one task.
+
+Withdrawn by ADR-3090.

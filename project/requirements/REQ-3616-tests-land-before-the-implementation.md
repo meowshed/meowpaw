@@ -3,8 +3,8 @@ id: REQ-3616
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: judgement
 verifier: person
@@ -14,6 +14,8 @@ verifier: person
 
 # REQ-3616
 
-A task's tests MUST land in the task's own pull request, in a commit before any commit that implements the task.
+**Withdrawn. Replaced by REQ-3682.**
 
-Writing the tests first is the whole of what the cover step did, and a pull request of its own for them only added a merge (RES-0310, conclusion 8; the owner's instruction).
+It read: a task's tests MUST land in the task's own pull request, in a commit before any commit that implements the task.
+
+Withdrawn by ADR-3090.

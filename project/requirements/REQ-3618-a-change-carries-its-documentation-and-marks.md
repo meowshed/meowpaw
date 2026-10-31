@@ -3,8 +3,8 @@ id: REQ-3618
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: judgement
 verifier: person
@@ -14,6 +14,8 @@ verifier: person
 
 # REQ-3618
 
-A task's pull request MUST carry the documentation and the record marks the task changes.
+**Withdrawn. Replaced by REQ-3682.**
 
-Two of the cover step's eleven pull requests only changed documentation after the fact (RES-0310, conclusion 9).
+It read: a task's pull request MUST carry the documentation and the record marks the task changes.
+
+Withdrawn by ADR-3090.

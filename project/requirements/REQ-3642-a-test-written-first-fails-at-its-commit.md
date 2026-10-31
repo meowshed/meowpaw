@@ -3,8 +3,8 @@ id: REQ-3642
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: judgement
 verifier: person
@@ -14,6 +14,8 @@ verifier: person
 
 # REQ-3642
 
-Each test written ahead of a task's implementation MUST fail at the commit that adds it.
+**Withdrawn. Replaced by REQ-3682.**
 
-A test that passed before the implementation existed tests nothing the task added, and the commit shows the failure without a kept run (RES-0310, conclusions 7 and 8).
+It read: each test written ahead of a task's implementation MUST fail at the commit that adds it.
+
+Withdrawn by ADR-3090.

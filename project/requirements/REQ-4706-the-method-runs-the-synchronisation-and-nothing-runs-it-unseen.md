@@ -3,8 +3,8 @@ id: REQ-4706
 artifact: requirement
 topic: tracker-sync
 class: functional
-status: approved
-revised: 2026-10-10
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0349
 verification: judgement
 ---
@@ -13,8 +13,9 @@ verification: judgement
 
 # REQ-4706
 
-The method MUST run a synchronisation at the start and at the end of an epic's
+**Withdrawn. Replaced by REQ-4002.**
+
+It read: the method MUST run a synchronisation at the start and at the end of an epic's
 work, and a synchronisation MUST NOT run in the background.
 
-The owner asked for it to be automatic, and a run no person starts is a run
-without a gate, so the method is what makes it automatic.
+Withdrawn by ADR-3090.

@@ -3,8 +3,8 @@ id: REQ-3628
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: judgement
 verifier: person
@@ -14,6 +14,8 @@ verifier: person
 
 # REQ-3628
 
-An acceptance criterion MUST be decidable from the work of the task or epic that states it.
+**Withdrawn. Replaced by REQ-3682.**
 
-Criterion 9 of EPC-1580 depended on a later epic and could no longer be met when it was checked (RES-0310, conclusion 15).
+It read: an acceptance criterion MUST be decidable from the work of the task or epic that states it.
+
+Withdrawn by ADR-3090.

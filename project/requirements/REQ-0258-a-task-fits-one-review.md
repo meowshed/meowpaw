@@ -3,8 +3,8 @@ id: REQ-0258
 artifact: requirement
 topic: the-method
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0002, RES-0257
 verification: judgement
 verifier: agent
@@ -12,8 +12,9 @@ verifier: agent
 
 # REQ-0258
 
-A task MUST be small enough that the change proposing it will be reviewed
+**Withdrawn. Replaced by REQ-3670.**
+
+It read: a task MUST be small enough that the change proposing it will be reviewed
 rather than approved.
 
-Review effectiveness falls with the size of what is in front of the reader, so
-past a point a reviewer stops reading and starts agreeing.
+Withdrawn by ADR-3090.

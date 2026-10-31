@@ -3,8 +3,8 @@ id: REQ-3646
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: static
 ---
@@ -13,6 +13,8 @@ verification: static
 
 # REQ-3646
 
-Every requirement a decision addresses MUST be named by at least one task or epic, or be postponed with a reason.
+**Withdrawn. Replaced by REQ-3680.**
 
-This keeps the coverage check of a decomposition without requiring that one task hold each requirement (the owner's instruction).
+It read: every requirement a decision addresses MUST be named by at least one task or epic, or be postponed with a reason.
+
+Withdrawn by ADR-3090.

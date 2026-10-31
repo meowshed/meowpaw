@@ -11,6 +11,8 @@ supersedes: []
 
 # 2890. A task and its issue are synchronised by a fingerprint of each side
 
+**Amended by ADR-3090.** The mapping now lives on a decision or a defect.
+
 ## Decision
 
 `meow-github sync` compares each task with its issue by a fingerprint of the

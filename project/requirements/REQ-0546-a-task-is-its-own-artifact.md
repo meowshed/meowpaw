@@ -3,16 +3,17 @@ id: REQ-0546
 artifact: requirement
 topic: artifacts
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0055
 verification: static
 ---
 
 # REQ-0546
 
-A task MUST be an artifact of its own rather than a line inside another
+**Withdrawn. Replaced by REQ-3668.**
+
+It read: a task MUST be an artifact of its own rather than a line inside another
 artifact.
 
-A task is dispatched, verified and closed on its own, and none of that is
-possible for a line inside another document.
+Withdrawn by ADR-3090.

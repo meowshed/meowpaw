@@ -11,6 +11,8 @@ supersedes: []
 
 # 2880. The record keeps its files and gains commands for its writes
 
+**Amended by ADR-3090.** `paw done` now takes a decision or a defect.
+
 ## Decision
 
 The record stays one artifact for each file, as plain Markdown, and the tool

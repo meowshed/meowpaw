@@ -3,8 +3,8 @@ id: REQ-3650
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: judgement
 verifier: person
@@ -14,6 +14,8 @@ verifier: person
 
 # REQ-3650
 
-A decision's research, requirements, decision record, specification changes, epic and tasks MUST be able to land in one pull request, with the approved records they replace withdrawn in it.
+**Withdrawn. Replaced by REQ-3668.**
 
-The cover step's two record pull requests added 4,044 lines before any code, and splitting them bought no review nobody could give in one (RES-0310; the owner's instruction).
+It read: a decision's research, requirements, decision record, specification changes, epic and tasks MUST be able to land in one pull request, with the approved records they replace withdrawn in it.
+
+Withdrawn by ADR-3090.

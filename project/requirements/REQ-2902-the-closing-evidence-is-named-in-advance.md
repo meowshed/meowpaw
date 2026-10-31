@@ -3,15 +3,17 @@ id: REQ-2902
 artifact: requirement
 topic: artifacts
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0257
 verification: static
 ---
 
 # REQ-2902
 
-A task MUST name, for each acceptance criterion, the evidence that will close
+**Withdrawn. Replaced by REQ-3672.**
+
+It read: a task MUST name, for each acceptance criterion, the evidence that will close
 it.
 
-Evidence chosen afterwards is whatever the work happened to produce.
+Withdrawn by ADR-3090.

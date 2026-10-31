@@ -3,13 +3,17 @@ id: REQ-0634
 artifact: requirement
 topic: permanence
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0011
 verification: behavioural
 ---
 
 # REQ-0634
 
-An epic MUST be mutable while its work runs and MUST freeze when its
+**Withdrawn. Replaced by REQ-3676.**
+
+It read: an epic MUST be mutable while its work runs and MUST freeze when its
 authorising record is realised.
+
+Withdrawn by ADR-3090.

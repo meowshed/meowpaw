@@ -3,8 +3,8 @@ id: REQ-4410
 artifact: requirement
 topic: source-control
 class: functional
-status: approved
-revised: 2026-10-10
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0346
 verification: judgement
 ---
@@ -13,9 +13,10 @@ verification: judgement
 
 # REQ-4410
 
-Where a person asks for an epic, the method skill MUST write its records
+**Withdrawn. Replaced by REQ-3668.**
+
+It read: where a person asks for an epic, the method skill MUST write its records
 through to the tasks, implement them on the same branch and stop once, at the
 pull request.
 
-The merge of that pull request is the one approval, and work done before it
-is at risk of rejection with the decision.
+Withdrawn by ADR-3090.

@@ -3,8 +3,8 @@ id: REQ-3626
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: judgement
 verifier: person
@@ -14,6 +14,8 @@ verifier: person
 
 # REQ-3626
 
-An agent MUST review a task's change inside the task's pull request, with its findings fixed in that pull request and written into no record.
+**Withdrawn. Replaced by REQ-3682.**
 
-A finding fixed beside its cause needs no record (RES-0310, conclusion 13).
+It read: an agent MUST review a task's change inside the task's pull request, with its findings fixed in that pull request and written into no record.
+
+Withdrawn by ADR-3090.

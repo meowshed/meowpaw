@@ -3,12 +3,16 @@ id: REQ-0660
 artifact: requirement
 topic: permanence
 class: functional
-status: approved
-revised: 2026-09-20
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0036
 verification: behavioural
 ---
 
 # REQ-0660
 
-A task's output MAY be a document rather than code.
+**Withdrawn. Replaced by REQ-3668.**
+
+It read: a task's output MAY be a document rather than code.
+
+Withdrawn by ADR-3090.

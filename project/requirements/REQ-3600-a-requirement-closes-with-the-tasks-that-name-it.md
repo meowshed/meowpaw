@@ -3,8 +3,8 @@ id: REQ-3600
 artifact: requirement
 topic: the-short-chain
 class: functional
-status: approved
-revised: 2026-09-29
+status: withdrawn
+revised: 2026-10-31
 elaborates: RES-0310
 verification: static
 ---
@@ -13,6 +13,8 @@ verification: static
 
 # REQ-3600
 
-A requirement MUST be reported closed when at least one closed task or epic names it and no open task or epic names it, and open otherwise.
+**Withdrawn. Replaced by REQ-3680.**
 
-The state follows from the records that do the work, so no session has to write it (RES-0310, conclusion 1).
+It read: a requirement MUST be reported closed when at least one closed task or epic names it and no open task or epic names it, and open otherwise.
+
+Withdrawn by ADR-3090.
