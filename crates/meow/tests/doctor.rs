@@ -227,6 +227,10 @@ fn doctor_and_paw_status_answer_different_questions() {
     let (_, doctor) = paw(&fixture, &["verbs", "doctor"]);
     let (_, status) = paw(&fixture, &["record", "status"]);
     assert!(!status.trim().is_empty(), "paw status printed nothing");
+    assert!(
+        !status.contains("not checked"),
+        "paw status read no record:\n{status}"
+    );
     let doctor_words = doctor.to_lowercase();
     for word in [
         "research",
