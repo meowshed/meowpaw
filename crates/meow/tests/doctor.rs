@@ -110,6 +110,10 @@ fn paw(fixture: &Fixture, args: &[&str]) -> (Output, String) {
         .env("XDG_STATE_HOME", state)
         .env("XDG_RUNTIME_DIR", state)
         .env("MEOWPAW_STATE_DIR", state)
+        .env(
+            "MEOW_LAYOUT",
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plugins/meow-flow/lib/layout.toml"),
+        )
         .env("GIT_CONFIG_GLOBAL", "/dev/null")
         .env("GIT_CONFIG_NOSYSTEM", "1")
         .stdin(Stdio::null())
